@@ -16,7 +16,24 @@
                     <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Dashboard') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
+<flux:navlist.group :heading="__('Financeiro')">
+    <flux:navlist.item icon="credit-card" :href="url('banks')" :current="Request::is('banks')">Bancos</flux:navlist.item>
+    <flux:navlist.item icon="wallet" :href="url('cashbook')" :current="Request::is('cashbook')">Livro Caixa</flux:navlist.item>
+    <flux:navlist.item  :href="url('cofrinho')" :current="Request::is('cofrinho')">Cofrinhos</flux:navlist.item>
+</flux:navlist.group>
 
+<flux:navlist.group :heading="__('Vendas e Produtos')">
+    <flux:navlist.item  :href="url('products')" :current="Request::is('products')">Produtos</flux:navlist.item>
+    <flux:navlist.item icon="users" :href="url('clients')" :current="Request::is('clients')">Clientes</flux:navlist.item>
+    <flux:navlist.item  :href="url('sales')" :current="Request::is('sales')">Vendas</flux:navlist.item>
+    <flux:navlist.item  :href="url('categories')" :current="Request::is('categories')">Categorias</flux:navlist.item>
+</flux:navlist.group>
+
+<flux:navlist.group :heading="__('Dashboards')">
+    <flux:navlist.item :href="url('dashboard/cashbook')" :current="Request::is('dashboard/cashbook')">Dashboard Livro Caixa</flux:navlist.item>
+    <flux:navlist.item  :href="url('dashboard/sales')" :current="Request::is('dashboard/sales')">Dashboard Vendas</flux:navlist.item>
+    <flux:navlist.item  :href="url('dashboard/products')" :current="Request::is('dashboard/products')">Dashboard Produtos</flux:navlist.item>
+</flux:navlist.group>
             <flux:spacer />
 
             <flux:navlist variant="outline">
