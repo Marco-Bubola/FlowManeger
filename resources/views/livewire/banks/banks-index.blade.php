@@ -3,12 +3,12 @@
     <div class="mb-8">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Método de Pagamento</h1>
-            <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" data-modal-target="addCardModal" data-modal-toggle="addCardModal">
+            <a href="{{ route('banks.create') }}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 inline-flex items-center">
                 <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
                 Adicionar Novo Cartão
-            </button>
+            </a>
         </div>
     </div>
 
@@ -30,12 +30,11 @@
                         </svg>
                     </a>
 
-                    <button class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 dark:focus:ring-gray-700"
-                        wire:click="openEditModal({{ $bank['id_bank'] }})" data-modal-target="editBankModal" data-modal-toggle="editBankModal" title="Editar">
+                    <a href="{{ route('banks.edit', $bank['id_bank']) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 focus:ring-4 focus:ring-gray-200 dark:bg-gray-700 dark:text-white dark:border-gray-600 dark:hover:bg-gray-600 dark:focus:ring-gray-700" title="Editar">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                         </svg>
-                    </button>
+                    </a>
 
                     <button class="inline-flex items-center px-3 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-800"
                         wire:click="openDeleteModal({{ $bank['id_bank'] }})" data-modal-target="deleteBankModal" data-modal-toggle="deleteBankModal" title="Excluir">
@@ -60,12 +59,12 @@
                 <p class="text-gray-500 dark:text-gray-400 mb-6 max-w-md mx-auto">
                     Você ainda não cadastrou nenhum método de pagamento. Adicione um novo banco ou cartão para começar a gerenciar suas finanças!
                 </p>
-                <button type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800" data-modal-target="addCardModal" data-modal-toggle="addCardModal">
+                <a href="{{ route('banks.create') }}" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 inline-flex items-center">
                     <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                     </svg>
                     Adicionar Primeiro Cartão
-                </button>
+                </a>
             </div>
         </div>
         @endif
@@ -194,12 +193,7 @@
         </div>
     </div>
 
-    <!-- Incluir o modal de criação -->
-    @livewire('banks.create-bank')
-
-    <!-- Incluir modais de edição e exclusão -->
-    @include('livewire.banks.edit-bank')
-    @include('livewire.banks.delet-bank')
+    @include('livewire.banks.delete-bank', ['showDeleteModal' => $showDeleteModal])
 
 
 </div>
