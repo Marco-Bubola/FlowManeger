@@ -1,193 +1,109 @@
-<!-- Modal para Adicionar Novo Cartão -->
 @php
-// Definir os ícones dos bancos diretamente aqui para evitar problemas de variável indefinida
 $bankIcons = [
-['name' => 'Nubank', 'icon' => asset('assets/img/banks/nubank.svg')],
-['name' => 'Inter', 'icon' => asset('assets/img/banks/inter.png')],
-['name' => 'Santander', 'icon' => asset('assets/img/banks/santander.png')],
-['name' => 'Itaú', 'icon' => asset('assets/img/banks/itau.png')],
-['name' => 'Banco do Brasil', 'icon' => asset('assets/img/banks/bb.png')],
-['name' => 'Caixa', 'icon' => asset('assets/img/banks/caixa.png')],
-['name' => 'Bradesco', 'icon' => asset('assets/img/banks/bradesco.png')],
+    ['name' => 'Nubank', 'icon' => asset('assets/img/banks/nubank.svg')],
+    ['name' => 'Inter', 'icon' => asset('assets/img/banks/inter.png')],
+    ['name' => 'Santander', 'icon' => asset('assets/img/banks/santander.png')],
+    ['name' => 'Itaú', 'icon' => asset('assets/img/banks/itau.png')],
+    ['name' => 'Banco do Brasil', 'icon' => asset('assets/img/banks/bb.png')],
+    ['name' => 'Caixa', 'icon' => asset('assets/img/banks/caixa.png')],
+    ['name' => 'Bradesco', 'icon' => asset('assets/img/banks/bradesco.png')],
 ];
 @endphp
 
-<div id="addCardModal" tabindex="-1" aria-hidden="true"
-    class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full">
-    <div class="relative p-4 w-full max-w-4xl max-h-full">
-        <!-- Modal content -->
-        <div class="relative bg-white rounded-lg shadow dark:bg-gray-700">
-            <!-- Modal header -->
-            <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    <svg class="w-6 h-6 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                        </path>
-                    </svg>
-                    Adicionar Novo Cartão
-                </h3>
-                <button type="button"
-                    class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center dark:hover:bg-gray-600 dark:hover:text-white"
-                    data-modal-hide="addCardModal">
-                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 14 14">
-                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
-                    </svg>
-                    <span class="sr-only">Fechar modal</span>
-                </button>
-            </div>
-            <!-- Modal body -->
-            <form wire:submit="store">
-                <div class="p-4 md:p-5 space-y-4">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                                </svg>
-                                Titular do Cartão
-                            </label>
-                            <input type="text" id="name" wire:model="name"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
-                            @error('name') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label for="description"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                    </path>
-                                </svg>
-                                Número do Cartão
-                            </label>
-                            <input type="text" maxlength="19" id="description" wire:model="description"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required placeholder="0000-0000-0000-0000">
-                            @error('description') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-
-                    <!-- Seleção de ícone do banco/cartão -->
-                    <div>
-                        <label class="block mb-3 text-sm font-medium text-gray-900 dark:text-white">
-                            <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                                </path>
-                            </svg>
-                            Escolha o ícone do banco/cartão
-                        </label>
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-                                @foreach($bankIcons as $icon)
-                            <label class="flex flex-col items-center cursor-pointer group">
-                                <input type="radio" wire:model="caminho_icone" value="{{ $icon['icon'] }}"
-                                    class="sr-only peer" required>
-                                <img src="{{ $icon['icon'] }}" alt="{{ $icon['name'] }}" title="{{ $icon['name'] }}"
-                                    class="w-16 h-16 rounded-lg border-2 border-transparent peer-checked:border-blue-500 peer-checked:ring-4 peer-checked:ring-blue-200 group-hover:border-gray-300 transition-all duration-200">
-                                <span
-                                    class="text-xs text-gray-600 dark:text-gray-400 mt-2 text-center group-hover:text-gray-900 dark:group-hover:text-white transition-colors">{{ $icon['name'] }}</span>
-                                    </label>
-                                @endforeach
-                        </div>
-                        @error('caminho_icone') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="start_date"
-                                class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                                Data de Início
-                            </label>
-                            <input type="date" id="start_date" wire:model="start_date"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
-                            @error('start_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                        </div>
-                        <div>
-                            <label for="end_date" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                <svg class="w-4 h-4 mr-1 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                    </path>
-                                </svg>
-                                Data de Término
-                            </label>
-                            <input type="date" id="end_date" wire:model="end_date"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                                required>
-                            @error('end_date') <span class="text-red-500 text-sm">{{ $message }}</span> @enderror
-                        </div>
-                    </div>
-                </div>
-                <!-- Modal footer -->
-                <div
-                    class="flex items-center justify-end p-4 md:p-5 border-t border-gray-200 rounded-b dark:border-gray-600">
-                    <button type="button"
-                        class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-gray-200 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600 dark:focus:ring-gray-600"
-                        data-modal-hide="addCardModal">
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                            Fechar
-                        </button>
-                    <button type="submit"
-                        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                        <svg class="w-4 h-4 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7">
-                            </path>
-                        </svg>
-                            Salvar Cartão
-                        </button>
-                    </div>
-                </form>
+<div class="h-[90vh] border-gray-200 dark:border-gray-700 flex flex-col p-0 m-0 overflow-hidden  ">
+    <header class="w-full py-8 px-6 md:px-16 flex flex-col items-center justify-center text-center gap-2">
+        <div class="flex items-center gap-4 justify-center">
+            <!-- Ícone de banco/cartão -->
+            <svg class="w-16 h-16 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><path d="M2 11h20" stroke-width="2" stroke="currentColor"/></svg>
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-2">Adicionar Novo Cartão/Banco</h1>
+            <!-- Ícone de adição -->
+            <svg class="w-12 h-12 text-blue-400 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
         </div>
-    </div>
+        <div class="flex items-center gap-2 justify-center">
+            <!-- Ícone de informação -->
+            <svg class="w-10 h-10 text-gray-400 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"/><path d="M12 16v-4M12 8h.01" stroke-width="2" stroke="currentColor"/></svg>
+            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Cadastre um novo cartão ou banco para gerenciar suas finanças.</p>
+        </div>
+    </header>
+    <form wire:submit.prevent="store" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-8 px-4 md:px-10 pb-8 overflow-auto">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div>
+                <label for="name" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">Titular do Cartão</label>
+                <div class="relative">
+                    <span class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2">
+                        <!-- Ícone de usuário -->
+                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    </span>
+                    <input type="text" id="name" wire:model="name"
+                        class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-10 outline-none transition text-xl" required placeholder="Nome do titular">
+                </div>
+                @error('name') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
-            
-            <script>
-            document.addEventListener('DOMContentLoaded', function() {
-                // Máscara dinâmica para número do cartão
-                const cardInput = document.getElementById('description');
-    if (cardInput) {
-                cardInput.addEventListener('input', function(e) {
-            let value = cardInput.value.replace(/\D/g, '').slice(0, 16);
-                    let formatted = '';
-                    for (let i = 0; i < value.length; i += 4) {
-                        if (formatted) formatted += '-';
-                        formatted += value.substr(i, 4);
-                    }
-                    cardInput.value = formatted;
-        });
-    }
-
-    // Seleção de ícones com feedback visual
-    const radioButtons = document.querySelectorAll('input[type="radio"]');
-    radioButtons.forEach(radio => {
-        radio.addEventListener('change', function() {
-            // Remove todas as seleções visuais
-            document.querySelectorAll('.peer-checked\\:border-blue-500').forEach(img => {
-                img.classList.remove('peer-checked:border-blue-500',
-                    'peer-checked:ring-4', 'peer-checked:ring-blue-200');
-            });
-
-            // Adiciona seleção visual ao item selecionado
-            if (this.checked) {
-                const img = this.nextElementSibling;
-                img.classList.add('peer-checked:border-blue-500', 'peer-checked:ring-4',
-                    'peer-checked:ring-blue-200');
-                        }
-                    });
-                });
-            });
-            </script>
+            <div>
+                <label for="description" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">Número do Cartão</label>
+                <div class="relative">
+                    <span class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2">
+                        <!-- Ícone de cartão -->
+                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><path d="M2 11h20" stroke-width="2" stroke="currentColor"/></svg>
+                    </span>
+                    <input type="text" maxlength="19" id="description" wire:model="description"
+                        x-model="cardNumber" x-on:input="
+                            let value = cardNumber.replace(/\D/g, '').slice(0,16);
+                            let formatted = '';
+                            for (let i = 0; i < value.length; i += 4) {
+                                if (formatted) formatted += '-';
+                                formatted += value.substr(i, 4);
+                            }
+                            cardNumber = formatted;"
+                        class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-10 outline-none transition text-xl" required placeholder="0000-0000-0000-0000">
+                </div>
+                @error('description') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+            </div>
+        </div>
+        <div>
+            <label class="block mb-4 text-xl font-bold text-gray-800 dark:text-gray-200">Escolha o ícone do banco/cartão</label>
+            <div class="flex flex-wrap gap-8">
+                @foreach($bankIcons as $icon)
+                <label class="flex flex-col items-center cursor-pointer group">
+                    <input type="radio" wire:model="caminho_icone" value="{{ $icon['icon'] }}" class="sr-only peer" required>
+                    <div class="w-40 h-40 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-700 peer-checked:border-blue-500 dark:peer-checked:border-white bg-gray-100 dark:bg-gray-900 transition">
+                        <img src="{{ $icon['icon'] }}" alt="{{ $icon['name'] }}" title="{{ $icon['name'] }}" class="w-16 h-16">
+                    </div>
+                    <span class="text-base text-gray-600 dark:text-gray-400 mt-2 text-center group-hover:text-blue-700 dark:group-hover:text-white transition-colors">{{ $icon['name'] }}</span>
+                </label>
+                @endforeach
+            </div>
+            @error('caminho_icone') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div>
+                <label for="start_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Data de Início</label>
+                <input type="date" id="start_date" wire:model="start_date"
+                    class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
+                @error('start_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+            </div>
+            <div>
+                <label for="end_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Data de Término</label>
+                <input type="date" id="end_date" wire:model="end_date"
+                    class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
+                @error('end_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+            </div>
+        </div>
+        <div class="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
+            <a href="{{ route('banks.index') }}"
+                class="inline-flex items-center px-10 py-4 text-lg font-bold text-gray-600 dark:text-gray-300 bg-transparent border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-blue-700 dark:hover:text-white transition">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+                Cancelar
+            </a>
+            <button type="submit"
+                class="inline-flex items-center px-12 py-4 text-lg font-bold text-white dark:text-gray-900 bg-blue-600 dark:bg-gray-100 rounded-full hover:bg-blue-700 dark:hover:bg-white transition gap-2">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Salvar Cartão
+            </button>
+        </div>
+    </form>
+</div>
