@@ -55,17 +55,15 @@ class EditBank extends Component
         $validated = $this->validate();
         $this->bank->update($validated);
 
-        // Dispara um evento para fechar o modal e atualizar a lista de bancos
-        $this->dispatch('bank-updated');
-        $this->dispatch('close-edit-modal'); // Dispatch para fechar o modal
-        
+              
         Session::flash('success', 'Cartão atualizado com sucesso!');
+        $this->redirectRoute('banks.index');
     }
 
     public function render()
     {
         return view('livewire.banks.edit-bank', [
             'bankIcons' => $this->bankIcons
-        ])->layout('layouts.app');
+        ]);
     }
 }
