@@ -243,7 +243,9 @@ public function openEditModal(int $bankId): void
      */
  public function render()
     {
-        return view('livewire.banks.banks-index');
+        return view('livewire.banks.banks-index', [
+            'showDeleteModal' => $this->showDeleteModal,
+        ]);
     }
 
 }
