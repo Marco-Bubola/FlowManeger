@@ -8,6 +8,14 @@ use App\Livewire\Banks\BanksIndex;
 use App\Livewire\Banks\CreateBank; // <--- Verifique se o 'use' está correto
 use App\Livewire\Banks\EditBank;
 
+// Importar componentes Livewire de produtos
+use App\Livewire\Products\ProductsIndex;
+use App\Livewire\Products\CreateProduct;
+use App\Livewire\Products\EditProduct;
+use App\Livewire\Products\CreateKit;
+use App\Livewire\Products\EditKit;
+use App\Livewire\Products\UploadProducts;
+
 // Importar todos os controladores que você usa
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChangePasswordController;
@@ -20,7 +28,6 @@ use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ResetController;
 use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\ProductUploadController;
 use App\Http\Controllers\SaleController;
 use App\Models\Client;
 use App\Http\Controllers\UploadInvoiceController;
@@ -66,17 +73,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clientes/{cliente}/transferencias-enviadas', [ClienteResumoController::class, 'transferenciasEnviadasAjax'])->name('clientes.transferencias.enviadas.ajax');
     Route::get('/clientes/{cliente}/transferencias-recebidas', [ClienteResumoController::class, 'transferenciasRecebidasAjax'])->name('clientes.transferencias.recebidas.ajax');
 
-    // --- Rotas de Produtos ---
-    Route::resource('products', ProductController::class);
-    Route::put('/products/{id}', [ProductController::class, 'update'])->name('products.update');
-    Route::get('/products/upload', [ProductUploadController::class, 'showUploadForm'])->name('products.upload');
-    Route::post('/products/upload', [ProductUploadController::class, 'upload'])->name('products.upload');
-    Route::post('/products/pdf/store', [ProductUploadController::class, 'store'])->name('products.pdf.store');
-    Route::post('/products/manual/store', [ProductController::class, 'store'])->name('products.manual.store');
+    // --- Rotas de Produtos (Livewire) ---
+    Route::get('/products', ProductsIndex::class)->name('products.index');
+    Route::get('/products/create', CreateProduct::class)->name('products.create');
+    Route::get('/products/{product}/edit', EditProduct::class)->name('products.edit');
+    Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
+    Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
+    Route::get('/products/upload', UploadProducts::class)->name('products.upload');
+    
+    // Manter rotas que ainda usam controller para funcionalidades específicas
     Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
     Route::post('/products/update-all', [ProductController::class, 'updateAll'])->name('products.updateAll');
-    Route::post('products/kit/store', [ProductController::class, 'storeKit'])->name('products.kit.store');
-    Route::put('products/kit/update/{id}', [ProductController::class, 'updateKit'])->name('products.kit.update');
     Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
 
     // --- Rotas de Vendas ---
@@ -85,10 +92,8 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/sales/{sale}/add-payment', [SaleController::class, 'addPayment'])->name('sales.addPayment');
     Route::put('/sales/{saleId}/payments/{paymentId}/update', [SaleController::class, 'updatePayment'])->name('sales.updatePayment');
     Route::delete('/sales/{saleId}/payments/{paymentId}/delete', [SaleController::class, 'deletePayment'])->name('sales.deletePayment');
-    Route::get('/sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
     Route::delete('/sales/item/{id}', [SaleController::class, 'destroySaleItem'])->name('sales.item.destroy');
     Route::put('/sales/{sale}/item/{item}', [SaleController::class, 'updateSaleItem'])->name('sales.item.update');
-    Route::put('/sales/{sale}', [SaleController::class, 'update'])->name('sales.update');
     Route::get('/sales/{id}/export', [SaleController::class, 'export'])->name('sales.export');
     Route::get('/sales/search', [SaleController::class, 'search'])->name('sales.search');
     Route::post('/parcelas/{id}/pagar', [SaleController::class, 'pagarParcela'])->name('parcelas.pagar');
