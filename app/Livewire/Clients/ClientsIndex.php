@@ -85,7 +85,7 @@ class ClientsIndex extends Component
         $this->resetPage();
     }
 
-    public function getClientsProperty()
+    public function render()
     {
         $query = Client::where('user_id', Auth::id());
 
@@ -114,13 +114,10 @@ class ClientsIndex extends Component
                 break;
         }
 
-        return $query->with('sales')->paginate($this->perPage);
-    }
+        $clients = $query->with('sales')->paginate($this->perPage);
 
-    public function render()
-    {
         return view('livewire.clients.clients-index', [
-            'clients' => $this->clients
+            'clients' => $clients
         ]);
     }
 }
