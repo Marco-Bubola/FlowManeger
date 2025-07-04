@@ -1,9 +1,13 @@
 <x-layouts.app.sidebar :title="$title ?? null">
-    <flux:main>
 
-        <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
-      
-        <script>
+
+
+  <flux:main>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
+    {{-- Removido Alpine.js duplicado, pois Livewire já injeta automaticamente --}}
+
+    <script>
       window.Promise ||
         document.write(
           '<script src="https://cdn.jsdelivr.net/npm/promise-polyfill@8/dist/polyfill.min.js"><\/script>'
@@ -18,14 +22,14 @@
         )
     </script>
 
-    
+
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    
-        
-        <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
-        @livewireStyles
-        {{ $slot }}
-        @livewireScripts
-        @yield('scripts')
-    </flux:main>
+
+
+    <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
+    @livewireStyles
+    {{ $slot }}
+    @livewireScripts
+    @yield('scripts')
+  </flux:main>
 </x-layouts.app.sidebar>
