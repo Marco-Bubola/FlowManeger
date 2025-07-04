@@ -45,6 +45,20 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+    
+    /* Animação de rotação para Bootstrap Icons */
+    .animate-spin {
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {
