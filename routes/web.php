@@ -16,10 +16,31 @@ use App\Livewire\Products\CreateKit;
 use App\Livewire\Products\EditKit;
 use App\Livewire\Products\UploadProducts;
 
+// Importar componentes Livewire de clientes
+use App\Livewire\Clients\ClientsIndex;
+use App\Livewire\Clients\CreateClient;
+use App\Livewire\Clients\EditClient;
+
+// Importar componentes Livewire de vendas
+use App\Livewire\Sales\SalesIndex;
+use App\Livewire\Sales\CreateSale;
+use App\Livewire\Sales\ShowSale;
+use App\Livewire\Sales\EditSale;
+use App\Livewire\Sales\AddProducts;
+use App\Livewire\Sales\EditPrices;
+use App\Livewire\Sales\AddPayments;
+use App\Livewire\Sales\EditPayments;
+
+// Importar componentes Livewire de categorias
+use App\Livewire\Categories\CategoriesIndex;
+use App\Livewire\Categories\CreateCategory;
+use App\Livewire\Categories\EditCategory;
+
 // Importar todos os controladores que você usa
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\ClientController;
+
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InfoUserController;
@@ -63,9 +84,10 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/invoices/{id}/copy', [InvoiceController::class, 'copy'])->name('invoices.copy');
     Route::post('/invoices/{id}/toggle-dividida', [ClienteResumoController::class, 'toggleDividida'])->name('invoices.toggleDividida');
 
-    // --- Rotas de Clientes ---
-    Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
-    Route::resource('clients', ClientController::class);
+    // --- Rotas de Clientes (Livewire) ---
+    Route::get('/clients', ClientsIndex::class)->name('clients.index');
+    Route::get('/clients/create', CreateClient::class)->name('clients.create');
+    Route::get('/clients/{client}/edit', EditClient::class)->name('clients.edit');
     Route::get('/client/{id}/resumo', [ClienteResumoController::class, 'index'])->name('clienteResumo.index');
     Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
     Route::get('/clients/{id}/history', [ClientController::class, 'getPurchaseHistory'])->name('clients.history');
@@ -86,20 +108,25 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/products/update-all', [ProductController::class, 'updateAll'])->name('products.updateAll');
     Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
 
-    // --- Rotas de Vendas ---
-    Route::resource('sales', SaleController::class);
-    Route::post('/sales/{sale}/addProduct', [SaleController::class, 'addProduct'])->name('sales.addProduct');
-    Route::post('/sales/{sale}/add-payment', [SaleController::class, 'addPayment'])->name('sales.addPayment');
-    Route::put('/sales/{saleId}/payments/{paymentId}/update', [SaleController::class, 'updatePayment'])->name('sales.updatePayment');
-    Route::delete('/sales/{saleId}/payments/{paymentId}/delete', [SaleController::class, 'deletePayment'])->name('sales.deletePayment');
-    Route::delete('/sales/item/{id}', [SaleController::class, 'destroySaleItem'])->name('sales.item.destroy');
-    Route::put('/sales/{sale}/item/{item}', [SaleController::class, 'updateSaleItem'])->name('sales.item.update');
+    // --- Rotas de Vendas (Livewire) ---
+    Route::get('/sales', SalesIndex::class)->name('sales.index');
+    Route::get('/sales/create', CreateSale::class)->name('sales.create');
+    Route::get('/sales/{id}', ShowSale::class)->name('sales.show');
+    Route::get('/sales/{id}/edit', EditSale::class)->name('sales.edit');
+    Route::get('/sales/{sale}/add-products', AddProducts::class)->name('sales.add-products');
+    Route::get('/sales/{saleId}/edit-prices', EditPrices::class)->name('sales.edit-prices');
+    Route::get('/sales/{saleId}/add-payments', AddPayments::class)->name('sales.add-payments');
+    Route::get('/sales/{saleId}/edit-payments', EditPayments::class)->name('sales.edit-payments');
+    
+    // Manter algumas rotas específicas do controller antigo se necessário
     Route::get('/sales/{id}/export', [SaleController::class, 'export'])->name('sales.export');
-    Route::get('/sales/search', [SaleController::class, 'search'])->name('sales.search');
+    Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
     Route::post('/parcelas/{id}/pagar', [SaleController::class, 'pagarParcela'])->name('parcelas.pagar');
 
-    // --- Rotas de Categorias ---
-    Route::resource('categories', CategoryController::class);
+    // --- Rotas de Categorias (Livewire) ---
+    Route::get('/categories', CategoriesIndex::class)->name('categories.index');
+    Route::get('/categories/create', CreateCategory::class)->name('categories.create');
+    Route::get('/categories/{category}/edit', EditCategory::class)->name('categories.edit');
     
     // --- Rotas de Livro Caixa ---
     Route::resource('cashbook', CashbookController::class)->except(['show']);
