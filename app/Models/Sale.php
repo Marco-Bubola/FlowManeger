@@ -15,6 +15,7 @@ class Sale extends Model
         'client_id',
         'user_id',
         'total_price',
+        'amount_paid',
         'status', // pendente, orcamento, confirmada, concluida, cancelada
         'payment_method',
         'tipo_pagamento', // a_vista, parcelado
@@ -60,5 +61,13 @@ class Sale extends Model
     public function getRemainingAmountAttribute()
     {
         return max(0, $this->total_price - $this->total_paid);
+    }
+
+    // Método para recalcular o total da venda baseado nos itens
+    public function calculateTotal()
+    {
+        $total = $this->saleItems()->sum(\DB::raw('quantity * price_sale'));
+        $this->update(['total_price' => $total]);
+        return $total;
     }
 }
