@@ -201,21 +201,38 @@ class SalesIndex extends Component
 
     public function exportPdf($saleId)
     {
-        $sale = Sale::with(['client', 'saleItems.product', 'salePayments'])->findOrFail($saleId);
-        
-        // Verificar se a venda pertence ao usuário atual
-        if ($sale->user_id !== Auth::id()) {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'message' => 'Acesso negado. Esta venda não pertence a você.'
+        try {
+            // Disparar evento de início do download
+            $this->dispatch('download-started', [
+                'message' => "Gerando PDF da venda #{$saleId}..."
             ]);
-            return;
-        }
 
-        $pdf = Pdf::loadView('pdfs.sale', compact('sale'));
-        
-        return response()->streamDownload(function () use ($pdf) {
-            echo $pdf->output();
-        }, "venda-{$sale->id}.pdf");
+            $sale = Sale::with(['client', 'saleItems.product', 'payments'])->findOrFail($saleId);
+            
+            // Verificar se a venda pertence ao usuário atual
+            if ($sale->user_id !== Auth::id()) {
+                $this->dispatch('download-error', [
+                    'message' => 'Acesso negado. Esta venda não pertence a você.'
+                ]);
+                return;
+            }
+
+            $pdf = Pdf::loadView('pdfs.sale', compact('sale'));
+            
+            // Disparar evento de sucesso
+            $this->dispatch('download-completed');
+            
+            return response()->streamDownload(function () use ($pdf) {
+                echo $pdf->output();
+            }, "venda-{$sale->id}-" . now()->format('Y-m-d_H-i-s') . ".pdf");
+            
+        } catch (\Exception $e) {
+            // Disparar evento de erro
+            $this->dispatch('download-error', [
+                'message' => 'Erro ao gerar o PDF: ' . $e->getMessage()
+            ]);
+            
+            \Log::error('Erro ao exportar PDF da venda: ' . $e->getMessage());
+        }
     }
 }
