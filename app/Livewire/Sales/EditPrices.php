@@ -106,7 +106,7 @@ class EditPrices extends Component
                 }
 
                 // Recalcular o total da venda
-                $this->sale->recalculateTotal();
+                $this->sale->calculateTotal();
             });
 
             $this->dispatch('success', 'Preços atualizados com sucesso!');
