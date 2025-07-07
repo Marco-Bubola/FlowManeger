@@ -1,82 +1,81 @@
-<div class=" w-full ">
+<div class="w-full min-h-screen bg-gradient-to-br from-indigo-50 via-white to-green-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-green-900">
     <!-- Header fixo -->
-    <div class="w-full px-6 py-4 sticky top-0 z-10">
+    <div class="w-full px-6 py-4 sticky top-0 z-20 bg-white/80 dark:bg-zinc-900/80 shadow-lg rounded-b-2xl backdrop-blur border-b border-blue-200 dark:border-blue-700">
         <div class="flex items-center justify-between">
-            <div class="flex items-center space-x-4">
-                    <a href="{{ route('sales.index') }}"
-                        class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200 shadow-sm border border-blue-200 dark:border-blue-700">
-                        <i class="bi bi-arrow-left text-xl text-blue-600 dark:text-blue-400"></i>
-                    </a>
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    <i class="bi bi-receipt text-indigo-600 dark:text-indigo-400 mr-3"></i>Venda #{{ $sale->id }}
-                </h1>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Criada em {{ $sale->created_at->format('d/m/Y H:i') }}
-                </p>    </div>
+            <div class="flex items-center gap-4">
+                <a href="{{ route('sales.index') }}"
+                    class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white dark:bg-neutral-800 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-all duration-200 shadow border border-blue-200 dark:border-blue-700">
+                    <i class="bi bi-arrow-left text-2xl text-blue-600 dark:text-blue-400"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="bi bi-receipt text-indigo-600 dark:text-indigo-400"></i>
+                        Venda #{{ $sale->id }}
+                    </h1>
+                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                        <i class="bi bi-calendar-event text-blue-500 dark:text-blue-300"></i>
+                        Criada em {{ $sale->created_at->format('d/m/Y H:i') }}
+                    </p>
                 </div>
-                
-                <!-- Botões de Ação -->
-                <div class="flex items-center space-x-3">
-                    <button wire:click="exportPdf" 
-                            class="inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow-sm border border-red-600 hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
-                        <i class="bi bi-file-earmark-pdf mr-2"></i>
-                        <span class="hidden md:inline">Exportar PDF</span>
-                    </button>
-                </div>
-           
+            </div>
+            <!-- Botões de Ação -->
+            <div class="flex items-center gap-3">
+                <button wire:click="exportPdf" 
+                        class="inline-flex items-center justify-center px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all duration-200 shadow border border-red-600 hover:border-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                    <i class="bi bi-file-earmark-pdf mr-2"></i>
+                    <span class="hidden md:inline">Exportar PDF</span>
+                </button>
+            </div>
         </div>
     </div>
 
     <!-- Conteúdo principal -->
     <div class="w-full flex">
         <!-- Área principal (75% da largura) -->
-        <div class="w-3/4">
+        <div class="w-3/4 pr-4">
             <!-- Informações da Venda -->
             <div class="mb-8">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4">
-                    <i class="bi bi-info-circle text-indigo-600 dark:text-indigo-400 mr-2"></i>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="bi bi-info-circle text-indigo-600 dark:text-indigo-400"></i>
                     Informações da Venda
                 </h2>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <!-- Cliente -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                            <i class="bi bi-person text-gray-500 mr-2"></i>Cliente
+                    <div class="bg-gradient-to-r from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-zinc-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 shadow flex flex-col gap-2">
+                        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-1">
+                            <i class="bi bi-person-circle text-blue-500"></i>Cliente
                         </h3>
-                        <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ $sale->client->name }}</p>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2"><i class="bi bi-person-badge"></i> {{ $sale->client->name }}</p>
                         @if($sale->client->email)
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            <i class="bi bi-envelope mr-1"></i>{{ $sale->client->email }}
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-1">
+                            <i class="bi bi-envelope"></i>{{ $sale->client->email }}
                         </p>
                         @endif
                         @if($sale->client->phone)
-                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            <i class="bi bi-telephone mr-1"></i>{{ $sale->client->phone }}
+                        <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 flex items-center gap-1">
+                            <i class="bi bi-telephone"></i>{{ $sale->client->phone }}
                         </p>
                         @endif
                     </div>
-
                     <!-- Status e Pagamento -->
-                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-                            <i class="bi bi-flag text-gray-500 mr-2"></i>Status e Pagamento
+                    <div class="bg-gradient-to-r from-green-50 via-white to-indigo-50 dark:from-green-900/20 dark:via-zinc-900/20 dark:to-indigo-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 shadow flex flex-col gap-2">
+                        <h3 class="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-1">
+                            <i class="bi bi-flag text-green-500"></i>Status e Pagamento
                         </h3>
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Status:</span>
-                                <span class="px-3 py-1 rounded-full text-xs font-medium
+                                <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"><i class="bi bi-activity"></i>Status:</span>
+                                <span class="px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1
                                     @if($sale->status === 'pago') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
                                     @elseif($sale->status === 'pendente') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400
                                     @else bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 @endif">
-                                    {{ ucfirst($sale->status) }}
+                                    <i class="bi bi-check-circle"></i> {{ ucfirst($sale->status) }}
                                 </span>
                             </div>
                             <div class="flex items-center justify-between">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Tipo:</span>
-                                <span class="text-sm font-medium text-gray-900 dark:text-white">
-                                    {{ $sale->tipo_pagamento === 'a_vista' ? 'À Vista' : 'Parcelado' }}
+                                <span class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"><i class="bi bi-wallet2"></i>Tipo:</span>
+                                <span class="text-sm font-medium text-gray-900 dark:text-white flex items-center gap-1">
+                                    <i class="bi bi-cash-coin"></i> {{ $sale->tipo_pagamento === 'a_vista' ? 'À Vista' : 'Parcelado' }}
                                     @if($sale->tipo_pagamento === 'parcelado')
                                     ({{ $sale->parcelas }}x)
                                     @endif
@@ -299,15 +298,17 @@
 
                         <!-- Corpo do Card -->
                         <div class="card-body">
-                            <h4 class="product-title">{{ $item->product->name }}</h4>
+                            <h4 class="product-title" title="{{ $item->product->name }}">
+                                {{ strlen($item->product->name) > 20 ? substr($item->product->name, 0, 20) . '...' : $item->product->name }}
+                            </h4>
 
                             <!-- Preços -->
                             <div class="badge-price">
-                                R$ {{ number_format($item->price_sale, 2, ',', '.') }}
+                                R$ {{ number_format($item->price, 2, ',', '.') }}
                             </div>
 
                             <div class="badge-price-sale">
-                                R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}
+                                R$ {{ number_format($item->price_sale, 2, ',', '.') }}
                             </div>
                         </div>
 
@@ -353,26 +354,34 @@
 
                 <div class="space-y-3">
                     @foreach($parcelas as $parcela)
-                    <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div class="flex items-center justify-between p-3 bg-gradient-to-r from-white via-indigo-50 to-green-50 dark:from-zinc-800 dark:via-indigo-900/20 dark:to-green-900/20 rounded-lg border border-gray-200 dark:border-gray-700 shadow">
                         <div class="flex items-center">
                             <span class="w-8 h-8 bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 rounded-full flex items-center justify-center text-sm font-medium mr-3">
                                 {{ $parcela->numero_parcela }}
                             </span>
                             <div>
-                                <p class="font-medium text-gray-900 dark:text-white">
-                                    R$ {{ number_format($parcela->valor, 2, ',', '.') }}
+                                <p class="font-medium text-gray-900 dark:text-white flex items-center gap-1">
+                                    <i class="bi bi-cash-coin text-green-600"></i> R$ {{ number_format($parcela->valor, 2, ',', '.') }}
                                 </p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Vencimento: {{ \Carbon\Carbon::parse($parcela->data_vencimento)->format('d/m/Y') }}
+                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                    <i class="bi bi-calendar-event"></i> Vencimento: {{ \Carbon\Carbon::parse($parcela->data_vencimento)->format('d/m/Y') }}
                                 </p>
                             </div>
                         </div>
-                        <span class="px-3 py-1 rounded-full text-xs font-medium
-                                            @if($parcela->status === 'pago') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
-                                            @elseif($parcela->status === 'pendente') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400
-                                            @else bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 @endif">
-                            {{ ucfirst($parcela->status) }}
-                        </span>
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1 rounded-full text-xs font-medium
+                                                @if($parcela->status === 'pago') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
+                                                @elseif($parcela->status === 'pendente') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400
+                                                @else bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 @endif">
+                                {{ ucfirst($parcela->status) }}
+                            </span>
+                            @if($parcela->status === 'pendente')
+                            <button wire:click="openPaymentModal({{ $parcela->id }})"
+                                    class="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs transition-colors duration-200 flex items-center gap-1 shadow">
+                                <i class="bi bi-cash-stack"></i> Pagar
+                            </button>
+                            @endif
+                        </div>
                     </div>
                     @endforeach
                 </div>
@@ -381,41 +390,38 @@
         </div>
 
         <!-- Sidebar (25% da largura) -->
-        <div class="w-1/4  p-6">
+        <div class="w-1/4 p-6">
             <!-- Resumo Financeiro -->
             <div class="mb-8">
-                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    <i class="bi bi-calculator text-indigo-600 dark:text-indigo-400 mr-2"></i>
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                    <i class="bi bi-calculator text-indigo-600 dark:text-indigo-400"></i>
                     Resumo Financeiro
                 </h2>
-
                 <div class="space-y-4">
-                    <div class="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg p-4">
+                    <div class="bg-gradient-to-r from-indigo-50 via-white to-blue-50 dark:from-indigo-900/20 dark:via-zinc-900/20 dark:to-blue-900/20 rounded-lg p-4 shadow flex flex-col gap-2">
                         <div class="text-center">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Total da Venda</p>
-                            <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                                R$ {{ number_format($sale->total_price, 2, ',', '.') }}
+                            <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"><i class="bi bi-receipt"></i> Total da Venda</p>
+                            <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
+                                <i class="bi bi-cash"></i> R$ {{ number_format($sale->total_price, 2, ',', '.') }}
                             </p>
                         </div>
                     </div>
-
                     @if($sale->amount_paid > 0)
-                    <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4">
+                    <div class="bg-gradient-to-r from-green-50 via-white to-emerald-50 dark:from-green-900/20 dark:via-zinc-900/20 dark:to-emerald-900/20 rounded-lg p-4 shadow flex flex-col gap-2">
                         <div class="text-center">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Valor Pago</p>
-                            <p class="text-xl font-bold text-green-600 dark:text-green-400">
-                                R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}
+                            <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"><i class="bi bi-cash-stack"></i> Valor Pago</p>
+                            <p class="text-xl font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
+                                <i class="bi bi-coin"></i> R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}
                             </p>
                         </div>
                     </div>
                     @endif
-
                     @if($sale->amount_due > 0)
-                    <div class="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-lg p-4">
+                    <div class="bg-gradient-to-r from-red-50 via-white to-rose-50 dark:from-red-900/20 dark:via-zinc-900/20 dark:to-rose-900/20 rounded-lg p-4 shadow flex flex-col gap-2">
                         <div class="text-center">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">Valor Pendente</p>
-                            <p class="text-xl font-bold text-red-600 dark:text-red-400">
-                                R$ {{ number_format($sale->amount_due, 2, ',', '.') }}
+                            <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> Valor Pendente</p>
+                            <p class="text-xl font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <i class="bi bi-exclamation-diamond"></i> R$ {{ number_format($sale->amount_due, 2, ',', '.') }}
                             </p>
                         </div>
                     </div>
@@ -426,43 +432,40 @@
             <!-- Pagamentos -->
             <div>
                 <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        <i class="bi bi-credit-card text-indigo-600 dark:text-indigo-400 mr-2"></i>
+                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                        <i class="bi bi-credit-card text-indigo-600 dark:text-indigo-400"></i>
                         Pagamentos
                     </h2>
                     <div class="flex gap-2">
                         <a href="{{ route('sales.add-payments', $sale->id) }}"
-                            class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm transition-colors duration-200">
-                            <i class="bi bi-plus mr-1"></i>
+                            class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm transition-colors duration-200 flex items-center gap-1 shadow">
+                            <i class="bi bi-plus-lg"></i>
                             Adicionar
                         </a>
                         @if($sale->payments->count() > 0)
                         <a href="{{ route('sales.edit-payments', $sale->id) }}"
-                            class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors duration-200">
-                            <i class="bi bi-pencil mr-1"></i>
+                            class="px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm transition-colors duration-200 flex items-center gap-1 shadow">
+                            <i class="bi bi-pencil"></i>
                             Editar
                         </a>
                         @endif
                     </div>
                 </div>
-
                 <!-- Lista de Pagamentos -->
                 @if($sale->payments->count() > 0)
                 <div class="space-y-3">
                     @foreach($sale->payments as $payment)
-                    <div class="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <p class="font-medium text-gray-900 dark:text-white">
-                                    R$ {{ number_format($payment->amount_paid, 2, ',', '.') }}
-                                </p>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}
-                                </p>
-                                <p class="text-xs text-gray-500 dark:text-gray-500">
-                                    {{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}
-                                </p>
-                            </div>
+                    <div class="p-3 bg-gradient-to-r from-white via-indigo-50 to-green-50 dark:from-zinc-800 dark:via-indigo-900/20 dark:to-green-900/20 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center gap-4 shadow">
+                        <div class="flex-1 flex flex-col gap-1">
+                            <p class="font-medium text-gray-900 dark:text-white flex items-center gap-1">
+                                <i class="bi bi-cash-coin text-green-600"></i> R$ {{ number_format($payment->amount_paid, 2, ',', '.') }}
+                            </p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                                <i class="bi bi-credit-card-2-front"></i> {{ ucfirst(str_replace('_', ' ', $payment->payment_method)) }}
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1">
+                                <i class="bi bi-calendar-event"></i> {{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}
+                            </p>
                         </div>
                     </div>
                     @endforeach
@@ -480,4 +483,62 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal de Pagamento -->
+    @if($showPaymentModal)
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                    <i class="bi bi-cash-coin text-green-600"></i> Confirmar Pagamento
+                </h3>
+                <button wire:click="closePaymentModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            
+            @if($selectedParcela)
+            <div class="mb-4 p-3 bg-gradient-to-r from-indigo-50 to-green-50 dark:from-indigo-900/20 dark:to-green-900/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">Parcela {{ $selectedParcela->numero_parcela }}</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-white">
+                    R$ {{ number_format($selectedParcela->valor, 2, ',', '.') }}
+                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    Vencimento: {{ \Carbon\Carbon::parse($selectedParcela->data_vencimento)->format('d/m/Y') }}
+                </p>
+            </div>
+            @endif
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-credit-card mr-1"></i> Método de Pagamento
+                </label>
+                <select wire:model="paymentMethod" class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white">
+                    <option value="dinheiro">💵 Dinheiro</option>
+                    <option value="cartao_debito">💳 Cartão de Débito</option>
+                    <option value="cartao_credito">💳 Cartão de Crédito</option>
+                    <option value="pix">⚡ PIX</option>
+                    <option value="transferencia">🏦 Transferência</option>
+                    <option value="cheque">🧾 Cheque</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    <i class="bi bi-calendar-event mr-1"></i> Data do Pagamento
+                </label>
+                <input type="date" wire:model="paymentDate" class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white">
+            </div>
+
+            <div class="flex gap-3 justify-end">
+                <button wire:click="closePaymentModal" class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200">
+                    Cancelar
+                </button>
+                <button wire:click="confirmPayment" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-1">
+                    <i class="bi bi-check-circle"></i> Confirmar Pagamento
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>
