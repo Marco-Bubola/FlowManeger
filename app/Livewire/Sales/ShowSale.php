@@ -19,12 +19,19 @@ class ShowSale extends Component
     public $showAddPaymentForm = false;
     public $newPayments = [];
 
+    // Para modal de pagamento das parcelas
+    public $showPaymentModal = false;
+    public $selectedParcela;
+    public $paymentMethod = 'dinheiro';
+    public $paymentDate;
+
     public function mount($id)
     {
         $this->sale = Sale::with(['saleItems.product', 'client', 'payments'])->findOrFail($id);
         $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)
             ->orderBy('numero_parcela')
             ->get();
+        $this->paymentDate = now()->format('Y-m-d');
     }
 
     public function removeSaleItem($itemId)
@@ -147,15 +154,97 @@ class ShowSale extends Component
         session()->flash('message', 'Parcela registrada como paga!');
     }
 
+    public function openPaymentModal($parcelaId)
+    {
+        $this->selectedParcela = VendaParcela::findOrFail($parcelaId);
+        $this->showPaymentModal = true;
+        $this->paymentMethod = 'dinheiro';
+        $this->paymentDate = now()->format('Y-m-d');
+    }
+
+    public function closePaymentModal()
+    {
+        $this->showPaymentModal = false;
+        $this->selectedParcela = null;
+        $this->paymentMethod = 'dinheiro';
+        $this->paymentDate = now()->format('Y-m-d');
+    }
+
+    public function confirmPayment()
+    {
+        $this->validate([
+            'paymentMethod' => 'required|string',
+            'paymentDate' => 'required|date',
+        ]);
+
+        if (!$this->selectedParcela) {
+            session()->flash('error', 'Parcela não encontrada!');
+            return;
+        }
+
+        // Atualizar status da parcela
+        $this->selectedParcela->status = 'pago';
+        $this->selectedParcela->pago_em = $this->paymentDate;
+        $this->selectedParcela->save();
+
+        // Registrar pagamento
+        SalePayment::create([
+            'sale_id' => $this->selectedParcela->sale_id,
+            'amount_paid' => $this->selectedParcela->valor,
+            'payment_method' => $this->paymentMethod,
+            'payment_date' => $this->paymentDate,
+        ]);
+
+        // Atualizar total pago na venda
+        $totalPaid = SalePayment::where('sale_id', $this->sale->id)->sum('amount_paid');
+        $this->sale->amount_paid = $totalPaid;
+
+        // Atualizar status da venda se necessário
+        if ($totalPaid >= $this->sale->total_price) {
+            $this->sale->status = 'pago';
+        } else {
+            $this->sale->status = 'pendente';
+        }
+        $this->sale->save();
+
+        // Atualizar parcelas
+        $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)
+            ->orderBy('numero_parcela')
+            ->get();
+
+        // Fechar modal
+        $this->closePaymentModal();
+
+        session()->flash('message', 'Parcela paga com sucesso!');
+    }
+
     public function exportPdf()
     {
-        $pdf = Pdf::loadView('pdfs.sale', ['sale' => $this->sale]);
-        
-        $filename = 'venda_' . $this->sale->id . '_' . date('Y-m-d_H-i-s') . '.pdf';
-        
-        return response()->streamDownload(function() use ($pdf) {
-            echo $pdf->output();
-        }, $filename);
+        try {
+            // Disparar evento de início do download
+            $this->dispatch('download-started', [
+                'message' => "Gerando PDF da venda #{$this->sale->id}..."
+            ]);
+
+            $pdf = Pdf::loadView('pdfs.sale', ['sale' => $this->sale]);
+            
+            $filename = 'venda_' . $this->sale->id . '_' . date('Y-m-d_H-i-s') . '.pdf';
+            
+            // Disparar evento de sucesso
+            $this->dispatch('download-completed');
+            
+            return response()->streamDownload(function() use ($pdf) {
+                echo $pdf->output();
+            }, $filename);
+            
+        } catch (\Exception $e) {
+            // Disparar evento de erro
+            $this->dispatch('download-error', [
+                'message' => 'Erro ao gerar o PDF: ' . $e->getMessage()
+            ]);
+            
+            \Log::error('Erro ao exportar PDF da venda: ' . $e->getMessage());
+        }
     }
 
     public function render()
