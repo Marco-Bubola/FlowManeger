@@ -161,9 +161,21 @@
                         <!-- Grid de Cards de Produtos -->
                         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                             @foreach($productsUpload as $index => $product)
-                                <div class="product-card-modern">
+                                <div class="product-card-modern" style="min-height: 420px;">
                                     <!-- Botões de ação -->
                                     <div class="btn-action-group">
+                                        <button type="button" 
+                                                onclick="copyProductName({{ $index }}, '{{ $product['name'] ?? '' }}')" 
+                                                class="btn btn-success" 
+                                                title="Copiar nome">
+                                            <i class="bi bi-tag"></i>
+                                        </button>
+                                        <button type="button" 
+                                                onclick="copyProductCode({{ $index }}, '{{ $product['product_code'] ?? '' }}')" 
+                                                class="btn btn-info" 
+                                                title="Copiar código">
+                                            <i class="bi bi-upc-scan"></i>
+                                        </button>
                                         <button type="button" wire:click="removeProduct({{ $index }})" class="btn btn-danger" title="Remover">
                                             <i class="bi bi-trash3"></i>
                                         </button>
@@ -274,6 +286,69 @@
 
                         <!-- CSS personalizado para badges editáveis -->
                         <style>
+                            /* Tornar os cards de produto mais altos */
+                            .product-card-modern {
+                                min-height: 520px !important;
+                                height: auto;
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: flex-start;
+                            }
+                            /* Grupo de botões de ação */
+                            .btn-action-group {
+                                display: flex;
+                                gap: 0.25rem;
+                                flex-wrap: wrap;
+                            }
+                            
+                            /* Botão de copiar nome (verde) */
+                            .btn-success {
+                                background-color: #10b981;
+                                border-color: #10b981;
+                                color: white;
+                                transition: all 0.2s ease;
+                            }
+                            
+                            .btn-success:hover {
+                                background-color: #059669;
+                                border-color: #059669;
+                                transform: scale(1.05);
+                            }
+                            
+                            .btn-success:active {
+                                transform: scale(0.95);
+                            }
+                            
+                            /* Botão de copiar código (azul) */
+                            .btn-info {
+                                background-color: #3b82f6;
+                                border-color: #3b82f6;
+                                color: white;
+                                transition: all 0.2s ease;
+                            }
+                            
+                            .btn-info:hover {
+                                background-color: #2563eb;
+                                border-color: #2563eb;
+                                transform: scale(1.05);
+                            }
+                            
+                            .btn-info:active {
+                                transform: scale(0.95);
+                            }
+                            
+                            /* Animação de sucesso ao copiar */
+                            @keyframes copySuccess {
+                                0% { transform: scale(1); }
+                                50% { transform: scale(1.1); }
+                                100% { transform: scale(1); }
+                            }
+                            
+                            .btn-success.copied,
+                            .btn-info.copied {
+                                animation: copySuccess 0.4s ease-in-out;
+                            }
+
                             /* Inputs editáveis em badges */
                             .editable-badge input {
                                 transition: all 0.2s ease;
@@ -461,6 +536,226 @@
 
 <!-- Script para upload de imagens (detecta produtos automaticamente) -->
 <script>
+    // Função para copiar apenas o nome do produto
+    function copyProductName(index, name) {
+        const productName = name || 'Sem nome';
+        
+        // Tentar usar a API moderna do clipboard
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(productName).then(() => {
+                showCopySuccess(index, 'Nome copiado!', 'name');
+            }).catch(err => {
+                console.error('Erro ao copiar nome:', err);
+                fallbackCopy(productName, index, 'name');
+            });
+        } else {
+            // Fallback para navegadores mais antigos
+            fallbackCopy(productName, index, 'name');
+        }
+    }
+    
+    // Função para copiar apenas o código do produto
+    function copyProductCode(index, code) {
+        const productCode = code || 'Sem código';
+        
+        // Tentar usar a API moderna do clipboard
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(productCode).then(() => {
+                showCopySuccess(index, 'Código copiado!', 'code');
+            }).catch(err => {
+                console.error('Erro ao copiar código:', err);
+                fallbackCopy(productCode, index, 'code');
+            });
+        } else {
+            // Fallback para navegadores mais antigos
+            fallbackCopy(productCode, index, 'code');
+        }
+    }
+    
+    // Função para copiar informações do produto (mantida para compatibilidade)
+    function copyProductInfo(index, name, code) {
+        const productInfo = `Nome: ${name || 'Sem nome'}\nCódigo: ${code || 'Sem código'}`;
+        
+        // Tentar usar a API moderna do clipboard
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(productInfo).then(() => {
+                showCopySuccess(index, 'Informações copiadas!', 'info');
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+                fallbackCopy(productInfo, index, 'info');
+            });
+        } else {
+            // Fallback para navegadores mais antigos
+            fallbackCopy(productInfo, index, 'info');
+        }
+    }
+    
+    // Função de fallback para copiar
+    function fallbackCopy(text, index, type) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        
+        try {
+            document.execCommand('copy');
+            const message = type === 'name' ? 'Nome copiado!' : 
+                           type === 'code' ? 'Código copiado!' : 'Informações copiadas!';
+            showCopySuccess(index, message, type);
+        } catch (err) {
+            console.error('Erro ao copiar:', err);
+            showCopyError(index, 'Erro ao copiar', type);
+        } finally {
+            document.body.removeChild(textArea);
+        }
+    }
+    
+    // Função para mostrar sucesso na cópia
+    function showCopySuccess(index, message, type) {
+        let copyButton;
+        
+        if (type === 'name') {
+            copyButton = document.querySelector(`button[onclick*="copyProductName(${index}"]`);
+        } else if (type === 'code') {
+            copyButton = document.querySelector(`button[onclick*="copyProductCode(${index}"]`);
+        } else {
+            copyButton = document.querySelector(`button[onclick*="copyProductInfo(${index}"]`);
+        }
+        
+        if (copyButton) {
+            copyButton.classList.add('copied');
+            const originalTitle = copyButton.title;
+            copyButton.title = message;
+            
+            // Mudar ícone temporariamente
+            const icon = copyButton.querySelector('i');
+            if (icon) {
+                const originalClass = icon.className;
+                icon.className = 'bi bi-check2';
+                
+                setTimeout(() => {
+                    copyButton.classList.remove('copied');
+                    copyButton.title = originalTitle;
+                    icon.className = originalClass;
+                }, 1500);
+            }
+        }
+        
+        // Mostrar toast de sucesso
+        showToast(message, 'success');
+    }
+    
+    // Função para mostrar erro na cópia
+    function showCopyError(index, message, type) {
+        let copyButton;
+        
+        if (type === 'name') {
+            copyButton = document.querySelector(`button[onclick*="copyProductName(${index}"]`);
+        } else if (type === 'code') {
+            copyButton = document.querySelector(`button[onclick*="copyProductCode(${index}"]`);
+        } else {
+            copyButton = document.querySelector(`button[onclick*="copyProductInfo(${index}"]`);
+        }
+        
+        if (copyButton) {
+            copyButton.title = message;
+            setTimeout(() => {
+                copyButton.title = type === 'name' ? 'Copiar nome' : 
+                                 type === 'code' ? 'Copiar código' : 'Copiar nome e código';
+            }, 2000);
+        }
+        
+        // Mostrar toast de erro
+        showToast(message, 'error');
+    }
+    
+    // Função para mostrar toast
+    function showToast(message, type) {
+        // Remover toast anterior se existir
+        const existingToast = document.getElementById('copy-toast');
+        if (existingToast) {
+            existingToast.remove();
+        }
+        
+        const toast = document.createElement('div');
+        toast.id = 'copy-toast';
+        toast.className = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transition-all duration-300 transform translate-x-full ${
+            type === 'success' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-red-500 text-white'
+        }`;
+        
+        toast.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <i class="bi ${type === 'success' ? 'bi-check-circle' : 'bi-exclamation-triangle'}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        // Animar entrada
+        setTimeout(() => {
+            toast.style.transform = 'translateX(0)';
+        }, 100);
+        
+        // Remover após 3 segundos
+        setTimeout(() => {
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    // Adicionar atalho de teclado Ctrl+C para copiar produto focado
+    document.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 'c') {
+            // Verificar se o foco está em um input de produto
+            const activeElement = document.activeElement;
+            if (activeElement && activeElement.tagName === 'INPUT') {
+                const productInput = activeElement.closest('.product-card-modern');
+                if (productInput) {
+                    // Encontrar o índice do produto
+                    const allCards = document.querySelectorAll('.product-card-modern');
+                    const productIndex = Array.from(allCards).indexOf(productInput);
+                    
+                    if (productIndex !== -1) {
+                        e.preventDefault();
+                        
+                        // Verificar qual tipo de input está focado
+                        const wireModel = activeElement.getAttribute('wire:model.lazy');
+                        
+                        if (wireModel && wireModel.includes('name')) {
+                            // Copiar apenas o nome
+                            const name = activeElement.value || 'Sem nome';
+                            copyProductName(productIndex, name);
+                        } else if (wireModel && wireModel.includes('product_code')) {
+                            // Copiar apenas o código
+                            const code = activeElement.value || 'Sem código';
+                            copyProductCode(productIndex, code);
+                        } else {
+                            // Copiar informações gerais
+                            const nameInput = productInput.querySelector('input[wire\\:model*="name"]');
+                            const codeInput = productInput.querySelector('input[wire\\:model*="product_code"]');
+                            
+                            const name = nameInput ? nameInput.value : 'Sem nome';
+                            const code = codeInput ? codeInput.value : 'Sem código';
+                            
+                            copyProductInfo(productIndex, name, code);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
     // Log inicial apenas para confirmar que o script foi carregado
     console.log('=== SCRIPT DE UPLOAD CARREGADO ===');
     console.log('Aguardando produtos...');
