@@ -209,7 +209,7 @@
         <!-- Lista de Vendas -->
         <div class="overflow-hidden">
             @if($sales->count() > 0)
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
                 @foreach($sales as $sale)
                 <div class="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl overflow-hidden hover:shadow-2xl hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 group relative">
                     <!-- Header com gradiente -->
