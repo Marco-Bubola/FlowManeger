@@ -36,6 +36,19 @@ use App\Livewire\Categories\CategoriesIndex;
 use App\Livewire\Categories\CreateCategory;
 use App\Livewire\Categories\EditCategory;
 
+// Importar componentes Livewire de cashbook
+use App\Livewire\Cashbook\CashbookIndex;
+use App\Livewire\Cashbook\CreateCashbook;
+use App\Livewire\Cashbook\EditCashbook;
+use App\Livewire\Cashbook\UploadCashbook;
+
+// Importar componentes Livewire de invoices
+use App\Livewire\Invoices\InvoicesIndex;
+use App\Livewire\Invoices\CreateInvoice;
+use App\Livewire\Invoices\EditInvoice;
+use App\Livewire\Invoices\CopyInvoice;
+use App\Livewire\Invoices\UploadInvoice;
+
 // Importar todos os controladores que você usa
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChangePasswordController;
@@ -76,12 +89,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/banks/{bank}/edit', EditBank::class)->name('banks.edit');
     
     
-    // --- Rotas de Invoices/Faturas ---
-    Route::get('/invoices/{bank_id?}', [InvoiceController::class, 'index'])->name('invoices.index');
-    Route::post('/invoices', [InvoiceController::class, 'store'])->name('invoices.store');
-    Route::put('/invoices/{id}', [InvoiceController::class, 'update'])->name('invoices.update');
-    Route::delete('/invoices/{id}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
-    Route::post('/invoices/{id}/copy', [InvoiceController::class, 'copy'])->name('invoices.copy');
+    // --- Rotas de Invoices/Faturas (Livewire) ---
+    Route::get('/invoices/{bankId?}', InvoicesIndex::class)->name('invoices.index');
+    Route::get('/invoices/{bankId}/create', CreateInvoice::class)->name('invoices.create');
+    Route::get('/invoices/{invoiceId}/edit', EditInvoice::class)->name('invoices.edit');
+    Route::get('/invoices/{invoiceId}/copy', CopyInvoice::class)->name('invoices.copy');
+    Route::get('/invoices/{bankId}/upload', UploadInvoice::class)->name('invoices.upload');
     Route::post('/invoices/{id}/toggle-dividida', [ClienteResumoController::class, 'toggleDividida'])->name('invoices.toggleDividida');
 
     // --- Rotas de Clientes (Livewire) ---
@@ -128,11 +141,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/categories/create', CreateCategory::class)->name('categories.create');
     Route::get('/categories/{category}/edit', EditCategory::class)->name('categories.edit');
     
-    // --- Rotas de Livro Caixa ---
-    Route::resource('cashbook', CashbookController::class)->except(['show']);
-    Route::get('/cashbook/month/{direction}', [CashbookController::class, 'getMonth']);
-    Route::post('/cashbook/upload', [UploadCashbookController::class, 'upload'])->name('cashbook.upload');
-    Route::post('/cashbook/confirm', [UploadCashbookController::class, 'confirm'])->name('cashbook.confirm');
+    // --- Rotas de Livro Caixa (Livewire) ---
+    Route::get('/cashbook', CashbookIndex::class)->name('cashbook.index');
+    Route::get('/cashbook/create', CreateCashbook::class)->name('cashbook.create');
+    Route::get('/cashbook/{cashbook}/edit', EditCashbook::class)->name('cashbook.edit');
+    Route::get('/cashbook/upload', UploadCashbook::class)->name('cashbook.upload');
     
     // --- Rotas de Cofrinho ---
     Route::resource('cofrinho', CofrinhoController::class);
