@@ -29,7 +29,30 @@
     <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
     @livewireStyles
     {{ $slot }}
+    
+    <!-- Componente de Notificação de Download -->
+    @include('components.download-notification')
+    
     @livewireScripts
+    
+    <!-- Script para interceptar cliques em botões de exportar PDF -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Interceptar cliques em botões de exportar PDF
+            document.addEventListener('click', function(e) {
+                // Verificar se é um botão de exportar PDF
+                if (e.target.closest('[wire\\:click*="exportPdf"]')) {
+                    // Disparar evento imediatamente
+                    window.dispatchEvent(new CustomEvent('download-started', {
+                        detail: {
+                            message: 'Preparando geração do PDF...'
+                        }
+                    }));
+                }
+            });
+        });
+    </script>
+    
     @yield('scripts')
   </flux:main>
 </x-layouts.app.sidebar>
