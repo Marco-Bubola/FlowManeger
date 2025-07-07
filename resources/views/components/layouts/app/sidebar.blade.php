@@ -18,6 +18,7 @@
             </flux:navlist>
 <flux:navlist.group :heading="__('Financeiro')">
     <flux:navlist.item icon="credit-card" :href="url('banks')" :current="Request::is('banks')">Bancos</flux:navlist.item>
+    <flux:navlist.item icon="document-text" :href="url('invoices')" :current="Request::is('invoices*')">Transações</flux:navlist.item>
     <flux:navlist.item icon="wallet" :href="url('cashbook')" :current="Request::is('cashbook')">Livro Caixa</flux:navlist.item>
     <flux:navlist.item  :href="url('cofrinho')" :current="Request::is('cofrinho')">Cofrinhos</flux:navlist.item>
 </flux:navlist.group>
