@@ -183,7 +183,7 @@ class ShowSale extends Component
         }
 
         // Atualizar status da parcela
-        $this->selectedParcela->status = 'pago';
+        $this->selectedParcela->status = 'paga';
         $this->selectedParcela->pago_em = $this->paymentDate;
         $this->selectedParcela->save();
 
@@ -228,7 +228,8 @@ class ShowSale extends Component
 
             $pdf = Pdf::loadView('pdfs.sale', ['sale' => $this->sale]);
             
-            $filename = 'venda_' . $this->sale->id . '_' . date('Y-m-d_H-i-s') . '.pdf';
+            $clientName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $this->sale->client->name);
+            $filename = $clientName . '_' . date('Y-m-d_H-i-s') . '.pdf';
             
             // Disparar evento de sucesso
             $this->dispatch('download-completed');
