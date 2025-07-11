@@ -460,6 +460,11 @@
     color: var(--white);
 }
 
+.product-card-modern .btn-action-group .btn-secondary {
+    background: var(--gray-600);
+    color: var(--white);
+}
+
 .product-card-modern .btn-action-group .btn-danger {
     background: var(--danger);
     color: var(--white);
@@ -764,6 +769,11 @@
 }
 .product-card-modern .btn-action-group .btn-primary {
     background: var(--card-accent2);
+    color: #fff;
+    border: 2px solid var(--card-accent);
+}
+.product-card-modern .btn-action-group .btn-secondary {
+    background: var(--gray-600);
     color: #fff;
     border: 2px solid var(--card-accent);
 }
