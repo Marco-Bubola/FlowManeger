@@ -33,7 +33,7 @@ class EditPayments extends Component
                 'amount_paid' => $payment->amount_paid,
                 'payment_method' => $payment->payment_method,
                 'payment_date' => $payment->payment_date,
-                'notes' => $payment->notes ?? '',
+               
                 'created_at' => $payment->created_at->format('d/m/Y H:i'),
             ];
         }
@@ -45,7 +45,6 @@ class EditPayments extends Component
             'payments.*.amount_paid' => 'required|numeric|min:0.01',
             'payments.*.payment_method' => 'required|string',
             'payments.*.payment_date' => 'required|date',
-            'payments.*.notes' => 'nullable|string|max:255',
         ], [
             'payments.*.amount_paid.required' => 'O valor do pagamento é obrigatório.',
             'payments.*.amount_paid.numeric' => 'O valor deve ser um número válido.',
@@ -53,7 +52,6 @@ class EditPayments extends Component
             'payments.*.payment_method.required' => 'O método de pagamento é obrigatório.',
             'payments.*.payment_date.required' => 'A data do pagamento é obrigatória.',
             'payments.*.payment_date.date' => 'A data deve ser válida.',
-            'payments.*.notes.max' => 'As observações não podem exceder 255 caracteres.',
         ]);
 
         try {
@@ -63,7 +61,6 @@ class EditPayments extends Component
                         'amount_paid' => $paymentData['amount_paid'],
                         'payment_method' => $paymentData['payment_method'],
                         'payment_date' => $paymentData['payment_date'],
-                        'notes' => $paymentData['notes'] ?? null,
                     ]);
                 }
 
