@@ -15,6 +15,7 @@ class Cofrinho extends Model
         'user_id',
         'nome',
         'meta_valor',
+        'description',
         'status',
     ];
 
