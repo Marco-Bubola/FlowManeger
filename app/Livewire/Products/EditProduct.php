@@ -4,6 +4,7 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
@@ -11,7 +12,7 @@ use Livewire\WithFileUploads;
 
 class EditProduct extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, HasNotifications;
 
     public Product $product;
     
@@ -39,17 +40,8 @@ class EditProduct extends Component
         $this->description = $product->description ?? '';
         
         // Formata os preços para o formato brasileiro (0,00)
-        // Divide por 100 se o valor for muito alto (provavelmente em centavos)
         $price = (float)$product->price;
         $price_sale = (float)$product->price_sale;
-        
-        // Se os valores parecem estar em centavos (muito altos), divide por 100
-        if ($price > 10000) {
-            $price = $price / 100;
-        }
-        if ($price_sale > 10000) {
-            $price_sale = $price_sale / 100;
-        }
         
         $this->price = number_format($price, 2, ',', '');
         $this->price_sale = number_format($price_sale, 2, ',', '');
@@ -74,94 +66,119 @@ class EditProduct extends Component
             'category_id' => 'required|exists:category,id_category',
             'product_code' => 'required',
             'image' => 'nullable|image|mimes:jpg,png,jpeg,gif,webp|max:2048',
-            'status' => 'required|in:ativo,inativo,descontinuado',
+            // Removido o status obrigatório pois ele é definido automaticamente
         ];
     }
 
     public function update()
     {
-        // Conversão correta dos valores monetários do formato brasileiro para americano
-        $price = str_replace(',', '.', $this->price);
-        $price_sale = str_replace(',', '.', $this->price_sale);
-        
-        // Se o valor original estava em centavos, multiplica por 100 novamente
-        // (baseado no valor original do produto)
-        if ((float)$this->product->price > 10000) {
-            $price = (float)$price * 100;
-            $price_sale = (float)$price_sale * 100;
-        }
-        
-        $this->price = (string)$price;
-        $this->price_sale = (string)$price_sale;
+        try {
+            // Conversão correta dos valores monetários do formato brasileiro para americano
+            $price = str_replace(',', '.', $this->price);
+            $price_sale = str_replace(',', '.', $this->price_sale);
+            
+            // Convertendo para float para garantir formato correto
+            $price = (float)$price;
+            $price_sale = (float)$price_sale;
+            
+            // Atualização temporária das propriedades para validação
+            $this->price = (string)$price;
+            $this->price_sale = (string)$price_sale;
 
-        // Validação do formulário
-        $validated = $this->validate();
+            // Validação do formulário
+            $validated = $this->validate();
 
-        // Atualizar imagem se necessário
-        $imageName = $this->product->image;
-        if ($this->image) {
-            try {
-                // Remove a imagem anterior se existir
-                if ($this->product->image && Storage::disk('public')->exists('products/' . $this->product->image)) {
-                    Storage::disk('public')->delete('products/' . $this->product->image);
-                }
-                
-                // Salva a nova imagem usando o disco public
-                $imagePath = $this->image->store('products', 'public');
-                $imageName = basename($imagePath);
-                
-                // Verificar se o arquivo foi realmente salvo
-                $fullPath = Storage::disk('public')->path($imagePath);
-                $fileExists = Storage::disk('public')->exists($imagePath);
-                
-                // Log para debug
-                logger('Imagem salva:', [
-                    'original_name' => $this->image->getClientOriginalName(),
-                    'path' => $imagePath,
-                    'final_name' => $imageName,
-                    'full_path' => $fullPath,
-                    'file_exists' => $fileExists,
-                    'size' => $this->image->getSize(),
-                    'mime' => $this->image->getMimeType()
-                ]);
-                
-                if (!$fileExists) {
-                    throw new \Exception('O arquivo não foi salvo corretamente no storage.');
-                }
-                
-            } catch (\Exception $e) {
-                logger('Erro ao salvar imagem:', [
-                    'error' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine()
-                ]);
-                
-                session()->flash('error', 'Erro ao salvar a imagem: ' . $e->getMessage());
+            // Verificar se o código do produto já existe (exceto o atual)
+            $existingProduct = Product::where('product_code', $this->product_code)
+                                    ->where('id', '!=', $this->product->id)
+                                    ->where('user_id', Auth::id())
+                                    ->first();
+            
+            if ($existingProduct) {
+                $this->addError('product_code', 'Este código de produto já está sendo usado por outro produto.');
+                $this->notifyError('Código do produto já está em uso!');
                 return;
             }
+
+            // Atualizar imagem se necessário
+            $imageName = $this->product->image;
+            if ($this->image) {
+                try {
+                    // Remove a imagem anterior se existir
+                    if ($this->product->image && Storage::disk('public')->exists('products/' . $this->product->image)) {
+                        Storage::disk('public')->delete('products/' . $this->product->image);
+                    }
+                    
+                    // Salva a nova imagem usando o disco public
+                    $imagePath = $this->image->store('products', 'public');
+                    $imageName = basename($imagePath);
+                    
+                    // Verificar se o arquivo foi realmente salvo
+                    $fileExists = Storage::disk('public')->exists($imagePath);
+                    
+                    if (!$fileExists) {
+                        throw new \Exception('O arquivo não foi salvo corretamente no storage.');
+                    }
+                    
+                } catch (\Exception $e) {
+                    logger('Erro ao salvar imagem:', [
+                        'error' => $e->getMessage(),
+                        'file' => $e->getFile(),
+                        'line' => $e->getLine()
+                    ]);
+                    
+                    $this->notifyError('Erro ao salvar a imagem: ' . $e->getMessage());
+                    return;
+                }
+            }
+
+            // Atualizar o produto
+            $updateResult = $this->product->update([
+                'name' => $this->name,
+                'description' => $this->description,
+                'price' => $price,
+                'price_sale' => $price_sale,
+                'stock_quantity' => (int)$this->stock_quantity,
+                'category_id' => (int)$this->category_id,
+                'product_code' => $this->product_code,
+                'image' => $imageName,
+                'status' => 'ativo',
+                'tipo' => 'simples',
+                'custos_adicionais' => 0,
+            ]);
+
+            if (!$updateResult) {
+                throw new \Exception('Falha ao atualizar o produto no banco de dados.');
+            }
+
+            // Emite evento para atualizar a lista
+            $this->dispatch('product-updated');
+
+            // Redireciona com notificação de sucesso
+            $this->redirectWithNotification(
+                route('products.index'),
+                'Produto "' . $this->name . '" atualizado com sucesso!'
+            );
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Exibe os erros específicos
+            $errorMessages = [];
+            foreach ($e->errors() as $field => $messages) {
+                $errorMessages[] = $field . ': ' . implode(', ', $messages);
+            }
+            
+            $this->notifyError('Erros de validação: ' . implode(' | ', $errorMessages));
+            
+        } catch (\Exception $e) {
+            logger('Erro ao atualizar produto:', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'product_id' => $this->product->id
+            ]);
+            
+            $this->notifyError('Erro inesperado ao atualizar o produto: ' . $e->getMessage());
         }
-
-        $this->product->update([
-            'name' => $this->name,
-            'description' => $this->description,
-            'price' => $this->price,
-            'price_sale' => $this->price_sale,
-            'stock_quantity' => $this->stock_quantity,
-            'category_id' => $this->category_id,
-            'product_code' => $this->product_code,
-            'image' => $imageName,
-            'status' => $this->status,
-            'tipo' => 'simples',
-            'custos_adicionais' => 0,
-        ]);
-
-        session()->flash('success', 'Produto atualizado com sucesso!');
-
-        // Emite evento para atualizar a lista
-        $this->dispatch('product-updated');
-
-        // Redireciona para a lista
-        return redirect()->route('products.index');
     }
 
     public function updatedImage()
