@@ -222,9 +222,11 @@ class SalesIndex extends Component
             // Disparar evento de sucesso
             $this->dispatch('download-completed');
             
+            $clientName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $sale->client->name);
+            $filename = $clientName . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
             return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
-            }, "venda-{$sale->id}-" . now()->format('Y-m-d_H-i-s') . ".pdf");
+            }, $filename);
             
         } catch (\Exception $e) {
             // Disparar evento de erro
