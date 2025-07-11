@@ -7,34 +7,34 @@
         <flux:sidebar sticky stashable class="border-e border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('dashboard') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
+            <a href="{{ route('dashboard.index') }}" class="me-5 flex items-center space-x-2 rtl:space-x-reverse" wire:navigate>
                 <x-app-logo />
             </a>
 
             <flux:navlist variant="outline">
-                <flux:navlist.group :heading="__('Plataforma')" class="grid">
-                    <flux:navlist.item icon="home" :href="route('dashboard')" :current="request()->routeIs('dashboard')" wire:navigate>{{ __('Painel') }}</flux:navlist.item>
+                <flux:navlist.group :heading="__('Dashboards')" class="grid">
+                    <flux:navlist.item icon="home" :href="route('dashboard.index')" :current="request()->routeIs('dashboard.index')" wire:navigate>{{ __('Dashboard Geral') }}</flux:navlist.item>
+                    <flux:navlist.item icon="chart-bar" :href="route('dashboard.cashbook')" :current="request()->routeIs('dashboard.cashbook')" wire:navigate>{{ __('Dashboard Financeiro') }}</flux:navlist.item>
+                    <flux:navlist.item icon="shopping-bag" :href="route('dashboard.products')" :current="request()->routeIs('dashboard.products')" wire:navigate>{{ __('Dashboard Produtos') }}</flux:navlist.item>
+                    <flux:navlist.item icon="currency-dollar" :href="route('dashboard.sales')" :current="request()->routeIs('dashboard.sales')" wire:navigate>{{ __('Dashboard Vendas') }}</flux:navlist.item>
                 </flux:navlist.group>
             </flux:navlist>
-<flux:navlist.group :heading="__('Financeiro')">
-    <flux:navlist.item icon="credit-card" :href="url('banks')" :current="Request::is('banks')">Bancos</flux:navlist.item>
-    <flux:navlist.item icon="document-text" :href="url('invoices')" :current="Request::is('invoices*')">Transações</flux:navlist.item>
-    <flux:navlist.item icon="wallet" :href="url('cashbook')" :current="Request::is('cashbook')">Livro Caixa</flux:navlist.item>
-    <flux:navlist.item  :href="url('cofrinho')" :current="Request::is('cofrinho')">Cofrinhos</flux:navlist.item>
-</flux:navlist.group>
 
-<flux:navlist.group :heading="__('Vendas e Produtos')">
-    <flux:navlist.item  :href="url('products')" :current="Request::is('products')">Produtos</flux:navlist.item>
-    <flux:navlist.item icon="users" :href="url('clients')" :current="Request::is('clients')">Clientes</flux:navlist.item>
-    <flux:navlist.item  :href="url('sales')" :current="Request::is('sales')">Vendas</flux:navlist.item>
-    <flux:navlist.item  :href="url('categories')" :current="Request::is('categories')">Categorias</flux:navlist.item>
-</flux:navlist.group>
+            <flux:navlist variant="outline">
+                <flux:navlist.group :heading="__('Financeiro')">
+                    <flux:navlist.item icon="credit-card" :href="url('banks')" :current="Request::is('banks')" wire:navigate>Bancos</flux:navlist.item>
+                    <flux:navlist.item icon="document-text" :href="url('invoices')" :current="Request::is('invoices*')" wire:navigate>Transações</flux:navlist.item>
+                    <flux:navlist.item icon="wallet" :href="url('cashbook')" :current="Request::is('cashbook')" wire:navigate>Livro Caixa</flux:navlist.item>
+                    <flux:navlist.item icon="banknotes" :href="url('cofrinho')" :current="Request::is('cofrinho')" wire:navigate>Cofrinhos</flux:navlist.item>
+                </flux:navlist.group>
 
-<flux:navlist.group :heading="__('Dashboards')">
-    <flux:navlist.item :href="url('dashboard/cashbook')" :current="Request::is('dashboard/cashbook')">Dashboard Livro Caixa</flux:navlist.item>
-    <flux:navlist.item  :href="url('dashboard/sales')" :current="Request::is('dashboard/sales')">Dashboard Vendas</flux:navlist.item>
-    <flux:navlist.item  :href="url('dashboard/products')" :current="Request::is('dashboard/products')">Dashboard Produtos</flux:navlist.item>
-</flux:navlist.group>
+                <flux:navlist.group :heading="__('Vendas e Produtos')">
+                    <flux:navlist.item icon="cube" :href="url('products')" :current="Request::is('products')" wire:navigate>Produtos</flux:navlist.item>
+                    <flux:navlist.item icon="users" :href="url('clients')" :current="Request::is('clients')" wire:navigate>Clientes</flux:navlist.item>
+                    <flux:navlist.item icon="shopping-cart" :href="url('sales')" :current="Request::is('sales')" wire:navigate>Vendas</flux:navlist.item>
+                    <flux:navlist.item icon="tag" :href="url('categories')" :current="Request::is('categories')" wire:navigate>Categorias</flux:navlist.item>
+                </flux:navlist.group>
+            </flux:navlist>
             <flux:spacer />
 
             <flux:navlist variant="outline">
