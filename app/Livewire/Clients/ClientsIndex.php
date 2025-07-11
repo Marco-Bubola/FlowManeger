@@ -3,6 +3,8 @@
 namespace App\Livewire\Clients;
 
 use App\Models\Client;
+use App\Models\Sale;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -16,10 +18,21 @@ class ClientsIndex extends Component
     public string $search = '';
     public string $filter = '';
     public int $perPage = 18;
+    public int $month;
+    public int $year;
 
     // Modal de exclusão
-    public ?Client $deletingClient = null;
     public bool $showDeleteModal = false;
+    public $deletingClient = null;
+
+    // Estatísticas financeiras
+    public $totalClients = 0;
+    public $totalSales = 0;
+    public $totalRevenue = 0;
+    public $averageTicket = 0;
+    public $topClient = null;
+    public $recentClients = [];
+    public $monthlySales = [];
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -27,6 +40,62 @@ class ClientsIndex extends Component
         'perPage' => ['except' => 18],
         'page' => ['except' => 1],
     ];
+
+    public function mount(): void
+    {
+        $this->month = now()->month;
+        $this->year = now()->year;
+        $this->loadFinancialData();
+    }
+
+    public function loadFinancialData(): void
+    {
+        $startOfMonth = Carbon::create($this->year, $this->month, 1)->startOfDay();
+        $endOfMonth = Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay();
+
+        // Total de clientes
+        $this->totalClients = Client::where('user_id', Auth::id())->count();
+
+        // Vendas do mês
+        $salesQuery = Sale::whereHas('client', function($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+
+        $this->totalSales = $salesQuery->count();
+        $this->totalRevenue = $salesQuery->sum('total_price');
+        $this->averageTicket = $this->totalSales > 0 ? $this->totalRevenue / $this->totalSales : 0;
+
+        // Cliente com mais compras
+        $this->topClient = Client::where('user_id', Auth::id())
+            ->withCount(['sales as sales_count' => function($query) use ($startOfMonth, $endOfMonth) {
+                $query->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+            }])
+            ->withSum(['sales as sales_total' => function($query) use ($startOfMonth, $endOfMonth) {
+                $query->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
+            }], 'total_price')
+            ->having('sales_count', '>', 0)
+            ->orderBy('sales_total', 'desc')
+            ->first();
+
+        // Clientes recentes (últimos 5)
+        $this->recentClients = Client::where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->limit(5)
+            ->get()
+            ->toArray();
+
+        // Vendas por dia do mês (para gráfico)
+        $this->monthlySales = Sale::whereHas('client', function($query) {
+                $query->where('user_id', Auth::id());
+            })
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(total_price) as total')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get()
+            ->toArray();
+    }
 
     public function updatingSearch(): void
     {
@@ -43,10 +112,48 @@ class ClientsIndex extends Component
         $this->resetPage();
     }
 
-    public function confirmDelete(Client $client): void
+    public function updatedMonth(): void
     {
-        $this->deletingClient = $client;
-        $this->showDeleteModal = true;
+        $this->loadFinancialData();
+    }
+
+    public function updatedYear(): void
+    {
+        $this->loadFinancialData();
+    }
+
+    public function previousMonth(): void
+    {
+        if ($this->month == 1) {
+            $this->month = 12;
+            $this->year--;
+        } else {
+            $this->month--;
+        }
+        $this->loadFinancialData();
+    }
+
+    public function nextMonth(): void
+    {
+        if ($this->month == 12) {
+            $this->month = 1;
+            $this->year++;
+        } else {
+            $this->month++;
+        }
+        $this->loadFinancialData();
+    }
+
+    public function confirmDelete($clientId): void
+    {
+        $client = Client::where('id', $clientId)
+                       ->where('user_id', Auth::id())
+                       ->first();
+        
+        if ($client) {
+            $this->deletingClient = $client;
+            $this->showDeleteModal = true;
+        }
     }
 
     public function deleteClient(): void
