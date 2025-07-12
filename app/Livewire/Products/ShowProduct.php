@@ -53,10 +53,15 @@ class ShowProduct extends Component
     {
         $productIds = $this->products->pluck('id');
         
-        // Dados básicos de vendas
-        $salesQuery = SaleItem::whereIn('product_id', $productIds)
-            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
-            ->where('sales.user_id', Auth::id());
+        // Carregar vendas completas com relacionamentos
+        $salesQuery = Sale::whereHas('saleItems', function($query) use ($productIds) {
+                $query->whereIn('product_id', $productIds);
+            })
+            ->with(['client', 'saleItems' => function($query) use ($productIds) {
+                $query->whereIn('product_id', $productIds);
+            }])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc');
 
         // Filtro de período
         if ($this->period !== 'all') {
@@ -64,6 +69,35 @@ class ShowProduct extends Component
         }
 
         $this->salesData = $salesQuery->get();
+
+        // Debug: Se não há vendas, criar dados de exemplo para teste (apenas em desenvolvimento)
+        if (config('app.debug') && $this->salesData->isEmpty()) {
+            // Comentário para criar algumas vendas de exemplo
+            // Você pode descomentar isso temporariamente para testar a interface
+            /*
+            $this->salesData = collect([
+                (object)[
+                    'id' => 1,
+                    'client_id' => null,
+                    'client' => null,
+                    'total_price' => 150.00,
+                    'status' => 'concluida',
+                    'payment_method' => 'dinheiro',
+                    'tipo_pagamento' => 'a_vista',
+                    'parcelas' => 1,
+                    'created_at' => now()->subDays(2),
+                    'saleItems' => collect([
+                        (object)[
+                            'product_id' => $this->mainProduct->id,
+                            'quantity' => 2,
+                            'price' => 100.00,
+                            'price_sale' => 150.00
+                        ]
+                    ])
+                ]
+            ]);
+            */
+        }
 
         // Calcular analytics
         $this->analytics = $this->calculateAnalytics($productIds);
@@ -79,7 +113,7 @@ class ShowProduct extends Component
             default => Carbon::now()->subMonths(6)
         };
 
-        return $query->where('sales.created_at', '>=', $date);
+        return $query->where('created_at', '>=', $date);
     }
 
     private function calculateAnalytics($productIds)
@@ -192,6 +226,68 @@ class ShowProduct extends Component
     public function updatedChartType()
     {
         $this->loadAnalytics();
+    }
+
+    // Métodos para ações de vendas
+    public function duplicateSale($saleId)
+    {
+        try {
+            $originalSale = Sale::findOrFail($saleId);
+            
+            // Criar nova venda baseada na original
+            $newSale = Sale::create([
+                'client_id' => $originalSale->client_id,
+                'user_id' => Auth::id(),
+                'total_price' => $originalSale->total_price,
+                'amount_paid' => 0, // Nova venda inicia sem pagamento
+                'status' => 'pendente',
+                'payment_method' => $originalSale->payment_method,
+                'tipo_pagamento' => $originalSale->tipo_pagamento,
+                'parcelas' => $originalSale->parcelas,
+            ]);
+
+            // Duplicar itens da venda
+            foreach ($originalSale->saleItems as $item) {
+                $newSale->saleItems()->create([
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'price_sale' => $item->price_sale,
+                ]);
+            }
+
+            session()->flash('success', 'Venda duplicada com sucesso!');
+            $this->loadAnalytics(); // Recarregar dados
+            
+        } catch (\Exception $e) {
+            session()->flash('error', 'Erro ao duplicar venda: ' . $e->getMessage());
+        }
+    }
+
+    public function createSale()
+    {
+        // Redirecionar para criação de venda com produto pré-selecionado
+        return redirect()->route('sales.create', ['product_id' => $this->mainProduct->id]);
+    }
+
+    // Método para verificar dados no banco
+    public function checkDatabaseData()
+    {
+        $productIds = $this->products->pluck('id');
+        
+        $debug = [
+            'product_ids' => $productIds->toArray(),
+            'total_sales' => Sale::where('user_id', Auth::id())->count(),
+            'sales_with_items' => Sale::whereHas('saleItems')->where('user_id', Auth::id())->count(),
+            'sale_items_count' => SaleItem::whereIn('product_id', $productIds)->count(),
+            'sales_for_products' => Sale::whereHas('saleItems', function($query) use ($productIds) {
+                $query->whereIn('product_id', $productIds);
+            })->where('user_id', Auth::id())->count()
+        ];
+        
+        session()->flash('debug_info', $debug);
+        
+        return $debug;
     }
 
     public function getCategoryIcon($icon)
