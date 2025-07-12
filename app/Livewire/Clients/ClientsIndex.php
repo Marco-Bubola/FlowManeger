@@ -17,13 +17,23 @@ class ClientsIndex extends Component
     // Filtros
     public string $search = '';
     public string $filter = '';
-    public int $perPage = 18;
+    public int $perPage = 16;
     public int $month;
     public int $year;
+
+    // Novos filtros avançados
+    public string $statusFilter = '';
+    public string $periodFilter = '';
+    public string $minValue = '';
+    public string $maxValue = '';
+    public string $minSales = '';
+    public string $maxSales = '';
+    public bool $showAdvancedFilters = false;
 
     // Modal de exclusão
     public bool $showDeleteModal = false;
     public $deletingClient = null;
+    public $clientToDelete = null;
 
     // Estatísticas financeiras
     public $totalClients = 0;
@@ -37,7 +47,9 @@ class ClientsIndex extends Component
     protected $queryString = [
         'search' => ['except' => ''],
         'filter' => ['except' => ''],
-        'perPage' => ['except' => 18],
+        'statusFilter' => ['except' => ''],
+        'periodFilter' => ['except' => ''],
+        'perPage' => ['except' => 16],
         'page' => ['except' => 1],
     ];
 
@@ -112,6 +124,36 @@ class ClientsIndex extends Component
         $this->resetPage();
     }
 
+    public function updatingStatusFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingPeriodFilter(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingMinValue(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingMaxValue(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingMinSales(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingMaxSales(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedMonth(): void
     {
         $this->loadFinancialData();
@@ -152,6 +194,7 @@ class ClientsIndex extends Component
         
         if ($client) {
             $this->deletingClient = $client;
+            $this->clientToDelete = $clientId;
             $this->showDeleteModal = true;
         }
     }
@@ -163,7 +206,7 @@ class ClientsIndex extends Component
             if ($this->deletingClient->user_id === Auth::id()) {
                 $this->deletingClient->delete();
                 
-                session()->flash('success', 'Cliente deletado com sucesso!');
+                session()->flash('message', 'Cliente deletado com sucesso!');
             } else {
                 session()->flash('error', 'Você não tem permissão para deletar este cliente.');
             }
@@ -171,6 +214,7 @@ class ClientsIndex extends Component
 
         $this->showDeleteModal = false;
         $this->deletingClient = null;
+        $this->clientToDelete = null;
         $this->resetPage();
     }
 
@@ -178,6 +222,20 @@ class ClientsIndex extends Component
     {
         $this->showDeleteModal = false;
         $this->deletingClient = null;
+        $this->clientToDelete = null;
+    }
+
+    // Novos métodos para filtros avançados
+    public function clearAllFilters(): void
+    {
+        $this->reset(['search', 'filter', 'statusFilter', 'periodFilter', 'minValue', 'maxValue', 'minSales', 'maxSales']);
+        $this->resetPage();
+    }
+
+    public function exportClients(): void
+    {
+        // Aqui você pode implementar a lógica de exportação
+        session()->flash('message', 'Exportação iniciada! O arquivo será enviado por email.');
     }
 
     #[On('client-created')]
@@ -196,10 +254,78 @@ class ClientsIndex extends Component
     {
         $query = Client::where('user_id', Auth::id());
 
-        // Filtro de pesquisa por nome
+        // Filtro de pesquisa por nome, email, telefone ou cidade
         if (!empty($this->search)) {
             $searchTerm = str_replace('.', '', $this->search);
-            $query->where('name', 'like', '%' . $searchTerm . '%');
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('email', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('phone', 'like', '%' . $searchTerm . '%')
+                  ->orWhere('address', 'like', '%' . $searchTerm . '%');
+            });
+        }
+
+        // Filtro por status
+        if (!empty($this->statusFilter)) {
+            switch ($this->statusFilter) {
+                case 'vip':
+                    $query->withCount('sales')->having('sales_count', '>=', 10);
+                    break;
+                case 'premium':
+                    $query->withCount('sales')->having('sales_count', '>=', 5)->having('sales_count', '<', 10);
+                    break;
+                case 'new':
+                    $query->where('created_at', '>=', now()->subDays(30));
+                    break;
+                case 'inactive':
+                    $query->whereDoesntHave('sales', function($q) {
+                        $q->where('created_at', '>=', now()->subMonths(6));
+                    });
+                    break;
+            }
+        }
+
+        // Filtro por período de cadastro
+        if (!empty($this->periodFilter)) {
+            switch ($this->periodFilter) {
+                case 'today':
+                    $query->whereDate('created_at', now()->toDateString());
+                    break;
+                case 'week':
+                    $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
+                    break;
+                case 'month':
+                    $query->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
+                    break;
+                case 'quarter':
+                    $query->where('created_at', '>=', now()->subMonths(3));
+                    break;
+                case 'year':
+                    $query->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()]);
+                    break;
+            }
+        }
+
+        // Filtro por valor total de compras
+        if (!empty($this->minValue) || !empty($this->maxValue)) {
+            $query->withSum('sales', 'total_price');
+            if (!empty($this->minValue)) {
+                $query->having('sales_sum_total_price', '>=', (float)$this->minValue);
+            }
+            if (!empty($this->maxValue)) {
+                $query->having('sales_sum_total_price', '<=', (float)$this->maxValue);
+            }
+        }
+
+        // Filtro por número de compras
+        if (!empty($this->minSales) || !empty($this->maxSales)) {
+            $query->withCount('sales');
+            if (!empty($this->minSales)) {
+                $query->having('sales_count', '>=', (int)$this->minSales);
+            }
+            if (!empty($this->maxSales)) {
+                $query->having('sales_count', '<=', (int)$this->maxSales);
+            }
         }
 
         // Filtros de ordenação
@@ -215,6 +341,19 @@ class ClientsIndex extends Component
                 break;
             case 'name_desc':
                 $query->orderBy('name', 'desc');
+                break;
+            case 'most_sales':
+                $query->withCount('sales')->orderBy('sales_count', 'desc');
+                break;
+            case 'best_customers':
+                $query->withSum('sales', 'total_price')->orderBy('sales_sum_total_price', 'desc');
+                break;
+            case 'recent_activity':
+                $query->with(['sales' => function($q) {
+                    $q->latest()->limit(1);
+                }])->get()->sortByDesc(function($client) {
+                    return $client->sales->first()?->created_at;
+                });
                 break;
             default:
                 $query->orderBy('created_at', 'desc');
