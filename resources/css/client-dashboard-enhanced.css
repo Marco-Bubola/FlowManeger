@@ -1,0 +1,264 @@
+/* Enhanced Client Dashboard Styles */
+
+/* Container principal com largura total */
+.client-dashboard {
+    width: 100%;
+    max-width: none;
+}
+
+/* Animações de hover aprimoradas */
+.hover-scale:hover {
+    transform: scale(1.02);
+}
+
+.stats-card {
+    position: relative;
+    overflow: hidden;
+}
+
+.stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+    transition: left 0.6s;
+}
+
+.stats-card:hover::before {
+    left: 100%;
+}
+
+/* Efeitos de gradiente dinâmicos */
+.gradient-shift {
+    background-size: 200% 200%;
+    animation: gradientShift 4s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Cards de vendas com layout responsivo */
+.sale-card {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.sale-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Badges animados */
+.badge-pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Filtros dropdown melhorados */
+.filter-dropdown {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+
+/* Efeitos de loading */
+.loading-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+/* Tabs responsivos */
+.tab-responsive {
+    min-width: auto;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .tab-responsive span {
+        display: none;
+    }
+    
+    .tab-responsive i {
+        margin-right: 0;
+    }
+}
+
+/* Cards em grid responsivo */
+.grid-responsive {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+@media (min-width: 1280px) {
+    .grid-responsive {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width: 1536px) {
+    .grid-responsive {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}
+
+/* Efeitos de status coloridos */
+.status-pago {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+}
+
+.status-pendente {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+}
+
+.status-cancelado {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: white;
+}
+
+/* Scroll personalizado */
+.custom-scroll::-webkit-scrollbar {
+    width: 8px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+}
+
+/* Animações de entrada */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tooltips melhorados */
+.tooltip-enhanced {
+    position: relative;
+}
+
+.tooltip-enhanced::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+    z-index: 1000;
+}
+
+.tooltip-enhanced:hover::after {
+    opacity: 1;
+}
+
+/* Indicadores de progresso */
+.progress-ring {
+    width: 60px;
+    height: 60px;
+}
+
+.progress-ring-circle {
+    stroke: #e5e7eb;
+    fill: transparent;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+.progress-ring-fill {
+    stroke: #6366f1;
+    fill: transparent;
+    stroke-width: 4;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    stroke-dasharray: 0 100;
+    transition: stroke-dasharray 0.5s ease-in-out;
+}
+
+/* Modo escuro aprimorado */
+@media (prefers-color-scheme: dark) {
+    .loading-shimmer {
+        background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+        background-size: 200% 100%;
+    }
+    
+    .custom-scroll::-webkit-scrollbar-track {
+        background: #374151;
+    }
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 640px) {
+    .stats-card {
+        padding: 1rem;
+    }
+    
+    .stats-card .text-3xl {
+        font-size: 1.5rem;
+    }
+    
+    .grid-responsive {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+}
+
+/* Animações de loading dos números */
+.number-counter {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+}
+
+/* Efeitos de glassmorphism */
+.glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-effect-dark {
+    background: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
