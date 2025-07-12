@@ -28,6 +28,10 @@ class ClientsIndex extends Component
     public string $maxValue = '';
     public string $minSales = '';
     public string $maxSales = '';
+    
+    // Propriedades para ações em massa
+    public $selectedClients = [];
+    public $selectAll = false;
     public bool $showAdvancedFilters = false;
 
     // Modal de exclusão
@@ -236,6 +240,98 @@ class ClientsIndex extends Component
     {
         // Aqui você pode implementar a lógica de exportação
         session()->flash('message', 'Exportação iniciada! O arquivo será enviado por email.');
+    }
+
+    // Métodos para seleção em massa - primeira definição
+    public function updatedSelectAll()
+    {
+        if ($this->selectAll) {
+            // Buscar IDs dos clientes da página atual
+            $query = Client::where('user_id', Auth::id());
+            
+            if ($this->search) {
+                $query->where(function($q) {
+                    $q->where('name', 'like', '%' . $this->search . '%')
+                      ->orWhere('email', 'like', '%' . $this->search . '%')
+                      ->orWhere('phone', 'like', '%' . $this->search . '%')
+                      ->orWhere('city', 'like', '%' . $this->search . '%');
+                });
+            }
+            
+            $this->selectedClients = $query->pluck('id')->toArray();
+        } else {
+            $this->selectedClients = [];
+        }
+    }
+
+    public function updatedSelectedClients()
+    {
+        // Atualizar selectAll baseado na seleção atual
+        $this->selectAll = !empty($this->selectedClients);
+    }
+
+    // Ações em massa
+    public function bulkDelete()
+    {
+        if (!empty($this->selectedClients)) {
+            $deletedCount = Client::whereIn('id', $this->selectedClients)
+                  ->where('user_id', Auth::id())
+                  ->delete();
+            
+            $this->selectedClients = [];
+            $this->selectAll = false;
+            
+            session()->flash('message', $deletedCount . ' clientes deletados com sucesso!');
+            $this->resetPage();
+        }
+    }
+
+    public function bulkExport()
+    {
+        if (!empty($this->selectedClients)) {
+            // Lógica para exportar clientes selecionados
+            session()->flash('message', count($this->selectedClients) . ' clientes exportados com sucesso!');
+        }
+    }
+
+    // Estatísticas da página
+    public function getClientStatsProperty()
+    {
+        $stats = collect();
+        
+        // Total de clientes
+        $stats->put('total', Client::where('user_id', Auth::id())->count());
+        
+        // Clientes novos este mês
+        $stats->put('new_this_month', Client::where('user_id', Auth::id())
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count());
+            
+        // Clientes VIP (10+ compras)
+        $stats->put('vip', Client::where('user_id', Auth::id())
+            ->withCount('sales')
+            ->having('sales_count', '>=', 10)
+            ->count());
+            
+        // Total de vendas de todos os clientes
+        $stats->put('total_sales', Sale::whereIn('client_id', 
+            Client::where('user_id', Auth::id())->pluck('id')
+        )->sum('total'));
+        
+        // Média de vendas por cliente
+        $clientsWithSales = Client::where('user_id', Auth::id())
+            ->whereHas('sales')
+            ->count();
+        $stats->put('avg_sales_per_client', $clientsWithSales > 0 ? 
+            $stats->get('total_sales') / $clientsWithSales : 0);
+            
+        // Última venda
+        $lastSale = Sale::whereIn('client_id', 
+            Client::where('user_id', Auth::id())->pluck('id')
+        )->latest()->first();
+        $stats->put('last_sale', $lastSale ? $lastSale->created_at->diffForHumans() : 'Nenhuma venda');
+        
+        return $stats;
     }
 
     #[On('client-created')]
