@@ -1,0 +1,334 @@
+/* Estilos extras para a página de produtos */
+
+/* Animações personalizadas */
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200px 0; }
+    100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes pulse-soft {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+@keyframes rotate-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Efeitos para cards de ação */
+.action-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.action-card:hover::before {
+    left: 100%;
+}
+
+/* Efeito de gradiente animado para o background */
+.animated-bg {
+    background: linear-gradient(-45deg, #f8fafc, #f1f5f9, #e2e8f0, #f8fafc);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.animated-bg.dark {
+    background: linear-gradient(-45deg, #1e293b, #334155, #475569, #1e293b);
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+}
+
+/* Efeitos para estatísticas */
+.stat-card {
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+    border-radius: 50%;
+    transform: translate(20px, -20px);
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover::after {
+    transform: translate(10px, -10px) scale(1.2);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Efeito de loading para pesquisa */
+.search-loading {
+    position: relative;
+}
+
+.search-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+    background-size: 200px 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Badges flutuantes */
+.floating-badge {
+    animation: float 3s ease-in-out infinite;
+}
+
+.floating-badge:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.floating-badge:nth-child(3) {
+    animation-delay: 1s;
+}
+
+.floating-badge:nth-child(4) {
+    animation-delay: 1.5s;
+}
+
+/* Efeitos para o modal */
+.modal-overlay {
+    backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.modal-content {
+    animation: modal-appear 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modal-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* Efeitos para botões */
+.btn-gradient {
+    background: linear-gradient(45deg, var(--primary), var(--primary-dark));
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-gradient::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.btn-gradient:hover::before {
+    left: 100%;
+}
+
+/* Indicadores de filtros ativos */
+.filter-indicator {
+    position: relative;
+}
+
+.filter-indicator::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    right: -2px;
+    width: 8px;
+    height: 8px;
+    background: #ef4444;
+    border-radius: 50%;
+    border: 2px solid white;
+    animation: pulse-soft 2s infinite;
+}
+
+/* Efeitos de hover para inputs */
+.input-enhanced {
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.input-enhanced:focus {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.25);
+}
+
+/* Efeitos para paginação */
+.pagination-wrapper {
+    position: relative;
+}
+
+.pagination-wrapper::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #e5e7eb, transparent);
+}
+
+/* Responsividade aprimorada */
+@media (max-width: 640px) {
+    .stat-card {
+        min-height: 100px;
+    }
+    
+    .action-card {
+        padding: 1rem;
+    }
+    
+    .floating-badge {
+        animation: none;
+    }
+}
+
+/* Modo escuro específico */
+@media (prefers-color-scheme: dark) {
+    .stat-card::after {
+        background: linear-gradient(45deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
+    }
+    
+    .search-loading::after {
+        background: linear-gradient(90deg, transparent, #a855f7, transparent);
+    }
+    
+    .pagination-wrapper::before {
+        background: linear-gradient(90deg, transparent, #374151, transparent);
+    }
+}
+
+/* Efeitos especiais para estado vazio */
+.empty-state {
+    position: relative;
+}
+
+.empty-state::before,
+.empty-state::after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(45deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
+    border-radius: 50%;
+    animation: float 4s ease-in-out infinite;
+}
+
+.empty-state::before {
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.empty-state::after {
+    top: 60%;
+    right: 10%;
+    animation-delay: 2s;
+}
+
+/* Efeitos de transição suaves */
+* {
+    scroll-behavior: smooth;
+}
+
+/* Melhorias para acessibilidade */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+
+/* Efeitos especiais para icons */
+.icon-rotate {
+    transition: transform 0.3s ease;
+}
+
+.icon-rotate:hover {
+    transform: rotate(360deg);
+}
+
+.icon-pulse {
+    animation: pulse-soft 2s infinite;
+}
+
+/* Tooltips estilizados */
+[title] {
+    position: relative;
+}
+
+[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    opacity: 0;
+    animation: tooltip-appear 0.3s ease forwards;
+}
+
+@keyframes tooltip-appear {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
