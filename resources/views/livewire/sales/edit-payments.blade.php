@@ -1,6 +1,6 @@
-<div class="min-h-screen w-full bg-gradient-to-br from-indigo-50 via-white to-green-50 dark:from-zinc-900 dark:via-zinc-800 dark:to-green-900">
+<div class="min-h-screen w-full ">
     <!-- Header fixo -->
-    <div class="w-full px-6 py-4 sticky top-0 z-20 bg-white/80 dark:bg-zinc-900/80 shadow-lg rounded-b-2xl backdrop-blur border-b border-gray-200 dark:border-gray-700">
+    <div class="w-full px-6 py-4 sticky top-0 z-20 shadow-lg rounded-b-2xl backdrop-blur border-b ">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <span class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900 shadow">
@@ -68,10 +68,7 @@
             <!-- Formulário para editar pagamentos -->
             <form wire:submit.prevent="updatePayments">
                 <div class="space-y-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <i class="bi bi-wallet2 text-indigo-600 dark:text-indigo-400"></i>
-                        Editar Pagamentos Existentes
-                    </h3>
+                 
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         @foreach($payments as $index => $payment)
                             <div class="bg-white dark:bg-zinc-800 p-6 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-lg relative flex flex-col gap-4">
@@ -125,68 +122,14 @@
                                                wire:model="payments.{{ $index }}.payment_date"
                                                class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white">
                                     </div>
-                                    <!-- Observações -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                            <i class="bi bi-chat-left-text"></i> Observações
-                                        </label>
-                                        <input type="text" 
-                                               wire:model="payments.{{ $index }}.notes"
-                                               class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white"
-                                               placeholder="Observações opcionais">
-                                    </div>
+                                    <!-- Observações removido -->
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 </div>
 
-                <!-- Resumo dos pagamentos -->
-                <div class="mt-8 p-6 bg-gradient-to-r from-green-50 via-white to-indigo-50 dark:from-green-900/20 dark:via-zinc-900/20 dark:to-indigo-900/20 border border-green-200 dark:border-green-800 rounded-2xl shadow flex flex-col md:flex-row gap-6 items-center justify-center">
-                    <div class="flex-1 text-center flex flex-col items-center gap-2">
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                            <i class="bi bi-cash-stack text-green-600"></i> Total dos Pagamentos
-                        </h4>
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
-                            <i class="bi bi-coin"></i> R$ {{ number_format($this->totalPayments, 2, ',', '.') }}
-                        </p>
-                    </div>
-                    <div class="flex-1 text-center flex flex-col items-center gap-2">
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                            <i class="bi bi-receipt text-indigo-600"></i> Total da Venda
-                        </h4>
-                        <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1">
-                            <i class="bi bi-receipt-cutoff"></i> R$ {{ number_format($sale->total_price, 2, ',', '.') }}
-                        </p>
-                    </div>
-                    <div class="flex-1 text-center flex flex-col items-center gap-2">
-                        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                            <i class="bi bi-calculator text-indigo-600"></i> Valor Restante
-                        </h4>
-                        <p class="text-2xl font-bold {{ $this->remainingAmount <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} flex items-center gap-1">
-                            <i class="bi bi-cash"></i> R$ {{ number_format($this->remainingAmount, 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Botões de ação -->
-                <div class="mt-8 flex flex-wrap items-center gap-4 justify-center">
-                    <a href="{{ route('sales.show', $sale->id) }}" 
-                       class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow">
-                        <i class="bi bi-arrow-left"></i>
-                        Voltar
-                    </a>
-                    <a href="{{ route('sales.add-payments', $sale->id) }}" 
-                       class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow">
-                        <i class="bi bi-plus-lg"></i>
-                        Adicionar Novo
-                    </a>
-                    <button type="submit" 
-                            class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow">
-                        <i class="bi bi-check-circle"></i>
-                        Salvar Alterações
-                    </button>
-                </div>
+               
             </form>
         @else
             <!-- Caso não tenha pagamentos -->
