@@ -135,13 +135,7 @@
                                          alt="{{ $product->name }}"
                                          class="product-img">
 
-                                    <!-- Badge de estoque baixo -->
-                                    @if($product->stock_quantity <= 5)
-                                        <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                                            Baixo estoque
-                                        </div>
-                                    @endif
+                                   
 
                                     <!-- Código do produto -->
                                     <span class="badge-product-code">
