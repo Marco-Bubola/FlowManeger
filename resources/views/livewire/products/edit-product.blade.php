@@ -334,37 +334,7 @@
                             </div>
                             @enderror
                         </div>
-
-                        <!-- Status -->
-                        <div class="space-y-3">
-                            <label for="status" class="flex items-center text-base font-bold text-neutral-800 dark:text-neutral-200">
-                                <div class="flex items-center justify-center w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg mr-3 shadow-sm">
-                                    <i class="bi bi-toggle-on text-emerald-600 dark:text-emerald-400"></i>
-                                </div>
-                                Status *
-                            </label>
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center">
-                                    <i class="bi bi-activity text-neutral-400"></i>
-                                </div>
-                                <select wire:model.live="status"
-                                    id="status"
-                                    class="w-full pl-12 pr-10 py-3 border-2 {{ $errors->has('status') ? 'border-red-400 focus:border-red-500' : 'border-neutral-300 dark:border-neutral-600 focus:border-emerald-500' }} rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-emerald-500/20 focus:outline-none transition-all duration-200 appearance-none">
-                                    <option value="ativo" {{ $status == 'ativo' ? 'selected' : '' }}>Ativo</option>
-                                    <option value="inativo" {{ $status == 'inativo' ? 'selected' : '' }}>Inativo</option>
-                                    <option value="descontinuado" {{ $status == 'descontinuado' ? 'selected' : '' }}>Descontinuado</option>
-                                </select>
-                                <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                                    <i class="bi bi-chevron-down text-neutral-400"></i>
-                                </div>
-                            </div>
-                            @error('status')
-                            <div class="flex items-center mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                                <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
-                                <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
-                            </div>
-                            @enderror
-                        </div>
+ 
                     </div>
                 </div>
 
@@ -509,12 +479,23 @@
     </div>
 
     <script>
+        // Listener para redirecionamento após delay
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('redirect-after-delay', (event) => {
+                setTimeout(() => {
+                    window.location.href = event.url;
+                }, event.delay);
+            });
+        });
+
         function incrementQuantityEdit() {
             const input = document.getElementById('stock_quantity');
             const currentValue = parseInt(input.value) || 0;
             const newValue = currentValue + 1;
             input.value = newValue;
             input.dispatchEvent(new Event('input'));
+            // Força atualização no Livewire
+            input.dispatchEvent(new Event('change'));
         }
 
         function decrementQuantityEdit() {
@@ -523,6 +504,8 @@
             const newValue = Math.max(0, currentValue - 1);
             input.value = newValue;
             input.dispatchEvent(new Event('input'));
+            // Força atualização no Livewire
+            input.dispatchEvent(new Event('change'));
         }
 
         // Máscara de moeda
@@ -549,25 +532,20 @@
         }
 
         function applyCurrencyMask(input) {
+            // Previne loops infinitos
+            if (input.dataset.processing === 'true') {
+                return;
+            }
+            
+            input.dataset.processing = 'true';
+            
             const formatted = formatCurrency(input.value);
             input.value = formatted;
             
-            // Atualiza o Livewire com o valor numérico (formato US para validação)
-            const numericValue = formatted.replace(',', '.');
-            
-            // Usa o objeto Livewire para atualizar o valor
-            if (window.Livewire) {
-                const wireElement = input.closest('[wire\\:id]');
-                const wireId = wireElement ? wireElement.getAttribute('wire:id') : null;
-                const wireModel = input.getAttribute('wire:model');
-                
-                if (wireId && wireModel) {
-                    const component = window.Livewire.find(wireId);
-                    if (component) {
-                        component.set(wireModel, numericValue);
-                    }
-                }
-            }
+            // Remove o flag de processamento após um pequeno delay
+            setTimeout(() => {
+                input.dataset.processing = 'false';
+            }, 10);
         }
 
         // Aplica a máscara nos campos de preço
@@ -578,7 +556,7 @@
             function setupCurrencyField(input) {
                 if (!input) return;
                 
-                // Formatar valor inicial se existir (vem do banco em formato US)
+                // Formatar valor inicial se existir
                 const currentValue = input.value || '';
                 if (currentValue && currentValue !== '0' && currentValue !== '0.00' && currentValue !== '') {
                     const numericValue = parseFloat(currentValue);
@@ -591,7 +569,11 @@
                     input.value = '0,00';
                 }
 
-                input.addEventListener('input', function() {
+                // Event listener otimizado
+                input.addEventListener('input', function(e) {
+                    // Evita loops infinitos verificando se o evento é confiável
+                    if (!e.isTrusted) return;
+                    
                     applyCurrencyMask(this);
                 });
                 
@@ -604,14 +586,13 @@
                 input.addEventListener('blur', function() {
                     if (this.value === '' || this.value === null || this.value === undefined) {
                         this.value = '0,00';
-                        applyCurrencyMask(this);
                     }
                 });
 
                 // Restringir entrada apenas a números
                 input.addEventListener('keydown', function(e) {
-                    // Permite: backspace, delete, tab, escape, enter e .
-                    if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                    // Permite: backspace, delete, tab, escape, enter
+                    if ([46, 8, 9, 27, 13].indexOf(e.keyCode) !== -1 ||
                         // Permite: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
                         (e.keyCode === 65 && e.ctrlKey === true) ||
                         (e.keyCode === 67 && e.ctrlKey === true) ||
@@ -621,7 +602,7 @@
                         (e.keyCode >= 35 && e.keyCode <= 39)) {
                         return;
                     }
-                    // Garante que é um número e previne outros caracteres
+                    // Garante que é um número
                     if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
                         e.preventDefault();
                     }
