@@ -141,56 +141,6 @@
                 </div>
             </div>
 
-            <!-- Resumo dos pagamentos -->
-            <div class="mt-8 p-6 bg-gradient-to-r from-green-50 via-white to-indigo-50 dark:from-green-900/20 dark:via-zinc-900/20 dark:to-indigo-900/20 border border-green-200 dark:border-green-800 rounded-2xl shadow flex flex-col md:flex-row gap-6 items-center justify-center">
-                <div class="flex-1 text-center flex flex-col items-center gap-2">
-                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                        <i class="bi bi-cash-stack text-green-600"></i> Total dos Pagamentos
-                    </h4>
-                    <p class="text-2xl font-bold text-green-600 dark:text-green-400 flex items-center gap-1">
-                        <i class="bi bi-coin"></i> R$ {{ number_format($this->totalPayments, 2, ',', '.') }}
-                    </p>
-                </div>
-                <div class="flex-1 text-center flex flex-col items-center gap-2">
-                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                        <i class="bi bi-exclamation-circle text-red-600"></i> Valor Pendente
-                    </h4>
-                    <p class="text-2xl font-bold text-red-600 dark:text-red-400 flex items-center gap-1">
-                        <i class="bi bi-exclamation-diamond"></i> R$ {{ number_format($this->remainingAmount, 2, ',', '.') }}
-                    </p>
-                </div>
-                <div class="flex-1 text-center flex flex-col items-center gap-2">
-                    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1">
-                        <i class="bi bi-calculator text-indigo-600"></i> Valor Final Restante
-                    </h4>
-                    @php
-                        $remaining = $this->remainingAmount - $this->totalPayments;
-                    @endphp
-                    <p class="text-2xl font-bold {{ $remaining <= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }} flex items-center gap-1">
-                        <i class="bi bi-cash"></i> R$ {{ number_format($remaining, 2, ',', '.') }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Botões de ação -->
-            <div class="mt-8 flex flex-wrap items-center gap-4 justify-center">
-                <a href="{{ route('sales.show', $sale->id) }}" 
-                   class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow">
-                    <i class="bi bi-arrow-left"></i>
-                    Voltar
-                </a>
-                <button type="button" 
-                        wire:click="addPaymentRow" 
-                        class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow">
-                    <i class="bi bi-plus-lg"></i>
-                    Adicionar Mais
-                </button>
-                <button type="submit" 
-                        class="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors duration-200 flex items-center gap-2 shadow">
-                    <i class="bi bi-check-circle"></i>
-                    Salvar Pagamentos
-                </button>
-            </div>
         </form>
     </div>
 
