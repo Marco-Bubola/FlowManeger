@@ -746,17 +746,17 @@
             <span class="total-value">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</span>
         </div>
 
-        @if($sale->amount_paid > 0)
+        @if($sale->total_paid > 0)
         <div class="total-row">
             <span class="total-label">Valor Pago:</span>
-            <span class="total-value" style="color: #10b981;">R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}</span>
+            <span class="total-value" style="color: #10b981;">R$ {{ number_format($sale->total_paid, 2, ',', '.') }}</span>
         </div>
         @endif
 
-        @if($sale->amount_due > 0)
+        @if($sale->remaining_amount > 0)
         <div class="total-row">
             <span class="total-label">Valor Pendente:</span>
-            <span class="total-value" style="color: #dc2626;">R$ {{ number_format($sale->amount_due, 2, ',', '.') }}</span>
+            <span class="total-value" style="color: #dc2626;">R$ {{ number_format($sale->remaining_amount, 2, ',', '.') }}</span>
         </div>
         @endif
 
