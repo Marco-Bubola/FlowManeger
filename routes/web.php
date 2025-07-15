@@ -15,11 +15,16 @@ use App\Livewire\Products\EditProduct;
 use App\Livewire\Products\CreateKit;
 use App\Livewire\Products\EditKit;
 use App\Livewire\Products\UploadProducts;
+use App\Livewire\Products\ShowProduct;
 
 // Importar componentes Livewire de clientes
 use App\Livewire\Clients\ClientsIndex;
 use App\Livewire\Clients\CreateClient;
 use App\Livewire\Clients\EditClient;
+use App\Livewire\Clients\ClientResumo;
+use App\Livewire\Clients\ClientFaturas;
+use App\Livewire\Clients\ClientTransferencias;
+use App\Livewire\Clients\ClientDashboard;
 
 // Importar componentes Livewire de vendas
 use App\Livewire\Sales\SalesIndex;
@@ -49,6 +54,12 @@ use App\Livewire\Invoices\EditInvoice;
 use App\Livewire\Invoices\CopyInvoice;
 use App\Livewire\Invoices\UploadInvoice;
 
+// Importar componentes Livewire de dashboard
+use App\Livewire\Dashboard\DashboardIndex;
+use App\Livewire\Dashboard\DashboardCashbook;
+use App\Livewire\Dashboard\DashboardProducts;
+use App\Livewire\Dashboard\DashboardSales;
+
 // Importar todos os controladores que você usa
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChangePasswordController;
@@ -66,23 +77,32 @@ use App\Http\Controllers\SaleController;
 use App\Models\Client;
 use App\Http\Controllers\UploadInvoiceController;
 use App\Http\Controllers\CashbookController;
+// Importar componentes Livewire de cofrinhos
+use App\Livewire\Cofrinhos\CofrinhoIndex;
+use App\Livewire\Cofrinhos\CreateCofrinho;
+use App\Livewire\Cofrinhos\EditCofrinho;
+use App\Livewire\Cofrinhos\ShowCofrinho;
+
 use App\Http\Controllers\UploadCashbookController;
 use App\Http\Controllers\ClienteResumoController;
-use App\Http\Controllers\DashboardCashbookController;
-use App\Http\Controllers\DashboardProductsController;
-use App\Http\Controllers\DashboardSalesController;
-use App\Http\Controllers\CofrinhoController;
 
 Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::view('dashboard', 'dashboard')
+Route::redirect('/dashboard', '/dashboard/main')
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
 // --- Rotas Autenticadas ---
 Route::middleware(['auth'])->group(function () {
+    
+    // --- Rotas de Dashboards (Livewire) ---
+    Route::get('/dashboard/main', DashboardIndex::class)->name('dashboard.index');
+    Route::get('/dashboard/cashbook', DashboardCashbook::class)->name('dashboard.cashbook');
+    Route::get('/dashboard/products', DashboardProducts::class)->name('dashboard.products');
+    Route::get('/dashboard/sales', DashboardSales::class)->name('dashboard.sales');
+    
      // Suas rotas para Livewire
     Route::get('/banks', BanksIndex::class)->name('banks.index');
     Route::get('/banks/create', CreateBank::class)->name('banks.create'); // <--- A rota aponta para a classe
@@ -101,17 +121,23 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clients', ClientsIndex::class)->name('clients.index');
     Route::get('/clients/create', CreateClient::class)->name('clients.create');
     Route::get('/clients/{client}/edit', EditClient::class)->name('clients.edit');
-    Route::get('/client/{id}/resumo', [ClienteResumoController::class, 'index'])->name('clienteResumo.index');
+    
+    // --- Rotas de Resumo Financeiro do Cliente (Livewire) ---
+    Route::get('/clients/{cliente}/dashboard', ClientDashboard::class)->name('clients.dashboard');
+    Route::get('/clients/{cliente}/resumo', ClientResumo::class)->name('clients.resumo');
+    Route::get('/clients/{cliente}/faturas', ClientFaturas::class)->name('clients.faturas');
+    Route::get('/clients/{cliente}/transferencias/{tipo?}', ClientTransferencias::class)->name('clients.transferencias');
+    
+    // Manter algumas rotas específicas se necessário
     Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
     Route::get('/clients/{id}/history', [ClientController::class, 'getPurchaseHistory'])->name('clients.history');
-    Route::get('/clientes/{cliente}/faturas', [ClienteResumoController::class, 'faturasAjax'])->name('clientes.faturas.ajax');
-    Route::get('/clientes/{cliente}/transferencias-enviadas', [ClienteResumoController::class, 'transferenciasEnviadasAjax'])->name('clientes.transferencias.enviadas.ajax');
-    Route::get('/clientes/{cliente}/transferencias-recebidas', [ClienteResumoController::class, 'transferenciasRecebidasAjax'])->name('clientes.transferencias.recebidas.ajax');
+    Route::post('/invoices/{id}/toggle-dividida', [ClienteResumoController::class, 'toggleDividida'])->name('invoices.toggleDividida');
 
     // --- Rotas de Produtos (Livewire) ---
     Route::get('/products', ProductsIndex::class)->name('products.index');
     Route::get('/products/create', CreateProduct::class)->name('products.create');
     Route::get('/products/{product}/edit', EditProduct::class)->name('products.edit');
+    Route::get('/products/show/{productCode}', ShowProduct::class)->name('products.show');
     Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
@@ -147,24 +173,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cashbook/{cashbook}/edit', EditCashbook::class)->name('cashbook.edit');
     Route::get('/cashbook/upload', UploadCashbook::class)->name('cashbook.upload');
     
-    // --- Rotas de Cofrinho ---
-    Route::resource('cofrinho', CofrinhoController::class);
-
-    // --- Rotas de Dashboards ---
-    Route::prefix('dashboard/cashbook')->group(function () {
-        Route::get('/', [DashboardCashbookController::class, 'index'])->name('dashboard.cashbook');
-        Route::get('/chart-data', [DashboardCashbookController::class, 'cashbookChartData'])->name('dashboard.cashbookChartData');
-        Route::get('/calendar-markers', [DashboardCashbookController::class, 'getCalendarMarkers'])->name('dashboard.cashbook.calendarMarkers');
-        Route::get('/day-details', [DashboardCashbookController::class, 'getDayDetails'])->name('dashboard.cashbook.dayDetails');
-    });
-
-    Route::prefix('dashboard/products')->group(function () {
-        Route::get('/', [DashboardProductsController::class, 'index'])->name('dashboard.products');
-    });
-
-    Route::prefix('dashboard/sales')->group(function () {
-        Route::get('/', [DashboardSalesController::class, 'index'])->name('dashboard.sales');
-    });
+    // --- Rotas de Cofrinhos (Livewire) ---
+    Route::get('/cofrinhos', CofrinhoIndex::class)->name('cofrinhos.index');
+    Route::get('/cofrinhos/create', CreateCofrinho::class)->name('cofrinhos.create');
+    Route::get('/cofrinhos/{cofrinho}/edit', EditCofrinho::class)->name('cofrinhos.edit');
+    Route::get('/cofrinhos/{cofrinho}', ShowCofrinho::class)->name('cofrinhos.show');
     
     // --- Rotas de Settings (Livewire Volt) ---
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
