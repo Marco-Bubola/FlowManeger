@@ -96,19 +96,19 @@ Route::redirect('/dashboard', '/dashboard/main')
 
 // --- Rotas Autenticadas ---
 Route::middleware(['auth'])->group(function () {
-    
+
     // --- Rotas de Dashboards (Livewire) ---
     Route::get('/dashboard/main', DashboardIndex::class)->name('dashboard.index');
     Route::get('/dashboard/cashbook', DashboardCashbook::class)->name('dashboard.cashbook');
     Route::get('/dashboard/products', DashboardProducts::class)->name('dashboard.products');
     Route::get('/dashboard/sales', DashboardSales::class)->name('dashboard.sales');
-    
+
      // Suas rotas para Livewire
     Route::get('/banks', BanksIndex::class)->name('banks.index');
     Route::get('/banks/create', CreateBank::class)->name('banks.create'); // <--- A rota aponta para a classe
     Route::get('/banks/{bank}/edit', EditBank::class)->name('banks.edit');
-    
-    
+
+
     // --- Rotas de Invoices/Faturas (Livewire) ---
     Route::get('/invoices/{bankId?}', InvoicesIndex::class)->name('invoices.index');
     Route::get('/invoices/{bankId}/create', CreateInvoice::class)->name('invoices.create');
@@ -121,16 +121,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clients', ClientsIndex::class)->name('clients.index');
     Route::get('/clients/create', CreateClient::class)->name('clients.create');
     Route::get('/clients/{client}/edit', EditClient::class)->name('clients.edit');
-    
+
     // --- Rotas de Resumo Financeiro do Cliente (Livewire) ---
     Route::get('/clients/{cliente}/dashboard', ClientDashboard::class)->name('clients.dashboard');
     Route::get('/clients/{cliente}/resumo', ClientResumo::class)->name('clients.resumo');
     Route::get('/clients/{cliente}/faturas', ClientFaturas::class)->name('clients.faturas');
     Route::get('/clients/{cliente}/transferencias/{tipo?}', ClientTransferencias::class)->name('clients.transferencias');
-    
+
     // Manter algumas rotas específicas se necessário
-    Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
-    Route::get('/clients/{id}/history', [ClientController::class, 'getPurchaseHistory'])->name('clients.history');
+    // Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
+    // Route::get('/clients/{id}/history', [ClientController::class, 'getPurchaseHistory'])->name('clients.history');
     Route::post('/invoices/{id}/toggle-dividida', [ClienteResumoController::class, 'toggleDividida'])->name('invoices.toggleDividida');
 
     // --- Rotas de Produtos (Livewire) ---
@@ -141,11 +141,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
-    
+
     // Manter rotas que ainda usam controller para funcionalidades específicas
-    Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
-    Route::post('/products/update-all', [ProductController::class, 'updateAll'])->name('products.updateAll');
-    Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
+    // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
+    // Route::post('/products/update-all', [ProductController::class, 'updateAll'])->name('products.updateAll');
+    // Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
 
     // --- Rotas de Vendas (Livewire) ---
     Route::get('/sales', SalesIndex::class)->name('sales.index');
@@ -156,44 +156,44 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/sales/{saleId}/edit-prices', EditPrices::class)->name('sales.edit-prices');
     Route::get('/sales/{saleId}/add-payments', AddPayments::class)->name('sales.add-payments');
     Route::get('/sales/{saleId}/edit-payments', EditPayments::class)->name('sales.edit-payments');
-    
+
     // Manter algumas rotas específicas do controller antigo se necessário
-    Route::get('/sales/{id}/export', [SaleController::class, 'export'])->name('sales.export');
-    Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
-    Route::post('/parcelas/{id}/pagar', [SaleController::class, 'pagarParcela'])->name('parcelas.pagar');
+    // Route::get('/sales/{id}/export', [SaleController::class, 'export'])->name('sales.export');
+    // Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
+    // Route::post('/parcelas/{id}/pagar', [SaleController::class, 'pagarParcela'])->name('parcelas.pagar');
 
     // --- Rotas de Categorias (Livewire) ---
     Route::get('/categories', CategoriesIndex::class)->name('categories.index');
     Route::get('/categories/create', CreateCategory::class)->name('categories.create');
     Route::get('/categories/{category}/edit', EditCategory::class)->name('categories.edit');
-    
+
     // --- Rotas de Livro Caixa (Livewire) ---
     Route::get('/cashbook', CashbookIndex::class)->name('cashbook.index');
     Route::get('/cashbook/create', CreateCashbook::class)->name('cashbook.create');
     Route::get('/cashbook/{cashbook}/edit', EditCashbook::class)->name('cashbook.edit');
     Route::get('/cashbook/upload', UploadCashbook::class)->name('cashbook.upload');
-    
+
     // --- Rotas de Cofrinhos (Livewire) ---
     Route::get('/cofrinhos', CofrinhoIndex::class)->name('cofrinhos.index');
     Route::get('/cofrinhos/create', CreateCofrinho::class)->name('cofrinhos.create');
     Route::get('/cofrinhos/{cofrinho}/edit', EditCofrinho::class)->name('cofrinhos.edit');
     Route::get('/cofrinhos/{cofrinho}', ShowCofrinho::class)->name('cofrinhos.show');
-    
+
     // --- Rotas de Settings (Livewire Volt) ---
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
-    
+
     // --- Outras Rotas ---
     Route::redirect('settings', 'settings/profile');
     Route::get('tables', function () {
         return view('tables');
     })->name('tables');
-    Route::get('user-management', [InfoUserController::class, 'index'])->name('user-management');
-    Route::get('/user-management/create', [InfoUserController::class, 'create'])->name('user.create');
-    Route::post('/user-management/create', [InfoUserController::class, 'store'])->name('user.store');
-    Route::delete('/user-management/{id}', [InfoUserController::class, 'destroy'])->name('user.delete');
-    
+    // Route::get('user-management', [InfoUserController::class, 'index'])->name('user-management');
+    // Route::get('/user-management/create', [InfoUserController::class, 'create'])->name('user.create');
+    // Route::post('/user-management/create', [InfoUserController::class, 'store'])->name('user.store');
+    // Route::delete('/user-management/{id}', [InfoUserController::class, 'destroy'])->name('user.delete');
+
 });
 // Rota de login fora do grupo de autenticação
 Route::get('/login', function () {
