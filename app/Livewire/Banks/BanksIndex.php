@@ -24,7 +24,7 @@ class BanksIndex extends Component
     public $highestInvoice = null;
     public $lowestInvoice = null;
     public int $totalTransactions = 0;
-    
+
     // Propriedades para o calendário
     public $calendarData = [];
     public $calendarDays = [];
@@ -64,7 +64,7 @@ class BanksIndex extends Component
         // Carrega os dados iniciais
         $this->loadData();
     }
-   
+
     /**
      * Carrega os dados de bancos e faturas com base no mês e ano.
      */
@@ -93,7 +93,7 @@ class BanksIndex extends Component
 
         // Calculando as métricas e convertendo para arrays
         $this->groupedInvoices = $invoicesByDate->toArray();
-        
+
         // Criar array com todas as invoices para exibição sem agrupamento por data
         $this->allInvoices = $invoices->map(function ($invoice) {
             return [
@@ -113,17 +113,17 @@ class BanksIndex extends Component
                 ] : null
             ];
         })->toArray();
-        
+
         $this->totalMonth = $invoices->sum('value');
-        
+
         $highestInvoice = $invoices->sortByDesc('value')->first();
         $this->highestInvoice = $highestInvoice ? $highestInvoice->toArray() : null;
-        
+
         $lowestInvoice = $invoices->sortBy('value')->first();
         $this->lowestInvoice = $lowestInvoice ? $lowestInvoice->toArray() : null;
-        
+
         $this->totalTransactions = $invoices->count();
-        
+
         // Preparar dados do calendário, passando a coleção já agrupada por data para melhor performance.
         $this->prepareCalendarData($year, $month, $invoicesByDate);
 
@@ -154,25 +154,25 @@ class BanksIndex extends Component
     {
         // Obter o primeiro dia do mês
         $firstDayOfMonth = Carbon::create($year, $month, 1);
-        
+
         // Obter o último dia do mês
         $lastDayOfMonth = $firstDayOfMonth->copy()->endOfMonth();
-        
+
         // Obter o primeiro dia da semana (domingo = 0, segunda = 1, etc.)
         $firstDayOfWeek = $firstDayOfMonth->dayOfWeek;
-        
+
         // Obter o último dia da semana
         $lastDayOfWeek = $lastDayOfMonth->dayOfWeek;
-        
+
         // Calcular quantos dias precisamos mostrar antes do primeiro dia do mês
         $daysBeforeMonth = $firstDayOfWeek;
-        
+
         // Calcular quantos dias precisamos mostrar depois do último dia do mês
         $daysAfterMonth = 6 - $lastDayOfWeek;
-        
+
         // Criar array com todos os dias do calendário
         $calendarDays = [];
-        
+
         // Adicionar dias do mês anterior
         for ($i = $daysBeforeMonth - 1; $i >= 0; $i--) {
             $day = $firstDayOfMonth->copy()->subDays($i + 1);
@@ -184,15 +184,15 @@ class BanksIndex extends Component
                 'invoices' => []
             ];
         }
-        
+
         // Adicionar dias do mês atual
         for ($day = 1; $day <= $lastDayOfMonth->day; $day++) {
             $date = Carbon::create($year, $month, $day);
             $dateString = $date->format('Y-m-d');
-            
+
             // Otimização: Em vez de filtrar a coleção inteira 30x, apenas pegamos o grupo já existente.
             $dayInvoices = $invoicesByDate->get($dateString, collect());
-            
+
             $calendarDays[] = [
                 'date' => $dateString,
                 'day' => $day,
@@ -218,7 +218,7 @@ class BanksIndex extends Component
                 })->toArray()
             ];
         }
-        
+
         // Adicionar dias do próximo mês
         for ($i = 1; $i <= $daysAfterMonth; $i++) {
             $day = $lastDayOfMonth->copy()->addDays($i);
@@ -230,14 +230,14 @@ class BanksIndex extends Component
                 'invoices' => []
             ];
         }
-        
+
         $this->calendarDays = $calendarDays;
-        
+
         // Agrupar invoices por data para o calendário
         // Otimização: Reutilizar os dados já formatados em $this->allInvoices e agrupá-los.
         $this->calendarInvoices = collect($this->allInvoices)->groupBy('date')->toArray();
     }
-    
+
     /**
      * Seleciona um dia específico no calendário.
      */
@@ -251,7 +251,7 @@ class BanksIndex extends Component
         }
         $this->loadData();
     }
-    
+
     /**
      * Limpa a seleção de data.
      */
@@ -260,7 +260,7 @@ class BanksIndex extends Component
         $this->selectedDate = null;
         $this->loadData(); // CORREÇÃO: Recarregar os dados para exibir o mês inteiro novamente.
     }
-    
+
     /**
      * Método para ir para o mês anterior.
      */
@@ -312,12 +312,12 @@ class BanksIndex extends Component
 
         // Recarrega os dados após a exclusão
         $this->loadData();
-        
+
         // Emite um evento para mostrar uma notificação de sucesso
         Session::flash('success', 'Cartão e suas faturas foram excluídos com sucesso.');
     }
 
-   
+
 
     /**
      * Fecha o modal de edição.
@@ -334,13 +334,28 @@ class BanksIndex extends Component
     public function openDeleteModal(int $bankId): void
     {
         $bank = Bank::findOrFail($bankId);
-        
+
         if ($bank->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
         }
-        
+
         $this->deletingBank = $bank;
         $this->showDeleteModal = true;
+    }
+
+    /**
+     * Abre modal de upload para um banco específico.
+     */
+    public function openUploadModal(int $bankId)
+    {
+        $bank = Bank::findOrFail($bankId);
+
+        if ($bank->user_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        // Redireciona para a página de upload com o bankId
+        return redirect()->route('invoices.upload', ['bankId' => $bankId]);
     }
 
     /**
@@ -388,7 +403,7 @@ class BanksIndex extends Component
         // Fecha o modal e recarrega os dados
         $this->closeEditModal();
         $this->loadData();
-        
+
         Session::flash('success', 'Cartão atualizado com sucesso!');
     }
 
@@ -399,7 +414,7 @@ class BanksIndex extends Component
     {
         // Obtendo os bancos com paginação dinâmica para a view
         $paginatedBanks = Bank::where('user_id', Auth::id())->paginate(5, ['*'], 'page', $this->page ?? 1)->withQueryString();
-        
+
         return view('livewire.banks.banks-index', [
             'showDeleteModal' => $this->showDeleteModal,
             'paginatedBanks' => $paginatedBanks,
@@ -430,6 +445,24 @@ class BanksIndex extends Component
     {
         $this->selectedDate = null;
         $this->loadData();
+    }
+
+    /**
+     * Métodos para ações dos cards de invoice
+     */
+    public function editInvoice($invoiceId)
+    {
+        return redirect()->route('invoices.edit', $invoiceId);
+    }
+
+    public function copyInvoice($invoiceId)
+    {
+        return redirect()->route('invoices.copy', $invoiceId);
+    }
+
+    public function confirmDeleteInvoice($invoiceId)
+    {
+        $this->dispatch('confirm-delete-invoice', ['invoiceId' => $invoiceId]);
     }
 
 }
