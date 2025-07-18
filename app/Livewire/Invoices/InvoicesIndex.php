@@ -26,12 +26,17 @@ class InvoicesIndex extends Component
     public $nextMonthName;
     public $currentMonthName;
 
+    // Nova propriedade para filtro por data
+    public $selectedDate = null;
+    public $viewMode = 'cards'; // 'cards' ou 'list'
+
     // Propriedades reativas para os dados
     public $bank = null;
     public $banks = [];
     public $categories = [];
     public $clients = [];
     public $invoices = [];
+    public $invoiceDates = [];
     public $eventsGroupedByMonthAndCategory = [];
     public $eventsDetailed = [];
     public $categoriesWithTransactions = [];
@@ -41,6 +46,9 @@ class InvoicesIndex extends Component
 
     // Estatísticas
     public $totalInvoices = 0;
+    public $totalReceitas = 0;
+    public $totalDespesas = 0;
+    public $saldo = 0;
     public $highestInvoice = null;
     public $lowestInvoice = null;
     public $totalTransactions = 0;
@@ -53,7 +61,7 @@ class InvoicesIndex extends Component
     {
         $this->bankId = $bankId;
         $this->currentMonth = request()->query('month', now()->format('Y-m-d'));
-        
+
         // Se não há bankId, redirecionar para a página de bancos ou usar o primeiro banco
         if (!$this->bankId) {
             $firstBank = Bank::first();
@@ -63,7 +71,7 @@ class InvoicesIndex extends Component
                 return redirect()->route('banks.index')->with('error', 'Você precisa ter pelo menos um banco cadastrado para ver as transações.');
             }
         }
-        
+
         $this->loadData();
     }
 
@@ -107,64 +115,125 @@ class InvoicesIndex extends Component
 
     private function loadInvoices()
     {
-        $this->invoices = Invoice::with('category')
-            ->where('id_bank', $this->bank->id_bank)
-            ->whereBetween('invoice_date', [$this->currentStartDate, $this->currentEndDate])
-            ->orderBy('invoice_date', 'asc')
-            ->get();
+        $query = Invoice::with(['category', 'client'])
+            ->where('id_bank', $this->bank->id_bank);
+
+        if ($this->selectedDate) {
+            // Filtrar por data específica
+            $query->whereDate('invoice_date', $this->selectedDate);
+        } else {
+            // Filtrar por período do mês
+            $query->whereBetween('invoice_date', [$this->currentStartDate, $this->currentEndDate]);
+        }
+
+        $this->invoices = $query->orderBy('invoice_date', 'asc')->get();
+    }
+
+    public function filterByDate($date)
+    {
+        $this->selectedDate = $date;
+        $this->loadInvoices();
+        $this->processInvoiceData();
+        $this->dispatch('dateFiltered');
+    }
+
+    public function clearDateFilter()
+    {
+        $this->selectedDate = null;
+        $this->loadInvoices();
+        $this->processInvoiceData();
     }
 
     private function processInvoiceData()
     {
+        // Converter para coleção para processamento e manter como array para Livewire
+        $invoicesCollection = collect($this->invoices);
+
+        // Adicionar propriedade type a cada invoice
+        $processedInvoices = $invoicesCollection->map(function ($invoice) {
+            $invoice->type = 'despesa';
+            return $invoice;
+        });
+
+        // Calcular totais - apenas despesas
+        $this->totalReceitas = 0; // Sempre zero pois não há receitas
+        $this->totalDespesas = $processedInvoices->sum(function($invoice) {
+            return abs($invoice->value);
+        });
+        $this->saldo = 0 - $this->totalDespesas; // Sempre negativo
+
+        // Estatísticas - calcular ANTES de converter para array
+        $this->totalInvoices = $this->totalDespesas;
+        $this->highestInvoice = $processedInvoices->sortByDesc(function($invoice) {
+            return abs($invoice->value);
+        })->first();
+        $this->lowestInvoice = $processedInvoices->sortBy(function($invoice) {
+            return abs($invoice->value);
+        })->first();
+        $this->totalTransactions = $processedInvoices->count();
+
         // Gera os dados diários para o gráfico de linhas
-        $dailyData = $this->invoices->groupBy(function ($invoice) {
+        $dailyData = $processedInvoices->groupBy(function ($invoice) {
             return Carbon::parse($invoice->invoice_date)->day;
         })->map(function ($dayInvoices) {
-            return $dayInvoices->sum('value');
+            return $dayInvoices->sum(function($invoice) {
+                return abs($invoice->value);
+            });
         });
 
         $this->dailyLabels = $dailyData->keys()->toArray();
         $this->dailyValues = $dailyData->values()->toArray();
 
+        // Cria os dados agrupados por data para o calendário
+        $this->invoiceDates = $processedInvoices->groupBy(function ($invoice) {
+            return Carbon::parse($invoice->invoice_date)->format('Y-m-d');
+        })->toArray();
+
         // Agrupa as faturas por categoria
         $this->eventsGroupedByMonthAndCategory = [
             'current' => []
         ];
-        foreach ($this->invoices->groupBy('category_id') as $categoryId => $categoryInvoices) {
-            $this->eventsGroupedByMonthAndCategory['current'][$categoryId] = $categoryInvoices->values();
+        foreach ($processedInvoices->groupBy('category_id') as $categoryId => $categoryInvoices) {
+            $this->eventsGroupedByMonthAndCategory['current'][$categoryId] = $categoryInvoices->values()->toArray();
         }
 
         // Para ser usado no FullCalendar
-        $this->eventsDetailed = $this->invoices->map(function ($invoice) {
+        $this->eventsDetailed = $processedInvoices->map(function ($invoice) {
             return [
                 'id_invoice' => $invoice->id_invoice ?? $invoice->id ?? null,
                 'title' => $invoice->description,
                 'start' => $invoice->invoice_date,
                 'category' => optional($invoice->category)->name ?? 'Sem Categoria',
                 'installments' => $invoice->installments,
-                'value' => $invoice->value,
+                'value' => abs($invoice->value),
+                'type' => 'despesa',
             ];
-        });
+        })->toArray();
 
         // Filtra as categorias com base nas transações do mês
-        $this->categoriesWithTransactions = $this->categories->filter(function ($category) {
-            return $this->invoices->where('category_id', $category->id_category)->isNotEmpty();
+        $categoriesWithTransactionsCollection = collect($this->categories)->filter(function ($category) use ($processedInvoices) {
+            $categoryId = is_array($category) ? ($category['id_category'] ?? null) : $category->id_category;
+            return $processedInvoices->where('category_id', $categoryId)->isNotEmpty();
         });
 
         // Calculando as categorias e os valores totais por categoria
-        $this->categoriesData = $this->categoriesWithTransactions->map(function ($category) {
-            $categoryTotal = $this->invoices->where('category_id', $category->id_category)->sum('value');
+        $this->categoriesData = $categoriesWithTransactionsCollection->map(function ($category) use ($processedInvoices) {
+            $categoryId = is_array($category) ? ($category['id_category'] ?? null) : $category->id_category;
+            $categoryName = is_array($category) ? ($category['name'] ?? '') : $category->name;
+            $categoryTotal = $processedInvoices->where('category_id', $categoryId)->sum(function($invoice) {
+                return abs($invoice->value);
+            });
             return [
-                'label' => $category->name,
+                'label' => $categoryName,
                 'value' => $categoryTotal,
             ];
-        })->values();
+        })->values()->toArray();
 
-        // Estatísticas
-        $this->totalInvoices = $this->invoices->sum('value');
-        $this->highestInvoice = $this->invoices->sortByDesc('value')->first();
-        $this->lowestInvoice = $this->invoices->sortBy('value')->first();
-        $this->totalTransactions = $this->invoices->count();
+        // Converter as categorias para array para o Livewire
+        $this->categoriesWithTransactions = $categoriesWithTransactionsCollection->toArray();
+
+        // Converter de volta para array para o Livewire DEPOIS de todos os cálculos
+        $this->invoices = $processedInvoices->toArray();
     }
 
     public function changeMonth($month)
