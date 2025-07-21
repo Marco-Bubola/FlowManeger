@@ -1,6 +1,6 @@
-<div class="min-h-screen bg-gradient-to-br ">
+<div class="">
     <!-- Header -->
-    <div class="shadow-lg border-b ">
+    <div class="shadow-lg border-b">
         <div class="w-full px-6 lg:px-8">
             <div class="flex items-center justify-between h-20">
                 <!-- Title and Icon -->
@@ -123,179 +123,211 @@
         </div>
     </div>
 
-    <!-- Main Content Layout - 80vw centered -->
-    <div class="w-full max-w-[80vw] mx-auto px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+    <!-- Main Content Layout -->
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
 
-            <!-- Left Column - Calendar & Navigation (50%) -->
-            <div class="space-y-6">
-                <!-- Month Navigation -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
-                        <div class="flex items-center justify-between">
-                            <h2 class="text-xl font-bold text-white flex items-center">
-                                <i class="fas fa-calendar-alt mr-3"></i>
-                                Navegação de Meses
-                            </h2>
-                            <div class="bg-white bg-opacity-20 rounded-lg px-3 py-1 backdrop-blur-sm">
-                                <span class="text-white text-sm font-medium">{{ $monthName }}</span>
+            <!-- Left Column - Calendar & Chart (20% - 1 col) -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Calendar -->
+                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl mb-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                </svg>
                             </div>
-                        </div>
+                            📅 Calendário
+                        </h3>
                     </div>
 
-                    <div class="p-4">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                            <!-- Previous Month -->
-                            <button wire:click="changeMonth('previous')"
-                                class="group p-3 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-500 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600">
-                                <div class="flex items-center space-x-2">
-                                    <div class="w-8 h-8 bg-gray-200 dark:bg-gray-500 group-hover:bg-gray-300 dark:group-hover:bg-gray-400 rounded-full flex items-center justify-center transition-colors duration-200">
-                                        <i class="fas fa-chevron-left text-gray-600 dark:text-gray-200 group-hover:text-gray-800 dark:group-hover:text-gray-100 text-sm"></i>
-                                    </div>
-                                    <div class="text-left">
-                                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $prevMonth['name'] ?? 'Mês Anterior' }}</div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400">
-                                            <span class="font-bold {{ ($prevMonth['balance'] ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                                R$ {{ number_format(abs($prevMonth['balance'] ?? 0), 2, ',', '.') }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </button>
+                    <!-- Navegação do Calendário com selects e botões -->
+                    <div class="flex items-center justify-between mb-6">
+                        <button wire:click="changeMonth('previous')"
+                            class="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <select wire:model.live="month"
+                                class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
+                                @foreach (range(1, 12) as $m)
+                                    <option value="{{ $m }}">
+                                        {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMMM') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select wire:model.live="year"
+                                class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
+                                @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button wire:click="changeMonth('next')"
+                            class="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
 
-                            <!-- Current Month -->
-                            <div class="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
-                                <div class="text-center text-white">
-                                    <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mx-auto mb-2">
-                                        <i class="fas fa-calendar-check text-lg"></i>
-                                    </div>
-                                    <div class="text-sm font-medium mb-1">Mês Atual</div>
-                                    <div class="text-lg font-bold">{{ $monthName }}</div>
-                                    <div class="text-xs opacity-75 mt-1">
-                                        R$ {{ number_format(abs($totals['balance'] ?? 0), 2, ',', '.') }}
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Exibir mês/ano atual -->
+                    <div class="mb-4 text-center">
+                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                            Exibindo: {{ $monthName ?? 'Carregando...' }}
+                        </span>
+                    </div>
 
-                            <!-- Next Month -->
-                            <button wire:click="changeMonth('next')"
-                                class="group p-3 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 hover:from-gray-100 hover:to-gray-200 dark:hover:from-gray-600 dark:hover:to-gray-500 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg border border-gray-200 dark:border-gray-600">
-                                <div class="flex items-center space-x-2">
-                                    <div class="text-right">
-                                        <div class="text-sm font-semibold text-gray-900 dark:text-white">{{ $nextMonth['name'] ?? 'Próximo Mês' }}</div>
-                                        <div class="text-xs text-gray-600 dark:text-gray-400">
-                                            <span class="font-bold {{ ($nextMonth['balance'] ?? 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                                R$ {{ number_format(abs($nextMonth['balance'] ?? 0), 2, ',', '.') }}
-                                            </span>
+                    <!-- Feedback temporário -->
+                    @if(session('message'))
+                        <div class="mb-4 p-2 bg-green-100 border border-green-300 rounded text-xs text-green-800">
+                            {{ session('message') }}
+                        </div>
+                    @endif
+
+                    @if(session('debug_info'))
+                        <div class="mb-4 p-2 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
+                            <strong>Debug:</strong> {{ session('debug_info') }}
+                        </div>
+                    @endif
+
+                    @if(session('calendar_debug'))
+                        <div class="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            <strong>Calendar:</strong> {{ session('calendar_debug') }}
+                        </div>
+                    @endif                    <!-- Cabeçalho do calendário -->
+                    <div class="grid grid-cols-7 gap-1 mb-3">
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">D</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">T</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                    </div>
+
+                    <!-- Dias do calendário -->
+                    <div class="grid grid-cols-7 gap-2">
+                        @if(isset($calendarData) && is_array($calendarData))
+                            @foreach ($calendarData as $week)
+                                @foreach ($week as $day)
+                                    <div wire:click="selectDay('{{ $day['date'] }}')"
+                                        class="relative min-h-[40px] p-2 border-2 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 {{ $day['is_current_month'] ? 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 border-gray-200 dark:border-gray-600' : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-500' }} {{ $day['is_today'] ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/25' : '' }} {{ isset($selectedDate) && $selectedDate === $day['date'] ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg shadow-green-500/25' : '' }}">
+                                        <div class="text-sm font-bold {{ $day['is_current_month'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }} {{ $day['is_today'] ? 'text-blue-600 dark:text-blue-400' : '' }} {{ isset($selectedDate) && $selectedDate === $day['date'] ? 'text-green-600 dark:text-green-400' : '' }}">
+                                            {{ $day['day'] }}
                                         </div>
+                                        @if ($day['transaction_count'] > 0)
+                                            <div class="absolute bottom-1 right-1">
+                                                <div class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg">
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
-                                    <div class="w-8 h-8 bg-gray-200 dark:bg-gray-500 group-hover:bg-gray-300 dark:group-hover:bg-gray-400 rounded-full flex items-center justify-center transition-colors duration-200">
-                                        <i class="fas fa-chevron-right text-gray-600 dark:text-gray-200 group-hover:text-gray-800 dark:group-hover:text-gray-100 text-sm"></i>
-                                    </div>
+                                @endforeach
+                            @endforeach
+                        @else
+                            <!-- Placeholder enquanto carrega -->
+                            @for($i = 0; $i < 42; $i++)
+                                <div class="relative min-h-[40px] p-2 border-2 rounded-xl bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500">
+                                    <div class="text-sm font-bold text-gray-400 dark:text-gray-500">-</div>
                                 </div>
+                            @endfor
+                        @endif
+                    </div>
+
+                    @if (isset($selectedDate) && $selectedDate)
+                        <div class="mt-4">
+                            <button wire:click="clearDateFilter"
+                                class="w-full text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Limpar Filtro
                             </button>
                         </div>
-                    </div>                <!-- Calendar Grid -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div class="bg-gradient-to-r from-indigo-600 to-purple-600 p-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-bold text-white flex items-center">
-                                <i class="fas fa-calendar-check mr-2"></i>
-                                Calendário
-                            </h3>
-                            <div class="flex items-center space-x-3 text-xs">
-                                <div class="flex items-center space-x-1">
-                                    <div class="w-2 h-2 bg-green-400 rounded-full"></div>
-                                    <span class="text-white">Receitas</span>
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    <div class="w-2 h-2 bg-red-400 rounded-full"></div>
-                                    <span class="text-white">Despesas</span>
-                                </div>
-                                <div class="flex items-center space-x-1">
-                                    <div class="w-2 h-2 bg-blue-400 rounded-full"></div>
-                                    <span class="text-white">Hoje</span>
-                                </div>
-                                </div>
+                    @endif
+                </div>
+
+                <!-- Chart Section -->
+                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center">
+                            <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
                             </div>
-                        </div>
+                            📊 Por Categoria
+                        </h3>
+                    </div>
 
-                        <div class="p-4">
-                            <!-- Days of Week Header -->
-                            <div class="grid grid-cols-7 gap-1 mb-3">
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">DOM</div>
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">SEG</div>
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">TER</div>
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">QUA</div>
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">QUI</div>
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">SEX</div>
-                                <div class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2">SÁB</div>
-                            </div>
-
-                            <!-- Calendar Days Grid -->
-                            <div class="space-y-1">
-                                @foreach($calendarData as $week)
-                                <div class="grid grid-cols-7 gap-1">
-                                    @foreach($week as $day)
-                                    <div class="relative">
-                                        <button wire:click="selectDay('{{ $day['date'] }}')"
-                                            class="w-full h-12 p-1 rounded-lg transition-all duration-200 hover:scale-105 hover:shadow-md text-xs
-                                                           {{ $day['is_current_month'] ? 'bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600' : 'bg-gray-100 dark:bg-gray-600 text-gray-400 dark:text-gray-500' }}
-                                                           {{ $day['is_today'] ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300' : '' }}
-                                                           {{ $day['is_weekend'] && $day['is_current_month'] ? 'bg-gray-100 dark:bg-gray-600' : '' }}
-                                                           {{ $day['transaction_count'] > 0 ? 'border-2 border-purple-200 dark:border-purple-600' : 'border border-gray-200 dark:border-gray-600' }}">
-
-                                            <!-- Day Number -->
-                                            <div class="font-bold mb-1
-                                                            {{ $day['is_current_month'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }}
-                                                            {{ $day['is_today'] ? 'text-blue-600 dark:text-blue-300' : '' }}">
-                                                {{ $day['day'] }}
-                                            </div>
-
-                                            <!-- Transaction Indicators -->
-                                            @if($day['transaction_count'] > 0)
-                                            <div class="flex items-center justify-center space-x-1">
-                                                @if($day['has_income'])
-                                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                @endif
-                                                @if($day['has_expense'])
-                                                <div class="w-2 h-2 bg-red-500 rounded-full"></div>
-                                                @endif
-                                            </div>
+                    <!-- Categories Chart -->
+                    <div class="space-y-4">
+                        @foreach($categories as $category)
+                            @php
+                                $categoryTransactions = collect($transactionsByCategory)->filter(function($group) use ($category) {
+                                    return $group['category_id'] == $category->id_category;
+                                });
+                                $categoryTotal = $categoryTransactions->sum(function($group) {
+                                    return collect($group['transactions'])->sum(function($transaction) {
+                                        return abs($transaction['value'] ?? 0);
+                                    });
+                                });
+                                $totalExpenses = collect($transactionsByCategory)->sum(function($group) {
+                                    return collect($group['transactions'])->sum(function($transaction) {
+                                        return abs($transaction['value'] ?? 0);
+                                    });
+                                });
+                                $percentage = $totalExpenses > 0 ? ($categoryTotal / $totalExpenses) * 100 : 0;
+                            @endphp
+                            @if($categoryTotal > 0)
+                                <div class="space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-2">
+                                            @if($category->icone)
+                                                <i class="{{ $category->icone }} text-lg text-gray-700 dark:text-gray-300"></i>
+                                            @else
+                                                <div class="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded"></div>
                                             @endif
-                                        </button>
-
-                                            <!-- Today indicator -->
-                                            @if($day['is_today'])
-                                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full flex items-center justify-center">
-                                                <i class="fas fa-star text-white" style="font-size: 8px;"></i>
-                                            </div>
-                                            @endif
+                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $category->name }}</span>
                                         </div>
-                                        @endforeach
+                                        <span class="text-sm font-bold text-gray-900 dark:text-white">
+                                            R$ {{ number_format($categoryTotal, 2, ',', '.') }}
+                                        </span>
                                     </div>
-                                    @endforeach
+                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                        <div class="bg-gradient-to-r from-red-500 to-pink-600 h-2 rounded-full transition-all duration-300"
+                                             style="width: {{ $percentage }}%"></div>
+                                    </div>
+                                    <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+                                        <span>{{ number_format($percentage, 1) }}% do total</span>
+                                        <span>{{ $categoryTransactions->sum(function($group) { return count($group['transactions']); }) }} transações</span>
+                                    </div>
                                 </div>
+                            @endif
+                        @endforeach
 
-                                <!-- Clear Date Filter Button -->
-                                @if($dateStart && $dateEnd)
-                                <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600 text-center">
-                                    <button wire:click="clearDateFilter"
-                                        class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-600 dark:to-gray-700 hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-500 dark:hover:to-gray-600 text-gray-700 dark:text-gray-200 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg text-sm">
-                                        <i class="fas fa-times mr-2"></i>
-                                        Limpar Filtro
-                                    </button>
+                        @if(collect($categories)->isEmpty())
+                            <div class="text-center py-8">
+                                <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
                                 </div>
-                                @endif
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Nenhuma transação por categoria</p>
                             </div>
+                        @endif
                     </div>
                 </div>
 
 
             </div>
 
-            <!-- Right Column - Transactions (50%) -->
-            <div class="space-y-6">
+            <!-- Right Column - Transactions (80% - 4 cols) -->
+            <div class="lg:col-span-4 space-y-6">
                 <!-- Summary Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <!-- Income Card -->
@@ -469,7 +501,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Grid com 2 colunas para as transações -->
                                 <div class="p-4">
                                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -497,7 +529,7 @@
                                                         </div>
                                                     </div>
                                                 </div>
-                                                
+
                                                 <div class="flex items-center justify-between">
                                                     <div class="text-right">
                                                         <span class="text-lg font-bold {{ $transaction['type_id'] == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
@@ -515,7 +547,7 @@
                                                         </button>
                                                     </div>
                                                 </div>
-                                                
+
                                                 @if($transaction['note'] || $transaction['client_name'])
                                                     <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
                                                         <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
@@ -618,6 +650,135 @@
     @endif
 </div>
 
+@push('styles')
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    body {
+        font-family: 'Inter', sans-serif;
+    }
+
+    .line-clamp-2 {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .calendar-day {
+        @apply w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all duration-200 text-sm font-medium;
+    }
+
+    .calendar-day:hover {
+        @apply bg-gray-100 dark:bg-gray-700 transform scale-105;
+    }
+
+    .calendar-day.today {
+        @apply bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg;
+    }
+
+    .calendar-day.selected {
+        @apply bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg transform scale-105;
+    }
+
+    .calendar-day.has-transactions {
+        position: relative;
+    }
+
+    .calendar-day.has-transactions::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        @apply bg-red-500 shadow-lg;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.7; transform: scale(1.1); }
+    }
+
+    .floating-animation {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .pulse-glow {
+        animation: pulse-glow 2s infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
+        50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
+    }
+
+    .gradient-border {
+        position: relative;
+        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+        border-radius: 1rem;
+        padding: 2px;
+    }
+
+    .gradient-border > div {
+        border-radius: calc(1rem - 2px);
+    }
+
+    /* Transaction Card Interactions */
+    .transaction-card:hover .card-actions {
+        opacity: 1 !important;
+        transform: translateY(0) !important;
+        max-height: 80px !important;
+    }
+
+    .card-actions {
+        max-height: 0 !important;
+        overflow: hidden;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease-out;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .transaction-card:hover .card-actions {
+        margin-top: 0.75rem !important;
+        padding-top: 0.75rem !important;
+    }
+
+    .transaction-card.expanded .expand-icon {
+        transform: rotate(180deg);
+    }
+
+    .card-details {
+        max-height: 0;
+        overflow: hidden;
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+        border: none;
+        transition: all 0.3s ease-out;
+    }
+
+    .transaction-card.expanded .card-details {
+        max-height: 200px;
+        margin-top: 1rem !important;
+        padding-top: 1rem !important;
+        border-top: 1px solid rgba(209, 213, 219, 0.5);
+    }
+
+    .dark .transaction-card.expanded .card-details {
+        border-top-color: rgba(75, 85, 99, 0.5);
+    }
+</style>
+@endpush
+
 @push('scripts')
 <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
@@ -642,12 +803,108 @@
         }
     }
 
+    // Enhanced calendar functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add keyboard navigation for calendar
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                window.location.href = '{{ route("cashbook.create") }}';
+            }
+
+            // ESC para limpar filtro
+            if (e.key === 'Escape' && typeof @this !== 'undefined' && @this.selectedDate) {
+                @this.clearDateFilter();
+            }
+
+            // Ctrl+R para recarregar dados
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                if (typeof @this !== 'undefined' && @this.loadData) {
+                    @this.loadData();
+                    showNotification('🔄 Dados atualizados!', 'success');
+                }
+            }
+        });
+
+        // Add tooltips to calendar days
+        const calendarDays = document.querySelectorAll('.calendar-day');
+        calendarDays.forEach(day => {
+            if (day.classList.contains('has-transactions')) {
+                day.setAttribute('title', 'Clique para filtrar por este dia');
+            }
+        });
+
+        // Initialize dark mode from localStorage
+        if (localStorage.getItem('dark-mode') === 'true') {
+            document.documentElement.classList.add('dark');
+        }
+    });
+
+    // Enhanced UX for date filtering
+    document.addEventListener('livewire:init', function () {
+        if (typeof Livewire !== 'undefined') {
+            Livewire.on('date-filtered', () => {
+                showNotification('📅 Filtro aplicado!', 'info');
+            });
+        }
+    });
+
+    // Auto-refresh data every 5 minutes
+    setInterval(() => {
+        if (document.visibilityState === 'visible' && typeof @this !== 'undefined' && @this.loadData) {
+            @this.loadData();
+        }
+    }, 300000);
+
+    // Dark mode toggle
+    function toggleDarkMode() {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        localStorage.setItem('dark-mode', isDark);
+        showNotification(isDark ? '🌙 Modo escuro ativado' : '☀️ Modo claro ativado', 'info');
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 ${
+            type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' :
+            type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-600' :
+            'bg-gradient-to-r from-blue-500 to-indigo-600'
+        }`;
+        notification.innerHTML = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transform = 'translateX(400px)';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Add subtle animations on hover
+    document.addEventListener('mouseover', function(e) {
+        if (e.target.classList.contains('calendar-day') && e.target.classList.contains('has-transactions')) {
+            e.target.style.transform = 'scale(1.1)';
+        }
+    });
+
+    document.addEventListener('mouseout', function(e) {
+        if (e.target.classList.contains('calendar-day')) {
+            e.target.style.transform = 'scale(1)';
+        }
+    });
+
     // Adicionar loading states para melhor UX
     document.addEventListener('livewire:init', () => {
-        Livewire.on('transaction-deleted', () => {
-            // Mostrar notificação de sucesso
-            console.log('Transação excluída com sucesso!');
-        });
+        if (typeof Livewire !== 'undefined') {
+            Livewire.on('transaction-deleted', () => {
+                // Mostrar notificação de sucesso
+                showNotification('✅ Transação excluída com sucesso!', 'success');
+            });
+        }
     });
 </script>
 @endpush
