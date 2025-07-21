@@ -163,94 +163,111 @@
                             </h3>
                         </div>
 
-                        <!-- Month Navigation -->
-                        <div class="flex items-center justify-between mb-4">
-                            <button wire:click="changeMonth('{{ $previousMonth }}')"
-                                    class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-200">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <!-- Navegação do Calendário com selects e botões -->
+                        <div class="flex items-center justify-between mb-6">
+                            <button wire:click="previousMonth"
+                                class="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                                 </svg>
                             </button>
-
-                            <div class="text-center">
-                                <h4 class="font-bold text-gray-900 dark:text-white">{{ $currentMonthName }}</h4>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">
-                                    {{ $currentStartDate ? $currentStartDate->format('d/m') : '' }} -
-                                    {{ $currentEndDate ? $currentEndDate->format('d/m') : '' }}
-                                </p>
+                            <div class="flex items-center space-x-2">
+                                <select wire:model.live="month"
+                                    class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
+                                    @foreach (range(1, 12) as $m)
+                                        <option value="{{ $m }}">
+                                            {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMMM') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <select wire:model.live="year"
+                                    class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
+                                    @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                        <option value="{{ $y }}">{{ $y }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-
-                            <button wire:click="changeMonth('{{ $nextMonth }}')"
-                                    class="p-2 text-gray-600 dark:text-gray-400 hover:text-purple-600 dark:hover:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/30 rounded-lg transition-all duration-200">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <button wire:click="nextMonth"
+                                class="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                                 </svg>
                             </button>
                         </div>
 
-                        <!-- Calendar Grid -->
-                        <div class="grid grid-cols-7 gap-1">
-                            <!-- Days of week -->
-                            @foreach(['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as $day)
-                                <div class="p-2 text-center text-xs font-bold text-gray-600 dark:text-gray-400">
-                                    {{ $day }}
-                                </div>
-                            @endforeach
-
-                            <!-- Calendar days -->
-                            @php
-                                $currentDate = $currentStartDate ? $currentStartDate->copy() : \Carbon\Carbon::now()->startOfMonth();
-                                $endDate = $currentEndDate ? $currentEndDate : \Carbon\Carbon::now()->endOfMonth();
-                                $today = \Carbon\Carbon::today();
-
-                                // Get invoice dates for this month
-                                $invoiceDates = collect($invoices)->groupBy(function($invoice) {
-                                    $invoiceDate = is_array($invoice) ? $invoice['invoice_date'] : $invoice->invoice_date;
-                                    return \Carbon\Carbon::parse($invoiceDate)->format('Y-m-d');
-                                });
-                            @endphp
-
-                            @for($i = 0; $i < $currentDate->dayOfWeek; $i++)
-                                <div class="p-2"></div>
-                            @endfor
-
-                            @while($currentDate->lte($endDate))
-                                @php
-                                    $dateKey = $currentDate->format('Y-m-d');
-                                    $dayInvoices = $invoiceDates->get($dateKey, collect());
-                                    $hasInvoices = $dayInvoices->count() > 0;
-                                    $isToday = $currentDate->isSameDay($today);
-                                    $isSelected = $selectedDate && $currentDate->format('Y-m-d') === $selectedDate;
-
-                                    $classes = ['calendar-day'];
-                                    if ($isToday) $classes[] = 'today';
-                                    if ($isSelected) $classes[] = 'selected';
-                                    if ($hasInvoices) $classes[] = 'has-invoices';
-                                @endphp
-
-                                <div class="{{ implode(' ', $classes) }}"
-                                     wire:click="filterByDate('{{ $dateKey }}')"
-                                     title="@if($dayInvoices->count() > 0){{ $dayInvoices->count() }} transação(ões) - Total: R$ {{ number_format($dayInvoices->sum(function($invoice) { return is_array($invoice) ? abs($invoice['value']) : abs($invoice->value); }), 2, ',', '.') }}@endif">
-                                    {{ $currentDate->day }}
-                                </div>
-
-                                @php $currentDate->addDay(); @endphp
-                            @endwhile
+                        <!-- Exibir mês/ano atual -->
+                        <div class="mb-4 text-center">
+                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                                Exibindo: {{ $currentMonthName ?? 'Carregando...' }}
+                            </span>
                         </div>
 
-                        @if($selectedDate)
-                            <div class="mt-4 p-3 bg-purple-50 dark:bg-purple-900/30 rounded-lg border border-purple-200 dark:border-purple-700/50">
-                                <div class="flex items-center justify-between">
-                                    <p class="text-sm font-medium text-purple-800 dark:text-purple-200">
-                                        📅 Filtrando: {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}
-                                    </p>
-                                    <button wire:click="clearDateFilter"
-                                            class="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200 transition-colors">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                    </button>
-                                </div>
+                        <!-- Feedback temporário -->
+                        @if(session('message'))
+                            <div class="mb-4 p-2 bg-green-100 border border-green-300 rounded text-xs text-green-800">
+                                {{ session('message') }}
+                            </div>
+                        @endif
+
+                        @if(session('debug_info'))
+                            <div class="mb-4 p-2 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
+                                <strong>Debug:</strong> {{ session('debug_info') }}
+                            </div>
+                        @endif
+
+                        @if(session('calendar_debug'))
+                            <div class="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                                <strong>Calendar:</strong> {{ session('calendar_debug') }}
+                            </div>
+                        @endif
+
+                        <!-- Cabeçalho do calendário -->
+                        <div class="grid grid-cols-7 gap-1 mb-3">
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">D</div>
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">T</div>
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                            <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                        </div>
+
+                        <!-- Dias do calendário -->
+                        <div class="grid grid-cols-7 gap-2">
+                            @if(isset($calendarDays) && is_array($calendarDays))
+                                @foreach ($calendarDays as $day)
+                                    <div wire:click="selectDate('{{ $day['date'] }}')"
+                                        class="relative min-h-[40px] p-2 border-2 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 {{ $day['isCurrentMonth'] ? 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 border-gray-200 dark:border-gray-600' : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-500' }} {{ $day['isToday'] ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/25' : '' }} {{ $selectedDate === $day['date'] ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg shadow-green-500/25' : '' }}">
+                                        <div class="text-sm font-bold {{ $day['isCurrentMonth'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }} {{ $day['isToday'] ? 'text-blue-600 dark:text-blue-400' : '' }} {{ $selectedDate === $day['date'] ? 'text-green-600 dark:text-green-400' : '' }}">
+                                            {{ $day['day'] }}
+                                        </div>
+                                        @if (!empty($day['invoices']))
+                                            <div class="absolute bottom-1 right-1">
+                                                <div class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg">
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            @else
+                                <!-- Placeholder enquanto carrega -->
+                                @for($i = 0; $i < 42; $i++)
+                                    <div class="relative min-h-[40px] p-2 border-2 rounded-xl bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500">
+                                        <div class="text-sm font-bold text-gray-400 dark:text-gray-500">-</div>
+                                    </div>
+                                @endfor
+                            @endif
+                        </div>
+
+                        @if ($selectedDate)
+                            <div class="mt-4">
+                                <button wire:click="clearDateSelection"
+                                    class="w-full text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                                    <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Limpar Filtro
+                                </button>
                             </div>
                         @endif
                     </div>
@@ -335,7 +352,7 @@
                                         <p class="text-sm text-gray-600 dark:text-gray-400">{{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}</p>
                                     </div>
                                 </div>
-                                <button wire:click="clearDateFilter"
+                                <button wire:click="clearDateSelection"
                                         class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-600 text-white text-sm font-medium rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg">
                                     <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -611,7 +628,7 @@
                                     </a>
 
                                     @if($selectedDate)
-                                        <button wire:click="clearDateFilter"
+                                        <button wire:click="clearDateSelection"
                                                 class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg">
                                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
