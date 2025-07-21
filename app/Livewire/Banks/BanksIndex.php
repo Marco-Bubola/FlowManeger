@@ -413,7 +413,7 @@ class BanksIndex extends Component
      public function render()
     {
         // Obtendo os bancos com paginação dinâmica para a view
-        $paginatedBanks = Bank::where('user_id', Auth::id())->paginate(5, ['*'], 'page', $this->page ?? 1)->withQueryString();
+        $paginatedBanks = Bank::where('user_id', Auth::id())->paginate(3, ['*'], 'page', $this->page ?? 1)->withQueryString();
 
         return view('livewire.banks.banks-index', [
             'showDeleteModal' => $this->showDeleteModal,
