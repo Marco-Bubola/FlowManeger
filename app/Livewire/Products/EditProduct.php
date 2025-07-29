@@ -15,7 +15,7 @@ class EditProduct extends Component
     use WithFileUploads, HasNotifications;
 
     public Product $product;
-    
+
     // Propriedades do formulário
     public string $name = '';
     public string $description = '';
@@ -34,23 +34,23 @@ class EditProduct extends Component
         }
 
         $this->product = $product;
-        
+
         // Preenche os campos com os dados do produto
         $this->name = $product->name ?? '';
         $this->description = $product->description ?? '';
-        
+
         // Formata os preços para o formato brasileiro (0,00)
         $price = (float)$product->price;
         $price_sale = (float)$product->price_sale;
-        
+
         $this->price = number_format($price, 2, ',', '');
         $this->price_sale = number_format($price_sale, 2, ',', '');
-        
+
         $this->stock_quantity = (string)$product->stock_quantity;
         $this->category_id = (string)$product->category_id;
         $this->product_code = $product->product_code ?? '';
         $this->status = $product->status ?? 'ativo';
-        
+
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
     }
@@ -76,11 +76,11 @@ class EditProduct extends Component
             // Conversão correta dos valores monetários do formato brasileiro para americano
             $price = str_replace(',', '.', $this->price);
             $price_sale = str_replace(',', '.', $this->price_sale);
-            
+
             // Convertendo para float para garantir formato correto
             $price = (float)$price;
             $price_sale = (float)$price_sale;
-            
+
             // Atualização temporária das propriedades para validação
             $this->price = (string)$price;
             $this->price_sale = (string)$price_sale;
@@ -88,45 +88,40 @@ class EditProduct extends Component
             // Validação do formulário
             $validated = $this->validate();
 
-            // Verificar se o código do produto já existe (exceto o atual)
-            $existingProduct = Product::where('product_code', $this->product_code)
-                                    ->where('id', '!=', $this->product->id)
-                                    ->where('user_id', Auth::id())
-                                    ->first();
-            
-            if ($existingProduct) {
-                $this->addError('product_code', 'Este código de produto já está sendo usado por outro produto.');
-                $this->notifyError('Código do produto já está em uso!');
-                return;
-            }
-
             // Atualizar imagem se necessário
             $imageName = $this->product->image;
             if ($this->image) {
                 try {
-                    // Remove a imagem anterior se existir
-                    if ($this->product->image && Storage::disk('public')->exists('products/' . $this->product->image)) {
+                    // Criar diretório de produtos se não existir
+                    if (!Storage::disk('public')->exists('products')) {
+                        Storage::disk('public')->makeDirectory('products');
+                    }
+
+                    // Remove a imagem anterior se existir (exceto imagem padrão)
+                    if ($this->product->image && $this->product->image !== 'product-placeholder.png' && Storage::disk('public')->exists('products/' . $this->product->image)) {
                         Storage::disk('public')->delete('products/' . $this->product->image);
                     }
-                    
+
                     // Salva a nova imagem usando o disco public
                     $imagePath = $this->image->store('products', 'public');
                     $imageName = basename($imagePath);
-                    
-                    // Verificar se o arquivo foi realmente salvo
-                    $fileExists = Storage::disk('public')->exists($imagePath);
-                    
-                    if (!$fileExists) {
-                        throw new \Exception('O arquivo não foi salvo corretamente no storage.');
-                    }
-                    
+
+                    // Log para debug
+                    logger('Imagem salva:', [
+                        'imagePath' => $imagePath,
+                        'imageName' => $imageName,
+                        'full_path' => storage_path('app/public/' . $imagePath),
+                        'exists' => file_exists(storage_path('app/public/' . $imagePath)),
+                        'directory_exists' => is_dir(storage_path('app/public/products'))
+                    ]);
+
                 } catch (\Exception $e) {
                     logger('Erro ao salvar imagem:', [
                         'error' => $e->getMessage(),
                         'file' => $e->getFile(),
                         'line' => $e->getLine()
                     ]);
-                    
+
                     $this->notifyError('Erro ao salvar a imagem: ' . $e->getMessage());
                     return;
                 }
@@ -154,11 +149,11 @@ class EditProduct extends Component
             // Emite evento para atualizar a lista
             $this->dispatch('product-updated');
 
-            // Redireciona com notificação de sucesso
-            $this->redirectWithNotification(
-                route('products.index'),
-                'Produto "' . $this->name . '" atualizado com sucesso!'
-            );
+            // Notifica sucesso
+            $this->notifySuccess('Produto "' . $this->name . '" atualizado com sucesso!');
+
+            // Redireciona diretamente
+            return redirect()->route('products.index');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
             // Exibe os erros específicos
@@ -166,9 +161,9 @@ class EditProduct extends Component
             foreach ($e->errors() as $field => $messages) {
                 $errorMessages[] = $field . ': ' . implode(', ', $messages);
             }
-            
+
             $this->notifyError('Erros de validação: ' . implode(' | ', $errorMessages));
-            
+
         } catch (\Exception $e) {
             logger('Erro ao atualizar produto:', [
                 'error' => $e->getMessage(),
@@ -176,7 +171,7 @@ class EditProduct extends Component
                 'line' => $e->getLine(),
                 'product_id' => $this->product->id
             ]);
-            
+
             $this->notifyError('Erro inesperado ao atualizar o produto: ' . $e->getMessage());
         }
     }
@@ -185,7 +180,7 @@ class EditProduct extends Component
     {
         // Validação básica da imagem quando é selecionada
         $this->validateOnly('image');
-        
+
         // Debug para entender o que está acontecendo
         if ($this->image) {
             logger('Imagem selecionada:', [
@@ -195,7 +190,7 @@ class EditProduct extends Component
                 'temporary_url_available' => method_exists($this->image, 'temporaryUrl')
             ]);
         }
-        
+
         // Este método é chamado automaticamente quando $this->image é atualizado
         // Força a re-renderização do componente
         $this->dispatch('image-updated');
