@@ -19,7 +19,7 @@
                         <p class="text-lg text-neutral-600 dark:text-neutral-400 mt-1">Altere as informações do produto de forma simples e organizada</p>
                     </div>
                 </div>
-                
+
             <!-- Steppers Melhorados -->
             <div class="flex items-center justify-center">
                 <div class="flex items-center space-x-12">
@@ -38,11 +38,11 @@
                             <p class="text-sm text-neutral-600 dark:text-neutral-400">Nome, preços, estoque e categoria</p>
                         </div>
                     </div>
-                    
+
                     <!-- Connector -->
                     <div class="w-32 h-1 rounded-full transition-all duration-300"
                          :class="currentStep >= 2 ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-neutral-300 dark:bg-neutral-600'"></div>
-                    
+
                     <!-- Step 2 -->
                     <div class="flex items-center">
                         <div class="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300"
@@ -78,7 +78,7 @@
     <div class=" overflow-y-auto">
         <form wire:submit="update" class="w-full h-full">
             <div class="px-6 py-6 space-y-6 h-full flex flex-col">
-                
+
                 <!-- Step 1: Informações do Produto -->
                 <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-x-4" x-transition:enter-end="opacity-100 transform translate-x-0" class="flex-1 space-y-6">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -182,10 +182,10 @@
                                 </div>
                                 Selecione a Categoria *
                             </label>
-                            
+
                             <!-- Dropdown Customizado para Categorias -->
-                            <div class="relative" x-data="{ 
-                                open: false, 
+                            <div class="relative" x-data="{
+                                open: false,
                                 selectedCategoryName: '{{ $selectedCategoryName ?? 'Escolha uma categoria...' }}',
                                 selectedCategoryIcon: '{{ $selectedCategoryIcon ?? 'bi-grid-3x3-gap-fill' }}',
                                 selectCategory(category) {
@@ -195,7 +195,7 @@
                                     $wire.set('category_id', category.id);
                                 }
                             }">
-                                <button type="button" 
+                                <button type="button"
                                         @click="open = !open"
                                         class="w-full flex items-center justify-between pl-12 pr-4 py-3 border-2 {{ $errors->has('category_id') ? 'border-red-400 focus:border-red-500' : 'border-neutral-300 dark:border-neutral-600 focus:border-purple-500' }} rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all duration-200">
                                     <div class="flex items-center">
@@ -206,9 +206,9 @@
                                     </div>
                                     <i class="bi bi-chevron-down text-neutral-400 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
                                 </button>
-                                
+
                                 <!-- Dropdown Menu -->
-                                <div x-show="open" 
+                                <div x-show="open"
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0 scale-95"
                                      x-transition:enter-end="opacity-100 scale-100"
@@ -217,7 +217,7 @@
                                      x-transition:leave-end="opacity-0 scale-95"
                                      @click.away="open = false"
                                      class="absolute z-50 w-full mt-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                                    
+
                                     @foreach($categories as $category)
                                     <button type="button"
                                             @click="selectCategory({ id: {{ $category->id_category }}, name: '{{ $category->name }}', icon: '{{ $this->getCategoryIcon($category->icone) }}' })"
@@ -230,7 +230,7 @@
                                     @endforeach
                                 </div>
                             </div>
-                            
+
                             @error('category_id')
                             <div class="flex items-center mt-2 p-2 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                                 <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
@@ -305,7 +305,7 @@
                                 Quantidade em Estoque *
                             </label>
                             <div class="relative flex items-center max-w-[10rem]">
-                                <button type="button" 
+                                <button type="button"
                                         onclick="decrementQuantityEdit()"
                                         class="bg-neutral-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:border-neutral-600 hover:bg-neutral-200 border-2 {{ $errors->has('stock_quantity') ? 'border-red-400' : 'border-neutral-300 dark:border-neutral-600' }} rounded-s-lg p-3 h-12 focus:ring-cyan-100 dark:focus:ring-cyan-700 focus:ring-2 focus:outline-none transition-all duration-200">
                                     <svg class="w-3 h-3 text-neutral-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 2">
@@ -319,7 +319,7 @@
                                        value="{{ $stock_quantity }}"
                                        class="bg-white dark:bg-neutral-700 border-x-0 {{ $errors->has('stock_quantity') ? 'border-red-400' : 'border-neutral-300 dark:border-neutral-600' }} h-12 text-center text-neutral-900 dark:text-neutral-100 text-base focus:ring-cyan-500 focus:border-cyan-500 block w-full transition-all duration-200"
                                        placeholder="0">
-                                <button type="button" 
+                                <button type="button"
                                         onclick="incrementQuantityEdit()"
                                         class="bg-neutral-100 dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:border-neutral-600 hover:bg-neutral-200 border-2 {{ $errors->has('stock_quantity') ? 'border-red-400' : 'border-neutral-300 dark:border-neutral-600' }} rounded-e-lg p-3 h-12 focus:ring-cyan-100 dark:focus:ring-cyan-700 focus:ring-2 focus:outline-none transition-all duration-200">
                                     <svg class="w-3 h-3 text-neutral-900 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 18 18">
@@ -334,7 +334,7 @@
                             </div>
                             @enderror
                         </div>
- 
+
                     </div>
                 </div>
 
@@ -346,7 +346,7 @@
                                 </div>
                                 Imagem do Produto
                             </h2>
-                            
+
                             <div class="flex items-center justify-center w-full">
                             <label for="image" class="flex flex-col items-center justify-center w-full h-64 border-2 border-dashed border-neutral-300 dark:border-neutral-600 rounded-2xl cursor-pointer bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-700 hover:from-indigo-50 hover:to-purple-50 dark:hover:from-indigo-900/20 dark:hover:to-purple-900/20 transition-all duration-300 group">
                                 <div class="flex flex-col items-center justify-center px-8 py-8">
@@ -423,7 +423,7 @@
                 <!-- Botões de Navegação Entre Steps -->
                 <div class="flex justify-center items-center pt-6">
                     <!-- Botão Voltar (Step 2) -->
-                    <button type="button" 
+                    <button type="button"
                             x-show="currentStep === 2"
                             @click="currentStep = 1"
                             style="display: none;"
@@ -446,7 +446,7 @@
                         </a>
 
                         <!-- Botão Próximo (Step 1) -->
-                        <button type="button" 
+                        <button type="button"
                                 x-show="currentStep === 1"
                                 @click="currentStep = 2"
                                 style="display: flex;"
@@ -457,7 +457,7 @@
                         </button>
 
                         <!-- Botão Salvar (Step 2) -->
-                        <button type="submit" 
+                        <button type="submit"
                                 x-show="currentStep === 2"
                                 style="display: none;"
                                 x-bind:style="currentStep === 2 ? 'display: flex;' : 'display: none;'"
@@ -479,15 +479,6 @@
     </div>
 
     <script>
-        // Listener para redirecionamento após delay
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('redirect-after-delay', (event) => {
-                setTimeout(() => {
-                    window.location.href = event.url;
-                }, event.delay);
-            });
-        });
-
         function incrementQuantityEdit() {
             const input = document.getElementById('stock_quantity');
             const currentValue = parseInt(input.value) || 0;
@@ -512,22 +503,22 @@
         function formatCurrency(value) {
             // Verifica se o valor é null, undefined ou string vazia
             if (!value || value === null || value === undefined) return '0,00';
-            
+
             // Converte para string caso seja um número
             const stringValue = String(value);
-            
+
             // Remove tudo que não é dígito
             const digits = stringValue.replace(/\D/g, '');
-            
+
             // Se não há dígitos, retorna 0,00
             if (!digits) return '0,00';
-            
+
             // Converte para centavos
             const centavos = parseInt(digits);
-            
+
             // Formata para reais
             const reais = (centavos / 100).toFixed(2).replace('.', ',');
-            
+
             return reais;
         }
 
@@ -536,12 +527,12 @@
             if (input.dataset.processing === 'true') {
                 return;
             }
-            
+
             input.dataset.processing = 'true';
-            
+
             const formatted = formatCurrency(input.value);
             input.value = formatted;
-            
+
             // Remove o flag de processamento após um pequeno delay
             setTimeout(() => {
                 input.dataset.processing = 'false';
@@ -555,7 +546,7 @@
 
             function setupCurrencyField(input) {
                 if (!input) return;
-                
+
                 // Formatar valor inicial se existir
                 const currentValue = input.value || '';
                 if (currentValue && currentValue !== '0' && currentValue !== '0.00' && currentValue !== '') {
@@ -573,16 +564,16 @@
                 input.addEventListener('input', function(e) {
                     // Evita loops infinitos verificando se o evento é confiável
                     if (!e.isTrusted) return;
-                    
+
                     applyCurrencyMask(this);
                 });
-                
+
                 input.addEventListener('focus', function() {
                     if (this.value === '0,00') {
                         this.value = '';
                     }
                 });
-                
+
                 input.addEventListener('blur', function() {
                     if (this.value === '' || this.value === null || this.value === undefined) {
                         this.value = '0,00';
@@ -633,7 +624,7 @@
         document.addEventListener('livewire:navigated', function() {
             const priceInput = document.getElementById('price');
             const priceSaleInput = document.getElementById('price_sale');
-            
+
             if (priceInput && !priceInput.value) {
                 priceInput.value = '0,00';
             }
