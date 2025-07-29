@@ -1,9 +1,12 @@
-<!-- Header -->
+<!--                 <a href="{{ route('products.index') }}"
+                   class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors duration-200">
+                    <i class="bi bi-arrow-left text-neutral-600 dark:text-neutral-300"></i>
+                </a>er -->
 <div class="bg-white dark:bg-neutral-800 border-b sticky top-0 z-10">
     <div class="px-6 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-4">
-                <a href="{{ route('products.index') }}" 
+                <a href="{{ route('products.index') }}{{ !empty($returnParams) ? '?' . http_build_query(array_filter($returnParams)) : '' }}"
                    class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-600 transition-colors duration-200">
                     <i class="bi bi-arrow-left text-neutral-600 dark:text-neutral-300"></i>
                 </a>
@@ -15,7 +18,7 @@
                     <p class="text-neutral-600 dark:text-neutral-400">Altere as informações e componentes do kit</p>
                 </div>
             </div>
-            
+
             <!-- Badge do kit -->
             <div class="hidden sm:block">
                 <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
@@ -39,7 +42,7 @@
                     </div>
                     <h2 class="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">Informações do Kit</h2>
                 </div>
-                
+
                 <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-6">
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <!-- Nome do Kit -->
@@ -48,8 +51,8 @@
                                 <i class="bi bi-boxes mr-1"></i>
                                 Nome do Kit *
                             </label>
-                            <input type="text" 
-                                   wire:model="name" 
+                            <input type="text"
+                                   wire:model="name"
                                    id="name"
                                    class="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('name') !border-red-500 @enderror"
                                    placeholder="Digite o nome do kit">
@@ -68,8 +71,8 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
                                     <span class="text-neutral-500 dark:text-neutral-400">R$</span>
                                 </div>
-                                <input type="text" 
-                                       wire:model="price" 
+                                <input type="text"
+                                       wire:model="price"
                                        id="price"
                                        class="w-full pl-12 pr-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('price') !border-red-500 @enderror"
                                        placeholder="0,00">
@@ -89,8 +92,8 @@
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center">
                                     <span class="text-neutral-500 dark:text-neutral-400">R$</span>
                                 </div>
-                                <input type="text" 
-                                       wire:model="price_sale" 
+                                <input type="text"
+                                       wire:model="price_sale"
                                        id="price_sale"
                                        class="w-full pl-12 pr-4 py-3 border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 @error('price_sale') !border-red-500 @enderror"
                                        placeholder="0,00">
@@ -123,7 +126,7 @@
 
                         <!-- Botões -->
                         <div class="flex flex-col gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
-                            <button type="submit" 
+                            <button type="submit"
                                     class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                                     wire:loading.attr="disabled">
                                 <span wire:loading.remove>
@@ -135,8 +138,8 @@
                                     Atualizando...
                                 </span>
                             </button>
-                            
-                            <a href="{{ route('products.index') }}" 
+
+                            <a href="{{ route('products.index') }}"
                                class="w-full px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-medium rounded-xl transition-all duration-200 text-center">
                                 <i class="bi bi-x-circle mr-2"></i>
                                 Cancelar
@@ -162,7 +165,7 @@
                                 </div>
                                 <h3 class="text-lg font-medium text-gray-700 dark:text-gray-300 mb-2">Nenhum produto disponível</h3>
                                 <p class="text-gray-500 dark:text-gray-400 mb-4">Crie produtos simples primeiro para poder montar kits.</p>
-                                <a href="{{ route('products.create') }}" 
+                                <a href="{{ route('products.create') }}"
                                    class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200">
                                     <i class="bi bi-plus mr-2"></i>
                                     Criar Produto
@@ -176,12 +179,12 @@
                                             <!-- Checkbox -->
                                             <div class="flex-shrink-0 pt-1">
                                                 <label class="flex items-center cursor-pointer">
-                                                    <input type="checkbox" 
+                                                    <input type="checkbox"
                                                            wire:model.live="produtos.{{ $product->id }}.selecionado"
                                                            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
                                                 </label>
                                             </div>
-                                            
+
                                             <!-- Produto Info -->
                                             <div class="flex-1 min-w-0">
                                                 <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-1 truncate">
@@ -200,16 +203,16 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Quantidade (apenas se selecionado) -->
                                         @if(isset($produtos[$product->id]['selecionado']) && $produtos[$product->id]['selecionado'])
                                             <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
                                                 <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                                                     Quantidade
                                                 </label>
-                                                <input type="number" 
+                                                <input type="number"
                                                        wire:model.live="produtos.{{ $product->id }}.quantidade"
-                                                       min="1" 
+                                                       min="1"
                                                        max="{{ $product->stock_quantity }}"
                                                        class="w-full px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
                                             </div>
@@ -222,7 +225,7 @@
                             @php
                                 $produtosSelecionados = collect($produtos)->filter(fn($p) => $p['selecionado'] ?? false);
                             @endphp
-                            
+
                             @if($produtosSelecionados->count() > 0)
                                 <div class="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                                     <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
@@ -254,12 +257,12 @@
 
             <!-- Botões de Ação -->
             <div class="flex flex-col sm:flex-row gap-4 justify-end bg-white dark:bg-neutral-800 border-t border-neutral-200 dark:border-neutral-700 px-6 py-4 sticky bottom-0">
-                <a href="{{ route('products.index') }}" 
+                <a href="{{ route('products.index') }}"
                    class="px-6 py-3 bg-neutral-500 hover:bg-neutral-600 text-white font-medium rounded-lg transition-colors duration-200 text-center">
                     <i class="bi bi-x-circle mr-2"></i>
                     Cancelar
                 </a>
-                <button type="submit" 
+                <button type="submit"
                         class="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
                         wire:loading.attr="disabled">
                     <span wire:loading.remove>
