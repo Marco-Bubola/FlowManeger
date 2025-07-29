@@ -11,14 +11,12 @@ use Livewire\Component;
 class EditKit extends Component
 {
     public Product $kit;
-    
+
     // Propriedades do formulário
     public string $name = '';
     public string $price = '';
     public string $price_sale = '';
-    public array $produtos = [];
-
-    public function mount(Product $kit)
+    public array $produtos = [];    public function mount(Product $kit)
     {
         if ($kit->user_id !== Auth::id()) {
             abort(403, 'Unauthorized action.');
@@ -96,7 +94,7 @@ class EditKit extends Component
 
         // Atualizar componentes do kit
         ProdutoComponente::where('kit_produto_id', $this->kit->id)->delete();
-        
+
         foreach ($this->produtos as $produtoId => $dados) {
             if (isset($dados['selecionado']) && $dados['selecionado'] && isset($dados['quantidade']) && $dados['quantidade'] > 0) {
                 ProdutoComponente::create([
