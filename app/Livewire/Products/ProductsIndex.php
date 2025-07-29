@@ -27,15 +27,17 @@ class ProductsIndex extends Component
     public string $data_inicio = '';
     public string $data_fim = '';
     public string $ordem = '';
-    public int $perPage = 18;
+    // public int $perPage = 18; // Removido para evitar duplicidade
 
     // Modal de exclusão
     public ?Product $deletingProduct = null;
     public bool $showDeleteModal = false;
 
+    public $perPage = 18;
+    public $page = 1;
+
     protected $queryString = [
         'search' => ['except' => ''],
-        'category' => ['except' => ''],
         'status_filtro' => ['except' => ''],
         'tipo' => ['except' => ''],
         'preco_min' => ['except' => ''],
