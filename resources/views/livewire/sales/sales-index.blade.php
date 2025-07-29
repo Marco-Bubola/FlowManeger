@@ -2,441 +2,507 @@
     <style>
         [x-cloak] { display: none !important; }
     </style>
+
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
-        <!-- Header + Filtros/Pesquisa -->
-        <div class="mb-8">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <!-- Header principal -->
-                <div class="flex flex-col lg:flex-row lg:items-center lg:gap-6 flex-1 min-w-0">
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                        <i class="bi bi-cart text-indigo-600 dark:text-indigo-400 mr-3"></i>Vendas
-                    </h1>
-                    <p class="mt-2 lg:mt-0 text-sm text-gray-600 dark:text-gray-400">Gerencie suas vendas de forma simples e eficiente</p>
+        <!-- Modern Header with Analytics -->
+        <div class="bg-gradient-to-br from-white via-blue-50 to-indigo-100 dark:from-gray-800 dark:via-gray-900 dark:to-indigo-900 rounded-3xl p-8 mb-8 border border-gray-200 dark:border-gray-700 shadow-xl">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                <!-- Header principal com métricas -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-16 h-16 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg">
+                            <i class="bi bi-cart text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-4xl font-bold bg-gradient-to-r from-gray-900 via-indigo-800 to-purple-700 dark:from-white dark:via-indigo-200 dark:to-purple-300 bg-clip-text text-transparent">
+                                Central de Vendas
+                            </h1>
+                            <p class="text-gray-600 dark:text-gray-400 text-lg">Gerencie e monitore todas as suas vendas</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 dark:border-gray-700/50">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-receipt text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $sales->total() }}</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Total de Vendas</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 dark:border-gray-700/50">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-currency-dollar text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">R$ {{ number_format($sales->sum('total_price'), 2, ',', '.') }}</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Faturamento Total</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 dark:border-gray-700/50">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-clock text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $sales->where('status', 'pendente')->count() }}</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Pendentes</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm rounded-xl p-4 border border-white/50 dark:border-gray-700/50">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-gradient-to-r from-purple-500 to-violet-600 rounded-lg flex items-center justify-center">
+                                    <i class="bi bi-person text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $sales->unique('client_id')->count() }}</p>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">Clientes Únicos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!-- Filtros, pesquisa e nova venda -->
-                <div class="flex flex-col gap-2 w-full lg:w-auto lg:flex-row lg:items-center lg:justify-end">
-                    <!-- Campo de Pesquisa -->
-                    <div class="w-full lg:w-64">
-                        <div class="relative">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="bi bi-search text-gray-400"></i>
+
+                <!-- Advanced Action Panel -->
+                <div class="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-2xl p-6 border border-white/50 dark:border-gray-700/50 lg:min-w-[400px]">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+                        <i class="bi bi-tools text-indigo-600 mr-2"></i>
+                        Ações Rápidas
+                    </h3>
+
+                    <div class="space-y-4">
+                        <!-- Search and Filters Row -->
+                        <div class="flex gap-3">
+                            <!-- Campo de Pesquisa -->
+                            <div class="flex-1">
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-search text-gray-400"></i>
+                                    </div>
+                                    <input type="text"
+                                        wire:model.live.debounce.300ms="search"
+                                        id="search"
+                                        placeholder="Buscar por cliente..."
+                                        class="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm">
+                                </div>
                             </div>
-                            <input type="text"
-                                wire:model.live.debounce.300ms="search"
-                                id="search"
-                                placeholder="Pesquisar cliente..."
-                                class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm">
-                        </div>
-                    </div>
-                    <!-- Dropdown de Filtros -->
-                    <div x-data="{ open: false }" class="relative w-full lg:w-auto">
-                        <button @click="open = !open" type="button"
-                            class="inline-flex items-center justify-center w-full lg:w-auto px-4 py-2 border border-gray-300 dark:border-zinc-600 text-sm font-medium rounded-lg shadow-sm bg-white dark:bg-zinc-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200">
-                            <i class="bi bi-funnel mr-2"></i>Filtros
-                            <i class="bi bi-chevron-down ml-2" :class="{'rotate-180': open}"></i>
-                        </button>
-                        
-                        <!-- Dropdown Panel -->
-                        <div x-show="open" 
-                             @click.away="open = false" 
-                             x-cloak
-                             class="absolute right-0 z-50 mt-2 w-96 lg:w-[600px] bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-xl p-4">
-                            
-                            <!-- Header -->
-                            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-200 dark:border-zinc-600">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+
+                            <!-- Dropdown de Filtros -->
+                            <div x-data="{ open: false }" class="relative">
+                                <button @click="open = !open" type="button"
+                                    class="flex items-center justify-center px-4 py-3 border border-gray-300 dark:border-zinc-600 text-sm font-medium rounded-xl shadow-sm bg-white dark:bg-zinc-700 text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200">
                                     <i class="bi bi-funnel mr-2"></i>Filtros
-                                </h3>
-                                <button @click="open = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-                                    <i class="bi bi-x text-xl"></i>
+                                    <i class="bi bi-chevron-down ml-2" :class="{'rotate-180': open}"></i>
                                 </button>
-                            </div>
-                            
-                            <!-- Filtros -->
-                            <div class="space-y-4">
-                                <!-- Primeira linha -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Status -->
-                                    <div>
-                                        <label for="status" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-flag text-gray-400 mr-1"></i>Status
-                                        </label>
-                                        <select wire:model.live="status"
-                                            id="status"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
-                                            <option value="">Todos</option>
-                                            <option value="pendente">Pendente</option>
-                                            <option value="pago">Pago</option>
-                                            <option value="cancelado">Cancelado</option>
-                                        </select>
+
+                                <!-- Enhanced Dropdown Panel -->
+                                <div x-show="open"
+                                     @click.away="open = false"
+                                     x-cloak
+                                     class="absolute right-0 z-50 mt-2 w-96 lg:w-[500px] bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-2xl p-6">
+
+                                    <!-- Header -->
+                                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-200 dark:border-zinc-600">
+                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                                            <i class="bi bi-funnel mr-2 text-indigo-600"></i>Filtros Avançados
+                                        </h3>
+                                        <button @click="open = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-zinc-700">
+                                            <i class="bi bi-x text-xl"></i>
+                                        </button>
                                     </div>
-                                    <!-- Tipo de Pagamento -->
-                                    <div>
-                                        <label for="payment_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-credit-card text-gray-400 mr-1"></i>Pagamento
-                                        </label>
-                                        <select wire:model.live="payment_type"
-                                            id="payment_type"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
-                                            <option value="">Todos</option>
-                                            <option value="a_vista">À Vista</option>
-                                            <option value="parcelado">Parcelado</option>
-                                        </select>
+
+                                    <!-- Quick Filter Buttons -->
+                                    <div class="mb-6">
+                                        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Filtros Rápidos:</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button wire:click="$set('status', 'pendente')"
+                                                    class="px-3 py-1 text-xs font-medium rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition-colors">
+                                                <i class="bi bi-clock mr-1"></i>Pendentes
+                                            </button>
+                                            <button wire:click="$set('status', 'pago')"
+                                                    class="px-3 py-1 text-xs font-medium rounded-full bg-green-100 text-green-700 hover:bg-green-200 transition-colors">
+                                                <i class="bi bi-check-circle mr-1"></i>Pagos
+                                            </button>
+                                            <button wire:click="$set('payment_type', 'parcelado')"
+                                                    class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 hover:bg-blue-200 transition-colors">
+                                                <i class="bi bi-credit-card mr-1"></i>Parcelados
+                                            </button>
+                                            <button wire:click="$set('filter', 'price_desc')"
+                                                    class="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors">
+                                                <i class="bi bi-arrow-up mr-1"></i>Maior Valor
+                                            </button>
+                                        </div>
                                     </div>
-                                </div>
-                                
-                                <!-- Segunda linha -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Ordenar -->
-                                    <div>
-                                        <label for="filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-sort-down text-gray-400 mr-1"></i>Ordenar
-                                        </label>
-                                        <select wire:model.live="filter"
-                                            id="filter"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
-                                            <option value="">Padrão</option>
-                                            <option value="created_at">Mais Recentes</option>
-                                            <option value="updated_at">Últimas Atualizações</option>
-                                            <option value="name_asc">Cliente A-Z</option>
-                                            <option value="name_desc">Cliente Z-A</option>
-                                            <option value="price_asc">Menor Valor</option>
-                                            <option value="price_desc">Maior Valor</option>
-                                        </select>
+
+                                    <!-- Main Filters Grid -->
+                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                                        <!-- Status -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                <i class="bi bi-flag text-gray-400 mr-1"></i>Status
+                                            </label>
+                                            <select wire:model.live="status" class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
+                                                <option value="">Todos</option>
+                                                <option value="pendente">Pendente</option>
+                                                <option value="pago">Pago</option>
+                                                <option value="cancelado">Cancelado</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Tipo de Pagamento -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                <i class="bi bi-credit-card text-gray-400 mr-1"></i>Pagamento
+                                            </label>
+                                            <select wire:model.live="payment_type" class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
+                                                <option value="">Todos</option>
+                                                <option value="a_vista">À Vista</option>
+                                                <option value="parcelado">Parcelado</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Ordenação -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                <i class="bi bi-sort-down text-gray-400 mr-1"></i>Ordenar
+                                            </label>
+                                            <select wire:model.live="filter" class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
+                                                <option value="">Padrão</option>
+                                                <option value="created_at">Mais Recentes</option>
+                                                <option value="price_desc">Maior Valor</option>
+                                                <option value="price_asc">Menor Valor</option>
+                                            </select>
+                                        </div>
+
+                                        <!-- Por página -->
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                                <i class="bi bi-list text-gray-400 mr-1"></i>Por página
+                                            </label>
+                                            <select wire:model.live="perPage" class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
+                                                <option value="12">12</option>
+                                                <option value="18">18</option>
+                                                <option value="24">24</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <!-- Itens por página -->
-                                    <div>
-                                        <label for="perPage" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-list text-gray-400 mr-1"></i>Por página
-                                        </label>
-                                        <select wire:model.live="perPage"
-                                            id="perPage"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
-                                            <option value="12">12</option>
-                                            <option value="18">18</option>
-                                            <option value="24">24</option>
-                                            <option value="36">36</option>
-                                        </select>
+
+                                    <!-- Action Buttons -->
+                                    <div class="flex justify-between pt-4 border-t border-gray-200 dark:border-zinc-600">
+                                        <button @click="
+                                            $wire.set('status', '');
+                                            $wire.set('payment_type', '');
+                                            $wire.set('filter', '');
+                                            $wire.set('perPage', 12);
+                                        "
+                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-600 transition-colors duration-200">
+                                            <i class="bi bi-arrow-clockwise mr-2"></i>Limpar
+                                        </button>
+                                        <button @click="open = false"
+                                                class="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-lg">
+                                            <i class="bi bi-check mr-2"></i>Aplicar
+                                        </button>
                                     </div>
-                                </div>
-                                
-                                <!-- Terceira linha - Datas -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Data Início -->
-                                    <div>
-                                        <label for="date_start" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-calendar text-gray-400 mr-1"></i>Data Início
-                                        </label>
-                                        <input type="date"
-                                            wire:model.live="date_start"
-                                            id="date_start"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
-                                    </div>
-                                    <!-- Data Fim -->
-                                    <div>
-                                        <label for="date_end" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-calendar text-gray-400 mr-1"></i>Data Fim
-                                        </label>
-                                        <input type="date"
-                                            wire:model.live="date_end"
-                                            id="date_end"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
-                                    </div>
-                                </div>
-                                
-                                <!-- Quarta linha - Valores -->
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <!-- Valor Mínimo -->
-                                    <div>
-                                        <label for="min_value" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-currency-dollar text-gray-400 mr-1"></i>Valor Mínimo
-                                        </label>
-                                        <input type="number"
-                                            wire:model.live="min_value"
-                                            id="min_value"
-                                            step="0.01"
-                                            placeholder="0,00"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm">
-                                    </div>
-                                    <!-- Valor Máximo -->
-                                    <div>
-                                        <label for="max_value" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="bi bi-currency-dollar text-gray-400 mr-1"></i>Valor Máximo
-                                        </label>
-                                        <input type="number"
-                                            wire:model.live="max_value"
-                                            id="max_value"
-                                            step="0.01"
-                                            placeholder="999.999,99"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 text-sm">
-                                    </div>
-                                </div>
-                                
-                                <!-- Botões de Ação -->
-                                <div class="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-zinc-600">
-                                    <button @click="
-                                        $wire.set('status', '');
-                                        $wire.set('payment_type', '');
-                                        $wire.set('filter', '');
-                                        $wire.set('date_start', '');
-                                        $wire.set('date_end', '');
-                                        $wire.set('min_value', '');
-                                        $wire.set('max_value', '');
-                                        $wire.set('perPage', 12);
-                                    " 
-                                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-600 transition-colors duration-200">
-                                        <i class="bi bi-arrow-clockwise mr-2"></i>Limpar Filtros
-                                    </button>
-                                    <button @click="open = false" 
-                                            class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                                        <i class="bi bi-check mr-2"></i>Aplicar
-                                    </button>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Action Buttons Row -->
+                        <div class="flex gap-3">
+                            <!-- Export Button -->
+                            <button class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-600 transition-all duration-200">
+                                <i class="bi bi-download mr-2 text-blue-600"></i>
+                                Exportar
+                            </button>
+
+                            <!-- Refresh Button -->
+                            <button wire:click="$refresh" class="flex items-center px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-600 transition-all duration-200">
+                                <i class="bi bi-arrow-clockwise mr-2 text-green-600"></i>
+                                Atualizar
+                            </button>
+
+                            <!-- Nova Venda Button -->
+                            <a href="{{ route('sales.create') }}"
+                                class="flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                                <i class="bi bi-plus mr-2"></i>
+                                Nova Venda
+                            </a>
+                        </div>
                     </div>
-                    <!-- Botão Nova Venda -->
-                    <a href="{{ route('sales.create') }}"
-                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200">
-                        <i class="bi bi-plus mr-2"></i>
-                        Nova Venda
-                    </a>
                 </div>
             </div>
         </div>
-        <!-- Fim Dropdown de Filtros -->
 
-        <!-- Lista de Vendas -->
-        <div class="overflow-hidden">
-            @if($sales->count() > 0)
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-                @foreach($sales as $sale)
-                <div class="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-2xl overflow-hidden hover:shadow-2xl hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-300 group relative">
-                    <!-- Header com gradiente -->
-                    <div class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                    <i class="bi bi-receipt text-white text-xl"></i>
+        <!-- Sales Cards Grid - Estilo Produtos -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 mb-8">
+            @forelse($sales as $sale)
+                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-200 dark:border-zinc-700 hover:border-indigo-400 dark:hover:border-indigo-500 group transform hover:-translate-y-1">
+
+                    <!-- Product Images Section - Todas as imagens -->
+                    @php
+                        $productsWithImages = $sale->saleItems->filter(fn($item) => $item->product && $item->product->image);
+                        $totalItems = $sale->saleItems->count();
+                    @endphp
+
+                    <div class="relative h-48 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-700 dark:to-zinc-800 overflow-hidden">
+                        @if($productsWithImages->isNotEmpty())
+                            @if($productsWithImages->count() === 1)
+                                <!-- Uma única imagem -->
+                                <img src="{{ Storage::url($productsWithImages->first()->product->image) }}"
+                                     alt="{{ $productsWithImages->first()->product->name }}"
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            @elseif($productsWithImages->count() === 2)
+                                <!-- Duas imagens lado a lado -->
+                                <div class="flex h-full">
+                                    @foreach($productsWithImages->take(2) as $item)
+                                        <div class="flex-1 relative overflow-hidden">
+                                            <img src="{{ Storage::url($item->product->image) }}"
+                                                 alt="{{ $item->product->name }}"
+                                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                        </div>
+                                    @endforeach
                                 </div>
-                                <div>
-                                    <h3 class="text-xl font-bold text-white">
-                                        Venda #{{ $sale->id }}
-                                    </h3>
-                                    <p class="text-white/80 text-sm">
-                                        {{ $sale->created_at->format('d/m/Y H:i') }}
-                                    </p>
+                            @elseif($productsWithImages->count() === 3)
+                                <!-- Três imagens: uma grande + duas pequenas -->
+                                <div class="flex h-full">
+                                    <div class="w-2/3 relative overflow-hidden">
+                                        <img src="{{ Storage::url($productsWithImages->first()->product->image) }}"
+                                             alt="{{ $productsWithImages->first()->product->name }}"
+                                             class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                    </div>
+                                    <div class="w-1/3 flex flex-col">
+                                        @foreach($productsWithImages->skip(1)->take(2) as $item)
+                                            <div class="flex-1 relative overflow-hidden {{ !$loop->last ? 'border-b border-white/20' : '' }}">
+                                                <img src="{{ Storage::url($item->product->image) }}"
+                                                     alt="{{ $item->product->name }}"
+                                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Quatro ou mais imagens: grid 2x2 -->
+                                <div class="grid grid-cols-2 grid-rows-2 h-full gap-1">
+                                    @foreach($productsWithImages->take(4) as $item)
+                                        <div class="relative overflow-hidden">
+                                            <img src="{{ Storage::url($item->product->image) }}"
+                                                 alt="{{ $item->product->name }}"
+                                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+
+                                            @if($loop->last && $productsWithImages->count() > 4)
+                                                <!-- Overlay para mostrar quantas imagens a mais -->
+                                                <div class="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                    <span class="text-white font-bold text-lg">
+                                                        +{{ $productsWithImages->count() - 4 }}
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @else
+                            <!-- Fallback quando não há imagens -->
+                            <div class="w-full h-full flex items-center justify-center">
+                                <div class="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center">
+                                    <i class="bi bi-cart text-white text-2xl"></i>
                                 </div>
                             </div>
-                            <!-- Status Badge -->
-                            <div class="flex items-center space-x-2">
-                                <span class="px-3 py-1 rounded-full text-xs font-semibold backdrop-blur-sm
-                                    @if($sale->status === 'pago') bg-green-500/30 text-green-100 border border-green-400/50
-                                    @elseif($sale->status === 'pendente') bg-yellow-500/30 text-yellow-100 border border-yellow-400/50
-                                    @else bg-red-500/30 text-red-100 border border-red-400/50 @endif">
-                                    @if($sale->status === 'pago')
+                        @endif
+
+                        <!-- Status Badge -->
+                        <div class="absolute top-3 left-3">
+                            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm
+                                @if($sale->status === 'pago') bg-green-500/90 text-white
+                                @elseif($sale->status === 'pendente') bg-yellow-500/90 text-white
+                                @else bg-red-500/90 text-white @endif">
+                                @if($sale->status === 'pago')
                                     <i class="bi bi-check-circle mr-1"></i>Pago
-                                    @elseif($sale->status === 'pendente')
+                                @elseif($sale->status === 'pendente')
                                     <i class="bi bi-clock mr-1"></i>Pendente
-                                    @else
+                                @else
                                     <i class="bi bi-x-circle mr-1"></i>Cancelado
-                                    @endif
+                                @endif
+                            </span>
+                        </div>
+
+                        <!-- Items Count Badge -->
+                        @if($totalItems > 1)
+                            <div class="absolute top-3 right-3">
+                                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-black/60 text-white backdrop-blur-sm">
+                                    <i class="bi bi-stack mr-1"></i>{{ $totalItems }} itens
                                 </span>
-                                <!-- Dropdown de Ações -->
-                                <div x-data="{ actionsOpen: false }" class="relative">
-                                    <button @click="actionsOpen = !actionsOpen" 
-                                            class="w-8 h-8 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center text-white hover:bg-white/30 transition-colors duration-200">
-                                        <i class="bi bi-three-dots-vertical"></i>
+                            </div>
+                        @endif
+
+                        <!-- Price Overlay -->
+                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                            <div class="text-white">
+                                <p class="text-lg font-bold">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</p>
+                                <p class="text-xs opacity-90">{{ $sale->payment_type === 'a_vista' ? 'À Vista' : 'Parcelado' }}</p>
+                            </div>
+                        </div>
+                    </div>                    <!-- Product Details Section -->
+                    <div class="p-4 space-y-3">
+                        <!-- Sale Header -->
+                        <div class="space-y-1">
+                            <h3 class="font-bold text-gray-900 dark:text-white text-sm flex items-center justify-between">
+                                <span>Venda #{{ $sale->id }}</span>
+                                <!-- Action Menu -->
+                                <div x-data="{ open: false }" class="relative">
+                                    <button @click="open = !open"
+                                            class="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded transition-colors">
+                                        <i class="bi bi-three-dots text-sm"></i>
                                     </button>
-                                    <div x-show="actionsOpen" 
-                                         @click.away="actionsOpen = false" 
-                                         x-cloak
-                                         class="absolute right-0 top-10 z-50 w-56 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-xl py-2">
-                                        <a href="{{ route('sales.show', $sale->id) }}" 
+                                    <div x-show="open" @click.away="open = false" x-cloak
+                                         class="absolute right-0 top-7 z-50 w-48 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-xl py-1">
+ <a href="{{ route('sales.show', $sale->id) }}"
                                            class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-eye text-blue-500 mr-3"></i>Ver Detalhes
                                         </a>
-                                        <a href="{{ route('sales.edit', $sale->id) }}" 
+                                        <a href="{{ route('sales.edit', $sale->id) }}"
                                            class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-pencil text-green-500 mr-3"></i>Editar Venda
                                         </a>
-                                        <a href="{{ route('sales.add-products', $sale->id) }}" 
+                                        <a href="{{ route('sales.add-products', $sale->id) }}"
                                            class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-plus-circle text-indigo-500 mr-3"></i>Adicionar Produtos
                                         </a>
-                                        <a href="{{ route('sales.edit-prices', $sale->id) }}" 
+                                        <a href="{{ route('sales.edit-prices', $sale->id) }}"
                                            class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-currency-dollar text-purple-500 mr-3"></i>Editar Preços
                                         </a>
-                                        <a href="{{ route('sales.add-payments', $sale->id) }}" 
+                                        <a href="{{ route('sales.add-payments', $sale->id) }}"
                                            class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-credit-card text-teal-500 mr-3"></i>Adicionar Pagamento
                                         </a>
-                                        <a href="{{ route('sales.edit-payments', $sale->id) }}" 
+                                        <a href="{{ route('sales.edit-payments', $sale->id) }}"
                                            class="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-pencil-square text-orange-500 mr-3"></i>Editar Pagamentos
                                         </a>
                                         <div class="border-t border-gray-200 dark:border-zinc-600 my-2"></div>
-                                        <button wire:click="exportPdf({{ $sale->id }})" 
+                                        <button wire:click="exportPdf({{ $sale->id }})"
                                                 class="w-full flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors duration-200">
                                             <i class="bi bi-file-earmark-pdf text-red-500 mr-3"></i>Exportar PDF
                                         </button>
-                                        <button wire:click="confirmDelete({{ $sale->id }})" 
+                                        <button wire:click="confirmDelete({{ $sale->id }})"
                                                 class="w-full flex items-center px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors duration-200">
                                             <i class="bi bi-trash text-red-500 mr-3"></i>Excluir Venda
                                         </button>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Conteúdo do Card -->
-                    <div class="p-6">
-                        <!-- Cliente -->
-                        <div class="mb-4">
-                            <div class="flex items-center space-x-3 mb-2">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
-                                    <i class="bi bi-person text-white text-sm"></i>
-                                </div>
-                                <div>
-                                    <h4 class="font-semibold text-gray-900 dark:text-white">{{ $sale->client->name }}</h4>
-                                    @if($sale->client->email)
-                                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ $sale->client->email }}</p>
-                                    @endif
-                                </div>
-                            </div>
+                            </h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $sale->created_at->format('d/m/Y H:i') }}
+                            </p>
                         </div>
 
-                        <!-- Produtos da Venda -->
-                        <div class="mb-4">
-                            <h5 class="text-sm font-medium text-gray-900 dark:text-white mb-2 flex items-center">
-                                <i class="bi bi-box text-gray-400 mr-2"></i>Produtos ({{ $sale->saleItems->count() }})
-                            </h5>
-                            <div class="space-y-2 max-h-24 overflow-y-auto">
-                                @foreach($sale->saleItems->take(3) as $item)
-                                <div class="flex items-center justify-between p-2 bg-gray-50 dark:bg-zinc-700 rounded-lg">
-                                    <div class="flex items-center space-x-2">
-                                        @if($item->product->image)
-                                        <img src="{{ asset('storage/products/' . $item->product->image) }}" 
-                                             alt="{{ $item->product->name }}" 
-                                             class="w-6 h-6 rounded object-cover">
-                                        @else
-                                        <div class="w-6 h-6 bg-gray-300 dark:bg-zinc-600 rounded flex items-center justify-center">
-                                            <i class="bi bi-image text-xs text-gray-500"></i>
-                                        </div>
-                                        @endif
-                                        <span class="text-xs font-medium text-gray-900 dark:text-white truncate max-w-[120px]">
-                                            {{ $item->product->name }}
-                                        </span>
-                                    </div>
-                                    <div class="text-right">
-                                        <span class="text-xs font-semibold text-gray-900 dark:text-white">{{ $item->quantity }}x</span>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">R$ {{ number_format($item->price, 2, ',', '.') }}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                                @if($sale->saleItems->count() > 3)
-                                <div class="text-center">
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">
-                                        +{{ $sale->saleItems->count() - 3 }} item(s) a mais
-                                    </span>
-                                </div>
-                                @endif
-                            </div>
+                        <!-- Client Info -->
+                        <div class="flex items-center space-x-2">
+                            <i class="bi bi-person text-gray-400 text-xs"></i>
+                            <span class="text-xs text-gray-600 dark:text-gray-300 truncate">
+                                {{ $sale->client->name ?? 'Cliente não informado' }}
+                            </span>
                         </div>
 
-                        <!-- Estatísticas financeiras -->
-                        <div class="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-zinc-700 dark:to-zinc-600 rounded-xl p-4 mb-4">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="text-center">
-                                    <p class="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                        R$ {{ number_format($sale->total_price, 2, ',', '.') }}
-                                    </p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">Valor Total</p>
-                                </div>
-                                <div class="text-center">
-                                    <p class="text-2xl font-bold text-gray-700 dark:text-gray-300">
-                                        {{ $sale->saleItems->sum('quantity') }}
-                                    </p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                                        {{ $sale->saleItems->sum('quantity') === 1 ? 'Unidade' : 'Unidades' }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            @if($sale->amount_paid > 0)
-                            <div class="mt-3 pt-3 border-t border-gray-200 dark:border-zinc-500">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="text-xs text-gray-600 dark:text-gray-400 font-medium">Pago:</span>
-                                    <span class="text-sm font-bold text-green-600 dark:text-green-400">
-                                        R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}
-                                    </span>
-                                </div>
-                                @if($sale->amount_paid < $sale->total_price)
-                                <div class="flex justify-between items-center">
-                                    <span class="text-xs text-gray-600 dark:text-gray-400 font-medium">Restante:</span>
-                                    <span class="text-sm font-bold text-red-600 dark:text-red-400">
-                                        R$ {{ number_format($sale->total_price - $sale->amount_paid, 2, ',', '.') }}
-                                    </span>
-                                </div>
-                                @endif
-                            </div>
-                            @endif
-                        </div>
-
-                        <!-- Tipo de Pagamento -->
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                                    <i class="bi bi-credit-card text-white text-xs"></i>
-                                </div>
-                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                    {{ $sale->tipo_pagamento === 'a_vista' ? 'À Vista' : 'Parcelado' }}
+                        <!-- Products List - Apenas Códigos e Quantidades -->
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                    <i class="bi bi-box text-indigo-600 mr-1"></i>Produtos:
+                                </span>
+                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                    {{ $sale->saleItems->count() }} item(s)
                                 </span>
                             </div>
-                            @if($sale->tipo_pagamento === 'parcelado')
-                            <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-xs font-bold rounded-full">
-                                {{ $sale->parcelas }}x parcelas
-                            </span>
-                            @endif
+
+                            <div class="space-y-1 max-h-20 overflow-y-auto">
+                                @foreach($sale->saleItems->take(3) as $item)
+                                    <div class="flex items-center justify-between bg-gray-50 dark:bg-zinc-700 rounded-lg px-2 py-1">
+                                        <span class="text-xs font-mono text-gray-800 dark:text-gray-200 truncate">
+                                            {{ $item->product->code ?? $item->product->name }}
+                                        </span>
+                                        <span class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 ml-2">
+                                            {{ $item->quantity }}x
+                                        </span>
+                                    </div>
+                                @endforeach
+
+                                @if($sale->saleItems->count() > 3)
+                                    <div class="text-center">
+                                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                                            +{{ $sale->saleItems->count() - 3 }} produto(s)
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Efeito hover -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"></div>
-                </div>
-                @endforeach
-            </div>
+                    <!-- Action Buttons -->
+                    <div class="px-4 pb-4">
+                        <div class="flex gap-2">
+                            <a href="{{ route('sales.show', $sale) }}"
+                               class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/50 rounded-lg transition-all duration-200 border border-indigo-200 dark:border-indigo-800">
+                                <i class="bi bi-eye mr-1"></i>Ver
+                            </a>
 
-            <!-- Paginação -->
-            <div class="px-6 py-4 border-t border-gray-200 dark:border-zinc-600">
+                            <a href="{{ route('sales.edit', $sale) }}"
+                               class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg transition-all duration-200 border border-emerald-200 dark:border-emerald-800">
+                                <i class="bi bi-pencil mr-1"></i>Edit
+                            </a>
+
+                            <button wire:click="confirmDelete({{ $sale->id }})"
+                                    class="inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 rounded-lg transition-all duration-200 border border-red-200 dark:border-red-800">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            @empty
+                <div class="col-span-full">
+                    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-12 text-center border border-gray-200 dark:border-zinc-700">
+                        <div class="w-20 h-20 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="bi bi-cart-x text-white text-3xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                            Nenhuma venda encontrada
+                        </h3>
+                        <p class="text-gray-500 dark:text-gray-400 mb-6">
+                            @if($search)
+                                Não encontramos vendas com o termo "{{ $search }}".
+                            @else
+                                Comece registrando sua primeira venda.
+                            @endif
+                        </p>
+                        <a href="{{ route('sales.create') }}"
+                           class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="bi bi-plus mr-2"></i>
+                            Criar primeira venda
+                        </a>
+                    </div>
+                </div>
+            @endforelse
+        </div>
+
+        <!-- Paginação -->
+        @if($sales->hasPages())
+            <div class="flex justify-center mt-8">
                 {{ $sales->links() }}
             </div>
-            @else
-            <!-- Estado vazio -->
-            <div class="text-center py-16">
-                <div class="mx-auto w-24 h-24 bg-gray-100 dark:bg-zinc-700 rounded-full flex items-center justify-center mb-6">
-                    <i class="bi bi-cart text-3xl text-gray-400"></i>
-                </div>
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma venda encontrada</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-6">
-                    @if($search)
-                    Não encontramos vendas com o termo "{{ $search }}".
-                    @else
-                    Comece registrando sua primeira venda.
-                    @endif
-                </p>
-                <a href="{{ route('sales.create') }}"
-                    class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                    <i class="bi bi-plus mr-2"></i>
-                    Registrar Venda
-                </a>
-            </div>
-            @endif
-        </div>
+        @endif
     </div>
-  </div>
+</div>
 
     <!-- Modal de Confirmação de Exclusão -->
     @if($showDeleteModal)
