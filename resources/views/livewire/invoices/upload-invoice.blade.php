@@ -402,29 +402,7 @@
 
                                     <!-- Header do Card -->
                                     <div class="flex justify-between items-start mb-6">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-xl shadow-lg">
-                                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                </svg>
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Transação</p>
-                                                <p class="text-lg font-bold text-gray-900 dark:text-white">Invoice</p>
-                                            </div>
-                                        </div>
-                                        <!-- Botão de remover -->
-                                        <button wire:click="removeTransaction({{ $index }})"
-                                                class="group flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 dark:from-red-600 dark:to-pink-700 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg">
-                                            <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <!-- Conteúdo do Card -->
-                                    <div class="space-y-6">
-                                        <!-- Descrição e Data -->
+                                       <!-- Descrição e Data -->
                                         <div class="space-y-3">
                                             <div class="flex items-start space-x-3">
                                                 <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-md flex-shrink-0">
@@ -445,6 +423,18 @@
                                                 </div>
                                             </div>
                                         </div>
+                                        <!-- Botão de remover -->
+                                        <button wire:click="removeTransaction({{ $index }})"
+                                                class="group flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 dark:from-red-600 dark:to-pink-700 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg">
+                                            <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <!-- Conteúdo do Card -->
+                                    <div class="space-y-6">
+
 
                                         <!-- Valor e Parcelas -->
                                         <div class="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200 dark:border-green-700">
