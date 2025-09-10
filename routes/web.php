@@ -102,6 +102,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/cashbook', DashboardCashbook::class)->name('dashboard.cashbook');
     Route::get('/dashboard/products', DashboardProducts::class)->name('dashboard.products');
     Route::get('/dashboard/sales', DashboardSales::class)->name('dashboard.sales');
+    // Dashboard de Clientes
+    Route::get('/dashboard/clients', \App\Livewire\Dashboard\DashboardClientes::class)->name('dashboard.clients');
 
      // Suas rotas para Livewire
     Route::get('/banks', BanksIndex::class)->name('banks.index');
