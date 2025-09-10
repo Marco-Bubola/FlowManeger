@@ -9,6 +9,7 @@ use App\Models\Segment;
 use App\Models\Client;
 use App\Models\Cofrinho;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Smalot\PdfParser\Parser;
@@ -27,10 +28,12 @@ class UploadCashbook extends Component
     public $cofrinhos = [];
     public $cofrinho_id = '';
     public $step = 1; // 1 = upload, 2 = preview
-    
+
     protected $rules = [
         'file' => 'required|mimes:pdf,csv|max:2048',
         'cofrinho_id' => 'nullable|exists:cofrinhos,id',
+        'transactions.*.category_id' => 'required|exists:category,id_category',
+        'transactions.*.cofrinho_id' => 'nullable|exists:cofrinhos,id',
     ];
 
     protected $messages = [
@@ -38,6 +41,9 @@ class UploadCashbook extends Component
         'file.mimes' => 'O arquivo deve ser PDF ou CSV.',
         'file.max' => 'O arquivo deve ter no máximo 2MB.',
         'cofrinho_id.exists' => 'O cofrinho selecionado não existe.',
+        'transactions.*.category_id.required' => 'Todas as transações devem ter uma categoria selecionada.',
+        'transactions.*.category_id.exists' => 'Uma ou mais categorias selecionadas são inválidas.',
+        'transactions.*.cofrinho_id.exists' => 'Um ou mais cofrinhos selecionados são inválidos.',
     ];
 
     public function mount()
@@ -50,8 +56,17 @@ class UploadCashbook extends Component
         $this->categories = Category::where('user_id', Auth::id())
             ->where('is_active', 1)
             ->where('type', 'transaction')
-            ->select(['name', 'id_category as id'])
+            ->select(['name', 'id_category'])
             ->get();
+
+        // Verificar se há categorias disponíveis
+        if ($this->categories->isEmpty()) {
+            $this->dispatch('notify', [
+                'type' => 'warning',
+                'title' => '⚠️ Atenção',
+                'message' => 'Não há categorias de transação disponíveis. Crie pelo menos uma categoria antes de importar transações.'
+            ]);
+        }
 
         $this->types = Type::all();
 
@@ -85,10 +100,92 @@ class UploadCashbook extends Component
         $this->step = 2;
     }
 
+    protected function validateTransactions()
+    {
+        $errors = [];
+        $hasErrors = false;
+
+        foreach ($this->transactions as $index => $transaction) {
+            $transactionErrors = [];
+
+            // Validar categoria obrigatória
+            if (empty($transaction['category_id'])) {
+                $transactionErrors[] = 'Categoria é obrigatória';
+                $hasErrors = true;
+            } else {
+                // Validar se a categoria existe e pertence ao usuário
+                $categoryExists = Category::where('id_category', $transaction['category_id'])
+                    ->where('user_id', Auth::id())
+                    ->where('is_active', 1)
+                    ->where('type', 'transaction')
+                    ->exists();
+
+                if (!$categoryExists) {
+                    $transactionErrors[] = 'Categoria é obrigatória';
+                    $hasErrors = true;
+                }
+            }
+
+            // Validar cofrinho se fornecido
+            if (!empty($transaction['cofrinho_id'])) {
+                $cofrinhoExists = Cofrinho::where('id', $transaction['cofrinho_id'])
+                    ->where('user_id', Auth::id())
+                    ->exists();
+
+                if (!$cofrinhoExists) {
+                    $transactionErrors[] = 'Cofrinho inválido ou não pertence ao usuário';
+                    $hasErrors = true;
+                }
+            }
+
+            // Validar valor
+            if (empty($transaction['value']) || !is_numeric($transaction['value'])) {
+                $transactionErrors[] = 'Valor é obrigatório e deve ser numérico';
+                $hasErrors = true;
+            }
+
+            // Validar tipo
+            if (empty($transaction['type_id'])) {
+                $transactionErrors[] = 'Tipo é obrigatório';
+                $hasErrors = true;
+            }
+
+            if (!empty($transactionErrors)) {
+                $errors[$index + 1] = $transactionErrors; // +1 para mostrar número da linha começando em 1
+            }
+        }
+
+        if ($hasErrors) {
+            $errorMessage = 'Corrija os seguintes erros antes de confirmar:';
+            foreach ($errors as $lineNumber => $lineErrors) {
+                $errorMessage .= "\n\nLinha {$lineNumber}:";
+                foreach ($lineErrors as $error) {
+                    $errorMessage .= "\n• {$error}";
+                }
+            }
+
+            // Usar notificação toast em vez de session flash
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => 'Erro de Validação',
+                'message' => $errorMessage
+            ]);
+
+            return false;
+        }
+
+        return true;
+    }
+
     public function confirmTransactions()
     {
         if (empty($this->transactions)) {
             session()->flash('error', 'Nenhuma transação para confirmar.');
+            return;
+        }
+
+        // Validar todas as transações antes de salvar
+        if (!$this->validateTransactions()) {
             return;
         }
 
@@ -154,10 +251,10 @@ class UploadCashbook extends Component
                 $cashbook->date = $dateFormatted;
                 $cashbook->value = $trans['value'];
                 $cashbook->description = $trans['description'] ?? null;
-                $cashbook->category_id = $trans['category_id'];
+                $cashbook->category_id = $trans['category_id'] ?? null;
                 $cashbook->type_id = $trans['type_id'];
                 $cashbook->is_pending = $trans['is_pending'] ?? 0;
-                $cashbook->cofrinho_id = $this->cofrinho_id ?? null;
+                $cashbook->cofrinho_id = $trans['cofrinho_id'] ?? null;
                 $cashbook->inc_datetime = now();
 
                 if ($cashbook->save()) {
@@ -170,7 +267,7 @@ class UploadCashbook extends Component
                     $success = false;
                 }
             } catch (\Exception $e) {
-                \Log::error('Exceção ao salvar transação', [
+                Log::error('Exceção ao salvar transação', [
                     'index' => $idx,
                     'exception' => $e->getMessage(),
                     'trace' => $e->getTraceAsString()
@@ -180,22 +277,29 @@ class UploadCashbook extends Component
         }
 
         if ($success) {
-            $msg = 'Transações salvas com sucesso.';
+            $msg = count($inserted) . ' transações salvas com sucesso!';
             if (count($duplicated) > 0) {
-                session()->flash('success', $msg);
-                session()->flash('warning', 'Algumas transações não foram inseridas pois já existiam.');
-                session()->flash('warning_details', [
-                    'inserted' => $inserted,
-                    'duplicated' => $duplicated
+                $this->dispatch('notify', [
+                    'type' => 'warning',
+                    'title' => '⚠️ Atenção',
+                    'message' => $msg . "\n\n" . count($duplicated) . ' transações não foram inseridas pois já existiam no sistema.'
                 ]);
             } else {
-                session()->flash('success', $msg);
+                $this->dispatch('notify', [
+                    'type' => 'success',
+                    'title' => '✅ Sucesso',
+                    'message' => $msg
+                ]);
             }
-            
+
             $this->dispatch('transaction-created');
             $this->redirect(route('cashbook.index'));
         } else {
-            session()->flash('error', 'Houve um erro ao salvar as transações.');
+            $this->dispatch('notify', [
+                'type' => 'error',
+                'title' => '❌ Erro',
+                'message' => 'Houve um erro ao salvar as transações. Verifique os dados e tente novamente.'
+            ]);
         }
     }
 
@@ -204,6 +308,98 @@ class UploadCashbook extends Component
         $this->step = 1;
         $this->transactions = [];
         $this->file = null;
+    }
+
+    public function removeTransaction($index)
+    {
+        // Remove a transação do array pelo índice
+        if (isset($this->transactions[$index])) {
+            array_splice($this->transactions, $index, 1);
+
+            // Notificação de sucesso
+            $this->dispatch('notify', [
+                'type' => 'success',
+                'title' => '✅ Sucesso',
+                'message' => 'Transação removida com sucesso!'
+            ]);
+        }
+    }
+
+    public function updatedTransactions($value, $name)
+    {
+        // Validação em tempo real quando o usuário altera uma transação
+        if (strpos($name, '.category_id') !== false) {
+            $parts = explode('.', $name);
+            $index = $parts[0];
+
+            if (!empty($value)) {
+                // Verificar se a categoria é válida
+                $categoryExists = Category::where('id_category', $value)
+                    ->where('user_id', Auth::id())
+                    ->where('is_active', 1)
+                    ->where('type', 'transaction')
+                    ->exists();
+
+                if (!$categoryExists) {
+                    $this->addError("transactions.{$index}.category_id", 'Categoria é obrigatória');
+                } else {
+                    $this->resetErrorBag("transactions.{$index}.category_id");
+                }
+            }
+        }
+
+        if (strpos($name, '.cofrinho_id') !== false) {
+            $parts = explode('.', $name);
+            $index = $parts[0];
+
+            if (!empty($value)) {
+                // Verificar se o cofrinho é válido
+                $cofrinhoExists = Cofrinho::where('id', $value)
+                    ->where('user_id', Auth::id())
+                    ->exists();
+
+                if (!$cofrinhoExists) {
+                    $this->addError("transactions.{$index}.cofrinho_id", 'Cofrinho inválido.');
+                } else {
+                    $this->resetErrorBag("transactions.{$index}.cofrinho_id");
+                }
+            }
+        }
+    }
+
+    public function getTransactionValidationStatus($transaction)
+    {
+        $issues = [];
+
+        if (empty($transaction['category_id'])) {
+            $issues[] = 'Categoria não selecionada';
+        }
+
+        if (empty($transaction['value']) || !is_numeric($transaction['value'])) {
+            $issues[] = 'Valor inválido';
+        }
+
+        if (empty($transaction['type_id'])) {
+            $issues[] = 'Tipo não definido';
+        }
+
+        return [
+            'isValid' => empty($issues),
+            'issues' => $issues,
+            'status' => empty($issues) ? 'complete' : 'incomplete'
+        ];
+    }
+
+    public function getTotalValidTransactions()
+    {
+        $valid = 0;
+        foreach ($this->transactions as $transaction) {
+            $status = $this->getTransactionValidationStatus($transaction);
+            if ($status['isValid']) {
+                $valid++;
+            }
+        }
+        return $valid;
     }
 
     public function cancel()
@@ -335,20 +531,85 @@ class UploadCashbook extends Component
     private function parseCsvFile()
     {
         $transactions = [];
+
         if (($handle = fopen($this->file->getPathname(), 'r')) !== false) {
+            $isFirstRow = true;
+
             while (($data = fgetcsv($handle, 1000, ',')) !== false) {
-                $transactions[] = [
-                    'date' => $data[0],
-                    'value' => $data[1],
-                    'description' => $data[2],
-                    'category_id' => null,
-                    'type_id' => null,
-                    'note' => null,
-                    'segment_id' => null,
-                ];
+                // Pular o cabeçalho se for a primeira linha
+                if ($isFirstRow) {
+                    $isFirstRow = false;
+
+                    // Verificar se a primeira linha contém cabeçalhos
+                    if (isset($data[0]) && (stripos($data[0], 'data') !== false || stripos($data[0], 'date') !== false)) {
+                        continue; // Pular cabeçalho
+                    }
+                }
+
+                // Limpar BOM Unicode se presente no primeiro campo
+                if (isset($data[0])) {
+                    $data[0] = preg_replace('/^\xEF\xBB\xBF/', '', $data[0]);
+                    $data[0] = trim($data[0], '"﻿'); // Remove aspas e caracteres BOM
+                }
+
+                // Verificar se temos pelo menos 3 campos (data, valor, descrição)
+                if (count($data) >= 3 && !empty(trim($data[0]))) {
+                    try {
+                        // Tentar fazer parse da data
+                        $dateString = trim($data[0], '"');
+
+                        // Tentar diferentes formatos de data
+                        $date = null;
+                        $dateFormats = ['Y-m-d', 'd/m/Y', 'm/d/Y', 'd-m-Y', 'Y/m/d'];
+
+                        foreach ($dateFormats as $format) {
+                            $parsedDate = \DateTime::createFromFormat($format, $dateString);
+                            if ($parsedDate !== false) {
+                                $date = $parsedDate->format('Y-m-d');
+                                break;
+                            }
+                        }
+
+                        if (!$date) {
+                            continue; // Pular se não conseguir fazer parse da data
+                        }
+
+                        // Processar valor
+                        $value = str_replace([',', 'R$', ' '], ['', '', ''], trim($data[1], '"'));
+                        $value = (float) $value;
+
+                        if ($value == 0) {
+                            continue; // Pular transações com valor zero
+                        }
+
+                        // Determinar tipo (receita ou despesa)
+                        $typeId = $value > 0 ? 1 : 2; // 1 = receita, 2 = despesa
+                        $value = abs($value);
+
+                        $transactions[] = [
+                            'date' => $date,
+                            'value' => $value,
+                            'description' => trim($data[2], '"') ?: 'Transação importada',
+                            'category_id' => null,
+                            'type_id' => $typeId,
+                            'cofrinho_id' => null,
+                            'note' => null,
+                            'segment_id' => null,
+                        ];
+
+                    } catch (\Exception $e) {
+                        // Log do erro e continuar com a próxima linha
+                        Log::warning('Erro ao processar linha CSV', [
+                            'data' => $data,
+                            'error' => $e->getMessage()
+                        ]);
+                        continue;
+                    }
+                }
             }
             fclose($handle);
         }
+
         return $transactions;
     }
 
