@@ -26,6 +26,25 @@ class DashboardIndex extends Component
     public $ultimaVenda = null;
     public $produtoMaisVendido = null;
 
+    // Novas variáveis para o mês atual
+    public int $salesMonth = 0;
+    public float $ticketMedio = 0;
+    public int $clientesNovosMes = 0;
+    public int $produtosEstoqueBaixo = 0;
+
+    // Variáveis adicionais para dashboard completo
+    public int $clientesInadimplentes = 0;
+    public int $aniversariantesMes = 0;
+    public int $produtosVendidosMes = 0;
+    public int $produtosCadastrados = 0;
+    public float $saldoCaixa = 0;
+    public float $contasPagar = 0;
+    public float $contasReceber = 0;
+    public float $fornecedoresPagar = 0;
+    public float $despesasFixas = 0;
+    public float $clientesReceber = 0;
+    public float $outrosReceber = 0;
+
     public function mount()
     {
         $this->loadDashboardData();
@@ -39,10 +58,19 @@ class DashboardIndex extends Component
         $totalReceitas = Cashbook::where('user_id', $userId)->where('type_id', 1)->sum('value');
         $totalDespesas = Cashbook::where('user_id', $userId)->where('type_id', 2)->sum('value');
         $this->totalCashbook = $totalReceitas - $totalDespesas;
+        $this->saldoCaixa = $this->totalCashbook;
 
         // Produtos
         $this->totalProdutos = Product::where('user_id', $userId)->count();
         $this->totalProdutosEstoque = Product::where('user_id', $userId)->sum('stock_quantity');
+        $this->produtosCadastrados = $this->totalProdutos;
+
+        // Produtos vendidos no mês
+        $this->produtosVendidosMes = SaleItem::join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->whereMonth('sales.created_at', now()->month)
+            ->whereYear('sales.created_at', now()->year)
+            ->sum('sale_items.quantity');
 
         // Clientes
         $this->totalClientes = Client::where('user_id', $userId)->count();
@@ -50,6 +78,15 @@ class DashboardIndex extends Component
             ->whereHas('sales', function($q) use ($userId) {
                 $q->where('status', 'pendente')->where('user_id', $userId);
             })->count();
+
+        // Clientes inadimplentes (com vendas pendentes)
+        $this->clientesInadimplentes = $this->clientesComSalesPendentes;
+
+        // Aniversariantes do mês (coluna não existe, comentar para evitar erro)
+        // $this->aniversariantesMes = Client::where('user_id', $userId)
+        //     ->whereMonth('data_nascimento', now()->month)
+        //     ->count();
+        $this->aniversariantesMes = 0;
 
         // Faturamento
         $this->totalFaturamento = Sale::where('user_id', $userId)->sum('total_price');
@@ -85,10 +122,80 @@ class DashboardIndex extends Component
         $this->ultimaVenda = Sale::where('user_id', $userId)
             ->orderByDesc('created_at')
             ->first();
+
+        // Vendas no mês atual
+        $salesMonth = Sale::where('user_id', $userId)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        // Ticket médio do mês
+        $totalVendasMes = Sale::where('user_id', $userId)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->sum('total_price');
+        $ticketMedio = $salesMonth > 0 ? $totalVendasMes / $salesMonth : 0;
+
+        // Novos clientes no mês
+        $clientesNovosMes = Client::where('user_id', $userId)
+            ->whereMonth('created_at', now()->month)
+            ->whereYear('created_at', now()->year)
+            ->count();
+
+        // Produtos com estoque baixo (exemplo: <= 5)
+        $produtosEstoqueBaixo = Product::where('user_id', $userId)
+            ->where('stock_quantity', '<=', 5)
+            ->count();
+
+        // Contas a pagar (exemplo: cashbook type_id = 2)
+        $this->contasPagar = Cashbook::where('user_id', $userId)->where('type_id', 2)->sum('value');
+        // Contas a receber (cashbook type_id = 1)
+        $this->contasReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->sum('value');
+
+        // Fornecedores a pagar (exemplo: cashbook category_id = 2)
+        $this->fornecedoresPagar = Cashbook::where('user_id', $userId)->where('type_id', 2)->where('category_id', 2)->sum('value');
+        // Despesas fixas (exemplo: cashbook category_id = 1)
+        $this->despesasFixas = Cashbook::where('user_id', $userId)->where('type_id', 2)->where('category_id', 1)->sum('value');
+
+        // Clientes a receber (exemplo: cashbook type_id = 1, category_id = 3)
+        $this->clientesReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->where('category_id', 3)->sum('value');
+        // Outros a receber (exemplo: cashbook type_id = 1, category_id != 3)
+        $this->outrosReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->where('category_id', '!=', 3)->sum('value');
+
+        // Guardar para uso na view
+        $this->salesMonth = $salesMonth;
+        $this->ticketMedio = $ticketMedio;
+        $this->clientesNovosMes = $clientesNovosMes;
+        $this->produtosEstoqueBaixo = $produtosEstoqueBaixo;
     }
 
     public function render()
     {
-        return view('livewire.dashboard.dashboard-index');
+        $totalSales = Sale::where('user_id', Auth::id())->count();
+        return view('livewire.dashboard.dashboard-index', [
+            'totalSales' => $totalSales,
+            'produtoMaisVendido' => $this->produtoMaisVendido,
+            'totalProdutosEstoque' => $this->totalProdutosEstoque,
+            'totalCashbook' => $this->totalCashbook,
+            'totalClientes' => $this->totalClientes,
+            'clientesComSalesPendentes' => $this->clientesComSalesPendentes,
+            'totalFaturamento' => $this->totalFaturamento,
+            'totalProdutos' => $this->totalProdutos,
+            'salesMonth' => $this->salesMonth,
+            'ticketMedio' => $this->ticketMedio,
+            'clientesNovosMes' => $this->clientesNovosMes,
+            'produtosEstoqueBaixo' => $this->produtosEstoqueBaixo,
+            'clientesInadimplentes' => $this->clientesInadimplentes ?? 0,
+            'aniversariantesMes' => $this->aniversariantesMes ?? 0,
+            'produtosVendidosMes' => $this->produtosVendidosMes ?? 0,
+            'produtosCadastrados' => $this->produtosCadastrados ?? 0,
+            'saldoCaixa' => $this->saldoCaixa ?? 0,
+            'contasPagar' => $this->contasPagar ?? 0,
+            'contasReceber' => $this->contasReceber ?? 0,
+            'fornecedoresPagar' => $this->fornecedoresPagar ?? 0,
+            'despesasFixas' => $this->despesasFixas ?? 0,
+            'clientesReceber' => $this->clientesReceber ?? 0,
+            'outrosReceber' => $this->outrosReceber ?? 0,
+        ]);
     }
 }
