@@ -654,7 +654,7 @@
                 <p class="small">
                     {{ $sale->tipo_pagamento === 'a_vista' ? 'A Vista' : 'Parcelado' }}
                     @if($sale->tipo_pagamento === 'parcelado')
-                    ({{ $sale->parcelas }}x)
+                    ({{ $sale->parcelas }}x de R$ {{ number_format($sale->total_price / $sale->parcelas, 2, ',', '.') }})
                     @endif
                 </p>
                 <p class="small">Criada em {{ $sale->created_at->format('d/m/Y H:i') }}</p>
@@ -685,21 +685,42 @@
                             @endphp
                             @if($imageExists)
                             @php
-                            $imageData = base64_encode(file_get_contents($imagePath));
-                            $extension = pathinfo($imagePath, PATHINFO_EXTENSION);
-                            $mimeType = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+                            try {
+                                $imageData = file_get_contents($imagePath);
+                                if ($imageData !== false) {
+                                    $imageData = base64_encode($imageData);
+                                    $extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
+                                    $mimeType = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
+                                    $hasValidImage = true;
+                                } else {
+                                    $hasValidImage = false;
+                                }
+                            } catch (\Exception $e) {
+                                $hasValidImage = false;
+                            }
                             @endphp
+                            @if(isset($hasValidImage) && $hasValidImage)
                             <img src="data:{{ $mimeType }};base64,{{ $imageData }}"
                                 alt="{{ $item->product->name }}"
                                 class="product-image">
                             @else
-                            <div class="product-placeholder">[IMG]</div>
+                            <div class="product-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #9575cd;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                                <div style="font-size: 12px; text-align: center; line-height: 1.2; max-width: 120px; word-wrap: break-word;">{{ Str::limit($item->product->name, 25) }}</div>
+                            </div>
                             @endif
                             @else
-                            <div class="product-placeholder">[IMG]</div>
+                            <div class="product-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #9575cd;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                                <div style="font-size: 12px; text-align: center; line-height: 1.2; max-width: 120px; word-wrap: break-word;">{{ Str::limit($item->product->name, 25) }}</div>
+                            </div>
                             @endif
-
-                            <div class="product-code-badge">
+                            @else
+                            <div class="product-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #9575cd;">
+                                <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
+                                <div style="font-size: 12px; text-align: center; line-height: 1.2; max-width: 120px; word-wrap: break-word;">Produto sem imagem</div>
+                            </div>
+                            @endif                            <div class="product-code-badge">
                                 #{{ $item->product->product_code ?? 'N/A' }}
                             </div>
                         </div>
@@ -745,6 +766,13 @@
             <span class="total-label">Subtotal:</span>
             <span class="total-value">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</span>
         </div>
+
+        @if($sale->tipo_pagamento === 'parcelado' && $sale->parcelas > 1)
+        <div class="total-row">
+            <span class="total-label">Forma de Pagamento:</span>
+            <span class="total-value">{{ $sale->parcelas }}x de R$ {{ number_format($sale->total_price / $sale->parcelas, 2, ',', '.') }}</span>
+        </div>
+        @endif
 
         @if($sale->total_paid > 0)
         <div class="total-row">
