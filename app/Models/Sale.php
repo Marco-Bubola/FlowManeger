@@ -21,6 +21,13 @@ class Sale extends Model
         'tipo_pagamento', // a_vista, parcelado
         'parcelas', // int
     ];
+
+    protected $casts = [
+        'total_price' => 'decimal:2',
+        'amount_paid' => 'decimal:2',
+        'parcelas' => 'integer',
+        'tipo_pagamento' => 'string',
+    ];
     /**
      * status: pendente, orcamento, confirmada, concluida, cancelada
      * tipo_pagamento: a_vista, parcelado
