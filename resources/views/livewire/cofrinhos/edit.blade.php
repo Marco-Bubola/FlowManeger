@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-zinc-900 dark:via-purple-900/20 dark:to-indigo-900/20">
     <!-- Header -->
     <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="max-w-4xl mx-auto">
+        <div class="w-full px-4">
             <div class="flex items-center gap-4">
                 <a href="{{ route('cofrinhos.index') }}" wire:navigate
                    class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors backdrop-blur-sm">
@@ -16,11 +16,13 @@
     </div>
 
     <!-- Formulário -->
-    <div class="max-w-4xl mx-auto px-6 py-8">
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden">
+    <div class="w-full px-6 py-8">
+        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden mx-4">
             <div class="p-8">
                 <form wire:submit="save">
-                    <div class="space-y-6">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- Coluna Esquerda - Formulário Principal -->
+                        <div class="space-y-6">
                         <!-- Nome do Cofrinho -->
                         <div>
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -85,37 +87,46 @@
                             </p>
                             @enderror
                         </div>
+                        </div>
 
-                        <!-- Informações Atuais -->
-                        <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
-                            <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
-                                <i class="bi bi-info-circle text-blue-600 mr-2"></i>Informações Atuais
-                            </h3>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div class="bg-white dark:bg-zinc-800 rounded-lg p-4">
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">Criado em</div>
-                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                                        {{ $cofrinho->created_at->format('d/m/Y') }}
+                        <!-- Coluna Direita - Informações e Avisos -->
+                        <div class="space-y-6">
+                            <!-- Informações Atuais -->
+                            <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-900/20 dark:to-blue-900/20 rounded-xl p-6 border border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+                                    <i class="bi bi-info-circle text-blue-600 mr-2"></i>Informações Atuais
+                                </h3>
+                                <div class="space-y-4">
+                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4">
+                                        <div class="text-sm text-gray-600 dark:text-gray-400">Criado em</div>
+                                        <div class="text-lg font-semibold text-gray-900 dark:text-white">
+                                            {{ $cofrinho->created_at->format('d/m/Y') }}
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="bg-white dark:bg-zinc-800 rounded-lg p-4">
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">Última atualização</div>
-                                    <div class="text-lg font-semibold text-gray-900 dark:text-white">
-                                        {{ $cofrinho->updated_at->format('d/m/Y') }}
+                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4">
+                                        <div class="text-sm text-gray-600 dark:text-gray-400">Última atualização</div>
+                                        <div class="text-lg font-semibold text-gray-900 dark:text-white">
+                                            {{ $cofrinho->updated_at->format('d/m/Y') }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Aviso sobre Alterações -->
-                        <div class="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
-                            <h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
-                                <i class="bi bi-exclamation-triangle text-yellow-600 mr-2"></i>Atenção
-                            </h3>
-                            <p class="text-sm text-yellow-700 dark:text-yellow-300">
-                                Alterar a meta de valor pode afetar o cálculo da porcentagem de progresso do cofrinho. 
-                                As transações já realizadas não serão alteradas.
-                            </p>
+                            <!-- Aviso sobre Alterações -->
+                            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-yellow-200 dark:border-yellow-800">
+                                <h3 class="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+                                    <i class="bi bi-exclamation-triangle text-yellow-600 mr-2"></i>Atenção
+                                </h3>
+                                <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                    Alterar a meta de valor pode afetar o cálculo da porcentagem de progresso do cofrinho.
+                                    As transações já realizadas não serão alteradas.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de Ação -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-end mt-8 pt-6 border-t border-gray-200 dark:border-zinc-700">
                         </div>
                     </div>
 
