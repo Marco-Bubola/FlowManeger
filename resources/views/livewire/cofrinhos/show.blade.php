@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-zinc-900 dark:via-purple-900/20 dark:to-indigo-900/20">
     <!-- Header -->
     <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="max-w-7xl mx-auto">
+        <div class="w-full px-4">
             <div class="flex items-center gap-4">
                 <a href="{{ route('cofrinhos.index') }}" wire:navigate
                    class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors backdrop-blur-sm">
@@ -21,8 +21,8 @@
     </div>
 
     <!-- Conteúdo Principal -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        
+    <div class="w-full px-6 py-8">
+
         <!-- Resumo do Cofrinho -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
             <!-- Progresso Principal -->
@@ -204,7 +204,7 @@
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center mr-4
                                     @if($transacao['type_id'] == 1) bg-green-100 dark:bg-green-900/20
                                     @else bg-red-100 dark:bg-red-900/20 @endif">
-                            <i class="bi bi-{{ $transacao['type_id'] == 1 ? 'arrow-up-circle' : 'arrow-down-circle' }} 
+                            <i class="bi bi-{{ $transacao['type_id'] == 1 ? 'arrow-up-circle' : 'arrow-down-circle' }}
                                text-{{ $transacao['type_id'] == 1 ? 'green' : 'red' }}-600 text-xl"></i>
                         </div>
                         <div>
@@ -217,8 +217,8 @@
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-lg font-semibold 
-                                    @if($transacao['type_id'] == 1) text-green-600 
+                        <div class="text-lg font-semibold
+                                    @if($transacao['type_id'] == 1) text-green-600
                                     @else text-red-600 @endif">
                             {{ $transacao['type_id'] == 1 ? '+' : '-' }}R$ {{ number_format($transacao['value'], 2, ',', '.') }}
                         </div>
