@@ -83,7 +83,7 @@ class CategoriesIndex extends Component
     public function quickFilter(string $filter): void
     {
         $this->resetPage();
-        
+
         switch ($filter) {
             case 'recent':
                 $this->sortBy = 'created_at';
@@ -155,19 +155,19 @@ class CategoriesIndex extends Component
     public function toggleFavorite(int $categoryId): void
     {
         $category = Category::where('id_category', $categoryId)->first();
-            
+
         if ($category) {
             // Como não temos o campo is_favorite na base de dados ainda,
             // vamos simular a funcionalidade por enquanto
             session()->flash('success', 'Funcionalidade de favoritas será implementada em breve!');
         }
     }
-    
+
     // Funcionalidades de compartilhamento
     public function shareCategory(int $categoryId): void
     {
         $category = Category::where('id_category', $categoryId)->first();
-            
+
         if ($category) {
             // Aqui você pode implementar a lógica de compartilhamento
             session()->flash('success', 'Link de compartilhamento gerado! Funcionalidade será implementada em breve.');
@@ -188,10 +188,10 @@ class CategoriesIndex extends Component
                 ->where('type', 'product')
                 ->update(['sort_order' => $index + 1]);
         }
-        
+
         session()->flash('success', 'Ordem das categorias de produtos atualizada!');
     }
-    
+
     public function updateTransactionOrder($orderedIds): void
     {
         foreach ($orderedIds as $index => $id) {
@@ -199,7 +199,7 @@ class CategoriesIndex extends Component
                 ->where('type', 'transaction')
                 ->update(['sort_order' => $index + 1]);
         }
-        
+
         session()->flash('success', 'Ordem das categorias de transações atualizada!');
     }
 
@@ -225,8 +225,8 @@ class CategoriesIndex extends Component
 
     public function render()
     {
-        // Para demonstração, vou remover o filtro de user_id já que parece não estar sendo usado
-        $query = Category::query();
+        // Filtrar apenas categorias do usuário logado
+        $query = Category::where('user_id', Auth::id());
 
         // Aplicar filtros de busca
         if ($this->search) {
@@ -265,17 +265,23 @@ class CategoriesIndex extends Component
 
         $categories = $query->paginate($this->perPage);
 
-        // Separar categorias por tipo para os resumos
-        $productCategories = Category::where('type', 'product')->get();
-        $transactionCategories = Category::where('type', 'transaction')->get();
+        // Separar categorias por tipo para os resumos (apenas do usuário logado)
+        $productCategories = Category::where('type', 'product')
+            ->where('user_id', Auth::id())
+            ->get();
+        $transactionCategories = Category::where('type', 'transaction')
+            ->where('user_id', Auth::id())
+            ->get();
 
         // Criar paginação independente para categorias de produtos e transações
         $paginatedProductCategories = Category::where('type', 'product')
+            ->where('user_id', Auth::id())
             ->orderByRaw('sort_order IS NULL, sort_order ASC')
             ->orderBy('name')
             ->paginate(6, ['*'], 'product_page');
 
         $paginatedTransactionCategories = Category::where('type', 'transaction')
+            ->where('user_id', Auth::id())
             ->orderByRaw('sort_order IS NULL, sort_order ASC')
             ->orderBy('name')
             ->paginate(6, ['*'], 'transaction_page');
