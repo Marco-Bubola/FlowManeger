@@ -59,15 +59,6 @@ class UploadCashbook extends Component
             ->select(['name', 'id_category'])
             ->get();
 
-        // Verificar se há categorias disponíveis
-        if ($this->categories->isEmpty()) {
-            $this->dispatch('notify', [
-                'type' => 'warning',
-                'title' => '⚠️ Atenção',
-                'message' => 'Não há categorias de transação disponíveis. Crie pelo menos uma categoria antes de importar transações.'
-            ]);
-        }
-
         $this->types = Type::all();
 
         $this->segments = Segment::where('user_id', Auth::id())
@@ -121,7 +112,7 @@ class UploadCashbook extends Component
                     ->exists();
 
                 if (!$categoryExists) {
-                    $transactionErrors[] = 'Categoria é obrigatória';
+                    $transactionErrors[] = 'Categoria inválida ou não pertence ao usuário';
                     $hasErrors = true;
                 }
             }
@@ -164,13 +155,7 @@ class UploadCashbook extends Component
                 }
             }
 
-            // Usar notificação toast em vez de session flash
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'title' => 'Erro de Validação',
-                'message' => $errorMessage
-            ]);
-
+            session()->flash('error', $errorMessage);
             return false;
         }
 
@@ -277,29 +262,22 @@ class UploadCashbook extends Component
         }
 
         if ($success) {
-            $msg = count($inserted) . ' transações salvas com sucesso!';
+            $msg = 'Transações salvas com sucesso.';
             if (count($duplicated) > 0) {
-                $this->dispatch('notify', [
-                    'type' => 'warning',
-                    'title' => '⚠️ Atenção',
-                    'message' => $msg . "\n\n" . count($duplicated) . ' transações não foram inseridas pois já existiam no sistema.'
+                session()->flash('success', $msg);
+                session()->flash('warning', 'Algumas transações não foram inseridas pois já existiam.');
+                session()->flash('warning_details', [
+                    'inserted' => $inserted,
+                    'duplicated' => $duplicated
                 ]);
             } else {
-                $this->dispatch('notify', [
-                    'type' => 'success',
-                    'title' => '✅ Sucesso',
-                    'message' => $msg
-                ]);
+                session()->flash('success', $msg);
             }
 
             $this->dispatch('transaction-created');
             $this->redirect(route('cashbook.index'));
         } else {
-            $this->dispatch('notify', [
-                'type' => 'error',
-                'title' => '❌ Erro',
-                'message' => 'Houve um erro ao salvar as transações. Verifique os dados e tente novamente.'
-            ]);
+            session()->flash('error', 'Houve um erro ao salvar as transações.');
         }
     }
 
@@ -316,12 +294,8 @@ class UploadCashbook extends Component
         if (isset($this->transactions[$index])) {
             array_splice($this->transactions, $index, 1);
 
-            // Notificação de sucesso
-            $this->dispatch('notify', [
-                'type' => 'success',
-                'title' => '✅ Sucesso',
-                'message' => 'Transação removida com sucesso!'
-            ]);
+            // Mensagem de feedback para o usuário
+            session()->flash('info', 'Transação removida com sucesso.');
         }
     }
 
@@ -341,7 +315,7 @@ class UploadCashbook extends Component
                     ->exists();
 
                 if (!$categoryExists) {
-                    $this->addError("transactions.{$index}.category_id", 'Categoria é obrigatória');
+                    $this->addError("transactions.{$index}.category_id", 'Categoria inválida.');
                 } else {
                     $this->resetErrorBag("transactions.{$index}.category_id");
                 }
