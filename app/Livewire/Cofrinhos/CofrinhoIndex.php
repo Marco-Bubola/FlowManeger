@@ -5,6 +5,7 @@ namespace App\Livewire\Cofrinhos;
 use App\Models\Cofrinho;
 use App\Models\Cashbook;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -18,8 +19,15 @@ class CofrinhoIndex extends Component
 
     public function mount()
     {
-        $this->loadCofrinhos();
-        $this->calculateRanking();
+        try {
+            $this->loadCofrinhos();
+            $this->calculateRanking();
+        } catch (\Exception $e) {
+            Log::error('Erro no mount do CofrinhoIndex: ' . $e->getMessage());
+            $this->cofrinhos = [];
+            $this->total = 0;
+            $this->ranking = [];
+        }
     }
 
     public function loadCofrinhos()
@@ -52,7 +60,7 @@ class CofrinhoIndex extends Component
     public function calculateRanking()
     {
         $cofrinhos = collect($this->cofrinhos);
-        
+
         $this->ranking = $cofrinhos->map(function($c) {
             $crescimento = collect($c['cashbooks'])
                 ->where('type_id', 1)
@@ -60,7 +68,7 @@ class CofrinhoIndex extends Component
                     return \Carbon\Carbon::parse($cb['created_at'])->format('Y-m') === now()->format('Y-m');
                 })
                 ->sum('value');
-            
+
             return [
                 'id' => $c['id'],
                 'nome' => $c['nome'],
@@ -91,7 +99,7 @@ class CofrinhoIndex extends Component
             $this->deletingCofrinho = null;
             $this->loadCofrinhos();
             $this->calculateRanking();
-            
+
             session()->flash('success', 'Cofrinho excluído com sucesso!');
         }
     }
