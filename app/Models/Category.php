@@ -35,6 +35,14 @@ class Category extends Model
         'type',
     ];
 
+    // Casts para garantir tipos corretos
+    protected $casts = [
+        'compartilhavel' => 'boolean',
+        'is_active' => 'integer',
+        'limite_orcamento' => 'decimal:2',
+        'tipo' => 'string',
+    ];
+
     // Relacionamentos
     public function bank()
     {
