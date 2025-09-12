@@ -25,7 +25,7 @@
                     <flux:navlist.item icon="credit-card" :href="url('banks')" :current="Request::is('banks')" wire:navigate>Bancos</flux:navlist.item>
                     <flux:navlist.item icon="document-text" :href="url('invoices')" :current="Request::is('invoices*')" wire:navigate>Transações</flux:navlist.item>
                     <flux:navlist.item icon="wallet" :href="url('cashbook')" :current="Request::is('cashbook')" wire:navigate>Livro Caixa</flux:navlist.item>
-                    <flux:navlist.item icon="banknotes" :href="url('cofrinho')" :current="Request::is('cofrinho')" wire:navigate>Cofrinhos</flux:navlist.item>
+                    <flux:navlist.item icon="banknotes" :href="url('cofrinhos')" :current="Request::is('cofrinhos*')" wire:navigate>Cofrinhos</flux:navlist.item>
                 </flux:navlist.group>
 
                 <flux:navlist.group :heading="__('Vendas e Produtos')">
