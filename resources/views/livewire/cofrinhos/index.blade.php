@@ -1,7 +1,7 @@
 <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 dark:from-zinc-900 dark:via-purple-900/20 dark:to-indigo-900/20">
     <!-- Header -->
     <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="max-w-7xl mx-auto">
+        <div class="w-full px-4">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                 <div class="flex items-center gap-4 mb-6 lg:mb-0">
                     <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
@@ -27,8 +27,8 @@
     </div>
 
     <!-- Conteúdo Principal -->
-    <div class="max-w-7xl mx-auto px-6 py-8">
-        
+    <div class="w-full px-6 py-8">
+
         <!-- Botão Criar Novo Cofrinho -->
         <div class="mb-8">
             <a href="{{ route('cofrinhos.create') }}" wire:navigate
@@ -51,7 +51,7 @@
                         <p class="text-gray-600 dark:text-gray-400">Cofrinhos que mais cresceram este mês</p>
                     </div>
                 </div>
-                
+
                 <div class="space-y-4">
                     @foreach($ranking as $index => $item)
                     <div class="flex items-center justify-between p-4 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-zinc-700 dark:to-blue-900/20 rounded-xl">
@@ -186,11 +186,11 @@
                 <p class="text-lg font-semibold text-gray-900 dark:text-white mb-6">{{ $deletingCofrinho->nome }}</p>
                 @endif
                 <div class="flex gap-3 justify-center">
-                    <button wire:click="cancelDelete" 
+                    <button wire:click="cancelDelete"
                             class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
                         Cancelar
                     </button>
-                    <button wire:click="deleteCofrinho" 
+                    <button wire:click="deleteCofrinho"
                             class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors">
                         Excluir
                     </button>
