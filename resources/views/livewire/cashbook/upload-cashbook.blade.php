@@ -74,7 +74,6 @@
 
                 <div class="p-8">
                     <form wire:submit="processFile" class="space-y-8">
-                        @csrf
                         <!-- File Upload Zone -->
                         <div class="relative border-3 border-dashed border-blue-300 dark:border-blue-600 rounded-2xl p-12 text-center hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 group bg-gradient-to-br from-blue-50/30 via-white to-purple-50/30 dark:from-gray-700/30 dark:via-gray-800/30 dark:to-gray-700/30 hover:shadow-2xl transform hover:scale-[1.02]">
                             <!-- Background decorativo -->
@@ -610,239 +609,147 @@
                 </div>
             @endif
         @endif
+    </div>
 
-        <!-- Rodapé com informações adicionais -->
-        <footer class="w-full px-4 sm:px-6 lg:px-8 py-8">
-            <div class="w-full bg-gradient-to-r from-white/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/50 rounded-2xl p-6 backdrop-blur-sm border border-white/20 dark:border-gray-700/50">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Rápido</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Processamento em segundos</p>
+    <!-- Rodapé com informações adicionais -->
+    <footer class="w-full px-4 sm:px-6 lg:px-8 py-8">
+        <div class="w-full bg-gradient-to-r from-white/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/50 rounded-2xl p-6 backdrop-blur-sm border border-white/20 dark:border-gray-700/50">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
+                <div class="group">
+                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        </svg>
                     </div>
-
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Inteligente</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Categorização automática</p>
-                    </div>
-
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Seguro</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Dados protegidos</p>
-                    </div>
-
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Fácil</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Interface intuitiva</p>
-                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white">Rápido</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Processamento em segundos</p>
                 </div>
 
-                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-300">
-                        💡 <strong>Dica:</strong> Você pode arrastar e soltar arquivos diretamente na área de upload
-                    </p>
+                <div class="group">
+                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white">Inteligente</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Categorização automática</p>
+                </div>
+
+                <div class="group">
+                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white">Seguro</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Dados protegidos</p>
+                </div>
+
+                <div class="group">
+                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="font-bold text-gray-900 dark:text-white">Fácil</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-300">Interface intuitiva</p>
                 </div>
             </div>
-        </footer>
 
-        <!-- Sistema de Notificações Toast -->
-        <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-300">
+                    💡 <strong>Dica:</strong> Você pode arrastar e soltar arquivos diretamente na área de upload
+                </p>
+            </div>
+        </div>
+    </footer>
 
-        <!-- Scripts adicionais para interações -->
-        <style>
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+    <!-- Scripts adicionais para interações -->
+    <style>
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-fadeIn {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .animate-float {
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0px);
+        }
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .animate-glow {
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+        from {
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+        }
+        to {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
+        }
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-2px); }
+        75% { transform: translateX(2px); }
+    }
+
+    .animate-shake {
+        animation: shake 0.3s ease-in-out;
+    }
+
+    .btn-delete:hover {
+        animation: shake 0.3s ease-in-out;
+    }
+    </style>
+
+    <script>
+    // Adicionar tooltips aos elementos
+    document.addEventListener('DOMContentLoaded', function() {
+        // Adicionar atributos de tooltip aos elementos importantes
+        const uploadButton = document.querySelector('label[for="file"]');
+        if (uploadButton) {
+            uploadButton.setAttribute('data-tooltip', 'Clique para selecionar arquivo ou arraste e solte aqui');
         }
 
-        .animate-fadeIn {
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        .animate-float {
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(0px);
-            }
-            50% {
-                transform: translateY(-10px);
-            }
-        }
-
-        .animate-glow {
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from {
-                box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
-            }
-            to {
-                box-shadow: 0 0 20px rgba(59, 130, 246, 0.8);
-            }
-        }
-
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-2px); }
-            75% { transform: translateX(2px); }
-        }
-
-        .animate-shake {
-            animation: shake 0.3s ease-in-out;
-        }
-
-        .btn-delete:hover {
-            animation: shake 0.3s ease-in-out;
-        }
-        </style>
-
-        <script>
-        // Sistema de Notificações Toast
-        function showToast(type, title, message) {
-            const toastContainer = document.getElementById('toast-container');
-
-            const toast = document.createElement('div');
-            toast.className = `max-w-sm p-4 rounded-lg shadow-lg border transform transition-all duration-300 translate-x-full`;
-
-            let bgColor, borderColor, iconColor, icon;
-            switch(type) {
-                case 'error':
-                    bgColor = 'bg-red-50 dark:bg-red-900/20';
-                    borderColor = 'border-red-200 dark:border-red-700';
-                    iconColor = 'text-red-600 dark:text-red-400';
-                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>`;
-                    break;
-                case 'success':
-                    bgColor = 'bg-green-50 dark:bg-green-900/20';
-                    borderColor = 'border-green-200 dark:border-green-700';
-                    iconColor = 'text-green-600 dark:text-green-400';
-                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                    </svg>`;
-                    break;
-                case 'warning':
-                    bgColor = 'bg-yellow-50 dark:bg-yellow-900/20';
-                    borderColor = 'border-yellow-200 dark:border-yellow-700';
-                    iconColor = 'text-yellow-600 dark:text-yellow-400';
-                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                    </svg>`;
-                    break;
-                default:
-                    bgColor = 'bg-blue-50 dark:bg-blue-900/20';
-                    borderColor = 'border-blue-200 dark:border-blue-700';
-                    iconColor = 'text-blue-600 dark:text-blue-400';
-                    icon = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>`;
-            }
-
-            toast.className += ` ${bgColor} ${borderColor}`;
-
-            toast.innerHTML = `
-                <div class="flex items-start space-x-3">
-                    <div class="${iconColor} flex-shrink-0">
-                        ${icon}
-                    </div>
-                    <div class="flex-1">
-                        <h4 class="font-bold text-gray-900 dark:text-white mb-1">${title}</h4>
-                        <pre class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${message}</pre>
-                    </div>
-                    <button class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors" onclick="removeToast(this.parentElement.parentElement)">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            `;
-
-            toastContainer.appendChild(toast);
-
-            // Animar entrada
-            setTimeout(() => {
-                toast.classList.remove('translate-x-full');
-            }, 100);
-
-            // Auto remover após 8 segundos
-            setTimeout(() => {
-                removeToast(toast);
-            }, 8000);
-        }
-
-        function removeToast(toast) {
-            toast.classList.add('translate-x-full');
-            setTimeout(() => {
-                if (toast.parentElement) {
-                    toast.parentElement.removeChild(toast);
-                }
-            }, 300);
-        }
-
-        // Listener para notificações do Livewire
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('notify', (data) => {
-                showToast(data.type, data.title, data.message);
+        // Adicionar efeitos de loading
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', function() {
+                // Adicionar loading state visual se necessário
             });
         });
 
-        // Adicionar tooltips aos elementos
-        document.addEventListener('DOMContentLoaded', function() {
-            // Adicionar atributos de tooltip aos elementos importantes
-            const uploadButton = document.querySelector('label[for="file"]');
-            if (uploadButton) {
-                uploadButton.setAttribute('data-tooltip', 'Clique para selecionar arquivo ou arraste e solte aqui');
-            }
-
-            // Adicionar efeitos de loading
-            const forms = document.querySelectorAll('form');
-            forms.forEach(form => {
-                form.addEventListener('submit', function() {
-                    // Adicionar loading state visual se necessário
-                });
-            });
-
-            // Animação de entrada para elementos
-            const elements = document.querySelectorAll('.card-hover, .group');
-            elements.forEach((el, index) => {
-                el.style.opacity = '0';
-                el.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    el.style.transition = 'all 0.5s ease-out';
-                    el.style.opacity = '1';
-                    el.style.transform = 'translateY(0)';
-                }, index * 100);
-            });
+        // Animação de entrada para elementos
+        const elements = document.querySelectorAll('.card-hover, .group');
+        elements.forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                el.style.transition = 'all 0.5s ease-out';
+                el.style.opacity = '1';
+                el.style.transform = 'translateY(0)';
+            }, index * 100);
         });
-        </script>
-    </div>
+    });
+    </script>
+</div>
