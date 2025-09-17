@@ -22,6 +22,7 @@ class Product extends Model
         'status', // ativo, inativo, descontinuado
         'tipo', // simples, kit
         'custos_adicionais', // decimal(10,2)
+        'descricao_custos_adicionais', // texto opcional
     ];
     /**
      * status: ativo, inativo, descontinuado
