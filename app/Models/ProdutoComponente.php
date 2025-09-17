@@ -21,6 +21,8 @@ class ProdutoComponente extends Model
         'kit_produto_id',
         'componente_produto_id',
         'quantidade',
+        'preco_custo_unitario',
+        'preco_venda_unitario',
     ];
 
     // Produto kit
@@ -34,4 +36,4 @@ class ProdutoComponente extends Model
     {
         return $this->belongsTo(Product::class, 'componente_produto_id');
     }
-} 
+}
