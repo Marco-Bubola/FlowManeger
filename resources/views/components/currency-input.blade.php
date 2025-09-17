@@ -1,0 +1,212 @@
+@props([
+    'name' => 'price',
+    'id' => 'price',
+    'wireModel' => 'price',
+    'label' => 'Valor',
+    'placeholder' => '0,00',
+    'icon' => 'bi-currency-dollar',
+    'iconColor' => 'green',
+    'currency' => 'R$',
+    'required' => false,
+    'disabled' => false,
+    'maxlength' => 12
+])
+
+@php
+    $iconColorClasses = [
+        'orange' => 'from-orange-400 to-orange-600 text-white',
+        'green' => 'from-emerald-400 to-green-600 text-white',
+        'blue' => 'from-blue-400 to-blue-600 text-white',
+        'purple' => 'from-purple-400 to-purple-600 text-white',
+    ];
+
+    $iconColorClass = $iconColorClasses[$iconColor] ?? $iconColorClasses['green'];
+    $focusRingColor = "focus:ring-{$iconColor}-500/30";
+    $focusBorderColor = "focus:border-{$iconColor}-500";
+    $hoverBorderColor = "hover:border-{$iconColor}-300";
+    $borderErrorColor = $errors->has($wireModel) ? 'border-red-400 focus:border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 ' . $focusBorderColor . ' ' . $hoverBorderColor;
+@endphp
+
+<div class="group space-y-4">
+    <label for="{{ $id }}" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-{{ $iconColor }}-600 dark:group-hover:text-{{ $iconColor }}-400 transition-colors duration-300">
+        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br {{ $iconColorClass }} rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-{{ $iconColor }}-500/30">
+            <i class="{{ $icon }}"></i>
+        </div>
+        {{ $label }}
+        @if($required)
+            <span class="text-red-500 ml-2 animate-pulse">*</span>
+        @endif
+    </label>
+
+    <div class="relative">
+        <!-- Ícone da moeda com animações -->
+        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+            <span class="text-lg font-bold bg-gradient-to-r from-{{ $iconColor }}-600 to-{{ $iconColor }}-500 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{{ $currency }}</span>
+        </div>
+
+        <!-- Campo de entrada modernizado -->
+        <input type="text"
+               wire:model="{{ $wireModel }}"
+               wire:ignore.self
+               id="{{ $id }}"
+               name="{{ $name }}"
+               maxlength="{{ $maxlength }}"
+               @if($disabled) disabled @endif
+               class="w-full pl-16 pr-16 py-4 border-2 rounded-2xl
+                      bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm
+                      text-slate-900 dark:text-slate-100 placeholder-slate-400
+                      {{ $borderErrorColor }}
+                      focus:ring-4 {{ $focusRingColor }} focus:outline-none
+                      transition-all duration-300 shadow-lg hover:shadow-xl
+                      group-hover:scale-[1.02]
+                      {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+               placeholder="{{ $placeholder }}">
+
+        <!-- Indicador de validação -->
+        <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+            @if(!$errors->has($wireModel) && $wireModel)
+                <div class="flex items-center justify-center w-6 h-6 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse">
+                    <i class="bi bi-check text-white text-xs font-bold"></i>
+                </div>
+            @endif
+        </div>
+
+        <!-- Efeito de brilho no hover -->
+        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-{{ $iconColor }}-500/10 via-transparent to-{{ $iconColor }}-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+    </div>
+
+    @error($wireModel)
+    <div class="flex items-center mt-3 p-3 bg-red-50/80 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800 backdrop-blur-sm animate-slideIn">
+        <i class="bi bi-exclamation-triangle-fill text-red-500 mr-3 animate-bounce"></i>
+        <p class="text-red-600 dark:text-red-400 font-medium">{{ $message }}</p>
+    </div>
+    @enderror
+</div>
+
+<script>
+    // Máscara de moeda para o campo {{ $id }} - Versão melhorada
+    function formatCurrency_{{ $id }}(value) {
+        // Remove tudo que não é dígito
+        const digits = value.replace(/\D/g, '');
+
+        // Se não há dígitos, retorna 0,00
+        if (!digits) return '0,00';
+
+        // Converte para centavos
+        const centavos = parseInt(digits);
+
+        // Formata para reais
+        const reais = (centavos / 100).toFixed(2).replace('.', ',');
+
+        return reais;
+    }
+
+    function applyCurrencyMask_{{ $id }}(input) {
+        const formatted = formatCurrency_{{ $id }}(input.value);
+        input.value = formatted;
+
+        // Efeito visual de feedback
+        input.classList.add('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
+        setTimeout(() => {
+            input.classList.remove('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
+        }, 200);
+
+        // Atualiza o Livewire com o valor numérico (formato US para validação)
+        const numericValue = formatted.replace(',', '.');
+        @this.set('{{ $wireModel }}', numericValue);
+    }
+
+    // Configuração melhorada do campo {{ $id }}
+    document.addEventListener('DOMContentLoaded', function() {
+        const input_{{ $id }} = document.getElementById('{{ $id }}');
+
+        if (input_{{ $id }}) {
+            // Valor inicial
+            if (!input_{{ $id }}.value || input_{{ $id }}.value === '0') {
+                input_{{ $id }}.value = '0,00';
+            }
+
+            // Eventos de input com feedback visual
+            input_{{ $id }}.addEventListener('input', function() {
+                applyCurrencyMask_{{ $id }}(this);
+            });
+
+            input_{{ $id }}.addEventListener('focus', function() {
+                if (this.value === '0,00') {
+                    this.value = '';
+                }
+                // Efeito de glow no focus
+                this.parentElement.classList.add('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
+            });
+
+            input_{{ $id }}.addEventListener('blur', function() {
+                if (this.value === '') {
+                    this.value = '0,00';
+                    applyCurrencyMask_{{ $id }}(this);
+                }
+                // Remove efeito de glow
+                this.parentElement.classList.remove('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
+            });
+
+            // Restringir entrada apenas a números com feedback
+            input_{{ $id }}.addEventListener('keydown', function(e) {
+                // Permite: backspace, delete, tab, escape, enter e .
+                if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
+                    // Permite: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
+                    (e.keyCode === 65 && e.ctrlKey === true) ||
+                    (e.keyCode === 67 && e.ctrlKey === true) ||
+                    (e.keyCode === 86 && e.ctrlKey === true) ||
+                    (e.keyCode === 88 && e.ctrlKey === true) ||
+                    // Permite: home, end, left, right
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    return;
+                }
+                // Garante que é um número e previne outros caracteres
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                    // Feedback visual para entrada inválida
+                    this.classList.add('animate-shake');
+                    setTimeout(() => {
+                        this.classList.remove('animate-shake');
+                    }, 300);
+                }
+            });
+        }
+    });
+
+    // Reinicializa quando o Livewire atualiza o componente
+    document.addEventListener('livewire:navigated', function() {
+        const input_{{ $id }} = document.getElementById('{{ $id }}');
+
+        if (input_{{ $id }} && !input_{{ $id }}.value) {
+            input_{{ $id }}.value = '0,00';
+        }
+    });
+</script>
+
+<style>
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .animate-shake {
+        animation: shake 0.3s ease-in-out;
+    }
+
+    .animate-slideIn {
+        animation: slideIn 0.3s ease-out;
+    }
+</style>
