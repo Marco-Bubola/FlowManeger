@@ -15,6 +15,7 @@ class EditProduct extends Component
     use WithFileUploads, HasNotifications;
 
     public Product $product;
+    public int $currentStep = 1;
 
     // Propriedades do formulário
     public string $name = '';
@@ -53,6 +54,22 @@ class EditProduct extends Component
 
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
+    }
+
+    /**
+     * Avança para a próxima etapa
+     */
+    public function nextStep()
+    {
+        $this->currentStep = min($this->currentStep + 1, 2);
+    }
+
+    /**
+     * Retorna para a etapa anterior
+     */
+    public function previousStep()
+    {
+        $this->currentStep = max($this->currentStep - 1, 1);
     }
 
     public function rules(): array
@@ -271,6 +288,17 @@ class EditProduct extends Component
             return $category ? $this->getCategoryIcon($category->icone) : 'bi-grid-3x3-gap-fill';
         }
         return 'bi-grid-3x3-gap-fill';
+    }
+
+    /**
+     * Retorna a URL completa da imagem existente do produto
+     */
+    public function getExistingImageUrlProperty()
+    {
+        if ($this->product->image && $this->product->image !== 'product-placeholder.png') {
+            return asset('storage/products/' . $this->product->image);
+        }
+        return null;
     }
 
     public function render()
