@@ -29,33 +29,6 @@
                     </div>
                 </div>
 
-                <!-- Painel de Métricas Rápidas e Informações Extras -->
-                <div class="flex flex-wrap gap-3 items-center">
-                    <div class="px-4 py-2 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-check-circle"></i> Ativos: {{ $products->where('status', 'ativo')->count() }}
-                    </div>
-                    <div class="px-4 py-2 bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-slash-circle"></i> Inativos: {{ $products->where('status', 'inativo')->count() }}
-                    </div>
-                    <div class="px-4 py-2 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-x-circle"></i> Descontinuados: {{ $products->where('status', 'descontinuado')->count() }}
-                    </div>
-                    <div class="px-4 py-2 bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-exclamation-triangle"></i> Estoque Baixo: {{ $products->where('stock_quantity', '<=', 5)->count() }}
-                    </div>
-                    <div class="px-4 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-box"></i> Kits: {{ $products->where('tipo', 'kit')->count() }}
-                    </div>
-                    <div class="px-4 py-2 bg-pink-100 dark:bg-pink-900/30 text-pink-700 dark:text-pink-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-image"></i> Sem Imagem: {{ $products->whereNull('image')->count() + $products->where('image', '')->count() }}
-                    </div>
-                    <div class="px-4 py-2 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-stack"></i> Total Estoque: {{ $products->sum('stock_quantity') }}
-                    </div>
-                    <div class="px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-xl text-sm font-bold flex items-center gap-2">
-                        <i class="bi bi-currency-dollar"></i> Valor Catálogo: R$ {{ number_format($products->sum('price_sale'), 2, ',', '.') }}
-                    </div>
-                </div>
 
                 <!-- Painel de Ações Rápidas -->
                 <div class="flex flex-wrap gap-2 items-center">
@@ -81,47 +54,6 @@
                 </div>
             </div>
 
-            <!-- Cards de estatísticas extras -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 my-8">
-                <!-- Produtos sem estoque -->
-                <div class="bg-gradient-to-br from-pink-100 to-purple-200 dark:from-pink-900 dark:to-purple-900 rounded-xl p-6 shadow flex flex-col items-center">
-                    <i class="bi bi-x-circle text-2xl text-red-500 mb-2"></i>
-                    <div class="font-bold text-lg">Produtos sem estoque</div>
-                    <div class="text-2xl text-red-600 font-bold">{{ $products->where('stock_quantity', 0)->count() }}</div>
-                </div>
-                <!-- Produto mais vendido -->
-                <div class="bg-gradient-to-br from-green-100 to-emerald-200 dark:from-green-900 dark:to-emerald-900 rounded-xl p-6 shadow flex flex-col items-center">
-                    <i class="bi bi-cart-check text-2xl text-green-600 mb-2"></i>
-                    <div class="font-bold text-lg">Mais vendido</div>
-                    @php
-                        $maisVendido = $products->sortByDesc('sales_count')->first();
-                    @endphp
-                    <div class="text-xl text-green-700 font-bold">{{ $maisVendido?->name ?? '-' }}</div>
-                    <div class="text-xs text-neutral-500">Vendas: {{ $maisVendido?->sales_count ?? 0 }}</div>
-                </div>
-                <!-- Produto com maior margem -->
-                <div class="bg-gradient-to-br from-yellow-100 to-orange-200 dark:from-yellow-900 dark:to-orange-900 rounded-xl p-6 shadow flex flex-col items-center">
-                    <i class="bi bi-graph-up-arrow text-2xl text-yellow-600 mb-2"></i>
-                    <div class="font-bold text-lg">Maior margem</div>
-                    @php
-                        $maiorMargem = $products->sortByDesc('margin')->first();
-                    @endphp
-                    <div class="text-xl text-yellow-700 font-bold">{{ $maiorMargem?->name ?? '-' }}</div>
-                    <div class="text-xs text-neutral-500">Margem: {{ isset($maiorMargem->margin) ? number_format($maiorMargem->margin, 1, ',', '.') . '%' : '-' }}</div>
-                </div>
-                <!-- Total de vendas do mês -->
-                <div class="bg-gradient-to-br from-blue-100 to-indigo-200 dark:from-blue-900 dark:to-indigo-900 rounded-xl p-6 shadow flex flex-col items-center">
-                    <i class="bi bi-calendar-event text-2xl text-blue-600 mb-2"></i>
-                    <div class="font-bold text-lg">Vendas no mês</div>
-                    @php
-                        $totalVendasMes = $products->sum(function($p){
-                            return isset($p->sales_this_month) ? $p->sales_this_month : 0;
-                        });
-                    @endphp
-                    <div class="text-2xl text-blue-700 font-bold">{{ $totalVendasMes }}</div>
-                </div>
-            </div>
-
             <!-- Ações rápidas visíveis -->
             <div class="flex flex-wrap gap-4 mb-8 justify-center">
                 <a href="{{ route('products.create') }}" class="px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl shadow-lg flex items-center gap-2 hover:scale-105 transition">
@@ -142,59 +74,6 @@
                 <a href="#" class="px-6 py-3 bg-gradient-to-r from-pink-400 to-pink-600 text-white font-bold rounded-xl shadow-lg flex items-center gap-2 hover:scale-105 transition">
                     <i class="bi bi-files"></i> Duplicar Produto
                 </a>
-            </div>
-
-            <!-- Tabela de produtos em destaque -->
-            <div class="bg-white dark:bg-neutral-800 rounded-xl shadow border border-neutral-200 dark:border-neutral-700 p-6 mb-8">
-                <h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="bi bi-star text-yellow-500"></i> Produtos em Destaque</h3>
-                <table class="min-w-full text-sm">
-                    <thead>
-                        <tr class="bg-neutral-100 dark:bg-neutral-700">
-                            <th class="p-2 text-left">Produto</th>
-                            <th class="p-2 text-left">Código</th>
-                            <th class="p-2 text-left">Estoque</th>
-                            <th class="p-2 text-left">Preço Venda</th>
-                            <th class="p-2 text-left">Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($products->sortByDesc('stock_quantity')->take(5) as $product)
-                        <tr class="border-b border-neutral-200 dark:border-neutral-700">
-                            <td class="p-2">{{ $product->name }}</td>
-                            <td class="p-2">{{ $product->product_code }}</td>
-                            <td class="p-2">{{ $product->stock_quantity }}</td>
-                            <td class="p-2">R$ {{ number_format($product->price_sale, 2, ',', '.') }}</td>
-                            <td class="p-2 flex gap-2">
-                                <a href="{{ route('products.show', $product->product_code) }}" class="text-blue-600 dark:text-blue-400"><i class="bi bi-eye"></i></a>
-                                <a href="{{ route('products.edit', $product) }}" class="text-green-600 dark:text-green-400"><i class="bi bi-pencil-square"></i></a>
-                                <button type="button" wire:click="confirmDelete({{ $product->id }})" class="text-red-600 dark:text-red-400"><i class="bi bi-trash3"></i></button>
-                            </td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Dicas e alertas -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                @if($products->whereNull('image')->count() + $products->where('image', '')->count())
-                <div class="bg-pink-100 dark:bg-pink-900 rounded-xl p-4 flex items-center gap-3">
-                    <i class="bi bi-image text-pink-600 text-2xl"></i>
-                    <div>
-                        <div class="font-bold">Produtos sem imagem</div>
-                        <div class="text-sm">{{ $products->whereNull('image')->count() + $products->where('image', '')->count() }} produtos estão sem imagem cadastrada.</div>
-                    </div>
-                </div>
-                @endif
-                @if($products->where('price_sale', 0)->count())
-                <div class="bg-yellow-100 dark:bg-yellow-900 rounded-xl p-4 flex items-center gap-3">
-                    <i class="bi bi-currency-dollar text-yellow-600 text-2xl"></i>
-                    <div>
-                        <div class="font-bold">Produtos com preço zerado</div>
-                        <div class="text-sm">{{ $products->where('price_sale', 0)->count() }} produtos estão com preço de venda zerado.</div>
-                    </div>
-                </div>
-                @endif
             </div>
 
             <!-- Botões de ação em massa -->
