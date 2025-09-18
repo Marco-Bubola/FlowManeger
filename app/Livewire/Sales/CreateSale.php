@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\SaleItem;
 use App\Models\VendaParcela;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class CreateSale extends Component
@@ -78,7 +79,7 @@ class CreateSale extends Component
     {
         $total = 0;
         foreach ($this->products as $item) {
-            if (isset($item['product_id'], $item['quantity'], $item['unit_price']) 
+            if (isset($item['product_id'], $item['quantity'], $item['unit_price'])
                 && $item['product_id'] && $item['quantity'] && $item['unit_price']) {
                 $total += $item['quantity'] * $item['unit_price'];
             }
@@ -93,11 +94,32 @@ class CreateSale extends Component
 
     public function save()
     {
-        $this->validate();
+        try {
+            // Debug: Log dos dados recebidos
+            Log::info('Tentativa de criar venda', [
+                'client_id' => $this->client_id,
+                'products' => $this->products,
+                'tipo_pagamento' => $this->tipo_pagamento,
+                'sale_date' => $this->sale_date
+            ]);
 
-        // Verificar estoque
-        foreach ($this->products as $item) {
-            $product = Product::find($item['product_id']);
+            // Verificar se há produtos selecionados
+            if (empty($this->products)) {
+                session()->flash('error', 'Adicione pelo menos um produto à venda.');
+                return;
+            }
+
+            // Verificar se o cliente foi selecionado
+            if (empty($this->client_id)) {
+                session()->flash('error', 'Selecione um cliente para a venda.');
+                return;
+            }
+
+            $this->validate();
+
+            // Verificar estoque
+            foreach ($this->products as $item) {
+                $product = Product::find($item['product_id']);
             if ($product->stock_quantity < $item['quantity']) {
                 session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
                 return;
@@ -119,7 +141,7 @@ class CreateSale extends Component
         // Criar os itens da venda
         foreach ($this->products as $item) {
             $product = Product::find($item['product_id']);
-            
+
             SaleItem::create([
                 'sale_id' => $sale->id,
                 'product_id' => $item['product_id'],
@@ -140,13 +162,22 @@ class CreateSale extends Component
 
         session()->flash('message', 'Venda criada com sucesso!');
         return redirect()->route('sales.index');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao criar venda', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            session()->flash('error', 'Erro ao criar venda: ' . $e->getMessage());
+        }
     }
 
     private function gerarParcelasVenda($sale)
     {
         $valorParcela = round($sale->total_price / $sale->parcelas, 2);
         $dataPrimeira = now();
-        
+
         for ($i = 1; $i <= $sale->parcelas; $i++) {
             $dataVencimento = $dataPrimeira->copy()->addMonths($i - 1);
             VendaParcela::create([
@@ -166,7 +197,7 @@ class CreateSale extends Component
             $this->selectedProducts = array_filter($this->selectedProducts, function($id) use ($productId) {
                 return $id != $productId;
             });
-            
+
             // Remove do array de produtos
             $this->products = array_filter($this->products, function($product) use ($productId) {
                 return $product['product_id'] != $productId;
@@ -175,7 +206,7 @@ class CreateSale extends Component
         } else {
             // Adiciona produto à seleção
             $this->selectedProducts[] = $productId;
-            
+
             // Adiciona ao array de produtos
             $product = Product::find($productId);
             if ($product) {
