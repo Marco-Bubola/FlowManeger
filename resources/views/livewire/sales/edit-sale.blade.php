@@ -1,276 +1,482 @@
-<div class="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-zinc-900 dark:via-slate-900 dark:to-indigo-950 py-8">
-    <!-- CSS customizado para animações -->
-    <style>
-        @keyframes shine {
-            0% { transform: translateX(-100%) skewX(-12deg); }
-            100% { transform: translateX(200%) skewX(-12deg); }
-        }
-        .animate-shine {
-            animation: shine 2s infinite;
-        }
+<div x-data="{ currentStep: 1, completedSteps: [1, 2, 3] }" class="">
+    <!-- Custom CSS para manter o estilo dos cards -->
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 
-        /* Animação de pulse personalizada para valores */
-        @keyframes value-pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        .animate-value-pulse {
-            animation: value-pulse 2s infinite;
-        }
+    <!-- Header Modernizado para Edição -->
+    <x-sales-header
+        title="Editar Venda #{{ $sale->id }}"
+        description="Atualize as informações da venda seguindo os passos"
+        :back-route="route('sales.show', $sale->id)"
+        :current-step="$currentStep ?? 1"
+        :is-edit="true"
+        :sale="$sale"
+        :steps="[
+            [
+                'title' => 'Cliente',
+                'description' => 'Atualizar cliente',
+                'icon' => 'bi-person',
+                'gradient' => 'from-indigo-500 to-purple-500',
+                'connector_gradient' => 'from-indigo-500 to-purple-500'
+            ],
+            [
+                'title' => 'Produtos',
+                'description' => 'Editar produtos',
+                'icon' => 'bi-box',
+                'gradient' => 'from-purple-500 to-pink-500',
+                'connector_gradient' => 'from-purple-500 to-pink-500'
+            ],
+            [
+                'title' => 'Resumo',
+                'description' => 'Conferir e salvar',
+                'icon' => 'bi-check-circle',
+                'gradient' => 'from-orange-500 to-red-500'
+            ]
+        ]" />
 
-        /* Efeito de gradiente animado */
-        @keyframes gradient-shift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .animate-gradient {
-            background-size: 200% 200%;
-            animation: gradient-shift 3s ease infinite;
-        }
-    </style>
-    <div class="w-full max-w-full mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Header with enhanced styling -->
-        <div class="mb-8">
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="sm:flex sm:items-center sm:justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="flex-shrink-0">
-                            <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                <i class="bi bi-pencil-square text-white text-2xl"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                                Editar Venda #{{ $sale->id }}
-                            </h1>
-                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                                Atualize as informações da venda • Criada em {{ $sale->created_at->format('d/m/Y H:i') }}
-                            </p>
-                            <div class="mt-2 flex items-center space-x-4">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
-                                    <i class="bi bi-calendar mr-1"></i>
-                                    {{ $sale->created_at->diffForHumans() }}
-                                </span>
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                                    <i class="bi bi-currency-dollar mr-1"></i>
-                                    R$ {{ number_format($sale->total_price, 2, ',', '.') }}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-4 sm:mt-0 flex gap-3">
-                        <button type="button"
-                                onclick="window.print()"
-                                class="inline-flex items-center px-4 py-2 border border-purple-300 dark:border-purple-600 text-sm font-medium rounded-lg text-purple-700 dark:text-purple-300 bg-white dark:bg-zinc-700 hover:bg-purple-50 dark:hover:bg-purple-900/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200">
-                            <i class="bi bi-printer mr-2"></i>
-                            Imprimir
-                        </button>
-                        <a href="{{ route('sales.show', $sale->id) }}"
-                           class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-zinc-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all duration-200 shadow-md hover:shadow-lg">
-                            <i class="bi bi-arrow-left mr-2"></i>
-                            Voltar
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Conteúdo Principal -->
+    <div class="">
+        <form wire:submit.prevent="update" class="">
+            <div class="">
 
-        <form wire:submit.prevent="update">
-            @csrf
+                <!-- Step 1: Informações do Cliente e Pagamento - Full Width -->
+                <div x-show="currentStep === 1"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-x-4"
+                    x-transition:enter-end="opacity-100 transform translate-x-0"
+                    class="">
 
-            <!-- Notificação de Mudanças Não Salvas -->
-            <div class="mb-6" x-data="{ hasChanges: false }"
-                 x-init="
-                    $watch('$store.form', (value) => { hasChanges = true });
-                    Livewire.on('formSubmitted', () => { hasChanges = false });
-                 ">
-                <div x-show="hasChanges"
-                     x-transition:enter="transition ease-out duration-300"
-                     x-transition:enter-start="opacity-0 transform scale-95"
-                     x-transition:enter-end="opacity-100 transform scale-100"
-                     x-transition:leave="transition ease-in duration-200"
-                     x-transition:leave-start="opacity-100 transform scale-100"
-                     x-transition:leave-end="opacity-0 transform scale-95"
-                     class="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-400 p-4 rounded-lg">
-                    <div class="flex items-center">
-                        <div class="flex-shrink-0">
-                            <i class="bi bi-exclamation-triangle text-amber-400 text-xl"></i>
-                        </div>
-                        <div class="ml-3">
-                            <p class="text-sm text-amber-700 dark:text-amber-300">
-                                <strong>Alterações não salvas:</strong> Você fez modificações que ainda não foram salvas.
-                                <span class="font-medium">Clique em "Salvar Alterações" para confirmar.</span>
-                            </p>
-                        </div>
-                        <div class="ml-auto">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-2 h-2 bg-amber-400 rounded-full animate-pulse"></div>
-                                <span class="text-xs text-amber-600 dark:text-amber-400">Editando...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                <!-- Coluna Principal - Informações da Venda -->
-                <div class="xl:col-span-2 space-y-8">
-                    <!-- Informações Básicas -->
-                    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-8">
-                        <div class="flex items-center justify-between mb-8">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                <i class="bi bi-info-circle text-indigo-600 dark:text-indigo-400 mr-3"></i>
-                                Informações da Venda
+                    <div class="px-8 py-8">
+                        <!-- Informações do Cliente - Full Width, sem card -->
+                        <div class=" p-8">
+                            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
+                                <i class="bi bi-pencil-square text-indigo-600 dark:text-indigo-400 mr-3"></i>
+                                Editar Informações da Venda
                             </h2>
-                            <div class="flex items-center space-x-2">
-                                <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                                <span class="text-sm text-gray-600 dark:text-gray-400">Editando</span>
-                            </div>
-                        </div>
 
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <!-- Cliente -->
-                            <div class="space-y-2">
-                                <label for="client_id" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    <i class="bi bi-person text-indigo-500 mr-2"></i>Cliente *
-                                </label>
-                                <select wire:model="client_id"
-                                        id="client_id"
-                                        class="w-full px-4 py-4 border-2 border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-lg hover:shadow-xl @error('client_id') !border-red-400 !ring-4 !ring-red-500/20 @enderror">
-                                    <option value="">Selecione um cliente...</option>
-                                    @foreach($clients as $client)
-                                        <option value="{{ $client->id }}">{{ $client->name }}</option>
-                                    @endforeach
-                                </select>
-                                @error('client_id')
-                                    <div class="flex items-center mt-2 text-sm text-red-600">
-                                        <i class="bi bi-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
+                            <!-- Informações da Venda Original -->
+                            <div class="mb-8 bg-blue-50 dark:bg-blue-900/20 rounded-xl p-6 border-l-4 border-blue-500">
+                                <h3 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-4">
+                                    <i class="bi bi-info-circle mr-2"></i>Informações Originais
+                                </h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-blue-600 dark:text-blue-400 font-medium">Criada em:</span>
+                                        <p class="text-blue-800 dark:text-blue-200">{{ $sale->created_at->format('d/m/Y H:i') }}</p>
                                     </div>
-                                @enderror
-                            </div>
-
-                            <!-- Tipo de Pagamento -->
-                            <div class="space-y-2">
-                                <label for="tipo_pagamento" class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                    <i class="bi bi-credit-card text-indigo-500 mr-2"></i>Tipo de Pagamento *
-                                </label>
-                                <select wire:model="tipo_pagamento"
-                                        wire:change="$refresh"
-                                        id="tipo_pagamento"
-                                        class="w-full px-4 py-4 border-2 border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white shadow-lg hover:shadow-xl @error('tipo_pagamento') !border-red-400 !ring-4 !ring-red-500/20 @enderror">
-                                    <option value="a_vista">💳 À Vista</option>
-                                    <option value="parcelado">📅 Parcelado</option>
-                                </select>
-                                @error('tipo_pagamento')
-                                    <div class="flex items-center mt-2 text-sm text-red-600">
-                                        <i class="bi bi-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
+                                    <div>
+                                        <span class="text-blue-600 dark:text-blue-400 font-medium">Status:</span>
+                                        <p class="text-blue-800 dark:text-blue-200">{{ ucfirst($sale->status) }}</p>
                                     </div>
-                                @enderror
+                                    <div>
+                                        <span class="text-blue-600 dark:text-blue-400 font-medium">Valor Original:</span>
+                                        <p class="text-blue-800 dark:text-blue-200">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-blue-600 dark:text-blue-400 font-medium">Última Atualização:</span>
+                                        <p class="text-blue-800 dark:text-blue-200">{{ $sale->updated_at->diffForHumans() }}</p>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Número de Parcelas - Aparecer apenas quando parcelado -->
-                        <div class="mt-6 transition-all duration-500 ease-in-out {{ $tipo_pagamento === 'parcelado' ? 'opacity-100 max-h-96' : 'opacity-0 max-h-0 overflow-hidden' }}">
-                            @if($tipo_pagamento === 'parcelado')
-                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border-2 border-blue-200 dark:border-blue-800">
-                                    <label for="parcelas" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                                        <i class="bi bi-list-ol text-blue-500 mr-2"></i>Número de Parcelas
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- Cliente -->
+                                <div class="md:col-span-2">
+                                    <label for="client_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                        <i class="bi bi-person-circle text-indigo-500 mr-2"></i>Cliente *
                                     </label>
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                    <!-- Dropdown customizado -->
+                                    <div class="relative" x-data="{ open: false }">
+                                        <button type="button"
+                                                @click="open = !open"
+                                                class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg text-left @error('client_id') border-red-300 @enderror">
+                                            <span class="flex items-center justify-between">
+                                                <span>
+                                                    @if($client_id && $selectedClient = $clients->find($client_id))
+                                                        {{ $selectedClient->name }}
+                                                    @else
+                                                        Selecione um cliente...
+                                                    @endif
+                                                </span>
+                                                <i class="bi bi-chevron-down transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                                            </span>
+                                        </button>
+
+                                        <div x-show="open"
+                                             @click.away="open = false"
+                                             x-transition:enter="transition ease-out duration-200"
+                                             x-transition:enter-start="opacity-0 transform scale-95"
+                                             x-transition:enter-end="opacity-100 transform scale-100"
+                                             class="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+                                            @foreach($clients as $client)
+                                                <button type="button"
+                                                        wire:click="$set('client_id', {{ $client->id }})"
+                                                        @click="open = false"
+                                                        class="w-full px-4 py-3 text-left hover:bg-gray-100 dark:hover:bg-zinc-600 transition-colors duration-200 {{ $client_id == $client->id ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400' : 'text-gray-900 dark:text-white' }}">
+                                                    <div class="flex items-center">
+                                                        <i class="bi bi-person mr-2"></i>
+                                                        <span>{{ $client->name }}</span>
+                                                        @if($client_id == $client->id)
+                                                            <i class="bi bi-check ml-auto text-indigo-500"></i>
+                                                        @endif
+                                                    </div>
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+
+                                    @error('client_id')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <i class="bi bi-exclamation-circle mr-1"></i>
+                                        {{ $message }}
+                                    </p>
+                                    @enderror
+                                </div>
+
+                                <!-- Tipo de Pagamento -->
+                                <div>
+                                    <label for="tipo_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                        <i class="bi bi-credit-card text-indigo-500 mr-2"></i>Tipo de Pagamento *
+                                    </label>
+                                    <select wire:model="tipo_pagamento"
+                                            wire:change="$refresh"
+                                            id="tipo_pagamento"
+                                            class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('tipo_pagamento') border-red-300 @enderror">
+                                        <option value="a_vista">💳 À Vista</option>
+                                        <option value="parcelado">📅 Parcelado</option>
+                                    </select>
+                                    @error('tipo_pagamento')
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <i class="bi bi-exclamation-circle mr-1"></i>
+                                        {{ $message }}
+                                    </p>
+                                    @enderror
+                                </div>
+
+                                <!-- Número de Parcelas (condicional) -->
+                                @if($tipo_pagamento == 'parcelado')
+                                <div>
+                                    <label for="parcelas" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                        <i class="bi bi-calendar-range text-indigo-500 mr-2"></i>Número de Parcelas *
+                                    </label>
+                                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-3">
                                         @for($i = 1; $i <= 12; $i++)
-                                            <label class="relative cursor-pointer">
-                                                <input type="radio"
-                                                       wire:model="parcelas"
-                                                       value="{{ $i }}"
-                                                       class="sr-only peer">
-                                                <div class="flex items-center justify-center h-12 w-full border-2 border-gray-200 dark:border-zinc-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 transition-all duration-200 peer-checked:border-blue-500 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:shadow-lg peer-checked:scale-105 hover:border-blue-300 hover:shadow-md">
-                                                    {{ $i }}x
-                                                </div>
-                                            </label>
+                                        <button type="button"
+                                                wire:click="$set('parcelas', {{ $i }})"
+                                                class="p-3 text-center border rounded-lg transition-all duration-200 {{ $parcelas == $i ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-600 hover:border-indigo-300' }}">
+                                            {{ $i }}x
+                                        </button>
                                         @endfor
                                     </div>
                                     @error('parcelas')
-                                        <div class="flex items-center mt-3 text-sm text-red-600">
-                                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                                            {{ $message }}
-                                        </div>
+                                    <p class="mt-2 text-sm text-red-600 flex items-center">
+                                        <i class="bi bi-exclamation-circle mr-1"></i>
+                                        {{ $message }}
+                                    </p>
                                     @enderror
-                                    @if($parcelas > 1)
-                                        <div class="mt-4 p-4 bg-blue-100 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
-                                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                                <div class="text-center">
-                                                    <div class="flex items-center justify-center text-sm text-blue-800 dark:text-blue-300 mb-2">
-                                                        <i class="bi bi-credit-card mr-2"></i>
-                                                        <span>Valor por Parcela</span>
-                                                    </div>
-                                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                                        R$ {{ number_format($this->getTotalPrice() / $parcelas, 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                                <div class="text-center">
-                                                    <div class="flex items-center justify-center text-sm text-blue-800 dark:text-blue-300 mb-2">
-                                                        <i class="bi bi-calendar-check mr-2"></i>
-                                                        <span>Total de Parcelas</span>
-                                                    </div>
-                                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                                        {{ $parcelas }}x
-                                                    </p>
-                                                </div>
-                                                <div class="text-center">
-                                                    <div class="flex items-center justify-center text-sm text-blue-800 dark:text-blue-300 mb-2">
-                                                        <i class="bi bi-calculator mr-2"></i>
-                                                        <span>Valor Total</span>
-                                                    </div>
-                                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                                        R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <div class="mt-4 pt-4 border-t border-blue-200 dark:border-blue-700">
-                                                <div class="flex items-center justify-center text-xs text-blue-700 dark:text-blue-300">
-                                                    <i class="bi bi-info-circle mr-1"></i>
-                                                    <span>Parcelamento sem juros • Primeira parcela no ato da compra</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
                                 </div>
-                            @endif
-                        </div>
+                                @endif
+                            </div>
 
-                        <!-- Informações Adicionais da Venda -->
-                        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-                            <div class="bg-gray-50 dark:bg-zinc-700 rounded-xl p-4">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Status</p>
-                                        <p class="text-lg font-semibold text-green-600 dark:text-green-400">Ativa</p>
-                                    </div>
-                                    <i class="bi bi-check-circle text-2xl text-green-500"></i>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-zinc-700 rounded-xl p-4">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Última Atualização</p>
-                                        <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ $sale->updated_at->format('d/m/Y') }}</p>
-                                    </div>
-                                    <i class="bi bi-clock text-2xl text-blue-500"></i>
-                                </div>
-                            </div>
-                            <div class="bg-gray-50 dark:bg-zinc-700 rounded-xl p-4">
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <p class="text-sm text-gray-600 dark:text-gray-400">Total de Itens</p>
-                                        <p class="text-lg font-semibold text-gray-900 dark:text-white">{{ count($selectedProducts) }}</p>
-                                    </div>
-                                    <i class="bi bi-box text-2xl text-purple-500"></i>
-                                </div>
+                            <!-- Botão Próximo Moderno -->
+                            <div class="w-full flex justify-end mt-8 pt-6 border-t border-gray-200 dark:border-zinc-600">
+                                <button type="button"
+                                    @click="currentStep = 2"
+                                    class="group relative inline-flex items-center justify-center px-12 py-4 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-indigo-300 backdrop-blur-sm">
+                                    <span class="flex items-center">
+                                        Próximo: Produtos
+                                        <i class="bi bi-arrow-right ml-2 group-hover:scale-110 transition-transform duration-200"></i>
+                                    </span>
+                                    <!-- Efeito hover ring -->
+                                    <div class="absolute inset-0 rounded-2xl bg-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                </button>
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Step 2: Produtos - Layout Split 3/4 e 1/4 -->
+                <div x-show="currentStep === 2"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-x-4"
+                    x-transition:enter-end="opacity-100 transform translate-x-0"
+                    class="w-full h-[75vh] flex">
+
+                    <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
+                    <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col">
+                        <!-- Header com Controles -->
+                        <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
+                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                                <i class="bi bi-box text-purple-600 dark:text-purple-400 mr-3"></i>
+                                Editar Produtos da Venda
+                            </h2>
+
+                            <!-- Controles de pesquisa e filtro -->
+                            <div class="mt-6 flex flex-col md:flex-row gap-4">
+                                <!-- Campo de pesquisa -->
+                                <div class="flex-1">
+                                    <div class="relative">
+                                        <i class="bi bi-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                                        <input type="text"
+                                               wire:model.live="searchTerm"
+                                               placeholder="Buscar produtos por nome, código ou categoria..."
+                                               class="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                                    </div>
+                                </div>
+
+                                <!-- Toggle para mostrar apenas selecionados -->
+                                <div class="flex items-center">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="checkbox"
+                                               wire:model.live="showOnlySelected"
+                                               class="sr-only">
+                                        <div class="relative">
+                                            <div class="w-12 h-6 bg-gray-200 dark:bg-zinc-600 rounded-full shadow-inner {{ $showOnlySelected ? 'bg-indigo-600' : '' }}"></div>
+                                            <div class="absolute inset-y-0 left-0 w-6 h-6 bg-white rounded-full shadow transform transition-transform duration-200 {{ $showOnlySelected ? 'translate-x-6' : '' }}"></div>
+                                        </div>
+                                        <span class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Apenas Selecionados</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de Produtos com Scroll -->
+                        <div class="flex-1 p-6 overflow-y-auto">
+                            @if($this->getFilteredProducts()->isEmpty())
+                            <!-- Estado vazio -->
+                            <div class="flex flex-col items-center justify-center h-full">
+                                <div class="w-32 h-32 mx-auto mb-6 text-gray-400">
+                                    <i class="bi bi-box text-8xl"></i>
+                                </div>
+                                <h3 class="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                                    @if($searchTerm)
+                                        Nenhum produto encontrado para "{{ $searchTerm }}"
+                                    @elseif($showOnlySelected)
+                                        Nenhum produto selecionado ainda
+                                    @else
+                                        Nenhum produto disponível
+                                    @endif
+                                </h3>
+                                <p class="text-gray-600 dark:text-gray-400 text-center">
+                                    @if($searchTerm)
+                                        Tente buscar por outro termo ou limpe o campo de pesquisa.
+                                    @elseif($showOnlySelected)
+                                        Selecione produtos da lista para editá-los aqui.
+                                    @else
+                                        Adicione produtos ao sistema para poder incluí-los nas vendas.
+                                    @endif
+                                </p>
+                            </div>
+                            @else
+                            <!-- Grid de Cards de Produtos usando o mesmo estilo da página de produtos -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                                @foreach($this->getFilteredProducts() as $product)
+                                @php
+                                    $isSelected = collect($selectedProducts)->contains(function($selected) use ($product) {
+                                        return $selected['product_id'] == $product->id;
+                                    });
+                                @endphp
+
+                                <!-- Produto com CSS customizado mantido -->
+                                <div class="product-card-modern {{ $isSelected ? 'selected' : '' }}"
+                                     wire:click="toggleProduct({{ $product->id }})"
+                                     style="cursor: pointer;">
+
+                                    <!-- Área da imagem com badges -->
+                                    <div class="product-img-area">
+                                        <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
+                                             alt="{{ $product->name }}"
+                                             class="product-img">
+
+                                        <!-- Badge da categoria -->
+                                        @if($product->category)
+                                        <span class="badge-category">
+                                            {{ $product->category->name }}
+                                        </span>
+                                        @endif
+
+                                        <!-- Badge do código do produto -->
+                                        <span class="badge-product-code">
+                                            #{{ $product->code }}
+                                        </span>
+
+                                        <!-- Badge de selecionado -->
+                                        @if($isSelected)
+                                        <span class="badge-selected">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                        </span>
+                                        @endif
+
+                                        <!-- Ícone da categoria -->
+                                        @if($product->category)
+                                        <div class="category-icon-wrapper">
+                                            <i class="bi bi-tag category-icon"></i>
+                                        </div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Conteúdo do card -->
+                                    <div class="card-body">
+                                        <div class="product-title" title="{{ $product->name }}">
+                                            {{ $product->name }}
+                                        </div>
+
+                                        <!-- Área dos preços -->
+                                        <div class="price-area">
+                                            <div class="price-current">
+                                                R$ {{ number_format($product->price, 2, ',', '.') }}
+                                            </div>
+                                            @if($product->original_price && $product->original_price > $product->price)
+                                            <div class="price-original">
+                                                R$ {{ number_format($product->original_price, 2, ',', '.') }}
+                                            </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Lado Direito: Produtos Selecionados (1/4 da tela) -->
+                <div class="w-1/4 flex flex-col">
+                    <!-- Header do painel direito -->
+                    <div class="p-3 border-b border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
+                            <i class="bi bi-cart text-orange-600 dark:text-orange-400 mr-2 text-sm"></i>
+                            Produtos Editados ({{ count($selectedProducts) }})
+                        </h3>
+                    </div>
+
+                    <!-- Lista de produtos selecionados com scroll -->
+                    <div class="flex-1 overflow-y-auto">
+                        @if(empty($selectedProducts))
+                        <div class="p-3 text-center">
+                            <div class="text-gray-400 mb-2">
+                                <i class="bi bi-cart-x text-2xl"></i>
+                            </div>
+                            <p class="text-gray-500 dark:text-gray-500 text-xs">
+                                A venda atual não possui produtos ou clique nos produtos à esquerda para editá-los
+                            </p>
+                        </div>
+                        @else
+                        <div class="p-2 space-y-2">
+                            @foreach($selectedProducts as $index => $productItem)
+                            @php
+                            $selectedProduct = $this->getFilteredProducts()->find($productItem['product_id']);
+                            @endphp
+
+                            @if($selectedProduct)
+                            <div class="bg-white dark:bg-zinc-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-zinc-700">
+                                <!-- Header do produto -->
+                                <div class="flex items-start justify-between mb-2">
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-xs font-semibold text-gray-900 dark:text-white truncate" title="{{ $selectedProduct->name }}">
+                                            {{ $selectedProduct->name }}
+                                        </h4>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">
+                                            {{ $selectedProduct->code }}
+                                        </p>
+                                    </div>
+                                    <button type="button"
+                                            wire:click="removeProduct({{ $index }})"
+                                            class="text-red-500 hover:text-red-700 ml-2">
+                                        <i class="bi bi-trash text-xs"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Controles -->
+                                <div class="space-y-2">
+                                    <!-- Quantidade -->
+                                    <div>
+                                        <label class="text-xs text-gray-600 dark:text-gray-400">Quantidade</label>
+                                        <div class="flex items-center space-x-1 mt-1">
+                                            <button type="button"
+                                                    wire:click="decrementQuantity({{ $index }})"
+                                                    class="w-6 h-6 bg-gray-200 dark:bg-zinc-600 text-gray-600 dark:text-gray-300 rounded text-xs font-bold hover:bg-gray-300 dark:hover:bg-zinc-500 transition-colors">
+                                                -
+                                            </button>
+                                            <input type="number"
+                                                   wire:model.blur="selectedProducts.{{ $index }}.quantity"
+                                                   min="1"
+                                                   class="w-12 h-6 text-center text-xs border border-gray-200 dark:border-zinc-600 rounded bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                                            <button type="button"
+                                                    wire:click="incrementQuantity({{ $index }})"
+                                                    class="w-6 h-6 bg-gray-200 dark:bg-zinc-600 text-gray-600 dark:text-gray-300 rounded text-xs font-bold hover:bg-gray-300 dark:hover:bg-zinc-500 transition-colors">
+                                                +
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Preço Unitário -->
+                                    <div>
+                                        <label class="text-xs text-gray-600 dark:text-gray-400">Preço Unit.</label>
+                                        <input type="text"
+                                               wire:model.blur="selectedProducts.{{ $index }}.unit_price"
+                                               class="w-full text-xs border border-gray-200 dark:border-zinc-600 rounded px-2 py-1 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white mt-1">
+                                    </div>
+
+                                    <!-- Total do item -->
+                                    <div class="bg-gray-50 dark:bg-zinc-700 rounded p-2">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs text-gray-600 dark:text-gray-400">Total:</span>
+                                            <span class="text-xs font-bold text-green-600 dark:text-green-400">
+                                                R$ {{ number_format(($productItem['quantity'] ?? 0) * (floatval(str_replace(',', '.', str_replace('.', '', $productItem['unit_price'] ?? '0'))) ?: 0), 2, ',', '.') }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            @endif
+                            @endforeach
+                        </div>
+                        @endif
+                    </div>
+
+                    <!-- Footer: Total Geral e Navegação -->
+                    <div class="p-3 bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700">
+                        <!-- Total Geral -->
+                        @if(!empty($selectedProducts))
+                        <div class="mb-3 p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-lg border border-orange-200 dark:border-orange-700">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-bold text-orange-800 dark:text-orange-200">Total:</span>
+                                <span class="text-lg font-bold text-orange-600 dark:text-orange-400">
+                                    R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+                        @endif
+
+                        <!-- Navegação Modernizada -->
+                        <div class="flex gap-2">
+                            <button type="button"
+                                @click="currentStep = 1"
+                                class="group relative inline-flex items-center justify-center flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white text-xs font-medium transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                                <i class="bi bi-arrow-left mr-1 group-hover:scale-110 transition-transform duration-200"></i>
+                                Cliente
+                                <!-- Efeito hover ring -->
+                                <div class="absolute inset-0 rounded-xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            </button>
+
+                            <button type="button"
+                                @click="if({{ count($selectedProducts) }} > 0) currentStep = 3"
+                                @if(count($selectedProducts) === 0) disabled @endif
+                                class="group relative inline-flex items-center justify-center flex-1 px-3 py-2 rounded-xl text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm {{ count($selectedProducts) > 0 ? 'bg-gradient-to-br from-orange-500 via-red-500 to-red-600 hover:from-orange-600 hover:via-red-600 hover:to-red-700 border border-orange-300' : 'bg-gray-400 cursor-not-allowed border border-gray-300' }}">
+                                <span class="flex items-center">
+                                    Resumo
+                                    <i class="bi bi-arrow-right ml-1 group-hover:scale-110 transition-transform duration-200"></i>
+                                </span>
+                                @if(count($selectedProducts) > 0)
+                                <!-- Efeito hover ring -->
+                                <div class="absolute inset-0 rounded-xl bg-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                @endif
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
                     <!-- Produtos -->
                     <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-8">
@@ -465,196 +671,248 @@
                     </div>
                 </div>
 
-                <!-- Resumo Financeiro Dinâmico -->
-                @if(!empty($selectedProducts))
-                    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                        <h2 class="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                            <i class="bi bi-calculator text-indigo-600 dark:text-indigo-400 mr-2"></i>
-                            Resumo Financeiro
-                        </h2>
+            <!-- Step 3: Resumo e Finalização - Layout em duas colunas -->
+            <div x-show="currentStep === 3"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0 transform translate-x-4"
+                x-transition:enter-end="opacity-100 transform translate-x-0"
+                class="w-full max-h-screen flex overflow-hidden">
 
-                        <!-- Valor Total Principal -->
-                        <div class="bg-gradient-to-r from-indigo-50 via-purple-50 to-blue-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-blue-900/20 rounded-lg p-6 mb-6 animate-gradient">
-                            <div class="text-center">
-                                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2 flex items-center justify-center">
-                                    <i class="bi bi-currency-dollar mr-2 text-indigo-500"></i>
-                                    Valor Total da Venda
-                                </p>
-                                <div class="animate-value-pulse">
-                                    <p class="text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 dark:from-indigo-400 dark:via-purple-400 dark:to-blue-400">
-                                        R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
-                                    </p>
+                <!-- Coluna Esquerda: Informações do Cliente e Total (2/5 da tela) -->
+                <div class="w-2/5 bg-white dark:bg-zinc-800 p-4 flex flex-col">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                        <i class="bi bi-pencil-square text-orange-600 dark:text-orange-400 mr-2"></i>
+                        Resumo da Edição
+                    </h2>
+
+                    <!-- Informações do Cliente -->
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 mb-4 rounded-lg border-l-4 border-blue-500">
+                        <h3 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-3">
+                            <i class="bi bi-person-circle mr-2"></i>Cliente
+                        </h3>
+                        @if($client_id && $selectedClient = $clients->find($client_id))
+                        <div class="space-y-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Nome:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ $selectedClient->name }}</p>
                                 </div>
-                                <div class="mt-3 flex items-center justify-center space-x-4">
-                                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                        <i class="bi bi-box mr-1 text-purple-500"></i>
-                                        <span>{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'item' : 'itens' }}</span>
-                                    </div>
-                                    <div class="w-1 h-1 bg-gray-400 rounded-full"></div>
-                                    <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                        <i class="bi bi-plus-slash-minus mr-1 text-green-500"></i>
-                                        <span>{{ collect($selectedProducts)->sum('quantity') }} unidades</span>
-                                    </div>
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Telefone:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ $selectedClient->phone }}</p>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Data:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Pagamento:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ ucfirst(str_replace('_', ' ', $tipo_pagamento)) }}</p>
                                 </div>
                             </div>
                         </div>
+                        @endif
+                    </div>
 
-                        <!-- Informações de Pagamento Dinâmicas -->
-                        <div class="grid grid-cols-1 gap-4">
-                            @if($tipo_pagamento === 'a_vista')
-                                <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-800 rounded-lg p-4">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-sm font-medium text-green-800 dark:text-green-300">💳 Pagamento à Vista</p>
-                                            <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-                                                R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
-                                            </p>
-                                            <p class="text-xs text-green-700 dark:text-green-400 mt-1">Valor integral - sem juros</p>
-                                        </div>
-                                        <i class="bi bi-credit-card text-3xl text-green-500"></i>
-                                    </div>
+                    <!-- Total Geral -->
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border-l-4 border-indigo-500 mb-4">
+                        <h3 class="text-lg font-bold text-indigo-800 dark:text-indigo-200 mb-2">
+                            <i class="bi bi-calculator mr-2"></i>Total da Venda
+                        </h3>
+
+                        @if($tipo_pagamento === 'parcelado' && $parcelas > 1)
+                        <!-- Informações de Parcelamento Destacadas -->
+                        <div class="bg-white dark:bg-indigo-800/30 p-4 rounded-lg border border-indigo-200 dark:border-indigo-600 mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-lg font-semibold text-indigo-700 dark:text-indigo-300">
+                                    <i class="bi bi-credit-card-2-front mr-2"></i>Pagamento Parcelado
+                                </span>
+                                <span class="bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-sm font-bold">
+                                    {{ $parcelas }}x
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 gap-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-indigo-600 dark:text-indigo-400">Valor por parcela:</span>
+                                    <span class="text-2xl font-bold text-indigo-700 dark:text-indigo-300">
+                                        R$ {{ number_format($this->getTotalPrice() / $parcelas, 2, ',', '.') }}
+                                    </span>
                                 </div>
-                            @elseif($tipo_pagamento === 'parcelado' && $parcelas > 1)
-                                <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-4">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex-1">
-                                            <p class="text-sm font-medium text-blue-800 dark:text-blue-300">📅 Pagamento Parcelado</p>
-                                            <div class="flex items-center space-x-4 mt-2">
-                                                <div>
-                                                    <p class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                                        {{ $parcelas }}x de R$ {{ number_format($this->getTotalPrice() / $parcelas, 2, ',', '.') }}
-                                                    </p>
-                                                    <p class="text-xs text-blue-700 dark:text-blue-400">Valor da parcela</p>
-                                                </div>
-                                                <div class="border-l border-blue-300 dark:border-blue-700 pl-4">
-                                                    <p class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                                        R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
-                                                    </p>
-                                                    <p class="text-xs text-blue-700 dark:text-blue-400">Total</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <i class="bi bi-calendar-check text-3xl text-blue-500"></i>
-                                    </div>
+                                <div class="text-xs text-indigo-500 dark:text-indigo-400 mt-2">
+                                    <i class="bi bi-info-circle mr-1"></i>
+                                    Parcelas mensais de {{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}
+                                    até {{ \Carbon\Carbon::parse($sale_date)->addMonths($parcelas - 1)->format('d/m/Y') }}
                                 </div>
-                            @else
-                                <div class="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                                    <div class="flex items-center justify-between">
-                                        <div>
-                                            <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">⚠️ Forma de Pagamento</p>
-                                            <p class="text-lg font-semibold text-yellow-600 dark:text-yellow-400">
-                                                Selecione o tipo de pagamento
-                                            </p>
-                                            <p class="text-xs text-yellow-700 dark:text-yellow-400 mt-1">Configure acima para ver os detalhes</p>
-                                        </div>
-                                        <i class="bi bi-exclamation-triangle text-3xl text-yellow-500"></i>
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="bg-white dark:bg-green-800/30 p-4 rounded-lg border border-green-200 dark:border-green-600 mb-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-semibold text-green-700 dark:text-green-300">
+                                    <i class="bi bi-cash mr-2"></i>Pagamento à Vista
+                                </span>
+                                <span class="bg-green-100 dark:bg-green-700 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-bold">
+                                    À Vista
+                                </span>
+                            </div>
+                        </div>
+                        @endif
+
+                        <div class="text-center">
+                            @if($tipo_pagamento === 'parcelado' && $parcelas > 1)
+                            <p class="text-sm text-indigo-600 dark:text-indigo-400 mb-1">
+                                {{ $parcelas }}x de R$ {{ number_format($this->getTotalPrice() / $parcelas, 2, ',', '.') }}
+                            </p>
                             @endif
-                        </div>
-
-                        <!-- Breakdown dos Produtos -->
-                        <div class="mt-6 border-t border-gray-200 dark:border-zinc-700 pt-6">
-                            <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                                <i class="bi bi-list-check text-indigo-500 mr-2"></i>
-                                Detalhes dos Produtos
-                            </h3>
-                            <div class="space-y-3 max-h-60 overflow-y-auto">
-                                @foreach($selectedProducts as $index => $product)
-                                    @if($product['product_id'])
-                                        @php
-                                            $selectedProduct = collect($products)->firstWhere('id', $product['product_id']);
-                                        @endphp
-                                        @if($selectedProduct)
-                                            <div class="flex justify-between items-center bg-gray-50 dark:bg-zinc-700 rounded-lg p-3">
-                                                <div class="flex-1">
-                                                    <p class="text-sm font-medium text-gray-900 dark:text-white">
-                                                        {{ $selectedProduct->name }}
-                                                    </p>
-                                                    <p class="text-xs text-gray-600 dark:text-gray-400">
-                                                        {{ $product['quantity'] ?? 1 }}x R$ {{ number_format($product['price_sale'] ?? 0, 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                                <div class="text-right">
-                                                    <p class="text-sm font-bold text-indigo-600 dark:text-indigo-400">
-                                                        R$ {{ number_format(($product['quantity'] ?? 0) * ($product['price_sale'] ?? 0), 2, ',', '.') }}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endif
-                                @endforeach
-                            </div>
-                        </div>
-
-                        <!-- Estatísticas Rápidas -->
-                        <div class="mt-6 grid grid-cols-3 gap-4">
-                            <div class="text-center bg-gray-50 dark:bg-zinc-700 rounded-lg p-3">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Itens</p>
-                                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ count($selectedProducts) }}</p>
-                            </div>
-                            <div class="text-center bg-gray-50 dark:bg-zinc-700 rounded-lg p-3">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Quantidade Total</p>
-                                <p class="text-lg font-bold text-gray-900 dark:text-white">
-                                    {{ collect($selectedProducts)->sum('quantity') }}
-                                </p>
-                            </div>
-                            <div class="text-center bg-gray-50 dark:bg-zinc-700 rounded-lg p-3">
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Ticket Médio</p>
-                                <p class="text-lg font-bold text-gray-900 dark:text-white">
-                                    R$ {{ count($selectedProducts) > 0 ? number_format($this->getTotalPrice() / count($selectedProducts), 2, ',', '.') : '0,00' }}
-                                </p>
-                            </div>
+                            <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                                R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
+                            </p>
                         </div>
                     </div>
-                @endif
 
-                <!-- Ações -->
-                <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                    <div class="flex flex-col sm:flex-row gap-4 justify-end">
-                        <a href="{{ route('sales.show', $sale->id) }}"
-                           class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 dark:border-zinc-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
-                            <i class="bi bi-x-lg mr-2"></i>
-                            Cancelar
-                        </a>
+                    <!-- Navegação Final Modernizada -->
+                    <div class="mt-auto space-y-3">
+                        <button type="button"
+                            @click="currentStep = 2"
+                            class="group relative w-full inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                            <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                            Voltar: Produtos
+                            <!-- Efeito hover ring -->
+                            <div class="absolute inset-0 rounded-2xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        </button>
+
                         <button type="submit"
-                                class="inline-flex items-center justify-center px-8 py-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:via-purple-700 hover:to-blue-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500 shadow-lg hover:shadow-xl transform hover:scale-105 relative overflow-hidden"
-                                {{ empty($selectedProducts) || !$client_id ? 'disabled' : '' }}>
-                            <!-- Efeito de brilho animado quando habilitado -->
-                            @if(!empty($selectedProducts) && $client_id)
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform -skew-x-12 -translate-x-full animate-shine"></div>
-                            @endif
-
-                            <div class="relative flex items-center">
-                                <i class="bi bi-check-circle mr-2 text-lg"></i>
-                                <span>Salvar Alterações</span>
-                                @if(!empty($selectedProducts) && $client_id)
-                                    <div class="ml-2 flex items-center">
-                                        <div class="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-                                    </div>
-                                @endif
-                            </div>
+                            class="group relative w-full inline-flex items-center justify-center px-12 py-4 rounded-2xl bg-gradient-to-br from-orange-500 via-red-500 to-red-600 hover:from-orange-600 hover:via-red-600 hover:to-red-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-orange-300 backdrop-blur-sm"
+                            wire:loading.attr="disabled">
+                            <span wire:loading.remove class="flex items-center">
+                                <i class="bi bi-pencil-square mr-2 text-xl group-hover:scale-110 transition-transform duration-200"></i>
+                                Salvar Alterações
+                            </span>
+                            <span wire:loading class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Salvando Alterações...
+                            </span>
+                            <!-- Efeito hover ring -->
+                            <div class="absolute inset-0 rounded-2xl bg-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
                     </div>
+                </div>
 
-                    <!-- Status dos requisitos -->
-                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-zinc-700">
-                        <div class="flex flex-wrap gap-3 justify-center">
-                            <div class="flex items-center text-xs {{ $client_id ? 'text-green-600' : 'text-red-600' }}">
-                                <i class="bi {{ $client_id ? 'bi-check-circle-fill' : 'bi-x-circle-fill' }} mr-1"></i>
-                                <span>Cliente {{ $client_id ? 'selecionado' : 'obrigatório' }}</span>
+                <!-- Coluna Direita: Lista de Produtos (3/5 da tela) -->
+                <div class="w-4/5 bg-orange-50 dark:bg-orange-900/20 border-l border-gray-200 dark:border-zinc-700 p-8">
+                    <h3 class="text-2xl font-bold text-orange-800 dark:text-orange-200 mb-6">
+                        <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($selectedProducts) }})
+                    </h3>
+
+                    <!-- Grid de Cards de Produtos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto max-h-118">
+                        @foreach($selectedProducts as $index => $product)
+                        @if($product['product_id'])
+                        @php
+                        $productData = collect($products)->firstWhere('id', $product['product_id']);
+                        $total = $product['quantity'] * $product['price_sale'];
+                        @endphp
+
+                        <!-- Card do Produto -->
+                        <div class="product-card-modern">
+                            <!-- Área da imagem com badges -->
+                            <div class="product-img-area">
+                                <img src="{{ $productData->image ? asset('storage/products/' . $productData->image) : asset('storage/products/product-placeholder.png') }}"
+                                     alt="{{ $productData->name ?? 'Produto' }}"
+                                     class="product-img">
+
+                                <!-- Badge da quantidade selecionada -->
+                                <span class="badge-product-code">
+                                    <i class="bi bi-upc-scan"></i> {{ $productData->product_code ?? 'N/A' }}
+                                </span>
+
+                                <!-- Badge da quantidade -->
+                                <span class="badge-quantity">
+                                    <i class="bi bi-cart-check"></i> {{ $product['quantity'] }}
+                                </span>
+
+                                <!-- Ícone da categoria -->
+                                @if($productData && $productData->category)
+                                <div class="category-icon-wrapper">
+                                    <i class="{{ $productData->category->icone ?? 'bi bi-box' }} category-icon"></i>
+                                </div>
+                                @endif
                             </div>
-                            <div class="flex items-center text-xs {{ !empty($selectedProducts) ? 'text-green-600' : 'text-red-600' }}">
-                                <i class="bi {{ !empty($selectedProducts) ? 'bi-check-circle-fill' : 'bi-x-circle-fill' }} mr-1"></i>
-                                <span>Produtos {{ !empty($selectedProducts) ? 'adicionados' : 'obrigatórios' }}</span>
+
+                            <!-- Conteúdo do card -->
+                            <div class="card-body">
+                                <div class="product-title" title="{{ $productData->name ?? 'Produto não encontrado' }}">
+                                    {{ ucwords($productData->name ?? 'Produto não encontrado') }}
+                                </div>
+
+                                <!-- Área dos preços -->
+                                <div class="price-area">
+                                    <span class="badge-price" title="Preço Unitário">
+                                        <i class="bi bi-tag"></i>
+                                        {{ number_format($product['price_sale'], 2, ',', '.') }}
+                                    </span>
+
+                                    <span class="badge-price-sale" title="Total">
+                                        <i class="bi bi-calculator"></i>
+                                        {{ number_format($total, 2, ',', '.') }}
+                                    </span>
+                                </div>
                             </div>
-                            <div class="flex items-center text-xs {{ $tipo_pagamento ? 'text-green-600' : 'text-yellow-600' }}">
-                                <i class="bi {{ $tipo_pagamento ? 'bi-check-circle-fill' : 'bi-clock-fill' }} mr-1"></i>
-                                <span>Pagamento {{ $tipo_pagamento ? 'configurado' : 'a definir' }}</span>
-                            </div>
+                        </div>
+                        @endif
+                        @endforeach
+                    </div>
+
+                    <!-- Resumo Total abaixo dos cards -->
+                    <div class="mt-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-orange-800 dark:text-orange-200">
+                                <i class="bi bi-calculator mr-2"></i>
+                                Total Geral:
+                            </span>
+                            <span class="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                                R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
+                            </span>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Notificações -->
+@if (session()->has('success'))
+<div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+    class="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg">
+    <div class="flex items-center">
+        <i class="bi bi-check-circle-fill mr-2"></i>
+        {{ session('success') }}
+        <button @click="show = false" class="ml-4 text-green-500 hover:text-green-700">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+</div>
+@endif
+
+@if (session()->has('error'))
+<div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+    class="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg">
+    <div class="flex items-center">
+        <i class="bi bi-exclamation-triangle-fill mr-2"></i>
+        {{ session('error') }}
+        <button @click="show = false" class="ml-4 text-red-500 hover:text-red-700">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+</div>
+@endif
+</div>
             </div>
         </form>
     </div>
