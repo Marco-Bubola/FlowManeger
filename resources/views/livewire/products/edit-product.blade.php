@@ -1,57 +1,26 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+<div class="">
 
-    <!-- Header com Steppers Moderno -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50">
-        <!-- Efeito de brilho sutil -->
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-
-        <div class="relative px-6 py-3">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center space-x-6">
-                    <!-- Botão voltar melhorado -->
-                    <a href="{{ route('products.index') }}"
-                        class="group relative inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-700 hover:from-blue-50 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 shadow-lg hover:shadow-xl border border-white/50 dark:border-slate-600/50 backdrop-blur-sm">
-                        <i class="bi bi-arrow-left text-xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200"></i>
-                        <!-- Efeito hover ring -->
-                        <div class="absolute inset-0 rounded-2xl bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </a>
-
-                    <div class="space-y-1">
-                        <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-800 via-orange-600 to-red-600 dark:from-slate-100 dark:via-orange-400 dark:to-red-400 bg-clip-text text-transparent flex items-center">
-                            <!-- Ícone animado -->
-                            <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-orange-400 via-orange-500 to-red-500 rounded-2xl mr-4 shadow-xl shadow-orange-500/25">
-                                <i class="bi bi-pencil-square text-white text-xl"></i>
-                                <!-- Efeito de brilho -->
-                                <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
-                            </div>
-                            Editar Produto
-                        </h1>
-                        <p class="text-lg text-slate-600 dark:text-slate-400 font-medium">
-                            ✏️ Altere as informações do produto <span class="inline-flex items-center px-2 py-1 rounded-lg text-sm font-bold bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-sm ml-2">#{{ $product->product_code }}</span>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Steppers usando componente -->
-                <x-stepper
-                    :steps="[
-                        [
-                            'title' => 'Informações do Produto',
-                            'description' => 'Nome, preços, estoque e categoria',
-                            'icon' => 'bi-info-circle'
-                        ],
-                        [
-                            'title' => 'Imagem do Produto',
-                            'description' => 'Upload da foto do produto',
-                            'icon' => 'bi-image'
-                        ]
-                    ]"
-                    :current-step="$currentStep"
-                    :show-step-numbers="false"
-                />
-            </div>
-        </div>
-    </div>
+    <!-- Header Modernizado -->
+    <x-sales-header
+        title="Editar Produto"
+        description="Altere as informações do produto #{{ $product->product_code }}"
+        :back-route="route('products.index')"
+        :current-step="$currentStep ?? 1"
+        :steps="[
+            [
+                'title' => 'Informações',
+                'description' => 'Nome, preços, estoque e categoria',
+                'icon' => 'bi-info-circle',
+                'gradient' => 'from-orange-500 to-red-500',
+                'connector_gradient' => 'from-orange-500 to-red-500'
+            ],
+            [
+                'title' => 'Imagem',
+                'description' => 'Upload da foto',
+                'icon' => 'bi-image',
+                'gradient' => 'from-red-500 to-pink-500'
+            ]
+        ]" />
 
     <!-- Conteúdo Principal Moderno -->
     <div class="relative flex-1 overflow-y-auto">
