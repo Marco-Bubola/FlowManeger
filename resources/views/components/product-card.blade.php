@@ -8,7 +8,7 @@
     'compact' => false
 ])
 
-<div class="border rounded-lg p-4 hover:shadow-md transition-all duration-200 @if($selected) bg-blue-50 dark:bg-blue-900/20 !border-blue-300 dark:!border-blue-600 @else border-neutral-200 dark:border-neutral-600 @endif">
+<div class="border rounded-lg p-4 hover:shadow-md transition-all duration-200 {{ $selected ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-600' : 'border-neutral-200 dark:border-neutral-600' }}">
     <div class="flex items-start space-x-3">
         <!-- Checkbox -->
         <div class="flex-shrink-0 pt-1">
