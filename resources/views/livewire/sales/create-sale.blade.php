@@ -1,92 +1,38 @@
-<div x-data="{ currentStep: 1, completedSteps: [] }" class=" ">
-    <!-- Header com Steppers - Full Width -->
-    <div class="bg-white dark:bg-zinc-800 border-b border-gray-200 dark:border-zinc-700 sticky top-0 z-10 shadow-sm">
-        <div class="w-full px-8 py-6">
-            <div class="flex items-center justify-between mb-6">
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('sales.index') }}"
-                        class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white dark:bg-zinc-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-200 shadow-sm border border-indigo-200 dark:border-indigo-700">
-                        <i class="bi bi-arrow-left text-xl text-indigo-600 dark:text-indigo-400"></i>
-                    </a>
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl mr-4 shadow-lg">
-                                <i class="bi bi-plus-circle text-white text-xl"></i>
-                            </div>
-                            Nova Venda
-                        </h1>
-                        <p class="text-lg text-gray-600 dark:text-gray-400 mt-1">Registre uma nova venda no sistema seguindo os passos</p>
-                    </div>
-                </div>
+<div x-data="{ currentStep: 1, completedSteps: [] }" class="">
+    <!-- Custom CSS para manter o estilo dos cards -->
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 
-                <!-- Steppers Melhorados -->
-                <div class="flex items-center justify-center">
-                    <div class="flex items-center space-x-6">
-                        <!-- Step 1: Cliente -->
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300"
-                                :class="currentStep === 1 ? 'bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-lg shadow-indigo-500/30' : (currentStep > 1 ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-400')">
-                                <i class="bi bi-person text-xl" x-show="currentStep === 1"></i>
-                                <i class="bi bi-check-lg text-xl" x-show="currentStep > 1"></i>
-                            </div>
-                            <div class="ml-4">
-                                <div class="flex items-center">
-                                    <p class="text-lg font-bold transition-colors duration-300"
-                                        :class="currentStep === 1 ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'">Cliente</p>
-                                    <i class="bi bi-check-circle-fill text-green-500 ml-2 text-lg" x-show="currentStep > 1"></i>
-                                </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Selecione o cliente</p>
-                            </div>
-                        </div>
+    <!-- Header Modernizado -->
+    <x-sales-header
+        title="Nova Venda"
+        description="Registre uma nova venda no sistema seguindo os passos"
+        :back-route="route('sales.index')"
+        :current-step="$currentStep ?? 1"
+        :steps="[
+            [
+                'title' => 'Cliente',
+                'description' => 'Selecione o cliente',
+                'icon' => 'bi-person',
+                'gradient' => 'from-indigo-500 to-purple-500',
+                'connector_gradient' => 'from-indigo-500 to-purple-500'
+            ],
+            [
+                'title' => 'Produtos',
+                'description' => 'Adicione produtos',
+                'icon' => 'bi-box',
+                'gradient' => 'from-purple-500 to-pink-500',
+                'connector_gradient' => 'from-purple-500 to-pink-500'
+            ],
+            [
+                'title' => 'Resumo',
+                'description' => 'Conferir e finalizar',
+                'icon' => 'bi-check-circle',
+                'gradient' => 'from-green-500 to-emerald-500'
+            ]
+        ]" />
 
-                        <!-- Connector 1 -->
-                        <div class="w-16 h-1 rounded-full transition-all duration-300"
-                            :class="currentStep >= 2 ? 'bg-gradient-to-r from-indigo-500 to-purple-500' : 'bg-gray-300 dark:bg-zinc-600'"></div>
-
-                        <!-- Step 2: Produtos -->
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300"
-                                :class="currentStep === 2 ? 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30' : (currentStep > 2 ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-400')">
-                                <i class="bi bi-box text-xl" x-show="currentStep === 2"></i>
-                                <i class="bi bi-check-lg text-xl" x-show="currentStep > 2"></i>
-                            </div>
-                            <div class="ml-4">
-                                <div class="flex items-center">
-                                    <p class="text-lg font-bold transition-colors duration-300"
-                                        :class="currentStep === 2 ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'">Produtos</p>
-                                    <i class="bi bi-check-circle-fill text-green-500 ml-2 text-lg" x-show="currentStep > 2"></i>
-                                </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Adicione produtos</p>
-                            </div>
-                        </div>
-
-                        <!-- Connector 2 -->
-                        <div class="w-16 h-1 rounded-full transition-all duration-300"
-                            :class="currentStep >= 3 ? 'bg-gradient-to-r from-purple-500 to-pink-500' : 'bg-gray-300 dark:bg-zinc-600'"></div>
-
-                        <!-- Step 3: Resumo -->
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300"
-                                :class="currentStep === 3 ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/30' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-400'">
-                                <i class="bi bi-check-circle text-xl"></i>
-                            </div>
-                            <div class="ml-4">
-                                <div class="flex items-center">
-                                    <p class="text-lg font-bold transition-colors duration-300"
-                                        :class="currentStep === 3 ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'">Resumo</p>
-                                </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Conferir e finalizar</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-        </div>
-    </div>
-
-    <!-- Conteúdo Principal - Full Width -->
+    <!-- Conteúdo Principal -->
     <div class="">
         <form wire:submit.prevent="save" class="">
             <div class="">
@@ -222,14 +168,20 @@
                                 @endif
                             </div>
 
-                            <!-- Botão Próximo - Full Width -->
+                            <!-- Botão Próximo Moderno -->
                             <div class="w-full flex justify-end mt-8 pt-6 border-t border-gray-200 dark:border-zinc-600">
                                 <button type="button"
                                     @click="currentStep = 2"
                                     @if(!$client_id) disabled @endif
-                                    class="inline-flex items-center px-8 py-4 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 {{ $client_id ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transform hover:scale-105' : 'bg-gray-400 cursor-not-allowed' }}">
-                                    Próximo: Produtos
-                                    <i class="bi bi-arrow-right ml-2"></i>
+                                    class="group relative inline-flex items-center justify-center px-8 py-4 rounded-2xl text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm {{ $client_id ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-700 border border-indigo-300' : 'bg-gray-400 cursor-not-allowed border border-gray-300' }}">
+                                    <span class="flex items-center">
+                                        Próximo: Produtos
+                                        <i class="bi bi-arrow-right ml-2 group-hover:scale-110 transition-transform duration-200"></i>
+                                    </span>
+                                    @if($client_id)
+                                    <!-- Efeito hover ring -->
+                                    <div class="absolute inset-0 rounded-2xl bg-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                    @endif
                                 </button>
                             </div>
                         </div>
@@ -309,76 +261,83 @@
                                 </p>
                             </div>
                             @else
-                            <!-- Grid de Cards de Produtos -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
+                            <!-- Grid de Cards de Produtos usando o mesmo estilo da página de produtos -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 @foreach($this->getFilteredProducts() as $product)
                                 @php
-                                $isSelected = in_array($product->id, $selectedProducts);
-                                $quantity = $this->getProductQuantity($product->id);
-                                $price = $this->getProductPrice($product->id);
+                                    $isSelected = in_array($product->id, $selectedProducts);
                                 @endphp
 
-                                <div class="product-card {{ $isSelected ? 'selected' : '' }}"
+                                <!-- Produto com CSS customizado mantido -->
+                                <div class="product-card-modern {{ $isSelected ? 'selected' : '' }}"
                                     wire:click="toggleProduct({{ $product->id }})"
                                     wire:key="product-{{ $product->id }}">
 
-                                    <!-- Toggle de seleção -->
-                                    <div class="absolute top-3 right-3 z-10">
-                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 
-                                                            {{ $isSelected 
-                                                                ? 'bg-purple-600 border-purple-600 text-white' 
-                                                                : 'bg-white border-gray-300 text-transparent hover:border-purple-400' }}">
+                                    <!-- Toggle de seleção estilizado -->
+                                    <div class="btn-action-group flex gap-2">
+                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer
+                                                    {{ $isSelected
+                                                        ? 'bg-purple-600 border-purple-600 text-white'
+                                                        : 'bg-white border-gray-300 text-transparent hover:border-purple-400' }}">
                                             @if($isSelected)
                                             <i class="bi bi-check text-sm"></i>
                                             @endif
                                         </div>
                                     </div>
 
-                                    <!-- Imagem do produto -->
+                                    <!-- Área da imagem com badges -->
                                     <div class="product-img-area">
                                         <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
                                             alt="{{ $product->name }}"
                                             class="product-img">
 
-                                        <!-- Badge de estoque -->
                                         @if($product->stock_quantity <= 5)
-                                            <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                        <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
                                             <i class="bi bi-exclamation-triangle mr-1"></i>
                                             Baixo estoque
+                                        </div>
+                                        @endif
+
+                                        <!-- Código do produto -->
+                                        <span class="badge-product-code">
+                                            <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
+                                        </span>
+
+                                        <!-- Quantidade em estoque -->
+                                        <span class="badge-quantity">
+                                            <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
+                                        </span>
+
+                                        <!-- Ícone da categoria -->
+                                        @if($product->category)
+                                        <div class="category-icon-wrapper">
+                                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
+                                        </div>
+                                        @endif
                                     </div>
-                                    @endif
 
-                                    <!-- Código do produto -->
-                                    <span class="badge-product-code">
-                                        <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
-                                    </span>
+                                    <!-- Conteúdo do card -->
+                                    <div class="card-body">
+                                        <div class="product-title" title="{{ $product->name }}">
+                                            {{ ucwords($product->name) }}
+                                        </div>
 
-                                    <!-- Quantidade em estoque -->
-                                    <span class="badge-quantity">
-                                        <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
-                                    </span>
-                                </div>
+                                        <!-- Área dos preços -->
+                                        <div class="price-area">
+                                            <span class="badge-price" title="Preço de Custo">
+                                                <i class="bi bi-tag"></i>
+                                                {{ number_format($product->price, 2, ',', '.') }}
+                                            </span>
 
-                                <!-- Conteúdo do card -->
-                                <div class="card-body">
-                                    <div class="product-title" title="{{ $product->name }}">
-                                        {{ ucwords($product->name) }}
+                                            <span class="badge-price-sale" title="Preço de Venda">
+                                                <i class="bi bi-currency-dollar"></i>
+                                                {{ number_format($product->price_sale, 2, ',', '.') }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
-
-                                <!-- Preços -->
-                                <span class="badge-price">
-                                    <i class="bi bi-tag"></i>
-                                    Custo: R$ {{ number_format($product->price, 2, ',', '.') }}
-                                </span>
-
-                                <span class="badge-price-sale">
-                                    <i class="bi bi-currency-dollar"></i>
-                                    Venda: R$ {{ number_format($product->price_sale, 2, ',', '.') }}
-                                </span>
+                                @endforeach
                             </div>
-                            @endforeach
-                        </div>
                         @endif
                     </div>
                 </div>
@@ -496,21 +455,29 @@
                         </div>
                         @endif
 
-                        <!-- Navegação -->
+                        <!-- Navegação Modernizada -->
                         <div class="flex gap-2">
                             <button type="button"
                                 @click="currentStep = 1"
-                                class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-colors duration-200">
-                                <i class="bi bi-arrow-left mr-1"></i>
+                                class="group relative inline-flex items-center justify-center flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white text-xs font-medium transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                                <i class="bi bi-arrow-left mr-1 group-hover:scale-110 transition-transform duration-200"></i>
                                 Cliente
+                                <!-- Efeito hover ring -->
+                                <div class="absolute inset-0 rounded-xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                             </button>
 
                             <button type="button"
                                 @click="if({{ count($selectedProducts) }} > 0) currentStep = 3"
                                 @if(count($selectedProducts) === 0) disabled @endif
-                                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-white text-xs font-bold rounded-lg shadow-lg transition-all duration-200 {{ count($selectedProducts) > 0 ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700' : 'bg-gray-400 cursor-not-allowed' }}">
-                                Resumo
-                                <i class="bi bi-arrow-right ml-1"></i>
+                                class="group relative inline-flex items-center justify-center flex-1 px-3 py-2 rounded-xl text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm {{ count($selectedProducts) > 0 ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-rose-600 hover:from-purple-600 hover:via-pink-600 hover:to-rose-700 border border-purple-300' : 'bg-gray-400 cursor-not-allowed border border-gray-300' }}">
+                                <span class="flex items-center">
+                                    Resumo
+                                    <i class="bi bi-arrow-right ml-1 group-hover:scale-110 transition-transform duration-200"></i>
+                                </span>
+                                @if(count($selectedProducts) > 0)
+                                <!-- Efeito hover ring -->
+                                <div class="absolute inset-0 rounded-xl bg-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                @endif
                             </button>
                         </div>
                     </div>
@@ -522,70 +489,119 @@
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
-                class="w-full h-screen flex">
+                class="w-full max-h-screen flex overflow-hidden">
 
                 <!-- Coluna Esquerda: Informações do Cliente e Total (2/5 da tela) -->
-                <div class="w-2/5 bg-white dark:bg-zinc-800 p-8 flex flex-col">
-                    <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-                        <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-3"></i>
+                <div class="w-2/5 bg-white dark:bg-zinc-800 p-4 flex flex-col">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                        <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                         Resumo da Venda
                     </h2>
 
                     <!-- Informações do Cliente -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-6 mb-6 rounded-xl border-l-4 border-blue-500">
-                        <h3 class="text-xl font-bold text-blue-800 dark:text-blue-200 mb-4">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 mb-4 rounded-lg border-l-4 border-blue-500">
+                        <h3 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-3">
                             <i class="bi bi-person-circle mr-2"></i>Cliente
                         </h3>
                         @if($client_id && $selectedClient = $clients->find($client_id))
-                        <div class="space-y-4">
-                            <div>
-                                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Nome:</p>
-                                <p class="text-blue-800 dark:text-blue-200 font-semibold text-lg">{{ $selectedClient->name }}</p>
+                        <div class="space-y-2">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Nome:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ $selectedClient->name }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Telefone:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ $selectedClient->phone }}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Telefone:</p>
-                                <p class="text-blue-800 dark:text-blue-200 font-semibold text-lg">{{ $selectedClient->phone }}</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Data:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Pagamento:</p>
+                                    <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ ucfirst(str_replace('_', ' ', $tipo_pagamento)) }}</p>
+                                </div>
                             </div>
-                            <div>
-                                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Data da Venda:</p>
-                                <p class="text-blue-800 dark:text-blue-200 font-semibold text-lg">{{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}</p>
-                            </div>
-                            <div>
-                                <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Tipo de Pagamento:</p>
-                                <p class="text-blue-800 dark:text-blue-200 font-semibold text-lg">{{ ucfirst(str_replace('_', ' ', $tipo_pagamento)) }}</p>
-                            </div>
+
                         </div>
                         @endif
                     </div>
 
                     <!-- Total Geral -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-6 rounded-xl border-l-4 border-indigo-500 mb-6">
-                        <h3 class="text-2xl font-bold text-indigo-800 dark:text-indigo-200 mb-2">Total Geral da Venda</h3>
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border-l-4 border-indigo-500 mb-4">
+                        <h3 class="text-lg font-bold text-indigo-800 dark:text-indigo-200 mb-2">
+                            <i class="bi bi-calculator mr-2"></i>Total da Venda
+                        </h3>
+
                         @if($tipo_pagamento === 'parcelado' && $parcelas > 1)
-                        <p class="text-indigo-700 dark:text-indigo-300 flex items-center mb-2">
-                            <i class="bi bi-credit-card mr-2"></i>
-                            {{ $parcelas }}x de R$ {{ number_format($this->getTotalAmount() / $parcelas, 2, ',', '.') }}
-                        </p>
+                        <!-- Informações de Parcelamento Destacadas -->
+                        <div class="bg-white dark:bg-indigo-800/30 p-4 rounded-lg border border-indigo-200 dark:border-indigo-600 mb-4">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-lg font-semibold text-indigo-700 dark:text-indigo-300">
+                                    <i class="bi bi-credit-card-2-front mr-2"></i>Pagamento Parcelado
+                                </span>
+                                <span class="bg-indigo-100 dark:bg-indigo-700 text-indigo-800 dark:text-indigo-200 px-3 py-1 rounded-full text-sm font-bold">
+                                    {{ $parcelas }}x
+                                </span>
+                            </div>
+                            <div class="grid grid-cols-1 gap-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-indigo-600 dark:text-indigo-400">Valor por parcela:</span>
+                                    <span class="text-2xl font-bold text-indigo-700 dark:text-indigo-300">
+                                        R$ {{ number_format($this->getTotalAmount() / $parcelas, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                                <div class="text-xs text-indigo-500 dark:text-indigo-400 mt-2">
+                                    <i class="bi bi-info-circle mr-1"></i>
+                                    Parcelas mensais de {{ \Carbon\Carbon::now()->format('d/m/Y') }}
+                                    até {{ \Carbon\Carbon::now()->addMonths($parcelas - 1)->format('d/m/Y') }}
+                                </div>
+                            </div>
+                        </div>
+                        @else
+                        <div class="bg-white dark:bg-green-800/30 p-4 rounded-lg border border-green-200 dark:border-green-600 mb-4">
+                            <div class="flex items-center justify-between">
+                                <span class="text-lg font-semibold text-green-700 dark:text-green-300">
+                                    <i class="bi bi-cash mr-2"></i>Pagamento à Vista
+                                </span>
+                                <span class="bg-green-100 dark:bg-green-700 text-green-800 dark:text-green-200 px-3 py-1 rounded-full text-sm font-bold">
+                                    À Vista
+                                </span>
+                            </div>
+                        </div>
                         @endif
-                        <p class="text-4xl font-bold text-indigo-600 dark:text-indigo-400">
-                            R$ {{ number_format($this->getTotalAmount(), 2, ',', '.') }}
-                        </p>
+
+                        <div class="text-center">
+                            @if($tipo_pagamento === 'parcelado' && $parcelas > 1)
+                            <p class="text-sm text-indigo-600 dark:text-indigo-400 mb-1">
+                                {{ $parcelas }}x de R$ {{ number_format($this->getTotalAmount() / $parcelas, 2, ',', '.') }}
+                            </p>
+                            @endif
+                            <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                                R$ {{ number_format($this->getTotalAmount(), 2, ',', '.') }}
+                            </p>
+                        </div>
                     </div>
 
-                    <!-- Navegação Final -->
-                    <div class="mt-auto space-y-4">
+                    <!-- Navegação Final Modernizada -->
+                    <div class="mt-auto space-y-3">
                         <button type="button"
                             @click="currentStep = 2"
-                            class="w-full inline-flex items-center justify-center px-8 py-4 border-2 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-zinc-700 hover:bg-gray-50 dark:hover:bg-zinc-600 font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                            <i class="bi bi-arrow-left mr-2"></i>
+                            class="group relative w-full inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                            <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                             Voltar: Produtos
+                            <!-- Efeito hover ring -->
+                            <div class="absolute inset-0 rounded-2xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
 
                         <button type="submit"
-                            class="w-full inline-flex items-center justify-center px-12 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+                            class="group relative w-full inline-flex items-center justify-center px-12 py-4 rounded-2xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
                             wire:loading.attr="disabled">
                             <span wire:loading.remove class="flex items-center">
-                                <i class="bi bi-check-circle mr-2 text-xl"></i>
+                                <i class="bi bi-check-circle mr-2 text-xl group-hover:scale-110 transition-transform duration-200"></i>
                                 Finalizar Venda
                             </span>
                             <span wire:loading class="flex items-center">
@@ -595,66 +611,87 @@
                                 </svg>
                                 Criando Venda...
                             </span>
+                            <!-- Efeito hover ring -->
+                            <div class="absolute inset-0 rounded-2xl bg-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
                     </div>
                 </div>
 
                 <!-- Coluna Direita: Lista de Produtos (3/5 da tela) -->
-                <div class="w-3/5 bg-green-50 dark:bg-green-900/20 border-l border-gray-200 dark:border-zinc-700 p-8">
+                <div class="w-4/5 bg-green-50 dark:bg-green-900/20 border-l border-gray-200 dark:border-zinc-700 p-8">
                     <h3 class="text-2xl font-bold text-green-800 dark:text-green-200 mb-6">
-                        <i class="bi bi-cart mr-2"></i>Produtos ({{ count($products) }})
+                        <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($products) }})
                     </h3>
 
-                    <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-lg overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-green-100 dark:bg-green-900/30">
-                                    <tr>
-                                        <th class="text-left py-4 px-6 text-green-700 dark:text-green-300 font-semibold">Produto</th>
-                                        <th class="text-center py-4 px-4 text-green-700 dark:text-green-300 font-semibold">Quantidade</th>
-                                        <th class="text-right py-4 px-4 text-green-700 dark:text-green-300 font-semibold">Preço Unit.</th>
-                                        <th class="text-right py-4 px-6 text-green-700 dark:text-green-300 font-semibold">Total</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($products as $product)
-                                    @if($product['product_id'])
-                                    @php
-                                    $productData = $availableProducts->find($product['product_id']);
-                                    $total = $product['quantity'] * $product['unit_price'];
-                                    @endphp
-                                    <tr class="border-b border-green-100 dark:border-green-900/50 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-150">
-                                        <td class="py-4 px-6">
-                                            <div class="flex items-center space-x-4">
-                                                <img src="{{ $productData->image ? asset('storage/products/' . $productData->image) : asset('storage/products/product-placeholder.png') }}"
-                                                    alt="{{ $productData->name ?? 'Produto' }}"
-                                                    class="w-14 h-14 rounded-lg object-cover shadow-sm">
-                                                <div>
-                                                    <p class="font-semibold text-green-800 dark:text-green-200 text-lg">{{ $productData->name ?? 'Produto não encontrado' }}</p>
-                                                    <p class="text-sm text-green-600 dark:text-green-400">{{ $productData->product_code ?? 'N/A' }}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-4 px-4 text-center">
-                                            <span class="inline-flex items-center px-3 py-2 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                                {{ $product['quantity'] }}
-                                            </span>
-                                        </td>
-                                        <td class="py-4 px-4 text-right">
-                                            <span class="text-green-800 dark:text-green-200 font-medium text-lg">
-                                                R$ {{ number_format($product['unit_price'], 2, ',', '.') }}
-                                            </span>
-                                        </td>
-                                        <td class="py-4 px-6 text-right">
-                                            <span class="text-xl font-bold text-green-600 dark:text-green-400">
-                                                R$ {{ number_format($total, 2, ',', '.') }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    @endif
-                                    @endforeach
-                                </tbody>
-                            </table>
+                    <!-- Grid de Cards de Produtos -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto max-h-118">
+                        @foreach($products as $product)
+                        @if($product['product_id'])
+                        @php
+                        $productData = $availableProducts->find($product['product_id']);
+                        $total = $product['quantity'] * $product['unit_price'];
+                        @endphp
+
+                        <!-- Card do Produto -->
+                        <div class="product-card-modern">
+                            <!-- Área da imagem com badges -->
+                            <div class="product-img-area">
+                                <img src="{{ $productData->image ? asset('storage/products/' . $productData->image) : asset('storage/products/product-placeholder.png') }}"
+                                     alt="{{ $productData->name ?? 'Produto' }}"
+                                     class="product-img">
+
+                                <!-- Badge da quantidade selecionada -->
+                                <span class="badge-product-code">
+                                    <i class="bi bi-upc-scan"></i> {{ $productData->product_code ?? 'N/A' }}
+                                </span>
+
+                                <!-- Badge da quantidade -->
+                                <span class="badge-quantity">
+                                    <i class="bi bi-cart-check"></i> {{ $product['quantity'] }}
+                                </span>
+
+                                <!-- Ícone da categoria -->
+                                @if($productData && $productData->category)
+                                <div class="category-icon-wrapper">
+                                    <i class="{{ $productData->category->icone ?? 'bi bi-box' }} category-icon"></i>
+                                </div>
+                                @endif
+                            </div>
+
+                            <!-- Conteúdo do card -->
+                            <div class="card-body">
+                                <div class="product-title" title="{{ $productData->name ?? 'Produto não encontrado' }}">
+                                    {{ ucwords($productData->name ?? 'Produto não encontrado') }}
+                                </div>
+
+                                <!-- Área dos preços -->
+                                <div class="price-area">
+                                    <span class="badge-price" title="Preço Unitário">
+                                        <i class="bi bi-tag"></i>
+                                        {{ number_format($product['unit_price'], 2, ',', '.') }}
+                                    </span>
+
+                                    <span class="badge-price-sale" title="Total">
+                                        <i class="bi bi-calculator"></i>
+                                        {{ number_format($total, 2, ',', '.') }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                        @endforeach
+                    </div>
+
+                    <!-- Resumo Total abaixo dos cards -->
+                    <div class="mt-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-green-800 dark:text-green-200">
+                                <i class="bi bi-calculator mr-2"></i>
+                                Total Geral:
+                            </span>
+                            <span class="text-3xl font-bold text-green-600 dark:text-green-400">
+                                R$ {{ number_format($this->getTotalAmount(), 2, ',', '.') }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -689,176 +726,4 @@
     </div>
 </div>
 @endif
-
-<!-- CSS customizado para manter consistência visual -->
-<link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-
-<!-- CSS para cards de produtos estilosos -->
-<style>
-    /* Scrollbar customizada para área de produtos */
-    .overflow-y-auto::-webkit-scrollbar {
-        width: 8px;
-    }
-
-    .overflow-y-auto::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 4px;
-    }
-
-    .dark .overflow-y-auto::-webkit-scrollbar-track {
-        background: #1e293b;
-    }
-
-    .overflow-y-auto::-webkit-scrollbar-thumb {
-        background: #94a3b8;
-        border-radius: 4px;
-    }
-
-    .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-    }
-
-    .dark .overflow-y-auto::-webkit-scrollbar-thumb {
-        background: #475569;
-    }
-
-    .dark .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-        background: #64748b;
-    }
-
-    .product-card {
-        position: relative;
-        background: var(--card-bg, #e6e6fa);
-        border: 2px solid var(--card-border, #b39ddb);
-        border-radius: 0.75rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        transform: scale(1);
-        box-shadow: 0 4px 8px var(--shadow-card, rgba(149, 117, 205, 0.13));
-        overflow: hidden;
-    }
-
-    .product-card:hover {
-        transform: translateY(-2px) scale(1.02);
-        box-shadow: 0 12px 24px var(--shadow-strong, rgba(81, 45, 168, 0.18));
-    }
-
-    .product-card.selected {
-        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-        border-color: var(--primary, #9575cd);
-        box-shadow: 0 8px 16px var(--shadow-strong, rgba(81, 45, 168, 0.18)), 0 0 0 3px rgba(139, 92, 246, 0.3);
-    }
-
-    .product-img-area {
-        position: relative;
-        padding: 1rem;
-        text-align: center;
-    }
-
-    .product-img {
-        width: 6rem;
-        height: 6rem;
-        margin: 0 auto 0.75rem auto;
-        border-radius: 0.5rem;
-        object-fit: cover;
-        background: var(--gray-100, #f3f3f7);
-    }
-
-    .badge-product-code {
-        position: absolute;
-        bottom: 0.5rem;
-        left: 0.5rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        background: var(--blue-light, #ede7f6);
-        color: var(--blue-strong, #9575cd);
-        box-shadow: 0 2px 4px var(--badge-shadow-1, #9575cd33);
-    }
-
-    .badge-quantity {
-        position: absolute;
-        bottom: 0.5rem;
-        right: 0.5rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        background: var(--green-xlight, #f8bbd0);
-        color: var(--green-strong, #ba68c8);
-        box-shadow: 0 2px 4px var(--badge-shadow-2, #f8bbd011);
-    }
-
-    .card-body {
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-    }
-
-    .product-title {
-        font-weight: bold;
-        font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-        color: var(--gray-title, #424242);
-        min-height: 2.5rem;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .badge-price {
-        position: absolute;
-        top: 0.5rem;
-        left: 0.5rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        background: var(--gradient-badge-price, linear-gradient(90deg, #f8bbd0 0%, #9575cd 100%));
-        color: white;
-        box-shadow: 0 2px 4px var(--badge-shadow-3, #ba68c833);
-    }
-
-    .badge-price-sale {
-        position: absolute;
-        top: 0.5rem;
-        right: 3rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        background: var(--gradient-badge-sale, linear-gradient(90deg, #9575cd 0%, #ba68c8 100%));
-        color: white;
-        box-shadow: 0 2px 4px var(--badge-shadow-4, #f8bbd011);
-    }
-
-    /* Ajustes para dark mode */
-    .dark .product-card {
-        background: #1f2937;
-        border-color: #374151;
-    }
-
-    .dark .product-card.selected {
-        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-        border-color: #8b5cf6;
-    }
-
-    .dark .product-title {
-        color: #f9fafb;
-    }
-
-    .dark .badge-product-code {
-        background: #374151;
-        color: #9ca3af;
-    }
-
-    .dark .badge-quantity {
-        background: #374151;
-        color: #9ca3af;
-    }
-</style>
 </div>
