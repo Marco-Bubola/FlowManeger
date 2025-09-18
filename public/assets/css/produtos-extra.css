@@ -217,11 +217,11 @@
     .stat-card {
         min-height: 100px;
     }
-    
+
     .action-card {
         padding: 1rem;
     }
-    
+
     .floating-badge {
         animation: none;
     }
@@ -232,11 +232,11 @@
     .stat-card::after {
         background: linear-gradient(45deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
     }
-    
+
     .search-loading::after {
         background: linear-gradient(90deg, transparent, #a855f7, transparent);
     }
-    
+
     .pagination-wrapper::before {
         background: linear-gradient(90deg, transparent, #374151, transparent);
     }
@@ -330,5 +330,252 @@
     to {
         opacity: 1;
         transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* === ESTILOS PARA PÁGINAS DE VENDAS === */
+
+/* Melhorias para stepper de vendas */
+.sales-step-indicator {
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+}
+
+.sales-step-indicator.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transform: scale(1.05);
+}
+
+.sales-step-indicator.completed {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+/* Conectores do stepper para vendas */
+.sales-step-connector {
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.3) 100%);
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+}
+
+.sales-step-connector.completed {
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+}
+
+/* Botões específicos para vendas */
+.sales-btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.sales-btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.sales-btn-primary:hover::before {
+    left: 100%;
+}
+
+.sales-btn-primary:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.sales-btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.sales-btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(255, 255, 255, 0.1);
+}
+
+/* Formulários de vendas */
+.sales-form-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.sales-form-input:focus {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(102, 126, 234, 0.5);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: scale(1.02);
+}
+
+/* Cards de produtos em vendas */
+.sales-product-card {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.sales-product-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.05) 50%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.sales-product-card:hover::before {
+    opacity: 1;
+}
+
+.sales-product-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Tabelas de resumo de vendas */
+.sales-table-container {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.sales-table-header {
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Animações específicas para vendas */
+.sales-fade-in {
+    animation: salesFadeIn 0.5s ease-in-out;
+}
+
+@keyframes salesFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.sales-slide-in {
+    animation: salesSlideIn 0.4s ease-out;
+}
+
+@keyframes salesSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Estados de loading para vendas */
+.sales-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.sales-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: salesShimmer 1.5s infinite;
+}
+
+@keyframes salesShimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+
+/* Responsividade para vendas */
+@media (max-width: 768px) {
+    .sales-btn-primary,
+    .sales-btn-secondary {
+        padding: 12px 16px;
+        font-size: 14px;
+        width: 100%;
+        margin-bottom: 8px;
+    }
+
+    .sales-product-card {
+        margin-bottom: 16px;
+    }
+
+    .sales-form-input {
+        padding: 12px;
+        font-size: 16px; /* Evita zoom no iOS */
+    }
+
+    .sales-step-indicator {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+
+/* Dark mode para vendas */
+@media (prefers-color-scheme: dark) {
+    .sales-form-input {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.1);
+        color: white;
+    }
+
+    .sales-product-card {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .sales-table-container {
+        background: rgba(0, 0, 0, 0.2);
+        border-color: rgba(255, 255, 255, 0.1);
     }
 }
