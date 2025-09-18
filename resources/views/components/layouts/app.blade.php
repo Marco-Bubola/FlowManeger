@@ -29,15 +29,15 @@
     <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
     @livewireStyles
     {{ $slot }}
-    
+
     <!-- Componente de Notificação de Download -->
     @include('components.download-notification')
-    
+
     <!-- Sistema de Notificações Global -->
     @livewire('components.notifications')
-    
+
     @livewireScripts
-    
+
     <!-- Sistema de Notificações Global -->
     <script>
         // Sistema de Notificações Global
@@ -92,7 +92,7 @@
             }
         });
     </script>
-    
+
     <!-- Script para interceptar cliques em botões de exportar PDF -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -110,7 +110,7 @@
             });
         });
     </script>
-    
+
     @yield('scripts')
   </flux:main>
 </x-layouts.app.sidebar>
