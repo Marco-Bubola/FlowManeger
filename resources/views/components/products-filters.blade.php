@@ -14,15 +14,15 @@
 ])
 
 <!-- Painel de Filtros Moderno -->
-<div x-show="showFilters" 
-     x-transition:enter="transition ease-out duration-300" 
-     x-transition:enter-start="opacity-0 transform -translate-y-4" 
-     x-transition:enter-end="opacity-100 transform translate-y-0" 
-     x-transition:leave="transition ease-in duration-200" 
-     x-transition:leave-start="opacity-100 transform translate-y-0" 
+<div x-show="showFilters"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 transform -translate-y-4"
+     x-transition:enter-end="opacity-100 transform translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 transform translate-y-0"
      x-transition:leave-end="opacity-0 transform -translate-y-4"
      class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-white/20 dark:border-slate-700/50 mb-6">
-     
+
     <!-- Header dos Filtros -->
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-4">
@@ -46,7 +46,7 @@
                 <i class="bi bi-filter-circle text-blue-600 dark:text-blue-400"></i>
                 <span class="font-semibold text-blue-800 dark:text-blue-300">{{ $totalProducts }} encontrados</span>
             </div>
-            <button wire:click="clearFilters" 
+            <button wire:click="clearFilters"
                     class="group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-x-circle group-hover:rotate-90 transition-transform duration-200"></i>
                 <span class="hidden sm:inline">Limpar</span>
@@ -69,14 +69,14 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="bi bi-search text-slate-400"></i>
                 </div>
-                <input type="text" 
+                <input type="text"
                        wire:model.live.debounce.300ms="search"
                        placeholder="🔍 Pesquisar produtos, códigos ou descrições..."
                        class="w-full pl-12 pr-12 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
                        {{ $search ? 'border-blue-400 focus:border-blue-500 focus:ring-blue-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
                        focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
                 @if($search)
-                <button wire:click="$set('search', '')" 
+                <button wire:click="$set('search', '')"
                         class="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-red-500 transition-colors duration-200">
                     <i class="bi bi-x-circle text-lg"></i>
                 </button>
@@ -92,7 +92,7 @@
                 </div>
                 Categoria
             </label>
-            <select wire:model.live="category" 
+            <select wire:model.live="category"
                     class="w-full p-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100
                     {{ $category ? 'border-purple-400 focus:border-purple-500 focus:ring-purple-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
@@ -111,7 +111,7 @@
                 </div>
                 Tipo
             </label>
-            <select wire:model.live="tipo" 
+            <select wire:model.live="tipo"
                     class="w-full p-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100
                     {{ $tipo ? 'border-indigo-400 focus:border-indigo-500 focus:ring-indigo-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
@@ -129,7 +129,7 @@
                 </div>
                 Status
             </label>
-            <select wire:model.live="status_filtro" 
+            <select wire:model.live="status_filtro"
                     class="w-full p-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100
                     {{ $status_filtro ? 'border-emerald-400 focus:border-emerald-500 focus:ring-emerald-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-emerald-500 focus:ring-emerald-500/20 hover:border-emerald-300' }}
                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
@@ -148,7 +148,7 @@
                 </div>
                 Ordenação
             </label>
-            <select wire:model.live="ordem" 
+            <select wire:model.live="ordem"
                     class="w-full p-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100
                     {{ $ordem ? 'border-amber-400 focus:border-amber-500 focus:ring-amber-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-amber-500 focus:ring-amber-500/20 hover:border-amber-300' }}
                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
@@ -174,10 +174,10 @@
             </label>
             <div class="relative">
                 <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium">R$</span>
-                <input type="number" 
-                       wire:model.live="preco_min" 
-                       placeholder="0,00" 
-                       step="0.01" 
+                <input type="number"
+                       wire:model.live="preco_min"
+                       placeholder="0,00"
+                       step="0.01"
                        min="0"
                        class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
                        {{ $preco_min ? 'border-green-400 focus:border-green-500 focus:ring-green-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-green-500 focus:ring-green-500/20 hover:border-green-300' }}
@@ -195,10 +195,10 @@
             </label>
             <div class="relative">
                 <span class="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-500 font-medium">R$</span>
-                <input type="number" 
-                       wire:model.live="preco_max" 
-                       placeholder="∞" 
-                       step="0.01" 
+                <input type="number"
+                       wire:model.live="preco_max"
+                       placeholder="∞"
+                       step="0.01"
                        min="0"
                        class="w-full pl-12 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
                        {{ $preco_max ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-red-500 focus:ring-red-500/20 hover:border-red-300' }}
@@ -214,7 +214,7 @@
                 </div>
                 Por Página
             </label>
-            <select wire:model.live="perPage" 
+            <select wire:model.live="perPage"
                     class="w-full p-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100
                     border-slate-200 dark:border-slate-600 focus:border-slate-500 focus:ring-slate-500/20 hover:border-slate-300
                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
@@ -234,7 +234,7 @@
                 <i class="bi bi-x-circle group-hover:rotate-90 transition-transform duration-200"></i>
                 Limpar Filtros
             </button>
-            
+
             <button class="group flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-star group-hover:scale-110 transition-transform duration-200"></i>
                 Salvar Filtro
