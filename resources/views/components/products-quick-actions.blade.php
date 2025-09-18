@@ -3,15 +3,15 @@
 ])
 
 <!-- Ações Rápidas Expandidas -->
-<div x-show="showQuickActions" 
-     x-transition:enter="transition ease-out duration-300" 
-     x-transition:enter-start="opacity-0 transform -translate-y-4" 
-     x-transition:enter-end="opacity-100 transform translate-y-0" 
-     x-transition:leave="transition ease-in duration-200" 
-     x-transition:leave-start="opacity-100 transform translate-y-0" 
+<div x-show="showQuickActions"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 transform -translate-y-4"
+     x-transition:enter-end="opacity-100 transform translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 transform translate-y-0"
      x-transition:leave-end="opacity-0 transform -translate-y-4"
      class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl p-6 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-white/20 dark:border-slate-700/50 mb-6">
-     
+
     <!-- Header das Ações -->
     <div class="flex items-center gap-4 mb-6">
         <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl shadow-lg">
@@ -102,23 +102,23 @@
             <i class="bi bi-check2-square text-purple-600"></i>
             Ações em Massa
         </h4>
-        
+
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-trash3"></i>
                 <span class="text-sm">Excluir Selecionados</span>
             </button>
-            
+
             <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-check-circle"></i>
                 <span class="text-sm">Ativar Selecionados</span>
             </button>
-            
+
             <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-slash-circle"></i>
                 <span class="text-sm">Inativar Selecionados</span>
             </button>
-            
+
             <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-pencil-square"></i>
                 <span class="text-sm">Editar Selecionados</span>
