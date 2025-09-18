@@ -17,12 +17,48 @@ class UploadProducts extends Component
     public $pdf_file;
     public $productsUpload = [];
     public $showProductsTable = false;
+    public $uploadProgress = 0;
+    public $isProcessing = false;
+    public $errorMessage = '';
+    public $successMessage = '';
 
     public function rules()
     {
         return [
             'pdf_file' => 'required|file|mimes:pdf,csv|max:2048',
         ];
+    }
+
+    public function updatedPdfFile()
+    {
+        // Reset states when new file is selected
+        $this->reset(['productsUpload', 'showProductsTable', 'uploadProgress', 'errorMessage', 'successMessage']);
+
+        if ($this->pdf_file) {
+            $this->validateFileType();
+        }
+    }
+
+    public function validateFileType()
+    {
+        $extension = $this->pdf_file->extension();
+        $maxSize = 2048; // 2MB em KB
+        $fileSize = $this->pdf_file->getSize() / 1024; // Converter para KB
+
+        if (!in_array($extension, ['pdf', 'csv'])) {
+            $this->errorMessage = 'Tipo de arquivo não suportado. Use apenas PDF ou CSV.';
+            $this->reset('pdf_file');
+            return false;
+        }
+
+        if ($fileSize > $maxSize) {
+            $this->errorMessage = 'Arquivo muito grande. Máximo permitido: 2MB.';
+            $this->reset('pdf_file');
+            return false;
+        }
+
+        $this->errorMessage = '';
+        return true;
     }
 
     // Método intermediário para compatibilidade Livewire
@@ -37,27 +73,37 @@ class UploadProducts extends Component
         Log::info('Upload método chamado');
         $this->validate();
 
+        // Inicializar estados
+        $this->isProcessing = true;
+        $this->uploadProgress = 10;
+        $this->errorMessage = '';
+        $this->successMessage = '';
+
         // Usa o caminho real do arquivo temporário do Livewire
         $filePath = $this->pdf_file->getRealPath();
         $extension = $this->pdf_file->extension();
-        
+
         Log::info('Arquivo real em: ' . $filePath . ' com extensão: ' . $extension);
 
         $this->productsUpload = [];
+        $this->uploadProgress = 30;
 
         try {
             if ($extension === 'pdf') {
                 Log::info('Processando PDF...');
+                $this->uploadProgress = 40;
+
                 // Processa o PDF usando o caminho real
                 $parser = new Parser();
                 $pdf = $parser->parseFile($filePath);
                 $text = $pdf->getText();
-                
+
+                $this->uploadProgress = 60;
                 Log::info('Texto extraído do PDF (primeiros 500 chars): ' . substr($text, 0, 500));
 
                 // Filtra o texto para pegar apenas os dados entre "OPERAÇÃO" e "PEDIDO Nº"
                 $filteredText = $this->filterText($text);
-                
+
                 Log::info('Texto filtrado: ' . substr($filteredText, 0, 500));
 
                 // Limpa o texto de tabulações e múltiplos espaços
@@ -65,22 +111,27 @@ class UploadProducts extends Component
 
                 // Organize o texto limpo em produtos individuais
                 $productsText = $this->separateProducts($cleanText);
-                
+
+                $this->uploadProgress = 80;
                 Log::info('Produtos separados: ' . json_encode($productsText));
 
                 // Extraí os produtos do texto separado
                 $this->productsUpload = $this->extractProductsFromText($productsText);
-                
+
                 Log::info('Produtos extraídos: ' . count($this->productsUpload));
             } elseif ($extension === 'csv') {
+                $this->uploadProgress = 50;
                 // Processa o CSV usando o caminho real
                 $this->productsUpload = $this->extractProductsFromCsv($filePath);
+                $this->uploadProgress = 80;
             }
 
             // Verifica se algum produto foi extraído
             if (empty($this->productsUpload)) {
                 Log::info('Nenhum produto encontrado');
-                session()->flash('error', 'Nenhum produto encontrado no arquivo.');
+                $this->errorMessage = 'Nenhum produto encontrado no arquivo. Verifique o formato e tente novamente.';
+                $this->isProcessing = false;
+                $this->uploadProgress = 0;
                 return;
             }
 
@@ -92,15 +143,25 @@ class UploadProducts extends Component
                 $this->productsUpload[$key]['price_sale'] = $product['price_sale'] / $product['stock_quantity'];
             }
 
+            $this->uploadProgress = 100;
             $this->showProductsTable = true;
+            $this->successMessage = 'Produtos extraídos com sucesso! Revise os dados abaixo antes de salvar.';
+
             Log::info('Definindo showProductsTable como true');
             Log::info('Valor atual de showProductsTable: ' . ($this->showProductsTable ? 'true' : 'false'));
-            session()->flash('success', 'Produtos extraídos com sucesso! Revise os dados abaixo antes de salvar.');
 
         } catch (\Exception $e) {
             Log::error('Erro ao processar arquivo: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
-            session()->flash('error', 'Erro ao processar o arquivo: ' . $e->getMessage());
+
+            $this->errorMessage = 'Erro ao processar o arquivo: ' . $e->getMessage();
+            $this->isProcessing = false;
+            $this->uploadProgress = 0;
+
+            // Reset states on error
+            $this->reset(['productsUpload', 'showProductsTable']);
+        } finally {
+            $this->isProcessing = false;
         }
     }
 
@@ -117,10 +178,10 @@ class UploadProducts extends Component
 
             // Verificar se há imagem base64 (prioritário) ou temp_image
             $imageData = $product['image_base64'] ?? $product['temp_image'] ?? null;
-            
+
             if (!empty($imageData)) {
                 Log::info("Processando imagem para produto {$index}");
-                
+
                 $type = 'png'; // padrão caso não consiga detectar
                 if (preg_match('/^data:image\/(\w+);base64,/', $imageData, $matches)) {
                     $type = strtolower($matches[1]);
@@ -129,12 +190,12 @@ class UploadProducts extends Component
                     // Se não tem o header data:image, assume que já é base64 puro
                     Log::info("Imagem sem header data:image, assumindo base64 puro");
                 }
-                
+
                 $decodedImageData = base64_decode($imageData);
                 if ($decodedImageData !== false) {
                     $imageName = 'product_' . uniqid() . '.' . $type;
                     $saved = Storage::disk('public')->put('products/' . $imageName, $decodedImageData);
-                    
+
                     if ($saved) {
                         Log::info("Imagem salva com sucesso: {$imageName}");
                     } else {
@@ -208,7 +269,7 @@ class UploadProducts extends Component
         }
 
         session()->flash('success', 'Produtos salvos com sucesso!');
-        
+
         // Reset do formulário
         $this->reset();
 
@@ -237,7 +298,7 @@ class UploadProducts extends Component
             $this->productsUpload[$index]['temp_image'] = $base64Image;
             // Salvar para processamento no backend (store)
             $this->productsUpload[$index]['image_base64'] = $base64Image;
-            
+
             Log::info("Imagem atualizada para produto {$index}");
         }
     }
