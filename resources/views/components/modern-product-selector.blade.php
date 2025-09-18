@@ -11,6 +11,10 @@
     'wireModel' => 'selectedProducts'
 ])
 
+<!-- CSS dos produtos necessário para os cards -->
+<link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+
 <div class="w-full h-[75vh] flex">
     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
     <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col">
@@ -74,7 +78,7 @@
                 </div>
             @else
                 <!-- Grid de Cards de Produtos -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     @foreach($products as $product)
                         <x-modern-product-card
                             :product="$product"
@@ -100,9 +104,9 @@
 </div>
 
 <style>
+    /* Apenas estilos específicos de seleção, sem conflitar com o CSS dos produtos */
     .product-card-modern.selected {
         border-color: #9575cd !important;
-        background: linear-gradient(135deg, #e6e6fa 0%, #d1c4e9 100%);
         transform: scale(1.02);
         box-shadow: 0 8px 32px rgba(149, 117, 205, 0.3) !important;
     }
