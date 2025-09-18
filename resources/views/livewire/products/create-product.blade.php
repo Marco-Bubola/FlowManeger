@@ -1,62 +1,30 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-900 dark:via-blue-900/20 dark:to-indigo-900/20">
-    <!-- Header com Steppers Moderno -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50">
-        <!-- Efeito de brilho sutil -->
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-
-        <div class="relative px-6 py-3">
-            <div class="flex items-center justify-between mb-3">
-                <div class="flex items-center space-x-6">
-                    <!-- Botão voltar melhorado -->
-                    <a href="{{ route('products.index') }}"
-                        class="group relative inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-700 hover:from-blue-50 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 shadow-lg hover:shadow-xl border border-white/50 dark:border-slate-600/50 backdrop-blur-sm">
-                        <i class="bi bi-arrow-left text-xl text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-200"></i>
-                        <!-- Efeito hover ring -->
-                        <div class="absolute inset-0 rounded-2xl bg-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </a>
-
-                    <div class="space-y-1">
-                        <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-800 via-blue-700 to-indigo-700 dark:from-slate-100 dark:via-blue-300 dark:to-indigo-300 bg-clip-text text-transparent flex items-center">
-                            <!-- Ícone animado -->
-                            <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-500 rounded-2xl mr-4 shadow-xl shadow-green-500/25">
-                                <i class="bi bi-plus-lg text-white text-xl animate-pulse"></i>
-                                <!-- Efeito de brilho -->
-                                <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
-                            </div>
-                            Criar Novo Produto
-                        </h1>
-                        <p class="text-lg text-slate-600 dark:text-slate-400 font-medium">
-                            ✨ Adicione um novo produto ao seu catálogo de forma simples e organizada
-                        </p>
-                    </div>
-                </div>
-                  <!-- Steppers usando componente -->
-            <x-stepper
-                :steps="[
-                    [
-                        'title' => 'Informações do Produto',
-                        'description' => 'Nome, preços, estoque e categoria',
-                        'icon' => 'bi-info-circle'
-                    ],
-                    [
-                        'title' => 'Imagem do Produto',
-                        'description' => 'Upload da foto do produto',
-                        'icon' => 'bi-image'
-                    ]
-                ]"
-                :current-step="$currentStep"
-                :show-step-numbers="false"
-            />
-            </div>
-
-
-        </div>
-    </div>
+<div class="">
+    <!-- Header Modernizado -->
+    <x-sales-header
+        title="Criar Novo Produto"
+        description="Adicione um novo produto ao seu catálogo de forma simples e organizada"
+        :back-route="route('products.index')"
+        :current-step="$currentStep ?? 1"
+        :steps="[
+            [
+                'title' => 'Informações',
+                'description' => 'Nome, preços e categoria',
+                'icon' => 'bi-info-circle',
+                'gradient' => 'from-emerald-500 to-teal-500',
+                'connector_gradient' => 'from-emerald-500 to-teal-500'
+            ],
+            [
+                'title' => 'Imagem',
+                'description' => 'Upload da foto',
+                'icon' => 'bi-image',
+                'gradient' => 'from-blue-500 to-indigo-500'
+            ]
+        ]" />
 
     <!-- Conteúdo Principal Moderno -->
     <div class="relative flex-1 overflow-y-auto">
-        <form class="w-full h-full">
-            <div class="px-8 py-6 space-y-6 h-full flex flex-col">
+        <form class="">
+            <div class="px-8  space-y-6 h-full flex flex-col">
 
                 @if($currentStep == 1)
                     <!-- ETAPA 1: Informações do Produto -->
@@ -236,14 +204,7 @@
                             </div>
                         </div>
 
-                        <!-- Seção Preços e Estoque com Componentes Melhorados -->
-                        <div class="bg-gradient-to-r from-slate-50/50 to-blue-50/50 dark:from-slate-800/50 dark:to-blue-900/20 rounded-2xl p-6 border border-slate-200/50 dark:border-slate-700/50">
-                            <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-6 flex items-center">
-                                <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-lg mr-3">
-                                    <i class="bi bi-cash-stack text-white"></i>
-                                </div>
-                                Preços e Estoque
-                            </h3>
+
                             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                                 <!-- Preço de Custo -->
                                 <x-currency-input
@@ -283,7 +244,7 @@
                                     width="w-full"
                                 />
                             </div>
-                        </div>
+
                         </div>
                     </div>
                 @endif
@@ -291,7 +252,7 @@
                 @if($currentStep == 2)
                     <!-- ETAPA 2: Upload de Imagem Moderna -->
                     <div class="flex-1 flex items-center justify-center animate-fadeIn">
-                        <div class="w-full max-w-3xl">
+                        <div class="">
                             <!-- Card Container para Upload -->
                             <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-white/20 dark:border-slate-700/50">
                                 <!-- Título da seção -->
