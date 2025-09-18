@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\SalePayment;
 use App\Models\VendaParcela;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
@@ -28,6 +29,21 @@ class SalesIndex extends Component
     public string $max_value = '';
     public int $perPage = 12;
 
+    // Novos filtros para componentes modernos
+    public string $statusFilter = '';
+    public string $clientFilter = '';
+    public string $startDate = '';
+    public string $endDate = '';
+    public string $minValue = '';
+    public string $maxValue = '';
+    public string $paymentMethodFilter = '';
+    public string $sellerFilter = '';
+    public string $quickFilter = '';
+
+    // Sistema de Ordenação
+    public string $sortBy = 'created_at';
+    public string $sortDirection = 'desc';
+
     // Modal de exclusão
     public ?Sale $deletingSale = null;
     public bool $showDeleteModal = false;
@@ -42,7 +58,8 @@ class SalesIndex extends Component
         'min_value' => ['except' => ''],
         'max_value' => ['except' => ''],
         'perPage' => ['except' => 12],
-        'page' => ['except' => 1],
+        'sortBy' => ['except' => 'created_at'],
+        'sortDirection' => ['except' => 'desc'],
     ];
 
     public function mount()
@@ -71,6 +88,142 @@ class SalesIndex extends Component
     public function updatingFilter()
     {
         $this->resetPage();
+    }
+
+    public function clearFilters()
+    {
+        $this->search = '';
+        $this->status = '';
+        $this->filter = '';
+        $this->payment_type = '';
+        $this->date_start = '';
+        $this->date_end = '';
+        $this->min_value = '';
+        $this->max_value = '';
+        $this->perPage = 12;
+
+        // Limpar também os novos filtros
+        $this->statusFilter = '';
+        $this->clientFilter = '';
+        $this->startDate = '';
+        $this->endDate = '';
+        $this->minValue = '';
+        $this->maxValue = '';
+        $this->paymentMethodFilter = '';
+        $this->sellerFilter = '';
+        $this->quickFilter = '';
+
+        $this->resetPage();
+    }
+
+    public function setQuickFilter($filter)
+    {
+        $this->quickFilter = $filter;
+
+        switch ($filter) {
+            case 'today':
+                $this->startDate = now()->format('Y-m-d');
+                $this->endDate = now()->format('Y-m-d');
+                break;
+            case 'week':
+                $this->startDate = now()->startOfWeek()->format('Y-m-d');
+                $this->endDate = now()->endOfWeek()->format('Y-m-d');
+                break;
+            case 'month':
+                $this->startDate = now()->startOfMonth()->format('Y-m-d');
+                $this->endDate = now()->endOfMonth()->format('Y-m-d');
+                break;
+            case 'pending':
+                $this->statusFilter = 'pending';
+                break;
+            case 'paid':
+                $this->statusFilter = 'paid';
+                break;
+        }
+
+        $this->resetPage();
+    }
+
+    // Métodos de Ordenação
+    public function sortByField($field)
+    {
+        if ($this->sortBy === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDirection = 'asc';
+        }
+        $this->resetPage();
+    }
+
+    public function setSortOrder($field, $direction = 'desc')
+    {
+        $this->sortBy = $field;
+        $this->sortDirection = $direction;
+        $this->resetPage();
+    }
+
+    // Filtros Rápidos Expandidos
+    public function setQuickSearch($searchTerm)
+    {
+        $this->search = $searchTerm;
+        $this->resetPage();
+    }
+
+    public function setQuickDateFilter($period)
+    {
+        switch ($period) {
+            case 'yesterday':
+                $this->startDate = now()->subDay()->format('Y-m-d');
+                $this->endDate = now()->subDay()->format('Y-m-d');
+                break;
+            case 'last_week':
+                $this->startDate = now()->subWeek()->startOfWeek()->format('Y-m-d');
+                $this->endDate = now()->subWeek()->endOfWeek()->format('Y-m-d');
+                break;
+            case 'last_month':
+                $this->startDate = now()->subMonth()->startOfMonth()->format('Y-m-d');
+                $this->endDate = now()->subMonth()->endOfMonth()->format('Y-m-d');
+                break;
+            case 'last_quarter':
+                $this->startDate = now()->subQuarter()->startOfQuarter()->format('Y-m-d');
+                $this->endDate = now()->subQuarter()->endOfQuarter()->format('Y-m-d');
+                break;
+            case 'year':
+                $this->startDate = now()->startOfYear()->format('Y-m-d');
+                $this->endDate = now()->endOfYear()->format('Y-m-d');
+                break;
+        }
+        $this->resetPage();
+    }
+
+    public function setValueRange($range)
+    {
+        switch ($range) {
+            case 'low':
+                $this->minValue = '0';
+                $this->maxValue = '100';
+                break;
+            case 'medium':
+                $this->minValue = '100';
+                $this->maxValue = '500';
+                break;
+            case 'high':
+                $this->minValue = '500';
+                $this->maxValue = '2000';
+                break;
+            case 'premium':
+                $this->minValue = '2000';
+                $this->maxValue = '';
+                break;
+        }
+        $this->resetPage();
+    }
+
+    public function exportSales()
+    {
+        // Implementar exportação de vendas
+        session()->flash('message', 'Exportação iniciada!');
     }
 
     public function confirmDelete($saleId)
@@ -117,7 +270,7 @@ class SalesIndex extends Component
     public function getSalesProperty()
     {
         $userId = Auth::id();
-        
+
         $query = Sale::where('sales.user_id', $userId)
             ->with(['client', 'saleItems.product', 'payments', 'parcelasVenda']);
 
@@ -154,33 +307,62 @@ class SalesIndex extends Component
             $query->where('total_price', '<=', $this->max_value);
         }
 
-        // Ordenação
-        switch ($this->filter) {
-            case 'created_at':
-                $query->orderBy('sales.created_at', 'desc');
+        // Novos filtros modernos
+        if ($this->statusFilter) {
+            $query->where('status', $this->statusFilter);
+        }
+
+        if ($this->clientFilter) {
+            $query->where('client_id', $this->clientFilter);
+        }
+
+        if ($this->startDate) {
+            $query->whereDate('created_at', '>=', $this->startDate);
+        }
+
+        if ($this->endDate) {
+            $query->whereDate('created_at', '<=', $this->endDate);
+        }
+
+        if ($this->minValue) {
+            $query->where('total_price', '>=', $this->minValue);
+        }
+
+        if ($this->maxValue) {
+            $query->where('total_price', '<=', $this->maxValue);
+        }
+
+        if ($this->paymentMethodFilter) {
+            $query->where('tipo_pagamento', $this->paymentMethodFilter);
+        }
+
+        if ($this->sellerFilter) {
+            $query->where('user_id', $this->sellerFilter);
+        }
+
+        // Sistema de Ordenação Avançado
+        switch ($this->sortBy) {
+            case 'id':
+                $query->orderBy('sales.id', $this->sortDirection);
+                break;
+            case 'client_name':
+                $query->join('clients', 'sales.client_id', '=', 'clients.id')
+                      ->orderBy('clients.name', $this->sortDirection)
+                      ->select('sales.*');
+                break;
+            case 'total_price':
+                $query->orderBy('sales.total_price', $this->sortDirection);
+                break;
+            case 'status':
+                $query->orderBy('sales.status', $this->sortDirection);
                 break;
             case 'updated_at':
-                $query->orderBy('sales.updated_at', 'desc');
+                $query->orderBy('sales.updated_at', $this->sortDirection);
                 break;
-            case 'name_asc':
-                $query->join('clients', 'sales.client_id', '=', 'clients.id')
-                      ->orderBy('clients.name', 'asc')
-                      ->select('sales.*');
-                break;
-            case 'name_desc':
-                $query->join('clients', 'sales.client_id', '=', 'clients.id')
-                      ->orderBy('clients.name', 'desc')
-                      ->select('sales.*');
-                break;
-            case 'price_asc':
-                $query->orderBy('sales.total_price', 'asc');
-                break;
-            case 'price_desc':
-                $query->orderBy('sales.total_price', 'desc');
-                break;
+            case 'created_at':
             default:
-                $query->orderByRaw("CASE WHEN status = 'pago' THEN 1 ELSE 0 END")
-                      ->orderBy('created_at', 'desc');
+                $query->orderBy('sales.created_at', $this->sortDirection);
+                break;
         }
 
         return $query->paginate($this->perPage);
@@ -193,9 +375,24 @@ class SalesIndex extends Component
 
     public function render()
     {
+        // Calcular estatísticas para o header
+        $totalSales = Sale::where('user_id', Auth::id())->count();
+        $pendingSales = Sale::where('user_id', Auth::id())->where('status', 'pendente')->count();
+        $todaySales = Sale::where('user_id', Auth::id())->whereDate('created_at', today())->count();
+        $totalRevenue = Sale::where('user_id', Auth::id())->sum('total_price');
+
+        // Coleções para filtros
+        $clients = Client::where('user_id', Auth::id())->get();
+        $sellers = collect(); // Implementar se houver tabela de vendedores
+
         return view('livewire.sales.sales-index', [
             'sales' => $this->sales,
-            'clients' => $this->clients,
+            'clients' => $clients,
+            'sellers' => $sellers,
+            'totalSales' => $totalSales,
+            'pendingSales' => $pendingSales,
+            'todaySales' => $todaySales,
+            'totalRevenue' => $totalRevenue,
         ]);
     }
 
@@ -208,7 +405,7 @@ class SalesIndex extends Component
             ]);
 
             $sale = Sale::with(['client', 'saleItems.product', 'payments'])->findOrFail($saleId);
-            
+
             // Verificar se a venda pertence ao usuário atual
             if ($sale->user_id !== Auth::id()) {
                 $this->dispatch('download-error', [
@@ -218,23 +415,23 @@ class SalesIndex extends Component
             }
 
             $pdf = Pdf::loadView('pdfs.sale', compact('sale'));
-            
+
             // Disparar evento de sucesso
             $this->dispatch('download-completed');
-            
+
             $clientName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $sale->client->name);
             $filename = $clientName . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
             return response()->streamDownload(function () use ($pdf) {
                 echo $pdf->output();
             }, $filename);
-            
+
         } catch (\Exception $e) {
             // Disparar evento de erro
             $this->dispatch('download-error', [
                 'message' => 'Erro ao gerar o PDF: ' . $e->getMessage()
             ]);
-            
-            \Log::error('Erro ao exportar PDF da venda: ' . $e->getMessage());
+
+            Log::error('Erro ao exportar PDF da venda: ' . $e->getMessage());
         }
     }
 }
