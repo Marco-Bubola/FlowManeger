@@ -27,6 +27,7 @@ class ProductsIndex extends Component
     public string $data_inicio = '';
     public string $data_fim = '';
     public string $ordem = '';
+    public bool $sem_imagem = false;
     // public int $perPage = 18; // Removido para evitar duplicidade
 
     // Modal de exclusão
@@ -35,6 +36,10 @@ class ProductsIndex extends Component
 
     public $perPage = 18;
     public $page = 1;
+
+    // Seleção em massa
+    public array $selectedProducts = [];
+    public bool $selectAll = false;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -84,7 +89,91 @@ class ProductsIndex extends Component
         $this->data_inicio = '';
         $this->data_fim = '';
         $this->ordem = '';
+        $this->sem_imagem = false;
         $this->resetPage();
+    }
+
+    public function setQuickFilter($filter)
+    {
+        // Limpar filtros anteriores
+        $this->clearFilters();
+
+        switch ($filter) {
+            case 'baixo-estoque':
+                $this->estoque = 'abaixo';
+                $this->estoque_valor = '10'; // Considera baixo estoque produtos com menos de 10 unidades
+                break;
+
+            case 'sem-imagem':
+                // Filtrar produtos sem imagem personalizada (que usam a imagem padrão)
+                $this->sem_imagem = true;
+                break;
+
+            case 'novos':
+                $this->data_inicio = now()->subDays(7)->format('Y-m-d'); // Produtos dos últimos 7 dias
+                $this->ordem = 'recentes';
+                break;
+
+            case 'kits':
+                $this->tipo = 'kit';
+                break;
+
+            case 'preco-zero':
+                $this->preco_max = '0';
+                break;
+        }
+
+        $this->resetPage();
+    }
+
+    public function toggleSelectAll()
+    {
+        if ($this->selectAll) {
+            $this->selectedProducts = $this->products->pluck('id')->toArray();
+        } else {
+            $this->selectedProducts = [];
+        }
+    }
+
+    public function updatedSelectedProducts()
+    {
+        $this->selectAll = count($this->selectedProducts) === $this->products->count();
+    }
+
+    public function deleteSelected()
+    {
+        if (empty($this->selectedProducts)) {
+            session()->flash('error', 'Nenhum produto selecionado.');
+            return;
+        }
+
+        $products = Product::whereIn('id', $this->selectedProducts)->get();
+
+        foreach ($products as $product) {
+            // Verificar se a imagem do produto não é a imagem padrão
+            if ($product->image && $product->image !== 'product-placeholder.png') {
+                // Excluir a imagem do produto
+                Storage::delete('public/products/' . $product->image);
+            }
+
+            $product->delete();
+        }
+
+        $this->selectedProducts = [];
+        $this->selectAll = false;
+
+        session()->flash('success', count($products) . ' produtos excluídos com sucesso!');
+    }
+
+    public function exportSelected()
+    {
+        if (empty($this->selectedProducts)) {
+            session()->flash('error', 'Nenhum produto selecionado.');
+            return;
+        }
+
+        // Aqui você pode implementar a lógica de exportação
+        session()->flash('info', 'Funcionalidade de exportação em desenvolvimento.');
     }
 
     public function confirmDelete(Product $product)
@@ -177,6 +266,15 @@ class ProductsIndex extends Component
         }
         if (!empty($this->data_fim)) {
             $query->whereDate('created_at', '<=', $this->data_fim);
+        }
+
+        // Filtro para produtos sem imagem personalizada
+        if ($this->sem_imagem) {
+            $query->where(function ($q) {
+                $q->whereNull('image')
+                  ->orWhere('image', '')
+                  ->orWhere('image', 'product-placeholder.png');
+            });
         }
 
         // Ordenação
