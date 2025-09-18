@@ -20,6 +20,7 @@ class EditSale extends Component
     public $selectedProducts = [];
     public $clients = [];
     public $products = [];
+    public $showOnlySelected = false;
 
     // Propriedades reativas específicas para o Livewire
     protected $rules = [
@@ -235,6 +236,19 @@ class EditSale extends Component
 
         session()->flash('message', 'Venda atualizada com sucesso!');
         return redirect()->route('sales.show', $this->sale->id);
+    }
+
+    public function getFilteredProducts()
+    {
+        $query = collect($this->products);
+        
+        // Se showOnlySelected estiver ativo, filtrar apenas produtos selecionados
+        if ($this->showOnlySelected) {
+            $selectedIds = collect($this->selectedProducts)->pluck('product_id')->filter();
+            $query = $query->whereIn('id', $selectedIds);
+        }
+        
+        return $query;
     }
 
     public function render()
