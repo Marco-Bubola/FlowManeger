@@ -15,16 +15,19 @@ class EditSale extends Component
 {
     public Sale $sale;
     public $client_id = '';
+    public $sale_date = '';
     public $tipo_pagamento = 'a_vista';
     public $parcelas = 1;
     public $selectedProducts = [];
     public $clients = [];
     public $products = [];
     public $showOnlySelected = false;
+    public $searchTerm = '';
 
     // Propriedades reativas específicas para o Livewire
     protected $rules = [
         'client_id' => 'required|exists:clients,id',
+        'sale_date' => 'required|date',
         'tipo_pagamento' => 'required|in:a_vista,parcelado',
         'parcelas' => 'nullable|integer|min:1|max:12',
         'selectedProducts' => 'required|array|min:1',
@@ -36,6 +39,8 @@ class EditSale extends Component
     protected $messages = [
         'client_id.required' => 'Selecione um cliente.',
         'client_id.exists' => 'Cliente selecionado não é válido.',
+        'sale_date.required' => 'Data da venda é obrigatória.',
+        'sale_date.date' => 'Data da venda deve ser uma data válida.',
         'tipo_pagamento.required' => 'Tipo de pagamento é obrigatório.',
         'tipo_pagamento.in' => 'Tipo de pagamento deve ser à vista ou parcelado.',
         'parcelas.integer' => 'Número de parcelas deve ser um número inteiro.',
@@ -63,6 +68,7 @@ class EditSale extends Component
 
         // Definir valores da venda
         $this->client_id = $this->sale->client_id;
+        $this->sale_date = $this->sale->sale_date ?? $this->sale->created_at->format('Y-m-d');
         $this->tipo_pagamento = $this->sale->tipo_pagamento ?? 'a_vista';
         $this->parcelas = max(1, $this->sale->parcelas ?? 1); // Garantir que nunca seja 0
 
@@ -95,6 +101,33 @@ class EditSale extends Component
     {
         unset($this->selectedProducts[$index]);
         $this->selectedProducts = array_values($this->selectedProducts);
+    }
+
+    public function toggleProduct($productId)
+    {
+        // Verificar se o produto já está selecionado
+        $existingIndex = null;
+        foreach ($this->selectedProducts as $index => $selectedProduct) {
+            if ($selectedProduct['product_id'] == $productId) {
+                $existingIndex = $index;
+                break;
+            }
+        }
+
+        if ($existingIndex !== null) {
+            // Se já está selecionado, remover
+            $this->removeProduct($existingIndex);
+        } else {
+            // Se não está selecionado, adicionar
+            $product = collect($this->products)->firstWhere('id', $productId);
+            if ($product) {
+                $this->selectedProducts[] = [
+                    'product_id' => (string)$productId,
+                    'quantity' => 1,
+                    'price_sale' => (float)$product->price_sale,
+                ];
+            }
+        }
     }
 
     public function updatedTipoPagamento()
@@ -209,6 +242,7 @@ class EditSale extends Component
         // Atualizar dados da venda
         $this->sale->update([
             'client_id' => $this->client_id,
+            'sale_date' => $this->sale_date,
             'tipo_pagamento' => $this->tipo_pagamento,
             'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->getSafeParcelas() : 1,
             'total_price' => $this->getTotalPrice(),
@@ -241,14 +275,41 @@ class EditSale extends Component
     public function getFilteredProducts()
     {
         $query = collect($this->products);
-        
+
+        // Filtrar por termo de busca
+        if ($this->searchTerm) {
+            $searchTerm = strtolower($this->searchTerm);
+            $query = $query->filter(function($product) use ($searchTerm) {
+                return str_contains(strtolower($product->name), $searchTerm) ||
+                       str_contains(strtolower($product->product_code), $searchTerm) ||
+                       ($product->category && str_contains(strtolower($product->category->name), $searchTerm));
+            });
+        }
+
         // Se showOnlySelected estiver ativo, filtrar apenas produtos selecionados
         if ($this->showOnlySelected) {
             $selectedIds = collect($this->selectedProducts)->pluck('product_id')->filter();
             $query = $query->whereIn('id', $selectedIds);
         }
-        
+
         return $query;
+    }
+
+    public function incrementQuantity($index)
+    {
+        if (isset($this->selectedProducts[$index])) {
+            $this->selectedProducts[$index]['quantity'] = ($this->selectedProducts[$index]['quantity'] ?? 0) + 1;
+        }
+    }
+
+    public function decrementQuantity($index)
+    {
+        if (isset($this->selectedProducts[$index])) {
+            $currentQuantity = $this->selectedProducts[$index]['quantity'] ?? 1;
+            if ($currentQuantity > 1) {
+                $this->selectedProducts[$index]['quantity'] = $currentQuantity - 1;
+            }
+        }
     }
 
     public function render()
