@@ -17,18 +17,21 @@ class ClientsIndex extends Component
     // Filtros
     public string $search = '';
     public string $filter = '';
-    public int $perPage = 16;
+    public int $perPage = 12;
     public int $month;
     public int $year;
 
     // Novos filtros avançados
     public string $statusFilter = '';
     public string $periodFilter = '';
+    public string $dateFilter = '';
+    public string $sortBy = 'name';
+    public string $sortDirection = 'asc';
     public string $minValue = '';
     public string $maxValue = '';
     public string $minSales = '';
     public string $maxSales = '';
-    
+
     // Propriedades para ações em massa
     public $selectedClients = [];
     public $selectAll = false;
@@ -53,8 +56,7 @@ class ClientsIndex extends Component
         'filter' => ['except' => ''],
         'statusFilter' => ['except' => ''],
         'periodFilter' => ['except' => ''],
-        'perPage' => ['except' => 16],
-        'page' => ['except' => 1],
+        'perPage' => ['except' => 12],
     ];
 
     public function mount(): void
@@ -195,7 +197,7 @@ class ClientsIndex extends Component
         $client = Client::where('id', $clientId)
                        ->where('user_id', Auth::id())
                        ->first();
-        
+
         if ($client) {
             $this->deletingClient = $client;
             $this->clientToDelete = $clientId;
@@ -209,7 +211,7 @@ class ClientsIndex extends Component
             // Verificar se o cliente pertence ao usuário autenticado
             if ($this->deletingClient->user_id === Auth::id()) {
                 $this->deletingClient->delete();
-                
+
                 session()->flash('message', 'Cliente deletado com sucesso!');
             } else {
                 session()->flash('error', 'Você não tem permissão para deletar este cliente.');
@@ -248,7 +250,7 @@ class ClientsIndex extends Component
         if ($this->selectAll) {
             // Buscar IDs dos clientes da página atual
             $query = Client::where('user_id', Auth::id());
-            
+
             if ($this->search) {
                 $query->where(function($q) {
                     $q->where('name', 'like', '%' . $this->search . '%')
@@ -257,7 +259,7 @@ class ClientsIndex extends Component
                       ->orWhere('city', 'like', '%' . $this->search . '%');
                 });
             }
-            
+
             $this->selectedClients = $query->pluck('id')->toArray();
         } else {
             $this->selectedClients = [];
@@ -277,10 +279,10 @@ class ClientsIndex extends Component
             $deletedCount = Client::whereIn('id', $this->selectedClients)
                   ->where('user_id', Auth::id())
                   ->delete();
-            
+
             $this->selectedClients = [];
             $this->selectAll = false;
-            
+
             session()->flash('message', $deletedCount . ' clientes deletados com sucesso!');
             $this->resetPage();
         }
@@ -298,39 +300,39 @@ class ClientsIndex extends Component
     public function getClientStatsProperty()
     {
         $stats = collect();
-        
+
         // Total de clientes
         $stats->put('total', Client::where('user_id', Auth::id())->count());
-        
+
         // Clientes novos este mês
         $stats->put('new_this_month', Client::where('user_id', Auth::id())
             ->where('created_at', '>=', now()->startOfMonth())
             ->count());
-            
+
         // Clientes VIP (10+ compras)
         $stats->put('vip', Client::where('user_id', Auth::id())
             ->withCount('sales')
             ->having('sales_count', '>=', 10)
             ->count());
-            
+
         // Total de vendas de todos os clientes
-        $stats->put('total_sales', Sale::whereIn('client_id', 
+        $stats->put('total_sales', Sale::whereIn('client_id',
             Client::where('user_id', Auth::id())->pluck('id')
         )->sum('total'));
-        
+
         // Média de vendas por cliente
         $clientsWithSales = Client::where('user_id', Auth::id())
             ->whereHas('sales')
             ->count();
-        $stats->put('avg_sales_per_client', $clientsWithSales > 0 ? 
+        $stats->put('avg_sales_per_client', $clientsWithSales > 0 ?
             $stats->get('total_sales') / $clientsWithSales : 0);
-            
+
         // Última venda
-        $lastSale = Sale::whereIn('client_id', 
+        $lastSale = Sale::whereIn('client_id',
             Client::where('user_id', Auth::id())->pluck('id')
         )->latest()->first();
         $stats->put('last_sale', $lastSale ? $lastSale->created_at->diffForHumans() : 'Nenhuma venda');
-        
+
         return $stats;
     }
 
@@ -364,6 +366,16 @@ class ClientsIndex extends Component
         // Filtro por status
         if (!empty($this->statusFilter)) {
             switch ($this->statusFilter) {
+                case 'ativo':
+                    $query->whereHas('sales', function($q) {
+                        $q->where('created_at', '>=', now()->subDays(30));
+                    });
+                    break;
+                case 'inativo':
+                    $query->whereDoesntHave('sales', function($q) {
+                        $q->where('created_at', '>=', now()->subDays(30));
+                    });
+                    break;
                 case 'vip':
                     $query->withCount('sales')->having('sales_count', '>=', 10);
                     break;
@@ -461,5 +473,80 @@ class ClientsIndex extends Component
         return view('livewire.clients.clients-index', [
             'clients' => $clients
         ]);
+    }
+
+    /**
+     * Define pesquisa rápida
+     */
+    public function setQuickSearch($type)
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->periodFilter = '';
+
+        switch ($type) {
+            case 'ativo':
+                $this->statusFilter = 'ativo';
+                break;
+            case 'premium':
+                $this->statusFilter = 'premium';
+                break;
+            case 'inativo':
+                $this->statusFilter = 'inativo';
+                break;
+            case 'recente':
+                $this->periodFilter = 'mes';
+                break;
+            case 'mais_compras':
+                $this->filter = 'mais_compras';
+                break;
+        }
+
+        $this->resetPage();
+    }
+
+    /**
+     * Limpa todos os filtros
+     */
+    public function clearFilters()
+    {
+        $this->search = '';
+        $this->statusFilter = '';
+        $this->periodFilter = '';
+        $this->minValue = '';
+        $this->maxValue = '';
+        $this->minSales = '';
+        $this->maxSales = '';
+        $this->filter = '';
+        $this->resetPage();
+    }
+
+    /**
+     * Propriedades computadas para estatísticas
+     */
+    public function getActiveClientsProperty()
+    {
+        // Cliente ativo = teve vendas nos últimos 30 dias
+        return Client::where('user_id', Auth::id())
+                    ->whereHas('sales', function($query) {
+                        $query->where('created_at', '>=', now()->subDays(30));
+                    })
+                    ->count();
+    }
+
+    public function getPremiumClientsProperty()
+    {
+        // Cliente premium = 5 ou mais vendas
+        return Client::where('user_id', Auth::id())
+                    ->withCount('sales')
+                    ->having('sales_count', '>=', 5)
+                    ->count();
+    }
+
+    public function getNewClientsThisMonthProperty()
+    {
+        return Client::where('user_id', Auth::id())
+                    ->where('created_at', '>=', now()->startOfMonth())
+                    ->count();
     }
 }
