@@ -1,12 +1,13 @@
-<div class="flex h-full w-full flex-1 flex-col gap-6 p-6" x-data="{
-    showFilters: false,
-    showQuickActions: false,
-    hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }}
-}">
-    <!-- Custom CSS para manter o estilo dos cards -->
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos-compact.css') }}">
+<div class="flex h-full w-full flex-1 flex-col gap-6 p-6"
+     x-data="{
+        showFilters: false,
+        showQuickActions: false,
+        hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }}
+     }">
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    @endpush
 
     <!-- Header Modernizado -->
     <x-products-header
@@ -302,7 +303,10 @@
                 <a href="{{ route('products.edit', $product) }}" class="btn btn-primary" title="Editar">
                     <i class="bi bi-pencil-square"></i>
                 </a>
-                <button type="button" wire:click="confirmDelete({{ $product }})" class="btn btn-danger" title="Excluir">
+                <button type="button"
+                        wire:click="confirmDelete({{ $product->id }})"
+                        class="btn btn-danger"
+                        title="Excluir">
                     <i class="bi bi-trash3"></i>
                 </button>
             </div>
@@ -385,7 +389,7 @@
                 <button class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
                     <i class="bi bi-files"></i> Duplicar
                 </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
+                <button wire:click="confirmDeleteSelected" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
                     <i class="bi bi-trash3"></i> Excluir
                 </button>
                 <button @click="selectedCount = 0" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200">
@@ -561,12 +565,11 @@
         </div>
     </div>
     @endif
-</div>
 
-<!-- Modal de Confirmação de Exclusão aprimorado -->
-@if($showDeleteModal)
-<div class="modal-overlay fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-    <div class="modal-content bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+    <!-- Modal de Confirmação de Exclusão aprimorado -->
+    @if($showDeleteModal)
+    <div class="modal-overlay fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="z-index: 99999 !important;">
+    <div class="modal-content bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-2xl max-w-md w-full mx-4 overflow-hidden" style="z-index: 100000 !important;">
         <!-- Header do modal -->
         <div class="bg-gradient-to-r from-red-500 to-pink-600 p-6 text-white">
             <div class="flex items-center justify-center mb-4">
@@ -580,9 +583,15 @@
 
         <!-- Corpo do modal -->
         <div class="p-6">
-            <p class="text-neutral-700 dark:text-neutral-300 text-center mb-6">
-                Tem certeza que deseja excluir o produto <strong>"{{ $deletingProduct->name ?? '' }}"</strong>?
-            </p>
+            @if(count($selectedProducts) > 0)
+                <p class="text-neutral-700 dark:text-neutral-300 text-center mb-6">
+                    Tem certeza que deseja excluir <strong>{{ count($selectedProducts) }} produto(s) selecionado(s)</strong>?
+                </p>
+            @else
+                <p class="text-neutral-700 dark:text-neutral-300 text-center mb-6">
+                    Tem certeza que deseja excluir o produto <strong>"{{ $deletingProduct->name ?? '' }}"</strong>?
+                </p>
+            @endif
 
             <div class="flex gap-4 justify-center">
                 <button wire:click="$set('showDeleteModal', false)"
@@ -596,5 +605,5 @@
             </div>
         </div>
     </div>
+    @endif
 </div>
-@endif
