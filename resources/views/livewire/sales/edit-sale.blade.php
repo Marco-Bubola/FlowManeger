@@ -280,7 +280,19 @@
                                 <!-- Produto com CSS customizado mantido -->
                                 <div class="product-card-modern {{ $isSelected ? 'selected' : '' }}"
                                      wire:click="toggleProduct({{ $product->id }})"
-                                     style="cursor: pointer;">
+                                     wire:key="product-{{ $product->id }}">
+
+                                    <!-- Toggle de seleção estilizado -->
+                                    <div class="btn-action-group flex gap-2">
+                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer
+                                                    {{ $isSelected
+                                                        ? 'bg-purple-600 border-purple-600 text-white'
+                                                        : 'bg-white border-gray-300 text-transparent hover:border-purple-400' }}">
+                                            @if($isSelected)
+                                            <i class="bi bi-check text-sm"></i>
+                                            @endif
+                                        </div>
+                                    </div>
 
                                     <!-- Área da imagem com badges -->
                                     <div class="product-img-area">
@@ -288,29 +300,27 @@
                                              alt="{{ $product->name }}"
                                              class="product-img">
 
-                                        <!-- Badge da categoria -->
-                                        @if($product->category)
-                                        <span class="badge-category">
-                                            {{ $product->category->name }}
-                                        </span>
+                                        @if($product->stock_quantity <= 5)
+                                        <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
+                                            <i class="bi bi-exclamation-triangle mr-1"></i>
+                                            Baixo estoque
+                                        </div>
                                         @endif
 
-                                        <!-- Badge do código do produto -->
+                                        <!-- Código do produto -->
                                         <span class="badge-product-code">
-                                            #{{ $product->code }}
+                                            <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
                                         </span>
 
-                                        <!-- Badge de selecionado -->
-                                        @if($isSelected)
-                                        <span class="badge-selected">
-                                            <i class="bi bi-check-circle-fill"></i>
+                                        <!-- Quantidade em estoque -->
+                                        <span class="badge-quantity">
+                                            <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
                                         </span>
-                                        @endif
 
                                         <!-- Ícone da categoria -->
                                         @if($product->category)
                                         <div class="category-icon-wrapper">
-                                            <i class="bi bi-tag category-icon"></i>
+                                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
                                         </div>
                                         @endif
                                     </div>
@@ -318,19 +328,20 @@
                                     <!-- Conteúdo do card -->
                                     <div class="card-body">
                                         <div class="product-title" title="{{ $product->name }}">
-                                            {{ $product->name }}
+                                            {{ ucwords($product->name) }}
                                         </div>
 
                                         <!-- Área dos preços -->
                                         <div class="price-area">
-                                            <div class="price-current">
-                                                R$ {{ number_format($product->price, 2, ',', '.') }}
-                                            </div>
-                                            @if($product->original_price && $product->original_price > $product->price)
-                                            <div class="price-original">
-                                                R$ {{ number_format($product->original_price, 2, ',', '.') }}
-                                            </div>
-                                            @endif
+                                            <span class="badge-price" title="Preço de Custo">
+                                                <i class="bi bi-tag"></i>
+                                                {{ number_format($product->price, 2, ',', '.') }}
+                                            </span>
+
+                                            <span class="badge-price-sale" title="Preço de Venda">
+                                                <i class="bi bi-currency-dollar"></i>
+                                                {{ number_format($product->price_sale, 2, ',', '.') }}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -362,70 +373,86 @@
                             </p>
                         </div>
                         @else
-                        <div class="p-2 space-y-2">
+                        <div class="p-2 space-y-3">
                             @foreach($selectedProducts as $index => $productItem)
                             @php
-                            $selectedProduct = $this->getFilteredProducts()->find($productItem['product_id']);
+                            $selectedProduct = $this->getFilteredProducts()->firstWhere('id', $productItem['product_id']);
                             @endphp
 
                             @if($selectedProduct)
-                            <div class="bg-white dark:bg-zinc-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-zinc-700">
-                                <!-- Header do produto -->
-                                <div class="flex items-start justify-between mb-2">
+                            <!-- Card de produto selecionado modernizado -->
+                            <div class="bg-gradient-to-r from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-zinc-700 hover:shadow-md transition-all duration-200">
+                                <!-- Header do produto com imagem -->
+                                <div class="flex items-center mb-3">
+                                    <div class="flex-shrink-0 mr-3">
+                                        <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
+                                             alt="{{ $selectedProduct->name }}"
+                                             class="w-10 h-10 rounded-lg object-cover ring-2 ring-purple-200 dark:ring-purple-700">
+                                    </div>
                                     <div class="flex-1 min-w-0">
-                                        <h4 class="text-xs font-semibold text-gray-900 dark:text-white truncate" title="{{ $selectedProduct->name }}">
+                                        <h4 class="text-xs font-bold text-gray-900 dark:text-white truncate" title="{{ $selectedProduct->name }}">
                                             {{ $selectedProduct->name }}
                                         </h4>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                                            {{ $selectedProduct->code }}
-                                        </p>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                                #{{ $selectedProduct->product_code }}
+                                            </p>
+                                            <button type="button"
+                                                    wire:click="removeProduct({{ $index }})"
+                                                    class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded transition-colors">
+                                                <i class="bi bi-trash text-xs"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    <button type="button"
-                                            wire:click="removeProduct({{ $index }})"
-                                            class="text-red-500 hover:text-red-700 ml-2">
-                                        <i class="bi bi-trash text-xs"></i>
-                                    </button>
                                 </div>
 
-                                <!-- Controles -->
-                                <div class="space-y-2">
+                                <!-- Controles em grid -->
+                                <div class="grid grid-cols-2 gap-3">
                                     <!-- Quantidade -->
                                     <div>
-                                        <label class="text-xs text-gray-600 dark:text-gray-400">Quantidade</label>
-                                        <div class="flex items-center space-x-1 mt-1">
+                                        <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Quantidade</label>
+                                        <div class="flex items-center space-x-1">
                                             <button type="button"
                                                     wire:click="decrementQuantity({{ $index }})"
-                                                    class="w-6 h-6 bg-gray-200 dark:bg-zinc-600 text-gray-600 dark:text-gray-300 rounded text-xs font-bold hover:bg-gray-300 dark:hover:bg-zinc-500 transition-colors">
-                                                -
+                                                    class="w-7 h-7 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-lg text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-900 transition-colors flex items-center justify-center">
+                                                <i class="bi bi-dash"></i>
                                             </button>
                                             <input type="number"
                                                    wire:model.blur="selectedProducts.{{ $index }}.quantity"
                                                    min="1"
-                                                   class="w-12 h-6 text-center text-xs border border-gray-200 dark:border-zinc-600 rounded bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                                                   class="w-12 h-7 text-center text-xs border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                             <button type="button"
                                                     wire:click="incrementQuantity({{ $index }})"
-                                                    class="w-6 h-6 bg-gray-200 dark:bg-zinc-600 text-gray-600 dark:text-gray-300 rounded text-xs font-bold hover:bg-gray-300 dark:hover:bg-zinc-500 transition-colors">
-                                                +
+                                                    class="w-7 h-7 bg-purple-100 dark:bg-purple-900/50 text-purple-600 dark:text-purple-400 rounded-lg text-xs font-bold hover:bg-purple-200 dark:hover:bg-purple-900 transition-colors flex items-center justify-center">
+                                                <i class="bi bi-plus"></i>
                                             </button>
                                         </div>
                                     </div>
 
                                     <!-- Preço Unitário -->
                                     <div>
-                                        <label class="text-xs text-gray-600 dark:text-gray-400">Preço Unit.</label>
-                                        <input type="text"
-                                               wire:model.blur="selectedProducts.{{ $index }}.unit_price"
-                                               class="w-full text-xs border border-gray-200 dark:border-zinc-600 rounded px-2 py-1 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white mt-1">
-                                    </div>
-
-                                    <!-- Total do item -->
-                                    <div class="bg-gray-50 dark:bg-zinc-700 rounded p-2">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-xs text-gray-600 dark:text-gray-400">Total:</span>
-                                            <span class="text-xs font-bold text-green-600 dark:text-green-400">
-                                                R$ {{ number_format(($productItem['quantity'] ?? 0) * (floatval(str_replace(',', '.', str_replace('.', '', $productItem['unit_price'] ?? '0'))) ?: 0), 2, ',', '.') }}
-                                            </span>
+                                        <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Preço Unit.</label>
+                                        <div class="relative">
+                                            <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">R$</span>
+                                            <input type="number"
+                                                   wire:model.blur="selectedProducts.{{ $index }}.price_sale"
+                                                   step="0.01"
+                                                   min="0"
+                                                   class="w-full h-7 text-xs border border-gray-300 dark:border-zinc-600 rounded-lg pl-7 pr-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                         </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total do item destacado -->
+                                <div class="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-2 border border-green-200 dark:border-green-700">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs text-green-700 dark:text-green-300 font-medium flex items-center">
+                                            <i class="bi bi-calculator mr-1"></i>
+                                            Subtotal:
+                                        </span>
+                                        <span class="text-sm font-bold text-green-600 dark:text-green-400">
+                                            R$ {{ number_format(($productItem['quantity'] ?? 0) * ($productItem['price_sale'] ?? 0), 2, ',', '.') }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -477,199 +504,6 @@
                     </div>
                 </div>
             </div>
-
-                    <!-- Produtos -->
-                    <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-8">
-                        <div class="flex items-center justify-between mb-8">
-                            <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                                <i class="bi bi-box text-indigo-600 dark:text-indigo-400 mr-3"></i>
-                                Produtos da Venda
-                            </h2>
-                            <div class="flex items-center space-x-4">
-                                <span class="text-sm text-gray-600 dark:text-gray-400">
-                                    {{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'produto' : 'produtos' }}
-                                </span>
-                                <button type="button"
-                                        wire:click="addProduct"
-                                        class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                    <i class="bi bi-plus-lg mr-2"></i>
-                                    Adicionar Produto
-                                </button>
-                            </div>
-                        </div>
-
-                        @error('selectedProducts')
-                            <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-400 rounded-lg">
-                                <div class="flex items-center">
-                                    <i class="bi bi-exclamation-triangle text-red-500 mr-2"></i>
-                                    <p class="text-sm text-red-600 dark:text-red-400 font-medium">{{ $message }}</p>
-                                </div>
-                            </div>
-                        @enderror
-
-                        <div class="space-y-6">
-                            @foreach($selectedProducts as $index => $product)
-                                <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-zinc-700 dark:to-zinc-600 rounded-2xl p-6 border-2 border-gray-200 dark:border-zinc-600 hover:shadow-lg transition-all duration-300">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                            <i class="bi bi-tag text-indigo-500 mr-2"></i>
-                                            Produto #{{ $index + 1 }}
-                                        </h3>
-                                        <button type="button"
-                                                wire:click="removeProduct({{ $index }})"
-                                                class="inline-flex items-center justify-center w-10 h-10 border-2 border-red-300 dark:border-red-600 text-sm font-medium rounded-xl text-red-700 dark:text-red-400 bg-white dark:bg-zinc-600 hover:bg-red-50 dark:hover:bg-red-900/20 focus:outline-none focus:ring-4 focus:ring-red-500/30 transition-all duration-300 hover:scale-110">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <!-- Produto -->
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                <i class="bi bi-box-seam text-blue-500 mr-2"></i>Produto *
-                                            </label>
-                                            <select wire:model="selectedProducts.{{ $index }}.product_id"
-                                                    class="w-full px-4 py-3 border-2 border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-zinc-600 text-gray-900 dark:text-white shadow-md hover:shadow-lg @error('selectedProducts.'.$index.'.product_id') !border-red-400 !ring-4 !ring-red-500/20 @enderror">
-                                                <option value="">Selecione um produto...</option>
-                                                @foreach($products as $prod)
-                                                    <option value="{{ $prod->id }}">{{ $prod->name }} (Estoque: {{ $prod->stock_quantity }})</option>
-                                                @endforeach
-                                            </select>
-                                            @error('selectedProducts.'.$index.'.product_id')
-                                                <div class="flex items-center mt-2 text-xs text-red-600">
-                                                    <i class="bi bi-exclamation-triangle mr-1"></i>
-                                                    {{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Quantidade -->
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                <i class="bi bi-plus-slash-minus text-green-500 mr-2"></i>Quantidade *
-                                            </label>
-                                            <div class="relative">
-                                                <input type="number"
-                                                       wire:model="selectedProducts.{{ $index }}.quantity"
-                                                       min="1"
-                                                       class="w-full px-4 py-3 border-2 border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-zinc-600 text-gray-900 dark:text-white shadow-md hover:shadow-lg @error('selectedProducts.'.$index.'.quantity') !border-red-400 !ring-4 !ring-red-500/20 @enderror">
-                                                <div class="absolute inset-y-0 right-0 flex items-center pr-3">
-                                                    <i class="bi bi-hash text-gray-400"></i>
-                                                </div>
-                                            </div>
-                                            @error('selectedProducts.'.$index.'.quantity')
-                                                <div class="flex items-center mt-2 text-xs text-red-600">
-                                                    <i class="bi bi-exclamation-triangle mr-1"></i>
-                                                    {{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
-
-                                        <!-- Preço de Venda -->
-                                        <div class="space-y-2">
-                                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300">
-                                                <i class="bi bi-currency-dollar text-yellow-500 mr-2"></i>Preço de Venda *
-                                            </label>
-                                            <div class="relative">
-                                                <input type="number"
-                                                       wire:model="selectedProducts.{{ $index }}.price_sale"
-                                                       step="0.01"
-                                                       min="0"
-                                                       class="w-full px-4 py-3 pl-12 border-2 border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-zinc-600 text-gray-900 dark:text-white shadow-md hover:shadow-lg @error('selectedProducts.'.$index.'.price_sale') !border-red-400 !ring-4 !ring-red-500/20 @enderror">
-                                                <div class="absolute inset-y-0 left-0 flex items-center pl-3">
-                                                    <span class="text-gray-500 sm:text-sm">R$</span>
-                                                </div>
-                                                <div class="absolute inset-y-0 left-8 flex items-center">
-                                                    <div class="h-6 border-l border-gray-300 dark:border-zinc-500"></div>
-                                                </div>
-                                            </div>
-                                            @error('selectedProducts.'.$index.'.price_sale')
-                                                <div class="flex items-center mt-2 text-xs text-red-600">
-                                                    <i class="bi bi-exclamation-triangle mr-1"></i>
-                                                    {{ $message }}
-                                                </div>
-                                            @enderror
-                                        </div>
-                                    </div>
-
-                                    <!-- Informações do Produto Selecionado -->
-                                    @if($product['product_id'])
-                                        @php
-                                            $selectedProduct = collect($products)->firstWhere('id', $product['product_id']);
-                                        @endphp
-                                        @if($selectedProduct)
-                                            <div class="mt-6 pt-6 border-t-2 border-gray-200 dark:border-zinc-600">
-                                                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-md">
-                                                        <div class="flex items-center justify-between">
-                                                            <div>
-                                                                <p class="text-xs text-gray-600 dark:text-gray-400">Preço Original</p>
-                                                                <p class="text-lg font-bold text-gray-900 dark:text-white">R$ {{ number_format($selectedProduct->price_sale, 2, ',', '.') }}</p>
-                                                            </div>
-                                                            <i class="bi bi-tag text-2xl text-blue-500"></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-md">
-                                                        <div class="flex items-center justify-between">
-                                                            <div>
-                                                                <p class="text-xs text-gray-600 dark:text-gray-400">Estoque</p>
-                                                                <p class="text-lg font-bold {{ $selectedProduct->stock_quantity <= 10 ? 'text-red-600' : 'text-green-600' }}">
-                                                                    {{ $selectedProduct->stock_quantity }}
-                                                                </p>
-                                                            </div>
-                                                            <i class="bi bi-boxes text-2xl {{ $selectedProduct->stock_quantity <= 10 ? 'text-red-500' : 'text-green-500' }}"></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-md">
-                                                        <div class="flex items-center justify-between">
-                                                            <div>
-                                                                <p class="text-xs text-gray-600 dark:text-gray-400">Subtotal</p>
-                                                                <p class="text-lg font-bold text-indigo-600 dark:text-indigo-400">
-                                                                    R$ {{ number_format(($product['quantity'] ?? 0) * ($product['price_sale'] ?? 0), 2, ',', '.') }}
-                                                                </p>
-                                                            </div>
-                                                            <i class="bi bi-calculator text-2xl text-indigo-500"></i>
-                                                        </div>
-                                                    </div>
-                                                    <div class="bg-white dark:bg-zinc-800 rounded-lg p-4 shadow-md">
-                                                        <div class="flex items-center justify-between">
-                                                            <div>
-                                                                <p class="text-xs text-gray-600 dark:text-gray-400">Margem</p>
-                                                                @php
-                                                                    $margin = $product['price_sale'] ? (($product['price_sale'] - $selectedProduct->price) / $product['price_sale']) * 100 : 0;
-                                                                @endphp
-                                                                <p class="text-lg font-bold {{ $margin > 0 ? 'text-green-600' : 'text-red-600' }}">
-                                                                    {{ number_format($margin, 1) }}%
-                                                                </p>
-                                                            </div>
-                                                            <i class="bi bi-graph-up text-2xl {{ $margin > 0 ? 'text-green-500' : 'text-red-500' }}"></i>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    @endif
-                                </div>
-                            @endforeach
-
-                            @if(empty($selectedProducts))
-                                <div class="text-center py-16 text-gray-500 dark:text-gray-400">
-                                    <div class="bg-gray-100 dark:bg-zinc-700 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
-                                        <i class="bi bi-box text-5xl"></i>
-                                    </div>
-                                    <h3 class="text-xl font-semibold mb-2">Nenhum produto adicionado</h3>
-                                    <p class="text-sm mb-6">Clique em "Adicionar Produto" para começar a editar os itens da venda.</p>
-                                    <button type="button"
-                                            wire:click="addProduct"
-                                            class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-xl text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 transition-all duration-300 shadow-lg hover:shadow-xl">
-                                        <i class="bi bi-plus-lg mr-2"></i>
-                                        Adicionar Primeiro Produto
-                                    </button>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
 
             <!-- Step 3: Resumo e Finalização - Layout em duas colunas -->
             <div x-show="currentStep === 3"
