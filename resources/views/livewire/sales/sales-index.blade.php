@@ -6,7 +6,7 @@
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
 
         <!-- Header Moderno -->
-        <x-sales-header
+        <x-sales-index-header
             title="Vendas"
             :total-sales="$totalSales ?? 0"
             :pending-sales="$pendingSales ?? 0"
