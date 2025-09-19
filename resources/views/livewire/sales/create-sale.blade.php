@@ -110,62 +110,73 @@
                                     @enderror
                                 </div>
 
-                                <!-- Data da Venda -->
-                                <div>
-                                    <label for="sale_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        <i class="bi bi-calendar text-gray-400 mr-2"></i>Data da Venda *
-                                    </label>
-                                    <input type="date"
-                                        wire:model="sale_date"
-                                        id="sale_date"
-                                        class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('sale_date') border-red-300 @enderror">
-                                    @error('sale_date')
-                                    <p class="mt-2 text-sm text-red-600 flex items-center">
-                                        <i class="bi bi-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-                                </div>
+                                <!-- Grid de 3 colunas: Data / Tipo de Pagamento / Parcelamento -->
+                                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <!-- Data da Venda -->
+                                    <div>
+                                        <label for="sale_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                            <i class="bi bi-calendar text-gray-400 mr-2"></i>Data da Venda *
+                                        </label>
+                                        <input type="date"
+                                            wire:model="sale_date"
+                                            id="sale_date"
+                                            class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('sale_date') border-red-300 @enderror">
+                                        @error('sale_date')
+                                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                                            <i class="bi bi-exclamation-triangle mr-1"></i>
+                                            {{ $message }}
+                                        </p>
+                                        @enderror
+                                    </div>
 
-                                <!-- Tipo de Pagamento -->
-                                <div>
-                                    <label for="tipo_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        <i class="bi bi-credit-card text-gray-400 mr-2"></i>Tipo de Pagamento *
-                                    </label>
-                                    <select wire:model="tipo_pagamento"
-                                        id="tipo_pagamento"
-                                        class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('tipo_pagamento') border-red-300 @enderror">
-                                        <option value="a_vista">À Vista</option>
-                                        <option value="parcelado">Parcelado</option>
-                                    </select>
-                                    @error('tipo_pagamento')
-                                    <p class="mt-2 text-sm text-red-600 flex items-center">
-                                        <i class="bi bi-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-                                </div>
+                                    <!-- Tipo de Pagamento -->
+                                    <div>
+                                        <label for="tipo_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                            <i class="bi bi-credit-card text-gray-400 mr-2"></i>Tipo de Pagamento *
+                                        </label>
+                                        <select wire:model.live="tipo_pagamento"
+                                            id="tipo_pagamento"
+                                            class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('tipo_pagamento') border-red-300 @enderror">
+                                            <option value="a_vista">À Vista</option>
+                                            <option value="parcelado">Parcelado</option>
+                                        </select>
+                                        @error('tipo_pagamento')
+                                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                                            <i class="bi bi-exclamation-triangle mr-1"></i>
+                                            {{ $message }}
+                                        </p>
+                                        @enderror
+                                    </div>
 
-                                <!-- Número de Parcelas (condicional) -->
-                                @if($tipo_pagamento == 'parcelado')
-                                <div>
-                                    <label for="parcelas" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        <i class="bi bi-list-ol text-gray-400 mr-2"></i>Número de Parcelas
-                                    </label>
-                                    <input type="number"
-                                        wire:model="parcelas"
-                                        id="parcelas"
-                                        min="2"
-                                        max="12"
-                                        class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('parcelas') border-red-300 @enderror">
-                                    @error('parcelas')
-                                    <p class="mt-2 text-sm text-red-600 flex items-center">
-                                        <i class="bi bi-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
+                                    <!-- Número de Parcelas (condicional) -->
+                                    <div>
+                                        @if($tipo_pagamento == 'parcelado')
+                                        <label for="parcelas" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                                            <i class="bi bi-calendar-range text-indigo-500 mr-2"></i>Número de Parcelas *
+                                        </label>
+                                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                                            @for($i = 1; $i <= 12; $i++)
+                                            <button type="button"
+                                                    wire:click="$set('parcelas', {{ $i }})"
+                                                    class="p-2 text-center border rounded-lg transition-all duration-200 text-sm {{ $parcelas == $i ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-600 hover:border-indigo-300' }}">
+                                                {{ $i }}x
+                                            </button>
+                                            @endfor
+                                        </div>
+                                        @error('parcelas')
+                                        <p class="mt-2 text-sm text-red-600 flex items-center">
+                                            <i class="bi bi-exclamation-circle mr-1"></i>
+                                            {{ $message }}
+                                        </p>
+                                        @enderror
+                                        @else
+                                        <div class="h-20 flex items-center justify-center text-gray-400 text-sm">
+                                            <i class="bi bi-info-circle mr-2"></i>
+                                            Selecione "Parcelado" para escolher parcelas
+                                        </div>
+                                        @endif
+                                    </div>
                                 </div>
-                                @endif
                             </div>
 
                             <!-- Botão Próximo Moderno -->
@@ -364,74 +375,80 @@
                             </p>
                         </div>
                         @else
-                        <div class="p-2 space-y-2">
+                        <div class="p-2 space-y-3">
                             @foreach($products as $index => $productItem)
                             @php
                             $selectedProduct = $availableProducts->find($productItem['product_id']);
                             @endphp
 
                             @if($selectedProduct)
-                            <div class="bg-white dark:bg-zinc-800 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-zinc-700">
-                                <!-- Header do produto -->
-                                <div class="flex items-start justify-between mb-2">
-                                    <div class="flex items-center space-x-2">
+                            <!-- Card de produto selecionado modernizado -->
+                            <div class="bg-gradient-to-r from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-zinc-700 hover:shadow-md transition-all duration-200">
+                                <!-- Header do produto com imagem -->
+                                <div class="flex items-center mb-3">
+                                    <div class="flex-shrink-0 mr-3">
                                         <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
-                                            alt="{{ $selectedProduct->name }}"
-                                            class="w-8 h-8 rounded object-cover">
-
-                                        <div class="flex-1 min-w-0">
-                                            <h4 class="font-medium text-gray-900 dark:text-white text-xs truncate">{{ $selectedProduct->name }}</h4>
-                                            <div class="flex items-center justify-between">
-                                                <p class="text-xs text-gray-500 dark:text-gray-400">{{ $selectedProduct->product_code }}</p>
-                                                <span class="text-xs text-blue-600 dark:text-blue-400 font-medium">Est: {{ $selectedProduct->stock_quantity }}</span>
-                                            </div>
+                                             alt="{{ $selectedProduct->name }}"
+                                             class="w-10 h-10 rounded-lg object-cover ring-2 ring-purple-200 dark:ring-purple-700">
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-xs font-bold text-gray-900 dark:text-white truncate" title="{{ $selectedProduct->name }}">
+                                            {{ $selectedProduct->name }}
+                                        </h4>
+                                        <div class="flex items-center justify-between mt-1">
+                                            <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">
+                                                #{{ $selectedProduct->product_code }}
+                                            </p>
+                                            <button type="button"
+                                                    wire:click="toggleProduct({{ $selectedProduct->id }})"
+                                                    class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded transition-colors">
+                                                <i class="bi bi-trash text-xs"></i>
+                                            </button>
+                                        </div>
+                                        <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
+                                            Est: {{ $selectedProduct->stock_quantity }}
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Controles -->
-                                <div class="space-y-2">
-                                    <!-- Quantidade e Preço na mesma linha -->
-                                    <div class="grid grid-cols-2 gap-2">
-                                        <!-- Quantidade -->
-                                        <div>
-                                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Qtd:</label>
-                                            <input type="number"
-                                                wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
-                                                value="{{ $productItem['quantity'] }}"
-                                                min="1"
-                                                max="{{ $selectedProduct->stock_quantity }}"
-                                                class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-zinc-600 rounded bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-purple-500 focus:border-transparent">
-                                        </div>
-
-                                        <!-- Preço -->
-                                        <div>
-                                            <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Preço:</label>
-                                            <input type="number"
-                                                wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
-                                                value="{{ $productItem['unit_price'] }}"
-                                                step="0.01"
-                                                min="0"
-                                                class="w-full px-2 py-1 text-xs border border-gray-300 dark:border-zinc-600 rounded bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-purple-500 focus:border-transparent">
-                                        </div>
+                                <!-- Controles em grid -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <!-- Quantidade -->
+                                    <div>
+                                        <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Quantidade</label>
+                                        <input type="number"
+                                               wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
+                                               value="{{ $productItem['quantity'] }}"
+                                               min="1"
+                                               max="{{ $selectedProduct->stock_quantity }}"
+                                               class="w-full h-7 text-center text-xs border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                     </div>
 
-                                    <!-- Total do item -->
-                                    <div class="pt-1 border-t border-gray-200 dark:border-zinc-600">
-                                        <div class="flex justify-between items-center">
-                                            <span class="text-xs font-medium text-gray-700 dark:text-gray-300">Total:</span>
-                                            <div class="flex items-center space-x-2">
-                                                <span class="text-xs font-bold text-green-600 dark:text-green-400">
-                                                    R$ {{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}
-                                                </span>
-                                                <!-- Botão de excluir -->
-                                                <button type="button"
-                                                    wire:click="toggleProduct({{ $selectedProduct->id }})"
-                                                    class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-50 dark:hover:bg-red-900 rounded transition-colors duration-200">
-                                                    <i class="bi bi-trash text-xs"></i>
-                                                </button>
-                                            </div>
+                                    <!-- Preço Unitário -->
+                                    <div>
+                                        <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Preço Unit.</label>
+                                        <div class="relative">
+                                            <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">R$</span>
+                                            <input type="number"
+                                                   wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
+                                                   value="{{ $productItem['unit_price'] }}"
+                                                   step="0.01"
+                                                   min="0"
+                                                   class="w-full h-7 text-xs border border-gray-300 dark:border-zinc-600 rounded-lg pl-7 pr-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                         </div>
+                                    </div>
+                                </div>
+
+                                <!-- Total do item destacado -->
+                                <div class="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-2 border border-green-200 dark:border-green-700">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-xs text-green-700 dark:text-green-300 font-medium flex items-center">
+                                            <i class="bi bi-calculator mr-1"></i>
+                                            Subtotal:
+                                        </span>
+                                        <span class="text-sm font-bold text-green-600 dark:text-green-400">
+                                            R$ {{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
