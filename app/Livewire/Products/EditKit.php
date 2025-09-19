@@ -484,6 +484,8 @@ class EditKit extends Component
     public function getCategoriesProperty()
     {
         return Category::where('user_id', Auth::id())
+            ->where('type', 'product')
+            ->where('is_active', 1)
             ->orderBy('name')
             ->get();
     }
