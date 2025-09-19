@@ -19,5 +19,8 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // Seed categories for cosmetic products (Eudora and Boticário)
+        $this->call(CategorySeeder::class);
     }
 }
