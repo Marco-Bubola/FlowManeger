@@ -1,191 +1,347 @@
-<div class="min-h-screen w-full">
-    <!-- Header fixo -->
-    <div class="w-full  px-6 py-4 sticky top-0 z-10">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    <i class="bi bi-currency-dollar text-indigo-600 dark:text-indigo-400 mr-3"></i>
-                    Editar Preços - Venda #{{ $sale->id }}
-                </h1>
-                <p class="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                    Cliente: {{ $sale->client->name ?? 'Cliente não informado' }}
-                </p>
-            </div>
-            <div class="mb-6 p-4 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Resumo da Venda
-                    </h2>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        {{ count($saleItems) }} item(s)
-                    </p>
-                </div>
-                <div class="text-right">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Total Atual</p>
-                    <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                        R$ {{ number_format($this->total, 2, ',', '.') }}
-                    </p>
-                </div>
-            </div>
-        </div>
-            <div class="flex gap-3">
-                <a href="{{ route('sales.show', $sale->id) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200">
-                    <i class="bi bi-arrow-left mr-2"></i>
-                    Voltar
-                </a>
-                <button type="button" 
-                        wire:click="savePrices" 
-                        class="inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors duration-200">
-                    <i class="bi bi-check-circle mr-2"></i>
-                    Salvar Alterações
-                </button>
-            </div>
-        </div>
-    </div>
-    
+<div class=" w-full ">
+    <!-- Incluir CSS dos produtos -->
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+
+    <!-- Header Modernizado -->
+    <x-sales-header
+        title="Editar Preços - Venda #{{ $sale->id }}"
+        description="Cliente: {{ $sale->client->name ?? 'Cliente não informado' }} | {{ count($saleItems) }} item(s) | Total: R$ {{ number_format($this->total, 2, ',', '.') }}"
+        :back-route="route('sales.show', $sale->id)" />
+
     <!-- Conteúdo principal -->
     <div class="w-full p-6">
-        <!-- Resumo da venda -->
-        
-
         <!-- Alertas de erro -->
         @if($errors->has('general'))
-            <div class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl shadow-sm">
                 <div class="flex items-center">
-                    <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400 mr-2"></i>
-                    <span class="text-red-600 dark:text-red-400">{{ $errors->first('general') }}</span>
+                    <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400 mr-3 text-lg"></i>
+                    <span class="text-red-600 dark:text-red-400 font-medium">{{ $errors->first('general') }}</span>
                 </div>
             </div>
         @endif
 
         <!-- Formulário de edição -->
         <form wire:submit.prevent="savePrices">
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @foreach($saleItems as $index => $item)
-                    <div class="bg-white dark:bg-zinc-800 p-7 border-2 border-indigo-100 dark:border-indigo-900/40 rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-200 flex flex-col gap-4 relative overflow-hidden group">
-                        <div class="flex items-center gap-4 mb-2">
-                            <div class="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center shadow-md overflow-hidden border-2 border-indigo-200 dark:border-indigo-800">
-                                @if(isset($item['product']) && !empty($item['product']['image']))
-                                    <img src="{{ asset('storage/products/' . $item['product']['image']) }}"
-                                         alt="{{ $item['product']['name'] ?? 'Produto' }}"
-                                         class="w-full h-full object-cover rounded-lg">
-                                @else
-                                    <div class="w-full h-full bg-gray-200 dark:bg-gray-600 rounded-lg flex items-center justify-center">
-                                        <i class="bi bi-image text-4xl text-gray-400"></i>
-                                    </div>
-                                @endif
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                                    <i class="bi bi-box-seam text-indigo-600 dark:text-indigo-400"></i>
-                                    {{ $item['product_name'] }}
-                                </h4>
-                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
-                                    <i class="bi bi-currency-dollar"></i>
-                                    Preço original: <span class="font-semibold">R$ {{ number_format($item['original_price'], 2, ',', '.') }}</span>
-                                </p>
-                            </div>
-                            <button type="button" 
-                                    wire:click="removeSaleItem({{ $index }})"
-                                    class="ml-2 p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-                                    title="Remover produto">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
-                        </div>
-
-                        <div class="flex-1 grid grid-cols-2 gap-4 mt-2">
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                    <i class="bi bi-hash"></i>
-                                    Quantidade
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"><i class="bi bi-123"></i></span>
-                                    <input type="number" 
-                                           wire:model.lazy="saleItems.{{ $index }}.quantity"
-                                           wire:change="updateQuantity({{ $index }}, $event.target.value)"
-                                           class="w-full pl-9 px-3 py-2 border border-indigo-200 dark:border-indigo-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white text-base shadow-sm"
-                                           min="1" 
-                                           step="1">
-                                </div>
-                                @error("saleItems.{$index}.quantity")
-                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                    <i class="bi bi-cash-coin"></i>
-                                    Preço Unitário
-                                </label>
-                                <div class="relative">
-                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500"><i class="bi bi-currency-dollar"></i></span>
-                                    <input type="number" 
-                                           wire:model.lazy="saleItems.{{ $index }}.price_sale"
-                                           wire:change="updatePrice({{ $index }}, $event.target.value)"
-                                           class="w-full pl-9 px-3 py-2 border border-indigo-200 dark:border-indigo-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white text-base shadow-sm"
-                                           min="0.01" 
-                                           step="0.01">
-                                </div>
-                                @error("saleItems.{$index}.price_sale")
-                                    <p class="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ $message }}</p>
-                                @enderror
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                    <i class="bi bi-calculator"></i>
-                                    Subtotal
-                                </label>
-                                <div class="w-full px-3 py-2 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg text-gray-900 dark:text-white font-semibold text-base flex items-center gap-2 shadow-sm">
-                                    <i class="bi bi-cash-stack text-indigo-500"></i>
-                                    R$ {{ number_format($item['subtotal'], 2, ',', '.') }}
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                    <i class="bi bi-graph-up-arrow"></i>
-                                    Diferença
-                                </label>
-                                @php
-                                    $difference = $item['price_sale'] - $item['original_price'];
-                                    $percentChange = $item['original_price'] > 0 ? (($difference / $item['original_price']) * 100) : 0;
-                                @endphp
-                                <div class="w-full px-3 py-2 rounded-lg border-2 text-sm flex items-center gap-2 shadow-sm
-                                            {{ $difference > 0 ? 'bg-green-50 dark:bg-green-900/20 border-green-300 dark:border-green-700 text-green-700 dark:text-green-300' : 
-                                               ($difference < 0 ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300' : 
-                                                'bg-gray-100 dark:bg-zinc-600 border-gray-300 dark:border-zinc-600 text-gray-700 dark:text-gray-300') }}">
-                                    <i class="bi {{ $difference > 0 ? 'bi-arrow-up-right-circle-fill' : ($difference < 0 ? 'bi-arrow-down-right-circle-fill' : 'bi-dash-circle') }} text-lg"></i>
-                                    <div>
-                                        <div class="font-semibold flex items-center gap-1">
-                                            <i class="bi bi-currency-exchange"></i>
-                                            {{ $difference > 0 ? '+' : '' }}R$ {{ number_format($difference, 2, ',', '.') }}
-                                        </div>
-                                        <div class="text-xs flex items-center gap-1">
-                                            <i class="bi bi-percent"></i>
-                                            {{ $difference > 0 ? '+' : '' }}{{ number_format($percentChange, 1) }}%
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <x-product-price-card :item="$item" :index="$index" />
                 @endforeach
             </div>
 
+            <!-- Botões de Ação -->
+            <div class="flex justify-center gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-zinc-700">
+                <a href="{{ route('sales.show', $sale->id) }}"
+                   class="inline-flex items-center px-8 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-zinc-600 font-semibold">
+                    <i class="bi bi-x-lg mr-2 text-lg"></i>
+                    <span>Cancelar</span>
+                </a>
+
+                <button type="submit"
+                        wire:loading.attr="disabled"
+                        class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-indigo-500 font-semibold">
+                    <span wire:loading.remove>
+                        <i class="bi bi-check-circle mr-2 text-lg"></i>
+                        Salvar Alterações
+                    </span>
+                    <span wire:loading class="flex items-center">
+                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Salvando...
+                    </span>
+                </button>
+            </div>
+
+            <!-- Indicador de Alterações Pendentes -->
+            <div class="text-center mt-4">
+                <p class="text-sm text-gray-500 dark:text-gray-400">
+                    <i class="bi bi-info-circle mr-1"></i>
+                    As alterações são salvas automaticamente quando você clica em "Salvar Alterações"
+                </p>
+            </div>
         </form>
     </div>
 
-    <!-- Scripts para notificações -->
+    <!-- Toast Notifications Component -->
+    <x-toast-notifications />
+
+    <!-- JavaScript para Formatação de Preços -->
     <script>
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('success', (message) => {
-                alert(message);
-            });
-            
-            Livewire.on('error', (message) => {
-                alert(message);
-            });
+        // Inicializa os inputs de preço
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM carregado, inicializando inputs de preço...');
+            @foreach($saleItems as $index => $item)
+                console.log('Inicializando item {{ $index }} - Produto: {{ $item["product_name"] ?? "N/A" }} - Preço: {{ $item["price_sale"] ?? "0" }}');
+                initializePriceInput({{ $index }});
+            @endforeach
+            console.log('Inicialização concluída.');
         });
+
+        function initializePriceInput(index) {
+            console.log('Inicializando input de preço para índice:', index);
+
+            const input = document.getElementById('price_input_' + index);
+            const hiddenInput = document.getElementById('price_hidden_' + index);
+
+            if (!input) {
+                console.error('Input não encontrado para índice:', index);
+                return;
+            }
+
+            if (!hiddenInput) {
+                console.error('Hidden input não encontrado para índice:', index);
+                return;
+            }
+
+            console.log('Valores iniciais - Input:', input.value, 'Hidden:', hiddenInput.value, 'Index:', index);
+
+            // Remove eventos anteriores para evitar duplicação
+            input.removeEventListener('input', handlePriceInput);
+            input.removeEventListener('keydown', handlePriceKeydown);
+            input.removeEventListener('focus', handlePriceFocus);
+            input.removeEventListener('blur', handlePriceBlur);
+
+            // Garante que o valor inicial está correto
+            if (!hiddenInput.value || hiddenInput.value === '0' || hiddenInput.value === '0.00') {
+                const displayValue = input.value.replace(',', '.');
+                const initialValue = parseFloat(displayValue) || 0;
+                hiddenInput.value = initialValue.toFixed(2);
+                console.log('Valor inicial corrigido para índice', index, ':', initialValue.toFixed(2));
+            }
+
+            // Adiciona os eventos
+            input.addEventListener('keydown', function(e) { handlePriceKeydown(e, index); });
+            input.addEventListener('focus', function(e) { handlePriceFocus(e, index); });
+            input.addEventListener('blur', function(e) { handlePriceBlur(e, index); });
+
+            console.log('Eventos adicionados para índice:', index);
+        }        function handlePriceInput(event, index) {
+            const input = event.target;
+            let value = input.value;
+
+            // Remove tudo que não é número
+            value = value.replace(/[^\d]/g, '');
+
+            // Se vazio, deixa vazio temporariamente
+            if (value === '') {
+                input.value = '';
+                updateHiddenField(index, '0,00');
+                return;
+            }
+
+            // Garante que tenha pelo menos 3 dígitos (para centavos)
+            while (value.length < 3) {
+                value = '0' + value;
+            }
+
+            // Converte para formato XX,XX
+            const reais = value.slice(0, -2);
+            const centavos = value.slice(-2);
+            const formattedValue = parseInt(reais).toString() + ',' + centavos;
+
+            // Atualiza o valor do input
+            input.value = formattedValue;
+
+            // Converte para decimal e atualiza o campo oculto
+            updateHiddenField(index, formattedValue);
+        }
+
+        function handlePriceKeydown(event, index) {
+            console.log('handlePriceKeydown - Index:', index, 'KeyCode:', event.keyCode);
+            const input = event.target;
+
+            // Permite: tab, escape, enter, home, end, left, right
+            if ([9, 27, 13, 35, 36, 37, 39].indexOf(event.keyCode) !== -1 ||
+                // Permite: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X, Ctrl+Z
+                (event.keyCode === 65 && event.ctrlKey === true) ||
+                (event.keyCode === 67 && event.ctrlKey === true) ||
+                (event.keyCode === 86 && event.ctrlKey === true) ||
+                (event.keyCode === 88 && event.ctrlKey === true) ||
+                (event.keyCode === 90 && event.ctrlKey === true)) {
+                return;
+            }
+
+            // Trata backspace
+            if (event.keyCode === 8) {
+                event.preventDefault();
+                let currentValue = input.value.replace(/[^\d]/g, '');
+                console.log('Backspace - Valor atual:', currentValue);
+
+                // Remove o último dígito
+                currentValue = currentValue.slice(0, -1);
+
+                // Se vazio, deixa vazio
+                if (currentValue === '') {
+                    input.value = '';
+                    updateHiddenField(index, '0,00');
+                    return;
+                }
+
+                // Aplica a máscara
+                while (currentValue.length < 3) {
+                    currentValue = '0' + currentValue;
+                }
+
+                const reais = currentValue.slice(0, -2);
+                const centavos = currentValue.slice(-2);
+                const formattedValue = parseInt(reais).toString() + ',' + centavos;
+
+                input.value = formattedValue;
+                updateHiddenField(index, formattedValue);
+                return;
+            }
+
+            // Trata delete
+            if (event.keyCode === 46) {
+                event.preventDefault();
+                // Delete tem o mesmo comportamento do backspace neste caso
+                let currentValue = input.value.replace(/[^\d]/g, '');
+                currentValue = currentValue.slice(0, -1);
+
+                if (currentValue === '') {
+                    input.value = '';
+                    updateHiddenField(index, '0,00');
+                    return;
+                }
+
+                while (currentValue.length < 3) {
+                    currentValue = '0' + currentValue;
+                }
+
+                const reais = currentValue.slice(0, -2);
+                const centavos = currentValue.slice(-2);
+                const formattedValue = parseInt(reais).toString() + ',' + centavos;
+
+                input.value = formattedValue;
+                updateHiddenField(index, formattedValue);
+                return;
+            }
+
+            // Verifica se é um número (0-9)
+            const isNumber = (event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105);
+
+            if (!isNumber) {
+                event.preventDefault();
+                return;
+            }
+
+            // Se é um número, processa como máscara
+            if (isNumber) {
+                event.preventDefault();
+
+                const digit = String.fromCharCode(event.keyCode >= 96 ? event.keyCode - 48 : event.keyCode);
+                let currentValue = input.value.replace(/[^\d]/g, '');
+                console.log('Número digitado:', digit, 'Valor atual:', currentValue);
+
+                // Adiciona o novo dígito
+                currentValue += digit;
+
+                // Aplica a máscara
+                if (currentValue === '') {
+                    input.value = '';
+                } else {
+                    // Garante que tenha pelo menos 3 dígitos
+                    while (currentValue.length < 3) {
+                        currentValue = '0' + currentValue;
+                    }
+
+                    // Formata como XX,XX
+                    const reais = currentValue.slice(0, -2);
+                    const centavos = currentValue.slice(-2);
+                    const formattedValue = parseInt(reais).toString() + ',' + centavos;
+
+                    console.log('Valor formatado:', formattedValue);
+                    input.value = formattedValue;
+                    updateHiddenField(index, formattedValue);
+                }
+            }
+        }        function handlePriceFocus(event, index) {
+            const input = event.target;
+            // Limpa o valor 0,00 quando foca para facilitar a edição
+            if (input.value === '0,00') {
+                input.value = '';
+            }
+        }
+
+        function handlePriceBlur(event, index) {
+            const input = event.target;
+            let value = input.value;
+
+            // Se estiver vazio, define como 0,00
+            if (value === '' || value === '0' || value === '0,') {
+                value = '0,00';
+            } else {
+                // Garante o formato correto
+                const parts = value.split(',');
+                let reais = parts[0] || '0';
+                let centavos = parts[1] || '00';
+
+                // Limita centavos a 2 dígitos
+                if (centavos.length === 1) {
+                    centavos += '0';
+                } else if (centavos.length > 2) {
+                    centavos = centavos.substring(0, 2);
+                }
+
+                value = reais + ',' + centavos;
+            }
+
+            input.value = value;
+            updateHiddenField(index, value);
+        }
+
+        function updateHiddenField(index, formattedValue) {
+            console.log('updateHiddenField chamada - Index:', index, 'Value:', formattedValue);
+
+            const hiddenInput = document.getElementById('price_hidden_' + index);
+
+            if (!hiddenInput) {
+                console.error('Hidden input não encontrado no updateHiddenField para índice:', index);
+                return;
+            }
+
+            // Converte para decimal
+            const decimalValue = parseFloat(formattedValue.replace(',', '.')) || 0;
+            console.log('Valor decimal calculado:', decimalValue);
+
+            // Atualiza o campo oculto
+            hiddenInput.value = decimalValue.toFixed(2);
+            console.log('Hidden input atualizado para:', hiddenInput.value);
+
+            // Dispara o evento change para atualizar o Livewire
+            hiddenInput.dispatchEvent(new Event('change'));
+
+            // Chama a função do Livewire para atualizar o preço
+            console.log('Chamando Livewire updatePrice com index:', index, 'value:', decimalValue);
+            @this.call('updatePrice', index, decimalValue);
+        }
+
+        // Função para resetar um campo de preço (quando necessário)
+        function resetPrice(index) {
+            const input = document.getElementById('price_input_' + index);
+            input.value = '0,00';
+            updateHiddenField(index, '0,00');
+        }
+
+        // Mantém a função antiga para compatibilidade (será removida)
+        function handlePriceKeypress(event, index) {
+            // Esta função não é mais usada, mas mantida para evitar erros
+            return true;
+        }
+
+        function updatePriceFromFormatted(index) {
+            // Esta função agora só é chamada no blur, que já trata tudo
+            handlePriceBlur({ target: document.getElementById('price_input_' + index) }, index);
+        }
+
+        function formatPriceDisplay(value) {
+            // Função mantida para compatibilidade
+            const intValue = parseInt(value);
+            const reais = Math.floor(intValue / 100);
+            const centavos = intValue % 100;
+            return reais.toString() + ',' + centavos.toString().padStart(2, '0');
+        }
     </script>
 </div>
