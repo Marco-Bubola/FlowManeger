@@ -7,6 +7,7 @@ use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
@@ -33,6 +34,12 @@ class ProductsIndex extends Component
     // Modal de exclusão
     public ?Product $deletingProduct = null;
     public bool $showDeleteModal = false;
+
+    public function mount()
+    {
+        // Debug: forçar para testar
+        // $this->showDeleteModal = true;
+    }
 
     public $perPage = 18;
     public $page = 1;
@@ -176,15 +183,52 @@ class ProductsIndex extends Component
         session()->flash('info', 'Funcionalidade de exportação em desenvolvimento.');
     }
 
-    public function confirmDelete(Product $product)
+    public function confirmDelete($productId)
     {
-        $this->deletingProduct = $product;
+        $this->deletingProduct = Product::find($productId);
+        $this->showDeleteModal = true;
+    }
+
+    public function confirmDeleteSelected()
+    {
+        if (empty($this->selectedProducts)) {
+            session()->flash('warning', 'Nenhum produto selecionado para exclusão.');
+            return;
+        }
+
+        // Aqui poderíamos usar um modal diferente para seleção múltipla
+        // Por enquanto vamos usar o mesmo modal
+        $this->deletingProduct = Product::find($this->selectedProducts[0]); // Primeiro produto para mostrar no modal
         $this->showDeleteModal = true;
     }
 
     public function delete()
     {
-        if ($this->deletingProduct) {
+        // Se há produtos selecionados, excluir em massa
+        if (!empty($this->selectedProducts)) {
+            $deletedCount = 0;
+
+            foreach ($this->selectedProducts as $productId) {
+                $product = Product::find($productId);
+                if ($product) {
+                    // Verificar se a imagem do produto não é a imagem padrão
+                    if ($product->image && $product->image !== 'product-placeholder.png') {
+                        // Excluir a imagem do produto
+                        Storage::delete('public/products/' . $product->image);
+                    }
+
+                    // Excluir o produto
+                    $product->delete();
+                    $deletedCount++;
+                }
+            }
+
+            session()->flash('success', "{$deletedCount} produto(s) excluído(s) com sucesso!");
+            $this->selectedProducts = [];
+            $this->selectAll = false;
+        }
+        // Se há apenas um produto para deletar
+        elseif ($this->deletingProduct) {
             // Verificar se a imagem do produto não é a imagem padrão
             if ($this->deletingProduct->image && $this->deletingProduct->image !== 'product-placeholder.png') {
                 // Excluir a imagem do produto
@@ -303,7 +347,11 @@ class ProductsIndex extends Component
 
     public function getCategoriesProperty()
     {
-        return Category::where('user_id', Auth::id())->get();
+        return Category::where('user_id', Auth::id())
+                      ->where('type', 'product')
+                      ->where('is_active', 1)
+                      ->orderBy('name')
+                      ->get();
     }
 
     public function render()
