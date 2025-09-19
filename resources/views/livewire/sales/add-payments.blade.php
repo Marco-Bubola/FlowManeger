@@ -1,159 +1,173 @@
-<div class="w-full bg-gradient-to-br from-indigo-50 via-white to-green-50 min-h-screen dark:from-zinc-900 dark:via-zinc-800 dark:to-green-900">
-    <!-- Header fixo -->
-    <div class="w-full px-6 py-4 sticky top-0 z-20 bg-white/80 dark:bg-zinc-900/80 shadow-lg rounded-b-2xl backdrop-blur">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
-                <span class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-green-100 dark:bg-green-900 shadow">
-                    <i class="bi bi-cash-coin text-3xl text-green-600 dark:text-green-400"></i>
-                </span>
-                <div>
-                    <h1 class="text-3xl font-extrabold text-gray-900 dark:text-white flex items-center gap-2">
-                        <i class="bi bi-plus-circle text-green-600 dark:text-green-400"></i>
-                        Adicionar Pagamentos
-                        <span class="ml-2 text-base font-medium text-indigo-600 dark:text-indigo-400">Venda #{{ $sale->id }}</span>
-                    </h1>
-                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                        <i class="bi bi-person-circle text-indigo-500 dark:text-indigo-300"></i>
-                        Cliente: {{ $sale->client->name ?? 'Cliente não informado' }}
-                    </p>
-                </div>
-            </div>
-            <div class="flex gap-3">
-                <a href="{{ route('sales.show', $sale->id) }}" 
-                   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 shadow">
-                    <i class="bi bi-arrow-left mr-2"></i>
-                    Voltar
-                </a>
-                <button type="button" 
-                        wire:click="addPayments" 
-                        class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 shadow">
-                    <i class="bi bi-check-circle mr-2"></i>
-                    Salvar Pagamentos
-                </button>
-            </div>
-        </div>
-    </div>
-    <div class="w-full p-6">
-        <!-- Cabeçalho com informações da venda -->
-        <div class="mb-6 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-lg">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        Venda #{{ $sale->id }}
-                    </h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Cliente: {{ $sale->client->name ?? 'Cliente não informado' }}
-                    </p>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">
-                        Data: {{ $sale->created_at->format('d/m/Y H:i') }}
-                    </p>
-                </div>
-                <div class="text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Total da Venda</p>
-                    <p class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">
-                        R$ {{ number_format($sale->total_price, 2, ',', '.') }}
-                    </p>
-                </div>
-                <div class="text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Valor Pendente</p>
-                    <p class="text-2xl font-bold text-red-600 dark:text-red-400">
-                        R$ {{ number_format($this->remainingAmount, 2, ',', '.') }}
-                    </p>
-                </div>
-            </div>
-        </div>
+<div class="w-full min-h-screen">
+    <!-- Header modernizado usando o mesmo padrão do sales-header -->
+    <x-add-payments-header :sale="$sale" />
 
-        <!-- Formulário -->
-        <form wire:submit.prevent="addPayments">
-            <div class="space-y-6">
+    <!-- Container principal -->
+    <div class="container mx-auto px-6 py-8">
+        <div class="mx-auto">
+            <!-- Componente de Resumo da Venda -->
+            <x-sale-summary-header :sale="$sale" :remainingAmount="$this->remainingAmount" />
+
+        <!-- Formulário de Pagamentos -->
+        <form wire:submit.prevent="addPayments" class="space-y-6">
+            <!-- Cabeçalho da Seção de Pagamentos -->
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-zinc-700">
                 <div class="flex items-center justify-between">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                        <i class="bi bi-wallet2 text-indigo-600 dark:text-indigo-400"></i>
-                        Adicionar Pagamentos
-                    </h3>
-                    <button type="button" 
-                            wire:click="addPaymentRow" 
-                            class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 shadow">
+                    <div class="flex items-center gap-3">
+                        <div class="p-3 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-xl shadow-lg">
+                            <i class="bi bi-wallet2 text-white text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                                Adicionar Pagamentos
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                Configure os pagamentos para esta venda
+                            </p>
+                        </div>
+                    </div>
+                    <button type="button"
+                            wire:click="addPaymentRow"
+                            class="px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105">
                         <i class="bi bi-plus-lg"></i>
                         Adicionar Mais
                     </button>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    @foreach($payments as $index => $payment)
-                        <div class="bg-white dark:bg-zinc-800 p-6 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-lg relative flex flex-col gap-4">
-                            <div class="flex items-center justify-between mb-2">
-                                <span class="inline-flex items-center gap-2 text-md font-semibold text-gray-900 dark:text-white">
-                                    <i class="bi bi-credit-card-2-front text-indigo-500 dark:text-indigo-300"></i>
-                                    Pagamento {{ $index + 1 }}
-                                </span>
-                                @if(count($payments) > 1)
-                                    <button type="button" 
-                                            wire:click="removePaymentRow({{ $index }})"
-                                            class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200">
-                                        <i class="bi bi-trash-fill"></i>
-                                    </button>
-                                @endif
-                            </div>
-                            <div class="flex flex-col gap-3">
-                                <!-- Valor -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                        <i class="bi bi-currency-dollar text-green-600"></i> Valor *
-                                    </label>
-                                    <input type="number" 
-                                           wire:model="payments.{{ $index }}.amount_paid"
-                                           class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white"
-                                           min="0.01" 
-                                           step="0.01"
-                                           placeholder="0,00">
-                                    @error("payments.{$index}.amount_paid")
-                                        <p class="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <!-- Método de Pagamento -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                        <i class="bi bi-credit-card"></i> Método de Pagamento
-                                    </label>
-                                    <select wire:model="payments.{{ $index }}.payment_method"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white">
-                                        <option value="dinheiro">💵 Dinheiro</option>
-                                        <option value="cartao_debito">💳 Cartão de Débito</option>
-                                        <option value="cartao_credito">💳 Cartão de Crédito</option>
-                                        <option value="pix">⚡ PIX</option>
-                                        <option value="transferencia">🏦 Transferência</option>
-                                        <option value="cheque">🧾 Cheque</option>
-                                    </select>
-                                </div>
-                                <!-- Data -->
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
-                                        <i class="bi bi-calendar-event"></i> Data do Pagamento
-                                    </label>
-                                    <input type="date" 
-                                           wire:model="payments.{{ $index }}.payment_date"
-                                           class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white">
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
             </div>
 
-        </form>
-    </div>
+            <!-- Grid de Cartões de Pagamento -->
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+                @foreach($payments as $index => $payment)
+                    <x-payment-form-card
+                        :index="$index"
+                        :payment="$payment"
+                        :showRemove="count($payments) > 1" />
+                @endforeach
+            </div>
 
-    <!-- Scripts para notificações -->
-    <script>
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('success', (message) => {
-                alert(message);
+            <!-- Resumo dos Pagamentos -->
+            @if(count($payments) > 0)
+                <div class="bg-gradient-to-r from-blue-50 via-white to-indigo-50 dark:from-blue-900/20 dark:via-zinc-900/20 dark:to-indigo-900/20 rounded-2xl p-6 shadow-lg border border-blue-200 dark:border-blue-800">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2 bg-blue-500/10 rounded-xl">
+                            <i class="bi bi-calculator text-blue-600 dark:text-blue-400 text-xl"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-900 dark:text-white">
+                            Resumo dos Pagamentos
+                        </h4>
+                    </div>
+
+                    @php
+                        $totalPayments = collect($payments)->sum(function($payment) {
+                            return is_numeric($payment['amount_paid'] ?? 0) ? (float)$payment['amount_paid'] : 0;
+                        });
+                        $newRemainingAmount = $this->remainingAmount - $totalPayments;
+                    @endphp
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="text-center p-4 bg-white/60 dark:bg-zinc-800/60 rounded-xl">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total dos Pagamentos</p>
+                            <p class="text-xl font-bold text-blue-600 dark:text-blue-400">
+                                R$ {{ number_format($totalPayments, 2, ',', '.') }}
+                            </p>
+                        </div>
+                        <div class="text-center p-4 bg-white/60 dark:bg-zinc-800/60 rounded-xl">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Valor Restante</p>
+                            <p class="text-xl font-bold {{ $newRemainingAmount > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400' }}">
+                                R$ {{ number_format($newRemainingAmount, 2, ',', '.') }}
+                            </p>
+                        </div>
+                        <div class="text-center p-4 bg-white/60 dark:bg-zinc-800/60 rounded-xl">
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mb-1">Status</p>
+                            <p class="text-sm font-bold {{ $newRemainingAmount <= 0 ? 'text-green-600 dark:text-green-400' : 'text-yellow-600 dark:text-yellow-400' }}">
+                                {{ $newRemainingAmount <= 0 ? '✅ Quitado' : '⏳ Pendente' }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </form>
+
+        <!-- Scripts para notificações -->
+        <script>
+            document.addEventListener('livewire:init', () => {
+                Livewire.on('success', (message) => {
+                    // Criar notificação toast moderna
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300';
+                    toast.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-check-circle-fill"></i>
+                            <span>${message}</span>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+
+                    setTimeout(() => toast.classList.remove('translate-x-full'), 100);
+                    setTimeout(() => {
+                        toast.classList.add('translate-x-full');
+                        setTimeout(() => document.body.removeChild(toast), 300);
+                    }, 3000);
+                });
+
+                Livewire.on('error', (message) => {
+                    // Criar notificação toast de erro
+                    const toast = document.createElement('div');
+                    toast.className = 'fixed top-4 right-4 z-50 bg-red-500 text-white px-6 py-4 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300';
+                    toast.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <span>${message}</span>
+                        </div>
+                    `;
+                    document.body.appendChild(toast);
+
+                    setTimeout(() => toast.classList.remove('translate-x-full'), 100);
+                    setTimeout(() => {
+                        toast.classList.add('translate-x-full');
+                        setTimeout(() => document.body.removeChild(toast), 300);
+                    }, 3000);
+                });
             });
-            
-            Livewire.on('error', (message) => {
-                alert(message);
-            });
-        });
-    </script>
+        </script>
+
+        <style>
+            .hover-lift {
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .hover-lift:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            }
+
+            /* Animações de entrada */
+            .grid > * {
+                animation: slideInUp 0.6s ease-out forwards;
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            .grid > *:nth-child(1) { animation-delay: 0.1s; }
+            .grid > *:nth-child(2) { animation-delay: 0.2s; }
+            .grid > *:nth-child(3) { animation-delay: 0.3s; }
+            .grid > *:nth-child(4) { animation-delay: 0.4s; }
+            .grid > *:nth-child(5) { animation-delay: 0.5s; }
+            .grid > *:nth-child(6) { animation-delay: 0.6s; }
+
+            @keyframes slideInUp {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Efeitos de foco aprimorados */
+            input:focus, select:focus {
+                box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+                transform: scale(1.01);
+            }
+        </style>
+        </div>
+    </div>
 </div>
