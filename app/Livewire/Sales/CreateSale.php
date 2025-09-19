@@ -281,6 +281,30 @@ class CreateSale extends Component
         return 0;
     }
 
+    public function updatedTipoPagamento()
+    {
+        if ($this->tipo_pagamento === 'a_vista') {
+            $this->parcelas = 1;
+        } elseif ($this->tipo_pagamento === 'parcelado') {
+            if (!$this->parcelas || $this->parcelas <= 1) {
+                $this->parcelas = 2;
+            }
+        }
+    }
+
+    public function updatedParcelas($value)
+    {
+        // Garante que as parcelas estejam dentro do limite e nunca sejam 0
+        $value = (int)$value;
+        if ($value < 1) {
+            $this->parcelas = 1;
+        } elseif ($value > 12) {
+            $this->parcelas = 12;
+        } else {
+            $this->parcelas = $value;
+        }
+    }
+
     public function render()
     {
         return view('livewire.sales.create-sale');
