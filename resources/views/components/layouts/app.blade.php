@@ -28,6 +28,7 @@
 
     <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
     @livewireStyles
+    @stack('styles')
     {{ $slot }}
 
     <!-- Componente de Notificação de Download -->
