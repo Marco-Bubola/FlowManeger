@@ -15,6 +15,7 @@ class ShowSale extends Component
 {
     public Sale $sale;
     public $parcelas = [];
+    public $activeTab = 'resumo'; // Nova propriedade para controlar a aba ativa
 
     // Para adicionar pagamentos
     public $showAddPaymentForm = false;
@@ -105,15 +106,15 @@ class ShowSale extends Component
             ]);
         }
 
-        // Atualizar total pago
-        $totalPaid = SalePayment::where('sale_id', $this->sale->id)->sum('amount_paid');
-        $this->sale->amount_paid = $totalPaid;
+        // Recarregar os dados da venda e relacionamentos
+        $this->sale->refresh();
+        $this->sale->load(['payments', 'parcelasVenda']);
 
         // Atualizar status se necessário
-        if ($totalPaid >= $this->sale->total_price) {
+        if ($this->sale->total_paid >= $this->sale->total_price) {
             $this->sale->status = 'pago';
+            $this->sale->save();
         }
-        $this->sale->save();
 
         $this->toggleAddPaymentForm();
         session()->flash('message', 'Pagamentos adicionados com sucesso!');
@@ -136,12 +137,12 @@ class ShowSale extends Component
             'payment_date' => $dataPagamento,
         ]);
 
-        // Atualizar total pago na venda
-        $totalPaid = SalePayment::where('sale_id', $this->sale->id)->sum('amount_paid');
-        $this->sale->amount_paid = $totalPaid;
+        // Recarregar os dados da venda e relacionamentos
+        $this->sale->refresh();
+        $this->sale->load(['payments', 'parcelasVenda']);
 
         // Atualizar status da venda se necessário
-        if ($totalPaid >= $this->sale->total_price) {
+        if ($this->sale->total_paid >= $this->sale->total_price) {
             $this->sale->status = 'pago';
         } else {
             $this->sale->status = 'pendente';
@@ -196,12 +197,12 @@ class ShowSale extends Component
             'payment_date' => $this->paymentDate,
         ]);
 
-        // Atualizar total pago na venda
-        $totalPaid = SalePayment::where('sale_id', $this->sale->id)->sum('amount_paid');
-        $this->sale->amount_paid = $totalPaid;
+        // Recarregar os dados da venda e relacionamentos
+        $this->sale->refresh();
+        $this->sale->load(['payments', 'parcelasVenda']);
 
         // Atualizar status da venda se necessário
-        if ($totalPaid >= $this->sale->total_price) {
+        if ($this->sale->total_paid >= $this->sale->total_price) {
             $this->sale->status = 'pago';
         } else {
             $this->sale->status = 'pendente';
@@ -212,6 +213,10 @@ class ShowSale extends Component
         $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)
             ->orderBy('numero_parcela')
             ->get();
+
+        // Recarregar a venda com todos os relacionamentos
+        $this->sale->refresh();
+        $this->sale->load(['saleItems.product', 'client', 'payments']);
 
         // Fechar modal
         $this->closePaymentModal();
