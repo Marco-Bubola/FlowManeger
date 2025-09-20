@@ -22,7 +22,7 @@ class CreateProduct extends Component
     public string $category_id = '';
     public string $product_code = '';
     public $image;
-    
+
     // Propriedade para controlar os steppers
     public int $currentStep = 1;
 
@@ -44,7 +44,7 @@ class CreateProduct extends Component
     {
         // Conversão dos valores monetários antes da validação
         $this->convertCurrencyValues();
-        
+
         // Validação específica da etapa 1
         $this->validate([
             'name' => 'required|max:255',
@@ -57,14 +57,14 @@ class CreateProduct extends Component
 
         $this->currentStep = 2;
     }
-    
+
     private function convertCurrencyValues()
     {
         // Converte valores da máscara de moeda (0,00) para formato numérico (0.00)
         if ($this->price) {
             $this->price = str_replace(',', '.', $this->price);
         }
-        
+
         if ($this->price_sale) {
             $this->price_sale = str_replace(',', '.', $this->price_sale);
         }
@@ -79,7 +79,7 @@ class CreateProduct extends Component
     {
         // Conversão dos valores monetários antes da validação
         $this->convertCurrencyValues();
-        
+
         // Validação completa do formulário na etapa final
         $validated = $this->validate();
 
@@ -90,11 +90,11 @@ class CreateProduct extends Component
                 // Salva a nova imagem usando o disco public (igual ao EditProduct)
                 $imagePath = $this->image->store('products', 'public');
                 $imageName = basename($imagePath);
-                
+
                 // Verificar se o arquivo foi realmente salvo
                 $fullPath = Storage::disk('public')->path($imagePath);
                 $fileExists = Storage::disk('public')->exists($imagePath);
-                
+
                 // Log para debug
                 logger('Imagem salva no CreateProduct:', [
                     'original_name' => $this->image->getClientOriginalName(),
@@ -105,18 +105,18 @@ class CreateProduct extends Component
                     'size' => $this->image->getSize(),
                     'mime' => $this->image->getMimeType()
                 ]);
-                
+
                 if (!$fileExists) {
                     throw new \Exception('O arquivo não foi salvo corretamente no storage.');
                 }
-                
+
             } catch (\Exception $e) {
                 logger('Erro ao salvar imagem no CreateProduct:', [
                     'error' => $e->getMessage(),
                     'file' => $e->getFile(),
                     'line' => $e->getLine()
                 ]);
-                
+
                 session()->flash('error', 'Erro ao salvar a imagem: ' . $e->getMessage());
                 return;
             }
@@ -166,7 +166,11 @@ class CreateProduct extends Component
 
     public function getCategoriesProperty()
     {
-        return Category::where('user_id', Auth::id())->get();
+        return Category::where('user_id', Auth::id())
+                      ->where('type', 'product')
+                      ->where('is_active', 1)
+                      ->orderBy('name')
+                      ->get();
     }
 
     public function getCategoryIcon($icone)
@@ -209,7 +213,7 @@ class CreateProduct extends Component
     {
         // Validação básica da imagem quando é selecionada
         $this->validateOnly('image');
-        
+
         // Debug para entender o que está acontecendo
         if ($this->image) {
             logger('Imagem selecionada no CreateProduct:', [
@@ -219,7 +223,7 @@ class CreateProduct extends Component
                 'temporary_url_available' => method_exists($this->image, 'temporaryUrl')
             ]);
         }
-        
+
         // Este método é chamado automaticamente quando $this->image é atualizado
         // Força a re-renderização do componente
         $this->dispatch('image-updated');
