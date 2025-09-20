@@ -155,275 +155,206 @@
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 <!-- Status da Venda -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <div class="space-y-3">
+                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         <i class="bi bi-flag mr-1 text-blue-500"></i>
                         Status da Venda
-                    </label>
-                    <select wire:model.live="statusFilter"
-                            class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                        <option value="">Todos os status</option>
-                        <option value="pending">Pendente</option>
-                        <option value="paid">Pago</option>
-                        <option value="partially_paid">Parcialmente Pago</option>
-                        <option value="cancelled">Cancelado</option>
-                    </select>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Todos os Status -->
+                        <button wire:click="$set('statusFilter', '')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $statusFilter === '' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-list-ul text-blue-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Todos</div>
+                            </div>
+                        </button>
+
+                        <!-- Pendente -->
+                        <button wire:click="$set('statusFilter', 'pending')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-yellow-300 dark:hover:border-yellow-500 transition-all duration-200 {{ $statusFilter === 'pending' ? 'ring-2 ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-clock text-yellow-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Pendente</div>
+                            </div>
+                        </button>
+
+                        <!-- Pago -->
+                        <button wire:click="$set('statusFilter', 'paid')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $statusFilter === 'paid' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-check-circle text-green-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Pago</div>
+                            </div>
+                        </button>
+
+                        <!-- Parcialmente Pago -->
+                        <button wire:click="$set('statusFilter', 'partially_paid')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 {{ $statusFilter === 'partially_paid' ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-pie-chart text-orange-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Parcial</div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Cliente -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-person mr-1 text-green-500"></i>
-                        Cliente
-                    </label>
-                    <select wire:model.live="clientFilter"
-                            class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                        <option value="">Todos os clientes</option>
-                        @foreach($clients as $client)
-                            <option value="{{ $client->id }}">{{ $client->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <!-- Período (Data de) -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-calendar mr-1 text-indigo-500"></i>
-                        Data Inicial
-                    </label>
-                    <input type="date"
-                           wire:model.live="startDate"
-                           class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                </div>
-
-                <!-- Período (Data até) -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-calendar-check mr-1 text-indigo-500"></i>
-                        Data Final
-                    </label>
-                    <input type="date"
-                           wire:model.live="endDate"
-                           class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                </div>
-
-                <!-- Valor Mínimo -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-currency-dollar mr-1 text-emerald-500"></i>
-                        Valor Mínimo
-                    </label>
-                    <input type="number"
-                           step="0.01"
-                           wire:model.live="minValue"
-                           placeholder="R$ 0,00"
-                           class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                </div>
-
-                <!-- Valor Máximo -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-currency-dollar mr-1 text-emerald-500"></i>
-                        Valor Máximo
-                    </label>
-                    <input type="number"
-                           step="0.01"
-                           wire:model.live="maxValue"
-                           placeholder="R$ 999.999,99"
-                           class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                </div>
-
-                <!-- Forma de Pagamento -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                <!-- Formas de Pagamento -->
+                <div class="space-y-3">
+                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
                         <i class="bi bi-credit-card mr-1 text-purple-500"></i>
                         Forma de Pagamento
-                    </label>
-                    <select wire:model.live="paymentMethodFilter"
-                            class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                        <option value="">Todas as formas</option>
-                        <option value="cash">Dinheiro</option>
-                        <option value="card">Cartão</option>
-                        <option value="pix">PIX</option>
-                        <option value="bank_transfer">Transferência</option>
-                        <option value="installment">Parcelado</option>
-                    </select>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <!-- Todas -->
+                        <button wire:click="$set('paymentMethodFilter', '')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $paymentMethodFilter === '' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-list-ul text-purple-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Todas</div>
+                            </div>
+                        </button>
+
+                        <!-- Dinheiro -->
+                        <button wire:click="$set('paymentMethodFilter', 'cash')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $paymentMethodFilter === 'cash' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-cash text-green-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Dinheiro</div>
+                            </div>
+                        </button>
+
+                        <!-- Cartão -->
+                        <button wire:click="$set('paymentMethodFilter', 'card')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $paymentMethodFilter === 'card' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-credit-card-2-front text-blue-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Cartão</div>
+                            </div>
+                        </button>
+
+                        <!-- PIX -->
+                        <button wire:click="$set('paymentMethodFilter', 'pix')"
+                                class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-500 transition-all duration-200 {{ $paymentMethodFilter === 'pix' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-900/30' : '' }}">
+                            <div class="text-center">
+                                <i class="bi bi-qr-code text-teal-500 text-lg"></i>
+                                <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">PIX</div>
+                            </div>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Vendedor -->
-                <div class="space-y-2">
-                    <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-person-badge mr-1 text-orange-500"></i>
-                        Vendedor
-                    </label>
-                    <select wire:model.live="sellerFilter"
-                            class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md">
-                        <option value="">Todos os vendedores</option>
-                        @foreach($sellers as $seller)
-                            <option value="{{ $seller->id }}">{{ $seller->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-
-            <!-- Filtros Rápidos -->
-            <div class="mt-6 pt-6 border-t border-slate-200 dark:border-slate-600">
-                <div class="flex items-center justify-between mb-4">
+                <!-- Período de Datas -->
+                <div class="space-y-3">
                     <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                        <i class="bi bi-lightning mr-1 text-yellow-500"></i>
-                        Filtros Rápidos - Período
+                        <i class="bi bi-calendar-range mr-1 text-indigo-500"></i>
+                        Período
                     </h4>
-                </div>
+                    <div class="space-y-3">
+                        <!-- Data Inicial -->
+                        <div class="relative">
+                            <input type="date"
+                                   wire:model.live="startDate"
+                                   class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $startDate ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                            <label class="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-700 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                Data Inicial
+                            </label>
+                        </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 mb-6">
-                    <button wire:click="setQuickFilter('today')"
-                            class="group px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 {{ $quickFilter === 'today' ? 'ring-4 ring-blue-300' : '' }}">
-                        <i class="bi bi-calendar-day mr-1"></i>
-                        Hoje
-                    </button>
-
-                    <button wire:click="setQuickDateFilter('yesterday')"
-                            class="group px-4 py-3 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="bi bi-calendar-minus mr-1"></i>
-                        Ontem
-                    </button>
-
-                    <button wire:click="setQuickFilter('week')"
-                            class="group px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 {{ $quickFilter === 'week' ? 'ring-4 ring-green-300' : '' }}">
-                        <i class="bi bi-calendar-week mr-1"></i>
-                        Esta Semana
-                    </button>
-
-                    <button wire:click="setQuickDateFilter('last_week')"
-                            class="group px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="bi bi-calendar-week-fill mr-1"></i>
-                        Semana Passada
-                    </button>
-
-                    <button wire:click="setQuickFilter('month')"
-                            class="group px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 {{ $quickFilter === 'month' ? 'ring-4 ring-purple-300' : '' }}">
-                        <i class="bi bi-calendar-month mr-1"></i>
-                        Este Mês
-                    </button>
-
-                    <button wire:click="setQuickDateFilter('last_month')"
-                            class="group px-4 py-3 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="bi bi-calendar-month-fill mr-1"></i>
-                        Mês Passado
-                    </button>
-
-                    <button wire:click="setQuickDateFilter('last_quarter')"
-                            class="group px-4 py-3 bg-gradient-to-r from-indigo-500 to-indigo-600 hover:from-indigo-600 hover:to-indigo-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="bi bi-calendar3 mr-1"></i>
-                        Trimestre Passado
-                    </button>
-
-                    <button wire:click="setQuickDateFilter('year')"
-                            class="group px-4 py-3 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="bi bi-calendar-range mr-1"></i>
-                        Este Ano
-                    </button>
-                </div>
-
-                <!-- Filtros de Status -->
-                <div class="mb-6">
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-                        <i class="bi bi-flag mr-1 text-blue-500"></i>
-                        Status Rápido
-                    </h4>
-                    <div class="flex flex-wrap gap-3">
-                        <button wire:click="setQuickFilter('pending')"
-                                class="group px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 {{ $quickFilter === 'pending' ? 'ring-4 ring-yellow-300' : '' }}">
-                            <i class="bi bi-clock mr-1"></i>
-                            Pendentes
-                        </button>
-
-                        <button wire:click="setQuickFilter('paid')"
-                                class="group px-4 py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 {{ $quickFilter === 'paid' ? 'ring-4 ring-emerald-300' : '' }}">
-                            <i class="bi bi-check-circle mr-1"></i>
-                            Pagas
-                        </button>
-
-                        <button wire:click="$set('statusFilter', 'partially_paid')"
-                                class="group px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-pie-chart mr-1"></i>
-                            Parcialmente Pagas
-                        </button>
-
-                        <button wire:click="$set('statusFilter', 'cancelled')"
-                                class="group px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-x-circle mr-1"></i>
-                            Canceladas
-                        </button>
+                        <!-- Data Final -->
+                        <div class="relative">
+                            <input type="date"
+                                   wire:model.live="endDate"
+                                   class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $endDate ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                            <label class="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-700 text-xs font-medium text-indigo-600 dark:text-indigo-400">
+                                Data Final
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Filtros de Valor -->
-                <div class="mb-6">
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-                        <i class="bi bi-currency-dollar mr-1 text-green-500"></i>
-                        Faixas de Valor
+                <!-- Valores (Min/Max) -->
+                <div class="space-y-3">
+                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <i class="bi bi-currency-dollar mr-1 text-emerald-500"></i>
+                        Faixa de Valores
                     </h4>
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                        <button wire:click="setValueRange('low')"
-                                class="group px-4 py-3 bg-gradient-to-r from-slate-400 to-slate-500 hover:from-slate-500 hover:to-slate-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-coin mr-1"></i>
-                            Até R$ 100
-                        </button>
+                    <div class="space-y-3">
+                        <!-- Valor Mínimo -->
+                        <div class="relative">
+                            <input type="number"
+                                   step="0.01"
+                                   wire:model.live="minValue"
+                                   placeholder="0,00"
+                                   class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $minValue ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' : '' }}">
+                            <label class="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-700 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                Valor Mínimo
+                            </label>
+                        </div>
 
-                        <button wire:click="setValueRange('medium')"
-                                class="group px-4 py-3 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-cash-coin mr-1"></i>
-                            R$ 100 - 500
-                        </button>
-
-                        <button wire:click="setValueRange('high')"
-                                class="group px-4 py-3 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-cash-stack mr-1"></i>
-                            R$ 500 - 2.000
-                        </button>
-
-                        <button wire:click="setValueRange('premium')"
-                                class="group px-4 py-3 bg-gradient-to-r from-yellow-400 to-yellow-500 hover:from-yellow-500 hover:to-yellow-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-gem mr-1"></i>
-                            Acima R$ 2.000
-                        </button>
+                        <!-- Valor Máximo -->
+                        <div class="relative">
+                            <input type="number"
+                                   step="0.01"
+                                   wire:model.live="maxValue"
+                                   placeholder="999.999,99"
+                                   class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $maxValue ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' : '' }}">
+                            <label class="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-700 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                                Valor Máximo
+                            </label>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Pesquisas Rápidas -->
-                <div>
-                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
-                        <i class="bi bi-search mr-1 text-purple-500"></i>
-                        Pesquisas Avançadas
-                    </h4>
-                    <div class="flex flex-wrap gap-3">
-                        <button wire:click="setQuickSearch('parcelado')"
-                                class="group px-4 py-2 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-calendar-plus mr-1"></i>
-                            Parcelado
-                        </button>
+            </div>
 
-                        <button wire:click="setQuickSearch('transferência')"
-                                class="group px-4 py-2 bg-gradient-to-r from-teal-400 to-teal-500 hover:from-teal-500 hover:to-teal-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-bank mr-1"></i>
-                            Transferência
-                        </button>
+            <!-- Seção separada para Cliente e Vendedor (campos mais específicos) -->
+            <div class="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-600/50">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                        <button wire:click="setQuickSearch('débito')"
-                                class="group px-4 py-2 bg-gradient-to-r from-slate-400 to-slate-500 hover:from-slate-500 hover:to-slate-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-credit-card-2-front mr-1"></i>
-                            Débito
-                        </button>
-
-                        <button wire:click="setQuickSearch('crédito')"
-                                class="group px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-credit-card-2-back mr-1"></i>
-                            Crédito
-                        </button>
+                    <!-- Cliente -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            <i class="bi bi-person mr-1 text-blue-500"></i>
+                            Cliente Específico
+                        </h4>
+                        <div class="relative">
+                            <select wire:model.live="clientFilter"
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $clientFilter ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
+                                <option value="">Selecionar cliente...</option>
+                                @foreach($clients as $client)
+                                    <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <i class="bi bi-chevron-down text-slate-400"></i>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Vendedor -->
+                    <div class="space-y-3">
+                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            <i class="bi bi-person-badge mr-1 text-orange-500"></i>
+                            Vendedor Específico
+                        </h4>
+                        <div class="relative">
+                            <select wire:model.live="sellerFilter"
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $sellerFilter ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
+                                <option value="">Selecionar vendedor...</option>
+                                @foreach($sellers as $seller)
+                                    <option value="{{ $seller->id }}">{{ $seller->name }}</option>
+                                @endforeach
+                            </select>
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                <i class="bi bi-chevron-down text-slate-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
+
         </div>
     </div>
 </div>
