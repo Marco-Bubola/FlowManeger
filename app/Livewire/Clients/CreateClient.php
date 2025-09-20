@@ -16,7 +16,7 @@ class CreateClient extends Component
     public string $avatar_cliente = '';
 
     // Lista de avatares predefinidos
-    protected $avatarOptions;
+    public $avatarOptions = [];
 
     public function mount(): void
     {
@@ -88,13 +88,8 @@ class CreateClient extends Component
 
         // Flash message e redirecionamento
         session()->flash('success', 'Cliente criado com sucesso!');
-        
-        $this->redirect(route('clients.index'), navigate: true);
-    }
 
-    public function getAvatarOptionsProperty()
-    {
-        return $this->avatarOptions;
+        $this->redirect(route('clients.index'), navigate: true);
     }
 
     public function render()
