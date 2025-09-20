@@ -342,17 +342,22 @@
                 <div class="product-title" title="{{ $product->name }}">
                     {{ ucwords($product->name) }}
                 </div>
+
+                <!-- Área de preços dentro do card-body -->
+                <div class="price-area mt-3">
+                    <div class="flex flex-col gap-2">
+                        <span class="badge-price" title="Preço de Custo">
+                            <i class="bi bi-tag"></i>
+                            R$ {{ number_format($product->price, 2, ',', '.') }}
+                        </span>
+
+                        <span class="badge-price-sale" title="Preço de Venda">
+                            <i class="bi bi-currency-dollar"></i>
+                            R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                        </span>
+                    </div>
+                </div>
             </div>
-
-            <span class="badge-price" title="Preço de Custo">
-                <i class="bi bi-tag"></i>
-                {{ number_format($product->price, 2, ',', '.') }}
-            </span>
-
-            <span class="badge-price-sale" title="Preço de Venda">
-                <i class="bi bi-currency-dollar"></i>
-                {{ number_format($product->price_sale, 2, ',', '.') }}
-            </span>
         </div>
         @endif
         @endforeach
@@ -566,42 +571,123 @@
     </div>
     @endif
 
-    <!-- Modal de Confirmação de Exclusão aprimorado -->
+    <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
     @if($showDeleteModal)
-    <div class="modal-overlay fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4" style="z-index: 99999 !important;">
-    <div class="modal-content bg-white dark:bg-neutral-800 rounded-2xl border border-neutral-200 dark:border-neutral-700 shadow-2xl max-w-md w-full mx-4 overflow-hidden" style="z-index: 100000 !important;">
-        <!-- Header do modal -->
-        <div class="bg-gradient-to-r from-red-500 to-pink-600 p-6 text-white">
-            <div class="flex items-center justify-center mb-4">
-                <div class="p-3 bg-white/20 rounded-full">
-                    <i class="bi bi-exclamation-triangle text-3xl"></i>
+    <div x-data="{ modalOpen: true }"
+         x-show="modalOpen"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[99999] overflow-y-auto">
+        <!-- Backdrop com blur e gradiente -->
+        <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md"></div>
+
+        <!-- Container do Modal -->
+        <div class="flex min-h-full items-center justify-center p-4">
+            <!-- Modal -->
+            <div x-show="modalOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
+                 x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+                 x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
+                 class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+
+                <!-- Efeitos visuais de fundo -->
+                <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl"></div>
+
+                <!-- Conteúdo do Modal -->
+                <div class="relative z-10">
+                    <!-- Header com ícone animado -->
+                    <div class="text-center pt-8 pb-4">
+                        <div class="relative inline-flex items-center justify-center">
+                            <!-- Círculos de fundo animados -->
+                            <div class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse"></div>
+                            <div class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping"></div>
+
+                            <!-- Ícone principal -->
+                            <div class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
+                            </div>
+                        </div>
+
+                        <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">
+                            <i class="bi bi-shield-exclamation text-red-500 mr-2"></i>
+                            Confirmar Exclusão
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 font-medium">
+                            <i class="bi bi-info-circle text-amber-500 mr-1"></i>
+                            Esta ação não pode ser desfeita
+                        </p>
+                    </div>
+
+                    <!-- Corpo com informações -->
+                    <div class="px-8 pb-4">
+                        <div class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-4 border border-red-200/50 dark:border-red-700/50">
+                            @if(count($selectedProducts) > 0)
+                                <div class="text-center">
+                                    <i class="bi bi-boxes text-3xl text-red-500 mb-2"></i>
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Você está prestes a excluir
+                                        <span class="font-bold text-red-600 dark:text-red-400">{{ count($selectedProducts) }} produto(s)</span>
+                                        selecionado(s).
+                                    </p>
+                                </div>
+                            @else
+                                <div class="text-center">
+                                    <i class="bi bi-box text-3xl text-red-500 mb-2"></i>
+                                    <p class="text-gray-700 dark:text-gray-300">
+                                        Você está prestes a excluir o produto:
+                                    </p>
+                                    <p class="font-bold text-red-600 dark:text-red-400 text-lg mt-1">
+                                        "{{ $deletingProduct->name ?? '' }}"
+                                    </p>
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Aviso adicional -->
+                        <div class="mt-4 flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
+                            <i class="bi bi-clock-history"></i>
+                            <span class="text-sm font-medium">Esta ação é permanente</span>
+                        </div>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="px-8 pb-8">
+                        <div class="flex gap-4">
+                            <!-- Botão Cancelar -->
+                            <button wire:click="$set('showDeleteModal', false)"
+                                    @click="modalOpen = false"
+                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <i class="bi bi-x-circle mr-2"></i>
+                                Cancelar
+                            </button>
+
+                            <!-- Botão Excluir -->
+                            <button wire:click="delete"
+                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-red-400/50">
+                                <i class="bi bi-trash3 mr-2"></i>
+                                Excluir
+                            </button>
+                        </div>
+
+                        <!-- Botão de escape -->
+                        <div class="mt-3 text-center">
+                            <button @click="modalOpen = false; $wire.set('showDeleteModal', false)"
+                                    class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200">
+                                <i class="bi bi-escape mr-1"></i>
+                                Pressione ESC para cancelar
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <h3 class="text-xl font-bold text-center mb-2">⚠️ Confirmar Exclusão</h3>
-            <p class="text-red-100 text-center text-sm">Esta ação é irreversível!</p>
-        </div>
-
-        <!-- Corpo do modal -->
-        <div class="p-6">
-            @if(count($selectedProducts) > 0)
-                <p class="text-neutral-700 dark:text-neutral-300 text-center mb-6">
-                    Tem certeza que deseja excluir <strong>{{ count($selectedProducts) }} produto(s) selecionado(s)</strong>?
-                </p>
-            @else
-                <p class="text-neutral-700 dark:text-neutral-300 text-center mb-6">
-                    Tem certeza que deseja excluir o produto <strong>"{{ $deletingProduct->name ?? '' }}"</strong>?
-                </p>
-            @endif
-
-            <div class="flex gap-4 justify-center">
-                <button wire:click="$set('showDeleteModal', false)"
-                    class="px-6 py-3 bg-neutral-200 hover:bg-neutral-300 dark:bg-neutral-600 dark:hover:bg-neutral-500 text-neutral-700 dark:text-neutral-200 font-medium rounded-xl transition-all duration-200">
-                    ❌ Cancelar
-                </button>
-                <button wire:click="delete"
-                    class="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                    🗑️ Excluir
-                </button>
             </div>
         </div>
     </div>
