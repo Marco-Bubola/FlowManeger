@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
@@ -51,6 +52,11 @@ class EditProduct extends Component
         $this->category_id = (string)$product->category_id;
         $this->product_code = $product->product_code ?? '';
         $this->status = $product->status ?? 'ativo';
+
+        // Debug para verificar se está carregando
+        Log::info('EditProduct mount - product ID: ' . $product->id);
+        Log::info('EditProduct mount - category_id from product: ' . $product->category_id);
+        Log::info('EditProduct mount - category_id property: ' . $this->category_id);
 
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
@@ -220,7 +226,11 @@ class EditProduct extends Component
 
     public function getCategoriesProperty()
     {
-        return Category::where('user_id', Auth::id())->get();
+        return Category::where('user_id', Auth::id())
+                      ->where('type', 'product')
+                      ->where('is_active', 1)
+                      ->orderBy('name')
+                      ->get();
     }
 
     public function getCategoryIcon($iconeName)
@@ -275,7 +285,8 @@ class EditProduct extends Component
     public function getSelectedCategoryNameProperty()
     {
         if ($this->category_id) {
-            $category = Category::find($this->category_id);
+            // Buscar pela chave primária correta da categoria
+            $category = Category::where('id_category', $this->category_id)->first();
             return $category ? $category->name : 'Escolha uma categoria...';
         }
         return 'Escolha uma categoria...';
@@ -284,7 +295,8 @@ class EditProduct extends Component
     public function getSelectedCategoryIconProperty()
     {
         if ($this->category_id) {
-            $category = Category::find($this->category_id);
+            // Buscar pela chave primária correta da categoria
+            $category = Category::where('id_category', $this->category_id)->first();
             return $category ? $this->getCategoryIcon($category->icone) : 'bi-grid-3x3-gap-fill';
         }
         return 'bi-grid-3x3-gap-fill';
@@ -303,6 +315,19 @@ class EditProduct extends Component
 
     public function render()
     {
+        // Debug temporário
+        $categoryName = $this->selectedCategoryName;
+        $categoryIcon = $this->selectedCategoryIcon;
+
+        // Se ainda estiver como padrão, vamos investigar
+        if ($categoryName === 'Escolha uma categoria...') {
+            // Vamos verificar se temos category_id e se encontramos a categoria
+            if ($this->category_id) {
+                $category = Category::where('id_category', $this->category_id)->first();
+                Log::info('Render debug - category_id: ' . $this->category_id . ', category found: ' . ($category ? $category->name : 'NOT FOUND'));
+            }
+        }
+
         return view('livewire.products.edit-product', [
             'categories' => $this->categories,
         ]);
