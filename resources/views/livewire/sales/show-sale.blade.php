@@ -60,7 +60,7 @@
             </div>
 
             <!-- Conteúdo das Abas -->
-            <div class="tab-content">
+            <div class="tab-content {{ $activeTab === 'resumo' ? 'resumo-tab' : '' }}">
                 @if($activeTab === 'resumo')
                     <!-- Dashboard Completo - Primeira Aba Reestruturada -->
                     <div class="animate-fade-in">
@@ -318,8 +318,7 @@
 
                 @if($activeTab === 'produtos')
                     <!-- Aba Produtos -->
-                    <div class="space-y-8 animate-fade-in">
-
+                    <div class="space-y-8 animate-fade-in pb-12">
                         <x-sale-products-grid :sale="$sale" />
                     </div>
                 @endif
@@ -416,44 +415,116 @@
     </div>
     @endif
 
-    <!-- Modal de Confirmação de Exclusão -->
+    <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
     @if($sale->saleItems->count() > 0)
         @foreach($sale->saleItems as $item)
-        <div id="popup-modal-{{ $item->id }}" tabindex="-1"
-             class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full backdrop-blur-sm">
-            <div class="relative p-4 w-full max-w-md max-h-full">
-                <div class="relative bg-white dark:bg-zinc-800 rounded-3xl shadow-2xl border border-gray-200 dark:border-zinc-700">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-zinc-700">
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-xl">
-                                <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400"></i>
+        <div x-data="{ modalOpen: false }"
+             x-show="modalOpen"
+             x-on:show-modal-{{ $item->id }}.window="modalOpen = true"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 z-[99999] overflow-y-auto">
+            <!-- Backdrop com blur e gradiente -->
+            <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md"></div>
+
+            <!-- Container do Modal -->
+            <div class="flex min-h-full items-center justify-center p-4">
+                <!-- Modal -->
+                <div x-show="modalOpen"
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
+                     x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+                     x-transition:leave="transition ease-in duration-200"
+                     x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+                     x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
+                     class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+
+                    <!-- Efeitos visuais de fundo -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
+                    <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl"></div>
+
+                    <!-- Conteúdo do Modal -->
+                    <div class="relative z-10">
+                        <!-- Header com ícone animado -->
+                        <div class="text-center pt-8 pb-4">
+                            <div class="relative inline-flex items-center justify-center">
+                                <!-- Círculos de fundo animados -->
+                                <div class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse"></div>
+                                <div class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping"></div>
+
+                                <!-- Ícone principal -->
+                                <div class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
+                                </div>
                             </div>
-                            Confirmar Exclusão
-                        </h3>
-                        <button type="button" class="text-gray-400 hover:bg-gray-200 dark:hover:bg-zinc-700 hover:text-gray-900 dark:hover:text-white rounded-xl text-sm w-8 h-8 flex justify-center items-center transition-colors"
-                                data-modal-hide="popup-modal-{{ $item->id }}">
-                            <i class="bi bi-x-lg text-xl"></i>
-                        </button>
-                    </div>
 
-                    <!-- Conteúdo -->
-                    <div class="p-6 text-center">
-                        <p class="text-lg text-gray-900 dark:text-white mb-2">Tem certeza que deseja remover este produto?</p>
-                        <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-6">{{ $item->product->name }}</p>
+                            <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">
+                                <i class="bi bi-cart-x text-red-500 mr-2"></i>
+                                Remover Produto
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                <i class="bi bi-info-circle text-amber-500 mr-1"></i>
+                                Esta ação não pode ser desfeita
+                            </p>
+                        </div>
 
-                        <div class="flex gap-3">
-                            <button data-modal-hide="popup-modal-{{ $item->id }}"
-                                    type="button"
-                                    class="flex-1 px-4 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 font-semibold">
-                                <i class="bi bi-x-circle mr-2"></i>Cancelar
-                            </button>
-                            <button data-modal-hide="popup-modal-{{ $item->id }}"
-                                    type="button"
-                                    wire:click="removeSaleItem({{ $item->id }})"
-                                    class="flex-1 px-4 py-3 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl font-semibold">
-                                <i class="bi bi-trash mr-2"></i>Sim, remover
-                            </button>
+                        <!-- Corpo com informações do produto -->
+                        <div class="px-8 pb-4">
+                            <div class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-4 border border-red-200/50 dark:border-red-700/50">
+                                <div class="text-center">
+                                    <i class="bi bi-box-seam text-3xl text-red-500 mb-2"></i>
+                                    <p class="text-gray-700 dark:text-gray-300 mb-2">
+                                        Você está prestes a remover o produto:
+                                    </p>
+                                    <p class="font-bold text-red-600 dark:text-red-400 text-lg">
+                                        "{{ $item->product->name }}"
+                                    </p>
+                                    <div class="mt-3 flex items-center justify-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                                        <span><i class="bi bi-hash mr-1"></i>Qtd: {{ $item->quantity }}</span>
+                                        <span><i class="bi bi-currency-dollar mr-1"></i>R$ {{ number_format($item->price, 2, ',', '.') }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Aviso adicional -->
+                            <div class="mt-4 flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
+                                <i class="bi bi-shield-exclamation"></i>
+                                <span class="text-sm font-medium">O produto será removido da venda</span>
+                            </div>
+                        </div>
+
+                        <!-- Botões de ação -->
+                        <div class="px-8 pb-8">
+                            <div class="flex gap-4">
+                                <!-- Botão Cancelar -->
+                                <button @click="modalOpen = false"
+                                        class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    <i class="bi bi-x-circle mr-2"></i>
+                                    Cancelar
+                                </button>
+
+                                <!-- Botão Remover -->
+                                <button @click="modalOpen = false"
+                                        wire:click="removeSaleItem({{ $item->id }})"
+                                        class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-red-400/50">
+                                    <i class="bi bi-cart-dash mr-2"></i>
+                                    Remover
+                                </button>
+                            </div>
+
+                            <!-- Botão de escape -->
+                            <div class="mt-3 text-center">
+                                <button @click="modalOpen = false"
+                                        class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200">
+                                    <i class="bi bi-escape mr-1"></i>
+                                    Pressione ESC para cancelar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -535,11 +606,18 @@
         }
     }
 
-    /* Layout compacto para a aba resumo */
-    .tab-content {
+    /* Layout para a aba resumo (apenas para resumo) */
+    .tab-content.resumo-tab {
         min-height: calc(100vh - 320px);
         max-height: calc(100vh - 280px);
         overflow: hidden;
+    }
+
+    /* Layout livre para outras abas (produtos, pagamentos) */
+    .tab-content:not(.resumo-tab) {
+        min-height: auto;
+        max-height: none;
+        overflow: visible;
     }
 
     /* Scrollbar customizado */
@@ -572,7 +650,7 @@
             grid-template-columns: repeat(1, minmax(0, 1fr));
         }
 
-        .tab-content {
+        .tab-content.resumo-tab {
             min-height: auto;
             max-height: none;
             overflow: visible;
