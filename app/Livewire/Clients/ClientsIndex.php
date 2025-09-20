@@ -366,16 +366,6 @@ class ClientsIndex extends Component
         // Filtro por status
         if (!empty($this->statusFilter)) {
             switch ($this->statusFilter) {
-                case 'ativo':
-                    $query->whereHas('sales', function($q) {
-                        $q->where('created_at', '>=', now()->subDays(30));
-                    });
-                    break;
-                case 'inativo':
-                    $query->whereDoesntHave('sales', function($q) {
-                        $q->where('created_at', '>=', now()->subDays(30));
-                    });
-                    break;
                 case 'vip':
                     $query->withCount('sales')->having('sales_count', '>=', 10);
                     break;
@@ -526,20 +516,15 @@ class ClientsIndex extends Component
      */
     public function getActiveClientsProperty()
     {
-        // Cliente ativo = teve vendas nos últimos 30 dias
         return Client::where('user_id', Auth::id())
-                    ->whereHas('sales', function($query) {
-                        $query->where('created_at', '>=', now()->subDays(30));
-                    })
+                    ->where('status', 'ativo')
                     ->count();
     }
 
     public function getPremiumClientsProperty()
     {
-        // Cliente premium = 5 ou mais vendas
         return Client::where('user_id', Auth::id())
-                    ->withCount('sales')
-                    ->having('sales_count', '>=', 5)
+                    ->where('type', 'premium')
                     ->count();
     }
 
