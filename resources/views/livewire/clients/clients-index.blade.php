@@ -1,353 +1,513 @@
-<div class="min-h-screen w-full py-8 bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+<div x-data="{ showFilters: false }" class="min-h-screen w-full py-8">
+    <style>
+        [x-cloak] { display: none !important; }
+    </style>
+
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
-        <!-- Header com estatísticas -->
-        <div class="mb-8">
-            <div class="sm:flex sm:items-center sm:justify-between mb-6">
-                <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-white flex items-center">
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
-                            <i class="bi bi-people text-white text-xl"></i>
-                        </div>
-                        Clientes
-                    </h1>
-                    <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Gerencie seus clientes de forma simples e eficiente</p>
-                </div>
-                <div class="mt-4 sm:mt-0 flex gap-3">
-                    <button wire:click="exportClients" 
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-all duration-200 shadow-sm">
-                        <i class="bi bi-download mr-2"></i>
-                        Exportar
-                    </button>
-                    <button onclick="document.getElementById('importModal').style.display='block'" 
-                            class="inline-flex items-center px-4 py-2 border border-green-300 dark:border-green-600 text-sm font-medium rounded-lg text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900 transition-all duration-200 shadow-sm">
-                        <i class="bi bi-upload mr-2"></i>
-                        Importar
-                    </button>
-                    <a href="{{ route('clients.create') }}" 
-                       class="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-all duration-200">
-                        <i class="bi bi-plus mr-2"></i>
-                        Novo Cliente
-                    </a>
-                </div>
-            </div>
 
-            <!-- Cards de estatísticas -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-people text-blue-600 dark:text-blue-400 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Clientes</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $clients->total() }}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-green-50 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-graph-up text-green-600 dark:text-green-400 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Clientes Ativos</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $clients->where('created_at', '>=', now()->subDays(30))->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-purple-50 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-star text-purple-600 dark:text-purple-400 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Clientes Premium</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $clients->filter(fn($client) => $client->sales->count() >= 5)->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md dark:hover:shadow-lg transition-all duration-200">
-                    <div class="flex items-center">
-                        <div class="w-12 h-12 bg-orange-50 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-calendar-plus text-orange-600 dark:text-orange-400 text-xl"></i>
-                        </div>
-                        <div class="ml-4">
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Novos este Mês</p>
-                            <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ $clients->where('created_at', '>=', now()->startOfMonth())->count() }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <!-- Header Moderno -->
+        <x-clients-index-header
+            title="Clientes"
+            :total-clients="$clients->total() ?? 0"
+            :active-clients="$clients->where('status', 'ativo')->count() ?? 0"
+            :premium-clients="$clients->where('type', 'premium')->count() ?? 0"
+            :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
+            :show-quick-actions="true" />
 
-        <!-- Banner da Nova Funcionalidade -->
-        <div class="mb-8 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-xl p-6 text-white shadow-lg border border-gray-200 dark:border-gray-700 relative overflow-hidden">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full -mr-16 -mt-16"></div>
-            <div class="absolute bottom-0 left-0 w-24 h-24 bg-white opacity-10 rounded-full -ml-12 -mb-12"></div>
-            <div class="relative z-10">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-16 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/30">
-                            <i class="bi bi-speedometer2 text-3xl"></i>
+        <!-- Barra de Controle Superior com Pesquisa e Paginação -->
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
+
+            <!-- Linha Principal: Pesquisa (50%) + Controles e Paginação (50%) -->
+            <div class="flex items-center gap-6">
+
+                <!-- Lado Esquerdo: Campo de Pesquisa (50%) -->
+                <div class="flex-1">
+                    <div class="relative group">
+                        <!-- Input principal -->
+                        <div class="relative">
+                            <input type="text"
+                                   wire:model.live.debounce.300ms="search"
+                                   placeholder="Buscar clientes por nome, email, telefone ou cidade..."
+                                   class="w-full pl-12 pr-16 py-3 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900
+                                          border border-slate-200/50 dark:border-slate-600/50 rounded-xl
+                                          text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400
+                                          focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400
+                                          transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm
+                                          text-base font-medium">
+
+                            <!-- Ícone de busca -->
+                            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
+                                <i class="bi bi-search text-slate-500 dark:text-slate-400 text-lg group-focus-within:text-purple-500 transition-colors duration-200"></i>
+                            </div>
+
+                            <!-- Botão limpar -->
+                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                <button wire:click="$set('search', '')"
+                                        x-show="$wire.search && $wire.search.length > 0"
+                                        x-transition:enter="transition ease-out duration-200"
+                                        x-transition:enter-start="opacity-0 scale-50"
+                                        x-transition:enter-end="opacity-100 scale-100"
+                                        x-transition:leave="transition ease-in duration-150"
+                                        x-transition:leave-start="opacity-100 scale-100"
+                                        x-transition:leave-end="opacity-0 scale-50"
+                                        class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500
+                                               text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white
+                                               rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
+                                        title="Limpar busca">
+                                    <i class="bi bi-x-lg text-xs group-hover/clear:rotate-90 transition-transform duration-200"></i>
+                                </button>
+                            </div>
+
+                            <!-- Indicador de carregamento -->
+                            <div wire:loading.delay wire:target="search"
+                                 class="absolute right-12 top-1/2 transform -translate-y-1/2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
+                            </div>
+
+                            <!-- Efeito de brilho -->
+                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lado Direito: Informações + Paginação + Controles (50%) -->
+                <div class="flex items-center gap-4">
+
+                    <!-- Contador de Resultados -->
+                    <div class="flex items-center gap-2">
+                        <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
+                            <i class="bi bi-people text-base"></i>
                         </div>
                         <div>
-                            <h3 class="text-2xl font-bold flex items-center">
-                                🚀 Nova Funcionalidade: Dashboard do Cliente
-                                <span class="ml-3 bg-gradient-to-r from-yellow-400 to-orange-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
-                                    NOVO
-                                </span>
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">
+                                @if($clients->total())
+                                    {{ $clients->total() }} {{ $clients->total() === 1 ? 'Cliente' : 'Clientes' }}
+                                @else
+                                    Nenhum cliente
+                                @endif
                             </h3>
-                            <p class="text-blue-100 mt-2 text-lg">
-                                Visualize análises avançadas, gráficos interativos, insights de compra e muito mais!
+                            @if($clients->total() > 0)
+                            <p class="text-xs text-slate-600 dark:text-slate-400">
+                                {{ $clients->firstItem() ?? 0 }} - {{ $clients->lastItem() ?? 0 }}
                             </p>
+                            @endif
                         </div>
                     </div>
-                    <div class="hidden lg:block">
-                        <div class="grid grid-cols-2 gap-4 text-sm text-blue-100">
-                            <div class="flex items-center space-x-2 bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                                <i class="bi bi-graph-up text-lg"></i>
-                                <span>Gráficos Avançados</span>
-                            </div>
-                            <div class="flex items-center space-x-2 bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                                <i class="bi bi-lightbulb text-lg"></i>
-                                <span>Insights IA</span>
-                            </div>
-                            <div class="flex items-center space-x-2 bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                                <i class="bi bi-heart text-lg"></i>
-                                <span>Score Fidelidade</span>
-                            </div>
-                            <div class="flex items-center space-x-2 bg-white/10 rounded-lg p-3 backdrop-blur-sm">
-                                <i class="bi bi-trophy text-lg"></i>
-                                <span>Rankings</span>
-                            </div>
+
+                    <!-- Paginação Compacta -->
+                    @if($clients->hasPages())
+                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                        <!-- Primeira/Anterior -->
+                        @if($clients->currentPage() > 1)
+                        <a href="{{ $clients->url(1) }}"
+                           class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                           title="Primeira página">
+                            <i class="bi bi-chevron-double-left text-sm"></i>
+                        </a>
+                        @endif
+
+                        @if($clients->previousPageUrl())
+                        <a href="{{ $clients->previousPageUrl() }}"
+                           class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                           title="Página anterior">
+                            <i class="bi bi-chevron-left text-sm"></i>
+                        </a>
+                        @endif
+
+                        <!-- Páginas -->
+                        <div class="flex items-center px-3 py-1">
+                            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                {{ $clients->currentPage() }} / {{ $clients->lastPage() }}
+                            </span>
                         </div>
+
+                        <!-- Próxima/Última -->
+                        @if($clients->nextPageUrl())
+                        <a href="{{ $clients->nextPageUrl() }}"
+                           class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                           title="Próxima página">
+                            <i class="bi bi-chevron-right text-sm"></i>
+                        </a>
+                        @endif
+
+                        @if($clients->currentPage() < $clients->lastPage())
+                        <a href="{{ $clients->url($clients->lastPage()) }}"
+                           class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                           title="Última página">
+                            <i class="bi bi-chevron-double-right text-sm"></i>
+                        </a>
+                        @endif
                     </div>
+                    @endif
+
+                    <!-- Botão de Filtros -->
+                    <button @click="showFilters = !showFilters"
+                            class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-all duration-200"
+                            :class="{ 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300': showFilters }"
+                            title="Filtros avançados">
+                        <i class="bi bi-funnel text-lg"></i>
+                    </button>
                 </div>
-                <div class="mt-6 pt-4 border-t border-white/20">
-                    <p class="text-sm text-blue-100 flex items-center">
-                        <i class="bi bi-info-circle mr-2"></i>
-                        Clique no botão <strong class="mx-1 bg-white/20 px-2 py-1 rounded border border-white/30">Dashboard</strong> em qualquer cliente para experimentar esta nova experiência!
-                    </p>
+            </div>
+
+            <!-- Linha Secundária: Pesquisas rápidas e indicadores -->
+            <div class="mt-4 flex items-center justify-between">
+                <!-- Pesquisas Rápidas -->
+                <div class="flex flex-wrap gap-2">
+                    <span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Pesquisas Rápidas:</span>
+
+                    <button wire:click="setQuickSearch('ativo')"
+                            class="group px-3 py-1 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50
+                                   text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300
+                                   text-xs font-medium rounded-lg transition-all duration-200 border border-green-200 dark:border-green-700">
+                        <i class="bi bi-person-check mr-1"></i>
+                        Ativos
+                    </button>
+
+                    <button wire:click="setQuickSearch('premium')"
+                            class="group px-3 py-1 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/30 dark:hover:bg-purple-900/50
+                                   text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300
+                                   text-xs font-medium rounded-lg transition-all duration-200 border border-purple-200 dark:border-purple-700">
+                        <i class="bi bi-star mr-1"></i>
+                        Premium
+                    </button>
+
+                    <button wire:click="setQuickSearch('recente')"
+                            class="group px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50
+                                   text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300
+                                   text-xs font-medium rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-700">
+                        <i class="bi bi-clock mr-1"></i>
+                        Recentes
+                    </button>
+
+                    <button wire:click="setQuickSearch('mais_compras')"
+                            class="group px-3 py-1 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50
+                                   text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300
+                                   text-xs font-medium rounded-lg transition-all duration-200 border border-emerald-200 dark:border-emerald-700">
+                        <i class="bi bi-graph-up mr-1"></i>
+                        Mais Compras
+                    </button>
+
+                    <button wire:click="setQuickSearch('inativos')"
+                            class="group px-3 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50
+                                   text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300
+                                   text-xs font-medium rounded-lg transition-all duration-200 border border-red-200 dark:border-red-700">
+                        <i class="bi bi-person-x mr-1"></i>
+                        Inativos
+                    </button>
+                </div>
+
+                <!-- Indicadores de Status e Ordenação -->
+                <div class="flex items-center gap-3">
+                    <!-- Indicador de Ordenação Atual -->
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-200 dark:border-indigo-700">
+                        <i class="bi bi-arrow-up-down text-indigo-600 dark:text-indigo-400 text-sm"></i>
+                        <span class="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
+                            {{
+                                match($sortBy ?? 'name') {
+                                    'created_at' => 'Por Data',
+                                    'name' => 'Por Nome',
+                                    'email' => 'Por Email',
+                                    'status' => 'Por Status',
+                                    'phone' => 'Por Telefone',
+                                    default => 'Por Nome'
+                                }
+                            }}
+                            <i class="bi bi-{{ ($sortDirection ?? 'asc') === 'asc' ? 'arrow-up' : 'arrow-down' }} ml-1"></i>
+                        </span>
+                    </div>
+
+                    @if($search || ($statusFilter ?? false) || ($clientFilter ?? false) || ($startDate ?? false) || ($endDate ?? false))
+                    <div class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                        <i class="bi bi-funnel-fill text-blue-600 dark:text-blue-400 text-sm"></i>
+                        <span class="text-sm font-semibold text-blue-800 dark:text-blue-300">Filtros Ativos</span>
+                    </div>
+                    @endif
+
+                    <!-- Quick Stats -->
+                    <div class="hidden lg:flex items-center gap-4 text-sm">
+                        <div class="flex items-center gap-1 text-green-600 dark:text-green-400">
+                            <i class="bi bi-person-check"></i>
+                            <span>{{ $clients->where('status', 'ativo')->count() }} Ativos</span>
+                        </div>
+                        <div class="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                            <i class="bi bi-star"></i>
+                            <span>{{ $clients->where('type', 'premium')->count() }} Premium</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-            <!-- Filtros e Ações -->
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 mb-8" x-data="{ showAdvancedFilters: @entangle('showAdvancedFilters') }">
-                <div class="flex items-center justify-between mb-6">
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                        <i class="bi bi-funnel text-gray-600 dark:text-gray-400 mr-2"></i>
-                        Busca e Filtros
-                    </h2>
-                    <div class="flex items-center space-x-3">
-                        <button @click="showAdvancedFilters = !showAdvancedFilters" 
-                                wire:click="$toggle('showAdvancedFilters')"
-                                class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-700 transition-colors duration-200">
-                            <i class="bi bi-sliders mr-2"></i>
-                            Filtros Avançados
-                            <i class="bi bi-chevron-down ml-1 transition-transform duration-200" :class="showAdvancedFilters ? 'rotate-180' : ''"></i>
-                        </button>
-                        <span class="text-sm text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">{{ $clients->total() }} resultados</span>
-                    </div>
-                </div>
-                
-                <!-- Busca Rápida -->
-                <div class="mb-6">
-                    <div class="relative">
-                        <input type="text" 
-                               wire:model.live.debounce.300ms="search"
-                               placeholder="🔍 Pesquisar por nome, email, telefone ou cidade..."
-                               class="w-full pl-12 pr-16 py-4 text-lg border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 shadow-sm">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="bi bi-search text-gray-400 text-xl"></i>
-                        </div>
-                        @if($search)
-                            <button wire:click="$set('search', '')" class="absolute inset-y-0 right-0 pr-4 flex items-center">
-                                <i class="bi bi-x-circle text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-xl"></i>
+        <!-- Filtros Avançados (usando showFilters do Alpine.js) -->
+        <div x-show="showFilters"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 transform -translate-y-4"
+             x-transition:enter-end="opacity-100 transform translate-y-0"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 transform translate-y-0"
+             x-transition:leave-end="opacity-0 transform -translate-y-4"
+             class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
+
+            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center">
+                <i class="bi bi-sliders text-purple-600 dark:text-purple-400 mr-2"></i>
+                Filtros Avançados
+            </h3>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                <!-- Coluna Esquerda: Status e Período -->
+                <div class="space-y-4">
+
+                    <!-- Status do Cliente -->
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
+                            <i class="bi bi-person-check mr-2 text-purple-500"></i>
+                            Status do Cliente
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <!-- Todos os Status -->
+                            <button wire:click="$set('statusFilter', '')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $statusFilter === '' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-list-ul text-purple-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Todos</span>
+                                </div>
                             </button>
-                        @endif
+
+                            <!-- Ativo -->
+                            <button wire:click="$set('statusFilter', 'ativo')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $statusFilter === 'ativo' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-person-check text-green-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Ativo</span>
+                                </div>
+                            </button>
+
+                            <!-- Inativo -->
+                            <button wire:click="$set('statusFilter', 'inativo')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-red-300 dark:hover:border-red-500 transition-all duration-200 {{ $statusFilter === 'inativo' ? 'ring-2 ring-red-500 bg-red-50 dark:bg-red-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-person-x text-red-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Inativo</span>
+                                </div>
+                            </button>
+
+                            <!-- Premium -->
+                            <button wire:click="$set('statusFilter', 'premium')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-yellow-300 dark:hover:border-yellow-500 transition-all duration-200 {{ $statusFilter === 'premium' ? 'ring-2 ring-yellow-500 bg-yellow-50 dark:bg-yellow-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-star text-yellow-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">Premium</span>
+                                </div>
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- Período -->
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
+                            <i class="bi bi-calendar-range mr-2 text-indigo-500"></i>
+                            Período de Cadastro
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1">
+                            <!-- Qualquer período -->
+                            <button wire:click="$set('dateFilter', '')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-200 {{ $dateFilter === '' ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-list-ul text-indigo-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Todos</div>
+                                </div>
+                            </button>
+
+                            <!-- Hoje -->
+                            <button wire:click="$set('dateFilter', 'hoje')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $dateFilter === 'hoje' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-calendar-day text-blue-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Hoje</div>
+                                </div>
+                            </button>
+
+                            <!-- Esta semana -->
+                            <button wire:click="$set('dateFilter', 'semana')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500 transition-all duration-200 {{ $dateFilter === 'semana' ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-calendar-week text-green-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Semana</div>
+                                </div>
+                            </button>
+
+                            <!-- Este mês -->
+                            <button wire:click="$set('dateFilter', 'mes')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $dateFilter === 'mes' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-calendar-month text-purple-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Mês</div>
+                                </div>
+                            </button>
+
+                            <!-- Este ano -->
+                            <button wire:click="$set('dateFilter', 'ano')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 {{ $dateFilter === 'ano' ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-calendar text-orange-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Ano</div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
 
-                <!-- Filtros Avançados (Escondidos por padrão) -->
-                <div x-show="showAdvancedFilters" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform -translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100 transform translate-y-0" x-transition:leave-end="opacity-0 transform -translate-y-4">
-                    <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                        <h3 class="text-md font-medium text-gray-900 dark:text-white mb-4 flex items-center">
-                            <i class="bi bi-gear text-gray-500 mr-2"></i>
-                            Configurações Avançadas
-                        </h3>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                            <!-- Ordenar -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <i class="bi bi-sort-down text-gray-400 mr-1"></i>Ordenar por
-                                </label>
-                                <select wire:model.live="filter" 
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="">Padrão</option>
-                                    <option value="created_at">Últimos Adicionados</option>
-                                    <option value="updated_at">Últimos Atualizados</option>
-                                    <option value="name_asc">Nome A-Z</option>
-                                    <option value="name_desc">Nome Z-A</option>
-                                    <option value="most_sales">Mais Compras</option>
-                                    <option value="best_customers">Maiores Gastadores</option>
-                                    <option value="recent_activity">Atividade Recente</option>
-                                </select>
-                            </div>
+                <!-- Coluna Direita: Ordenação e Paginação -->
+                <div class="space-y-4">
 
-                            <!-- Status do Cliente -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <i class="bi bi-person-check text-gray-400 mr-1"></i>Status
-                                </label>
-                                <select wire:model.live="statusFilter" 
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="">Todos</option>
-                                    <option value="vip">VIP (10+ compras)</option>
-                                    <option value="premium">Premium (5+ compras)</option>
-                                    <option value="standard">Padrão</option>
-                                    <option value="new">Novos (último mês)</option>
-                                    <option value="inactive">Inativos (6+ meses)</option>
-                                </select>
-                            </div>
-
-                            <!-- Período -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <i class="bi bi-calendar-range text-gray-400 mr-1"></i>Cadastrado em
-                                </label>
-                                <select wire:model.live="periodFilter" 
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="">Qualquer período</option>
-                                    <option value="today">Hoje</option>
-                                    <option value="week">Esta semana</option>
-                                    <option value="month">Este mês</option>
-                                    <option value="quarter">Últimos 3 meses</option>
-                                    <option value="year">Este ano</option>
-                                </select>
-                            </div>
-
-                            <!-- Itens por página -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <i class="bi bi-grid text-gray-400 mr-1"></i>Por página
-                                </label>
-                                <select wire:model.live="perPage" 
-                                        class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="12">12 clientes</option>
-                                    <option value="16">16 clientes</option>
-                                    <option value="20">20 clientes</option>
-                                    <option value="24">24 clientes</option>
-                                    <option value="32">32 clientes</option>
-                                    <option value="48">48 clientes</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Filtros Adicionais -->
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <!-- Valor de Compras -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <i class="bi bi-currency-dollar text-gray-400 mr-1"></i>Valor Total de Compras
-                                </label>
-                                <div class="flex gap-2">
-                                    <input type="number" wire:model.live="minValue" placeholder="Min" 
-                                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <input type="number" wire:model.live="maxValue" placeholder="Max" 
-                                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                    <!-- Ordenação -->
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
+                            <i class="bi bi-arrow-up-down mr-2 text-emerald-500"></i>
+                            Ordenar por
+                        </h4>
+                        <div class="grid grid-cols-3 gap-1">
+                            <!-- Por Nome -->
+                            <button wire:click="$set('sortBy', 'name')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-200 {{ $sortBy === 'name' ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-person text-emerald-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Nome</div>
                                 </div>
-                            </div>
+                            </button>
 
-                            <!-- Número de Compras -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    <i class="bi bi-cart text-gray-400 mr-1"></i>Número de Compras
-                                </label>
-                                <div class="flex gap-2">
-                                    <input type="number" wire:model.live="minSales" placeholder="Min" 
-                                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <input type="number" wire:model.live="maxSales" placeholder="Max" 
-                                           class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+                            <!-- Por Data -->
+                            <button wire:click="$set('sortBy', 'created_at')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $sortBy === 'created_at' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-calendar text-blue-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Data</div>
                                 </div>
-                            </div>
+                            </button>
 
-                            <!-- Ações -->
-                            <div class="flex items-end gap-2">
-                                <button wire:click="clearAllFilters" 
-                                        class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200">
-                                    <i class="bi bi-arrow-clockwise mr-1"></i>Limpar
-                                </button>
-                                <button wire:click="exportClients" 
-                                        class="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg hover:from-green-700 hover:to-emerald-700 transition-colors duration-200">
-                                    <i class="bi bi-download mr-1"></i>Exportar
-                                </button>
-                            </div>
+                            <!-- Por Email -->
+                            <button wire:click="$set('sortBy', 'email')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $sortBy === 'email' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-envelope text-purple-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Email</div>
+                                </div>
+                            </button>
+
+                            <!-- Por Status -->
+                            <button wire:click="$set('sortBy', 'status')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 {{ $sortBy === 'status' ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-flag text-orange-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Status</div>
+                                </div>
+                            </button>
+
+                            <!-- Por Telefone -->
+                            <button wire:click="$set('sortBy', 'phone')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-500 transition-all duration-200 {{ $sortBy === 'phone' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-900/30' : '' }}">
+                                <div class="text-center">
+                                    <i class="bi bi-telephone text-teal-500 text-sm"></i>
+                                    <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Telefone</div>
+                                </div>
+                            </button>
                         </div>
+                    </div>
+
+                    <!-- Itens por página -->
+                    <div class="space-y-2">
+                        <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
+                            <i class="bi bi-grid mr-2 text-pink-500"></i>
+                            Itens por Página
+                        </h4>
+                        <div class="grid grid-cols-2 gap-2">
+                            <!-- 12 por página -->
+                            <button wire:click="$set('perPage', '12')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '12' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-grid-3x3 text-pink-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">12</span>
+                                </div>
+                            </button>
+
+                            <!-- 24 por página -->
+                            <button wire:click="$set('perPage', '24')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '24' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-grid text-pink-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">24</span>
+                                </div>
+                            </button>
+
+                            <!-- 48 por página -->
+                            <button wire:click="$set('perPage', '48')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '48' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-grid-1x2 text-pink-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">48</span>
+                                </div>
+                            </button>
+
+                            <!-- 96 por página -->
+                            <button wire:click="$set('perPage', '96')"
+                                    class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage === '96' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
+                                <div class="flex items-center justify-center gap-2">
+                                    <i class="bi bi-list-ul text-pink-500 text-sm"></i>
+                                    <span class="text-xs font-medium text-slate-700 dark:text-slate-300">96</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>            <!-- Botões de Ação dos Filtros -->
+            <div class="flex items-center justify-between mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
+                <button wire:click="clearFilters"
+                        class="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200
+                               bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-lg transition-all duration-200">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Limpar Filtros
+                </button>
+
+                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                    <i class="bi bi-info-circle"></i>
+                    <span>{{ $clients->total() }} cliente(s) encontrado(s)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel de Ações em Massa -->
+        @if (count($selectedClients ?? []) > 0)
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-2xl p-4 mb-6">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center text-blue-700 dark:text-blue-300">
+                        <i class="bi bi-check-square text-lg mr-2"></i>
+                        <span class="font-medium">{{ count($selectedClients) }} cliente(s) selecionado(s)</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <button wire:click="bulkExport"
+                                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200">
+                            <i class="bi bi-download mr-1"></i>
+                            Exportar
+                        </button>
+                        <button wire:click="bulkDelete"
+                                class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors duration-200">
+                            <i class="bi bi-trash mr-1"></i>
+                            Excluir
+                        </button>
+                        <button wire:click="$set('selectedClients', [])"
+                                class="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white rounded-lg transition-colors duration-200">
+                            <i class="bi bi-x mr-1"></i>
+                            Cancelar
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <!-- Painel de Ações em Massa -->
-            @if(count($selectedClients) > 0)
-                <div class="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-200 dark:border-blue-700 rounded-xl p-4 mb-6 animate-pulse">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center text-blue-700 dark:text-blue-300">
-                            <i class="bi bi-check-square text-lg mr-2"></i>
-                            <span class="font-medium">{{ count($selectedClients) }} cliente(s) selecionado(s)</span>
-                        </div>
-                        <div class="flex gap-2">
-                            <button wire:click="bulkExport" 
-                                    class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
-                                <i class="bi bi-download mr-1"></i>Exportar
-                            </button>
-                            <button wire:click="bulkDelete" 
-                                    onclick="return confirm('Tem certeza que deseja deletar os clientes selecionados?')"
-                                    class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
-                                <i class="bi bi-trash mr-1"></i>Deletar
-                            </button>
-                            <button wire:click="$set('selectedClients', [])" 
-                                    class="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm font-medium">
-                                <i class="bi bi-x mr-1"></i>Cancelar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
-        <!-- Lista de Clientes -->
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-            @if($clients->count() > 0)
-                <!-- Header da tabela -->
-                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                            <i class="bi bi-table text-gray-600 dark:text-gray-400 mr-2"></i>
-                            Lista de Clientes
-                        </h3>
-                        <div class="flex items-center space-x-3">
-                            <!-- Checkbox Selecionar Todos -->
-                            <label class="flex items-center">
-                                <input type="checkbox" wire:model.live="selectAll" 
-                                       class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400">
-                                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400">Selecionar todos</span>
-                            </label>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $clients->count() }} de {{ $clients->total() }}</span>
-                            <div class="flex items-center space-x-1">
-                                <button class="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200" title="Visualização em Grid">
-                                    <i class="bi bi-grid"></i>
-                                </button>
-                                <button class="p-2 text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg" title="Visualização em Tabela">
-                                    <i class="bi bi-list"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        @endif
 
                 <!-- Grid de clientes -->
                 <div class="p-6">
@@ -356,7 +516,7 @@
                             <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group relative transform hover:-translate-y-1">
                                 <!-- Checkbox de seleção -->
                                 <div class="absolute top-3 left-3 z-10">
-                                    <input type="checkbox" wire:model.live="selectedClients" value="{{ $client->id }}" 
+                                    <input type="checkbox" wire:model.live="selectedClients" value="{{ $client->id }}"
                                            class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700">
                                 </div>
                                 <!-- Header do card com gradiente -->
@@ -380,7 +540,7 @@
                                     <!-- Pattern decorativo -->
                                     <div class="absolute -top-4 -right-4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
                                     <div class="absolute -bottom-2 -left-2 w-12 h-12 bg-white opacity-10 rounded-full"></div>
-                                    
+
                                     <!-- ID do Cliente -->
                                     <div class="absolute top-3 left-3">
                                         <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-mono bg-white/20 text-white border border-white/30">
@@ -392,7 +552,7 @@
                                 <!-- Avatar centralizado -->
                                 <div class="flex justify-center -mt-10 mb-4 relative z-10">
                                     <div class="relative">
-                                        <img src="{{ $client->caminho_foto }}" 
+                                        <img src="{{ $client->caminho_foto }}"
                                              alt="Avatar de {{ $client->name }}"
                                              class="w-20 h-20 rounded-full border-4 border-white dark:border-gray-800 shadow-xl group-hover:scale-110 transition-transform duration-300">
                                         <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-2 border-white dark:border-gray-800 shadow-lg"></div>
@@ -473,7 +633,7 @@
                                                 <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">Total Gasto</p>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Métricas adicionais -->
                                         <div class="grid grid-cols-2 gap-2 text-xs">
                                             <div class="bg-white dark:bg-gray-800/50 rounded-lg p-2 text-center">
@@ -489,7 +649,7 @@
                                                 <p class="text-gray-500 dark:text-gray-400">Como Cliente</p>
                                             </div>
                                         </div>
-                                        
+
                                         @if($client->sales->count() > 0)
                                             <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
                                                 <div class="flex items-center justify-between text-xs">
@@ -514,7 +674,7 @@
 
                                     <!-- Ações redesenhadas -->
                                     <div class="space-y-3">
-                                        <a href="{{ route('clients.dashboard', $client->id) }}" 
+                                        <a href="{{ route('clients.dashboard', $client->id) }}"
                                            class="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 relative">
                                             <i class="bi bi-speedometer2 mr-2"></i>
                                             Ver Dashboard Completo
@@ -522,30 +682,30 @@
                                                 NOVO
                                             </span>
                                         </a>
-                                        
+
                                         <div class="grid grid-cols-4 gap-2">
-                                            <a href="{{ route('clients.resumo', $client->id) }}" 
+                                            <a href="{{ route('clients.resumo', $client->id) }}"
                                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 transition-all duration-200"
                                                title="Ver Resumo Detalhado">
                                                 <i class="bi bi-graph-up"></i>
                                             </a>
-                                            <a href="{{ route('clients.edit', $client->id) }}" 
+                                            <a href="{{ route('clients.edit', $client->id) }}"
                                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 transition-all duration-200"
                                                title="Editar Informações">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
-                                            <a href="mailto:{{ $client->email }}" 
+                                            <a href="mailto:{{ $client->email }}"
                                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-700 transition-all duration-200"
                                                title="Enviar E-mail">
                                                 <i class="bi bi-envelope"></i>
                                             </a>
-                                            <button wire:click="confirmDelete({{ $client->id }})" 
+                                            <button wire:click="confirmDelete({{ $client->id }})"
                                                     class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-700 transition-all duration-200"
                                                     title="Excluir Cliente">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
-                                        
+
                                         <!-- Ações rápidas -->
                                         <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
                                             <div class="grid grid-cols-2 gap-2 text-xs">
@@ -566,391 +726,319 @@
                     </div>
                 </div>
 
-                <!-- Paginação -->
-                <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                            <span>Mostrando {{ $clients->firstItem() ?? 0 }} até {{ $clients->lastItem() ?? 0 }} de {{ $clients->total() }} resultados</span>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            {{ $clients->links() }}
-                        </div>
-                    </div>
-                </div>
-            @else
-                <!-- Estado vazio -->
-                <div class="text-center py-20">
-                    <div class="mx-auto w-32 h-32 bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full flex items-center justify-center mb-6 border-4 border-blue-100 dark:border-blue-800">
-                        <i class="bi bi-people text-5xl text-blue-400 dark:text-blue-500"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                        @if($search)
-                            Nenhum cliente encontrado
-                        @else
-                            Sua lista de clientes está vazia
-                        @endif
-                    </h3>
-                    <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                        @if($search)
-                            Não encontramos clientes com o termo "<strong>{{ $search }}</strong>". Tente refinar sua pesquisa ou limpar os filtros.
-                        @else
-                            Comece sua jornada empresarial adicionando seu primeiro cliente e construa relacionamentos duradouros.
-                        @endif
-                    </p>
-                    
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
-                        @if($search)
-                            <button wire:click="$set('search', '')" 
-                                   class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-all duration-200">
-                                <i class="bi bi-arrow-clockwise mr-2"></i>
-                                Limpar Pesquisa
-                            </button>
-                        @endif
-                        
-                        <a href="{{ route('clients.create') }}" 
-                           class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-900 transition-all duration-200">
-                            <i class="bi bi-plus mr-2"></i>
-                            Adicionar Primeiro Cliente
-                        </a>
-                    </div>
-                    
-                    @if(!$search)
-                        <div class="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700">
-                            <h4 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Dicas para começar:</h4>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-3xl mx-auto">
-                                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
-                                    <i class="bi bi-person-plus text-blue-600 dark:text-blue-400 text-2xl mb-2"></i>
-                                    <h5 class="font-medium text-gray-900 dark:text-white mb-1">Adicione Dados Completos</h5>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Inclua nome, email, telefone e outras informações relevantes</p>
-                                </div>
-                                <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800">
-                                    <i class="bi bi-graph-up text-green-600 dark:text-green-400 text-2xl mb-2"></i>
-                                    <h5 class="font-medium text-gray-900 dark:text-white mb-1">Acompanhe o Progresso</h5>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Use o dashboard para análises detalhadas de cada cliente</p>
-                                </div>
-                                <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-100 dark:border-purple-800">
-                                    <i class="bi bi-heart text-purple-600 dark:text-purple-400 text-2xl mb-2"></i>
-                                    <h5 class="font-medium text-gray-900 dark:text-white mb-1">Construa Relacionamentos</h5>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400">Mantenha histórico de interações e preferências</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            @endif
-        </div>
-    
         <!-- Modal de Confirmação de Exclusão -->
-        @if($showDeleteModal)
-        <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black bg-opacity-50 backdrop-blur-sm" wire:click="cancelDelete">
-            <div class="relative p-4 w-full max-w-md max-h-full transform transition-all duration-300 scale-100" wire:click.stop>
-                <div class="relative bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700">
-                    <!-- Header do modal -->
-                    <div class="flex items-center justify-between p-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                            <div class="w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg flex items-center justify-center mr-3">
-                                <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400"></i>
+        @if ($showDeleteModal ?? false)
+            <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                wire:click="cancelDelete">
+                <div class="relative p-4 w-full max-w-lg max-h-full transform transition-all duration-300 scale-100"
+                    x-transition:enter="transition ease-out duration-300 delay-75"
+                    x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+                    wire:click.stop>
+                    <div class="relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 dark:border-slate-700/50 overflow-hidden">
+                        <!-- Gradiente decorativo no topo -->
+                        <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600"></div>
+
+                        <!-- Header do modal -->
+                        <div class="flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-slate-700/50">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                    <i class="bi bi-shield-exclamation text-lg"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-slate-900 dark:text-slate-100">
+                                    Confirmar Exclusão
+                                </h3>
                             </div>
-                            Confirmar Exclusão
-                        </h3>
-                        <button type="button" 
-                                wire:click="cancelDelete"
-                                class="text-gray-400 bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm w-8 h-8 inline-flex justify-center items-center transition-colors duration-200">
-                            <i class="bi bi-x text-lg"></i>
-                        </button>
-                    </div>
-                    
-                    <!-- Conteúdo do modal -->
-                    <div class="px-6 pb-6">
-                        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-4">
-                            <p class="text-sm text-red-800 dark:text-red-400">
-                                <i class="bi bi-info-circle mr-2"></i>
-                                Esta ação não pode ser desfeita. O cliente e todos os dados relacionados serão permanentemente removidos.
-                            </p>
+                            <button type="button" wire:click="cancelDelete"
+                                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100/50 hover:bg-slate-200/70 dark:bg-slate-700/50 dark:hover:bg-slate-600/70 rounded-xl text-sm w-10 h-10 flex justify-center items-center transition-all duration-200 backdrop-blur-sm"
+                                title="Fechar">
+                                <i class="bi bi-x-lg text-lg"></i>
+                            </button>
                         </div>
-                        
-                        <p class="text-gray-600 dark:text-gray-400 mb-6">
-                            Tem certeza de que deseja excluir o cliente <strong class="text-gray-900 dark:text-white">{{ $deletingClient?->name }}</strong>?
-                        </p>
-                        
-                        <!-- Botões de ação -->
-                        <div class="flex gap-3">
-                            <button type="button" 
-                                    wire:click="deleteClient"
-                                    class="flex-1 text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 font-medium rounded-lg text-sm py-2.5 transition-all duration-200 shadow-lg hover:shadow-xl">
-                                <i class="bi bi-trash mr-2"></i>
-                                Sim, Excluir
-                            </button>
-                            <button type="button" 
-                                    wire:click="cancelDelete"
-                                    class="flex-1 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 focus:ring-4 focus:outline-none focus:ring-gray-300 dark:focus:ring-gray-600 font-medium rounded-lg text-sm py-2.5 border border-gray-300 dark:border-gray-600 transition-colors duration-200">
-                                <i class="bi bi-x mr-2"></i>
-                                Cancelar
-                            </button>
+
+                        <!-- Conteúdo do modal -->
+                        <div class="p-6 text-center">
+                            <!-- Ícone central com animação -->
+                            <div class="relative mx-auto mb-6">
+                                <div class="w-20 h-20 mx-auto bg-gradient-to-br from-red-100 to-pink-100 dark:from-red-900/40 dark:to-pink-900/40 rounded-full flex items-center justify-center shadow-xl ring-4 ring-red-100 dark:ring-red-900/30">
+                                    <i class="bi bi-person-x text-red-600 dark:text-red-400 text-3xl animate-pulse"></i>
+                                </div>
+                                <!-- Ícones decorativos orbitando -->
+                                <div class="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                                    <i class="bi bi-exclamation text-white text-sm font-bold"></i>
+                                </div>
+                                <div class="absolute -bottom-2 -left-2 w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                                    <i class="bi bi-trash text-white text-sm"></i>
+                                </div>
+                            </div>
+
+                            <!-- Título e descrição -->
+                            <h3 class="mb-2 text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                Excluir Cliente?
+                            </h3>
+                            <p class="mb-6 text-slate-600 dark:text-slate-400 leading-relaxed">
+                                Esta ação não pode ser desfeita. Todas as informações e histórico deste cliente serão <span class="font-semibold text-red-600 dark:text-red-400">permanentemente removidos</span>.
+                            </p>
+
+                            <!-- Alertas adicionais -->
+                            <div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50">
+                                <div class="flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+                                    <i class="bi bi-info-circle text-lg"></i>
+                                    <span class="text-sm font-medium">Dados que serão perdidos:</span>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2 mt-3 text-xs text-amber-600 dark:text-amber-500">
+                                    <div class="flex items-center gap-1">
+                                        <i class="bi bi-person-circle"></i>
+                                        <span>Informações pessoais</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <i class="bi bi-receipt"></i>
+                                        <span>Histórico de vendas</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <i class="bi bi-cash-coin"></i>
+                                        <span>Dados financeiros</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <i class="bi bi-graph-up"></i>
+                                        <span>Relatórios e métricas</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botões de ação -->
+                            <div class="flex gap-3">
+                                <button wire:click="cancelDelete" type="button"
+                                    class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-slate-700/70 hover:bg-slate-200/80 dark:hover:bg-slate-600/80 rounded-xl font-semibold transition-all duration-200 backdrop-blur-sm border border-slate-200/50 dark:border-slate-600/50 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    <i class="bi bi-shield-check text-lg"></i>
+                                    <span>Manter Cliente</span>
+                                </button>
+                                <button wire:click="deleteClient" type="button"
+                                    class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ring-2 ring-red-500/20 focus:ring-4 focus:ring-red-500/40">
+                                    <i class="bi bi-trash-fill text-lg"></i>
+                                    <span>Confirmar Exclusão</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
         @endif
 
-        <!-- Notificações Toast Elegantes -->
+        <!-- Notificações Toast -->
         @if (session()->has('message'))
-        <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition" x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-            <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-green-400 backdrop-blur-sm">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-check-circle-fill text-lg"></i>
+            <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show"
+                x-transition:enter="transform ease-out duration-300 transition"
+                x-transition:enter-start="translate-x-full opacity-0"
+                x-transition:enter-end="translate-x-0 opacity-100"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
+                <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-green-400 backdrop-blur-sm">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-check-circle text-xl"></i>
                         </div>
-                    </div>
-                    <div class="ml-3 flex-1">
-                        <p class="text-sm font-medium">{{ session('message') }}</p>
-                    </div>
-                    <div class="ml-4">
-                        <button @click="show = false" class="text-green-200 hover:text-white transition-colors duration-200 p-1 rounded-lg hover:bg-white/10">
-                            <i class="bi bi-x text-lg"></i>
-                        </button>
+                        <div class="ml-3 flex-1">
+                            <p class="text-sm font-medium">{{ session('message') }}</p>
+                        </div>
+                        <div class="ml-4">
+                            <button @click="show = false" class="text-green-200 hover:text-white transition-colors duration-200">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         @endif
 
         @if (session()->has('error'))
-        <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show" x-transition:enter="transform ease-out duration-300 transition" x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0">
-            <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-red-400 backdrop-blur-sm">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-exclamation-triangle-fill text-lg"></i>
+            <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show"
+                x-transition:enter="transform ease-out duration-300 transition"
+                x-transition:enter-start="translate-x-full opacity-0"
+                x-transition:enter-end="translate-x-0 opacity-100"
+                x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0">
+                <div class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-red-400 backdrop-blur-sm">
+                    <div class="flex items-center">
+                        <div class="flex-shrink-0">
+                            <i class="bi bi-exclamation-triangle text-xl"></i>
                         </div>
-                    </div>
-                    <div class="ml-3 flex-1">
-                        <p class="text-sm font-medium">{{ session('error') }}</p>
-                    </div>
-                    <div class="ml-4">
-                        <button @click="show = false" class="text-red-200 hover:text-white transition-colors duration-200 p-1 rounded-lg hover:bg-white/10">
-                            <i class="bi bi-x text-lg"></i>
-                        </button>
+                        <div class="ml-3 flex-1">
+                            <p class="text-sm font-medium">{{ session('error') }}</p>
+                        </div>
+                        <div class="ml-4">
+                            <button @click="show = false" class="text-red-200 hover:text-white transition-colors duration-200">
+                                <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
         @endif
 
         <!-- Modal de Importação -->
-        <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
-            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+        <div id="importModal"
+            class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"
+            style="display: none;">
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6">
                 <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                    <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
                         <i class="bi bi-upload text-green-500 mr-2"></i>
                         Importar Clientes
                     </h3>
-                    <button onclick="document.getElementById('importModal').style.display='none'" 
-                            class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                    <button onclick="document.getElementById('importModal').style.display='none'"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
                         <i class="bi bi-x-lg text-xl"></i>
                     </button>
                 </div>
-                
+
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                             Selecione o arquivo CSV
                         </label>
-                        <input type="file" accept=".csv" 
-                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                        <input type="file" accept=".csv"
+                            class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
                     </div>
-                    
+
                     <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
                         <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Formato do arquivo:</h4>
                         <p class="text-xs text-blue-700 dark:text-blue-400">
-                            O arquivo deve conter as colunas: nome, email, telefone, endereco, cidade
+                            O arquivo deve conter as colunas: nome, email, telefone, endereço, cidade
                         </p>
                     </div>
                 </div>
-                
+
                 <div class="flex gap-3 mt-6">
-                    <button onclick="document.getElementById('importModal').style.display='none'" 
-                            class="flex-1 px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    <button onclick="document.getElementById('importModal').style.display='none'"
+                        class="flex-1 px-4 py-2 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
                         Cancelar
                     </button>
-                    <button class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    <button
+                        class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
                         Importar
                     </button>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide notifications after 5 seconds
-    setTimeout(function() {
-        const notifications = document.querySelectorAll('[x-data*="show"]');
-        notifications.forEach(function(notification) {
-            if (window.Alpine && notification._x_dataStack) {
-                notification._x_dataStack[0].show = false;
-            }
-        });
-    }, 5000);
-    
-    // Smooth scroll enhancement for filter toggles
-    const filterToggle = document.querySelector('[x-on\\:click*="showAdvancedFilters"]');
-    if (filterToggle) {
-        filterToggle.addEventListener('click', function() {
-            setTimeout(function() {
-                const filtersContainer = document.querySelector('[x-show="showAdvancedFilters"]');
-                if (filtersContainer) {
-                    filtersContainer.scrollIntoView({ 
-                        behavior: 'smooth', 
-                        block: 'nearest',
-                        inline: 'start'
-                    });
-                }
-            }, 150);
-        });
-    }
-    
-    // Enhanced loading states with Livewire
-    if (typeof Livewire !== 'undefined') {
-        // Loading overlay
-        Livewire.hook('message.sent', () => {
-            document.body.style.cursor = 'wait';
-            const loadingOverlay = document.createElement('div');
-            loadingOverlay.id = 'livewire-loading';
-            loadingOverlay.className = 'fixed inset-0 bg-black/10 backdrop-blur-[1px] z-40 flex items-center justify-center';
-            loadingOverlay.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl p-6 border border-gray-200 dark:border-gray-700">
-                    <div class="flex items-center space-x-3">
-                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-                        <span class="text-gray-700 dark:text-gray-300 font-medium">Carregando...</span>
+        <!-- Navegação de Paginação no Final da Página -->
+        @if($clients->hasPages())
+        <div class="mt-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Informações da Paginação -->
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
+                        <i class="bi bi-people text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">
+                            Página {{ $clients->currentPage() }} de {{ $clients->lastPage() }}
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            Mostrando {{ $clients->firstItem() ?? 0 }} - {{ $clients->lastItem() ?? 0 }} de {{ $clients->total() }} {{ $clients->total() === 1 ? 'cliente' : 'clientes' }}
+                        </p>
                     </div>
                 </div>
-            `;
-            document.body.appendChild(loadingOverlay);
-        });
-        
-        Livewire.hook('message.processed', () => {
-            document.body.style.cursor = '';
-            const loadingOverlay = document.getElementById('livewire-loading');
-            if (loadingOverlay) {
-                loadingOverlay.remove();
-            }
-        });
-    }
-    
-    // Search input enhancement with debounce
-    const searchInput = document.querySelector('input[wire\\:model\\.debounce="search"]');
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            // Add visual feedback for search
-            this.classList.add('ring-2', 'ring-blue-500/50');
-            setTimeout(() => {
-                this.classList.remove('ring-2', 'ring-blue-500/50');
-            }, 300);
-        });
-    }
-    
-    // Card hover animations
-    const clientCards = document.querySelectorAll('.bg-white.dark\\:bg-gray-800.rounded-xl');
-    clientCards.forEach(card => {
-        card.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-2px)';
-            this.style.boxShadow = '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)';
-        });
-        
-        card.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '';
-        });
-    });
-});
 
-// Utility function for smooth animations
-function animateValue(element, start, end, duration) {
-    const range = end - start;
-    const increment = range / (duration / 16);
-    let current = start;
-    
-    const timer = setInterval(() => {
-        current += increment;
-        if ((increment > 0 && current >= end) || (increment < 0 && current <= end)) {
-            current = end;
-            clearInterval(timer);
-        }
-        element.textContent = Math.floor(current).toLocaleString('pt-BR');
-    }, 16);
-}
-</script>
-@endpush
+                <!-- Controles de Navegação -->
+                <div class="flex items-center gap-2">
+                    <!-- Primeira Página -->
+                    @if($clients->currentPage() > 1)
+                    <a href="{{ $clients->url(1) }}"
+                       class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-indigo-500 hover:to-purple-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-indigo-500 dark:hover:to-purple-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                       title="Primeira página">
+                        <i class="bi bi-chevron-double-left text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                    </a>
+                    @else
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                        <i class="bi bi-chevron-double-left text-lg"></i>
+                    </div>
+                    @endif
 
-<!-- Estilos CSS customizados para animações -->
-@push('styles')
-<style>
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
+                    <!-- Página Anterior -->
+                    @if($clients->previousPageUrl())
+                    <a href="{{ $clients->previousPageUrl() }}"
+                       class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-blue-500 hover:to-indigo-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                       title="Página anterior">
+                        <i class="bi bi-chevron-left text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                    </a>
+                    @else
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                        <i class="bi bi-chevron-left text-lg"></i>
+                    </div>
+                    @endif
 
-@keyframes fadeInUp {
-    from {
-        transform: translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
+                    <!-- Páginas Numeradas -->
+                    <div class="hidden sm:flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+                        @php
+                            $start = max(1, $clients->currentPage() - 2);
+                            $end = min($clients->lastPage(), $clients->currentPage() + 2);
+                        @endphp
 
-.animate-slide-in-right {
-    animation: slideInRight 0.3s ease-out;
-}
+                        @for($i = $start; $i <= $end; $i++)
+                            @if($i == $clients->currentPage())
+                            <div class="px-3 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg">
+                                {{ $i }}
+                            </div>
+                            @else
+                            <a href="{{ $clients->url($i) }}"
+                               class="px-3 py-1 text-slate-600 hover:text-purple-600 dark:text-slate-300 dark:hover:text-purple-400 hover:bg-white/50 dark:hover:bg-slate-700/50 rounded-lg transition-all duration-200">
+                                {{ $i }}
+                            </a>
+                            @endif
+                        @endfor
+                    </div>
 
-.animate-fade-in-up {
-    animation: fadeInUp 0.3s ease-out;
-}
+                    <!-- Próxima Página -->
+                    @if($clients->nextPageUrl())
+                    <a href="{{ $clients->nextPageUrl() }}"
+                       class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-blue-500 hover:to-indigo-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                       title="Próxima página">
+                        <i class="bi bi-chevron-right text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                    </a>
+                    @else
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                        <i class="bi bi-chevron-right text-lg"></i>
+                    </div>
+                    @endif
 
-/* Smooth transitions for all interactive elements */
-button, input, select, .cursor-pointer {
-    transition: all 0.2s ease-in-out;
-}
+                    <!-- Última Página -->
+                    @if($clients->currentPage() < $clients->lastPage())
+                    <a href="{{ $clients->url($clients->lastPage()) }}"
+                       class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-indigo-500 hover:to-purple-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-indigo-500 dark:hover:to-purple-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                       title="Última página">
+                        <i class="bi bi-chevron-double-right text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                    </a>
+                    @else
+                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                        <i class="bi bi-chevron-double-right text-lg"></i>
+                    </div>
+                    @endif
+                </div>
 
-/* Enhanced focus states */
-button:focus, input:focus, select:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Dark mode enhancements */
-@media (prefers-color-scheme: dark) {
-    .bg-gradient-to-r {
-        background-image: linear-gradient(to right, var(--tw-gradient-stops));
-    }
-}
-
-/* Loading animation */
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.5;
-    }
-}
-
-.animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-</style>
-@endpush
-
+                <!-- Seletor de Itens por Página -->
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium text-slate-600 dark:text-slate-400">Por página:</label>
+                    <select wire:model.live="perPage"
+                            class="px-3 py-2 bg-gradient-to-r from-white to-slate-50 dark:from-slate-700 dark:to-slate-600 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="12">12</option>
+                        <option value="24">24</option>
+                        <option value="36">36</option>
+                        <option value="48">48</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        @endif
+    </div>
+</div>
