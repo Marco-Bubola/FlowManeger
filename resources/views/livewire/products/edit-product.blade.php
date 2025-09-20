@@ -105,6 +105,8 @@
 
                                 <!-- Categoria Melhorada -->
                                 <div class="group space-y-4">
+
+
                                     <label for="category_id" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
                                         <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-500 rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
                                             <i class="bi bi-tags-fill text-white"></i>
@@ -113,19 +115,50 @@
                                     </label>
 
                                     <!-- Dropdown Customizado Melhorado -->
-                                    <div class="relative" x-data="{
-                                        open: false,
-                                        selectedCategory: @entangle('category_id'),
-                                        selectedCategoryName: '{{ $selectedCategoryName ?? 'Escolha uma categoria...' }}',
-                                        selectedCategoryIcon: '{{ $selectedCategoryIcon ?? 'bi-grid-3x3-gap-fill' }}',
-                                        selectCategory(category) {
-                                            this.selectedCategory = category.id;
-                                            this.selectedCategoryName = category.name;
-                                            this.selectedCategoryIcon = category.icon;
-                                            this.open = false;
-                                            $wire.set('category_id', category.id);
-                                        }
-                                    }">
+                                    <div class="relative"
+                                         x-data="{
+                                            open: false,
+                                            selectedCategory: @entangle('category_id'),
+                                            selectedCategoryName: @js($selectedCategoryName ?? 'Escolha uma categoria...'),
+                                            selectedCategoryIcon: @js($selectedCategoryIcon ?? 'bi-grid-3x3-gap-fill'),
+                                            categories: @js($categories->toArray()),
+                                            updateCategoryInfo() {
+                                                if (this.selectedCategory) {
+                                                    const category = this.categories.find(cat => cat.id_category == this.selectedCategory);
+                                                    if (category) {
+                                                        this.selectedCategoryName = category.name;
+                                                        // Mapear ícone conforme a lógica do backend
+                                                        this.selectedCategoryIcon = this.getCategoryIcon(category.icone);
+                                                    }
+                                                } else {
+                                                    this.selectedCategoryName = 'Escolha uma categoria...';
+                                                    this.selectedCategoryIcon = 'bi-grid-3x3-gap-fill';
+                                                }
+                                            },
+                                            getCategoryIcon(iconeName) {
+                                                const iconMapping = {
+                                                    'laptop': 'bi-laptop',
+                                                    'phone': 'bi-phone',
+                                                    'tablet': 'bi-tablet',
+                                                    'headphones': 'bi-headphones',
+                                                    'keyboard': 'bi-keyboard',
+                                                    'mouse': 'bi-mouse',
+                                                    'monitor': 'bi-display',
+                                                    'default': 'bi-grid-3x3-gap-fill'
+                                                };
+                                                return iconMapping[iconeName] || iconMapping['default'];
+                                            },
+                                            selectCategory(category) {
+                                                this.selectedCategory = category.id;
+                                                this.selectedCategoryName = category.name;
+                                                this.selectedCategoryIcon = category.icon;
+                                                this.open = false;
+                                                $wire.set('category_id', category.id);
+                                            }
+                                         }"
+                                         x-init="updateCategoryInfo()"
+                                         x-watch="selectedCategory"
+                                         x-on:category-changed="updateCategoryInfo()">
                                         <button type="button"
                                                 @click="open = !open"
                                                 class="w-full flex items-center justify-between pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100
