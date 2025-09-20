@@ -88,7 +88,7 @@
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-   
+
     /* Assegura que o card se expanda para preencher o espaço */
 }
 
@@ -312,7 +312,8 @@
     background: linear-gradient(135deg, var(--blue-xlight) 0%, var(--blue-light) 100%);
     box-shadow: 0 4px 18px 0 var(--shadow-light);
     transition: box-shadow 0.18s, transform 0.18s;
-    min-height: 390px;
+    min-height: 450px;
+    height: auto;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -329,10 +330,12 @@
     background: linear-gradient(120deg, var(--blue-xlight) 60%, var(--blue-light) 100%);
     border-top-left-radius: 1.2em;
     border-top-right-radius: 1.2em;
-    min-height: 240px;
+    min-height: 220px;
+    height: 220px;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .product-card-modern .product-img {
@@ -381,9 +384,13 @@
 }
 
 .product-card-modern .card-body {
-    padding: 2.2em 1em 0 1em;
-    min-height: 180px;
+    padding: 1.2em 1em 1.2em 1em;
+    min-height: 160px;
     background: transparent;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
 }
 
 .product-card-modern .product-title {
@@ -399,37 +406,44 @@
     text-align: center;
 }
 
-
 .product-card-modern .price-area {
     position: relative;
-    min-height: 2.2em;
-    margin-bottom: 0em;
+    min-height: auto;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4em;
+    flex-shrink: 0;
 }
 
 .product-card-modern .badge-price {
     background: var(--gray-100);
     color: var(--gray-500);
-    font-size: 1.04em;
+    font-size: 0.95em;
     font-weight: 600;
     border-radius: 1.2em;
-    padding: 0.32em 1.1em;
+    padding: 0.4em 0.8em;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.3em;
     box-shadow: 0 1px 4px var(--shadow);
+    text-align: center;
 }
 
 .product-card-modern .badge-price-sale {
     background: var(--green-xlight);
     color: var(--green-strong);
-    font-size: 1.09em;
+    font-size: 1.0em;
     font-weight: 700;
     border-radius: 1.2em;
-    padding: 0.32em 1.1em;
+    padding: 0.4em 0.8em;
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.3em;
     box-shadow: 0 1px 4px var(--shadow-success);
+    text-align: center;
 }
 
 .product-card-modern .btn-action-group {
