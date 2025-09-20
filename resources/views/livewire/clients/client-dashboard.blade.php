@@ -1,449 +1,37 @@
-<div class="client-dashboard min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900/20 dark:to-indigo-900/20">
+<div class="client-dashboard ">
     <!-- Incluir CSS personalizado -->
-    <link rel="stylesheet" href="{{ asset('resources/css/client-dashboard.css') }}">
-    <link rel="stylesheet" href="{{ asset('resources/css/client-dashboard-enhanced.css') }}">
-    <!-- Header do Cliente -->
-    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border-b border-gray-200 dark:border-gray-700 sticky top-0 z-30 shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-4">
-                    <a href="{{ route('clients.index') }}" 
-                       class="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="bi bi-arrow-left text-xl"></i>
-                    </a>
-                    
-                    <div class="flex items-center space-x-4">
-                        <!-- Avatar do Cliente -->
-                        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-                            <span class="text-white font-bold text-xl">
-                                {{ strtoupper(substr($client->name, 0, 1) . (strpos($client->name, ' ') !== false ? substr($client->name, strpos($client->name, ' ') + 1, 1) : '')) }}
-                            </span>
-                        </div>
-                        
-                        <div>
-                            <h1 class="text-3xl font-bold text-gray-900 dark:text-white">{{ $client->name }}</h1>
-                            <div class="flex items-center space-x-4 text-sm text-gray-600 dark:text-gray-400">
-                                @if($client->email)
-                                    <span class="flex items-center">
-                                        <i class="bi bi-envelope mr-1"></i>
-                                        {{ $client->email }}
-                                    </span>
-                                @endif
-                                @if($client->phone)
-                                    <span class="flex items-center">
-                                        <i class="bi bi-telephone mr-1"></i>
-                                        {{ $client->phone }}
-                                    </span>
-                                @endif
-                                @if($diasComoCliente > 0)
-                                    <span class="flex items-center">
-                                        <i class="bi bi-calendar-check mr-1"></i>
-                                        Cliente há {{ $diasComoCliente }} dias
-                                    </span>
-                                @endif
-                                <span class="flex items-center">
-                                    <i class="bi bi-star mr-1"></i>
-                                    <span class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300 rounded-full text-xs font-medium">
-                                        @if($totalVendas >= 20) VIP
-                                        @elseif($totalVendas >= 10) Premium
-                                        @elseif($totalVendas >= 5) Regular
-                                        @else Novo @endif
-                                    </span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Botões de Ação -->
-                <div class="flex items-center space-x-3">
-                    <!-- Dropdown de Exportação -->
-                    <div class="relative" x-data="{ exportOpen: false }">
-                        <button @click="exportOpen = !exportOpen" 
-                                class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
-                            <i class="bi bi-download mr-2"></i>
-                            Exportar Dados
-                            <i class="bi bi-chevron-down ml-2 transform transition-transform duration-200" :class="{ 'rotate-180': exportOpen }"></i>
-                        </button>
-                        
-                        <div x-show="exportOpen" 
-                             x-transition:enter="transition ease-out duration-100"
-                             x-transition:enter-start="transform opacity-0 scale-95"
-                             x-transition:enter-end="transform opacity-100 scale-100"
-                             x-transition:leave="transition ease-in duration-75"
-                             x-transition:leave-start="transform opacity-100 scale-100"
-                             x-transition:leave-end="transform opacity-0 scale-95"
-                             @click.away="exportOpen = false"
-                             class="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl z-50 backdrop-blur-lg">
-                            
-                            <div class="p-4">
-                                <h3 class="text-sm font-semibold text-gray-900 dark:text-white mb-3 flex items-center">
-                                    <i class="bi bi-file-earmark-pdf text-red-500 mr-2"></i>
-                                    Opções de Exportação
-                                </h3>
-                                
-                                <div class="space-y-2">
-                                    <button wire:click="exportClientPDF('complete')" 
-                                            @click="exportOpen = false"
-                                            class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                        <i class="bi bi-file-earmark-pdf text-red-500 mr-3"></i>
-                                        <div class="text-left">
-                                            <div class="font-medium">Relatório Completo</div>
-                                            <div class="text-xs text-gray-500">Todas as vendas + analytics</div>
-                                        </div>
-                                    </button>
-                                    
-                                    <button wire:click="exportClientPDF('vendas')" 
-                                            @click="exportOpen = false"
-                                            class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                        <i class="bi bi-cart text-blue-500 mr-3"></i>
-                                        <div class="text-left">
-                                            <div class="font-medium">Apenas Vendas</div>
-                                            <div class="text-xs text-gray-500">Lista detalhada de vendas</div>
-                                        </div>
-                                    </button>
-                                    
-                                    <button wire:click="exportClientPDF('financeiro')" 
-                                            @click="exportOpen = false"
-                                            class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                        <i class="bi bi-graph-up text-green-500 mr-3"></i>
-                                        <div class="text-left">
-                                            <div class="font-medium">Relatório Financeiro</div>
-                                            <div class="text-xs text-gray-500">Resumo + parcelas pendentes</div>
-                                        </div>
-                                    </button>
-                                    
-                                    <button wire:click="exportClientExcel" 
-                                            @click="exportOpen = false"
-                                            class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
-                                        <i class="bi bi-file-earmark-excel text-green-600 mr-3"></i>
-                                        <div class="text-left">
-                                            <div class="font-medium">Planilha Excel</div>
-                                            <div class="text-xs text-gray-500">Dados para análise</div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <a href="{{ route('sales.create') }}?client_id={{ $client->id }}" 
-                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="bi bi-plus mr-2"></i>
-                        Nova Venda
-                    </a>
-                </div>
-            </div>
-        </div>
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+
+
+    <!-- Header Modernizado -->
+    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
+        <x-client-dashboard-header
+            :client="$client"
+            :dias-como-cliente="$diasComoCliente"
+            :back-route="route('clients.index')"
+            :cliente-class="$totalVendas >= 5 && ($totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0) >= 90 ? 'VIP' : 'Premium'" />
     </div>
 
-    <!-- Header com Filtros em Dropdown -->
+    <!-- Filtros Modernos -->
+    <x-client-filters
+        :vendas="$vendas"
+        :filter-year="$filterYear"
+        :filter-month="$filterMonth"
+        :filter-status="$filterStatus"
+        :filter-payment-type="$filterPaymentType" />
+
+
+
+    <!-- Alertas e Performance -->
     <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
-        <div class="flex items-center justify-between mb-6">
-            <div class="flex items-center space-x-4">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                    <i class="bi bi-speedometer2 text-indigo-600 dark:text-indigo-400 mr-3"></i>
-                    Dashboard do Cliente
-                </h2>
-                <div class="flex items-center space-x-2 px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 rounded-full">
-                    <i class="bi bi-clock text-indigo-600 dark:text-indigo-400 text-sm"></i>
-                    <span class="text-sm font-medium text-indigo-700 dark:text-indigo-300">Atualizado em tempo real</span>
-                </div>
-            </div>
-            
-            <!-- Dropdown de Filtros -->
-            <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" 
-                        class="inline-flex items-center px-4 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-lg hover:shadow-xl text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-all duration-200">
-                    <i class="bi bi-funnel-fill mr-2 text-indigo-600 dark:text-indigo-400"></i>
-                    <span class="font-medium">Filtros Avançados</span>
-                    <i class="bi bi-chevron-down ml-2 transform transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                </button>
-                
-                <div x-show="open" 
-                     x-transition:enter="transition ease-out duration-100"
-                     x-transition:enter-start="transform opacity-0 scale-95"
-                     x-transition:enter-end="transform opacity-100 scale-100"
-                     x-transition:leave="transition ease-in duration-75"
-                     x-transition:leave-start="transform opacity-100 scale-100"
-                     x-transition:leave-end="transform opacity-0 scale-95"
-                     @click.away="open = false"
-                     class="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl z-50 backdrop-blur-lg">
-                    
-                    <div class="p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                                <i class="bi bi-sliders text-indigo-600 dark:text-indigo-400 mr-2"></i>
-                                Configurar Filtros
-                            </h3>
-                            <button wire:click="clearFilters" 
-                                    class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium flex items-center">
-                                <i class="bi bi-arrow-clockwise mr-1"></i>
-                                Limpar
-                            </button>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <!-- Ano -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                    <i class="bi bi-calendar3 text-indigo-500 mr-1"></i>
-                                    Ano
-                                </label>
-                                <select wire:model.live="filterYear" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    @for($year = now()->year; $year >= now()->year - 5; $year--)
-                                        <option value="{{ $year }}">{{ $year }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                            
-                            <!-- Mês -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                    <i class="bi bi-calendar-month text-indigo-500 mr-1"></i>
-                                    Mês
-                                </label>
-                                <select wire:model.live="filterMonth" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="all">Todos os meses</option>
-                                    @for($month = 1; $month <= 12; $month++)
-                                        <option value="{{ $month }}">{{ \Carbon\Carbon::create()->month($month)->translatedFormat('F') }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                            
-                            <!-- Status -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                    <i class="bi bi-check-circle text-indigo-500 mr-1"></i>
-                                    Status
-                                </label>
-                                <select wire:model.live="filterStatus" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="all">Todos</option>
-                                    <option value="pago">✅ Pago</option>
-                                    <option value="pendente">⏳ Pendente</option>
-                                    <option value="cancelado">❌ Cancelado</option>
-                                </select>
-                            </div>
-                            
-                            <!-- Tipo de Pagamento -->
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
-                                    <i class="bi bi-credit-card text-indigo-500 mr-1"></i>
-                                    Pagamento
-                                </label>
-                                <select wire:model.live="filterPaymentType" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
-                                    <option value="all">Todos</option>
-                                    <option value="a_vista">💰 À Vista</option>
-                                    <option value="parcelado">📊 Parcelado</option>
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                            <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                                <span>Resultados encontrados:</span>
-                                <span class="font-medium">{{ count($vendas) }} vendas</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-client-alerts
+            :parcelas="$parcelas"
+            :total-vendas="$totalVendas"
+            :total-pago="$totalPago"
+            :total-faturado="$totalFaturado"
+            :ultima-compra="$ultimaCompra" />
 
-        <!-- Seção de Alertas e Informações Importantes -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <!-- Alertas de Parcelas -->
-            <div class="bg-gradient-to-br from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6 shadow-lg">
-                <h3 class="text-lg font-semibold text-red-800 dark:text-red-400 mb-4 flex items-center">
-                    <i class="bi bi-exclamation-triangle-fill mr-2"></i>
-                    Alertas Importantes
-                </h3>
-                
-                @php
-                    $parcelasVencidas = collect($parcelas)->filter(function($parcela) { 
-                        return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast(); 
-                    });
-                    $parcelasVencendoSemana = collect($parcelas)->filter(function($parcela) { 
-                        return $parcela['status'] === 'pendente' && 
-                               \Carbon\Carbon::parse($parcela['data_vencimento'])->isBetween(now(), now()->addDays(7)); 
-                    });
-                @endphp
-                
-                <div class="space-y-3">
-                    @if($parcelasVencidas->count() > 0)
-                        <div class="flex items-start space-x-3 p-3 bg-red-100 dark:bg-red-900/30 rounded-lg">
-                            <i class="bi bi-exclamation-circle-fill text-red-600 dark:text-red-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-sm font-medium text-red-800 dark:text-red-300">
-                                    {{ $parcelasVencidas->count() }} parcela(s) vencida(s)
-                                </p>
-                                <p class="text-xs text-red-600 dark:text-red-400">
-                                    Valor: R$ {{ number_format($parcelasVencidas->sum('valor'), 2, ',', '.') }}
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                    
-                    @if($parcelasVencendoSemana->count() > 0)
-                        <div class="flex items-start space-x-3 p-3 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
-                            <i class="bi bi-clock-fill text-yellow-600 dark:text-yellow-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-sm font-medium text-yellow-800 dark:text-yellow-300">
-                                    {{ $parcelasVencendoSemana->count() }} parcela(s) vencem esta semana
-                                </p>
-                                <p class="text-xs text-yellow-600 dark:text-yellow-400">
-                                    Valor: R$ {{ number_format($parcelasVencendoSemana->sum('valor'), 2, ',', '.') }}
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                    
-                    @if($parcelasVencidas->count() == 0 && $parcelasVencendoSemana->count() == 0)
-                        <div class="flex items-center space-x-2 text-green-600 dark:text-green-400">
-                            <i class="bi bi-check-circle-fill"></i>
-                            <span class="text-sm">Todas as parcelas em dia!</span>
-                        </div>
-                    @endif
-                </div>
-            </div>
-            
-            <!-- Performance do Cliente -->
-            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6 shadow-lg">
-                <h3 class="text-lg font-semibold text-blue-800 dark:text-blue-400 mb-4 flex items-center">
-                    <i class="bi bi-graph-up-arrow mr-2"></i>
-                    Performance
-                </h3>
-                
-                <div class="space-y-4">
-                    <!-- Frequência de Compras -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Frequência de Compras</span>
-                            @php
-                                $frequencia = $diasComoCliente > 0 && $totalVendas > 1 ? 
-                                    round($diasComoCliente / $totalVendas) : 0;
-                            @endphp
-                            <span class="text-sm font-medium text-blue-600 dark:text-blue-400">
-                                @if($frequencia > 0)
-                                    A cada {{ $frequencia }} dias
-                                @else
-                                    Cliente novo
-                                @endif
-                            </span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            @php
-                                $frequenciaScore = $frequencia > 0 ? min(100, (30 / max(1, $frequencia)) * 100) : 0;
-                            @endphp
-                            <div class="bg-blue-500 h-2 rounded-full transition-all duration-300" 
-                                 style="width: {{ $frequenciaScore }}%"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Taxa de Pagamento -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Taxa de Pagamento</span>
-                            @php
-                                $taxaPagamento = $totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0;
-                            @endphp
-                            <span class="text-sm font-medium text-green-600 dark:text-green-400">
-                                {{ number_format($taxaPagamento, 1) }}%
-                            </span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                                 style="width: {{ $taxaPagamento }}%"></div>
-                        </div>
-                    </div>
-                    
-                    <!-- Evolução do Ticket Médio -->
-                    <div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm text-gray-600 dark:text-gray-400">Valor Médio</span>
-                            @php
-                                $ticketScore = min(100, ($ticketMedio / 1000) * 100); // Considera R$ 1000 como 100%
-                            @endphp
-                            <span class="text-sm font-medium text-purple-600 dark:text-purple-400">
-                                Excelente
-                            </span>
-                        </div>
-                        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div class="bg-purple-500 h-2 rounded-full transition-all duration-300" 
-                                 style="width: {{ $ticketScore }}%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Próximas Ações -->
-            <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6 shadow-lg">
-                <h3 class="text-lg font-semibold text-green-800 dark:text-green-400 mb-4 flex items-center">
-                    <i class="bi bi-list-check mr-2"></i>
-                    Próximas Ações
-                </h3>
-                
-                <div class="space-y-3">
-                    @if($parcelasVencidas->count() > 0)
-                        <div class="flex items-start space-x-3 p-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                            <i class="bi bi-telephone-fill text-orange-600 dark:text-orange-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-sm font-medium text-orange-800 dark:text-orange-300">
-                                    Entrar em contato
-                                </p>
-                                <p class="text-xs text-orange-600 dark:text-orange-400">
-                                    Cobrar parcelas vencidas
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                    
-                    @if(\Carbon\Carbon::parse($ultimaCompra ?? now())->diffInDays(now()) > 30)
-                        <div class="flex items-start space-x-3 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                            <i class="bi bi-gift-fill text-blue-600 dark:text-blue-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-sm font-medium text-blue-800 dark:text-blue-300">
-                                    Oferecer promoção
-                                </p>
-                                <p class="text-xs text-blue-600 dark:text-blue-400">
-                                    Cliente inativo há mais de 30 dias
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                    
-                    @if($totalVendas >= 5 && $taxaPagamento >= 90)
-                        <div class="flex items-start space-x-3 p-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                            <i class="bi bi-star-fill text-purple-600 dark:text-purple-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-sm font-medium text-purple-800 dark:text-purple-300">
-                                    Cliente VIP
-                                </p>
-                                <p class="text-xs text-purple-600 dark:text-purple-400">
-                                    Oferecer condições especiais
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                    
-                    @if($parcelasVencidas->count() == 0 && $totalVendas > 0)
-                        <div class="flex items-start space-x-3 p-3 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                            <i class="bi bi-cart-plus-fill text-green-600 dark:text-green-400 mt-0.5"></i>
-                            <div>
-                                <p class="text-sm font-medium text-green-800 dark:text-green-300">
-                                    Oportunidade de venda
-                                </p>
-                                <p class="text-xs text-green-600 dark:text-green-400">
-                                    Cliente em dia e ativo
-                                </p>
-                            </div>
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </div>
-
-        <!-- Cards de Resumo Financeiro Expandidos -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-8">
             <!-- Total de Vendas -->
             <div class="stats-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
@@ -461,7 +49,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Total Faturado -->
             <div class="stats-card bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
                 <div class="flex items-center justify-between">
@@ -478,7 +66,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Total Pago -->
             <div class="stats-card bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
                 <div class="flex items-center justify-between">
@@ -495,7 +83,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Restante a Pagar -->
             <div class="stats-card bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
                 <div class="flex items-center justify-between">
@@ -559,15 +147,15 @@
                     <div>
                         <p class="text-red-100 text-sm font-medium">Parcelas Vencidas</p>
                         <p class="text-3xl font-bold">
-                            {{ collect($parcelas)->filter(function($parcela) { 
-                                return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast(); 
+                            {{ collect($parcelas)->filter(function($parcela) {
+                                return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast();
                             })->count() }}
                         </p>
                         <p class="text-red-200 text-xs mt-1">
                             <i class="bi bi-exclamation-triangle mr-1"></i>
                             @php
-                                $valorVencido = collect($parcelas)->filter(function($parcela) { 
-                                    return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast(); 
+                                $valorVencido = collect($parcelas)->filter(function($parcela) {
+                                    return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast();
                                 })->sum('valor');
                             @endphp
                             R$ {{ number_format($valorVencido, 2, ',', '.') }}
@@ -585,40 +173,40 @@
             <!-- Tabs Header -->
             <div class="border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700">
                 <nav class="flex flex-wrap px-6" aria-label="Tabs">
-                    <button wire:click="setActiveTab('vendas')" 
+                    <button wire:click="setActiveTab('vendas')"
                             class="py-4 px-3 border-b-2 font-medium text-sm transition-all duration-200 flex items-center {{ $activeTab === 'vendas' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
                         <i class="bi bi-cart mr-2"></i>
                         <span class="hidden sm:inline">Vendas</span>
                         <span class="ml-1 px-2 py-0.5 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 rounded-full text-xs">{{ count($vendas) }}</span>
                     </button>
-                    
-                    <button wire:click="setActiveTab('graficos')" 
+
+                    <button wire:click="setActiveTab('graficos')"
                             class="py-4 px-3 border-b-2 font-medium text-sm transition-all duration-200 flex items-center {{ $activeTab === 'graficos' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
                         <i class="bi bi-graph-up mr-2"></i>
                         <span class="hidden sm:inline">Gráficos</span>
                     </button>
-                    
-                    <button wire:click="setActiveTab('parcelas')" 
+
+                    <button wire:click="setActiveTab('parcelas')"
                             class="py-4 px-3 border-b-2 font-medium text-sm transition-all duration-200 flex items-center {{ $activeTab === 'parcelas' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
                         <i class="bi bi-calendar-check mr-2"></i>
                         <span class="hidden sm:inline">Parcelas</span>
                         <span class="ml-1 px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300 rounded-full text-xs">{{ count($parcelas) }}</span>
                     </button>
-                    
-                    <button wire:click="setActiveTab('pagamentos')" 
+
+                    <button wire:click="setActiveTab('pagamentos')"
                             class="py-4 px-3 border-b-2 font-medium text-sm transition-all duration-200 flex items-center {{ $activeTab === 'pagamentos' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
                         <i class="bi bi-credit-card mr-2"></i>
                         <span class="hidden sm:inline">Pagamentos</span>
                         <span class="ml-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-xs">{{ count($pagamentos) }}</span>
                     </button>
-                    
-                    <button wire:click="setActiveTab('produtos')" 
+
+                    <button wire:click="setActiveTab('produtos')"
                             class="py-4 px-3 border-b-2 font-medium text-sm transition-all duration-200 flex items-center {{ $activeTab === 'produtos' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
                         <i class="bi bi-box mr-2"></i>
                         <span class="hidden sm:inline">Produtos</span>
                     </button>
-                    
-                    <button wire:click="setActiveTab('insights')" 
+
+                    <button wire:click="setActiveTab('insights')"
                             class="py-4 px-3 border-b-2 font-medium text-sm transition-all duration-200 flex items-center {{ $activeTab === 'insights' ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300' }}">
                         <i class="bi bi-lightbulb mr-2"></i>
                         <span class="hidden sm:inline">Insights</span>
@@ -651,7 +239,7 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        
+
                                         <span class="px-2 py-1 rounded-lg text-xs font-medium
                                             @if($venda['status'] === 'pago') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
                                             @elseif($venda['status'] === 'pendente') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400
@@ -660,7 +248,7 @@
                                             {{ ucfirst($venda['status']) }}
                                         </span>
                                     </div>
-                                    
+
                                     <!-- Valor Principal -->
                                     <div class="text-center mb-4 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg">
                                         <p class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -675,7 +263,7 @@
                                                 {{ $venda['parcelas'] }}x de R$ {{ number_format($venda['total_price'] / $venda['parcelas'], 2, ',', '.') }}
                                             @endif
                                         </p>
-                                        
+
                                         <!-- Informações de Pagamento -->
                                         <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-600 text-xs">
                                             <span class="text-gray-500 dark:text-gray-400">
@@ -690,7 +278,7 @@
                                             @endif
                                         </div>
                                     </div>
-                                    
+
                                     <!-- Produtos da Venda -->
                                     @if(isset($venda['sale_items']) && count($venda['sale_items']) > 0)
                                         <div class="mb-4">
@@ -718,10 +306,10 @@
                                             </div>
                                         </div>
                                     @endif
-                                    
+
                                     <!-- Ações -->
                                     <div class="flex space-x-2 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                        <a href="{{ route('sales.show', $venda['id']) }}" 
+                                        <a href="{{ route('sales.show', $venda['id']) }}"
                                            class="flex-1 inline-flex items-center justify-center px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs transition-colors group-hover:bg-indigo-700">
                                             <i class="bi bi-eye mr-1"></i>
                                             Ver
@@ -739,7 +327,7 @@
                                 </div>
                                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Nenhuma venda encontrada</h3>
                                 <p class="text-gray-600 dark:text-gray-400">Ajuste os filtros ou faça uma nova venda para este cliente.</p>
-                                <a href="{{ route('sales.create') }}?client_id={{ $client->id }}" 
+                                <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
                                    class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl mt-4">
                                     <i class="bi bi-plus mr-2"></i>
                                     Criar Nova Venda
@@ -828,65 +416,167 @@
 
                 <!-- Aba Parcelas -->
                 @if($activeTab === 'parcelas')
+                    <div class="mb-6">
+                        <!-- Header com informações e paginação -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Parcelas do Cliente</h3>
+                                <span class="px-3 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 rounded-full text-sm font-medium">
+                                    {{ $totalParcelas }} parcelas
+                                </span>
+                            </div>
+
+                            <!-- Paginação -->
+                            @if($totalParcelas > $parcelasPerPage)
+                                <nav class="flex items-center justify-center gap-2 select-none">
+                                    <button wire:click="prevParcelasPage"
+                                            @if($parcelasPage <= 1) disabled @endif
+                                            class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900/30 dark:hover:text-purple-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <span class="px-4 py-2 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 font-semibold text-base shadow-sm border border-purple-200 dark:border-purple-700">
+                                        {{ $parcelasPage }} / {{ ceil($totalParcelas / $parcelasPerPage) }}
+                                    </span>
+                                    <button wire:click="nextParcelasPage"
+                                            @if($parcelasPage >= ceil($totalParcelas / $parcelasPerPage)) disabled @endif
+                                            class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-purple-100 hover:text-purple-700 dark:hover:bg-purple-900/30 dark:hover:text-purple-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </nav>
+                            @endif
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         @if(count($parcelas) > 0)
                             @foreach($parcelas as $parcela)
-                                <div class="bg-gradient-to-br from-white via-yellow-50 to-orange-50 dark:from-gray-700 dark:via-yellow-900/20 dark:to-orange-900/20 border border-gray-200 dark:border-gray-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center text-white font-bold">
-                                                {{ $parcela['numero_parcela'] }}
-                                            </div>
-                                            <div>
-                                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                    Parcela {{ $parcela['numero_parcela'] }}
-                                                </h3>
-                                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                                                    <i class="bi bi-calendar3 mr-1"></i>
-                                                    {{ \Carbon\Carbon::parse($parcela['data_vencimento'])->format('d/m/Y') }}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        
-                                        <span class="px-3 py-1 rounded-full text-sm font-medium
-                                            @if($parcela['status'] === 'pago') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
-                                            @elseif($parcela['status'] === 'pendente') bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400
-                                            @else bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 @endif">
-                                            @if($parcela['status'] === 'pago') ✅ @elseif($parcela['status'] === 'pendente') ⏳ @else ❌ @endif
-                                            {{ ucfirst($parcela['status']) }}
+                                <div class="bg-gradient-to-br from-green-50/80 via-white to-emerald-100 dark:from-green-900/40 dark:via-gray-900 dark:to-emerald-900 rounded-2xl border-2 border-green-100 dark:border-green-900/40 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] group overflow-hidden relative">
+                                    <div class="absolute top-0 right-0 m-3">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-200 text-green-900 dark:bg-green-900/60 dark:text-green-200 shadow">
+                                            <i class="bi bi-check2-circle mr-1"></i> Pago
                                         </span>
                                     </div>
-                                    
-                                    <div class="text-center py-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg mb-4">
-                                        <p class="text-2xl font-bold text-gray-900 dark:text-white">
-                                            R$ {{ number_format($parcela['valor'], 2, ',', '.') }}
-                                        </p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">
-                                            <i class="bi bi-receipt mr-1"></i>
-                                            Venda #{{ $parcela['sale']['id'] }}
-                                        </p>
+                                    <!-- Header com Status, Número e ícones -->
+                                    <div class="relative p-6 bg-transparent">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex items-center space-x-4">
+                                                <div class="w-16 h-16 flex items-center justify-center rounded-xl text-white font-bold text-2xl shadow-lg ring-1 ring-white/30"
+                                                     style="background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(6,95,70,0.95));">
+                                                    <i class="bi bi-credit-card-fill text-xl"></i>
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Parcela {{ $parcela['numero_parcela'] }}</h3>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                        <i class="bi bi-receipt text-base"></i>
+                                                        <span>Venda #{{ $parcela['sale']['id'] }}</span>
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Status e métodos -->
+                                            <div class="flex items-center space-x-3">
+                                                <div class="flex items-center text-sm text-gray-700 dark:text-gray-300 bg-white/60 dark:bg-gray-800/60 px-3 py-1 rounded-full shadow-sm">
+                                                    <i class="bi bi-wallet2 mr-2"></i>
+                                                    <span>{{ $parcela['metodo_pagamento'] ?? 'Indefinido' }}</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold
+                                                        @if($parcela['status'] === 'pago') bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300
+                                                        @elseif($parcela['status'] === 'pendente') bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300
+                                                        @else bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 @endif">
+                                                        @if($parcela['status'] === 'pago')
+                                                            <i class="bi bi-check-circle-fill mr-1"></i>Pago
+                                                        @elseif($parcela['status'] === 'pendente')
+                                                            <i class="bi bi-clock-fill mr-1"></i>Pendente
+                                                        @else
+                                                            <i class="bi bi-x-circle-fill mr-1"></i>{{ ucfirst($parcela['status']) }}
+                                                        @endif
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
-                                    
-                                    @if(\Carbon\Carbon::parse($parcela['data_vencimento'])->isPast() && $parcela['status'] === 'pendente')
-                                        <div class="flex items-center justify-center text-red-600 dark:text-red-400 text-sm">
-                                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                                            Vencida há {{ \Carbon\Carbon::parse($parcela['data_vencimento'])->diffInDays(now()) }} dias
+
+                                    <!-- Corpo do Card -->
+                                    <div class="p-6">
+                                        <!-- Valor da Parcela com ícone grande -->
+                                        <div class="text-center py-4 mb-6 bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-white/30 dark:border-gray-700 p-4">
+                                            <div class="flex items-center justify-center gap-3">
+                                                <div class="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-200 shadow-md">
+                                                    <i class="bi bi-cash-stack text-2xl"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white mb-0">
+                                                        R$ {{ number_format($parcela['valor'], 2, ',', '.') }}
+                                                    </p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-300">Valor da parcela</p>
+                                                </div>
+                                            </div>
                                         </div>
-                                    @elseif($parcela['status'] === 'pendente')
-                                        <div class="flex items-center justify-center text-blue-600 dark:text-blue-400 text-sm">
-                                            <i class="bi bi-clock mr-1"></i>
-                                            Vence em {{ \Carbon\Carbon::parse($parcela['data_vencimento'])->diffInDays(now()) }} dias
+
+                                        <!-- Informações de Data e Payer -->
+                                        <div class="grid grid-cols-1 gap-4 mb-6">
+                                            <div class="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-white/20">
+                                                <div class="flex items-center text-gray-600 dark:text-gray-400">
+                                                    <i class="bi bi-calendar-event mr-2 text-lg"></i>
+                                                    <div class="text-sm">
+                                                        <div class="font-medium">Vencimento</div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ \Carbon\Carbon::parse($parcela['data_vencimento'])->format('d/m/Y') }}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center gap-4">
+                                                    <div class="flex items-center text-gray-600 dark:text-gray-400">
+                                                        <i class="bi bi-person-circle mr-2 text-lg"></i>
+                                                        <div class="text-sm">{{ $parcela['cliente_nome'] ?? ($parcela['sale']['client']['nome'] ?? 'Cliente') }}</div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    @endif
+
+                                        <!-- Indicador de Situação -->
+                                        @if(\Carbon\Carbon::parse($parcela['data_vencimento'])->isPast() && $parcela['status'] === 'pendente')
+                                            <div class="flex items-center justify-center p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400">
+                                                <i class="bi bi-exclamation-triangle-fill mr-2"></i>
+                                                <span class="text-sm font-medium">
+                                                    Vencida há {{ \Carbon\Carbon::parse($parcela['data_vencimento'])->diffInDays(now()) }} dias
+                                                </span>
+                                            </div>
+                                        @elseif($parcela['status'] === 'pendente')
+                                            @php
+                                                $diasRestantes = \Carbon\Carbon::parse($parcela['data_vencimento'])->diffInDays(now());
+                                                $isUrgente = $diasRestantes <= 3;
+                                            @endphp
+                                            <div class="flex items-center justify-center p-3
+                                                @if($isUrgente) bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800 text-orange-600 dark:text-orange-400
+                                                @else bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 @endif
+                                                rounded-lg border">
+                                                <i class="bi bi-{{ $isUrgente ? 'exclamation-diamond' : 'clock' }} mr-2"></i>
+                                                <span class="text-sm font-medium">
+                                                    @if($diasRestantes == 0)
+                                                        Vence hoje!
+                                                    @elseif($diasRestantes == 1)
+                                                        Vence amanhã
+                                                    @else
+                                                        Vence em {{ $diasRestantes }} dias
+                                                    @endif
+                                                </span>
+                                            </div>
+                                        @elseif($parcela['status'] === 'pago')
+                                            <div class="flex items-center justify-center p-3 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 text-green-600 dark:text-green-400">
+                                                <i class="bi bi-check-circle-fill mr-2"></i>
+                                                <span class="text-sm font-medium">Pagamento confirmado</span>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             @endforeach
                         @else
-                            <div class="col-span-full text-center py-12">
-                                <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="bi bi-calendar-check text-2xl text-gray-400"></i>
+                            <div class="col-span-full text-center py-16">
+                                <div class="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center mx-auto mb-6">
+                                    <i class="bi bi-calendar-check text-3xl text-gray-400"></i>
                                 </div>
                                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Nenhuma parcela encontrada</h3>
-                                <p class="text-gray-600 dark:text-gray-400">Este cliente não possui vendas parceladas no período selecionado.</p>
+                                <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">Este cliente não possui vendas parceladas no período selecionado. As parcelas aparecerão aqui quando houver vendas a prazo.</p>
                             </div>
                         @endif
                     </div>
@@ -894,60 +584,146 @@
 
                 <!-- Aba Pagamentos -->
                 @if($activeTab === 'pagamentos')
+                    <div class="mb-6">
+                        <!-- Header com informações e paginação -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Histórico de Pagamentos</h3>
+                                <span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 rounded-full text-sm font-medium">
+                                    {{ $totalPagamentos }} pagamentos
+                                </span>
+                            </div>
+
+                            <!-- Paginação -->
+                            @if($totalPagamentos > $pagamentosPerPage)
+                                <nav class="flex items-center justify-center gap-2 select-none">
+                                    <button wire:click="prevPagamentosPage"
+                                            @if($pagamentosPage <= 1) disabled @endif
+                                            class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-green-100 hover:text-green-700 dark:hover:bg-green-900/30 dark:hover:text-green-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <span class="px-4 py-2 rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 font-semibold text-base shadow-sm border border-green-200 dark:border-green-700">
+                                        {{ $pagamentosPage }} / {{ ceil($totalPagamentos / $pagamentosPerPage) }}
+                                    </span>
+                                    <button wire:click="nextPagamentosPage"
+                                            @if($pagamentosPage >= ceil($totalPagamentos / $pagamentosPerPage)) disabled @endif
+                                            class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-green-100 hover:text-green-700 dark:hover:bg-green-900/30 dark:hover:text-green-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </nav>
+                            @endif
+                        </div>
+                    </div>
+
                     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                         @if(count($pagamentos) > 0)
                             @foreach($pagamentos as $pagamento)
-                                <div class="bg-gradient-to-br from-white via-green-50 to-emerald-50 dark:from-gray-700 dark:via-green-900/20 dark:to-emerald-900/20 border border-gray-200 dark:border-gray-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200">
-                                    <div class="flex items-center justify-between mb-4">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center text-white">
-                                                @if($pagamento['payment_method'] === 'dinheiro')
-                                                    <i class="bi bi-cash text-xl"></i>
-                                                @elseif($pagamento['payment_method'] === 'cartao_credito')
-                                                    <i class="bi bi-credit-card text-xl"></i>
-                                                @elseif($pagamento['payment_method'] === 'cartao_debito')
-                                                    <i class="bi bi-credit-card-2-front text-xl"></i>
-                                                @elseif($pagamento['payment_method'] === 'pix')
-                                                    <i class="bi bi-qr-code text-xl"></i>
-                                                @else
-                                                    <i class="bi bi-wallet text-xl"></i>
-                                                @endif
+                                <div class="bg-gradient-to-br from-green-50/80 via-white to-emerald-100 dark:from-green-900/40 dark:via-gray-900 dark:to-emerald-900 rounded-2xl border-2 border-green-100 dark:border-green-900/40 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-[1.03] group overflow-hidden relative">
+                                    <div class="absolute top-0 right-0 m-3">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-green-200 text-green-900 dark:bg-green-900/60 dark:text-green-200 shadow">
+                                            <i class="bi bi-cash-stack mr-1"></i> Pago
+                                        </span>
+                                    </div>
+
+                                    <!-- Header do Pagamento -->
+                                    <div class="relative p-6 bg-transparent">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex items-center space-x-4">
+                                                <div class="w-16 h-16 flex items-center justify-center rounded-xl text-white font-bold text-2xl shadow-lg ring-1 ring-white/30" style="background: linear-gradient(135deg, rgba(16,185,129,0.95), rgba(6,95,70,0.95));">
+                                                    @if($pagamento['payment_method'] === 'dinheiro')
+                                                        <i class="bi bi-cash-stack text-2xl"></i>
+                                                    @elseif($pagamento['payment_method'] === 'cartao_credito')
+                                                        <i class="bi bi-credit-card-2-front text-2xl"></i>
+                                                    @elseif($pagamento['payment_method'] === 'cartao_debito')
+                                                        <i class="bi bi-credit-card text-2xl"></i>
+                                                    @elseif($pagamento['payment_method'] === 'pix')
+                                                        <i class="bi bi-qr-code text-2xl"></i>
+                                                    @else
+                                                        <i class="bi bi-wallet text-2xl"></i>
+                                                    @endif
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">Pagamento</h3>
+                                                    <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2"><i class="bi bi-receipt"></i> Venda #{{ $pagamento['sale']['id'] }}</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-                                                    {{ ucfirst(str_replace('_', ' ', $pagamento['payment_method'])) }}
-                                                </h3>
-                                                <p class="text-sm text-gray-600 dark:text-gray-400 flex items-center">
-                                                    <i class="bi bi-calendar3 mr-1"></i>
-                                                    {{ \Carbon\Carbon::parse($pagamento['payment_date'])->format('d/m/Y H:i') }}
-                                                </p>
+
+                                            <div class="flex items-center space-x-3">
+                                                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/70 dark:bg-gray-800/60 shadow-sm">
+                                                    <i class="bi bi-clock-history mr-2"></i>
+                                                    <span class="text-xs">{{ \Carbon\Carbon::parse($pagamento['payment_date'])->format('d/m/Y') }}</span>
+                                                </div>
+                                                <div class="text-right">
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                                                        @if($pagamento['payment_method'] === 'dinheiro')
+                                                            <i class="bi bi-cash mr-1"></i>Dinheiro
+                                                        @elseif($pagamento['payment_method'] === 'cartao_credito')
+                                                            <i class="bi bi-credit-card mr-1"></i>Crédito
+                                                        @elseif($pagamento['payment_method'] === 'cartao_debito')
+                                                            <i class="bi bi-credit-card-2-front mr-1"></i>Débito
+                                                        @elseif($pagamento['payment_method'] === 'pix')
+                                                            <i class="bi bi-qr-code mr-1"></i>PIX
+                                                        @else
+                                                            <i class="bi bi-wallet mr-1"></i>{{ ucfirst(str_replace('_', ' ', $pagamento['payment_method'])) }}
+                                                        @endif
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    <div class="text-center py-4 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
-                                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-                                            R$ {{ number_format($pagamento['amount_paid'], 2, ',', '.') }}
-                                        </p>
-                                        <p class="text-xs text-gray-600 dark:text-gray-400">
-                                            <i class="bi bi-receipt mr-1"></i>
-                                            Venda #{{ $pagamento['sale']['id'] }}
-                                        </p>
-                                    </div>
-                                    
-                                    <div class="flex items-center justify-center text-green-600 dark:text-green-400 text-sm">
-                                        <i class="bi bi-check-circle-fill mr-1"></i>
-                                        Pagamento confirmado
+
+                                    <!-- Corpo do Card -->
+                                    <div class="p-6">
+                                        <div class="text-center py-4 mb-6 bg-white/60 dark:bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-white/30 dark:border-gray-700 p-4">
+                                            <div class="flex items-center justify-center gap-3">
+                                                <div class="p-3 rounded-full bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-200 shadow-md">
+                                                    <i class="bi bi-cash-coin text-2xl"></i>
+                                                </div>
+                                                <div>
+                                                    <p class="text-3xl font-extrabold text-gray-900 dark:text-white mb-0">R$ {{ number_format($pagamento['amount_paid'], 2, ',', '.') }}</p>
+                                                    <p class="text-xs text-gray-500 dark:text-gray-300">Valor pago</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-1 gap-4 mb-6">
+                                            <div class="flex items-center justify-between p-3 bg-white/50 dark:bg-gray-800/50 rounded-lg border border-white/10">
+                                                <div class="flex items-center text-gray-600 dark:text-gray-400">
+                                                    <i class="bi bi-person-circle mr-2 text-lg"></i>
+                                                    <div class="text-sm">
+                                                        <div class="font-medium">Recebido de</div>
+                                                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ $pagamento['sale']['client']['nome'] ?? 'Cliente' }}</div>
+                                                    </div>
+                                                </div>
+                                                <div class="text-sm font-medium text-gray-900 dark:text-white">{{ \Carbon\Carbon::parse($pagamento['payment_date'])->format('d/m/Y H:i') }}</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex gap-3 mt-4">
+                                            <a href="{{ route('sales.show', $pagamento['sale']['id']) }}" target="_blank" class="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white text-sm font-semibold rounded-2xl shadow-md transition-all duration-200 transform hover:-translate-y-0.5" title="Ver Venda">
+                                                <i class="bi bi-eye-fill text-lg"></i>
+                                                <span>Ver Venda</span>
+                                            </a>
+
+                                            <button class="inline-flex items-center gap-2 px-4 py-2 bg-white/70 dark:bg-gray-800/60 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-2xl shadow-sm border border-white/20 hover:shadow-md transition" title="Ver Comprovante">
+                                                <i class="bi bi-receipt text-lg"></i>
+                                                <span>Comprovante</span>
+                                            </button>
+
+                                            <button wire:click="baixarComprovante({{ $pagamento['id'] }})" class="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-2xl shadow transition" title="Baixar Comprovante">
+                                                <i class="bi bi-download"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             @endforeach
                         @else
-                            <div class="col-span-full text-center py-12">
-                                <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="bi bi-credit-card text-2xl text-gray-400"></i>
+                            <div class="col-span-full text-center py-16">
+                                <div class="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center mx-auto mb-6">
+                                    <i class="bi bi-credit-card text-3xl text-gray-400"></i>
                                 </div>
                                 <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Nenhum pagamento encontrado</h3>
-                                <p class="text-gray-600 dark:text-gray-400">Este cliente ainda não realizou pagamentos no período selecionado.</p>
+                                <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">Este cliente ainda não realizou pagamentos no período selecionado. Os pagamentos aparecerão aqui conforme forem sendo processados.</p>
                             </div>
                         @endif
                     </div>
@@ -955,49 +731,93 @@
 
                 <!-- Aba Produtos Favoritos -->
                 @if($activeTab === 'produtos')
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div class="mb-6">
+                        <!-- Header com informações e paginação -->
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center space-x-4">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Produtos Mais Comprados</h3>
+                                <span class="px-3 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 rounded-full text-sm font-medium">
+                                    {{ $totalProdutos }} produtos
+                                </span>
+                            </div>
+
+                            <!-- Paginação -->
+                            @if($totalProdutos > $produtosPerPage)
+                                <nav class="flex items-center justify-center gap-2 select-none">
+                                    <button wire:click="prevProdutosPage"
+                                            @if($produtosPage <= 1) disabled @endif
+                                            class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <i class="bi bi-chevron-left"></i>
+                                    </button>
+                                    <span class="px-4 py-2 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 font-semibold text-base shadow-sm border border-indigo-200 dark:border-indigo-700">
+                                        {{ $produtosPage }} / {{ ceil($totalProdutos / $produtosPerPage) }}
+                                    </span>
+                                    <button wire:click="nextProdutosPage"
+                                            @if($produtosPage >= ceil($totalProdutos / $produtosPerPage)) disabled @endif
+                                            class="w-9 h-9 flex items-center justify-center rounded-full border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400 hover:bg-indigo-100 hover:text-indigo-700 dark:hover:bg-indigo-900/30 dark:hover:text-indigo-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                                        <i class="bi bi-chevron-right"></i>
+                                    </button>
+                                </nav>
+                            @endif
+                        </div>
+
+                    </div>
+
+                    <!-- Grid de Produtos Estilo Products Index -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-6">
                         @forelse($produtosMaisComprados as $produto)
-                            <div class="bg-gradient-to-br from-white via-purple-50 to-pink-50 dark:from-gray-700 dark:via-purple-900/20 dark:to-pink-900/20 border border-gray-200 dark:border-gray-600 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 group">
-                                <div class="text-center">
-                                    <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 group-hover:scale-110 transition-transform duration-200">
-                                        {{ $produto['quantidade'] }}
-                                    </div>
-                                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">{{ $produto['produto'] }}</h3>
-                                    
-                                    <div class="space-y-2">
-                                        <div class="flex items-center justify-between text-sm">
-                                            <span class="text-gray-600 dark:text-gray-400">Quantidade:</span>
-                                            <span class="font-medium text-purple-600 dark:text-purple-400">{{ $produto['quantidade'] }} und</span>
-                                        </div>
-                                        <div class="flex items-center justify-between text-sm">
-                                            <span class="text-gray-600 dark:text-gray-400">Compras:</span>
-                                            <span class="font-medium text-pink-600 dark:text-pink-400">{{ $produto['vendas'] }}x</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600">
-                                        <div class="flex items-center justify-center text-xs text-gray-500 dark:text-gray-400">
-                                            @if($produto['vendas'] >= 5)
-                                                <i class="bi bi-star-fill text-yellow-500 mr-1"></i>
-                                                Produto Favorito
-                                            @elseif($produto['vendas'] >= 3)
-                                                <i class="bi bi-heart-fill text-red-500 mr-1"></i>
-                                                Muito Comprado
-                                            @else
-                                                <i class="bi bi-bag-check-fill text-green-500 mr-1"></i>
-                                                Produto Regular
-                                            @endif
-                                        </div>
+                            <!-- Produto Simples com CSS customizado mantido -->
+                            <div class="product-card-modern">
+                                <!-- Área da imagem com badges -->
+                                <div class="product-img-area">
+                                    <img src="{{ asset('storage/products/product-placeholder.png') }}"
+                                         class="product-img"
+                                         alt="{{ $produto['produto'] }}">
+
+                                    <!-- Badge de Quantidade -->
+                                    <span class="badge-quantity" title="Quantidade Total Comprada">
+                                        <i class="bi bi-stack"></i> {{ $produto['quantidade'] }}
+                                    </span>
+
+                                    <!-- Ícone da categoria -->
+                                    <div class="category-icon-wrapper">
+                                        <i class="bi bi-box category-icon"></i>
                                     </div>
                                 </div>
+
+                                <!-- Conteúdo -->
+                                <div class="card-body">
+                                    <div class="product-title" title="{{ $produto['produto'] }}">
+                                        {{ ucwords($produto['produto']) }}
+                                    </div>
+                                </div>
+
+                                <!-- Badge de preço -->
+                                <span class="badge-price" title="Compras realizadas">
+                                    <i class="bi bi-bag-check"></i>
+                                    {{ $produto['vendas'] }}x comprado
+                                </span>
                             </div>
                         @empty
-                            <div class="col-span-full text-center py-12">
-                                <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <i class="bi bi-box text-2xl text-gray-400"></i>
+                            <!-- Estado vazio aprimorado -->
+                            <div class="col-span-full empty-state flex flex-col items-center justify-center py-20 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-700 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-600">
+                                <div class="relative">
+                                    <!-- Ícone animado -->
+                                    <div class="w-32 h-32 mx-auto mb-6 text-neutral-400 relative">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-purple-200 to-blue-200 dark:from-purple-800 dark:to-blue-800 rounded-full opacity-20 animate-pulse"></div>
+                                        <i class="bi bi-box absolute inset-0 flex items-center justify-center text-5xl"></i>
+                                    </div>
+
+                                    <!-- Elementos decorativos -->
+                                    <div class="absolute top-0 left-0 w-4 h-4 bg-purple-300 rounded-full opacity-50 animate-bounce"></div>
+                                    <div class="absolute top-4 right-0 w-3 h-3 bg-blue-300 rounded-full opacity-50 animate-bounce" style="animation-delay: 0.5s;"></div>
+                                    <div class="absolute bottom-0 left-4 w-2 h-2 bg-pink-300 rounded-full opacity-50 animate-bounce" style="animation-delay: 1s;"></div>
                                 </div>
-                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Nenhum produto encontrado</h3>
-                                <p class="text-gray-600 dark:text-gray-400">Este cliente ainda não comprou produtos no período selecionado.</p>
+
+                                <h3 class="text-3xl font-bold text-neutral-800 dark:text-neutral-100 mb-3">📦 Nenhum produto encontrado</h3>
+                                <p class="text-neutral-600 dark:text-neutral-400 text-center mb-8 max-w-md text-lg">
+                                    Este cliente ainda não comprou produtos no período selecionado. Os produtos aparecerão aqui conforme as compras forem realizadas.
+                                </p>
                             </div>
                         @endforelse
                     </div>
@@ -1012,8 +832,31 @@
     </div>
 </div>
 
-<!-- Alpine.js -->
-<script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<!-- Removido Alpine.js daqui pois já está no layout principal -->
+
+<script>
+// Listener para eventos de debug do Livewire
+document.addEventListener('livewire:init', () => {
+    Livewire.on('debug-info', (message) => {
+        console.log('Debug Event:', message);
+        alert('Debug: ' + message);
+    });
+
+    Livewire.on('teste-realizado', (message) => {
+        console.log('Teste Event:', message);
+        alert('Teste: ' + message);
+    });
+});
+
+// Debug de cliques nos botões
+document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('click', function(e) {
+        if (e.target.hasAttribute('wire:click')) {
+            console.log('Botão clicado:', e.target.getAttribute('wire:click'));
+        }
+    });
+});
+</script>
 
 <!-- Scripts para Gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1022,10 +865,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Configurações globais dos gráficos
     Chart.defaults.font.family = 'Inter, sans-serif';
     Chart.defaults.color = getComputedStyle(document.documentElement).getPropertyValue('--tw-text-opacity') ? '#6b7280' : '#9ca3af';
-    
+
     // Variáveis para os gráficos
     let vendasChart, statusChart;
-    
+
     function initCharts() {
         @if(count($vendasPorMes) > 0)
             // Gráfico de Vendas por Mês
@@ -1034,11 +877,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (vendasChart) {
                     vendasChart.destroy();
                 }
-                
+
                 const gradient = ctx1.getContext('2d').createLinearGradient(0, 0, 0, 300);
                 gradient.addColorStop(0, 'rgba(99, 102, 241, 0.3)');
                 gradient.addColorStop(1, 'rgba(99, 102, 241, 0.05)');
-                
+
                 vendasChart = new Chart(ctx1, {
                     type: 'line',
                     data: {
@@ -1146,16 +989,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (statusChart) {
                     statusChart.destroy();
                 }
-                
+
                 const statusColors = {
                     'pago': '#10b981',
                     'pendente': '#f59e0b',
                     'cancelado': '#ef4444'
                 };
-                
+
                 const labels = @json(array_keys($vendasPorStatus));
                 const colors = labels.map(status => statusColors[status] || '#6b7280');
-                
+
                 statusChart = new Chart(ctx2, {
                     type: 'doughnut',
                     data: {
@@ -1202,44 +1045,44 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         @endif
     }
-    
+
     // Inicializar gráficos
     initCharts();
-    
+
     // Reinicializar gráficos quando a aba mudar
     document.addEventListener('livewire:component.updated', function() {
         if (document.querySelector('.tab-content') && @this.activeTab === 'graficos') {
             setTimeout(initCharts, 100);
         }
     });
-    
+
     // Responsividade para dispositivos móveis
     window.addEventListener('resize', function() {
         if (vendasChart) vendasChart.resize();
         if (statusChart) statusChart.resize();
     });
-    
+
     // Detectar mudança de tema (claro/escuro)
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.attributeName === 'class') {
                 const isDark = document.documentElement.classList.contains('dark');
                 Chart.defaults.color = isDark ? '#9ca3af' : '#6b7280';
-                
+
                 if (vendasChart) {
                     vendasChart.options.scales.x.ticks.color = isDark ? '#9ca3af' : '#6b7280';
                     vendasChart.options.scales.y.ticks.color = isDark ? '#9ca3af' : '#6b7280';
                     vendasChart.options.scales.y1.ticks.color = isDark ? '#9ca3af' : '#6b7280';
                     vendasChart.update();
                 }
-                
+
                 if (statusChart) {
                     statusChart.update();
                 }
             }
         });
     });
-    
+
     observer.observe(document.documentElement, {
         attributes: true,
         attributeFilter: ['class']
