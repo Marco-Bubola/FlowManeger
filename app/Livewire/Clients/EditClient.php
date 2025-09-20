@@ -9,7 +9,7 @@ use Livewire\Component;
 class EditClient extends Component
 {
     public Client $client;
-    
+
     // Propriedades do formulário
     public string $name = '';
     public string $email = '';
@@ -18,7 +18,7 @@ class EditClient extends Component
     public string $avatar_cliente = '';
 
     // Lista de avatares predefinidos
-    protected $avatarOptions;
+    public $avatarOptions;
 
     public function mount(Client $client): void
     {
@@ -101,7 +101,7 @@ class EditClient extends Component
 
         // Flash message e redirecionamento
         session()->flash('success', 'Cliente atualizado com sucesso!');
-        
+
         $this->redirect(route('clients.index'), navigate: true);
     }
 
