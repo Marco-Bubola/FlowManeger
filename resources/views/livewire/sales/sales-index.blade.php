@@ -310,41 +310,106 @@
 
     <!-- Modal de Confirmação de Exclusão -->
     @if($showDeleteModal ?? false)
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" wire:click="cancelDelete"></div>
+    <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        wire:click="cancelDelete" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="relative p-4 w-full max-w-lg max-h-full transform transition-all duration-300 scale-100"
+            x-transition:enter="transition ease-out duration-300 delay-75"
+            x-transition:enter-start="opacity-0 scale-95 translate-y-4"
+            x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+            x-transition:leave-end="opacity-0 scale-95 translate-y-4"
+            wire:click.stop>
+            <div class="relative bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 dark:border-zinc-700/50 overflow-hidden">
+                <!-- Gradiente decorativo no topo -->
+                <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-pink-600"></div>
 
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-            <div class="relative inline-block align-bottom bg-white dark:bg-zinc-800 rounded-2xl px-4 pt-5 pb-4 text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6 border border-gray-200 dark:border-zinc-700">
-                <div class="sm:flex sm:items-start">
-                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-xl bg-gradient-to-br from-red-500 to-red-600 sm:mx-0 sm:h-10 sm:w-10 shadow-lg">
-                        <i class="bi bi-exclamation-triangle text-white"></i>
-                    </div>
-                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                        <h3 class="text-lg leading-6 font-bold text-gray-900 dark:text-white" id="modal-title">
-                            Confirmar Exclusão
+                <!-- Header do modal -->
+                <div class="flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-zinc-700/50">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                            <i class="bi bi-cart-x text-lg"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">
+                            Excluir Venda
                         </h3>
-                        <div class="mt-2">
-                            <p class="text-sm text-gray-600 dark:text-gray-400">
-                                Tem certeza que deseja excluir a venda <strong>#{{ $deletingSale?->id }}</strong>?
-                                Esta ação não pode ser desfeita e os produtos serão devolvidos ao estoque.
-                            </p>
+                    </div>
+                    <button type="button" wire:click="cancelDelete"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100/50 hover:bg-slate-200/70 dark:bg-zinc-700/50 dark:hover:bg-zinc-600/70 rounded-xl text-sm w-10 h-10 flex justify-center items-center transition-all duration-200 backdrop-blur-sm"
+                        title="Fechar">
+                        <i class="bi bi-x-lg text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Conteúdo do modal -->
+                <div class="p-6 text-center">
+                    <!-- Ícone central com animação -->
+                    <div class="relative mx-auto mb-6">
+                        <div class="w-20 h-20 mx-auto bg-gradient-to-br from-red-100 to-orange-100 dark:from-red-900/40 dark:to-orange-900/40 rounded-full flex items-center justify-center shadow-xl ring-4 ring-red-100 dark:ring-red-900/30">
+                            <i class="bi bi-receipt-cutoff text-red-600 dark:text-red-400 text-3xl animate-pulse"></i>
+                        </div>
+                        <!-- Ícones decorativos orbitando -->
+                        <div class="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-bounce">
+                            <i class="bi bi-exclamation text-white text-sm font-bold"></i>
+                        </div>
+                        <div class="absolute -bottom-2 -left-2 w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                            <i class="bi bi-arrow-return-left text-white text-sm"></i>
                         </div>
                     </div>
-                </div>
-                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
-                    <button type="button"
-                        wire:click="deleteSale"
-                        class="w-full inline-flex justify-center items-center rounded-xl border border-transparent shadow-lg px-4 py-2 bg-gradient-to-r from-red-600 to-red-700 text-base font-medium text-white hover:from-red-700 hover:to-red-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm transition-all duration-200 transform hover:scale-105">
-                        <i class="bi bi-trash mr-2"></i>
-                        Excluir Venda
-                    </button>
-                    <button type="button"
-                        wire:click="cancelDelete"
-                        class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 dark:border-zinc-600 shadow-lg px-4 py-2 bg-white dark:bg-zinc-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm transition-all duration-200">
-                        Cancelar
-                    </button>
+
+                    <!-- Título e descrição -->
+                    <h3 class="mb-2 text-2xl font-bold text-slate-900 dark:text-white">
+                        Excluir Venda #{{ $deletingSale?->id }}?
+                    </h3>
+                    <p class="mb-6 text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Esta ação não pode ser desfeita. A venda será <span class="font-semibold text-red-600 dark:text-red-400">permanentemente removida</span> e os produtos serão devolvidos ao estoque.
+                    </p>
+
+                    <!-- Alertas adicionais -->
+                    <div class="mb-6 p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl border border-amber-200 dark:border-amber-700/50">
+                        <div class="flex items-center justify-center gap-2 text-amber-700 dark:text-amber-400">
+                            <i class="bi bi-info-circle text-lg"></i>
+                            <span class="text-sm font-medium">O que acontecerá:</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-3 text-xs text-amber-600 dark:text-amber-500">
+                            <div class="flex items-center gap-1">
+                                <i class="bi bi-receipt-cutoff"></i>
+                                <span>Venda removida</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="bi bi-arrow-return-left"></i>
+                                <span>Produtos ao estoque</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="bi bi-cash-coin"></i>
+                                <span>Pagamentos cancelados</span>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <i class="bi bi-graph-down"></i>
+                                <span>Métricas atualizadas</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="flex gap-3">
+                        <button wire:click="cancelDelete" type="button"
+                            class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-zinc-700/70 hover:bg-slate-200/80 dark:hover:bg-zinc-600/80 rounded-xl font-semibold transition-all duration-200 backdrop-blur-sm border border-slate-200/50 dark:border-zinc-600/50 shadow-lg hover:shadow-xl transform hover:scale-105">
+                            <i class="bi bi-shield-check text-lg"></i>
+                            <span>Manter Venda</span>
+                        </button>
+                        <button wire:click="deleteSale" type="button"
+                            class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ring-2 ring-red-500/20 focus:ring-4 focus:ring-red-500/40">
+                            <i class="bi bi-trash-fill text-lg"></i>
+                            <span>Confirmar Exclusão</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
