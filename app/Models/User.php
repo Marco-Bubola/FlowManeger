@@ -26,7 +26,8 @@ class User extends Authenticatable
         'location',
         'about_me',
         'profile_picture', // Adicionado o campo profile_picture
-        'google_id'
+        'google_id',
+        'userscol', // Campo adicional no banco
     ];
 
     /**
