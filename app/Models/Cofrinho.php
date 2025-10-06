@@ -15,8 +15,8 @@ class Cofrinho extends Model
         'user_id',
         'nome',
         'meta_valor',
-        'description',
         'status',
+        'icone',
     ];
 
     // Relacionamento com usuário
@@ -30,4 +30,4 @@ class Cofrinho extends Model
     {
         return $this->hasMany(Cashbook::class, 'cofrinho_id');
     }
-} 
+}
