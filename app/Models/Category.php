@@ -33,6 +33,7 @@ class Category extends Model
         'description',
         'user_id',
         'type',
+        'sort_order',
     ];
 
     // Casts para garantir tipos corretos
