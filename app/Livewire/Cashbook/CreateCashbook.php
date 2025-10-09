@@ -20,6 +20,7 @@ class CreateCashbook extends Component
     public $value = '';
     public $description = '';
     public $date = '';
+    public $currentStep = 1;
     public $is_pending = false;
     public $attachment = null;
     public $category_id = '';
@@ -85,10 +86,46 @@ class CreateCashbook extends Component
         Cashbook::create($data);
 
         session()->flash('success', 'Transação criada com sucesso!');
-        
+
         $this->dispatch('transaction-created');
-        
+
         $this->redirect(route('cashbook.index'));
+    }
+
+    public function nextStep()
+    {
+        // Validação leve e manual para não travar o botão por validações pesadas
+        $this->resetErrorBag();
+        $hasError = false;
+
+        if (empty($this->value) || !is_numeric($this->value) || (float)$this->value <= 0) {
+            $this->addError('value', 'Informe um valor válido maior que zero.');
+            $hasError = true;
+        }
+
+        if (empty($this->date)) {
+            $this->addError('date', 'A data é obrigatória.');
+            $hasError = true;
+        }
+
+        if (empty($this->category_id)) {
+            $this->addError('category_id', 'A categoria é obrigatória.');
+            $hasError = true;
+        }
+
+        if (empty($this->type_id)) {
+            $this->addError('type_id', 'O tipo é obrigatório.');
+            $hasError = true;
+        }
+
+        if (! $hasError) {
+            $this->currentStep = min(2, $this->currentStep + 1);
+        }
+    }
+
+    public function previousStep()
+    {
+        $this->currentStep = max(1, $this->currentStep - 1);
     }
 
     public function cancel()
