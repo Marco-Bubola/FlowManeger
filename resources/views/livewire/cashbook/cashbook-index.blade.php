@@ -1,127 +1,6 @@
-<div class="">
-    <!-- Header -->
-    <div class="shadow-lg border-b">
-        <div class="w-full px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <!-- Title and Icon -->
-                <div class="flex items-center space-x-4">
-                    <div class="flex-shrink-0">
-                        <div class="w-14 h-14 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
-                            <i class="fas fa-chart-line text-white text-2xl"></i>
-                        </div>
-                    </div>
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Livro Caixa</h1>
-                        <p class="text-sm text-gray-600 dark:text-gray-400">Controle financeiro inteligente</p>
-                    </div>
-                </div>
-
-                <!-- Action Buttons -->
-                <div class="flex items-center space-x-3">
-                    <!-- Filters Dropdown -->
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open"
-                            class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-sm">
-                            <i class="fas fa-filter mr-2"></i>
-                            Filtros
-                            <i class="fas fa-chevron-down ml-2 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
-                        </button>
-
-                        <div x-show="open" @click.away="open = false"
-                            x-transition:enter="transition ease-out duration-100"
-                            x-transition:enter-start="transform opacity-0 scale-95"
-                            x-transition:enter-end="transform opacity-100 scale-100"
-                            x-transition:leave="transition ease-in duration-75"
-                            x-transition:leave-start="transform opacity-100 scale-100"
-                            x-transition:leave-end="transform opacity-0 scale-95"
-                            class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-xl shadow-2xl ring-1 ring-black ring-opacity-5 z-50 border border-gray-100 dark:border-gray-700">
-                            <div class="p-6">
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                                    <i class="fas fa-sliders-h mr-2 text-blue-600"></i>
-                                    Filtros Avançados
-                                </h3>
-                                <div class="space-y-4">
-                                    <!-- Search -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="fas fa-search mr-1"></i>
-                                            Buscar
-                                        </label>
-                                        <input wire:model.live="search" type="text"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                                            placeholder="Descrição ou observações...">
-                                    </div>
-
-                                    <!-- Category Filter -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="fas fa-tags mr-1"></i>
-                                            Categoria
-                                        </label>
-                                        <select wire:model.live="categoryFilter"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                            <option value="">Todas as categorias</option>
-                                            @foreach($categories as $category)
-                                            <option value="{{ $category->id_category }}">{{ $category->name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Type Filter -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="fas fa-exchange-alt mr-1"></i>
-                                            Tipo
-                                        </label>
-                                        <select wire:model.live="typeFilter"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                            <option value="">Todos os tipos</option>
-                                            @foreach($types as $type)
-                                            <option value="{{ $type->id_type }}">{{ $type->desc_type }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-
-                                    <!-- Status Filter -->
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                            <i class="fas fa-flag mr-1"></i>
-                                            Status
-                                        </label>
-                                        <select wire:model.live="statusFilter"
-                                            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                                            <option value="">Todos</option>
-                                            <option value="confirmed">Confirmadas</option>
-                                            <option value="pending">Pendentes</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-600 flex justify-end">
-                                    <button wire:click="clearFilters"
-                                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-lg transition-colors duration-200">
-                                        <i class="fas fa-times mr-2"></i>
-                                        Limpar Filtros
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <a href="{{ route('cashbook.create') }}"
-                        class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl">
-                        <i class="fas fa-plus mr-2"></i>
-                        Nova Transação
-                    </a>
-                    <a href="{{ route('cashbook.upload') }}"
-                        class="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg">
-                        <i class="fas fa-upload mr-2"></i>
-                        Upload
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div x-data="{ showFilters: false }" class="">
+    <!-- Header moderno consistente -->
+    <x-cashbook-header :total-transactions="$transactionsCount ?? 0" :total-balance="$totalBalance ?? 0" :show-quick-actions="true" />
 
     <!-- Main Content Layout -->
     <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
@@ -391,7 +270,12 @@
                                     <div>
                                         <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Saldo</p>
                                         <p class="text-xl font-bold {{ ($totals['balance'] ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}">
-                                            R$ {{ number_format(abs($totals['balance'] ?? 0), 2, ',', '.') }}
+                                            @php $bal = $totals['balance'] ?? 0; @endphp
+                                            @if($bal >= 0)
+                                                R$ {{ number_format($bal, 2, ',', '.') }}
+                                            @else
+                                                -R$ {{ number_format(abs($bal), 2, ',', '.') }}
+                                            @endif
                                         </p>
                                     </div>
                                 </div>
@@ -464,13 +348,13 @@
                                                 @if($categoryGroup['total_receita'] > 0)
                                                     <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                                                         <i class="fas fa-arrow-up mr-1"></i>
-                                                        R$ {{ number_format($categoryGroup['total_receita'], 0, ',', '.') }}
+                                                        R$ {{ number_format($categoryGroup['total_receita'], 2, ',', '.') }}
                                                     </div>
                                                 @endif
                                                 @if($categoryGroup['total_despesa'] > 0)
                                                     <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
                                                         <i class="fas fa-arrow-down mr-1"></i>
-                                                        R$ {{ number_format($categoryGroup['total_despesa'], 0, ',', '.') }}
+                                                        R$ {{ number_format($categoryGroup['total_despesa'], 2, ',', '.') }}
                                                     </div>
                                                 @endif
                                             </div>
@@ -533,7 +417,7 @@
                                                 <div class="flex items-center justify-between">
                                                     <div class="text-right">
                                                         <span class="text-lg font-bold {{ $transaction['type_id'] == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                                            {{ $transaction['type_id'] == 1 ? '+' : '-' }}R$ {{ number_format($transaction['value'], 0, ',', '.') }}
+                                                            {{ $transaction['type_id'] == 1 ? '+' : '-' }}R$ {{ number_format($transaction['value'], 2, ',', '.') }}
                                                         </span>
                                                     </div>
                                                     <div class="flex items-center space-x-2">
@@ -592,57 +476,70 @@
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
+    <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
     @if($showDeleteModal)
-    <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showDeleteModal') }" x-show="show">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"
-                x-show="show"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0"
-                x-transition:enter-end="opacity-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100"
-                x-transition:leave-end="opacity-0"></div>
+    <div x-data="{ modalOpen: true }"
+         x-show="modalOpen"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[99999] overflow-y-auto">
+        <!-- Backdrop com blur e gradiente -->
+        <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md"></div>
 
-            <span class="hidden sm:inline-block sm:align-middle sm:h-screen">&#8203;</span>
+        <!-- Container do Modal -->
+        <div class="flex min-h-full items-center justify-center p-4">
+            <!-- Modal -->
+            <div x-show="modalOpen"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
+                 x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+                 x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
+                 class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
 
-            <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full border border-gray-200 dark:border-gray-700"
-                x-show="show"
-                x-transition:enter="ease-out duration-300"
-                x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave="ease-in duration-200"
-                x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
+                <!-- Efeitos visuais de fundo -->
+                <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
+                <div class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl"></div>
 
-                <div class="bg-white dark:bg-gray-800 px-6 pt-6 pb-4 sm:p-8 sm:pb-4">
-                    <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-2xl bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-12 sm:w-12">
-                            <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 text-xl"></i>
-                        </div>
-                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                            <h3 class="text-xl leading-6 font-bold text-gray-900 dark:text-white mb-2">Confirmar Exclusão</h3>
-                            <div class="mt-2">
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e todos os dados serão perdidos permanentemente.
-                                </p>
+                <!-- Conteúdo do Modal -->
+                <div class="relative z-10">
+                    <!-- Header com ícone animado -->
+                    <div class="text-center pt-8 pb-4">
+                        <div class="relative inline-flex items-center justify-center">
+                            <!-- Círculos de fundo animados -->
+                            <div class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse"></div>
+                            <div class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping"></div>
+
+                            <!-- Ícone principal -->
+                            <div class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                                <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="bg-gray-50 dark:bg-gray-700 px-6 py-4 sm:px-8 sm:py-6 sm:flex sm:flex-row-reverse border-t border-gray-200 dark:border-gray-600">
-                    <button wire:click="deleteTransaction" type="button"
-                        class="w-full inline-flex justify-center items-center rounded-lg border border-transparent shadow-sm px-6 py-3 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
-                        <i class="fas fa-trash mr-2"></i>
-                        Confirmar Exclusão
-                    </button>
-                    <button wire:click="cancelDelete" type="button"
-                        class="mt-3 w-full inline-flex justify-center items-center rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm px-6 py-3 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors duration-200">
-                        <i class="fas fa-times mr-2"></i>
-                        Cancelar
-                    </button>
+                        <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">Excluir Transação?</h3>
+                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Tem certeza que deseja excluir a transação selecionada? Esta ação é permanente e não pode ser desfeita.</p>
+                        @if($deletingTransaction)
+                            <p class="mt-3 text-sm text-gray-700 dark:text-gray-300"><strong>#{{ $deletingTransaction->id }}</strong> — {{ $deletingTransaction->description ?? 'Sem descrição' }}</p>
+                        @endif
+                    </div>
+
+                    <!-- Botões de ação -->
+                    <div class="px-6 pb-8 sm:px-10 sm:pb-10 flex items-center justify-center gap-4">
+                        <button wire:click="deleteTransaction" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-2xl shadow-md">
+                            <i class="fas fa-trash"></i>
+                            Confirmar Exclusão
+                        </button>
+                        <button x-on:click="modalOpen = false; $wire.call('cancelDelete')" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-2xl shadow-sm">
+                            <i class="fas fa-times"></i>
+                            Cancelar
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
