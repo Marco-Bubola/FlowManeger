@@ -10,6 +10,7 @@
     'required' => false,
     'disabled' => false,
     'maxlength' => 12
+    ,'initial' => null
 ])
 
 @php
@@ -44,23 +45,25 @@
             <span class="text-lg font-bold bg-gradient-to-r from-{{ $iconColor }}-600 to-{{ $iconColor }}-500 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{{ $currency }}</span>
         </div>
 
-        <!-- Campo de entrada modernizado -->
-        <input type="text"
-               wire:model="{{ $wireModel }}"
-               wire:ignore.self
-               id="{{ $id }}"
-               name="{{ $name }}"
-               maxlength="{{ $maxlength }}"
-               @if($disabled) disabled @endif
-               class="w-full pl-16 pr-16 py-4 border-2 rounded-2xl
-                      bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm
-                      text-slate-900 dark:text-slate-100 placeholder-slate-400
-                      {{ $borderErrorColor }}
-                      focus:ring-4 {{ $focusRingColor }} focus:outline-none
-                      transition-all duration-300 shadow-lg hover:shadow-xl
-                      group-hover:scale-[1.02]
-                      {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
-               placeholder="{{ $placeholder }}">
+     <!-- Campo de entrada oculto (valor numérico para Livewire) -->
+     <input type="hidden" wire:model="{{ $wireModel }}" id="{{ $id }}_hidden" name="{{ $name }}">
+
+     <!-- Campo de entrada modernizado (visível apenas com máscara) -->
+     <input type="text"
+         wire:ignore.self
+         id="{{ $id }}"
+         name="{{ $name }}_masked"
+         maxlength="{{ $maxlength }}"
+         @if($disabled) disabled @endif
+         class="w-full pl-16 pr-16 py-4 border-2 rounded-2xl
+             bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm
+             text-slate-900 dark:text-slate-100 placeholder-slate-400
+             {{ $borderErrorColor }}
+             focus:ring-4 {{ $focusRingColor }} focus:outline-none
+             transition-all duration-300 shadow-lg hover:shadow-xl
+             group-hover:scale-[1.02]
+             {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
+         placeholder="{{ $placeholder }}">
 
         <!-- Indicador de validação -->
         <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
@@ -111,20 +114,57 @@
             input.classList.remove('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
         }, 200);
 
-        // Atualiza o Livewire com o valor numérico (formato US para validação)
+        // Atualiza o input hidden com o valor numérico (formato US para validação)
         const numericValue = formatted.replace(',', '.');
-        @this.set('{{ $wireModel }}', numericValue);
+        const hidden = document.getElementById('{{ $id }}_hidden');
+        if (hidden) {
+            hidden.value = numericValue;
+            // Dispara event para Livewire reconhecer alteração
+            hidden.dispatchEvent(new Event('input', { bubbles: true }));
+        }
     }
 
     // Configuração melhorada do campo {{ $id }}
     document.addEventListener('DOMContentLoaded', function() {
         const input_{{ $id }} = document.getElementById('{{ $id }}');
 
-        if (input_{{ $id }}) {
-            // Valor inicial
-            if (!input_{{ $id }}.value || input_{{ $id }}.value === '0') {
-                input_{{ $id }}.value = '0,00';
-            }
+            if (input_{{ $id }}) {
+            // Inicializa hidden e visível com valores atuais do Livewire, quando existirem
+            const hiddenInit = document.getElementById('{{ $id }}_hidden');
+            // Se foi passado um valor inicial via prop blade, usa-o para init
+            @if(!is_null($initial))
+                try {
+                    const initialVal = String(@json($initial));
+                    if (hiddenInit) {
+                        hiddenInit.value = initialVal;
+                    }
+                    const digitsFromInitial = initialVal.replace(/\D/g, '');
+                    if (digitsFromInitial) {
+                        input_{{ $id }}.value = formatCurrency_{{ $id }}(digitsFromInitial);
+                    }
+                } catch(e) {}
+            @else
+                if (hiddenInit) {
+                    // Se o hidden já tem um valor (ex: edição via Livewire), sincroniza para o campo visível
+                    if (hiddenInit.value && hiddenInit.value !== '0') {
+                        const digitsFromHidden = hiddenInit.value.replace(/\D/g, '');
+                        if (digitsFromHidden) {
+                            input_{{ $id }}.value = formatCurrency_{{ $id }}(digitsFromHidden);
+                        }
+                    } else {
+                        // Caso contrário, inicializa hidden a partir do campo visível padrão
+                        if (!input_{{ $id }}.value || input_{{ $id }}.value === '0') {
+                            input_{{ $id }}.value = '0,00';
+                        }
+                        hiddenInit.value = input_{{ $id }}.value.replace(',', '.');
+                    }
+                } else {
+                    // Sem hidden: garante uma exibição padrão
+                    if (!input_{{ $id }}.value || input_{{ $id }}.value === '0') {
+                        input_{{ $id }}.value = '0,00';
+                    }
+                }
+            @endif
 
             // Eventos de input com feedback visual
             input_{{ $id }}.addEventListener('input', function() {
@@ -174,13 +214,24 @@
         }
     });
 
-    // Reinicializa quando o Livewire atualiza o componente
-    document.addEventListener('livewire:navigated', function() {
-        const input_{{ $id }} = document.getElementById('{{ $id }}');
+    // Sincroniza o campo visível a partir do hidden (valor do Livewire)
+    function syncFromHidden_{{ $id }}() {
+        const inputEl = document.getElementById('{{ $id }}');
+        const hidden = document.getElementById('{{ $id }}_hidden');
+        if (!inputEl || !hidden) return;
+        const hv = String(hidden.value || '').trim();
+        if (!hv) return;
+        // Aceita formatos como '123.45', '123,45' ou apenas dígitos
+        const digits = hv.replace(/\D/g, '');
+        if (!digits) return;
+        inputEl.value = formatCurrency_{{ $id }}(digits);
+    }
 
-        if (input_{{ $id }} && !input_{{ $id }}.value) {
-            input_{{ $id }}.value = '0,00';
-        }
+    // Escuta vários eventos do Livewire para garantir sincronização após hidratação/atualizações
+    ['livewire:load', 'livewire:update', 'livewire:message.processed', 'livewire:navigated'].forEach(evt => {
+        document.addEventListener(evt, function() {
+            try { syncFromHidden_{{ $id }}(); } catch (e) { /* ignore */ }
+        });
     });
 </script>
 
