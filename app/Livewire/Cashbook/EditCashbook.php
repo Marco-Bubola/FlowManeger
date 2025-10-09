@@ -18,10 +18,11 @@ class EditCashbook extends Component
     use WithFileUploads;
 
     public Cashbook $cashbook;
-    
+
     // Propriedades do formulário
     public $value = '';
     public $description = '';
+    public $currentStep = 1;
     public $date = '';
     public $is_pending = false;
     public $attachment = null;
@@ -74,7 +75,7 @@ class EditCashbook extends Component
     public function mount(Cashbook $cashbook)
     {
         $this->cashbook = $cashbook;
-        
+
         // Preencher formulário com dados existentes
         $this->value = $cashbook->value;
         $this->description = $cashbook->description;
@@ -86,7 +87,7 @@ class EditCashbook extends Component
         $this->note = $cashbook->note;
         $this->segment_id = $cashbook->segment_id;
         $this->cofrinho_id = $cashbook->cofrinho_id;
-        
+
         $this->loadData();
     }
 
@@ -142,7 +143,7 @@ class EditCashbook extends Component
 
         $this->dispatch('transaction-updated');
         session()->flash('success', 'Transação atualizada com sucesso!');
-        
+
         $this->redirect(route('cashbook.index'));
     }
 
