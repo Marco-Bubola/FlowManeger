@@ -1,49 +1,12 @@
-<div class="min-h-screen w-full bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-300 overflow-x-hidden">
-    <!-- Header with animated gradient -->
-    <div class="w-full bg-gradient-to-r from-white via-blue-50 to-purple-50 dark:from-gray-800 dark:via-blue-900 dark:to-purple-900 shadow-lg border-b border-blue-200 dark:border-gray-700 backdrop-blur-sm">
-        <div class="w-full px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center py-8">
-                <div class="flex items-center space-x-6">
-                    <!-- Botão de voltar com hover animado -->
-                    <button wire:click="cancel"
-                           class="group flex items-center justify-center w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl hover:from-blue-500 hover:to-purple-600 dark:hover:from-blue-600 dark:hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl">
-                        <svg class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </button>
-
-                    <!-- Título com ícone animado -->
-                    <div class="flex items-center space-x-4">
-                        <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-2xl shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                            <svg class="w-8 h-8 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 class="text-3xl font-black bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                                Upload de Transações
-                            </h1>
-                            <p class="text-lg text-gray-600 dark:text-gray-300 font-medium">
-                                Importe transações de arquivos PDF ou CSV
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ícone decorativo com animação -->
-                <div class="relative">
-                    <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 dark:from-purple-600 dark:via-pink-600 dark:to-red-600 rounded-2xl shadow-xl transform hover:scale-110 transition-all duration-300 animate-bounce">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                        </svg>
-                    </div>
-                    <!-- Círculos decorativos -->
-                    <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping"></div>
-                    <div class="absolute -bottom-2 -left-2 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="min-h-screen w-full bg-gradient-to-br ">
+    <!-- Header alinhado ao estilo de products/sales -->
+    <x-products-header
+        title="Upload de Transações"
+        description="Importe transações de arquivos PDF ou CSV"
+        :total-products="0"
+        :total-categories="0"
+        :show-quick-actions="false"
+    />
 
     <!-- Content -->
     <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
@@ -247,8 +210,11 @@
                                 </p>
                             </div>
                         </div>
-                        <div class="flex space-x-4">
-                            <button wire:click="backToUpload"
+                        <div class="flex space-x-4 items-center">
+                            <!-- ...existing code... -->
+
+                            <div class="flex">
+                                <button wire:click="backToUpload"
                                     class="group relative inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-700 dark:text-gray-300 font-bold rounded-xl hover:from-gray-200 hover:to-gray-300 dark:hover:from-gray-600 dark:hover:to-gray-500 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -263,6 +229,7 @@
                                 </svg>
                                 <span class="relative z-10">Confirmar Transações</span>
                             </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -384,6 +351,14 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
                                                 </svg>
                                                 <span>Cofrinho</span>
+                                            </div>
+                                        </th>
+                                        <th class="px-4 py-4 text-left text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                            <div class="flex items-center space-x-2">
+                                                <svg class="w-4 h-4 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A12.042 12.042 0 0112 15c2.21 0 4.28.57 6.121 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                <span>Cliente</span>
                                             </div>
                                         </th>
                                     </tr>
@@ -515,16 +490,42 @@
                                             <td class="px-4 py-4 whitespace-nowrap text-sm">
                                                 <div class="flex items-center space-x-2">
                                                     <svg class="w-3 h-3 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                                        </svg>
+                                                        @php
+                                                            $selectedCofrinho = null;
+                                                            if(!empty($transaction['cofrinho_id'])) {
+                                                                $selectedCofrinho = collect($cofrinhos)->firstWhere('id', $transaction['cofrinho_id']);
+                                                            }
+                                                        @endphp
+                                                        <div class="relative w-full">
+                                                            <div class="absolute left-2 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                                                                <i class="{{ $selectedCofrinho->icone ?? 'bi bi-piggy-bank' }} text-indigo-500"></i>
+                                                            </div>
+                                                            <select wire:model="transactions.{{ $index }}.cofrinho_id"
+                                                                    class="w-full pl-8 px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 text-xs">
+                                                                <option value="">Selecionar Cofrinho</option>
+                                                                @if(isset($cofrinhos))
+                                                                    @foreach($cofrinhos as $cofrinho)
+                                                                        <option value="{{ $cofrinho->id }}">{{ $cofrinho->nome }}</option>
+                                                                    @endforeach
+                                                                @endif
+                                                            </select>
+                                                        </div>
+                                                </div>
+                                            </td>
+                                            <!-- Cliente -->
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm">
+                                                <div class="flex items-center space-x-2">
+                                                    <svg class="w-3 h-3 text-teal-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A12.042 12.042 0 0112 15c2.21 0 4.28.57 6.121 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                     </svg>
-                                                    <select wire:model="transactions.{{ $index }}.cofrinho_id"
-                                                            class="w-full px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 text-xs">
-                                                        <option value="">Selecionar Cofrinho</option>
-                                                        @if(isset($cofrinhos))
-                                                            @foreach($cofrinhos as $cofrinho)
-                                                                <option value="{{ $cofrinho->id }}">{{ $cofrinho->name }}</option>
-                                                            @endforeach
-                                                        @endif
+                                                    <select wire:model="transactions.{{ $index }}.client_id"
+                                                            class="w-full px-2 py-1 border rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-all duration-300 bg-white dark:bg-gray-800 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 text-xs">
+                                                        <option value="">Nenhum</option>
+                                                        @foreach($clients as $client)
+                                                            <option value="{{ $client->id }}">{{ $client->name }}</option>
+                                                        @endforeach
                                                     </select>
                                                 </div>
                                             </td>
@@ -611,58 +612,6 @@
         @endif
     </div>
 
-    <!-- Rodapé com informações adicionais -->
-    <footer class="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div class="w-full bg-gradient-to-r from-white/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/50 rounded-2xl p-6 backdrop-blur-sm border border-white/20 dark:border-gray-700/50">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                <div class="group">
-                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-gray-900 dark:text-white">Rápido</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">Processamento em segundos</p>
-                </div>
-
-                <div class="group">
-                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-gray-900 dark:text-white">Inteligente</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">Categorização automática</p>
-                </div>
-
-                <div class="group">
-                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-gray-900 dark:text-white">Seguro</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">Dados protegidos</p>
-                </div>
-
-                <div class="group">
-                    <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1.01M15 10h1.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="font-bold text-gray-900 dark:text-white">Fácil</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-300">Interface intuitiva</p>
-                </div>
-            </div>
-
-            <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-                <p class="text-sm text-gray-600 dark:text-gray-300">
-                    💡 <strong>Dica:</strong> Você pode arrastar e soltar arquivos diretamente na área de upload
-                </p>
-            </div>
-        </div>
-    </footer>
 
     <!-- Scripts adicionais para interações -->
     <style>
