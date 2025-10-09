@@ -32,6 +32,7 @@ class UploadCashbook extends Component
     protected $rules = [
         'file' => 'required|mimes:pdf,csv|max:2048',
         'cofrinho_id' => 'nullable|exists:cofrinhos,id',
+    'transactions.*.client_id' => 'nullable|exists:clients,id',
         'transactions.*.category_id' => 'required|exists:category,id_category',
         'transactions.*.cofrinho_id' => 'nullable|exists:cofrinhos,id',
     ];
@@ -44,6 +45,7 @@ class UploadCashbook extends Component
         'transactions.*.category_id.required' => 'Todas as transações devem ter uma categoria selecionada.',
         'transactions.*.category_id.exists' => 'Uma ou mais categorias selecionadas são inválidas.',
         'transactions.*.cofrinho_id.exists' => 'Um ou mais cofrinhos selecionados são inválidos.',
+    'transactions.*.client_id.exists' => 'Um ou mais clientes selecionados são inválidos.',
     ];
 
     public function mount()
@@ -83,12 +85,81 @@ class UploadCashbook extends Component
             $pdf = $parser->parseFile($this->file->getPathname());
             $text = $pdf->getText();
             $transactions = $this->extractTransactionsFromPdf($text);
+            // Apply automations so preview already shows mapped cofrinho/client/category
+            foreach ($transactions as $i => $t) {
+                $this->applyAutomationsToTransaction($transactions[$i]);
+            }
         } elseif ($this->file->getClientOriginalExtension() === 'csv') {
             $transactions = $this->parseCsvFile();
+            // Apply automations to CSV-parsed transactions as well
+            foreach ($transactions as $i => $t) {
+                $this->applyAutomationsToTransaction($transactions[$i]);
+            }
         }
 
         $this->transactions = $transactions;
         $this->step = 2;
+    }
+
+    /**
+     * Aplica regras automáticas para tentar mapear cofrinho, client e categoria
+     * diretamente nas transações logo após o parsing, para aparecer na pré-visualização.
+     */
+    private function applyAutomationsToTransaction(array &$trans)
+    {
+        $desc = isset($trans['description']) ? mb_strtolower($trans['description']) : '';
+        $title = isset($trans['title']) ? mb_strtolower($trans['title']) : '';
+
+        // Dinheiro retirado/reservado Eudora -> cofrinho + client + tentar categoria PIX
+        if (!empty($desc) && str_contains($desc, 'eudora') && str_contains($desc, 'dinheiro')){
+            $eudoraCof = Cofrinho::where('user_id', Auth::id())->where('nome', 'like', '%eudora%')->first();
+            $eudoraClient = Client::where('user_id', Auth::id())->where('name', 'like', '%eudora%')->first();
+            if ($eudoraCof) {
+                $trans['cofrinho_id'] = $eudoraCof->id;
+            }
+            if ($eudoraClient) {
+                $trans['client_id'] = $eudoraClient->id;
+            }
+            // tentar localizar categoria PIX do usuário (por nome ou id_category conhecido)
+            $pixCat = Category::where('user_id', Auth::id())
+                ->where('is_active', 1)
+                ->where('type', 'transaction')
+                ->where(function($q){
+                    $q->where('name', 'like', '%pix%')
+                      ->orWhere('name', 'like', '%transfer%')
+                      ->orWhere('id_category', '1013');
+                })->first();
+            if ($pixCat) {
+                $trans['category_id'] = $pixCat->id_category ?? null;
+            }
+        }
+
+        // Ana Carolina -> Aninha
+        if (!empty($title) && str_contains($title, mb_strtolower('Ana Carolina Ferreira Coelho Freire'))){
+            $aninha = Client::where('user_id', Auth::id())
+                ->where(function($q){
+                    $q->where('name', 'like', '%Aninha%')
+                      ->orWhere('name', 'like', '%Ana Carolina%');
+                })->first();
+            if ($aninha) {
+                $trans['client_id'] = $aninha->id;
+            }
+        }
+
+        // transferência -> tentar PIX
+        if ((!empty($title) && str_contains($title, 'transferencia')) || (!empty($desc) && str_contains($desc, 'transferencia'))){
+            $pixCat = Category::where('user_id', Auth::id())
+                ->where('is_active', 1)
+                ->where('type', 'transaction')
+                ->where(function($q){
+                    $q->where('name', 'like', '%pix%')
+                      ->orWhere('name', 'like', '%transfer%')
+                      ->orWhere('id_category', '1013');
+                })->first();
+            if ($pixCat) {
+                $trans['category_id'] = $pixCat->id_category ?? null;
+            }
+        }
     }
 
     protected function validateTransactions()
@@ -125,6 +196,18 @@ class UploadCashbook extends Component
 
                 if (!$cofrinhoExists) {
                     $transactionErrors[] = 'Cofrinho inválido ou não pertence ao usuário';
+                    $hasErrors = true;
+                }
+            }
+
+            // Validar client se fornecido
+            if (!empty($transaction['client_id'])) {
+                $clientExists = Client::where('id', $transaction['client_id'])
+                    ->where('user_id', Auth::id())
+                    ->exists();
+
+                if (!$clientExists) {
+                    $transactionErrors[] = 'Cliente inválido ou não pertence ao usuário';
                     $hasErrors = true;
                 }
             }
@@ -174,12 +257,73 @@ class UploadCashbook extends Component
             return;
         }
 
-        $success = true;
-        $duplicated = [];
-        $inserted = [];
+    $success = true;
+    $duplicated = [];
+    $inserted = [];
+    $saveErrors = [];
 
         foreach ($this->transactions as $idx => $trans) {
             try {
+                // --- Automations: map description/title to cofrinho/client/category ---
+                // Normalize strings for matching
+                $desc = isset($trans['description']) ? mb_strtolower($trans['description']) : '';
+                $title = isset($trans['title']) ? mb_strtolower($trans['title']) : '';
+
+                // If description mentions Eudora + dinheiro -> map cofrinho, client and try PIX category
+                if (!empty($desc) && str_contains($desc, 'eudora') && str_contains($desc, 'dinheiro')) {
+                    $eudoraCof = Cofrinho::where('user_id', Auth::id())->where('nome', 'like', '%eudora%')->first();
+                    $eudoraClient = Client::where('user_id', Auth::id())->where('name', 'like', '%eudora%')->first();
+                    if ($eudoraCof) {
+                        $this->transactions[$idx]['cofrinho_id'] = $eudoraCof->id;
+                        $trans['cofrinho_id'] = $eudoraCof->id;
+                    }
+                    if ($eudoraClient) {
+                        $this->transactions[$idx]['client_id'] = $eudoraClient->id;
+                        $trans['client_id'] = $eudoraClient->id;
+                    }
+                    $pixCat = Category::where('user_id', Auth::id())
+                        ->where('is_active', 1)
+                        ->where('type', 'transaction')
+                        ->where(function($q){
+                            $q->where('name', 'like', '%pix%')
+                              ->orWhere('name', 'like', '%transfer%')
+                              ->orWhere('id_category', '1013');
+                        })->first();
+                    if ($pixCat) {
+                        $this->transactions[$idx]['category_id'] = $pixCat->id_category ?? null;
+                        $trans['category_id'] = $this->transactions[$idx]['category_id'];
+                    }
+                }
+
+                // If title matches specific full name, select client 'Aninha'
+                if (!empty($title) && str_contains($title, mb_strtolower('Ana Carolina Ferreira Coelho Freire'))) {
+                    // prefer exact alias 'Aninha' if present
+                    $aninha = Client::where('user_id', Auth::id())
+                        ->where(function($q) {
+                            $q->where('name', 'like', '%Aninha%')
+                              ->orWhere('name', 'like', '%Ana Carolina%');
+                        })->first();
+                    if ($aninha) {
+                        $this->transactions[$idx]['client_id'] = $aninha->id;
+                        $trans['client_id'] = $aninha->id;
+                    }
+                }
+
+                // If title or description mentions 'transferencia' -> try PIX
+                if ((!empty($title) && str_contains($title, 'transferencia')) || (!empty($desc) && str_contains($desc, 'transferencia'))) {
+                    $pixCat = Category::where('user_id', Auth::id())
+                        ->where('is_active', 1)
+                        ->where('type', 'transaction')
+                        ->where(function($q){
+                            $q->where('name', 'like', '%pix%')
+                              ->orWhere('name', 'like', '%transfer%')
+                              ->orWhere('id_category', '1013');
+                        })->first();
+                    if ($pixCat) {
+                        $this->transactions[$idx]['category_id'] = $pixCat->id_category ?? null;
+                        $trans['category_id'] = $this->transactions[$idx]['category_id'];
+                    }
+                }
                 // Verificar e corrigir o formato da data
                 $dateFormats = ['d-m-Y', 'Y-m-d'];
                 $validDate = false;
@@ -258,6 +402,7 @@ class UploadCashbook extends Component
                     'trace' => $e->getTraceAsString()
                 ]);
                 $success = false;
+                $saveErrors[] = "Linha " . ($idx + 1) . ": " . $e->getMessage();
             }
         }
 
@@ -277,7 +422,11 @@ class UploadCashbook extends Component
             $this->dispatch('transaction-created');
             $this->redirect(route('cashbook.index'));
         } else {
-            session()->flash('error', 'Houve um erro ao salvar as transações.');
+            $message = 'Houve um erro ao salvar as transações.';
+            if (!empty($saveErrors)) {
+                $message .= "\n\nDetalhes:\n" . implode("\n", $saveErrors);
+            }
+            session()->flash('error', $message);
         }
     }
 
@@ -396,6 +545,10 @@ class UploadCashbook extends Component
 
         $categoryMapping = [
             'PIX' => '1013',
+            'Transferência' => '1013',
+            'Ana Carolina' => '1013',
+            'Carolina Ferreira Coelho Freire' => '1013',
+            'Nu' => '1010',
             'Rendimentos' => '1016',
             'Santander' => '1014',
             'Inter' => '1015',
