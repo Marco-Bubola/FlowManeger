@@ -51,6 +51,10 @@ class CashbookIndex extends Component
     public string $dateEnd = '';
     public int $perPage = 15;
 
+    // Resumos para exibição no header
+    public int $transactionsCount = 0;
+    public float $totalBalance = 0.0;
+
     // Modal de exclusão
     public ?Cashbook $deletingTransaction = null;
     public bool $showDeleteModal = false;
@@ -76,7 +80,7 @@ class CashbookIndex extends Component
         $this->year = now()->year;
         $this->currentMonth = now()->format('Y-m');
         $this->monthName = now()->translatedFormat('F Y');
-        
+
         $this->loadData();
     }
 
@@ -95,39 +99,39 @@ class CashbookIndex extends Component
     public function loadCalendarData(): void
     {
         $date = Carbon::create($this->year, $this->month, 1);
-        
+
         // Obter todas as transações do mês para o calendário
         $transactions = Cashbook::where('user_id', Auth::id())
             ->whereYear('date', $date->year)
             ->whereMonth('date', $date->month)
             ->get();
-        
+
         // Agrupar transações por dia
         $transactionsByDay = $transactions->groupBy(function($transaction) {
             return Carbon::parse($transaction->date)->format('j');
         });
-        
+
         // Preparar dados do calendário
         $this->calendarData = [];
-        
+
         // Primeiro dia do mês e último dia
         $firstDay = $date->copy()->startOfMonth();
         $lastDay = $date->copy()->endOfMonth();
-        
+
         // Primeiro dia da semana (0 = domingo)
         $startOfWeek = $firstDay->copy()->startOfWeek(Carbon::SUNDAY);
-        
+
         // Último dia da semana
         $endOfWeek = $lastDay->copy()->endOfWeek(Carbon::SATURDAY);
-        
+
         // Criar as semanas do calendário
         $weeks = [];
         $currentWeek = [];
-        
+
         for ($day = $startOfWeek->copy(); $day <= $endOfWeek; $day->addDay()) {
             $dayNumber = $day->format('j');
             $isCurrentMonth = $day->month === $date->month;
-            
+
             $dayData = [
                 'day' => $dayNumber,
                 'date' => $day->format('Y-m-d'),
@@ -140,7 +144,7 @@ class CashbookIndex extends Component
                 'total_expense' => 0,
                 'transaction_count' => 0
             ];
-            
+
             if ($isCurrentMonth && isset($transactionsByDay[$dayNumber])) {
                 $dayTransactions = $transactionsByDay[$dayNumber];
                 $dayData['transaction_count'] = $dayTransactions->count();
@@ -149,15 +153,15 @@ class CashbookIndex extends Component
                 $dayData['total_income'] = $dayTransactions->where('type_id', 1)->sum('value');
                 $dayData['total_expense'] = $dayTransactions->where('type_id', 2)->sum('value');
             }
-            
+
             $currentWeek[] = $dayData;
-            
+
             if ($day->dayOfWeek === Carbon::SATURDAY) {
                 $weeks[] = $currentWeek;
                 $currentWeek = [];
             }
         }
-        
+
         $this->calendarData = $weeks;
     }
 
@@ -198,7 +202,7 @@ class CashbookIndex extends Component
     public function loadAdjacentMonths(): void
     {
         $date = Carbon::create($this->year, $this->month, 1);
-        
+
         // Calcular dados do mês anterior
         $prevDate = (clone $date)->subMonth();
         $prevMonthName = $prevDate->translatedFormat('F Y');
@@ -227,30 +231,30 @@ class CashbookIndex extends Component
     public function loadTransactions(): void
     {
         $date = Carbon::create($this->year, $this->month, 1);
-        
+
         // Obter transações do mês selecionado para o usuário logado
         $transactionsQuery = Cashbook::with(['category', 'client', 'cofrinho'])
             ->where('user_id', Auth::id())
             ->whereYear('date', $date->year)
             ->whereMonth('date', $date->month);
-        
+
         // Aplicar filtros
         if ($this->categoryFilter) {
             $transactionsQuery->where('category_id', $this->categoryFilter);
         }
-        
+
         if ($this->typeFilter) {
             $transactionsQuery->where('type_id', $this->typeFilter);
         }
-        
+
         if ($this->clientFilter) {
             $transactionsQuery->where('client_id', $this->clientFilter);
         }
-        
+
         if ($this->cofrinhoFilter) {
             $transactionsQuery->where('cofrinho_id', $this->cofrinhoFilter);
         }
-        
+
         if ($this->statusFilter) {
             if ($this->statusFilter === 'pending') {
                 $transactionsQuery->where('is_pending', true);
@@ -258,27 +262,27 @@ class CashbookIndex extends Component
                 $transactionsQuery->where('is_pending', false);
             }
         }
-        
+
         // Aplicar filtro de data específica se definido
         if ($this->dateStart && $this->dateEnd) {
             $transactionsQuery->whereBetween('date', [$this->dateStart, $this->dateEnd]);
         }
-        
+
         $transactions = $transactionsQuery->orderBy('date', 'desc')->get();
 
         // Aplicar filtros
         if ($this->categoryFilter) {
             $transactionsQuery->where('category_id', $this->categoryFilter);
         }
-        
+
         if ($this->typeFilter) {
             $transactionsQuery->where('type_id', $this->typeFilter);
         }
-        
+
         if ($this->clientFilter) {
             $transactionsQuery->where('client_id', $this->clientFilter);
         }
-        
+
         if ($this->cofrinhoFilter) {
             $transactionsQuery->where('cofrinho_id', $this->cofrinhoFilter);
         }
@@ -332,7 +336,7 @@ class CashbookIndex extends Component
         // Atualizar propriedades
         $this->currentMonth = $date->format('Y-m');
         $this->monthName = $date->translatedFormat('F Y');
-        
+
         // Calcular categorias para gráficos
         $this->categories = [
             'income' => $transactions->where('type_id', 1)
@@ -356,6 +360,10 @@ class CashbookIndex extends Component
                     ];
                 })->values(),
         ];
+
+    // Atualizar resumos para o header
+    $this->transactionsCount = $transactions->count();
+    $this->totalBalance = $this->totals['balance'] ?? 0;
     }
 
     public function changeMonth(string $direction): void
@@ -417,7 +425,7 @@ class CashbookIndex extends Component
             $this->showDeleteModal = false;
             $this->deletingTransaction = null;
             $this->loadData();
-            
+
             session()->flash('success', 'Transação excluída com sucesso!');
         }
     }
