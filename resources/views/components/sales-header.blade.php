@@ -40,44 +40,49 @@
                         {{ $title }}
                     </h1>
                     <p class="text-lg text-slate-600 dark:text-slate-400 font-medium">
-                        💼 {{ $description }}
+                        💼 {!! $description !!}
                     </p>
                 </div>
             </div>
 
-            <!-- Steppers Modernos -->
-            @if(count($steps) > 0)
-            <div class="flex items-center justify-center">
-                <div class="flex items-center space-x-6">
-                    @foreach($steps as $index => $step)
-                        @php $stepNumber = $index + 1; @endphp
+            <div class="flex items-center gap-4">
+                {{-- Slot de ações (botões) passado pelo componente pai --}}
+                {!! $actions ?? '' !!}
 
-                        <!-- Step -->
-                        <div class="flex items-center">
-                            <div class="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300"
-                                :class="$wire.currentStep === {{ $stepNumber }} ? 'bg-gradient-to-br {{ $step['gradient'] ?? 'from-indigo-500 to-purple-500' }} text-white shadow-lg shadow-indigo-500/30' : ($wire.currentStep > {{ $stepNumber }} ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-400')">
-                                <i class="bi {{ $step['icon'] ?? 'bi-circle' }} text-xl" x-show="$wire.currentStep === {{ $stepNumber }}"></i>
-                                <i class="bi bi-check-lg text-xl" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
-                            </div>
-                            <div class="ml-4">
-                                <div class="flex items-center">
-                                    <p class="text-lg font-bold transition-colors duration-300"
-                                        :class="$wire.currentStep === {{ $stepNumber }} ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'">{{ $step['title'] }}</p>
-                                    <i class="bi bi-check-circle-fill text-green-500 ml-2 text-lg" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
+                <!-- Steppers Modernos -->
+                @if(count($steps) > 0)
+                <div class="flex items-center justify-center">
+                    <div class="flex items-center space-x-6">
+                        @foreach($steps as $index => $step)
+                            @php $stepNumber = $index + 1; @endphp
+
+                            <!-- Step -->
+                            <div class="flex items-center">
+                                <div class="flex items-center justify-center w-12 h-12 rounded-xl transition-all duration-300"
+                                    :class="$wire.currentStep === {{ $stepNumber }} ? 'bg-gradient-to-br {{ $step['gradient'] ?? 'from-indigo-500 to-purple-500' }} text-white shadow-lg shadow-indigo-500/30' : ($wire.currentStep > {{ $stepNumber }} ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-400')">
+                                    <i class="bi {{ $step['icon'] ?? 'bi-circle' }} text-xl" x-show="$wire.currentStep === {{ $stepNumber }}"></i>
+                                    <i class="bi bi-check-lg text-xl" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
                                 </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">{{ $step['description'] }}</p>
+                                <div class="ml-4">
+                                    <div class="flex items-center">
+                                        <p class="text-lg font-bold transition-colors duration-300"
+                                            :class="$wire.currentStep === {{ $stepNumber }} ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'">{{ $step['title'] }}</p>
+                                        <i class="bi bi-check-circle-fill text-green-500 ml-2 text-lg" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">{{ $step['description'] }}</p>
+                                </div>
                             </div>
-                        </div>
 
-                        <!-- Connector -->
-                        @if(!$loop->last)
-                        <div class="w-16 h-1 rounded-full transition-all duration-300"
-                            :class="$wire.currentStep >= {{ $stepNumber + 1 }} ? 'bg-gradient-to-r {{ $step['connector_gradient'] ?? 'from-indigo-500 to-purple-500' }}' : 'bg-gray-300 dark:bg-zinc-600'"></div>
-                        @endif
-                    @endforeach
+                            <!-- Connector -->
+                            @if(!$loop->last)
+                            <div class="w-16 h-1 rounded-full transition-all duration-300"
+                                :class="$wire.currentStep >= {{ $stepNumber + 1 }} ? 'bg-gradient-to-r {{ $step['connector_gradient'] ?? 'from-indigo-500 to-purple-500' }}' : 'bg-gray-300 dark:bg-zinc-600'"></div>
+                            @endif
+                        @endforeach
+                    </div>
                 </div>
+                @endif
             </div>
-            @endif
         </div>
     </div>
 </div>
