@@ -9,6 +9,7 @@ use App\Models\SaleItem;
 use App\Models\VendaParcela;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
 class CreateSale extends Component
@@ -128,37 +129,40 @@ class CreateSale extends Component
 
         $totalPrice = $this->getTotalPrice();
 
-        // Criar a venda
-        $sale = Sale::create([
-            'client_id' => $this->client_id,
-            'user_id' => Auth::id(),
-            'status' => 'pendente',
-            'total_price' => $totalPrice,
-            'tipo_pagamento' => $this->tipo_pagamento,
-            'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->parcelas : 1,
-        ]);
-
-        // Criar os itens da venda
-        foreach ($this->products as $item) {
-            $product = Product::find($item['product_id']);
-
-            SaleItem::create([
-                'sale_id' => $sale->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $product->price,
-                'price_sale' => $item['unit_price'],
+        // Fazer as alterações em transação para garantir atomicidade entre criação da venda e atualização do estoque
+        DB::transaction(function () use ($totalPrice) {
+            // Criar a venda
+            $sale = Sale::create([
+                'client_id' => $this->client_id,
+                'user_id' => Auth::id(),
+                'status' => 'pendente',
+                'total_price' => $totalPrice,
+                'tipo_pagamento' => $this->tipo_pagamento,
+                'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->parcelas : 1,
             ]);
 
-            // Atualizar estoque
-            $product->stock_quantity -= $item['quantity'];
-            $product->save();
-        }
+            // Criar os itens da venda e atualizar estoque
+            foreach ($this->products as $item) {
+                $product = Product::find($item['product_id']);
 
-        // Gerar parcelas se for parcelado
-        if ($sale->tipo_pagamento === 'parcelado' && $sale->parcelas > 1) {
-            $this->gerarParcelasVenda($sale);
-        }
+                SaleItem::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $product->price,
+                    'price_sale' => $item['unit_price'],
+                ]);
+
+                // Atualizar estoque
+                $product->stock_quantity -= $item['quantity'];
+                $product->save();
+            }
+
+            // Gerar parcelas se for parcelado
+            if ($sale->tipo_pagamento === 'parcelado' && $sale->parcelas > 1) {
+                $this->gerarParcelasVenda($sale);
+            }
+        });
 
         session()->flash('message', 'Venda criada com sucesso!');
         return redirect()->route('sales.index');
