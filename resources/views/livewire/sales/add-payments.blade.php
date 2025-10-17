@@ -2,6 +2,9 @@
     <!-- Header modernizado usando o mesmo padrão do sales-header -->
     <x-add-payments-header :sale="$sale" />
 
+    <!-- Alpine.js CDN -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
     <!-- Container principal -->
     <div class="container mx-auto px-6 py-8">
         <div class="mx-auto">
@@ -86,6 +89,23 @@
                     </div>
                 </div>
             @endif
+
+            <!-- Botões de Ação -->
+            <div class="flex items-center justify-end gap-4 pt-6">
+                <a href="{{ route('sales.show', $sale->id) }}"
+                   class="px-6 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-200 rounded-xl transition-all duration-200 flex items-center gap-2 shadow-md hover:shadow-lg">
+                    <i class="bi bi-x-lg"></i>
+                    Cancelar
+                </a>
+                <button type="submit"
+                        wire:loading.attr="disabled"
+                        class="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl transition-all duration-200 flex items-center gap-2 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="bi bi-check-lg" wire:loading.remove></i>
+                    <i class="bi bi-arrow-clockwise animate-spin" wire:loading></i>
+                    <span wire:loading.remove>Confirmar Pagamentos</span>
+                    <span wire:loading>Processando...</span>
+                </button>
+            </div>
         </form>
 
         <!-- Scripts para notificações -->
