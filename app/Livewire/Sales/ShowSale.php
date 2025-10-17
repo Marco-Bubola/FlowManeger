@@ -27,6 +27,10 @@ class ShowSale extends Component
     public $paymentMethod = 'dinheiro';
     public $paymentDate;
 
+    // Modal de desconto/zerar restante
+    public bool $showDiscountModal = false;
+
+
     public function mount($id)
     {
         $this->sale = Sale::with(['saleItems.product', 'client', 'payments'])->findOrFail($id);
@@ -106,6 +110,15 @@ class ShowSale extends Component
             ]);
         }
 
+        // Aplicar descontos caso tenham sido registrados
+        foreach ($this->newPayments as $paymentData) {
+            if (isset($paymentData['payment_method']) && $paymentData['payment_method'] === 'desconto') {
+                $discount = floatval($paymentData['amount_paid']);
+                $this->sale->total_price = max(0, $this->sale->total_price - $discount);
+                $this->sale->save();
+            }
+        }
+
         // Recarregar os dados da venda e relacionamentos
         $this->sale->refresh();
         $this->sale->load(['payments', 'parcelasVenda']);
@@ -170,6 +183,68 @@ class ShowSale extends Component
         $this->selectedParcela = null;
         $this->paymentMethod = 'dinheiro';
         $this->paymentDate = now()->format('Y-m-d');
+    }
+
+    // Desconto: abrir modal
+    public function openDiscountModal()
+    {
+        // Não abrir modal se não houver valor restante
+        if ($this->sale->remaining_amount <= 0) {
+            session()->flash('message', 'Não há valor restante para zerar.');
+            return;
+        }
+
+        $this->showDiscountModal = true;
+    }
+
+    public function cancelDiscount()
+    {
+        $this->showDiscountModal = false;
+    }
+
+    public function applyDiscountToZero()
+    {
+        // Valor restante
+        $remaining = $this->sale->remaining_amount; // usa accessor
+
+        if ($remaining <= 0) {
+            session()->flash('message', 'Não há valor restante para zerar.');
+            $this->showDiscountModal = false;
+            return;
+        }
+
+        try {
+            // Criar registro de pagamento do tipo desconto e abater do total
+            SalePayment::create([
+                'sale_id' => $this->sale->id,
+                'amount_paid' => $remaining,
+                'payment_method' => 'desconto',
+                'payment_date' => now()->format('Y-m-d'),
+            ]);
+
+            // Abater do total_price
+            $this->sale->total_price = max(0, $this->sale->total_price - $remaining);
+            $this->sale->save();
+
+            // Recarregar
+            $this->sale->refresh();
+            $this->sale->load(['payments', 'parcelasVenda']);
+
+            // Atualizar status
+            if ($this->sale->total_paid >= $this->sale->total_price) {
+                $this->sale->status = 'pago';
+            } else {
+                $this->sale->status = 'pendente';
+            }
+            $this->sale->save();
+
+            $this->showDiscountModal = false;
+            session()->flash('message', 'Desconto aplicado. Valor restante zerado.');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao aplicar desconto: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao aplicar desconto.');
+        }
     }
 
     public function confirmPayment()
