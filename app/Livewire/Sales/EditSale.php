@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Component;
+use Illuminate\Support\Facades\DB;
 
 class EditSale extends Component
 {
@@ -213,60 +214,77 @@ class EditSale extends Component
 
         $this->validate();
 
-        // Restaurar estoque dos produtos antigos
-        foreach ($this->sale->saleItems as $oldItem) {
-            $product = Product::find($oldItem->product_id);
-            if ($product) {
-                $product->stock_quantity += $oldItem->quantity;
-                $product->save();
+        // Operação em transação: calcular diferenças líquidas de estoque para evitar inconsistências
+        DB::transaction(function () {
+            // Mapear quantidades antigas por product_id
+            $oldQuantities = [];
+            foreach ($this->sale->saleItems as $oldItem) {
+                $oldQuantities[$oldItem->product_id] = ($oldQuantities[$oldItem->product_id] ?? 0) + $oldItem->quantity;
             }
-        }
 
-        // Verificar estoque dos novos produtos
-        foreach ($this->selectedProducts as $item) {
-            $product = Product::find($item['product_id']);
-            if ($product->stock_quantity < $item['quantity']) {
-                // Restaurar o estoque que já foi devolvido
-                foreach ($this->sale->saleItems as $oldItem) {
-                    $oldProduct = Product::find($oldItem->product_id);
-                    if ($oldProduct) {
-                        $oldProduct->stock_quantity -= $oldItem->quantity;
-                        $oldProduct->save();
+            // Mapear quantidades novas por product_id
+            $newQuantities = [];
+            foreach ($this->selectedProducts as $item) {
+                $newQuantities[$item['product_id']] = ($newQuantities[$item['product_id']] ?? 0) + $item['quantity'];
+            }
+
+            // Para cada produto envolvido, calcular diferença (novo - antigo).
+            // Se diff > 0, precisamos reduzir estoque; se diff < 0, devemos restaurar estoque.
+            $productIds = array_unique(array_merge(array_keys($oldQuantities), array_keys($newQuantities)));
+
+            // Verificar disponibilidade antes de aplicar alterações
+            foreach ($productIds as $pid) {
+                $oldQ = $oldQuantities[$pid] ?? 0;
+                $newQ = $newQuantities[$pid] ?? 0;
+                $diff = $newQ - $oldQ;
+
+                if ($diff > 0) {
+                    $product = Product::find($pid);
+                    if (!$product || $product->stock_quantity < $diff) {
+                        // Falha: estoque insuficiente para aplicar incremento
+                        throw new \Exception("Estoque insuficiente para o produto: {$product->name}");
                     }
                 }
-                session()->flash('error', "Estoque insuficiente para o produto: {$product->name}. Disponível: {$product->stock_quantity}, Solicitado: {$item['quantity']}");
-                return;
             }
-        }
 
-        // Atualizar dados da venda
-        $this->sale->update([
-            'client_id' => $this->client_id,
-            'sale_date' => $this->sale_date,
-            'tipo_pagamento' => $this->tipo_pagamento,
-            'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->getSafeParcelas() : 1,
-            'total_price' => $this->getTotalPrice(),
-        ]);
-
-        // Deletar itens antigos
-        $this->sale->saleItems()->delete();
-
-        // Criar novos itens
-        foreach ($this->selectedProducts as $item) {
-            $product = Product::find($item['product_id']);
-
-            SaleItem::create([
-                'sale_id' => $this->sale->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $product->price,
-                'price_sale' => $item['price_sale'],
+            // Atualizar dados da venda
+            $this->sale->update([
+                'client_id' => $this->client_id,
+                'sale_date' => $this->sale_date,
+                'tipo_pagamento' => $this->tipo_pagamento,
+                'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->getSafeParcelas() : 1,
+                'total_price' => $this->getTotalPrice(),
             ]);
 
-            // Atualizar estoque
-            $product->stock_quantity -= $item['quantity'];
-            $product->save();
-        }
+            // Apagar itens antigos
+            $this->sale->saleItems()->delete();
+
+            // Criar os novos itens e aplicar diferenças no estoque
+            foreach ($this->selectedProducts as $item) {
+                $product = Product::find($item['product_id']);
+
+                SaleItem::create([
+                    'sale_id' => $this->sale->id,
+                    'product_id' => $item['product_id'],
+                    'quantity' => $item['quantity'],
+                    'price' => $product->price,
+                    'price_sale' => $item['price_sale'],
+                ]);
+            }
+
+            // Aplicar alterações de estoque por produto (novo - antigo)
+            foreach ($productIds as $pid) {
+                $oldQ = $oldQuantities[$pid] ?? 0;
+                $newQ = $newQuantities[$pid] ?? 0;
+                $diff = $newQ - $oldQ; // se positivo -> diminuir estoque; se negativo -> aumentar
+
+                $product = Product::find($pid);
+                if ($product && $diff !== 0) {
+                    $product->stock_quantity -= $diff; // subtrair diff (se diff negativo, soma)
+                    $product->save();
+                }
+            }
+        });
 
         session()->flash('message', 'Venda atualizada com sucesso!');
         return redirect()->route('sales.show', $this->sale->id);
