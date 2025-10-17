@@ -10,7 +10,7 @@
         :back-route="route('sales.show', $sale->id)" />
 
     <!-- Conteúdo principal -->
-    <div class="w-full p-6">
+    <div class="">
         <!-- Alertas de erro -->
         @if($errors->has('general'))
             <div class="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl shadow-sm">
