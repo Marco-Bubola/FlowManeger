@@ -1,4 +1,4 @@
-<div class="py-8">
+<div class="w-full">
     <!-- Incluir CSS dos produtos -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
