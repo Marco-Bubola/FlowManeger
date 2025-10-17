@@ -1,4 +1,4 @@
-<div class="min-h-screen w-full ">
+<div class=" w-full ">
     <!-- Header fixo -->
     <div class="w-full px-6 py-4 sticky top-0 z-20 shadow-lg rounded-b-2xl backdrop-blur border-b ">
         <div class="flex items-center justify-between">
@@ -19,14 +19,14 @@
                 </div>
             </div>
             <div class="flex gap-3">
-                <a href="{{ route('sales.show', $sale->id) }}" 
+                <a href="{{ route('sales.show', $sale->id) }}"
                    class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors duration-200 shadow">
                     <i class="bi bi-arrow-left mr-2"></i>
                     Voltar
                 </a>
                 @if(count($payments) > 0)
-                    <button type="button" 
-                            wire:click="updatePayments" 
+                    <button type="button"
+                            wire:click="updatePayments"
                             class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors duration-200 shadow">
                         <i class="bi bi-check-circle mr-2"></i>
                         Salvar Alterações
@@ -35,7 +35,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Conteúdo principal -->
     <div class="w-full p-6">
         <!-- Cabeçalho com informações da venda -->
@@ -68,7 +68,7 @@
             <!-- Formulário para editar pagamentos -->
             <form wire:submit.prevent="updatePayments">
                 <div class="space-y-6">
-                 
+
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         @foreach($payments as $index => $payment)
                             <div class="bg-white dark:bg-zinc-800 p-6 border border-gray-200 dark:border-zinc-700 rounded-2xl shadow-lg relative flex flex-col gap-4">
@@ -77,7 +77,7 @@
                                         <i class="bi bi-credit-card-2-front text-indigo-500 dark:text-indigo-300"></i>
                                         Pagamento {{ $index + 1 }}
                                     </span>
-                                    <button type="button" 
+                                    <button type="button"
                                             wire:click="removePayment({{ $index }})"
                                             class="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 transition-colors duration-200">
                                         <i class="bi bi-trash-fill"></i>
@@ -89,10 +89,10 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
                                             <i class="bi bi-currency-dollar text-green-600"></i> Valor *
                                         </label>
-                                        <input type="number" 
+                                        <input type="number"
                                                wire:model="payments.{{ $index }}.amount_paid"
                                                class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white"
-                                               min="0.01" 
+                                               min="0.01"
                                                step="0.01">
                                         @error("payments.{$index}.amount_paid")
                                             <p class="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ $message }}</p>
@@ -118,7 +118,7 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
                                             <i class="bi bi-calendar-event"></i> Data do Pagamento
                                         </label>
-                                        <input type="date" 
+                                        <input type="date"
                                                wire:model="payments.{{ $index }}.payment_date"
                                                class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white">
                                     </div>
@@ -129,7 +129,7 @@
                     </div>
                 </div>
 
-               
+
             </form>
         @else
             <!-- Caso não tenha pagamentos -->
@@ -140,12 +140,12 @@
                 <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhum pagamento registrado</h3>
                 <p class="text-gray-500 dark:text-gray-400 mb-4">Adicione pagamentos para esta venda</p>
                 <div class="flex justify-center gap-3">
-                    <a href="{{ route('sales.add-payments', $sale->id) }}" 
+                    <a href="{{ route('sales.add-payments', $sale->id) }}"
                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                         <i class="bi bi-plus mr-2"></i>
                         Adicionar Pagamento
                     </a>
-                    <a href="{{ route('sales.show', $sale->id) }}" 
+                    <a href="{{ route('sales.show', $sale->id) }}"
                        class="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                         <i class="bi bi-arrow-left mr-2"></i>
                         Voltar
@@ -161,7 +161,7 @@
             Livewire.on('success', (message) => {
                 alert(message);
             });
-            
+
             Livewire.on('error', (message) => {
                 alert(message);
             });
