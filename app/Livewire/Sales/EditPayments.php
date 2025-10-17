@@ -26,14 +26,14 @@ class EditPayments extends Component
     public function loadPayments()
     {
         $this->payments = [];
-        
+
         foreach ($this->sale->payments as $payment) {
             $this->payments[] = [
                 'id' => $payment->id,
                 'amount_paid' => $payment->amount_paid,
                 'payment_method' => $payment->payment_method,
                 'payment_date' => $payment->payment_date,
-               
+
                 'created_at' => $payment->created_at->format('d/m/Y H:i'),
             ];
         }
@@ -56,16 +56,47 @@ class EditPayments extends Component
 
         try {
             DB::transaction(function () {
+                // Carregar pagamentos antigos para detectar mudanças (especialmente descontos)
+                $existingPayments = SalePayment::where('sale_id', $this->sale->id)->get()->keyBy('id');
+
                 foreach ($this->payments as $paymentData) {
-                    SalePayment::where('id', $paymentData['id'])->update([
+                    $id = $paymentData['id'];
+                    $old = $existingPayments->get($id);
+
+                    SalePayment::where('id', $id)->update([
                         'amount_paid' => $paymentData['amount_paid'],
                         'payment_method' => $paymentData['payment_method'],
                         'payment_date' => $paymentData['payment_date'],
                     ]);
+
+                    // Se o método anterior era desconto, e foi alterado/valor alterado, ajustar total_price
+                    if ($old) {
+                        $oldMethod = $old->payment_method;
+                        $oldAmount = floatval($old->amount_paid);
+                        $newMethod = $paymentData['payment_method'];
+                        $newAmount = floatval($paymentData['amount_paid']);
+
+                        if ($oldMethod === 'desconto' && $newMethod === 'desconto') {
+                            // Ajustar diferença
+                            $diff = $newAmount - $oldAmount;
+                            $this->sale->total_price = max(0, $this->sale->total_price - $diff);
+                            $this->sale->save();
+                        } elseif ($oldMethod === 'desconto' && $newMethod !== 'desconto') {
+                            // Removemos um desconto antigo: aumentar total_price
+                            $this->sale->total_price = $this->sale->total_price + $oldAmount;
+                            $this->sale->save();
+                        } elseif ($oldMethod !== 'desconto' && $newMethod === 'desconto') {
+                            // Novo desconto aplicado: reduzir total_price
+                            $this->sale->total_price = max(0, $this->sale->total_price - $newAmount);
+                            $this->sale->save();
+                        }
+                    }
                 }
 
-                // Atualizar total pago
-                $totalPaid = SalePayment::where('sale_id', $this->sale->id)->sum('amount_paid');
+                // Atualizar total pago (exclui 'desconto')
+                $totalPaid = SalePayment::where('sale_id', $this->sale->id)
+                    ->where('payment_method', '<>', 'desconto')
+                    ->sum('amount_paid');
                 $this->sale->amount_paid = $totalPaid;
 
                 // Atualizar status se necessário
@@ -93,15 +124,27 @@ class EditPayments extends Component
         }
 
         $paymentId = $this->payments[$index]['id'];
-        
+
         try {
             DB::transaction(function () use ($paymentId, $index) {
-                SalePayment::where('id', $paymentId)->delete();
+                $payment = SalePayment::where('id', $paymentId)->first();
+                if ($payment) {
+                    // Se for desconto, restaurar o total_price
+                    if ($payment->payment_method === 'desconto') {
+                        $this->sale->total_price = $this->sale->total_price + floatval($payment->amount_paid);
+                        $this->sale->save();
+                    }
+
+                    SalePayment::where('id', $paymentId)->delete();
+                }
+
                 unset($this->payments[$index]);
                 $this->payments = array_values($this->payments);
 
-                // Atualizar total pago
-                $totalPaid = SalePayment::where('sale_id', $this->sale->id)->sum('amount_paid');
+                // Atualizar total pago (exclui 'desconto')
+                $totalPaid = SalePayment::where('sale_id', $this->sale->id)
+                    ->where('payment_method', '<>', 'desconto')
+                    ->sum('amount_paid');
                 $this->sale->amount_paid = $totalPaid;
 
                 // Atualizar status se necessário
@@ -114,7 +157,7 @@ class EditPayments extends Component
             });
 
             $this->dispatch('success', 'Pagamento removido com sucesso!');
-            
+
         } catch (\Exception $e) {
             $this->dispatch('error', 'Erro ao remover pagamento: ' . $e->getMessage());
         }
