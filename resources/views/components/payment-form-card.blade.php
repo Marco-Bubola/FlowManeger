@@ -39,11 +39,29 @@
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span class="text-gray-500 dark:text-gray-400 font-medium">R$</span>
                 </div>
-                <input type="number"
-                       wire:model="payments.{{ $index }}.amount_paid"
+                <input type="text"
+                       id="payment-{{ $index }}"
+                       x-data="{
+                           displayValue: '{{ isset($payment['amount_paid']) && $payment['amount_paid'] ? number_format((float)$payment['amount_paid'], 2, ',', '.') : '0,00' }}',
+                           formatCurrency(value) {
+                               let numeric = value.replace(/\D/g, '');
+                               if (!numeric || numeric === '0') {
+                                   return '0,00';
+                               }
+                               let cents = parseInt(numeric);
+                               return (cents / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                           }
+                       }"
+                       x-model="displayValue"
+                       x-on:input="
+                           displayValue = formatCurrency($event.target.value);
+                           let numericValue = displayValue.replace(/\./g, '').replace(',', '.');
+                           @this.set('payments.{{ $index }}.amount_paid', numericValue);
+                       "
+                       x-on:focus="if (displayValue === '0,00') $event.target.select()"
+                       x-on:blur="if (!displayValue) displayValue = '0,00'"
+                       wire:ignore
                        class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:text-white transition-all duration-200 hover:border-green-300 dark:hover:border-green-600"
-                       min="0.01"
-                       step="0.01"
                        placeholder="0,00">
             </div>
             @error("payments.{$index}.amount_paid")
@@ -69,7 +87,8 @@
                 <option value="cartao_credito">💳 Cartão de Crédito</option>
                 <option value="pix">⚡ PIX</option>
                 <option value="transferencia">🏦 Transferência</option>
-                <option value="cheque">🧾 Cheque</option>
+                    <option value="cheque">🧾 Cheque</option>
+                    <option value="desconto">🔖 Desconto</option>
             </select>
         </div>
 
@@ -97,6 +116,14 @@
                         R$ {{ number_format((float)$payment['amount_paid'], 2, ',', '.') }}
                     </span>
                 </div>
+            </div>
+        @endif
+
+        <!-- Nota para desconto -->
+        @if(isset($payment['payment_method']) && $payment['payment_method'] === 'desconto')
+            <div class="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-700 text-sm text-yellow-700 dark:text-yellow-300">
+                <i class="bi bi-info-circle mr-2"></i>
+                Ao selecionar <strong>Desconto</strong>, o valor informado será abatido do total da venda.
             </div>
         @endif
     </div>
