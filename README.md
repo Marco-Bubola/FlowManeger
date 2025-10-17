@@ -60,6 +60,25 @@ Observações:
 
 Bom trabalho! Se quiser, posso:
 
+## Exportacao CSV / XLSX (Laravel-Excel)
+
+Para habilitar a exportacao de relatórios em CSV/XLSX usamos o pacote `maatwebsite/excel`.
+
+Instalacao:
+
+```powershell
+cd C:\projetos\FlowManeger
+composer require maatwebsite/excel
+```
+
+Uso rapido:
+
+- Rota autenticada para exportar vendas: `/reports/vendas/export?format=csv&client_id=1&from=2025-01-01&to=2025-10-01`
+- Parametro `format` pode ser `csv` ou `xlsx`.
+- Exemplo no controller: `ReportExportController@exportVendas`.
+
+Se o pacote nao estiver instalado, ha fallback para gerar um CSV simples no storage e forcar o download.
+
 - Incluir o `start.js` no repositório (já existe)
 - Gerar o executável na sua máquina agora (já tentei e gerei; verifique `C:\\projetos\\FlowManeger`)
 - Atualizar o script para suportar flags (p.ex. pular migrations)
