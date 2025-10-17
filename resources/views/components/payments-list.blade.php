@@ -50,6 +50,9 @@
                             @case('cheque')
                                 <i class="bi bi-check2-square text-white text-xl"></i>
                                 @break
+                                @case('desconto')
+                                    <i class="bi bi-tag text-white text-xl"></i>
+                                    @break
                             @default
                                 <i class="bi bi-currency-dollar text-white text-xl"></i>
                         @endswitch
@@ -78,6 +81,7 @@
                                     'pix' => '⚡ PIX',
                                     'transferencia' => '🏦 Transferência',
                                     'cheque' => '🧾 Cheque',
+                                    'desconto' => '🔖 Desconto',
                                     default => '💰 ' . ucfirst(str_replace('_', ' ', $payment->payment_method))
                                 }
                             }}
