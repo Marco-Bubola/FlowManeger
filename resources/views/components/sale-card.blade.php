@@ -119,13 +119,13 @@
     <div class="px-4 pb-4">
         <div class="flex gap-2">
             <!-- Ver Detalhes -->
-            <a href="{{ route('sales.show', $sale) }}"
+            <a href="{{ route('sales.show', $sale->id) }}"
                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-800">
                 <i class="bi bi-eye mr-1"></i>Ver
             </a>
 
             <!-- Editar -->
-            <a href="{{ route('sales.edit', $sale) }}"
+            <a href="{{ route('sales.edit', $sale->id) }}"
                class="flex-1 inline-flex items-center justify-center px-3 py-2 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 rounded-lg transition-all duration-200 border border-emerald-200 dark:border-emerald-800">
                 <i class="bi bi-pencil mr-1"></i>Editar
             </a>
