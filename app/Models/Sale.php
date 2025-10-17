@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\SalePayment as ModelsSalePayment;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use SalePayment;
@@ -61,7 +62,9 @@ class Sale extends Model
     // Método para calcular o total pago
     public function getTotalPaidAttribute()
     {
-        return $this->payments()->sum('amount_paid'); // Soma todos os pagamentos dessa venda
+        // Excluir pagamentos registrados como 'desconto' do total pago,
+        // pois desconto reduz o preço e não deve contar como pagamento efetivo.
+        return $this->payments()->where('payment_method', '<>', 'desconto')->sum('amount_paid');
     }
 
     // Método para calcular o saldo restante
@@ -73,7 +76,7 @@ class Sale extends Model
     // Método para recalcular o total da venda baseado nos itens
     public function calculateTotal()
     {
-        $total = $this->saleItems()->sum(\DB::raw('quantity * price_sale'));
+    $total = $this->saleItems()->sum(DB::raw('quantity * price_sale'));
         $this->update(['total_price' => $total]);
         return $total;
     }
