@@ -99,19 +99,19 @@
                     <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
                         <!-- Primeira/Anterior -->
                         @if($sales->currentPage() > 1)
-                        <a href="{{ $sales->url(1) }}"
+                        <button wire:click.prevent="gotoPage(1)" wire:loading.attr="disabled"
                            class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
                            title="Primeira página">
                             <i class="bi bi-chevron-double-left text-sm"></i>
-                        </a>
+                        </button>
                         @endif
 
                         @if($sales->previousPageUrl())
-                        <a href="{{ $sales->previousPageUrl() }}"
+                        <button wire:click.prevent="previousPage" wire:loading.attr="disabled"
                            class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
                            title="Página anterior">
                             <i class="bi bi-chevron-left text-sm"></i>
-                        </a>
+                        </button>
                         @endif
 
                         <!-- Páginas -->
@@ -123,19 +123,19 @@
 
                         <!-- Próxima/Última -->
                         @if($sales->nextPageUrl())
-                        <a href="{{ $sales->nextPageUrl() }}"
+                        <button wire:click.prevent="nextPage" wire:loading.attr="disabled"
                            class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
                            title="Próxima página">
                             <i class="bi bi-chevron-right text-sm"></i>
-                        </a>
+                        </button>
                         @endif
 
                         @if($sales->currentPage() < $sales->lastPage())
-                        <a href="{{ $sales->url($sales->lastPage()) }}"
+                        <button wire:click.prevent="gotoPage({{ $sales->lastPage() }})" wire:loading.attr="disabled"
                            class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
                            title="Última página">
                             <i class="bi bi-chevron-double-right text-sm"></i>
-                        </a>
+                        </button>
                         @endif
                     </div>
                     @endif
@@ -296,12 +296,69 @@
             @endforelse
         </div>
 
-        <!-- Paginação Moderna -->
+        <!-- Paginação Moderna Customizada -->
         @if($sales->hasPages())
-            <div class="flex justify-center mt-8">
-                <div class="bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-600/50 p-6 backdrop-blur-xl">
-                    <div class="flex items-center justify-center">
-                        {{ $sales->links() }}
+            <div class="mt-8">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-600/50 p-4 md:p-6 backdrop-blur-xl">
+
+                    <!-- Left: Per page selector & summary -->
+                    <div class="flex items-center gap-4">
+                        <div class="flex items-center gap-2">
+                            <label class="text-sm text-slate-600 dark:text-slate-300">Exibir</label>
+                            <select wire:model="perPage" class="text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1">
+                                <option value="6">6</option>
+                                <option value="12">12</option>
+                                <option value="24">24</option>
+                                <option value="48">48</option>
+                            </select>
+                            <span class="text-sm text-slate-500 dark:text-slate-400">por página</span>
+                        </div>
+
+                        <div class="text-sm text-slate-600 dark:text-slate-400">
+                            Mostrando <span class="font-semibold text-slate-800 dark:text-white">{{ $sales->firstItem() ?? 0 }}</span>
+                            até <span class="font-semibold text-slate-800 dark:text-white">{{ $sales->lastItem() ?? 0 }}</span>
+                            de <span class="font-semibold text-slate-800 dark:text-white">{{ $sales->total() }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Center: Page buttons -->
+                    <div class="flex items-center gap-2">
+                        <button wire:click.prevent="gotoPage(1)" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                            <i class="bi bi-chevron-double-left"></i>
+                        </button>
+
+                        <button @if($sales->onFirstPage()) disabled @endif wire:click.prevent="previousPage" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+
+                        {{-- Numeric pages: mostrar range de páginas ao redor da atual --}}
+                        @php
+                            $start = max(1, $sales->currentPage() - 2);
+                            $end = min($sales->lastPage(), $sales->currentPage() + 2);
+                        @endphp
+
+                        @for($i = $start; $i <= $end; $i++)
+                            <button wire:click.prevent="gotoPage({{ $i }})" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm {{ $sales->currentPage() === $i ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600' }}">
+                                {{ $i }}
+                            </button>
+                        @endfor
+
+                        <button @if(!$sales->hasMorePages()) disabled @endif wire:click.prevent="nextPage" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+
+                        <button wire:click.prevent="gotoPage({{ $sales->lastPage() }})" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                            <i class="bi bi-chevron-double-right"></i>
+                        </button>
+                    </div>
+
+                    <!-- Right: Jump to page input -->
+                    <div class="flex items-center gap-2" x-data>
+                        <label class="text-sm text-slate-600 dark:text-slate-300">Ir para</label>
+                        <input x-ref="pageInput" type="number" min="1" max="{{ $sales->lastPage() }}" class="w-20 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1 text-slate-700 dark:text-slate-200" placeholder="#">
+                        <button @click.prevent="$wire.call('gotoPage', $refs.pageInput.value)" class="px-3 py-1 rounded-md text-sm bg-indigo-600 text-white">
+                            Ir
+                        </button>
                     </div>
                 </div>
             </div>
