@@ -1,8 +1,17 @@
 <div class="w-full min-h-screen">
     <!-- Header modernizado usando sales-header -->
+    @php
+        if($sale->client) {
+            $clientLink = '<a href="' . route('clients.dashboard', $sale->client->id) . '" class="font-semibold text-indigo-600 hover:underline">' . e($sale->client->name) . '</a>';
+        } else {
+            $clientLink = 'Cliente não informado';
+        }
+        $descriptionHtml = "Cliente: " . $clientLink . " | " . $sale->saleItems->count() . " " . ($sale->saleItems->count() === 1 ? 'item' : 'itens') . " | Total: R$ " . number_format($sale->total_price, 2, ',', '.');
+    @endphp
+
     <x-sales-header
         title="Venda #{{ $sale->id }}"
-        description="Cliente: {{ $sale->client->name ?? 'Cliente não informado' }} | {{ $sale->saleItems->count() }} {{ $sale->saleItems->count() === 1 ? 'item' : 'itens' }} | Total: R$ {{ number_format($sale->total_price, 2, ',', '.') }}"
+        :description="$descriptionHtml"
         :back-route="route('sales.index')"
         :current-step="1"
         :steps="[]">
@@ -14,6 +23,13 @@
                 <i class="bi bi-file-earmark-pdf mr-2 text-lg"></i>
                 <span class="hidden md:inline">Exportar PDF</span>
             </button>
+            @if($sale->remaining_amount > 0)
+                <button wire:click="openDiscountModal"
+                        class="ml-3 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i class="bi bi-tag mr-2 text-lg"></i>
+                    <span class="hidden md:inline">Zerar Restante (Desconto)</span>
+                </button>
+            @endif
         </x-slot>
     </x-sales-header>
 
@@ -413,6 +429,30 @@
             </div>
         </div>
     </div>
+    @endif
+
+    <!-- Modal de confirmação de desconto/zerar restante -->
+    @if($showDiscountModal)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-2xl w-full max-w-md border border-gray-200 dark:border-zinc-700 overflow-hidden">
+                <div class="p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
+                            <i class="bi bi-tag text-amber-600 text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Aplicar Desconto — Zerar Restante</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Isto irá aplicar um desconto equivalente ao valor restante e zerar o saldo pendente. Deseja continuar?</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 flex gap-3">
+                        <button wire:click="cancelDiscount" class="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-700 rounded-xl">Cancelar</button>
+                        <button wire:click="applyDiscountToZero" class="flex-1 px-4 py-3 bg-amber-500 text-white rounded-xl">Confirmar Desconto</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
     <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
