@@ -1,4 +1,4 @@
-<div class="w-full min-h-screen">
+<div class="w-full">
     <!-- Header modernizado usando o mesmo padrão do sales-header -->
     <x-add-payments-header :sale="$sale" />
 
