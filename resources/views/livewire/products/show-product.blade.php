@@ -1,7 +1,7 @@
-<div x-data="{ 
+<div x-data="{
     activeTab: 'overview',
-    chartInitialized: false 
-}" class="min-h-screen w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative">
+    chartInitialized: false
+}" class=" w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative">
     <!-- Animated Background Pattern -->
     <div class="absolute inset-0 opacity-30 dark:opacity-20 pointer-events-none">
         <div class="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
@@ -77,7 +77,7 @@
                             <div class="text-xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($analytics['total_stock']) }}</div>
                         </div>
                     </div>
-                    
+
                     <a href="{{ route('products.edit', $mainProduct->id) }}"
                         class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
                         <i class="bi bi-pencil-square mr-3 text-lg group-hover:rotate-12 transition-transform duration-300"></i>
@@ -138,7 +138,7 @@
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    
+
                     <div class="relative flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-2 mb-3">
@@ -161,7 +161,7 @@
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    
+
                     <div class="relative flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-2 mb-3">
@@ -184,7 +184,7 @@
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    
+
                     <div class="relative flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-2 mb-3">
@@ -212,7 +212,7 @@
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-                    
+
                     <div class="relative flex items-start justify-between">
                         <div class="flex-1">
                             <div class="flex items-center space-x-2 mb-3">
@@ -238,7 +238,7 @@
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative flex items-center justify-between mb-8">
                         <div class="flex items-center space-x-4">
                             <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -271,7 +271,7 @@
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative flex items-center space-x-4 mb-8">
                         <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
                             <i class="bi bi-people-fill text-white text-xl"></i>
@@ -288,7 +288,7 @@
                             <div class="absolute -top-2 -left-2 w-8 h-8 bg-gradient-to-r {{ $index === 0 ? 'from-yellow-400 to-yellow-500' : ($index === 1 ? 'from-gray-400 to-gray-500' : 'from-orange-400 to-orange-500') }} rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg">
                                 {{ $index + 1 }}
                             </div>
-                            
+
                             <div class="flex items-center space-x-4 flex-1">
                                 <div class="relative w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover/item:scale-110 transition-transform duration-300">
                                     {{ substr($client->name, 0, 1) }}
@@ -410,7 +410,7 @@
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-green-50/50 to-transparent dark:from-green-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative flex items-center space-x-4 mb-8">
                         <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center shadow-lg">
                             <i class="bi bi-currency-dollar text-white text-xl"></i>
@@ -436,7 +436,7 @@
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative flex items-center space-x-4 mb-8">
                         <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
                             <i class="bi bi-pie-chart text-white text-xl"></i>
@@ -464,7 +464,7 @@
                 <!-- Performance Metrics -->
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent dark:from-blue-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative">
                         <div class="flex items-center space-x-4 mb-6">
                             <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -472,7 +472,7 @@
                             </div>
                             <h4 class="text-xl font-bold text-slate-800 dark:text-slate-100">Métricas de Performance</h4>
                         </div>
-                        
+
                         <div class="space-y-6">
                             <div class="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl">
                                 <span class="text-slate-600 dark:text-slate-400 font-medium flex items-center">
@@ -504,7 +504,7 @@
                 <!-- Sales Velocity -->
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-br from-orange-50/50 to-transparent dark:from-orange-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative">
                         <div class="flex items-center space-x-4 mb-6">
                             <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -512,7 +512,7 @@
                             </div>
                             <h4 class="text-xl font-bold text-slate-800 dark:text-slate-100">Velocidade de Vendas</h4>
                         </div>
-                        
+
                         <div class="space-y-6">
                             <div class="flex justify-between items-center p-4 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl">
                                 <span class="text-slate-600 dark:text-slate-400 font-medium flex items-center">
@@ -552,7 +552,7 @@
                 <!-- Stock Analysis -->
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 p-8 border border-white/20 dark:border-slate-700/50 overflow-hidden">
                     <div class="absolute inset-0 bg-gradient-to-br from-purple-50/50 to-transparent dark:from-purple-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="relative">
                         <div class="flex items-center space-x-4 mb-6">
                             <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -560,7 +560,7 @@
                             </div>
                             <h4 class="text-xl font-bold text-slate-800 dark:text-slate-100">Análise de Estoque</h4>
                         </div>
-                        
+
                         <div class="space-y-6">
                             <div class="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl">
                                 <span class="text-slate-600 dark:text-slate-400 font-medium flex items-center">
@@ -622,7 +622,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 @if(isset($salesData) && $salesData->isNotEmpty())
                 <div class="p-6">
                     <!-- Debug Info - Remover em produção -->
@@ -655,7 +655,7 @@
                                     <option value="all">Todas as vendas</option>
                                 </select>
                             </div>
-                            
+
                             <!-- Filtro por status -->
                             <div class="flex items-center space-x-2">
                                 <label class="text-sm font-medium text-slate-600 dark:text-slate-400">Status:</label>
@@ -669,11 +669,11 @@
                                 </select>
                             </div>
                         </div>
-                        
+
                         <!-- Busca -->
                         <div class="relative">
-                            <input type="text" 
-                                placeholder="Buscar por cliente ou pedido..." 
+                            <input type="text"
+                                placeholder="Buscar por cliente ou pedido..."
                                 class="filter-input pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64">
                             <i class="bi bi-search absolute left-3 top-3 text-slate-400 text-sm"></i>
                         </div>
@@ -684,7 +684,7 @@
                         <div class="loading-overlay" id="salesTableLoading">
                             <div class="loading-spinner"></div>
                         </div>
-                        
+
                         <table class="w-full sales-table">
                             <thead class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-600">
                                 <tr>
@@ -732,7 +732,7 @@
                                     $orderNumber = str_pad($sale->id, 3, '0', STR_PAD_LEFT);
                                     $gradients = [
                                         'from-blue-500 to-indigo-500',
-                                        'from-green-500 to-emerald-500', 
+                                        'from-green-500 to-emerald-500',
                                         'from-purple-500 to-pink-500',
                                         'from-orange-500 to-red-500',
                                         'from-teal-500 to-cyan-500',
@@ -748,7 +748,7 @@
                                     ];
                                     $gradient = $gradients[$index % count($gradients)];
                                     $avatarGradient = $avatarGradients[$index % count($avatarGradients)];
-                                    
+
                                     // Dados do cliente
                                     $clientName = $sale->client ? $sale->client->name : 'Cliente Avulso';
                                     $clientEmail = $sale->client ? $sale->client->email : '';
@@ -762,7 +762,7 @@
                                     } else {
                                         $initials = 'CA';
                                     }
-                                    
+
                                     // Configuração de status baseado no modelo Sale
                                     $statusConfig = [
                                         'pendente' => [
@@ -801,17 +801,17 @@
                                             'label' => 'Cancelada'
                                         ]
                                     ];
-                                    
+
                                     $status = $statusConfig[$sale->status] ?? $statusConfig['pendente'];
-                                    
+
                                     // Calcular dados dos itens da venda
                                     $saleItems = $sale->saleItems ?? collect();
                                     $totalQuantity = $saleItems->sum('quantity') ?: 1;
-                                    
+
                                     // Buscar o item específico do produto atual se existir
                                     $currentProductItem = $saleItems->where('product_id', $mainProduct->id ?? 0)->first();
                                     $unitPrice = $currentProductItem ? $currentProductItem->price_sale : ($saleItems->first()->price_sale ?? ($sale->total_price / $totalQuantity));
-                                    
+
                                     // Tipo de pagamento para exibição
                                     $saleType = match($sale->payment_method ?? '') {
                                         'dinheiro' => 'Dinheiro',
@@ -930,7 +930,7 @@
                             <div class="h-4 w-px bg-slate-300 dark:bg-slate-600"></div>
                             <span>Total vendido: <span class="font-bold text-green-600 dark:text-green-400">R$ {{ number_format($totalValue, 2, ',', '.') }}</span></span>
                         </div>
-                        
+
                         @if($salesData instanceof \Illuminate\Pagination\LengthAwarePaginator)
                         <nav class="flex items-center space-x-1">
                             @if($salesData->onFirstPage())
@@ -942,7 +942,7 @@
                                     <i class="bi bi-chevron-left"></i>
                                 </button>
                             @endif
-                            
+
                             @foreach($salesData->getUrlRange(max(1, $salesData->currentPage() - 2), min($salesData->lastPage(), $salesData->currentPage() + 2)) as $page => $url)
                                 @if($page == $salesData->currentPage())
                                     <button class="pagination-button px-3 py-2 text-sm font-medium bg-blue-600 text-white rounded-lg shadow-sm">{{ $page }}</button>
@@ -950,7 +950,7 @@
                                     <button class="pagination-button px-3 py-2 text-sm font-medium text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200" wire:click="gotoPage({{ $page }})">{{ $page }}</button>
                                 @endif
                             @endforeach
-                            
+
                             @if($salesData->hasMorePages())
                                 <button class="pagination-button px-3 py-2 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors duration-200" wire:click="nextPage">
                                     <i class="bi bi-chevron-right"></i>
@@ -975,7 +975,7 @@
                             $averageTicket = $totalSalesCount > 0 ? $salesData->avg('total_price') : 0;
                             $uniqueClients = $salesData->whereNotNull('client_id')->pluck('client_id')->unique()->count();
                             $totalValue = $salesData->sum('total_price');
-                            
+
                             // Calcular crescimento mensal
                             $currentMonth = now()->month;
                             $currentYear = now()->year;
@@ -985,7 +985,7 @@
                                 now()->subMonth()->endOfMonth()
                             ])->count();
                             $salesGrowth = $lastMonthSales > 0 ? (($currentMonthSales - $lastMonthSales) / $lastMonthSales) * 100 : 0;
-                            
+
                             // Calcular crescimento do ticket médio
                             $currentMonthAvg = $salesData->where('created_at', '>=', now()->startOfMonth())->avg('total_price') ?? 0;
                             $lastMonthAvg = $salesData->whereBetween('created_at', [
@@ -993,7 +993,7 @@
                                 now()->subMonth()->endOfMonth()
                             ])->avg('total_price') ?? 0;
                             $ticketGrowth = $lastMonthAvg > 0 ? (($currentMonthAvg - $lastMonthAvg) / $lastMonthAvg) * 100 : 0;
-                            
+
                             // Novos clientes este mês
                             $newClientsThisMonth = $salesData->where('created_at', '>=', now()->startOfMonth())
                                                             ->whereNotNull('client_id')
@@ -1001,7 +1001,7 @@
                                                             ->unique()
                                                             ->count();
                         @endphp
-                        
+
                         <div class="stats-card bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200/50 dark:border-blue-700/50">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -1096,7 +1096,7 @@
                 <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden border border-white/20 dark:border-slate-700/50 transform hover:scale-105 hover:-translate-y-2">
                     <!-- Background Pattern -->
                     <div class="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    
+
                     <div class="aspect-w-16 aspect-h-9 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 relative overflow-hidden">
                         @if($product->image)
                         <img src="{{ asset('storage/products/' . $product->image) }}"
@@ -1113,7 +1113,7 @@
                         <!-- Overlay -->
                         <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     </div>
-                    
+
                     <div class="relative p-6">
                         <div class="flex items-center justify-between mb-4">
                             <div class="flex items-center space-x-3">
@@ -1123,8 +1123,8 @@
                                 <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100">Variação {{ $product->id }}</h4>
                             </div>
                             <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-lg
-                                    {{ $product->status === 'ativo' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700' : 
-                                       ($product->status === 'inativo' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700' : 
+                                    {{ $product->status === 'ativo' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700' :
+                                       ($product->status === 'inativo' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700' :
                                         'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-700') }}">
                                 <i class="bi bi-{{ $product->status === 'ativo' ? 'check-circle' : ($product->status === 'inativo' ? 'pause-circle' : 'x-circle') }} mr-1"></i>
                                 {{ ucfirst($product->status) }}
@@ -1207,7 +1207,7 @@ $defaultVariations = [
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM carregado, iniciando verificação do ApexCharts...');
-    
+
     let salesChart, revenueChart, variationChart;
 
     // Check if ApexCharts is loaded with retry mechanism
@@ -1524,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ];
         @endphp
         const variations = {!! json_encode($analytics['variation_performance'] ?? $defaultVariations) !!};
-        
+
         const variationData = variations.map(v => v.revenue);
         const variationLabels = variations.map(v => 'Variação ' + v.product.id);
 
@@ -1667,7 +1667,7 @@ function initSalesTable() {
     const periodFilter = document.querySelector('select[placeholder*="período"], select option[value="30"]')?.closest('select');
     const statusFilter = document.querySelector('select[placeholder*="status"], select option[value="all"]')?.closest('select');
     const searchInput = document.querySelector('input[placeholder*="Buscar"]');
-    
+
     // Event listeners para filtros
     if (periodFilter) {
         periodFilter.addEventListener('change', function() {
@@ -1675,14 +1675,14 @@ function initSalesTable() {
             console.log('Filtro de período alterado:', this.value);
         });
     }
-    
+
     if (statusFilter) {
         statusFilter.addEventListener('change', function() {
             filterSales();
             console.log('Filtro de status alterado:', this.value);
         });
     }
-    
+
     if (searchInput) {
         let searchTimeout;
         searchInput.addEventListener('input', function() {
@@ -1693,7 +1693,7 @@ function initSalesTable() {
             }, 300);
         });
     }
-    
+
     // Sorting da tabela
     const sortButtons = document.querySelectorAll('th .bi-arrow-down-up');
     sortButtons.forEach(button => {
@@ -1701,20 +1701,20 @@ function initSalesTable() {
             const th = this.closest('th');
             const table = th.closest('table');
             const column = Array.from(th.parentNode.children).indexOf(th);
-            
+
             // Remove sorting anterior
             sortButtons.forEach(btn => {
                 btn.className = 'bi bi-arrow-down-up text-slate-400 hover:text-slate-600 cursor-pointer';
             });
-            
+
             // Aplica novo sorting
             this.className = 'bi bi-sort-down text-blue-600 cursor-pointer';
-            
+
             sortTable(table, column);
             console.log('Ordenação aplicada na coluna:', column);
         });
     });
-    
+
     // Botões de ação
     const actionButtons = document.querySelectorAll('button[title]');
     actionButtons.forEach(button => {
@@ -1723,11 +1723,11 @@ function initSalesTable() {
             const action = this.getAttribute('title');
             const row = this.closest('tr');
             const saleId = row.querySelector('.font-medium')?.textContent;
-            
+
             handleSaleAction(action, saleId, row);
         });
     });
-    
+
     // Paginação
     const paginationButtons = document.querySelectorAll('nav button');
     paginationButtons.forEach(button => {
@@ -1750,18 +1750,18 @@ function filterSales() {
     const periodValue = document.querySelector('select option[value="30"]')?.closest('select')?.value || 'all';
     const statusValue = document.querySelector('select option[value="all"]')?.closest('select')?.value || 'all';
     const searchValue = document.querySelector('input[placeholder*="Buscar"]')?.value || '';
-    
+
     const tbody = document.querySelector('table tbody');
     const rows = tbody.querySelectorAll('tr');
-    
+
     rows.forEach(row => {
         let showRow = true;
-        
+
         // Filtro por status
         if (statusValue !== 'all') {
             const statusBadge = row.querySelector('.bg-green-100, .bg-yellow-100, .bg-red-100');
             const statusText = statusBadge?.textContent.toLowerCase().trim();
-            
+
             if (statusValue === 'completed' && !statusText?.includes('concluída')) {
                 showRow = false;
             } else if (statusValue === 'pending' && !statusText?.includes('pendente')) {
@@ -1770,7 +1770,7 @@ function filterSales() {
                 showRow = false;
             }
         }
-        
+
         // Filtro por busca
         if (searchValue && showRow) {
             const rowText = row.textContent.toLowerCase();
@@ -1778,11 +1778,11 @@ function filterSales() {
                 showRow = false;
             }
         }
-        
+
         // Mostrar/ocultar linha
         row.style.display = showRow ? '' : 'none';
     });
-    
+
     // Atualizar contador
     updateRowCounter();
 }
@@ -1790,36 +1790,36 @@ function filterSales() {
 function sortTable(table, column) {
     const tbody = table.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
-    
+
     rows.sort((a, b) => {
         const aVal = a.children[column]?.textContent.trim() || '';
         const bVal = b.children[column]?.textContent.trim() || '';
-        
+
         // Tratamento especial para valores monetários
         if (aVal.includes('R$') && bVal.includes('R$')) {
             const aNum = parseFloat(aVal.replace(/[R$.,\s]/g, '').replace(',', '.'));
             const bNum = parseFloat(bVal.replace(/[R$.,\s]/g, '').replace(',', '.'));
             return bNum - aNum; // Ordem decrescente para valores
         }
-        
+
         // Tratamento para datas
         if (aVal.includes('/') && bVal.includes('/')) {
             const aDate = new Date(aVal.split('/').reverse().join('-'));
             const bDate = new Date(bVal.split('/').reverse().join('-'));
             return bDate - aDate; // Ordem decrescente para datas
         }
-        
+
         // Ordenação alfabética padrão
         return aVal.localeCompare(bVal);
     });
-    
+
     // Reordenar linhas
     rows.forEach(row => tbody.appendChild(row));
 }
 
 function handleSaleAction(action, saleId, row) {
     console.log(`Ação ${action} executada para venda ${saleId}`);
-    
+
     switch(action) {
         case 'Ver detalhes':
             showSaleDetails(saleId);
@@ -1841,14 +1841,14 @@ function handleSaleAction(action, saleId, row) {
 function showSaleDetails(saleId) {
     // Aqui você implementaria a modal ou navegação para detalhes
     console.log('Mostrando detalhes da venda:', saleId);
-    
+
     // Exemplo de implementação básica
     alert(`Detalhes da venda ${saleId}\n\nEsta funcionalidade abrirá uma modal com todos os detalhes da venda.`);
 }
 
 function printSale(saleId) {
     console.log('Imprimindo venda:', saleId);
-    
+
     // Exemplo de implementação
     if (confirm(`Deseja imprimir a venda ${saleId}?`)) {
         // Aqui você implementaria a impressão
@@ -1858,7 +1858,7 @@ function printSale(saleId) {
 
 function duplicateSale(saleId) {
     console.log('Duplicando venda:', saleId);
-    
+
     // Exemplo de implementação
     if (confirm(`Deseja criar uma nova venda baseada em ${saleId}?`)) {
         // Aqui você implementaria a duplicação
@@ -1868,7 +1868,7 @@ function duplicateSale(saleId) {
 
 function editSale(saleId) {
     console.log('Editando venda:', saleId);
-    
+
     // Exemplo de implementação - redirecionamento
     // window.location.href = `/sales/edit/${saleId}`;
     alert(`Redirecionando para edição da venda ${saleId}`);
@@ -1876,7 +1876,7 @@ function editSale(saleId) {
 
 function loadPage(page) {
     console.log('Carregando página:', page);
-    
+
     // Aqui você implementaria a paginação AJAX
     // Por enquanto, apenas simula o carregamento
     const currentPageBtn = document.querySelector('nav .bg-blue-600');
@@ -1884,7 +1884,7 @@ function loadPage(page) {
         currentPageBtn.classList.remove('bg-blue-600', 'text-white');
         currentPageBtn.classList.add('text-slate-700', 'hover:text-slate-900', 'dark:text-slate-300', 'dark:hover:text-slate-100', 'hover:bg-slate-100', 'dark:hover:bg-slate-700');
     }
-    
+
     // Simula carregamento
     if (typeof page === 'number') {
         const newPageBtn = document.querySelector(`nav button:nth-child(${page + 1})`);
@@ -1899,7 +1899,7 @@ function updateRowCounter() {
     const tbody = document.querySelector('table tbody');
     const visibleRows = tbody.querySelectorAll('tr:not([style*="display: none"])');
     const totalRows = tbody.querySelectorAll('tr').length;
-    
+
     const counter = document.querySelector('.text-slate-600.dark\\:text-slate-400');
     if (counter) {
         counter.innerHTML = `Mostrando <span class="font-medium text-slate-900 dark:text-slate-100">${visibleRows.length}</span> de <span class="font-medium text-slate-900 dark:text-slate-100">${totalRows}</span> vendas`;
@@ -1910,17 +1910,17 @@ function updateRowCounter() {
 function exportSalesData() {
     const table = document.querySelector('table');
     const rows = table.querySelectorAll('tr:not([style*="display: none"])');
-    
+
     let csvContent = "data:text/csv;charset=utf-8,";
-    
+
     rows.forEach(row => {
         const cells = row.querySelectorAll('th, td');
-        const rowData = Array.from(cells).map(cell => 
+        const rowData = Array.from(cells).map(cell =>
             cell.textContent.replace(/,/g, ';').trim()
         ).join(',');
         csvContent += rowData + "\r\n";
     });
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -1928,7 +1928,7 @@ function exportSalesData() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     console.log('Dados exportados com sucesso');
 }
 </script>
@@ -2026,7 +2026,7 @@ html, body {
 }
 
 .chart-container #salesChart,
-.chart-container #revenueChart, 
+.chart-container #revenueChart,
 .chart-container #variationChart {
     width: 100% !important;
     max-width: 100% !important;
@@ -2135,11 +2135,11 @@ html, body {
     .mobile-stack {
         flex-direction: column;
     }
-    
+
     .mobile-full {
         width: 100%;
     }
-    
+
     .px-6 {
         padding-left: 1rem;
         padding-right: 1rem;
@@ -2410,7 +2410,7 @@ html, body {
     .sales-table {
         font-size: 0.875rem;
     }
-    
+
     .sales-table th,
     .sales-table td {
         padding: 0.75rem 0.5rem;
@@ -2421,12 +2421,12 @@ html, body {
     .sales-table {
         font-size: 0.8125rem;
     }
-    
+
     .sales-table th,
     .sales-table td {
         padding: 0.5rem 0.375rem;
     }
-    
+
     .action-button {
         padding: 0.375rem;
     }
