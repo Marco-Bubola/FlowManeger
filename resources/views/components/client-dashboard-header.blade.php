@@ -6,7 +6,7 @@
 ])
 
 <!-- Header Modernizado do Dashboard de Cliente -->
-<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
+<div class="relative overflow-visible bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
     <!-- Efeito de brilho sutil -->
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
@@ -142,6 +142,23 @@
                                     <i class="bi bi-cash-coin text-purple-500 mr-3"></i>
                                     Dados Financeiros
                                 </button>
+
+                                        <!-- Export CSV / XLSX quick links -->
+                                        <div class="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
+                                            <a href="{{ route('reports.vendas.export') }}?format=csv&client_id={{ $client?->id }}"
+                                               target="_blank" rel="noopener"
+                                               class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                                                <i class="bi bi-file-earmark-spreadsheet text-green-600 mr-3"></i>
+                                                Exportar CSV
+                                            </a>
+
+                                            <a href="{{ route('reports.vendas.export') }}?format=xlsx&client_id={{ $client?->id }}"
+                                               target="_blank" rel="noopener"
+                                               class="w-full flex items-center px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors duration-200">
+                                                <i class="bi bi-file-earmark-excel text-green-700 mr-3"></i>
+                                                Exportar XLSX
+                                            </a>
+                                        </div>
                             </div>
                         </div>
                     </div>
