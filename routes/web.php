@@ -159,6 +159,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/sales/{saleId}/add-payments', AddPayments::class)->name('sales.add-payments');
     Route::get('/sales/{saleId}/edit-payments', EditPayments::class)->name('sales.edit-payments');
 
+    // Export de relatórios (CSV/XLSX)
+    Route::get('/reports/vendas/export', [\App\Http\Controllers\ReportExportController::class, 'exportVendas'])->name('reports.vendas.export');
+
     // Manter algumas rotas específicas do controller antigo se necessário
     // Route::get('/sales/{id}/export', [SaleController::class, 'export'])->name('sales.export');
     // Route::post('/update-stock/{productId}', [SaleController::class, 'updateStock']);
