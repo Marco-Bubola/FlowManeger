@@ -13,7 +13,7 @@
     <!-- Incluir sistema de notificações -->
     @include('components.toast-notifications')
 
-    <div class="min-h-screen w-full bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-300 overflow-x-hidden">
+    <div class="w-full bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-300 overflow-x-hidden">
         <!-- Header with animated gradient -->
         <div class="w-full bg-gradient-to-r from-white via-blue-50 to-purple-50 dark:from-gray-800 dark:via-blue-900 dark:to-purple-900 shadow-lg border-b border-blue-200 dark:border-gray-700 backdrop-blur-sm">
             <div class="w-full px-4 sm:px-6 lg:px-8">
