@@ -16,9 +16,16 @@ new #[Layout('components.layouts.auth')] class extends Component {
             'email' => ['required', 'string', 'email'],
         ]);
 
-        Password::sendResetLink($this->only('email'));
+        $status = Password::sendResetLink($this->only('email'));
 
-        session()->flash('status', __('A reset link will be sent if the account exists.'));
+        if ($status === Password::RESET_LINK_SENT) {
+            // Sucesso: mensagem genérica para não vazar existência de conta
+            session()->flash('status', __('A reset link will be sent if the account exists.'));
+        } else {
+            // Em caso de falha, logamos e mostramos uma mensagem amigável
+            logger()->warning('Password reset link failed', ['email' => $this->email, 'status' => $status]);
+            session()->flash('status', __('Não foi possível enviar o link. Tente novamente mais tarde.'));
+        }
     }
 }; ?>
 
@@ -28,7 +35,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
     <!-- Session Status -->
     <x-auth-session-status class="text-center" :status="session('status')" />
 
-    <form wire:submit="sendPasswordResetLink" class="flex flex-col gap-6">
+    <form wire:submit.prevent="sendPasswordResetLink" class="flex flex-col gap-6">
         <!-- Email Address -->
         <flux:input
             wire:model="email"
