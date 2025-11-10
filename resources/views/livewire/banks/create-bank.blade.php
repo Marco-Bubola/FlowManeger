@@ -10,7 +10,7 @@ $bankIcons = [
 ];
 @endphp
 
-<div class="h-[90vh] border-gray-200 dark:border-gray-700 flex flex-col p-0 m-0 overflow-hidden  ">
+<div class="w-full">
     <header class="w-full py-8 px-6 md:px-16 flex flex-col items-center justify-center text-center gap-2">
         <div class="flex items-center gap-4 justify-center">
             <!-- Ícone de banco/cartão -->
@@ -77,16 +77,44 @@ $bankIcons = [
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
-                <label for="start_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Data de Início</label>
+                <label for="start_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
+                    📅 Dia de Abertura da Fatura
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    Dia do mês em que a fatura do cartão abre (ex: dia 6)
+                </p>
                 <input type="date" id="start_date" wire:model="start_date"
                     class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
                 @error('start_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
             <div>
-                <label for="end_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">Data de Término</label>
+                <label for="end_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
+                    🔒 Dia de Fechamento da Fatura
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                    Dia do mês em que a fatura do cartão fecha (ex: dia 5)
+                </p>
                 <input type="date" id="end_date" wire:model="end_date"
                     class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
                 @error('end_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
+        <!-- Dica sobre o ciclo de fatura -->
+        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-lg">
+            <div class="flex items-start">
+                <svg class="w-6 h-6 text-blue-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                    <h4 class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-1">💡 Como funciona o ciclo de fatura?</h4>
+                    <p class="text-sm text-blue-700 dark:text-blue-400">
+                        <strong>Exemplo:</strong> Se sua fatura abre no dia 6 e fecha no dia 5 do mês seguinte, selecione qualquer data com dia 6 no campo "Abertura" e dia 5 no campo "Fechamento". O sistema usará apenas o dia do mês para calcular seu ciclo de fatura automaticamente.
+                    </p>
+                    <p class="text-sm text-blue-700 dark:text-blue-400 mt-2">
+                        <strong>Resultado:</strong> As transações serão agrupadas do dia 6 de um mês até o dia 5 do próximo mês, como uma fatura real de cartão de crédito! 💳
+                    </p>
+                </div>
             </div>
         </div>
         <div class="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
