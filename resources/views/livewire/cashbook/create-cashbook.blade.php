@@ -1,4 +1,4 @@
-<div class="min-h-screen w-full ">
+<div class="w-full ">
     <!-- Header Modernizado (com passos para visual similar ao create-product) -->
     <x-sales-header
         title="Nova Transação"
