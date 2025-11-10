@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: false }" class="">
+<div x-data="{ showFilters: false }" class="w-full">
     <!-- Header moderno consistente -->
     <x-cashbook-header :total-transactions="$transactionsCount ?? 0" :total-balance="$totalBalance ?? 0" :show-quick-actions="true" />
 
