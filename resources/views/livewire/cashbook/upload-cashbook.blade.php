@@ -1,4 +1,4 @@
-<div class="min-h-screen w-full bg-gradient-to-br ">
+<div class=" w-full ">
     <!-- Header alinhado ao estilo de products/sales -->
     <x-products-header
         title="Upload de Transações"
