@@ -1,4 +1,4 @@
-<div class="">
+<div class="w-full">
 
 
     <div class="relative z-10">
