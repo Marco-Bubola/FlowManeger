@@ -93,9 +93,32 @@ Existe um wrapper (`start.js`) que foi usado para gerar um executável chamado `
 Para executar o binário:
 
 ```powershell
-# execute diretamente na pasta do projeto
+# Execução rápida (apenas servidores - PADRÃO)
 .\FlowManager.exe
+
+# Instalação completa (dependências + migrações + servidores)
+.\FlowManager.exe --full-setup
+
+# Ou use os scripts auxiliares
+.\start-server-only.bat     # Início rápido (padrão)
+.\start-full-setup.bat      # Instalação completa
 ```
+
+### Comportamento Padrão (Novo)
+⚠️ **MUDANÇA IMPORTANTE**: O comportamento padrão agora é iniciar apenas os servidores, sem executar instalações ou migrações. Isso torna o startup muito mais rápido para desenvolvimento cotidiano.
+
+### Opções disponíveis
+- **Comportamento padrão**: Inicia apenas os servidores Laravel e Vite (modo rápido)
+- `--full-setup`: Executa instalação completa (dependências + migrações + servidores)
+- `--dry-run`: Simula execução sem executar comandos
+- `--skip-migrate`: Pula migrações (usado com --full-setup)
+- `--skip-seed`: Executa migrações sem seeders (usado com --full-setup)
+- `--no-browser`: Não abre o navegador automaticamente
+- `--build`: Executa build para produção ao invés do modo desenvolvimento
+
+### Quando usar cada modo
+- **Modo padrão** (`.\FlowManager.exe`): Para desenvolvimento diário quando as dependências já estão instaladas
+- **Modo completo** (`.\FlowManager.exe --full-setup`): Primeira execução, após mudanças no composer.json/package.json, ou quando precisar executar migrações
 
 Gerar o executável você mesmo (opcional)
 Se preferir gerar localmente o `.exe`, use o `pkg` (Node.js). No PowerShell pode ser necessário usar o `pkg.cmd` instalado no `%APPDATA%/npm`:
