@@ -6,6 +6,7 @@ use App\Models\Bank;
 use App\Models\Category;
 use App\Models\Client;
 use App\Models\Invoice;
+use App\Models\InvoiceCategoryLearning;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -45,8 +46,10 @@ class UploadInvoice extends Component
     public function loadData()
     {
         $this->banks = Bank::all();
+        // Carregar apenas categorias do tipo 'transaction' (transação)
         $this->categories = Category::where('is_active', 1)
             ->where('user_id', Auth::id())
+            ->where('type', 'transaction')
             ->get();
         $this->clients = Client::all();
     }
@@ -115,6 +118,7 @@ class UploadInvoice extends Component
         try {
             foreach ($this->transactions as $transaction) {
                 if (!empty($transaction['date']) && !empty($transaction['description']) && !empty($transaction['value'])) {
+                    // Criar a invoice
                     Invoice::create([
                         'id_bank' => $this->bankId,
                         'invoice_date' => $transaction['date'],
@@ -125,6 +129,21 @@ class UploadInvoice extends Component
                         'client_id' => $transaction['client_id'] ?? null,
                         'user_id' => Auth::id(),
                     ]);
+
+                    // APRENDIZADO: Salvar a associação descrição → categoria para aprendizado futuro
+                    if (!empty($transaction['category_id'])) {
+                        InvoiceCategoryLearning::learn(
+                            $transaction['description'],
+                            $transaction['category_id'],
+                            Auth::id()
+                        );
+
+                        Log::info('Padrão de categorização aprendido', [
+                            'description' => $transaction['description'],
+                            'category_id' => $transaction['category_id'],
+                            'normalized_pattern' => InvoiceCategoryLearning::normalizeDescription($transaction['description'])
+                        ]);
+                    }
                 }
             }
 
@@ -134,6 +153,10 @@ class UploadInvoice extends Component
             return redirect()->route('invoices.index', ['bankId' => $this->bankId]);
 
         } catch (\Exception $e) {
+            Log::error('Erro ao confirmar transações', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             session()->flash('error', 'Erro ao confirmar as transações: ' . $e->getMessage());
         }
     }
@@ -143,6 +166,50 @@ class UploadInvoice extends Component
         if (isset($this->transactions[$index])) {
             $this->transactions[$index]['category_id'] = $categoryId;
         }
+    }
+
+    /**
+     * Atualiza a data de uma transação (usada pela view durante o upload)
+     * Normaliza a data usando parseDate() e registra logs para depuração.
+     * Espera receber formatos como d/m/Y, Y-m-d, d-m-Y ou m/d/Y.
+     * Pode ser chamado da view com: wire:change="updateTransactionDate({{ $index }}, $event.target.value)"
+     *
+     * @param int $index
+     * @param string $date
+     * @return void
+     */
+    public function updateTransactionDate($index, $date)
+    {
+        if (!isset($this->transactions[$index])) {
+            return;
+        }
+
+        // Tentar normalizar com parseDate
+        $parsed = $this->parseDate($date);
+
+        // Se parseDate não conseguiu, tentar criar DateTime diretamente
+        if (empty($parsed)) {
+            try {
+                $dt = new \DateTime($date);
+                $parsed = $dt->format('Y-m-d');
+            } catch (\Exception $e) {
+                // Manter o valor recebido caso não seja possível normalizar
+                Log::warning('Falha ao parsear data informada pelo usuário, mantendo valor bruto', [
+                    'index' => $index,
+                    'input_date' => $date,
+                    'error' => $e->getMessage(),
+                ]);
+                $parsed = $date;
+            }
+        }
+
+        $this->transactions[$index]['date'] = $parsed;
+
+        Log::info('Data da transação atualizada pelo usuário', [
+            'index' => $index,
+            'date' => $parsed,
+            'original_input' => $date,
+        ]);
     }
 
     public function updateTransactionClient($index, $clientId)
@@ -444,15 +511,61 @@ class UploadInvoice extends Component
 
     private function determineCategoryId($description, $categoryMapping)
     {
+        // 1. PRIORIDADE MÁXIMA: Tentar aprendizado de máquina primeiro
+        $learnedCategoryId = InvoiceCategoryLearning::findCategoryForDescription($description, Auth::id());
+
+        if ($learnedCategoryId) {
+            Log::info('Categoria encontrada via aprendizado de máquina', [
+                'learned_category_id' => $learnedCategoryId,
+                'description' => $description
+            ]);
+            return $learnedCategoryId;
+        }
+
+        // 2. Tentar encontrar categoria baseada nas palavras-chave do mapeamento estático
         foreach ($categoryMapping as $keyword => $categoryId) {
             if (stripos($description, $keyword) !== false) {
+                Log::info('Categoria encontrada via mapeamento estático', [
+                    'keyword' => $keyword,
+                    'category_id' => $categoryId,
+                    'description' => $description
+                ]);
                 return $categoryId;
             }
         }
-        return '1'; // Categoria padrão
-    }
 
-    private function shouldExcludeLine($line)
+        // 3. Se não encontrar, buscar a categoria "Outros"
+        $outrosCategory = Category::where('is_active', 1)
+            ->where('user_id', Auth::id())
+            ->where('type', 'transaction')
+            ->where('name', 'Outros')
+            ->first();
+
+        // Se encontrou a categoria "Outros", usar ela
+        if ($outrosCategory) {
+            Log::info('Categoria não identificada - usando "Outros"', [
+                'category_id' => $outrosCategory->id_category,
+                'description' => $description
+            ]);
+            return $outrosCategory->id_category;
+        }
+
+        // 4. Se não existe categoria "Outros", usar a primeira categoria de transação
+        $defaultCategory = Category::where('is_active', 1)
+            ->where('user_id', Auth::id())
+            ->where('type', 'transaction')
+            ->orderBy('id_category')
+            ->first();
+
+        $defaultId = $defaultCategory ? $defaultCategory->id_category : null;
+
+        Log::warning('Categoria "Outros" não encontrada - usando primeira categoria', [
+            'default_category_id' => $defaultId,
+            'description' => $description
+        ]);
+
+        return $defaultId;
+    }    private function shouldExcludeLine($line)
     {
         $excludedKeywords = [
             'fatura', 'Período', 'Olá', 'LIMITES', 'crédito', 'aplicativo',
@@ -468,80 +581,189 @@ class UploadInvoice extends Component
         return false;
     }
 
+    /**
+     * Cria mapeamento dinâmico de palavras-chave para categorias do banco de dados
+     * Retorna array com [palavra-chave => id_category]
+     */
     private function getCategoryMapping()
     {
-        return [
-            // Supermercados - usar categoria ID 1 (padrão)
-            'SUPERMERCADO' => '1',
-            'SUPERMERCA' => '1',
-            'ANTONELLI' => '1',
-            'ATACADAO' => '1',
-            '1A99' => '1',
-            'POPULAR' => '1',
-            'ROFATTO' => '1',
-            'CUBATAO' => '1',
+        $mapping = [];
 
-            // Restaurantes e Alimentação
-            'BEER' => '1',
-            'BURGER' => '1',
-            'SosBeer' => '1',
-            'TOURO' => '1',
-            'TUTTIBOM' => '1',
-            'ACAITERIA' => '1',
-            'AyltonCeragioli' => '1',
-            'ComitivaLanch' => '1',
-            'RESTAURANTE' => '1',
-            'LANCHONETE' => '1',
+        // Buscar todas as categorias do tipo 'transaction' do usuário
+        $categories = Category::where('is_active', 1)
+            ->where('user_id', Auth::id())
+            ->where('type', 'transaction')
+            ->get();
 
-            // Transporte e Combustível
-            'POSTO' => '1',
-            'ABAST' => '1',
-            'SHELL' => '1',
-            'FROGPAY' => '1',
-            'AUTO POSTO' => '1',
-            'ARENA' => '1',
-            'JSRosaPneus' => '1',
-            'PNEUS' => '1',
+        Log::info('Categorias encontradas para mapeamento', [
+            'total' => $categories->count(),
+            'categories' => $categories->pluck('name', 'id_category')->toArray()
+        ]);
 
-            // Compras e Varejo
-            'TABACARIA' => '1',
-            'SHOPEE' => '1',
-            'MERCADOLIVRE' => '1',
-            'NETSHOES' => '1',
-            'HUB NETSHOES' => '1',
+        // Mapear categorias e suas palavras-chave
+        foreach ($categories as $category) {
+            $categoryId = $category->id_category;
+            $categoryName = strtoupper($category->name);
+            $categoryNameLower = strtolower($category->name);
 
-            // Beleza e Cosméticos
-            'BOTICARIO' => '1',
-            'NATURA' => '1',
+            // Adicionar o nome da categoria como palavra-chave
+            $mapping[$categoryName] = $categoryId;
 
-            // Farmácia
-            'PHARMA' => '1',
-            'DROGARIA' => '1',
-            'FARMACIA' => '1',
+            // Mapeamentos específicos baseados no nome da categoria (case-insensitive e com variações)
 
-            // Telecomunicações
-            'CLARO' => '1',
-            'VIVO' => '1',
-            'TIM' => '1',
-            'OI' => '1',
+            // SUPERMERCADOS E ALIMENTAÇÃO
+            if (stripos($categoryNameLower, 'supermercado') !== false ||
+                stripos($categoryNameLower, 'alimenta') !== false ||
+                stripos($categoryNameLower, 'aliment') !== false) {
+                $mapping['SUPERMERCADO'] = $categoryId;
+                $mapping['SUPERMERCA'] = $categoryId;
+                $mapping['ANTONELLI'] = $categoryId;
+                $mapping['ATACADAO'] = $categoryId;
+                $mapping['ATACADÃO'] = $categoryId;
+                $mapping['1A99'] = $categoryId;
+                $mapping['POPULAR'] = $categoryId;
+                $mapping['ROFATTO'] = $categoryId;
+                $mapping['CUBATAO'] = $categoryId;
+                $mapping['CUBATÃO'] = $categoryId;
+            }
 
-            // Entretenimento
-            'HOPI HARI' => '1',
-            'CINEMA' => '1',
-            'TEATRO' => '1',
+            // BARES E RESTAURANTES
+            if (stripos($categoryNameLower, 'bar') !== false ||
+                stripos($categoryNameLower, 'restaurante') !== false ||
+                stripos($categoryNameLower, 'beer') !== false ||
+                stripos($categoryNameLower, 'maco') !== false) {
+                $mapping['RESTAURANTE'] = $categoryId;
+                $mapping['LANCHONETE'] = $categoryId;
+                $mapping['BEER'] = $categoryId;
+                $mapping['BURGER'] = $categoryId;
+                $mapping['TOURO'] = $categoryId;
+                $mapping['TUTTIBOM'] = $categoryId;
+                $mapping['ACAITERIA'] = $categoryId;
+                $mapping['COMITIVALANCH'] = $categoryId;
+                $mapping['SOSBEER'] = $categoryId;
+                $mapping['AYLTONCERAGIOLI'] = $categoryId;
+            }
 
-            // Viagem
-            'AIRBNB' => '1',
-            'HOTEL' => '1',
-            'POUSADA' => '1',
+            // COMBUSTÍVEIS E POSTOS
+            if (stripos($categoryNameLower, 'combusti') !== false ||
+                stripos($categoryNameLower, 'posto') !== false) {
+                $mapping['POSTO'] = $categoryId;
+                $mapping['ABAST'] = $categoryId;
+                $mapping['SHELL'] = $categoryId;
+                $mapping['FROGPAY'] = $categoryId;
+                $mapping['AUTO POSTO'] = $categoryId;
+                $mapping['AUTOPOSTO'] = $categoryId;
+                $mapping['ARENA'] = $categoryId;
+            }
 
-            // Shopping
-            'SHOPPING' => '1',
-            'CP PARC' => '1',
-        ];
-    }
+            // MECÂNICO E PNEUS
+            if (stripos($categoryNameLower, 'mecan') !== false ||
+                stripos($categoryNameLower, 'pneu') !== false) {
+                $mapping['PNEUS'] = $categoryId;
+                $mapping['JSROSAPNEUS'] = $categoryId;
+                $mapping['MECANICA'] = $categoryId;
+                $mapping['BORRACHARIA'] = $categoryId;
+            }
 
-    public function render()
+            // COMPRAS E BELEZA / COMPRAS ONLINE
+            if (stripos($categoryNameLower, 'compra') !== false ||
+                stripos($categoryNameLower, 'beleza') !== false ||
+                stripos($categoryNameLower, 'online') !== false) {
+                $mapping['TABACARIA'] = $categoryId;
+                $mapping['SHOPEE'] = $categoryId;
+                $mapping['MERCADOLIVRE'] = $categoryId;
+                $mapping['MERCADO LIVRE'] = $categoryId;
+                $mapping['NETSHOES'] = $categoryId;
+                $mapping['HUB NETSHOES'] = $categoryId;
+                $mapping['SHOPPING'] = $categoryId;
+                $mapping['CP PARC'] = $categoryId;
+                $mapping['MAGAZINE'] = $categoryId;
+                $mapping['LOJAS'] = $categoryId;
+            }
+
+            // EUDORA & BOTICÁRIO
+            if (stripos($categoryNameLower, 'eudora') !== false ||
+                stripos($categoryNameLower, 'boticario') !== false) {
+                $mapping['BOTICARIO'] = $categoryId;
+                $mapping['BOTICÁRIO'] = $categoryId;
+                $mapping['NATURA'] = $categoryId;
+                $mapping['EUDORA'] = $categoryId;
+            }
+
+            // FARMÁCIAS E SAÚDE
+            if (stripos($categoryNameLower, 'farmacia') !== false ||
+                stripos($categoryNameLower, 'saude') !== false ||
+                stripos($categoryNameLower, 'saúde') !== false) {
+                $mapping['PHARMA'] = $categoryId;
+                $mapping['DROGARIA'] = $categoryId;
+                $mapping['FARMACIA'] = $categoryId;
+                $mapping['FARMÁCIA'] = $categoryId;
+                $mapping['DROGASIL'] = $categoryId;
+                $mapping['PACHECO'] = $categoryId;
+            }
+
+            // STREAMING
+            if (stripos($categoryNameLower, 'streaming') !== false) {
+                $mapping['NETFLIX'] = $categoryId;
+                $mapping['SPOTIFY'] = $categoryId;
+                $mapping['PRIME'] = $categoryId;
+                $mapping['DISNEY'] = $categoryId;
+                $mapping['HBO'] = $categoryId;
+            }
+
+            // HOSPEDAGEM E VIAGENS
+            if (stripos($categoryNameLower, 'hospedagem') !== false ||
+                stripos($categoryNameLower, 'viag') !== false) {
+                $mapping['AIRBNB'] = $categoryId;
+                $mapping['HOTEL'] = $categoryId;
+                $mapping['POUSADA'] = $categoryId;
+                $mapping['BOOKING'] = $categoryId;
+                $mapping['DECOLAR'] = $categoryId;
+                $mapping['HOPI HARI'] = $categoryId;
+                $mapping['HOPIHARI'] = $categoryId;
+            }
+
+            // ACADEMIA
+            if (stripos($categoryNameLower, 'academia') !== false) {
+                $mapping['ACADEMIA'] = $categoryId;
+                $mapping['GYM'] = $categoryId;
+                $mapping['FITNESS'] = $categoryId;
+                $mapping['SMARTFIT'] = $categoryId;
+            }
+
+            // Adicionar tags da categoria se existirem
+            if (!empty($category->tags)) {
+                $tags = explode(',', $category->tags);
+                foreach ($tags as $tag) {
+                    $tag = trim(strtoupper($tag));
+                    if (!empty($tag)) {
+                        $mapping[$tag] = $categoryId;
+                    }
+                }
+            }
+
+            // Adicionar regras de auto-categorização se existirem
+            if (!empty($category->regras_auto_categorizacao)) {
+                try {
+                    $regras = json_decode($category->regras_auto_categorizacao, true);
+                    if (is_array($regras)) {
+                        foreach ($regras as $palavra) {
+                            $mapping[strtoupper($palavra)] = $categoryId;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Ignorar erros de JSON
+                }
+            }
+        }
+
+        Log::info('Mapeamento de categorias criado', [
+            'total_mappings' => count($mapping),
+            'sample' => array_slice($mapping, 0, 10, true)
+        ]);
+
+        return $mapping;
+    }    public function render()
     {
         return view('livewire.invoices.upload-invoice');
     }
