@@ -19,7 +19,11 @@ class EditInvoice extends Component
     public $category_id = '';
     public $client_id = '';
     public $invoice_date = '';
-    
+
+    // Parâmetros para retornar à mesma visualização
+    public $returnMonth = null;
+    public $returnYear = null;
+
     public $banks = [];
     public $categories = [];
     public $clients = [];
@@ -47,6 +51,11 @@ class EditInvoice extends Component
     public function mount($invoiceId)
     {
         $this->invoiceId = $invoiceId;
+
+        // Capturar parâmetros de retorno da query string
+        $this->returnMonth = request()->query('return_month');
+        $this->returnYear = request()->query('return_year');
+
         $this->loadInvoice();
         $this->loadData();
     }
@@ -88,8 +97,19 @@ class EditInvoice extends Component
 
             session()->flash('success', 'Transação atualizada com sucesso!');
             $this->dispatch('invoice-updated');
-            
-            return redirect()->route('invoices.index', ['bankId' => $this->invoice->id_bank]);
+
+            // Redirecionar com os parâmetros de month e year preservados
+            $queryParams = ['bankId' => $this->invoice->id_bank];
+
+            // Adicionar month e year aos parâmetros se estiverem disponíveis
+            if ($this->returnMonth) {
+                $queryParams['return_month'] = $this->returnMonth;
+            }
+            if ($this->returnYear) {
+                $queryParams['return_year'] = $this->returnYear;
+            }
+
+            return redirect()->route('invoices.index', $queryParams);
 
         } catch (\Exception $e) {
             session()->flash('error', 'Erro ao atualizar a transação: ' . $e->getMessage());
