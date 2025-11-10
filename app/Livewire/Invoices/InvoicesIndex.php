@@ -8,6 +8,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\Attributes\On;
 use Livewire\Attributes\Layout;
@@ -66,10 +67,20 @@ class InvoicesIndex extends Component
     {
         $this->bankId = $bankId;
 
+        // Verificar se há parâmetros de retorno na query string
+        $returnMonth = request()->query('return_month');
+        $returnYear = request()->query('return_year');
+
         // Inicializa o mês e o ano com os valores atuais
         $this->month = now()->month;
         $this->year = now()->year;
         $this->currentMonth = request()->query('month', now()->format('Y-m-d'));
+
+        // Se veio de uma edição com mês/ano específico, ajustar
+        if ($returnMonth && $returnYear) {
+            $this->month = (int)$returnMonth;
+            $this->year = (int)$returnYear;
+        }
 
         // Se não há bankId, redirecionar para a página de bancos ou usar o primeiro banco
         if (!$this->bankId) {
@@ -109,7 +120,9 @@ class InvoicesIndex extends Component
         } catch (\Exception $e) {
             session()->flash('error', 'Erro ao carregar os dados: ' . $e->getMessage());
         }
-    }    private function calculateDateRanges()
+    }
+
+    private function calculateDateRanges()
     {
         // Obter o dia de início e fim do ciclo do banco/cartão
         // Se start_date e end_date são datas, extrair apenas o dia
@@ -160,12 +173,21 @@ class InvoicesIndex extends Component
 
     private function loadInvoices()
     {
+        // Debug: Log das datas sendo usadas
+        Log::info('Loading invoices', [
+            'start_date' => $this->currentStartDate?->format('Y-m-d H:i:s'),
+            'end_date' => $this->currentEndDate?->format('Y-m-d H:i:s'),
+            'bank_id' => $this->bank->id_bank
+        ]);
+
         // Primeiro, carregar todas as invoices do mês para o calendário
         $allMonthInvoices = Invoice::with(['category', 'client'])
             ->where('id_bank', $this->bank->id_bank)
             ->whereBetween('invoice_date', [$this->currentStartDate, $this->currentEndDate])
             ->orderBy('invoice_date', 'asc')
             ->get();
+
+        Log::info('Invoices loaded', ['count' => $allMonthInvoices->count()]);
 
         // Agrupar todas as invoices do mês por data para uso no calendário
         $this->calendarInvoices = $allMonthInvoices->groupBy(function($invoice) {
@@ -371,9 +393,6 @@ class InvoicesIndex extends Component
             $this->month--;
         }
 
-        // Feedback temporário
-        session()->flash('message', "Navegou para o ciclo anterior: " . $this->month . "/" . $this->year);
-
         $this->loadData();
     }
 
@@ -390,9 +409,6 @@ class InvoicesIndex extends Component
         } else {
             $this->month++;
         }
-
-        // Feedback temporário
-        session()->flash('message', "Navegou para o próximo ciclo: " . $this->month . "/" . $this->year);
 
         $this->loadData();
     }
