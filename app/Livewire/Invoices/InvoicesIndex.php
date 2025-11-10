@@ -111,17 +111,51 @@ class InvoicesIndex extends Component
         }
     }    private function calculateDateRanges()
     {
-        // Usar month e year para o calendário
-        $this->currentStartDate = Carbon::create($this->year, $this->month, 1)->startOfDay();
-        $this->currentEndDate = $this->currentStartDate->copy()->endOfMonth()->endOfDay();
+        // Obter o dia de início e fim do ciclo do banco/cartão
+        // Se start_date e end_date são datas, extrair apenas o dia
+        $startDay = $this->bank->start_date ? Carbon::parse($this->bank->start_date)->day : 1;
+        $endDay = $this->bank->end_date ? Carbon::parse($this->bank->end_date)->day : Carbon::create($this->year, $this->month, 1)->endOfMonth()->day;
 
+        // Calcular as datas de início e fim do ciclo de fatura atual
+        // Se o dia de início é maior que o dia de fim, o ciclo passa de um mês para o próximo
+        if ($startDay > $endDay) {
+            // Exemplo: dia 6 até dia 5 do próximo mês
+            // Se estamos vendo o ciclo de Janeiro 2025, mostramos de 06/Jan até 05/Fev
+            $this->currentStartDate = Carbon::create($this->year, $this->month, $startDay)->startOfDay();
+            $this->currentEndDate = Carbon::create($this->year, $this->month, $startDay)->addMonth()->day($endDay)->endOfDay();
+        } else {
+            // Ciclo normal dentro do mesmo mês
+            $this->currentStartDate = Carbon::create($this->year, $this->month, $startDay)->startOfDay();
+            $this->currentEndDate = Carbon::create($this->year, $this->month, $endDay)->endOfDay();
+        }
+
+        // Calcular o ciclo anterior e próximo
         $this->previousMonthDate = $this->currentStartDate->copy()->subMonth()->format('Y-m-d');
         $this->nextMonthDate = $this->currentStartDate->copy()->addMonth()->format('Y-m-d');
+
+        Carbon::setLocale('pt_BR');
         $this->previousMonthName = Carbon::parse($this->previousMonthDate)->locale('pt_BR')->isoFormat('MMMM');
         $this->nextMonthName = Carbon::parse($this->nextMonthDate)->locale('pt_BR')->isoFormat('MMMM');
 
-        Carbon::setLocale('pt_BR');
-        $this->currentMonthName = ucfirst($this->currentStartDate->translatedFormat('F Y'));
+        // Nome do ciclo atual (ex: "Fatura Jan 2025 (06/Jan - 05/Fev)")
+        if ($startDay > $endDay) {
+            // Ciclo que abrange dois meses
+            $this->currentMonthName = sprintf(
+                'Fatura %s - %s (dia %d até dia %d)',
+                ucfirst($this->currentStartDate->translatedFormat('M/Y')),
+                ucfirst($this->currentEndDate->translatedFormat('M/Y')),
+                $startDay,
+                $endDay
+            );
+        } else {
+            // Ciclo dentro do mesmo mês
+            $this->currentMonthName = sprintf(
+                'Fatura %s (dia %d até dia %d)',
+                ucfirst($this->currentStartDate->translatedFormat('M/Y')),
+                $startDay,
+                $endDay
+            );
+        }
     }
 
     private function loadInvoices()
@@ -324,7 +358,7 @@ class InvoicesIndex extends Component
     }
 
     /**
-     * Método para ir para o mês anterior.
+     * Método para ir para o ciclo de fatura anterior.
      */
     public function previousMonth()
     {
@@ -338,13 +372,13 @@ class InvoicesIndex extends Component
         }
 
         // Feedback temporário
-        session()->flash('message', "Navegou para: " . $this->month . "/" . $this->year);
+        session()->flash('message', "Navegou para o ciclo anterior: " . $this->month . "/" . $this->year);
 
         $this->loadData();
     }
 
     /**
-     * Método para ir para o próximo mês.
+     * Método para ir para o próximo ciclo de fatura.
      */
     public function nextMonth()
     {
@@ -358,7 +392,7 @@ class InvoicesIndex extends Component
         }
 
         // Feedback temporário
-        session()->flash('message', "Navegou para: " . $this->month . "/" . $this->year);
+        session()->flash('message', "Navegou para o próximo ciclo: " . $this->month . "/" . $this->year);
 
         $this->loadData();
     }
@@ -387,34 +421,32 @@ class InvoicesIndex extends Component
     }
 
     /**
-     * Prepara os dados do calendário para o mês selecionado.
+     * Prepara os dados do calendário baseado no ciclo de fatura do cartão.
      */
     private function prepareCalendarData(): void
     {
-        // Obter o primeiro dia do mês
-        $firstDayOfMonth = Carbon::create($this->year, $this->month, 1);
+        // Usar as datas de início e fim do ciclo de fatura (já calculadas em calculateDateRanges)
+        $firstDayOfCycle = $this->currentStartDate->copy();
+        $lastDayOfCycle = $this->currentEndDate->copy();
 
-        // Obter o último dia do mês
-        $lastDayOfMonth = $firstDayOfMonth->copy()->endOfMonth();
+        // Obter o primeiro dia da semana do ciclo (domingo = 0, segunda = 1, etc.)
+        $firstDayOfWeek = $firstDayOfCycle->dayOfWeek;
 
-        // Obter o primeiro dia da semana (domingo = 0, segunda = 1, etc.)
-        $firstDayOfWeek = $firstDayOfMonth->dayOfWeek;
+        // Obter o último dia da semana do ciclo
+        $lastDayOfWeek = $lastDayOfCycle->dayOfWeek;
 
-        // Obter o último dia da semana
-        $lastDayOfWeek = $lastDayOfMonth->dayOfWeek;
+        // Calcular quantos dias precisamos mostrar antes do primeiro dia do ciclo
+        $daysBeforeCycle = $firstDayOfWeek;
 
-        // Calcular quantos dias precisamos mostrar antes do primeiro dia do mês
-        $daysBeforeMonth = $firstDayOfWeek;
-
-        // Calcular quantos dias precisamos mostrar depois do último dia do mês
-        $daysAfterMonth = 6 - $lastDayOfWeek;
+        // Calcular quantos dias precisamos mostrar depois do último dia do ciclo
+        $daysAfterCycle = 6 - $lastDayOfWeek;
 
         // Criar array com todos os dias do calendário
         $calendarDays = [];
 
-        // Adicionar dias do mês anterior
-        for ($i = $daysBeforeMonth - 1; $i >= 0; $i--) {
-            $day = $firstDayOfMonth->copy()->subDays($i + 1);
+        // Adicionar dias antes do ciclo
+        for ($i = $daysBeforeCycle - 1; $i >= 0; $i--) {
+            $day = $firstDayOfCycle->copy()->subDays($i + 1);
             $calendarDays[] = [
                 'date' => $day->format('Y-m-d'),
                 'day' => $day->day,
@@ -424,26 +456,28 @@ class InvoicesIndex extends Component
             ];
         }
 
-        // Adicionar dias do mês atual
-        for ($day = 1; $day <= $lastDayOfMonth->day; $day++) {
-            $date = Carbon::create($this->year, $this->month, $day);
-            $dateString = $date->format('Y-m-d');
+        // Adicionar todos os dias do ciclo de fatura
+        $currentDay = $firstDayOfCycle->copy();
+        while ($currentDay->lte($lastDayOfCycle)) {
+            $dateString = $currentDay->format('Y-m-d');
 
             // Pegar invoices para este dia específico
             $dayInvoices = isset($this->calendarInvoices[$dateString]) ? $this->calendarInvoices[$dateString] : [];
 
             $calendarDays[] = [
                 'date' => $dateString,
-                'day' => $day,
-                'isCurrentMonth' => true,
-                'isToday' => $date->isToday(),
+                'day' => $currentDay->day,
+                'isCurrentMonth' => true, // Dentro do ciclo de fatura
+                'isToday' => $currentDay->isToday(),
                 'invoices' => $dayInvoices
             ];
+
+            $currentDay->addDay();
         }
 
-        // Adicionar dias do próximo mês
-        for ($i = 1; $i <= $daysAfterMonth; $i++) {
-            $day = $lastDayOfMonth->copy()->addDays($i);
+        // Adicionar dias depois do ciclo
+        for ($i = 1; $i <= $daysAfterCycle; $i++) {
+            $day = $lastDayOfCycle->copy()->addDays($i);
             $calendarDays[] = [
                 'date' => $day->format('Y-m-d'),
                 'day' => $day->day,
@@ -456,7 +490,13 @@ class InvoicesIndex extends Component
         $this->calendarDays = $calendarDays;
 
         // Log temporário
-        session()->flash('calendar_debug', "Calendário preparado - Total dias: " . count($calendarDays) . " - Mês: " . $this->month . "/" . $this->year . " - Total invoices no calendário: " . count($this->calendarInvoices));
+        session()->flash('calendar_debug', sprintf(
+            "Calendário do ciclo preparado - Total dias: %d - Ciclo: %s até %s - Total invoices: %d",
+            count($calendarDays),
+            $firstDayOfCycle->format('d/m/Y'),
+            $lastDayOfCycle->format('d/m/Y'),
+            count($this->calendarInvoices)
+        ));
     }
 
     public function changeBank($newBankId)
