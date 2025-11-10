@@ -13,7 +13,7 @@
     <!-- Incluir sistema de notificações -->
     @include('components.toast-notifications')
 
-    <div class="w-full bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-100 dark:from-gray-900 dark:via-blue-900 dark:to-indigo-900 transition-all duration-300 overflow-x-hidden">
+    <div class="">
         <!-- Header with animated gradient -->
         <div class="w-full bg-gradient-to-r from-white via-blue-50 to-purple-50 dark:from-gray-800 dark:via-blue-900 dark:to-purple-900 shadow-lg border-b border-blue-200 dark:border-gray-700 backdrop-blur-sm">
             <div class="w-full px-4 sm:px-6 lg:px-8">
@@ -418,7 +418,11 @@
                                                         <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                                         </svg>
-                                                        <span class="font-medium">{{ $transaction['date'] ?? 'Sem data' }}</span>
+                                <!-- Campo de data editável: chama o método Livewire updateTransactionDate -->
+                                <input type="date"
+                                    value="{{ $transaction['date'] ?? '' }}"
+                                    wire:change="updateTransactionDate({{ $index }}, $event.target.value)"
+                                    class="px-3 py-2 border rounded-lg text-sm bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-800 dark:text-gray-100" />
                                                     </div>
                                                 </div>
                                             </div>
