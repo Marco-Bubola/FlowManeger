@@ -1,4 +1,4 @@
-<div>
+<div class="w-full">
     <!-- Modern Full-Width Invoice Creation Form -->
     <div class="relative  bg-gradient-to-br overflow-hidden">
 
