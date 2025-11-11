@@ -427,7 +427,7 @@
                                                         </span>
                                                     </div>
                                                     <div class="flex items-center space-x-2">
-                                                        <a href="{{ route('cashbook.edit', $transaction['id']) }}"
+                                                        <a href="{{ route('cashbook.edit', ['cashbook' => $transaction['id'], 'return_month' => $month, 'return_year' => $year]) }}"
                                                            class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 shadow-md hover:shadow-lg">
                                                             <i class="fas fa-edit text-xs"></i>
                                                         </a>
