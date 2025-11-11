@@ -75,11 +75,21 @@ class CashbookIndex extends Component
 
     public function mount(): void
     {
-        // Inicializa o mês e o ano com os valores atuais
-        $this->month = now()->month;
-        $this->year = now()->year;
-        $this->currentMonth = now()->format('Y-m');
-        $this->monthName = now()->translatedFormat('F Y');
+        // Verificar se há parâmetros de retorno na URL
+        $returnMonth = request()->query('return_month');
+        $returnYear = request()->query('return_year');
+
+        // Se houver parâmetros, usar eles; senão, usar mês/ano atual
+        if ($returnMonth && $returnYear) {
+            $this->month = (int) $returnMonth;
+            $this->year = (int) $returnYear;
+        } else {
+            $this->month = now()->month;
+            $this->year = now()->year;
+        }
+
+        $this->currentMonth = Carbon::create($this->year, $this->month, 1)->format('Y-m');
+        $this->monthName = Carbon::create($this->year, $this->month, 1)->translatedFormat('F Y');
 
         $this->loadData();
     }
