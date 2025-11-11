@@ -28,9 +28,9 @@
     $borderErrorColor = $errors->has($wireModel) ? 'border-red-400 focus:border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 ' . $focusBorderColor . ' ' . $hoverBorderColor;
 @endphp
 
-<div class="group space-y-4">
-    <label for="{{ $id }}" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-{{ $iconColor }}-600 dark:group-hover:text-{{ $iconColor }}-400 transition-colors duration-300">
-        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br {{ $iconColorClass }} rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-all duration-300 group-hover:shadow-xl group-hover:shadow-{{ $iconColor }}-500/30">
+<div class="group space-y-2">
+    <label for="{{ $id }}" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-{{ $iconColor }}-600 dark:group-hover:text-{{ $iconColor }}-400 transition-colors duration-200">
+        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br {{ $iconColorClass }} rounded-lg mr-3 shadow-sm transition-transform duration-150">
             <i class="{{ $icon }}"></i>
         </div>
         {{ $label }}
@@ -41,8 +41,8 @@
 
     <div class="relative">
         <!-- Ícone da moeda com animações -->
-        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <span class="text-lg font-bold bg-gradient-to-r from-{{ $iconColor }}-600 to-{{ $iconColor }}-500 bg-clip-text text-transparent group-hover:scale-110 transition-transform duration-300">{{ $currency }}</span>
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <span class="text-base font-bold bg-gradient-to-r from-{{ $iconColor }}-600 to-{{ $iconColor }}-500 bg-clip-text text-transparent transition-transform duration-150">{{ $currency }}</span>
         </div>
 
      <!-- Campo de entrada oculto (valor numérico para Livewire) -->
@@ -55,21 +55,20 @@
          name="{{ $name }}_masked"
          maxlength="{{ $maxlength }}"
          @if($disabled) disabled @endif
-         class="w-full pl-16 pr-16 py-4 border-2 rounded-2xl
+         class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl
              bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm
              text-slate-900 dark:text-slate-100 placeholder-slate-400
              {{ $borderErrorColor }}
-             focus:ring-4 {{ $focusRingColor }} focus:outline-none
-             transition-all duration-300 shadow-lg hover:shadow-xl
-             group-hover:scale-[1.02]
+             focus:ring-2 {{ $focusRingColor }} focus:outline-none
+             transition-all duration-200 shadow-sm hover:shadow-sm
              {{ $disabled ? 'opacity-50 cursor-not-allowed' : '' }}"
          placeholder="{{ $placeholder }}">
 
-        <!-- Indicador de validação -->
-        <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
+        <!-- Indicador de validação (pequeno) -->
+        <div class="absolute inset-y-0 right-0 pr-3 flex items-center">
             @if(!$errors->has($wireModel) && $wireModel)
-                <div class="flex items-center justify-center w-6 h-6 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse">
-                    <i class="bi bi-check text-white text-xs font-bold"></i>
+                <div class="flex items-center justify-center w-5 h-5 bg-gradient-to-r from-emerald-400 to-green-500 rounded-full animate-pulse">
+                    <i class="bi bi-check text-white text-[10px] font-bold"></i>
                 </div>
             @endif
         </div>
@@ -79,9 +78,9 @@
     </div>
 
     @error($wireModel)
-    <div class="flex items-center mt-3 p-3 bg-red-50/80 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800 backdrop-blur-sm animate-slideIn">
-        <i class="bi bi-exclamation-triangle-fill text-red-500 mr-3 animate-bounce"></i>
-        <p class="text-red-600 dark:text-red-400 font-medium">{{ $message }}</p>
+    <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm animate-slideIn">
+        <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2 animate-bounce"></i>
+        <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
     </div>
     @enderror
 </div>
