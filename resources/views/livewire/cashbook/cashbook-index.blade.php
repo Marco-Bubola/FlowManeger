@@ -3,16 +3,15 @@
     <x-cashbook-header :total-transactions="$transactionsCount ?? 0" :total-balance="$totalBalance ?? 0" :show-quick-actions="true" />
 
     <!-- Main Content Layout -->
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+    <div class="w-full ">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-            <!-- Left Column - Calendar & Chart (20% - 1 col) -->
-            <div class="lg:col-span-1 space-y-6">
+            <div class="lg:col-span-1 space-y-3">
                 <!-- Calendar -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl mb-6">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center">
-                            <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-2">
+                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-3 rounded-xl border border-white/20 dark:border-gray-700/30 shadow-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
+                            <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-2">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
@@ -22,10 +21,10 @@
                     </div>
 
                     <!-- Navegação do Calendário com selects e botões -->
-                    <div class="flex items-center justify-between mb-6">
+                    <div class="flex items-center justify-between mb-3">
                         <button wire:click="changeMonth('previous')"
-                            class="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
                         </button>
@@ -46,50 +45,50 @@
                             </select>
                         </div>
                         <button wire:click="changeMonth('next')"
-                            class="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            class="p-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </button>
                     </div>
 
                     <!-- Exibir mês/ano atual -->
-                    <div class="mb-4 text-center">
-                        <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                            Exibindo: {{ $monthName ?? 'Carregando...' }}
+                    <div class="mb-2 text-center">
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                            {{ $monthName ?? 'Carregando...' }}
                         </span>
                     </div>
 
                     <!-- Feedback temporário -->
                     @if(session('message'))
-                        <div class="mb-4 p-2 bg-green-100 border border-green-300 rounded text-xs text-green-800">
+                        <div class="mb-2 p-1.5 bg-green-100 border border-green-300 rounded text-xs text-green-800">
                             {{ session('message') }}
                         </div>
                     @endif
 
                     @if(session('debug_info'))
-                        <div class="mb-4 p-2 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
+                        <div class="mb-2 p-1.5 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
                             <strong>Debug:</strong> {{ session('debug_info') }}
                         </div>
                     @endif
 
                     @if(session('calendar_debug'))
-                        <div class="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                        <div class="mb-2 p-1.5 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
                             <strong>Calendar:</strong> {{ session('calendar_debug') }}
                         </div>
                     @endif                    <!-- Cabeçalho do calendário -->
-                    <div class="grid grid-cols-7 gap-1 mb-3">
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">D</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">T</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                 <div class="grid grid-cols-7 gap-1 mb-2">
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">D</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">T</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
+                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
                     </div>
 
                     <!-- Dias do calendário -->
-                    <div class="grid grid-cols-7 gap-2">
+                    <div class="grid grid-cols-7 gap-1">
                         @if(isset($calendarData) && is_array($calendarData))
                             @foreach ($calendarData as $week)
                                 @foreach ($week as $day)
@@ -131,20 +130,20 @@
                 </div>
 
                 <!-- Chart Section -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center">
-                            <div class="w-8 h-8 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-2">
+                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-4 rounded-xl border border-white/20 dark:border-gray-700/30 shadow-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
+                            <div class="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-2">
                                 <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
                                 </svg>
                             </div>
-                            📊 Por Categoria
+                             Por Categoria
                         </h3>
                     </div>
 
                     <!-- Categories Chart -->
-                    <div class="space-y-4">
+                    <div class="space-y-2">
                         @foreach($categories as $category)
                             @php
                                 $categoryTransactions = collect($transactionsByCategory)->filter(function($group) use ($category) {
@@ -205,13 +204,13 @@
 
             </div>
 
-            <!-- Right Column - Transactions (80% - 4 cols) -->
-            <div class="lg:col-span-4 space-y-6">
+            <!-- Right Column - Transactions (75% - 3 cols) -->
+            <div class="lg:col-span-3 space-y-3">
                 <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <!-- Income Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="p-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -226,7 +225,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-6 py-3">
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-4 py-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-green-700 dark:text-green-300">Total do mês</span>
                                 <i class="fas fa-arrow-up text-green-600 dark:text-green-400"></i>
@@ -235,8 +234,8 @@
                     </div>
 
                     <!-- Expense Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="p-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-rose-500 rounded-xl flex items-center justify-center shadow-lg">
@@ -251,7 +250,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900 dark:to-rose-900 px-6 py-3">
+                        <div class="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900 dark:to-rose-900 px-4 py-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs text-red-700 dark:text-red-300">Total do mês</span>
                                 <i class="fas fa-arrow-down text-red-600 dark:text-red-400"></i>
@@ -260,8 +259,8 @@
                     </div>
 
                     <!-- Balance Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                        <div class="p-4">
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center space-x-3">
                                     <div class="w-12 h-12 bg-gradient-to-br {{ ($totals['balance'] ?? 0) >= 0 ? 'from-blue-400 to-indigo-500' : 'from-orange-400 to-amber-500' }} rounded-xl flex items-center justify-center shadow-lg">
@@ -281,7 +280,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="bg-gradient-to-r {{ ($totals['balance'] ?? 0) >= 0 ? 'from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900' : 'from-orange-50 to-amber-50 dark:from-orange-900 dark:to-amber-900' }} px-6 py-3">
+                        <div class="bg-gradient-to-r {{ ($totals['balance'] ?? 0) >= 0 ? 'from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900' : 'from-orange-50 to-amber-50 dark:from-orange-900 dark:to-amber-900' }} px-4 py-2">
                             <div class="flex items-center justify-between">
                                 <span class="text-xs {{ ($totals['balance'] ?? 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-orange-700 dark:text-orange-300' }}">Resultado</span>
                                 <i class="fas fa-calculator {{ ($totals['balance'] ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}"></i>
@@ -292,43 +291,50 @@
 
 
                 <!-- Transactions List -->
-                <div class="space-y-4">
+                <div class="space-y-3">
                     <!-- Controls -->
-                    <div class="flex items-center justify-between mb-4">
-                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                            <i class="fas fa-list mr-2"></i>
-                            Transações por Categoria
-                        </h2>
-                        <div class="flex items-center space-x-2" x-data="{ expandAll() { document.querySelectorAll('[x-data]')
-    .forEach(el => { if (el.__x && el.__x.$data && typeof el.__x.$data.expanded !== 'undefined') { el.__x.$data.expanded = true; } }); },
-    collapseAll() { document.querySelectorAll('[x-data]')
-    .forEach(el => { if (el.__x && el.__x.$data && typeof el.__x.$data.expanded !== 'undefined') { el.__x.$data.expanded = false; } }); }
-}">
-                            <button @click="expandAll()"
-                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-expand-arrows-alt mr-1"></i>
+                    <div class="flex items-center justify-between mb-2">
+                         <div class="flex items-center">
+                            <div class="flex items-center space-x-3">
+                                <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-md">
+                                    <i class="fas fa-layer-group text-lg"></i>
+                                </div>
+                                <div class="leading-tight">
+                                    <h2 class="text-base md:text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-600 dark:from-slate-100 dark:to-indigo-300">
+                                        Transações por Categoria
+                                    </h2>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Visão agrupada — {{ count($transactionsByCategory) }} categorias</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button @click="$dispatch('expand-all')"
+                                class="inline-flex items-center px-2 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-expand-arrows-alt mr-1 text-xs"></i>
                                 Expandir
                             </button>
-                            <button @click="collapseAll()"
-                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-compress-arrows-alt mr-1"></i>
+                            <button @click="$dispatch('collapse-all')"
+                                class="inline-flex items-center px-2 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
+                                <i class="fas fa-compress-arrows-alt mr-1 text-xs"></i>
                                 Recolher
                             </button>
                         </div>
                     </div>
 
                     <!-- Categories List -->
-                    <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                    <div class="space-y-3 max-h-[calc(100vh-100px)] overflow-y-auto pr-2">
                     @forelse($transactionsByCategory as $index => $categoryGroup)
-                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300"
-                             x-data="{ expanded: false }">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-300"
+                        x-data="{ expanded: false }"
+                        x-on:expand-all.window="expanded = true"
+                        x-on:collapse-all.window="expanded = false">
                             <!-- Category Header -->
                             <div class="cursor-pointer select-none" @click="expanded = !expanded">
-                                <div class="px-6 py-5 border-l-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+                                <div class="px-4 py-3 border-l-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
                                      style="border-left-color: {{ $categoryGroup['category_hexcolor_category'] }}">
                                     <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-4">
-                                            <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg"
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
                                                  style="background: linear-gradient(135deg, {{ $categoryGroup['category_hexcolor_category'] }}20, {{ $categoryGroup['category_hexcolor_category'] }}40)">
                                                 <i class="{{ $categoryGroup['category_icone'] }} text-xl"
                                                    style="color: {{ $categoryGroup['category_hexcolor_category'] }}"></i>
@@ -343,8 +349,8 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        <div class="flex items-center space-x-4">
-                                            <div class="text-right space-y-2">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="text-right space-y-1">
                                                 @if($categoryGroup['total_receita'] > 0)
                                                     <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
                                                         <i class="fas fa-arrow-up mr-1"></i>
@@ -371,7 +377,7 @@
 
                             <!-- Transactions List -->
                             <div x-show="expanded" x-collapse class="border-t border-gray-100 dark:border-gray-700">
-                                <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                                <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 px-4 py-2 border-b border-gray-100 dark:border-gray-700">
                                     <div class="flex items-center justify-between text-sm">
                                         <span class="font-semibold text-gray-700 dark:text-gray-200 flex items-center">
                                             <i class="fas fa-list mr-2"></i>
@@ -387,10 +393,10 @@
                                 </div>
 
                                 <!-- Grid com 2 colunas para as transações -->
-                                <div class="p-4">
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                <div class="p-3">
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                                         @foreach($categoryGroup['transactions'] as $transaction)
-                                            <div class="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
                                                 <div class="flex items-center justify-between mb-3">
                                                     <div class="flex items-center space-x-3">
                                                         <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-md {{ $transaction['type_id'] == 1 ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900' }}">
@@ -457,14 +463,14 @@
                             </div>
                             </div>
                         @empty
-                            <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-12 text-center">
-                                <div class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center">
-                                    <i class="fas fa-inbox text-gray-400 dark:text-gray-500 text-3xl"></i>
+                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center">
+                                <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-inbox text-gray-400 dark:text-gray-500 text-2xl"></i>
                                 </div>
-                                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">Nenhuma transação encontrada</h3>
-                                <p class="text-gray-500 dark:text-gray-400 mb-8">Comece criando uma nova transação ou ajuste os filtros para ver seus dados.</p>
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Nenhuma transação encontrada</h3>
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Comece criando uma nova transação ou ajuste os filtros para ver seus dados.</p>
                                 <a href="{{ route('cashbook.create') }}"
-                                   class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg">
                                     <i class="fas fa-plus mr-2"></i>
                                     Criar Primeira Transação
                                 </a>
@@ -563,7 +569,7 @@
     }
 
     .calendar-day {
-        @apply w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all duration-200 text-sm font-medium;
+        @apply w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 text-xs font-medium;
     }
 
     .calendar-day:hover {
