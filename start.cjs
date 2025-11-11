@@ -10,6 +10,9 @@ const build = args.includes('--build');
 const skipMigrate = args.includes('--skip-migrate');
 const skipSeed = args.includes('--skip-seed');
 const noBrowser = args.includes('--no-browser');
+const fullSetup = args.includes('--full-setup');
+// Por padrão, usa modo server-only, exceto se --full-setup for especificado
+const serverOnly = !fullSetup;
 
 const LARAVEL_URL = 'http://127.0.0.1:8000';
 const LARAVEL_PORT = 8000;
@@ -98,6 +101,14 @@ function logHeader() {
 // Monta a lista de comandos com base nas flags (sync commands)
 function buildSyncCommands() {
   const cmds = [];
+
+  // Se for modo servidor apenas (padrão), pular todas as instalações e migrações
+  if (serverOnly) {
+    log('🚀 Modo servidor apenas (padrão) - pulando instalações e migrações');
+    log('💡 Para executar instalação completa use: --full-setup');
+    return cmds; // Retorna array vazio
+  }
+
   cmds.push('composer install');
   cmds.push('npm install');
   cmds.push('php artisan key:generate');
@@ -282,19 +293,23 @@ async function runAll() {
 
   try {
     // 1. Executar comandos síncronos (composer, npm install, etc)
-    log('\n=== FASE 1: Instalando dependências ===');
     const syncCommands = buildSyncCommands();
-    for (let i = 0; i < syncCommands.length; i++) {
-      const cmd = syncCommands[i];
-      try {
-        await runCommand(cmd);
-      } catch (err) {
-        log(`\n✗ ERRO ao executar comando: ${cmd}`, 'ERROR');
-        log(err.message || err, 'ERROR');
-        log(`\nVerifique o log completo em: ${LOG_FILE}`, 'ERROR');
-        pauseBeforeExit(err.code || 1);
-        return;
+    if (syncCommands.length > 0) {
+      log('\n=== FASE 1: Instalando dependências ===');
+      for (let i = 0; i < syncCommands.length; i++) {
+        const cmd = syncCommands[i];
+        try {
+          await runCommand(cmd);
+        } catch (err) {
+          log(`\n✗ ERRO ao executar comando: ${cmd}`, 'ERROR');
+          log(err.message || err, 'ERROR');
+          log(`\nVerifique o log completo em: ${LOG_FILE}`, 'ERROR');
+          pauseBeforeExit(err.code || 1);
+          return;
+        }
       }
+    } else {
+      log('\n=== FASE 1: Pulando instalação de dependências (modo servidor apenas) ===');
     }
 
     // 2. Iniciar Vite em background (se não for build)
