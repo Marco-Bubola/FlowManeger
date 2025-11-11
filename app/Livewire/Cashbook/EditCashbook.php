@@ -33,6 +33,10 @@ class EditCashbook extends Component
     public $segment_id = '';
     public $cofrinho_id = '';
 
+    // Parâmetros para retornar à mesma visualização
+    public $returnMonth = null;
+    public $returnYear = null;
+
     // Dados para select
     public $categories = [];
     public $types = [];
@@ -76,6 +80,10 @@ class EditCashbook extends Component
     {
         $this->cashbook = $cashbook;
 
+        // Capturar parâmetros de retorno da query string
+        $this->returnMonth = request()->query('return_month');
+        $this->returnYear = request()->query('return_year');
+
         // Preencher formulário com dados existentes
         $this->value = $cashbook->value;
         $this->description = $cashbook->description;
@@ -113,6 +121,18 @@ class EditCashbook extends Component
             ->get();
     }
 
+    public function nextStep()
+    {
+        $this->currentStep++;
+    }
+
+    public function previousStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
+    }
+
     public function save()
     {
         $this->validate();
@@ -144,12 +164,30 @@ class EditCashbook extends Component
         $this->dispatch('transaction-updated');
         session()->flash('success', 'Transação atualizada com sucesso!');
 
-        $this->redirect(route('cashbook.index'));
+        // Preservar mês e ano ao redirecionar
+        $queryParams = [];
+        if ($this->returnMonth) {
+            $queryParams['return_month'] = $this->returnMonth;
+        }
+        if ($this->returnYear) {
+            $queryParams['return_year'] = $this->returnYear;
+        }
+
+        return $this->redirect(route('cashbook.index', $queryParams));
     }
 
     public function cancel()
     {
-        $this->redirect(route('cashbook.index'));
+        // Preservar mês e ano ao cancelar
+        $queryParams = [];
+        if ($this->returnMonth) {
+            $queryParams['return_month'] = $this->returnMonth;
+        }
+        if ($this->returnYear) {
+            $queryParams['return_year'] = $this->returnYear;
+        }
+
+        return $this->redirect(route('cashbook.index', $queryParams));
     }
 
     public function render()
