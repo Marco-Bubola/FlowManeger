@@ -22,18 +22,18 @@
         ]" />
 
     <!-- Conteúdo Principal (estrutura espelhada ao create-product) -->
-    <div class="relative flex-1 overflow-y-auto">
+    <div class="relative flex-1 ">
         <form wire:submit.prevent="save" class="">
-            <div class="px-8  space-y-6 h-full flex flex-col">
+            <div class="flex flex-col">
 
-                <div class="flex-1 space-y-6 animate-fadeIn">
+                <div class="flex-1 space-y-4 animate-fadeIn">
                     @if($currentStep == 1)
                     <!-- Card Container Principal (Step 1) -->
-                    <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl shadow-slate-200/50 dark:shadow-slate-900/50 border border-white/20 dark:border-slate-700/50 w-full">
+                    <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg shadow-slate-200/30 dark:shadow-slate-900/30 border border-white/20 dark:border-slate-700/50 w-full">
                         <!-- Seção superior: Value / Cliente / Data (3 colunas) -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
                             <!-- Valor (usando componente de moeda único, sem duplicar label/icones) -->
-                            <div class="group space-y-4">
+                            <div class="group space-y-2">
                                 <x-currency-input
                                     name="value"
                                     id="value"
@@ -47,21 +47,21 @@
                             </div>
 
                             <!-- Cliente -->
-                            <div class="group space-y-4">
-                                <label for="client_id" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <div class="group space-y-2">
+                                <label for="client_id" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-lg mr-3 shadow-sm transition-transform duration-150">
                                         <i class="bi bi-person text-white"></i>
                                     </div>
                                     Cliente
                                 </label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i class="bi bi-person text-slate-400 group-hover:text-indigo-500 transition-colors duration-300"></i>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-person text-slate-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
                                     </div>
-                                    <select wire:model="client_id"
-                                            class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
-                                            {{ $errors->has('client_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
-                                            focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <select wire:model="client_id"
+                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                        {{ $errors->has('client_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
+                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um cliente</option>
                                         @foreach($clients as $client)
                                             <option value="{{ $client->id }}">{{ $client->name }}</option>
@@ -69,39 +69,39 @@
                                     </select>
                                 </div>
                                 @error('client_id')
-                                <div class="flex items-center mt-3 p-3 bg-red-50/80 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800 backdrop-blur-sm">
-                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-3"></i>
-                                    <p class="text-red-600 dark:text-red-400 font-medium">{{ $message }}</p>
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
                                 </div>
                                 @enderror
                             </div>
 
                             <!-- Data -->
-                            <div class="group space-y-4">
-                                <label for="date" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            <div class="group space-y-2">
+                                <label for="date" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg mr-3 shadow-sm transition-transform duration-150">
                                         <i class="bi bi-calendar text-white"></i>
                                     </div>
                                     Data
                                 </label>
-                                <input wire:model="date" type="date"
-                                       class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
-                                       {{ $errors->has('date') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
-                                       focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
+                    <input wire:model="date" type="date"
+                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                        {{ $errors->has('date') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
+                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                 @error('date')
-                                <div class="flex items-center mt-3 p-3 bg-red-50/80 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800 backdrop-blur-sm">
-                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-3"></i>
-                                    <p class="text-red-600 dark:text-red-400 font-medium">{{ $message }}</p>
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
                                 </div>
                                 @enderror
                             </div>
                         </div>
 
                         <!-- Descrição ocupando largura total -->
-                        <div class="grid grid-cols-1 gap-6 mb-6">
-                            <div class="group space-y-4">
-                                <label for="description" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl mr-4 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                        <div class="grid grid-cols-1 gap-4 mb-4">
+                            <div class="group space-y-2">
+                                <label for="description" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg mr-3 shadow-sm transition-transform duration-150">
                                         <i class="bi bi-card-text text-white"></i>
                                     </div>
                                     Descrição
@@ -109,38 +109,38 @@
                                 <div class="relative">
                                     <textarea wire:model="description"
                                               id="description"
-                                              rows="4"
-                                              class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none
+                                              rows="3"
+                                              class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none
                                               {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
-                                              focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
+                                              focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm"
                                               placeholder="Descrição da transação"></textarea>
                                 </div>
                                 @error('description')
-                                <div class="flex items-center mt-3 p-3 bg-red-50/80 dark:bg-red-900/30 rounded-xl border border-red-200 dark:border-red-800 backdrop-blur-sm">
-                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-3"></i>
-                                    <p class="text-red-600 dark:text-red-400 font-medium">{{ $message }}</p>
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
                                 </div>
                                 @enderror
                             </div>
                         </div>
 
                         <!-- Grid inferior: Categoria / Tipo / Cofrinho -->
-                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div>
-                                <label for="category_id" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-xl mr-4 shadow-lg">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                            <div class="group space-y-2">
+                                <label for="category_id" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg mr-3 shadow-sm">
                                         <i class="bi bi-tags-fill text-white"></i>
                                     </div>
                                     Categoria
                                 </label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i class="bi bi-tags-fill text-slate-400 group-hover:text-purple-500 transition-colors duration-300"></i>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-tags-fill text-slate-400 group-hover:text-purple-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="category_id"
-                                            class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
                                             {{ $errors->has('category_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
-                                            focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
+                                            focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione uma categoria</option>
                                         @foreach($categories as $category)
                                             <option value="{{ $category->id_category }}">{{ $category->name }}</option>
@@ -150,21 +150,21 @@
                                 @error('category_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
-                            <div>
-                                <label for="type_id" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-300">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-xl mr-4 shadow-lg">
-                                        <i class="bi bi-exchange-alt text-white"></i>
+                            <div class="group space-y-2">
+                                <label for="type_id" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-indigo-400 to-indigo-600 rounded-lg mr-3 shadow-sm">
+                                        <i class="bi bi-arrow-left-right text-white"></i>
                                     </div>
                                     Tipo
                                 </label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i class="bi bi-exchange-alt text-slate-400 group-hover:text-indigo-500 transition-colors duration-300"></i>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-arrow-left-right text-slate-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="type_id"
-                                            class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
                                             {{ $errors->has('type_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
-                                            focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
+                                            focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um tipo</option>
                                         @foreach($types as $type)
                                             <option value="{{ $type->id_type }}">{{ $type->desc_type }}</option>
@@ -174,21 +174,21 @@
                                 @error('type_id') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
                             </div>
 
-                            <div>
-                                <label for="cofrinho_id" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors duration-300">
-                                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-xl mr-4 shadow-lg">
+                            <div class="group space-y-2">
+                                <label for="cofrinho_id" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-lg mr-3 shadow-sm">
                                         <i class="bi bi-piggy-bank text-white"></i>
                                     </div>
                                     Cofrinho
                                 </label>
                                 <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <i class="bi bi-piggy-bank text-slate-400 group-hover:text-amber-500 transition-colors duration-300"></i>
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-piggy-bank text-slate-400 group-hover:text-amber-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="cofrinho_id"
-                                            class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
                                             {{ $errors->has('cofrinho_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
-                                            focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl">
+                                            focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um cofrinho</option>
                                         @foreach($cofrinhos as $cofrinho)
                                             <option value="{{ $cofrinho->id }}">{{ $cofrinho->nome }}</option>
