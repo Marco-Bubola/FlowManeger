@@ -113,33 +113,6 @@
                             </div>
                         </div>
 
-                        <!-- Instructions -->
-                        <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-700 shadow-lg">
-                            <div class="flex items-start space-x-4">
-                                <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl shadow-lg flex-shrink-0">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-xl font-bold text-blue-900 dark:text-blue-200 mb-4">📋 Instruções</h4>
-                                    <div class="space-y-3 text-blue-800 dark:text-blue-300">
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-2 h-2 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                                            <p class="font-medium">Arquivos PDF: Extratos bancários com formato padrão</p>
-                                        </div>
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-2 h-2 bg-purple-500 rounded-full mt-2 flex-shrink-0"></div>
-                                            <p class="font-medium">Arquivos CSV: Formato: Data, Valor, Descrição</p>
-                                        </div>
-                                        <div class="flex items-start space-x-3">
-                                            <div class="w-2 h-2 bg-pink-500 rounded-full mt-2 flex-shrink-0"></div>
-                                            <p class="font-medium">Após o processamento, você poderá escolher o cofrinho para cada transação individualmente</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <!-- Form Actions -->
                         <div class="flex justify-center space-x-4">
