@@ -1,223 +1,74 @@
 <div class="w-full">
+    <!-- Header moderno consistente -->
+    <x-invoice-header
+        :total-transactions="$totalTransactions ?? 0"
+        :total-expenses="$totalDespesas ?? 0"
+        :bank-id="$bankId"
+        :show-quick-actions="true"
+    />
 
+    <!-- Main Content Layout -->
+    <div class="w-full">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
-    <div class="relative z-10">
-        <!-- Header Section -->
-        <div class="">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center shadow-2xl pulse-glow">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                        <div>
-                            <h1 class="text-4xl font-black bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                                💰 Transações Financeiras
-                            </h1>
-                            <p class="text-gray-600 dark:text-gray-400 mt-1">Gerencie suas finanças com estilo e eficiência</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center space-x-4">
-                        @if($bankId)
-                            <a href="{{ route('invoices.create', ['bankId' => $bankId]) }}"
-                               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-bold rounded-xl hover:from-emerald-600 hover:to-teal-700 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-1">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+            <!-- Left Column - Calendar & Chart (25% - 1 col) -->
+            <div class="lg:col-span-1 space-y-3">
+                <!-- Calendar -->
+                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-3 rounded-xl border border-white/20 dark:border-gray-700/30 shadow-lg">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
+                            <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-2">
+                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                                 </svg>
-                                💸 Nova Despesa
-                            </a>
-
-                            <a href="{{ route('invoices.upload', ['bankId' => $bankId]) }}"
-                               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-2xl transform hover:-translate-y-1">
-                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                                </svg>
-                                📊 Upload CSV
-                            </a>
-                            <input type="file" id="fileUpload" accept=".csv,.xlsx,.xls" style="display: none;" />
-
-
-                        @endif
-
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Stats Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-                <!-- Total Despesas -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Despesas</p>
-                            <p class="text-3xl font-black text-red-600 dark:text-red-400">
-                                R$ {{ number_format($totalDespesas, 2, ',', '.') }}
-                            </p>
-                        </div>
-                        <div class="w-12 h-12 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Total Transações -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Transações</p>
-                            <p class="text-3xl font-black text-blue-600 dark:text-blue-400">
-                                {{ $totalTransactions }}
-                            </p>
-                        </div>
-                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Maior Despesa -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Maior Despesa</p>
-                            <p class="text-3xl font-black text-orange-600 dark:text-orange-400">
-                                @if($highestInvoice)
-                                    R$ {{ number_format(abs(is_array($highestInvoice) ? $highestInvoice['value'] : $highestInvoice->value), 2, ',', '.') }}
-                                @else
-                                    R$ 0,00
-                                @endif
-                            </p>
-                        </div>
-                        <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-600 rounded-2xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Menor Despesa -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Menor Despesa</p>
-                            <p class="text-3xl font-black text-green-600 dark:text-green-400">
-                                @if($lowestInvoice)
-                                    R$ {{ number_format(abs(is_array($lowestInvoice) ? $lowestInvoice['value'] : $lowestInvoice->value), 2, ',', '.') }}
-                                @else
-                                    R$ 0,00
-                                @endif
-                            </p>
-                        </div>
-                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-teal-600 rounded-2xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Média de Despesas -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Média Diária</p>
-                            <p class="text-3xl font-black text-purple-600 dark:text-purple-400">
-                                @if($totalTransactions > 0)
-                                    R$ {{ number_format($totalDespesas / $totalTransactions, 2, ',', '.') }}
-                                @else
-                                    R$ 0,00
-                                @endif
-                            </p>
-                        </div>
-                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl flex items-center justify-center">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                <!-- Calendar Section -->
-                <div class="lg:col-span-1">
-                    <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl mb-6">
-                        <div class="flex items-center justify-between mb-6">
-                            <h3 class="text-lg font-black text-gray-900 dark:text-white flex items-center">
-                                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-2">
-                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                    </svg>
-                                </div>
-                                📅 Calendário
-                            </h3>
-                        </div>
-
-                        <!-- Navegação do Calendário com selects e botões -->
-                        <div class="flex items-center justify-between mb-6">
-                            <button wire:click="previousMonth"
-                                class="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                                </svg>
-                            </button>
-                            <div class="flex items-center space-x-2">
-                                <select wire:model.live="month"
-                                    class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
-                                    @foreach (range(1, 12) as $m)
-                                        <option value="{{ $m }}">
-                                            {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMMM') }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <select wire:model.live="year"
-                                    class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
-                                    @foreach (range(now()->year - 5, now()->year + 2) as $y)
-                                        <option value="{{ $y }}">{{ $y }}</option>
-                                    @endforeach
-                                </select>
                             </div>
-                            <button wire:click="nextMonth"
-                                class="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </button>
-                        </div>
+                            📅 Calendário
+                        </h3>
+                    </div>
 
-                        <!-- Exibir mês/ano atual -->
-                        <div class="mb-4 text-center">
-                            <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
-                                Exibindo: {{ $currentMonthName ?? 'Carregando...' }}
-                            </span>
+                    <!-- Navegação do Calendário com selects e botões -->
+                    <div class="flex items-center justify-between mb-3">
+                        <button wire:click="previousMonth"
+                            class="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="flex items-center space-x-2">
+                            <select wire:model.live="month"
+                                class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
+                                @foreach (range(1, 12) as $m)
+                                    <option value="{{ $m }}">
+                                        {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMM') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select wire:model.live="year"
+                                class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
+                                @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                @endforeach
+                            </select>
                         </div>
+                        <button wire:click="nextMonth"
+                            class="p-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Exibir mês/ano atual -->
+                    <div class="mb-2 text-center">
+                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
+                            {{ $currentMonthName ?? 'Carregando...' }}
+                        </span>
+                    </div>
 
                         <!-- Feedback temporário -->
                         @if(session('message'))
                             <div class="mb-4 p-2 bg-green-100 border border-green-300 rounded text-xs text-green-800">
                                 {{ session('message') }}
-                            </div>
-                        @endif
-
-                        @if(session('debug_info'))
-                            <div class="mb-4 p-2 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
-                                <strong>Debug:</strong> {{ session('debug_info') }}
-                            </div>
-                        @endif
-
-                        @if(session('calendar_debug'))
-                            <div class="mb-4 p-2 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                                <strong>Calendar:</strong> {{ session('calendar_debug') }}
                             </div>
                         @endif
 
@@ -336,7 +187,95 @@
                 </div>
 
                 <!-- Transactions Section -->
-                <div class="lg:col-span-4 transactions-section">
+                <div class="lg:col-span-3 space-y-3">
+                    <!-- Summary Cards -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        <!-- Total Despesas Card -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium text-gray-600 dark:text-gray-400">Despesas</p>
+                                            <p class="text-xl font-black text-red-600 dark:text-red-400">
+                                                R$ {{ number_format($totalDespesas, 2, ',', '.') }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900 dark:to-pink-900 px-4 py-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-red-700 dark:text-red-300">Total do mês</span>
+                                    <i class="fas fa-arrow-down text-red-600 dark:text-red-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Total Transações Card -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium text-gray-600 dark:text-gray-400">Transações</p>
+                                            <p class="text-xl font-black text-blue-600 dark:text-blue-400">
+                                                {{ $totalTransactions }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900 px-4 py-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-blue-700 dark:text-blue-300">Quantidade</span>
+                                    <i class="fas fa-receipt text-blue-600 dark:text-blue-400"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Média Card -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
+                            <div class="p-4">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-medium text-gray-600 dark:text-gray-400">Média</p>
+                                            <p class="text-xl font-black text-purple-600 dark:text-purple-400">
+                                                @if($totalTransactions > 0)
+                                                    R$ {{ number_format($totalDespesas / $totalTransactions, 2, ',', '.') }}
+                                                @else
+                                                    R$ 0,00
+                                                @endif
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900 dark:to-pink-900 px-4 py-2">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-purple-700 dark:text-purple-300">Por transação</span>
+                                    <i class="fas fa-calculator text-purple-600 dark:text-purple-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Date Filter Banner -->
                     @if($selectedDate)
                         <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-6 rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl mb-6">
@@ -363,35 +302,40 @@
                         </div>
                     @endif
 
-                    <!-- Transactions Header -->
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-2xl font-black text-gray-900 dark:text-white flex items-center">
-                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mr-3">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
+                    <!-- Transactions List -->
+                    <div class="space-y-3">
+                        <!-- Controls -->
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="flex items-center space-x-3">
+                                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-md">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="leading-tight">
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">💳 Transações</h3>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">{{ count($invoices) }} registro(s)</p>
+                                    </div>
+                                </div>
                             </div>
-                            💳 Transações
-                        </h3>
-
-                        @if($bankId && count($invoices) > 0)
-                            <div class="flex items-center space-x-2">
-                                <button wire:click="$toggle('viewMode')"
-                                        class="inline-flex items-center px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            @if($bankId && count($invoices) > 0)
+                                <div class="flex items-center space-x-2">
+                                    <button wire:click="$toggle('viewMode')"
+                                        class="inline-flex items-center px-2 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200">
                                         @if($viewMode === 'cards')
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                                            <i class="fas fa-list mr-1 text-xs"></i>
+                                            Lista
                                         @else
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 17a2 2 0 002-2V9a2 2 0 00-2-2M9 17h6m-6 0v-2.5M9 14.5V9"></path>
+                                            <i class="fas fa-th mr-1 text-xs"></i>
+                                            Cards
                                         @endif
-                                    </svg>
-                                    {{ $viewMode === 'cards' ? 'Lista' : 'Cards' }}
-                                </button>
-                            </div>
-                        @endif
-                    </div>
+                                    </button>
+                                </div>
+                            @endif
+                        </div>
 
-                    <!-- Transactions Content -->
+                        <!-- Transactions Content -->
                     @if($invoices && count($invoices) > 0)
                         @if($viewMode === 'cards')
                             <!-- Cards View -->
