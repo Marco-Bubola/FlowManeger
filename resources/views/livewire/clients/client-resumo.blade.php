@@ -1,15 +1,15 @@
-<div class=" w-full py-2">
-    <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
+<div class=" w-full ">
+    <div class="">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center mb-4">
-                <a href="{{ route('clients.index') }}" 
+                <a href="{{ route('clients.index') }}"
                    class="mr-4 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors duration-200">
                     <i class="bi bi-arrow-left text-lg"></i>
                 </a>
                 <div class="flex items-center gap-4">
                     @if($client->caminho_foto)
-                        <img src="{{ $client->caminho_foto }}" 
+                        <img src="{{ $client->caminho_foto }}"
                              alt="Avatar de {{ $client->name }}"
                              class="w-16 h-16 rounded-full border-4 border-indigo-100 dark:border-indigo-600">
                     @else
@@ -120,7 +120,7 @@
                     Ações Rápidas
                 </h3>
                 <div class="space-y-3">
-                    <a href="{{ route('clients.faturas', $client->id) }}" 
+                    <a href="{{ route('clients.faturas', $client->id) }}"
                        class="w-full flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors duration-200 group">
                         <div class="flex items-center">
                             <i class="bi bi-receipt text-blue-600 dark:text-blue-400 mr-3"></i>
@@ -129,7 +129,7 @@
                         <i class="bi bi-arrow-right text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform"></i>
                     </a>
 
-                    <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']) }}" 
+                    <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']) }}"
                        class="w-full flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors duration-200 group">
                         <div class="flex items-center">
                             <i class="bi bi-arrow-down text-green-600 dark:text-green-400 mr-3"></i>
@@ -138,7 +138,7 @@
                         <i class="bi bi-arrow-right text-green-600 dark:text-green-400 group-hover:translate-x-1 transition-transform"></i>
                     </a>
 
-                    <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']) }}" 
+                    <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']) }}"
                        class="w-full flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors duration-200 group">
                         <div class="flex items-center">
                             <i class="bi bi-arrow-up text-orange-600 dark:text-orange-400 mr-3"></i>
@@ -147,7 +147,7 @@
                         <i class="bi bi-arrow-right text-orange-600 dark:text-orange-400 group-hover:translate-x-1 transition-transform"></i>
                     </a>
 
-                    <a href="{{ route('clients.edit', $client->id) }}" 
+                    <a href="{{ route('clients.edit', $client->id) }}"
                        class="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200 group">
                         <div class="flex items-center">
                             <i class="bi bi-pencil text-gray-600 dark:text-gray-400 mr-3"></i>
@@ -169,47 +169,47 @@
                             <i class="bi bi-receipt text-indigo-600 dark:text-indigo-400 mr-2"></i>
                             Faturas ({{ $faturasTotal }})
                         </h3>
-                        <a href="{{ route('clients.faturas', $client->id) }}" 
+                        <a href="{{ route('clients.faturas', $client->id) }}"
                            class="text-sm text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium">
                             Ver todas →
                         </a>
                     </div>
-                    
+
                     <!-- Paginação Faturas -->
                     @if($faturasTotal > $perPage)
                         <div class="flex items-center justify-center space-x-1 mt-4">
                             @php
                                 $maxFaturasPage = ceil($faturasTotal / $perPage);
                             @endphp
-                            
+
                             <!-- Primeira página -->
-                            <button wire:click="$set('faturasPage', 1)" 
+                            <button wire:click="$set('faturasPage', 1)"
                                     class="px-2 py-1 text-sm {{ $faturasPage == 1 ? 'text-gray-400' : 'text-indigo-600 hover:text-indigo-800' }}">
                                 &laquo;&laquo;
                             </button>
-                            
+
                             <!-- Página anterior -->
-                            <button wire:click="prevFaturasPage" 
+                            <button wire:click="prevFaturasPage"
                                     class="px-2 py-1 text-sm {{ $faturasPage == 1 ? 'text-gray-400' : 'text-indigo-600 hover:text-indigo-800' }}">
                                 &laquo;
                             </button>
-                            
+
                             <!-- Páginas numeradas -->
                             @for($i = max(1, $faturasPage - 2); $i <= min($maxFaturasPage, $faturasPage + 2); $i++)
-                                <button wire:click="$set('faturasPage', {{ $i }})" 
+                                <button wire:click="$set('faturasPage', {{ $i }})"
                                         class="px-3 py-1 text-sm rounded {{ $i == $faturasPage ? 'bg-indigo-600 text-white' : 'text-indigo-600 hover:bg-indigo-50' }}">
                                     {{ $i }}
                                 </button>
                             @endfor
-                            
+
                             <!-- Próxima página -->
-                            <button wire:click="nextFaturasPage" 
+                            <button wire:click="nextFaturasPage"
                                     class="px-2 py-1 text-sm {{ $faturasPage == $maxFaturasPage ? 'text-gray-400' : 'text-indigo-600 hover:text-indigo-800' }}">
                                 &raquo;
                             </button>
-                            
+
                             <!-- Última página -->
-                            <button wire:click="$set('faturasPage', {{ $maxFaturasPage }})" 
+                            <button wire:click="$set('faturasPage', {{ $maxFaturasPage }})"
                                     class="px-2 py-1 text-sm {{ $faturasPage == $maxFaturasPage ? 'text-gray-400' : 'text-indigo-600 hover:text-indigo-800' }}">
                                 &raquo;&raquo;
                             </button>
@@ -243,7 +243,7 @@
                                                 </p>
                                             </div>
                                         </div>
-                                        
+
                                         <!-- Toggle dividida -->
                                         <div class="flex items-center space-x-2">
                                             <span class="text-xs text-gray-500 dark:text-gray-400">
@@ -275,47 +275,47 @@
                             <i class="bi bi-arrow-down-circle text-green-600 dark:text-green-400 mr-2"></i>
                             Recebidas ({{ $recebidasTotal }})
                         </h3>
-                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']) }}" 
+                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'recebidas']) }}"
                            class="text-sm text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 font-medium">
                             Ver todas →
                         </a>
                     </div>
-                    
+
                     <!-- Paginação Recebidas -->
                     @if($recebidasTotal > $perPage)
                         <div class="flex items-center justify-center space-x-1 mt-4">
                             @php
                                 $maxRecebidasPage = ceil($recebidasTotal / $perPage);
                             @endphp
-                            
+
                             <!-- Primeira página -->
-                            <button wire:click="$set('recebidasPage', 1)" 
+                            <button wire:click="$set('recebidasPage', 1)"
                                     class="px-2 py-1 text-sm {{ $recebidasPage == 1 ? 'text-gray-400' : 'text-green-600 hover:text-green-800' }}">
                                 &laquo;&laquo;
                             </button>
-                            
+
                             <!-- Página anterior -->
-                            <button wire:click="prevRecebidasPage" 
+                            <button wire:click="prevRecebidasPage"
                                     class="px-2 py-1 text-sm {{ $recebidasPage == 1 ? 'text-gray-400' : 'text-green-600 hover:text-green-800' }}">
                                 &laquo;
                             </button>
-                            
+
                             <!-- Páginas numeradas -->
                             @for($i = max(1, $recebidasPage - 2); $i <= min($maxRecebidasPage, $recebidasPage + 2); $i++)
-                                <button wire:click="$set('recebidasPage', {{ $i }})" 
+                                <button wire:click="$set('recebidasPage', {{ $i }})"
                                         class="px-3 py-1 text-sm rounded {{ $i == $recebidasPage ? 'bg-green-600 text-white' : 'text-green-600 hover:bg-green-50' }}">
                                     {{ $i }}
                                 </button>
                             @endfor
-                            
+
                             <!-- Próxima página -->
-                            <button wire:click="nextRecebidasPage" 
+                            <button wire:click="nextRecebidasPage"
                                     class="px-2 py-1 text-sm {{ $recebidasPage == $maxRecebidasPage ? 'text-gray-400' : 'text-green-600 hover:text-green-800' }}">
                                 &raquo;
                             </button>
-                            
+
                             <!-- Última página -->
-                            <button wire:click="$set('recebidasPage', {{ $maxRecebidasPage }})" 
+                            <button wire:click="$set('recebidasPage', {{ $maxRecebidasPage }})"
                                     class="px-2 py-1 text-sm {{ $recebidasPage == $maxRecebidasPage ? 'text-gray-400' : 'text-green-600 hover:text-green-800' }}">
                                 &raquo;&raquo;
                             </button>
@@ -364,47 +364,47 @@
                             <i class="bi bi-arrow-up-circle text-red-600 dark:text-red-400 mr-2"></i>
                             Enviadas ({{ $enviadasTotal }})
                         </h3>
-                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']) }}" 
+                        <a href="{{ route('clients.transferencias', ['cliente' => $client->id, 'tipo' => 'enviadas']) }}"
                            class="text-sm text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium">
                             Ver todas →
                         </a>
                     </div>
-                    
+
                     <!-- Paginação Enviadas -->
                     @if($enviadasTotal > $perPage)
                         <div class="flex items-center justify-center space-x-1 mt-4">
                             @php
                                 $maxEnviadasPage = ceil($enviadasTotal / $perPage);
                             @endphp
-                            
+
                             <!-- Primeira página -->
-                            <button wire:click="$set('enviadasPage', 1)" 
+                            <button wire:click="$set('enviadasPage', 1)"
                                     class="px-2 py-1 text-sm {{ $enviadasPage == 1 ? 'text-gray-400' : 'text-red-600 hover:text-red-800' }}">
                                 &laquo;&laquo;
                             </button>
-                            
+
                             <!-- Página anterior -->
-                            <button wire:click="prevEnviadasPage" 
+                            <button wire:click="prevEnviadasPage"
                                     class="px-2 py-1 text-sm {{ $enviadasPage == 1 ? 'text-gray-400' : 'text-red-600 hover:text-red-800' }}">
                                 &laquo;
                             </button>
-                            
+
                             <!-- Páginas numeradas -->
                             @for($i = max(1, $enviadasPage - 2); $i <= min($maxEnviadasPage, $enviadasPage + 2); $i++)
-                                <button wire:click="$set('enviadasPage', {{ $i }})" 
+                                <button wire:click="$set('enviadasPage', {{ $i }})"
                                         class="px-3 py-1 text-sm rounded {{ $i == $enviadasPage ? 'bg-red-600 text-white' : 'text-red-600 hover:bg-red-50' }}">
                                     {{ $i }}
                                 </button>
                             @endfor
-                            
+
                             <!-- Próxima página -->
-                            <button wire:click="nextEnviadasPage" 
+                            <button wire:click="nextEnviadasPage"
                                     class="px-2 py-1 text-sm {{ $enviadasPage == $maxEnviadasPage ? 'text-gray-400' : 'text-red-600 hover:text-red-800' }}">
                                 &raquo;
                             </button>
-                            
+
                             <!-- Última página -->
-                            <button wire:click="$set('enviadasPage', {{ $maxEnviadasPage }})" 
+                            <button wire:click="$set('enviadasPage', {{ $maxEnviadasPage }})"
                                     class="px-2 py-1 text-sm {{ $enviadasPage == $maxEnviadasPage ? 'text-gray-400' : 'text-red-600 hover:text-red-800' }}">
                                 &raquo;&raquo;
                             </button>
@@ -446,7 +446,7 @@
             </div>
         </div>
 
-       
+
     </div>
 
 </div>
