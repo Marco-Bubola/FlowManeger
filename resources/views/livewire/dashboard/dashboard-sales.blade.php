@@ -1,4 +1,4 @@
-﻿<div x-data="{ activeTab: 'overview' }" class="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-slate-900 dark:to-gray-800">
+﻿<div x-data="{ activeTab: 'overview' }" class="w-full">
     <!-- Ultra Modern Header with Glassmorphism -->
     <div class="relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-white/20 dark:border-gray-700/50 shadow-xl">
         <!-- Background Gradient Overlay -->
