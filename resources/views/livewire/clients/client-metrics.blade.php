@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="w-full">
     <!-- Score de Fidelidade -->
     <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl">
         <div class="flex items-center justify-between mb-4">
@@ -7,11 +7,11 @@
                 <span class="text-2xl font-bold">{{ $scoreFidelidade }}</span>
             </div>
         </div>
-        
+
         <div class="progress-bar bg-white/20">
             <div class="progress-bar-fill" style="width: {{ $scoreFidelidade }}%"></div>
         </div>
-        
+
         <div class="mt-4 grid grid-cols-3 gap-4 text-sm">
             <div class="text-center">
                 <div class="font-semibold">
@@ -52,7 +52,7 @@
             <i class="bi bi-clock-history text-indigo-600 dark:text-indigo-400 mr-2"></i>
             Padrão de Compras
         </h3>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Frequência -->
             <div class="space-y-4">
@@ -67,7 +67,7 @@
                         Regularidade: {{ $frequenciaCompras['regularidade'] ?? 'N/A' }}
                     </div>
                 </div>
-                
+
                 @if($previsaoProximaCompra)
                 <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-2">
@@ -93,7 +93,7 @@
                 </div>
                 @endif
             </div>
-            
+
             <!-- Preferências -->
             <div class="space-y-4">
                 @if($categoriaPreferida)
@@ -106,7 +106,7 @@
                     </div>
                 </div>
                 @endif
-                
+
                 @if($horarioPreferido)
                 <div class="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-2">
@@ -131,7 +131,7 @@
             <i class="bi bi-calendar-range text-indigo-600 dark:text-indigo-400 mr-2"></i>
             Sazonalidade de Compras
         </h3>
-        
+
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             @foreach($sazonalidade as $mes)
                 <div class="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg p-3 text-center">
@@ -153,7 +153,7 @@
             <i class="bi bi-calendar-week text-indigo-600 dark:text-indigo-400 mr-2"></i>
             Dias da Semana Preferidos
         </h3>
-        
+
         <div class="space-y-3">
             @foreach(array_slice($diasSemanaPreferidos, 0, 3) as $index => $dia)
                 <div class="flex items-center justify-between p-3 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-blue-900/20 rounded-lg">
@@ -180,12 +180,12 @@
             <i class="bi bi-graph-up-arrow text-indigo-600 dark:text-indigo-400 mr-2"></i>
             Análise de Tendências
         </h3>
-        
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Tendência Geral -->
-            <div class="bg-gradient-to-br from-{{ $tendencias['tendencia'] === 'Crescente' ? 'green' : ($tendencias['tendencia'] === 'Decrescente' ? 'red' : 'gray') }}-50 
-                        to-{{ $tendencias['tendencia'] === 'Crescente' ? 'emerald' : ($tendencias['tendencia'] === 'Decrescente' ? 'pink' : 'slate') }}-50 
-                        dark:from-{{ $tendencias['tendencia'] === 'Crescente' ? 'green' : ($tendencias['tendencia'] === 'Decrescente' ? 'red' : 'gray') }}-900/20 
+            <div class="bg-gradient-to-br from-{{ $tendencias['tendencia'] === 'Crescente' ? 'green' : ($tendencias['tendencia'] === 'Decrescente' ? 'red' : 'gray') }}-50
+                        to-{{ $tendencias['tendencia'] === 'Crescente' ? 'emerald' : ($tendencias['tendencia'] === 'Decrescente' ? 'pink' : 'slate') }}-50
+                        dark:from-{{ $tendencias['tendencia'] === 'Crescente' ? 'green' : ($tendencias['tendencia'] === 'Decrescente' ? 'red' : 'gray') }}-900/20
                         dark:to-{{ $tendencias['tendencia'] === 'Crescente' ? 'emerald' : ($tendencias['tendencia'] === 'Decrescente' ? 'pink' : 'slate') }}-900/20 rounded-lg p-4 text-center">
                 <div class="text-2xl mb-2">
                     @if($tendencias['tendencia'] === 'Crescente')
@@ -201,14 +201,14 @@
                     {{ $tendencias['percentual'] > 0 ? '+' : '' }}{{ $tendencias['percentual'] }}%
                 </div>
             </div>
-            
+
             <!-- Período de Análise -->
             <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg p-4 text-center">
                 <div class="text-2xl mb-2">📅</div>
                 <div class="font-semibold text-gray-900 dark:text-white">Últimos 12 Meses</div>
                 <div class="text-sm text-gray-600 dark:text-gray-400">{{ count($tendencias['dados']) }} pontos de dados</div>
             </div>
-            
+
             <!-- Recomendação -->
             <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg p-4 text-center">
                 <div class="text-2xl mb-2">💡</div>
