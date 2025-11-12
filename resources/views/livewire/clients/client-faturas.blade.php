@@ -1,15 +1,15 @@
-<div class="min-h-screen w-full bg-gray-50 dark:bg-zinc-900 py-8">
+<div class="w-full">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center mb-4">
-                <a href="{{ route('clients.resumo', $client->id) }}" 
+                <a href="{{ route('clients.resumo', $client->id) }}"
                    class="mr-4 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors duration-200">
                     <i class="bi bi-arrow-left text-lg"></i>
                 </a>
                 <div class="flex items-center gap-4">
                     @if($client->caminho_foto)
-                        <img src="{{ $client->caminho_foto }}" 
+                        <img src="{{ $client->caminho_foto }}"
                              alt="Avatar de {{ $client->name }}"
                              class="w-12 h-12 rounded-full border-2 border-indigo-100 dark:border-indigo-600">
                     @else
@@ -105,9 +105,9 @@
                                         @endif
                                     </div>
                                 </div>
-                                
+
                                 <!-- Toggle Dividida -->
-                                <button wire:click="toggleDividida({{ $fatura->id }})" 
+                                <button wire:click="toggleDividida({{ $fatura->id }})"
                                         class="flex items-center space-x-1 px-2 py-1 rounded-full text-xs font-medium transition-colors duration-200 {{ $fatura->dividida ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' : 'bg-gray-100 text-gray-600 dark:bg-gray-600 dark:text-gray-300' }}">
                                     <i class="bi bi-{{ $fatura->dividida ? 'check' : 'x' }}"></i>
                                     <span>{{ $fatura->dividida ? 'Dividida' : 'Integral' }}</span>
@@ -159,7 +159,7 @@
                     </div>
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma fatura encontrada</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-6">Este cliente ainda não possui faturas cadastradas.</p>
-                    <a href="{{ route('invoices.index') }}" 
+                    <a href="{{ route('invoices.index') }}"
                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                         <i class="bi bi-plus mr-2"></i>
                         Criar Nova Fatura
