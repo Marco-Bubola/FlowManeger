@@ -11,127 +11,212 @@ $bankIcons = [
 @endphp
 
 <div class="w-full">
-    <header class="w-full py-8 px-6 md:px-16 flex flex-col items-center justify-center text-center gap-2">
-        <div class="flex items-center gap-4 justify-center">
-            <!-- Ícone de banco/cartão -->
-            <svg class="w-16 h-16 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><path d="M2 11h20" stroke-width="2" stroke="currentColor"/></svg>
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-2">Adicionar Novo Cartão/Banco</h1>
-            <!-- Ícone de adição -->
-            <svg class="w-12 h-12 text-blue-400 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-        </div>
-        <div class="flex items-center gap-2 justify-center">
-            <!-- Ícone de informação -->
-            <svg class="w-10 h-10 text-gray-400 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"/><path d="M12 16v-4M12 8h.01" stroke-width="2" stroke="currentColor"/></svg>
-            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Cadastre um novo cartão ou banco para gerenciar suas finanças.</p>
-        </div>
-    </header>
-    <form wire:submit.prevent="store" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-8 px-4 md:px-10 pb-8 overflow-auto">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div>
-                <label for="name" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">Titular do Cartão</label>
-                <div class="relative">
-                    <span class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2">
-                        <!-- Ícone de usuário -->
-                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    </span>
-                    <input type="text" id="name" wire:model="name"
-                        class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-10 outline-none transition text-xl" required placeholder="Nome do titular">
-                </div>
-                @error('name') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
-            </div>
-            <div>
-                <label for="description" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">Número do Cartão</label>
-                <div class="relative">
-                    <span class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2">
-                        <!-- Ícone de cartão -->
-                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><path d="M2 11h20" stroke-width="2" stroke="currentColor"/></svg>
-                    </span>
-                    <input type="text" maxlength="19" id="description" wire:model="description"
-                        x-model="cardNumber" x-on:input="
-                            let value = cardNumber.replace(/\D/g, '').slice(0,16);
-                            let formatted = '';
-                            for (let i = 0; i < value.length; i += 4) {
-                                if (formatted) formatted += '-';
-                                formatted += value.substr(i, 4);
-                            }
-                            cardNumber = formatted;"
-                        class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-10 outline-none transition text-xl" required placeholder="0000-0000-0000-0000">
-                </div>
-                @error('description') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
-            </div>
-        </div>
-        <div>
-            <label class="block mb-4 text-xl font-bold text-gray-800 dark:text-gray-200">Escolha o ícone do banco/cartão</label>
-            <div class="flex flex-wrap gap-8">
-                @foreach($bankIcons as $icon)
-                <label class="flex flex-col items-center cursor-pointer group">
-                    <input type="radio" wire:model="caminho_icone" value="{{ $icon['icon'] }}" class="sr-only peer" required>
-                    <div class="w-40 h-40 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-700 peer-checked:border-blue-500 dark:peer-checked:border-white bg-gray-100 dark:bg-gray-900 transition">
-                        <img src="{{ $icon['icon'] }}" alt="{{ $icon['name'] }}" title="{{ $icon['name'] }}" class="w-16 h-16">
-                    </div>
-                    <span class="text-base text-gray-600 dark:text-gray-400 mt-2 text-center group-hover:text-blue-700 dark:group-hover:text-white transition-colors">{{ $icon['name'] }}</span>
-                </label>
-                @endforeach
-            </div>
-            @error('caminho_icone') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-            <div>
-                <label for="start_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    📅 Dia de Abertura da Fatura
-                </label>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Dia do mês em que a fatura do cartão abre (ex: dia 6)
-                </p>
-                <input type="date" id="start_date" wire:model="start_date"
-                    class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
-                @error('start_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
-            </div>
-            <div>
-                <label for="end_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    🔒 Dia de Fechamento da Fatura
-                </label>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Dia do mês em que a fatura do cartão fecha (ex: dia 5)
-                </p>
-                <input type="date" id="end_date" wire:model="end_date"
-                    class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
-                @error('end_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
-            </div>
-        </div>
+    <!-- Header Compacto Modernizado -->
+    <x-sales-header
+        title="Novo Cartão/Banco"
+        description="Cadastre um cartão ou banco para gerenciar finanças"
+        :back-route="route('banks.index')"
+        :current-step="1"
+        :steps="[
+            [
+                'title' => 'Informações',
+                'description' => 'Dados do cartão',
+                'icon' => 'bi-credit-card',
+                'gradient' => 'from-blue-500 to-cyan-500',
+                'connector_gradient' => 'from-blue-500 to-cyan-500'
+            ]
+        ]" />
 
-        <!-- Dica sobre o ciclo de fatura -->
-        <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-lg">
-            <div class="flex items-start">
-                <svg class="w-6 h-6 text-blue-500 mr-3 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                <div>
-                    <h4 class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-1">💡 Como funciona o ciclo de fatura?</h4>
-                    <p class="text-sm text-blue-700 dark:text-blue-400">
-                        <strong>Exemplo:</strong> Se sua fatura abre no dia 6 e fecha no dia 5 do mês seguinte, selecione qualquer data com dia 6 no campo "Abertura" e dia 5 no campo "Fechamento". O sistema usará apenas o dia do mês para calcular seu ciclo de fatura automaticamente.
-                    </p>
-                    <p class="text-sm text-blue-700 dark:text-blue-400 mt-2">
-                        <strong>Resultado:</strong> As transações serão agrupadas do dia 6 de um mês até o dia 5 do próximo mês, como uma fatura real de cartão de crédito! 💳
-                    </p>
+    <!-- Conteúdo Principal -->
+    <div class="relative flex-1">
+        <form wire:submit.prevent="store" x-data="{ cardNumber: @entangle('description') }">
+            <div class="flex flex-col">
+                <div class="flex-1 space-y-4 animate-fadeIn">
+                    <!-- Card Container Principal -->
+                    <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg shadow-slate-200/30 dark:shadow-slate-900/30 border border-white/20 dark:border-slate-700/50 w-full">
+
+                        <!-- Seção superior: Titular / Número do Cartão (2 colunas) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+                            <!-- Titular do Cartão -->
+                            <div class="group space-y-2">
+                                <label for="name" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-cyan-600 rounded-lg mr-3 shadow-sm">
+                                        <i class="bi bi-person text-white"></i>
+                                    </div>
+                                    Titular do Cartão
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-person text-slate-400 group-hover:text-blue-500 transition-colors duration-200"></i>
+                                    </div>
+                                    <input type="text" id="name" wire:model="name"
+                                        placeholder="Nome do titular"
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        {{ $errors->has('name') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
+                                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" required>
+                                </div>
+                                @error('name')
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
+                                </div>
+                                @enderror
+                            </div>
+
+                            <!-- Número do Cartão -->
+                            <div class="group space-y-2">
+                                <label for="description" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-400 to-pink-600 rounded-lg mr-3 shadow-sm">
+                                        <i class="bi bi-credit-card text-white"></i>
+                                    </div>
+                                    Número do Cartão
+                                </label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-credit-card text-slate-400 group-hover:text-purple-500 transition-colors duration-200"></i>
+                                    </div>
+                                    <input type="text" maxlength="19" id="description" wire:model="description"
+                                        x-model="cardNumber"
+                                        x-on:input="
+                                            let value = cardNumber.replace(/\D/g, '').slice(0,16);
+                                            let formatted = '';
+                                            for (let i = 0; i < value.length; i += 4) {
+                                                if (formatted) formatted += '-';
+                                                formatted += value.substr(i, 4);
+                                            }
+                                            cardNumber = formatted;"
+                                        placeholder="0000-0000-0000-0000"
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
+                                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" required>
+                                </div>
+                                @error('description')
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
+                                </div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Seleção de ícone do banco -->
+                        <div class="mb-4">
+                            <label class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 mb-3">
+                                <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-emerald-400 to-teal-600 rounded-lg mr-3 shadow-sm">
+                                    <i class="bi bi-bank text-white"></i>
+                                </div>
+                                Escolha o banco/cartão
+                            </label>
+                            <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-7 gap-3">
+                                @foreach($bankIcons as $icon)
+                                <label class="cursor-pointer group">
+                                    <input type="radio" wire:model="caminho_icone" value="{{ $icon['icon'] }}" class="sr-only peer" required>
+                                    <div class="flex flex-col items-center p-3 rounded-xl border-2 border-slate-200 dark:border-slate-600 peer-checked:border-blue-500 dark:peer-checked:border-blue-400 bg-white/60 dark:bg-slate-700/60 hover:shadow-md transition-all duration-200">
+                                        <img src="{{ $icon['icon'] }}" alt="{{ $icon['name'] }}" title="{{ $icon['name'] }}" class="w-12 h-12 mb-1">
+                                        <span class="text-xs text-slate-600 dark:text-slate-400 text-center">{{ $icon['name'] }}</span>
+                                    </div>
+                                </label>
+                                @endforeach
+                            </div>
+                            @error('caminho_icone')
+                            <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
+                            </div>
+                            @enderror
+                        </div>
+
+                        <!-- Grid: Abertura / Fechamento (2 colunas) -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <!-- Data de Abertura -->
+                            <div class="group space-y-2">
+                                <label for="start_date" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-green-600 dark:group-hover:text-green-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-green-400 to-emerald-600 rounded-lg mr-3 shadow-sm">
+                                        <i class="bi bi-calendar-check text-white"></i>
+                                    </div>
+                                    Abertura da Fatura
+                                </label>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                    Dia do mês em que a fatura abre (ex: dia 6)
+                                </p>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-calendar-check text-slate-400 group-hover:text-green-500 transition-colors duration-200"></i>
+                                    </div>
+                                    <input type="date" id="start_date" wire:model="start_date"
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        {{ $errors->has('start_date') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-green-500 focus:ring-green-500/20 hover:border-green-300' }}
+                                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" required>
+                                </div>
+                                @error('start_date')
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
+                                </div>
+                                @enderror
+                            </div>
+
+                            <!-- Data de Fechamento -->
+                            <div class="group space-y-2">
+                                <label for="end_date" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors duration-200">
+                                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-orange-400 to-red-600 rounded-lg mr-3 shadow-sm">
+                                        <i class="bi bi-calendar-x text-white"></i>
+                                    </div>
+                                    Fechamento da Fatura
+                                </label>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mb-2">
+                                    Dia do mês em que a fatura fecha (ex: dia 5)
+                                </p>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="bi bi-calendar-x text-slate-400 group-hover:text-orange-500 transition-colors duration-200"></i>
+                                    </div>
+                                    <input type="date" id="end_date" wire:model="end_date"
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        {{ $errors->has('end_date') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-orange-500 focus:ring-orange-500/20 hover:border-orange-300' }}
+                                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm" required>
+                                </div>
+                                @error('end_date')
+                                <div class="flex items-center mt-2 p-2 bg-red-50/80 dark:bg-red-900/30 rounded-lg border border-red-200 dark:border-red-800 backdrop-blur-sm">
+                                    <i class="bi bi-exclamation-triangle-fill text-red-500 mr-2"></i>
+                                    <p class="text-red-600 dark:text-red-400 text-sm font-medium">{{ $message }}</p>
+                                </div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    <!-- Botões de Ação (centralizados, estilo moderno) -->
+                    <div class="flex items-center justify-center gap-4 mt-6">
+                        <a href="{{ route('banks.index') }}"
+                            class="inline-flex items-center gap-3 px-5 py-3 text-sm font-semibold text-slate-700 dark:text-slate-200 bg-white/80 dark:bg-slate-700/80 border border-slate-200 dark:border-slate-600 rounded-full hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all duration-200">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200">
+                                <i class="bi bi-x-lg"></i>
+                            </span>
+                            Cancelar
+                        </a>
+
+                        <button type="submit"
+                            class="inline-flex items-center gap-3 px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500/30 transition-all duration-200 shadow-lg hover:shadow-2xl">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/20 text-white">
+                                <i class="bi bi-check-lg"></i>
+                            </span>
+                            Salvar Cartão
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="flex flex-col md:flex-row items-center justify-center gap-6 mt-8">
-            <a href="{{ route('banks.index') }}"
-                class="inline-flex items-center px-10 py-4 text-lg font-bold text-gray-600 dark:text-gray-300 bg-transparent border border-gray-300 dark:border-gray-700 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 hover:text-blue-700 dark:hover:text-white transition">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-                Cancelar
-            </a>
-            <button type="submit"
-                class="inline-flex items-center px-12 py-4 text-lg font-bold text-white dark:text-gray-900 bg-blue-600 dark:bg-gray-100 rounded-full hover:bg-blue-700 dark:hover:bg-white transition gap-2">
-                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                </svg>
-                Salvar Cartão
-            </button>
-        </div>
-    </form>
+        </form>
+    </div>
+
+    <!-- Estilos Customizados -->
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.6s ease-out forwards; }
+    </style>
 </div>
