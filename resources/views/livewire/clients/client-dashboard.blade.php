@@ -1,4 +1,4 @@
-<div class="client-dashboard ">
+<div class="client-dashboard w-full">
     <!-- Incluir CSS personalizado -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
