@@ -1,4 +1,4 @@
-<div x-data="{ currentStep: 1 }" class=" w-full py-8">
+<div x-data="{ currentStep: 1 }" class=" w-full ">
     <style>
         [x-cloak] { display: none !important; }
     </style>
