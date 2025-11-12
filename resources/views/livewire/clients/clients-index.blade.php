@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: false }" class="min-h-screen w-full py-8">
+<div x-data="{ showFilters: false }" class=" w-full ">
     <style>
         [x-cloak] { display: none !important; }
     </style>
