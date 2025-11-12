@@ -8,60 +8,27 @@
     @endpush
 
     <!-- Incluir controles de tema -->
-    @include('components.theme-controls')
+
 
     <!-- Incluir sistema de notificações -->
     @include('components.toast-notifications')
 
-    <div class="">
-        <!-- Header with animated gradient -->
-        <div class="w-full bg-gradient-to-r from-white via-blue-50 to-purple-50 dark:from-gray-800 dark:via-blue-900 dark:to-purple-900 shadow-lg border-b border-blue-200 dark:border-gray-700 backdrop-blur-sm">
-            <div class="w-full px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-8">
-                    <div class="flex items-center space-x-6">
-                        <!-- Botão de voltar com hover animado -->
-                        <a href="{{ route('invoices.index', ['bankId' => $bankId]) }}"
-                           class="group flex items-center justify-center w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl hover:from-blue-500 hover:to-purple-600 dark:hover:from-blue-600 dark:hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl">
-                            <svg class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                        </a>
-
-                        <!-- Título com ícone animado -->
-                        <div class="flex items-center space-x-4">
-                            <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-2xl shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                                <svg class="w-8 h-8 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h1 class="text-3xl font-black bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                                    Upload de Transações
-                                </h1>
-                                <p class="text-lg text-gray-600 dark:text-gray-300 font-medium">
-                                    <svg class="w-5 h-5 inline mr-2 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Importe transações de arquivo PDF ou CSV de forma inteligente
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ícone decorativo com animação -->
-                    <div class="relative">
-                        <div class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 dark:from-purple-600 dark:via-pink-600 dark:to-red-600 rounded-2xl shadow-xl transform hover:scale-110 transition-all duration-300 animate-bounce">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                        </div>
-                        <!-- Círculos decorativos -->
-                        <div class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping"></div>
-                        <div class="absolute -bottom-2 -left-2 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="w-full">
+        <!-- Header Compacto Modernizado -->
+        <x-sales-header
+            title="Upload de Transações"
+            description="Importe transações de arquivo PDF ou CSV de forma inteligente"
+            :back-route="route('invoices.index', ['bankId' => $bankId])"
+            :current-step="1"
+            :steps="[
+                [
+                    'title' => 'Upload de Arquivo',
+                    'description' => 'PDF ou CSV',
+                    'icon' => 'bi-cloud-upload',
+                    'gradient' => 'from-blue-500 to-purple-500',
+                    'connector_gradient' => 'from-blue-500 to-purple-500'
+                ]
+            ]" />
 
         <!-- Content -->
         <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
@@ -194,71 +161,6 @@
                             </div>
                         </div>
 
-                        <!-- Instructions -->
-                        <div class="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 rounded-2xl p-8 border border-blue-200 dark:border-blue-700 shadow-lg">
-                            <div class="flex items-start space-x-4">
-                                <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl shadow-lg flex-shrink-0">
-                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div class="flex-1">
-                                    <h4 class="text-xl font-bold bg-gradient-to-r from-blue-800 via-indigo-800 to-purple-800 dark:from-blue-200 dark:via-indigo-200 dark:to-purple-200 bg-clip-text text-transparent mb-4">
-                                        📋 Instruções para Upload
-                                    </h4>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div class="space-y-3">
-                                            <div class="flex items-start space-x-3">
-                                                <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-red-500 to-red-600 rounded-lg flex-shrink-0">
-                                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <p class="font-semibold text-blue-900 dark:text-blue-200">Arquivos PDF</p>
-                                                    <p class="text-sm text-blue-800 dark:text-blue-300">Extratos de cartão de crédito, faturas bancárias ou documentos financeiros</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-start space-x-3">
-                                                <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex-shrink-0">
-                                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <p class="font-semibold text-blue-900 dark:text-blue-200">Arquivos CSV</p>
-                                                    <p class="text-sm text-blue-800 dark:text-blue-300">Colunas: Data, Descrição, Categoria, Parcelas, Valor</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="space-y-3">
-                                            <div class="flex items-start space-x-3">
-                                                <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex-shrink-0">
-                                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17v4a2 2 0 002 2h4M13 13h4a2 2 0 012 2v4a2 2 0 01-2 2h-4m-6-6V9a2 2 0 012-2h2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v2m0 0v2a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <p class="font-semibold text-blue-900 dark:text-blue-200">Tamanho Máximo</p>
-                                                    <p class="text-sm text-blue-800 dark:text-blue-300">Até 10MB por arquivo</p>
-                                                </div>
-                                            </div>
-                                            <div class="flex items-start space-x-3">
-                                                <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex-shrink-0">
-                                                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                                    </svg>
-                                                </div>
-                                                <div>
-                                                    <p class="font-semibold text-blue-900 dark:text-blue-200">IA Inteligente</p>
-                                                    <p class="text-sm text-blue-800 dark:text-blue-300">Categorização automática quando possível</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
 
                         <div class="flex justify-center">
                             <button type="submit"
@@ -295,53 +197,7 @@
                 </div>
             </div>
 
-                <!-- Seção de dicas e recursos -->
-                <div class="mt-8 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Dica 1 -->
-                    <div class="group bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 card-hover">
-                        <div class="flex items-start space-x-4">
-                            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg animate-float">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-blue-900 dark:text-blue-200 mb-2">💡 Dica Inteligente</h3>
-                                <p class="text-sm text-blue-800 dark:text-blue-300">Nossa IA identifica automaticamente categorias com base na descrição das transações</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Dica 2 -->
-                    <div class="group bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 card-hover">
-                        <div class="flex items-start space-x-4">
-                            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg animate-glow">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-green-900 dark:text-green-200 mb-2">⚡ Processamento Rápido</h3>
-                                <p class="text-sm text-green-800 dark:text-green-300">Processe centenas de transações em segundos com nossa tecnologia avançada</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Dica 3 -->
-                    <div class="group bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 card-hover">
-                        <div class="flex items-start space-x-4">
-                            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl shadow-lg">
-                                <svg class="w-6 h-6 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-purple-900 dark:text-purple-200 mb-2">🔒 Segurança Total</h3>
-                                <p class="text-sm text-purple-800 dark:text-purple-300">Seus dados são processados com criptografia de ponta e total privacidade</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             @else
                 <!-- Confirmation View - Full Width -->
                 <div class="w-full space-y-8">
@@ -514,58 +370,6 @@
             @endif
         </div>
 
-        <!-- Rodapé com informações adicionais -->
-        <footer class="w-full px-4 sm:px-6 lg:px-8 py-8">
-            <div class="w-full bg-gradient-to-r from-white/50 to-blue-50/50 dark:from-gray-800/50 dark:to-blue-900/50 rounded-2xl p-6 backdrop-blur-sm border border-white/20 dark:border-gray-700/50">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Rápido</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Processamento em segundos</p>
-                    </div>
-
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Inteligente</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">IA para categorização</p>
-                    </div>
-
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Seguro</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Dados protegidos</p>
-                    </div>
-
-                    <div class="group">
-                        <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl mx-auto mb-3 transform group-hover:scale-110 transition-transform duration-300">
-                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
-                            </svg>
-                        </div>
-                        <h3 class="font-bold text-gray-900 dark:text-white">Fácil</h3>
-                        <p class="text-sm text-gray-600 dark:text-gray-300">Interface intuitiva</p>
-                    </div>
-                </div>
-
-                <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
-                    <p class="text-sm text-gray-600 dark:text-gray-300">
-                        💡 <strong>Dica:</strong> Você pode arrastar e soltar arquivos diretamente na área de upload
-                    </p>
-                </div>
-            </div>
-        </footer>
     </div>
 
     <!-- Scripts adicionais para interações -->
