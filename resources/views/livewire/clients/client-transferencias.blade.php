@@ -1,15 +1,15 @@
-<div class="min-h-screen w-full bg-gray-50 dark:bg-zinc-900 py-8">
+<div class=" w-full ">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
             <div class="flex items-center mb-4">
-                <a href="{{ route('clients.resumo', $client->id) }}" 
+                <a href="{{ route('clients.resumo', $client->id) }}"
                    class="mr-4 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors duration-200">
                     <i class="bi bi-arrow-left text-lg"></i>
                 </a>
                 <div class="flex items-center gap-4">
                     @if($client->caminho_foto)
-                        <img src="{{ $client->caminho_foto }}" 
+                        <img src="{{ $client->caminho_foto }}"
                              alt="Avatar de {{ $client->name }}"
                              class="w-12 h-12 rounded-full border-2 border-indigo-100 dark:border-indigo-600">
                     @else
@@ -37,17 +37,17 @@
                     Filtros
                 </h3>
                 <div class="space-y-2">
-                    <button wire:click="setTipo('all')" 
+                    <button wire:click="setTipo('all')"
                             class="w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 {{ $tipo === 'all' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
                         <i class="bi bi-list mr-2"></i>
                         Todas
                     </button>
-                    <button wire:click="setTipo('recebidas')" 
+                    <button wire:click="setTipo('recebidas')"
                             class="w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 {{ $tipo === 'recebidas' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
                         <i class="bi bi-arrow-down mr-2"></i>
                         Recebidas
                     </button>
-                    <button wire:click="setTipo('enviadas')" 
+                    <button wire:click="setTipo('enviadas')"
                             class="w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 {{ $tipo === 'enviadas' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
                         <i class="bi bi-arrow-up mr-2"></i>
                         Enviadas
@@ -134,7 +134,7 @@
                                         @endif
                                     </div>
                                 </div>
-                                
+
                                 <!-- Tipo da transferência -->
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium {{ $transferencia->type_id == 1 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' }}">
                                     {{ $transferencia->type_id == 1 ? 'Recebido' : 'Enviado' }}
@@ -187,7 +187,7 @@
                             Este cliente ainda não possui transferências enviadas.
                         @endif
                     </p>
-                    <a href="{{ route('cashbook.index') }}" 
+                    <a href="{{ route('cashbook.index') }}"
                        class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors duration-200">
                         <i class="bi bi-plus mr-2"></i>
                         Criar Nova Transferência
