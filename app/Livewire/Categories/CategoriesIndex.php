@@ -236,8 +236,17 @@ class CategoriesIndex extends Component
             });
         }
 
+        // Aplicar filtro de tipo: se o usuário escolheu explicitamente um typeFilter, respeitar.
+        // Caso contrário, aplicar o filtro baseado na aba ativa (products/transactions),
+        // e para a aba 'all' não aplicar filtro por tipo.
         if ($this->typeFilter) {
             $query->where('type', $this->typeFilter);
+        } else {
+            if ($this->activeTab === 'products') {
+                $query->where('type', 'product');
+            } elseif ($this->activeTab === 'transactions') {
+                $query->where('type', 'transaction');
+            }
         }
 
         if ($this->statusFilter !== '') {
