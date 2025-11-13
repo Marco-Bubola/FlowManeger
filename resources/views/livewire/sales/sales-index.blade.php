@@ -3,7 +3,7 @@
         [x-cloak] { display: none !important; }
     </style>
 
-    <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
+    <div class="">
 
         <!-- Header Moderno -->
         <x-sales-index-header
