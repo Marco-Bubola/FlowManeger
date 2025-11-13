@@ -65,7 +65,18 @@
                             {{ session('message') }}
                         </div>
                     @endif
-                    <!-- Cabeçalho do calendário -->
+
+                    @if(session('debug_info'))
+                        <div class="mb-2 p-1.5 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
+                            <strong>Debug:</strong> {{ session('debug_info') }}
+                        </div>
+                    @endif
+
+                    @if(session('calendar_debug'))
+                        <div class="mb-2 p-1.5 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
+                            <strong>Calendar:</strong> {{ session('calendar_debug') }}
+                        </div>
+                    @endif                    <!-- Cabeçalho do calendário -->
                  <div class="grid grid-cols-7 gap-1 mb-2">
                         <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">D</div>
                         <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
