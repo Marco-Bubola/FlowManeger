@@ -26,6 +26,10 @@ class DashboardSales extends Component
     public float $vendasMesAnterior = 0;
     public float $vendasAnoAtual = 0;
     public float $vendasAnoAnterior = 0;
+    public int $vendasMesAtualCount = 0;
+    public int $vendasMesAnteriorCount = 0;
+    public int $vendasAnoAtualCount = 0;
+    public int $vendasAnoAnteriorCount = 0;
 
     // Métricas avançadas
     public float $taxaConversao = 0;
@@ -164,18 +168,36 @@ class DashboardSales extends Component
             ->whereMonth('created_at', $mesAtual)
             ->sum('total_price');
 
+        $this->vendasMesAtualCount = Sale::where('user_id', $userId)
+            ->whereYear('created_at', $anoAtual)
+            ->whereMonth('created_at', $mesAtual)
+            ->count();
+
         $this->vendasMesAnterior = Sale::where('user_id', $userId)
             ->whereYear('created_at', $anoMesAnterior)
             ->whereMonth('created_at', $mesAnterior)
             ->sum('total_price');
 
+        $this->vendasMesAnteriorCount = Sale::where('user_id', $userId)
+            ->whereYear('created_at', $anoMesAnterior)
+            ->whereMonth('created_at', $mesAnterior)
+            ->count();
+
         $this->vendasAnoAtual = Sale::where('user_id', $userId)
             ->whereYear('created_at', $anoAtual)
             ->sum('total_price');
 
+        $this->vendasAnoAtualCount = Sale::where('user_id', $userId)
+            ->whereYear('created_at', $anoAtual)
+            ->count();
+
         $this->vendasAnoAnterior = Sale::where('user_id', $userId)
             ->whereYear('created_at', $anoAtual - 1)
             ->sum('total_price');
+
+        $this->vendasAnoAnteriorCount = Sale::where('user_id', $userId)
+            ->whereYear('created_at', $anoAtual - 1)
+            ->count();
 
         // Vendas por status
         $this->vendasPorStatus = Sale::select('status', DB::raw('COUNT(*) as total'))
