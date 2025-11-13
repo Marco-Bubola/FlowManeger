@@ -27,6 +27,8 @@
 
 
     <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
+    {{-- Overrides locais para ícones (garante herança de cor quando apropriado) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/icon-overrides.css') }}">
     @livewireStyles
     @stack('styles')
     {{ $slot }}
