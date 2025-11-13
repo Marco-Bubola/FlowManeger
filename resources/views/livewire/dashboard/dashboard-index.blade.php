@@ -32,16 +32,17 @@
                     </div>
 
                     <div class="space-y-1">
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-1">
+                        <div class="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-200 mb-1">
                             <i class="fas fa-home mr-1"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium">Dashboard</span>
+                            <span class="text-white font-medium">Dashboard</span>
                         </div>
-                        <h1 class="text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-100">
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white">
                             Flow Manager
                         </h1>
-                        <div class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+                        <div class="flex items-center gap-3 text-sm text-slate-200">
                             <span class="flex items-center">
-                                <i class="fas fa-briefcase mr-1"></i>Central de Controle do Seu Negócio
+                                <i class="fas fa-briefcase mr-1"></i>
+                                <span class="text-slate-200">Central de Controle do Seu Negócio</span>
                             </span>
                         </div>
                     </div>
@@ -50,9 +51,9 @@
                 <!-- Ações -->
                 <div class="flex flex-wrap items-center gap-2">
                     <div
-                        class="inline-flex items-center space-x-2 px-3 py-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800 shadow-sm">
-                        <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-medium text-green-700 dark:text-green-400">Sistema Online</span>
+                        class="inline-flex items-center space-x-2 px-3 py-2 bg-green-600/20 dark:bg-green-700/80 rounded-lg border border-green-700/30 dark:border-green-800 shadow-sm">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-medium text-white">Sistema Online</span>
                     </div>
 
                     <a href="{{ route('dashboard.cashbook') }}"
@@ -77,67 +78,25 @@
             </div>
         </div>
     </div>
-    <!-- Tabs Navigation Moderno -->
-    <div class="px-4 sm:px-6 lg:px-8 pt-6">
-        <div
-            class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-2 mb-6">
-            <nav class="flex flex-wrap gap-2" aria-label="Tabs">
-                <button onclick="showTab('overview')"
-                    class="tab-link flex-1 min-w-[120px] py-3 px-4 rounded-lg font-medium text-sm focus:outline-none flex items-center justify-center gap-2 transition-all duration-200">
-                    <i class="fas fa-chart-bar text-blue-500"></i>
-                    <span>Visão Geral</span>
-                </button>
-                <button onclick="showTab('financeiro')"
-                    class="tab-link flex-1 min-w-[120px] py-3 px-4 rounded-lg font-medium text-sm focus:outline-none flex items-center justify-center gap-2 transition-all duration-200">
-                    <i class="fas fa-wallet text-green-500"></i>
-                    <span>Financeiro</span>
-                </button>
-                <button onclick="showTab('produtos')"
-                    class="tab-link flex-1 min-w-[120px] py-3 px-4 rounded-lg font-medium text-sm focus:outline-none flex items-center justify-center gap-2 transition-all duration-200">
-                    <i class="fas fa-box text-indigo-500"></i>
-                    <span>Produtos</span>
-                </button>
-                <button onclick="showTab('vendas')"
-                    class="tab-link flex-1 min-w-[120px] py-3 px-4 rounded-lg font-medium text-sm focus:outline-none flex items-center justify-center gap-2 transition-all duration-200">
-                    <i class="fas fa-shopping-cart text-purple-500"></i>
-                    <span>Vendas</span>
-                </button>
-                <button onclick="showTab('clientes')"
-                    class="tab-link flex-1 min-w-[120px] py-3 px-4 rounded-lg font-medium text-sm focus:outline-none flex items-center justify-center gap-2 transition-all duration-200">
-                    <i class="fas fa-users text-pink-500"></i>
-                    <span>Clientes</span>
-                </button>
-                <button onclick="showTab('relatorios')"
-                    class="tab-link flex-1 min-w-[120px] py-3 px-4 rounded-lg font-medium text-sm focus:outline-none flex items-center justify-center gap-2 transition-all duration-200">
-                    <i class="fas fa-file-chart-line text-yellow-500"></i>
-                    <span>Relatórios</span>
-                </button>
-            </nav>
-        </div>
-    </div>
-    <!-- KPIs Principais (compactos, linha única) -->
-    <div class=" px-4 sm:px-6 lg:px-8">
+
+    <div class="px-4 sm:px-6 lg:px-8 pb-8">
+        <!-- KPIs Principais (Linha 1) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Saldo em Caixa -->
             <div
-                class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div
-                    class="absolute top-0 right-0 w-14 h-14 bg-green-400/10 rounded-full transform translate-x-5 -translate-y-5">
+                    class="absolute top-0 right-0 w-20 h-20 bg-green-400/10 rounded-full transform translate-x-8 -translate-y-8">
                 </div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div
-                                class="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-wallet text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-xs text-green-800 dark:text-green-300 truncate font-medium">Saldo em
-                                    Caixa</p>
-                            </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-wallet text-white text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-base font-bold text-green-700 dark:text-green-400 whitespace-nowrap">R$
+                        <div class="flex-1">
+                            <p class="text-xs text-green-800 dark:text-green-300 font-medium">Saldo em Caixa</p>
+                            <p class="text-2xl font-bold text-green-700 dark:text-green-400">R$
                                 {{ number_format($saldoCaixa, 2, ',', '.') }}</p>
                         </div>
                     </div>
@@ -146,24 +105,19 @@
 
             <!-- Contas a Pagar -->
             <div
-                class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div
-                    class="absolute top-0 right-0 w-14 h-14 bg-red-400/10 rounded-full transform translate-x-5 -translate-y-5">
+                    class="absolute top-0 right-0 w-20 h-20 bg-red-400/10 rounded-full transform translate-x-8 -translate-y-8">
                 </div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div
-                                class="w-9 h-9 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-file-invoice-dollar text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-xs text-red-800 dark:text-red-300 truncate font-medium">Contas a Pagar
-                                </p>
-                            </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-base font-bold text-red-700 dark:text-red-400 whitespace-nowrap">R$
+                        <div class="flex-1">
+                            <p class="text-xs text-red-800 dark:text-red-300 font-medium">Contas a Pagar</p>
+                            <p class="text-2xl font-bold text-red-700 dark:text-red-400">R$
                                 {{ number_format($contasPagar, 2, ',', '.') }}</p>
                         </div>
                     </div>
@@ -172,24 +126,19 @@
 
             <!-- Contas a Receber -->
             <div
-                class="group relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 rounded-xl shadow-lg border border-blue-200 dark:border-blue-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                class="group relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 rounded-xl shadow-lg border border-blue-200 dark:border-blue-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div
-                    class="absolute top-0 right-0 w-14 h-14 bg-blue-400/10 rounded-full transform translate-x-5 -translate-y-5">
+                    class="absolute top-0 right-0 w-20 h-20 bg-blue-400/10 rounded-full transform translate-x-8 -translate-y-8">
                 </div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div
-                                class="w-9 h-9 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-hand-holding-usd text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-xs text-blue-800 dark:text-blue-300 truncate font-medium">Contas a
-                                    Receber</p>
-                            </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-hand-holding-usd text-white text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-base font-bold text-blue-700 dark:text-blue-400 whitespace-nowrap">R$
+                        <div class="flex-1">
+                            <p class="text-xs text-blue-800 dark:text-blue-300 font-medium">Contas a Receber</p>
+                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">R$
                                 {{ number_format($contasReceber, 2, ',', '.') }}</p>
                         </div>
                     </div>
@@ -198,421 +147,516 @@
 
             <!-- Faturamento Total -->
             <div
-                class="group relative bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 rounded-xl shadow-lg border border-purple-200 dark:border-purple-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                class="group relative bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 rounded-xl shadow-lg border border-purple-200 dark:border-purple-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div
-                    class="absolute top-0 right-0 w-14 h-14 bg-purple-400/10 rounded-full transform translate-x-5 -translate-y-5">
+                    class="absolute top-0 right-0 w-20 h-20 bg-purple-400/10 rounded-full transform translate-x-8 -translate-y-8">
                 </div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3 min-w-0">
-                            <div
-                                class="w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                                <i class="fas fa-chart-line text-white text-base"></i>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-xs text-purple-800 dark:text-purple-300 truncate font-medium">Faturamento
-                                    Total</p>
-                            </div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <div
+                            class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-chart-line text-white text-xl"></i>
                         </div>
-                        <div>
-                            <p class="text-base font-bold text-purple-700 dark:text-purple-400 whitespace-nowrap">R$
+                        <div class="flex-1">
+                            <p class="text-xs text-purple-800 dark:text-purple-300 font-medium">Faturamento Total</p>
+                            <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">R$
                                 {{ number_format($totalFaturamento, 2, ',', '.') }}</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Cards de Ações Rápidas (modernizados) -->
-    <div class=" px-4 sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-            <!-- Total de Clientes -->
-            <a href="/clients"
-                class="group relative bg-gradient-to-br from-pink-50 to-rose-100 dark:from-pink-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-pink-200 dark:border-pink-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-16 h-16 bg-pink-400/10 rounded-full transform translate-x-6 -translate-y-6">
-                </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                            <i class="fas fa-users text-white text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-pink-800 dark:text-pink-300 font-medium truncate">Total de Clientes
-                            </p>
-                            <p class="text-2xl font-bold text-pink-700 dark:text-pink-400">
-                                {{ number_format($totalClientes) }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span
-                            class="text-pink-600 dark:text-pink-400 bg-pink-100 dark:bg-pink-900/30 px-2 py-1 rounded-full font-semibold">
-                            <i class="fas fa-exclamation-circle mr-1"></i>{{ $clientesComSalesPendentes }} com
-                            pendências
-                        </span>
-                        <i
-                            class="fas fa-arrow-right text-pink-600 dark:text-pink-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Produtos Cadastrados -->
-            <a href="/products"
-                class="group relative bg-gradient-to-br from-indigo-50 to-blue-100 dark:from-indigo-900/20 dark:to-blue-900/30 rounded-xl shadow-lg border border-indigo-200 dark:border-indigo-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-16 h-16 bg-indigo-400/10 rounded-full transform translate-x-6 -translate-y-6">
-                </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                            <i class="fas fa-box text-white text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-indigo-800 dark:text-indigo-300 font-medium truncate">Produtos
-                                Cadastrados</p>
-                            <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">
-                                {{ number_format($produtosCadastrados) }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span
-                            class="text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-full font-semibold">
-                            <i class="fas fa-exclamation-triangle mr-1"></i>{{ $produtosEstoqueBaixo }} estoque baixo
-                        </span>
-                        <i
-                            class="fas fa-arrow-right text-indigo-600 dark:text-indigo-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Vendas no Mês -->
-            <a href="/sales"
-                class="group relative bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 rounded-xl shadow-lg border border-purple-200 dark:border-purple-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-16 h-16 bg-purple-400/10 rounded-full transform translate-x-6 -translate-y-6">
-                </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                            <i class="fas fa-shopping-cart text-white text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-purple-800 dark:text-purple-300 font-medium truncate">Vendas no Mês
-                            </p>
-                            <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">
-                                {{ number_format($salesMonth) }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span
-                            class="text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/30 px-2 py-1 rounded-full font-semibold">
-                            <i class="fas fa-ticket-alt mr-1"></i>Ticket: R$
-                            {{ number_format($ticketMedio, 2, ',', '.') }}
-                        </span>
-                        <i
-                            class="fas fa-arrow-right text-purple-600 dark:text-purple-400 group-hover:translate-x-1 transition-transform duration-200"></i>
-                    </div>
-                </div>
-            </a>
-
-            <!-- Novos Clientes no Mês -->
+        <!-- Gráficos Principais -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Gráfico de Receitas vs Despesas -->
             <div
-                class="group relative bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-900/20 dark:to-teal-900/30 rounded-xl shadow-lg border border-emerald-200 dark:border-emerald-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-16 h-16 bg-emerald-400/10 rounded-full transform translate-x-6 -translate-y-6">
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                        <i class="fas fa-chart-area text-indigo-500 mr-2"></i>
+                        Receitas vs Despesas
+                    </h3>
                 </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
-                            <i class="fas fa-user-plus text-white text-lg"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs text-emerald-800 dark:text-emerald-300 font-medium truncate">Novos
-                                Clientes</p>
-                            <p class="text-2xl font-bold text-emerald-700 dark:text-emerald-400">
-                                {{ number_format($clientesNovosMes) }}</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-between text-xs">
-                        <span
-                            class="text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 px-2 py-1 rounded-full font-semibold">
-                            <i class="fas fa-calendar-alt mr-1"></i>Este mês
-                        </span>
-                        <i class="fas fa-check-circle text-emerald-600 dark:text-emerald-400"></i>
-                    </div>
-                </div>
+                <div id="revenueExpenseChart" class="h-80"></div>
             </div>
-        </div>
-    </div>
 
-    <!-- Conteúdo das abas (modernizado) -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div id="tab-overview" class="tab-content">
+            <!-- Gráfico de Valor de Vendas vs Custo dos Produtos -->
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                    <i class="fas fa-chart-bar text-blue-500 mr-2"></i>
-                    Resumo Geral
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div
-                        class="p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-xs text-red-600 dark:text-red-400 mb-1 font-medium">Clientes Inadimplentes</p>
-                        <p class="text-2xl font-bold text-red-700 dark:text-red-400">{{ $clientesInadimplentes }}</p>
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                        <i class="fas fa-chart-bar text-purple-500 mr-2"></i>
+                        Valor de Vendas vs Custo dos Produtos
+                    </h3>
+                </div>
+                <div id="salesCostChart" class="h-80"></div>
+                <div class="mt-4 pt-3 border-t border-slate-700/40">
+                    <div class="flex items-center justify-between text-sm">
+                        <div class="text-slate-300">Total Valor de Vendas</div>
+                        <div class="font-semibold text-white">R$ {{ number_format($valorVendas, 2, ',', '.') }}</div>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <p class="text-xs text-yellow-600 dark:text-yellow-400 mb-1 font-medium">Aniversariantes do Mês
-                        </p>
-                        <p class="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{{ $aniversariantesMes }}
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                        <p class="text-xs text-indigo-600 dark:text-indigo-400 mb-1 font-medium">Produtos Vendidos no
-                            Mês</p>
-                        <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ $produtosVendidosMes }}
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-xs text-green-600 dark:text-green-400 mb-1 font-medium">Produtos Cadastrados</p>
-                        <p class="text-2xl font-bold text-green-700 dark:text-green-400">{{ $produtosCadastrados }}
-                        </p>
+                    <div class="flex items-center justify-between text-sm mt-2">
+                        <div class="text-slate-300">Total Custos (Estoque + Vendidos)</div>
+                        <div class="font-semibold text-white">R$ {{ number_format($custoEstoque + $custoProdutosVendidos, 2, ',', '.') }}</div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="tab-financeiro" class="tab-content hidden">
+        <!-- Seção de Informações Detalhadas -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <!-- Clientes -->
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                    <i class="fas fa-wallet text-green-500 mr-2"></i>
-                    Financeiro
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <div
-                        class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-xs text-green-600 dark:text-green-400 mb-1 font-medium">Saldo em Caixa</p>
-                        <p class="text-2xl font-bold text-green-700 dark:text-green-400">R$
-                            {{ number_format($saldoCaixa, 2, ',', '.') }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-xs text-red-600 dark:text-red-400 mb-1 font-medium">Contas a Pagar</p>
-                        <p class="text-2xl font-bold text-red-700 dark:text-red-400">R$
-                            {{ number_format($contasPagar, 2, ',', '.') }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <p class="text-xs text-blue-600 dark:text-blue-400 mb-1 font-medium">Contas a Receber</p>
-                        <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">R$
-                            {{ number_format($contasReceber, 2, ',', '.') }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-slate-50 to-gray-50 dark:from-slate-700 dark:to-gray-700 rounded-lg border border-slate-200 dark:border-slate-600">
-                        <p class="text-xs text-slate-600 dark:text-slate-400 mb-1 font-medium">Fornecedores a Pagar</p>
-                        <p class="text-2xl font-bold text-slate-700 dark:text-slate-300">R$
-                            {{ number_format($fornecedoresPagar, 2, ',', '.') }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                        <p class="text-xs text-orange-600 dark:text-orange-400 mb-1 font-medium">Despesas Fixas</p>
-                        <p class="text-2xl font-bold text-orange-700 dark:text-orange-400">R$
-                            {{ number_format($despesasFixas, 2, ',', '.') }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-cyan-50 to-teal-50 dark:from-cyan-900/20 dark:to-teal-900/20 rounded-lg border border-cyan-200 dark:border-cyan-800">
-                        <p class="text-xs text-cyan-600 dark:text-cyan-400 mb-1 font-medium">Clientes a Receber</p>
-                        <p class="text-2xl font-bold text-cyan-700 dark:text-cyan-400">R$
-                            {{ number_format($clientesReceber, 2, ',', '.') }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-produtos" class="tab-content hidden">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                    <i class="fas fa-box text-indigo-500 mr-2"></i>
-                    Produtos
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div
-                        class="p-4 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                        <p class="text-xs text-indigo-600 dark:text-indigo-400 mb-1 font-medium">Produtos Cadastrados
-                        </p>
-                        <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">{{ $produtosCadastrados }}
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-yellow-50 to-amber-50 dark:from-yellow-900/20 dark:to-amber-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                        <p class="text-xs text-yellow-600 dark:text-yellow-400 mb-1 font-medium">Estoque Baixo</p>
-                        <p class="text-2xl font-bold text-yellow-700 dark:text-yellow-400">{{ $produtosEstoqueBaixo }}
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-xs text-green-600 dark:text-green-400 mb-1 font-medium">Vendidos no Mês</p>
-                        <p class="text-2xl font-bold text-green-700 dark:text-green-400">{{ $produtosVendidosMes }}
-                        </p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                        <p class="text-xs text-purple-600 dark:text-purple-400 mb-1 font-medium">Mais Vendido</p>
-                        <p class="text-lg font-bold text-purple-700 dark:text-purple-400 truncate">
-                            {{ $produtoMaisVendido ? $produtoMaisVendido->name : '-' }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-vendas" class="tab-content hidden">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                    <i class="fas fa-shopping-cart text-purple-500 mr-2"></i>
-                    Vendas
-                </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div
-                        class="p-4 bg-gradient-to-br from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                        <p class="text-xs text-purple-600 dark:text-purple-400 mb-1 font-medium">Vendas no Mês</p>
-                        <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">{{ $salesMonth }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <p class="text-xs text-blue-600 dark:text-blue-400 mb-1 font-medium">Ticket Médio</p>
-                        <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">R$
-                            {{ number_format($ticketMedio, 2, ',', '.') }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                        <p class="text-xs text-emerald-600 dark:text-emerald-400 mb-1 font-medium">Última Venda</p>
-                        <p class="text-sm font-bold text-emerald-700 dark:text-emerald-400">
-                            {{ $ultimaVenda ? $ultimaVenda->created_at->format('d/m/Y H:i') : '-' }}</p>
-                    </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-xs text-green-600 dark:text-green-400 mb-1 font-medium">Valor Última Venda</p>
-                        <p class="text-lg font-bold text-green-700 dark:text-green-400">
-                            {{ $ultimaVenda ? 'R$ ' . number_format($ultimaVenda->total_price, 2, ',', '.') : '-' }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="tab-clientes" class="tab-content hidden">
-            <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
                     <i class="fas fa-users text-pink-500 mr-2"></i>
                     Clientes
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div
-                        class="p-4 bg-gradient-to-br from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 rounded-lg border border-pink-200 dark:border-pink-800">
-                        <p class="text-xs text-pink-600 dark:text-pink-400 mb-1 font-medium">Total de Clientes</p>
-                        <p class="text-2xl font-bold text-pink-700 dark:text-pink-400">{{ $totalClientes }}</p>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-friends text-pink-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Total</span>
+                        </div>
+                        <span class="text-lg font-bold text-pink-600">{{ $totalClientes }}</span>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-800">
-                        <p class="text-xs text-green-600 dark:text-green-400 mb-1 font-medium">Novos no Mês</p>
-                        <p class="text-2xl font-bold text-green-700 dark:text-green-400">{{ $clientesNovosMes }}</p>
+                    <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-user-plus text-green-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Novos no Mês</span>
+                        </div>
+                        <span class="text-lg font-bold text-green-600">{{ $clientesNovosMes }}</span>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-lg border border-orange-200 dark:border-orange-800">
-                        <p class="text-xs text-orange-600 dark:text-orange-400 mb-1 font-medium">Com Pendências</p>
-                        <p class="text-2xl font-bold text-orange-700 dark:text-orange-400">
-                            {{ $clientesComSalesPendentes }}</p>
+                    <div class="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-circle text-orange-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Com Pendências</span>
+                        </div>
+                        <span class="text-lg font-bold text-orange-600">{{ $clientesComSalesPendentes }}</span>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-xs text-red-600 dark:text-red-400 mb-1 font-medium">Inadimplentes</p>
-                        <p class="text-2xl font-bold text-red-700 dark:text-red-400">{{ $clientesInadimplentes }}</p>
+                    <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Inadimplentes</span>
+                        </div>
+                        <span class="text-lg font-bold text-red-600">{{ $clientesInadimplentes }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Produtos -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
+                    <i class="fas fa-box text-indigo-500 mr-2"></i>
+                    Produtos
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-boxes text-indigo-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Cadastrados</span>
+                        </div>
+                        <span class="text-lg font-bold text-indigo-600">{{ $produtosCadastrados }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-exclamation-triangle text-yellow-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Estoque Baixo</span>
+                        </div>
+                        <span class="text-lg font-bold text-yellow-600">{{ $produtosEstoqueBaixo }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-shopping-bag text-green-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Vendidos no Mês</span>
+                        </div>
+                        <span class="text-lg font-bold text-green-600">{{ $produtosVendidosMes }}</span>
+                    </div>
+                    <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-star text-purple-600"></i>
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Mais Vendido</span>
+                        </div>
+                        <span
+                            class="text-sm font-bold text-purple-600 truncate block">{{ $produtoMaisVendido ? $produtoMaisVendido->name : '-' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendas -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
+                    <i class="fas fa-shopping-cart text-purple-500 mr-2"></i>
+                    Vendas
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-purple-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Vendas no Mês</span>
+                        </div>
+                        <span class="text-lg font-bold text-purple-600">{{ $salesMonth }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-ticket-alt text-blue-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Ticket Médio</span>
+                        </div>
+                        <span class="text-lg font-bold text-blue-600">R$
+                            {{ number_format($ticketMedio, 2, ',', '.') }}</span>
+                    </div>
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-clock text-emerald-600"></i>
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Última Venda</span>
+                        </div>
+                        <span class="text-sm font-bold text-emerald-600">
+                            {{ $ultimaVenda ? $ultimaVenda->created_at->format('d/m/Y H:i') : '-' }}
+                        </span>
+                    </div>
+                    <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="flex items-center gap-2 mb-1">
+                            <i class="fas fa-money-bill-wave text-green-600"></i>
+                            <span class="text-xs text-slate-600 dark:text-slate-400">Valor Última Venda</span>
+                        </div>
+                        <span class="text-sm font-bold text-green-600">
+                            {{ $ultimaVenda ? 'R$ ' . number_format($ultimaVenda->total_price, 2, ',', '.') : '-' }}
+                        </span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="tab-relatorios" class="tab-content hidden">
+        <!-- Gráfico de Pizza - Distribuição de Produtos -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
             <div
-                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
                 <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                    <i class="fas fa-file-chart-line text-yellow-500 mr-2"></i>
-                    Relatórios
+                    <i class="fas fa-chart-line text-green-500 mr-2"></i>
+                    Gastos Mensais de Invoices
                 </h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div
-                        class="p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                        <p class="text-xs text-purple-600 dark:text-purple-400 mb-1 font-medium">Faturamento Total</p>
-                        <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">R$
-                            {{ number_format($totalFaturamento, 2, ',', '.') }}</p>
+                <div id="invoiceExpensesChart" class="h-80"></div>
+            </div>
+
+            <!-- Indicadores de Performance -->
+            <div
+                class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
+                    <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
+                    Indicadores de Performance
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-percentage text-green-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Margem de Lucro</span>
+                        </div>
+                        <span class="text-lg font-bold text-green-600">{{ number_format($margemLucro, 1) }}%</span>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 rounded-lg border border-red-200 dark:border-red-800">
-                        <p class="text-xs text-red-600 dark:text-red-400 mb-1 font-medium">Contas a Pagar</p>
-                        <p class="text-2xl font-bold text-red-700 dark:text-red-400">R$
-                            {{ number_format($contasPagar, 2, ',', '.') }}</p>
+                    <div class="flex items-center justify-between p-3 {{ $taxaCrescimento >= 0 ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-red-50 dark:bg-red-900/20' }} rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-arrow-{{ $taxaCrescimento >= 0 ? 'up' : 'down' }} text-{{ $taxaCrescimento >= 0 ? 'blue' : 'red' }}-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Taxa de Crescimento</span>
+                        </div>
+                        <span class="text-lg font-bold text-{{ $taxaCrescimento >= 0 ? 'blue' : 'red' }}-600">{{ number_format($taxaCrescimento, 1) }}%</span>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                        <p class="text-xs text-blue-600 dark:text-blue-400 mb-1 font-medium">Contas a Receber</p>
-                        <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">R$
-                            {{ number_format($contasReceber, 2, ',', '.') }}</p>
+                    <div class="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-box-open text-indigo-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Produtos Ativos</span>
+                        </div>
+                        <span class="text-lg font-bold text-indigo-600">{{ $produtosAtivos }}</span>
                     </div>
-                    <div
-                        class="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 rounded-lg border border-indigo-200 dark:border-indigo-800">
-                        <p class="text-xs text-indigo-600 dark:text-indigo-400 mb-1 font-medium">Ticket Médio</p>
-                        <p class="text-2xl font-bold text-indigo-700 dark:text-indigo-400">R$
-                            {{ number_format($ticketMedio, 2, ',', '.') }}</p>
+                    <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-dollar-sign text-purple-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Valor em Estoque</span>
+                        </div>
+                        <span class="text-lg font-bold text-purple-600">R$ {{ number_format($custoEstoque, 2, ',', '.') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <div class="flex items-center gap-2">
+                            <i class="fas fa-shopping-cart text-orange-600"></i>
+                            <span class="text-sm text-slate-300 dark:text-slate-200">Custo Prod. Vendidos</span>
+                        </div>
+                        <span class="text-lg font-bold text-orange-600">R$ {{ number_format($custoProdutosVendidos, 2, ',', '.') }}</span>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- ApexCharts CDN -->
+    <style>
+        /* Força cores legíveis nas legendas do ApexCharts em light/dark mode */
+        .apexcharts-legend-text { color: #0f172a !important; }
+        .dark .apexcharts-legend-text, .apexcharts-theme-dark .apexcharts-legend-text { color: #E5E7EB !important; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
     <script>
-        function showTab(tab) {
-            // Esconde todos os conteúdos
-            document.querySelectorAll('.tab-content').forEach(function(el) {
-                el.classList.add('hidden');
-            });
-
-            // Mostra o conteúdo selecionado
-            var active = document.getElementById('tab-' + tab);
-            if (active) active.classList.remove('hidden');
-
-            // Remove estilo ativo de todos os botões
-            document.querySelectorAll('.tab-link').forEach(function(el) {
-                el.classList.remove('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white',
-                    'shadow-md');
-                el.classList.add('text-slate-600', 'hover:bg-slate-100', 'dark:text-slate-400',
-                    'dark:hover:bg-slate-700');
-            });
-
-            // Adiciona estilo ativo ao botão clicado
-            if (event && event.target) {
-                var btn = event.target.closest('.tab-link');
-                if (btn) {
-                    btn.classList.remove('text-slate-600', 'hover:bg-slate-100', 'dark:text-slate-400',
-                        'dark:hover:bg-slate-700');
-                    btn.classList.add('bg-gradient-to-r', 'from-indigo-500', 'to-purple-600', 'text-white', 'shadow-md');
-                }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
-            showTab('overview');
+            // Gráfico de Receitas vs Despesas (Área)
+            const revenueExpenseOptions = {
+                series: [{
+                    name: 'Receitas',
+                    data: [{{ $contasReceber }}, {{ $totalFaturamento }}, {{ $clientesReceber }}]
+                }, {
+                    name: 'Despesas',
+                    data: [{{ $contasPagar }}, {{ $fornecedoresPagar }}, {{ $despesasFixas }}]
+                }],
+                chart: {
+                    type: 'area',
+                    height: 320,
+                    toolbar: {
+                        show: false
+                    },
+                    animations: {
+                        enabled: true,
+                        speed: 800
+                    }
+                },
+                colors: ['#10b981', '#ef4444'],
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 2
+                },
+                fill: {
+                    type: 'gradient',
+                    gradient: {
+                        shadeIntensity: 1,
+                        opacityFrom: 0.7,
+                        opacityTo: 0.2,
+                    }
+                },
+                xaxis: {
+                    categories: ['A Receber', 'Faturamento', 'Clientes'],
+                    labels: {
+                        style: {
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR');
+                        },
+                        style: {
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                    // Legend color adapts to dark/light mode
+                    legend: {
+                        position: 'top',
+                        horizontalAlign: 'right',
+                        labels: {
+                            colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a']
+                        }
+                    },
+                grid: {
+                    borderColor: '#e2e8f0'
+                },
+                tooltip: {
+                    theme: 'dark',
+                    style: {
+                        fontSize: '13px',
+                        colors: ['#ffffff']
+                    },
+                    y: {
+                        formatter: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            };
+
+            const revenueExpenseChart = new ApexCharts(document.querySelector("#revenueExpenseChart"),
+                revenueExpenseOptions);
+            revenueExpenseChart.render();
+
+            // Gráfico de Valor de Vendas vs Custo dos Produtos (Barra)
+            const salesCostOptions = {
+                series: [{
+                    name: 'Valor de Vendas',
+                    data: [{{ $valorVendas }}, null]
+                }, {
+                    name: 'Custo Estoque',
+                    data: [null, {{ $custoEstoque }}]
+                }, {
+                    name: 'Custo Vendidos',
+                    data: [null, {{ $custoProdutosVendidos }}]
+                }],
+                chart: {
+                    type: 'bar',
+                    height: 320,
+                    stacked: true,
+                    toolbar: {
+                        show: false
+                    }
+                },
+                colors: ['#8b5cf6', '#3b82f6', '#f59e0b'],
+                plotOptions: {
+                    bar: {
+                        borderRadius: 10,
+                        columnWidth: '60%',
+                        distributed: false,
+                        dataLabels: {
+                            position: 'top'
+                        }
+                    }
+                },
+                dataLabels: {
+                    enabled: true,
+                    offsetY: -20,
+                    style: {
+                        fontSize: '12px',
+                        colors: ['#64748b']
+                    },
+                    formatter: function(value) {
+                        if (value === null || typeof value === 'undefined') return '';
+                        return 'R$ ' + Number(value).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                    }
+                },
+                xaxis: {
+                    categories: ['Valor', 'Custo'],
+                    labels: {
+                        style: {
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                        },
+                        style: {
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right'
+                },
+                grid: {
+                    borderColor: '#e2e8f0'
+                },
+                tooltip: {
+                    theme: 'dark',
+                    style: {
+                        fontSize: '13px',
+                        colors: ['#ffffff']
+                    },
+                    y: {
+                        formatter: function(value) {
+                            if (value === null || typeof value === 'undefined') return '';
+                            return 'R$ ' + Number(value).toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            };
+
+            const salesCostChart = new ApexCharts(document.querySelector("#salesCostChart"),
+                salesCostOptions);
+            salesCostChart.render();
+
+            // Gráfico de Gastos Mensais de Invoices (Linha) por banco
+            const invoiceExpensesOptions = {
+                series: @json($gastosInvoicePorBanco),
+                chart: {
+                    type: 'line',
+                    height: 320,
+                    toolbar: {
+                        show: false
+                    },
+                    animations: {
+                        enabled: true,
+                        speed: 800
+                    }
+                },
+                dataLabels: {
+                    enabled: false
+                },
+                stroke: {
+                    curve: 'smooth',
+                    width: 3
+                },
+                markers: {
+                    size: 5,
+                    strokeColors: '#fff',
+                    strokeWidth: 2,
+                    hover: {
+                        size: 7
+                    }
+                },
+                xaxis: {
+                    categories: [
+                        '{{ now()->subMonths(5)->format("M") }}',
+                        '{{ now()->subMonths(4)->format("M") }}',
+                        '{{ now()->subMonths(3)->format("M") }}',
+                        '{{ now()->subMonths(2)->format("M") }}',
+                        '{{ now()->subMonths(1)->format("M") }}',
+                        '{{ now()->format("M") }}'
+                    ],
+                    labels: {
+                        style: {
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                yaxis: {
+                    labels: {
+                        formatter: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                        },
+                        style: {
+                            colors: '#64748b'
+                        }
+                    }
+                },
+                grid: {
+                    borderColor: '#e2e8f0'
+                },
+                // Legend color adapts to dark/light mode
+                legend: {
+                    position: 'top',
+                    horizontalAlign: 'right',
+                    labels: {
+                        colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a']
+                    }
+                },
+                tooltip: {
+                    theme: 'dark',
+                    style: {
+                        fontSize: '13px',
+                        colors: ['#ffffff']
+                    },
+                    y: {
+                        formatter: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', {
+                                minimumFractionDigits: 2
+                            });
+                        }
+                    }
+                }
+            };
+
+            const invoiceExpensesChart = new ApexCharts(document.querySelector("#invoiceExpensesChart"),
+                invoiceExpensesOptions);
+            invoiceExpensesChart.render();
         });
     </script>
-    // ...existing code (todo o conteúdo real do dashboard, começando pelo root <div class="min-h-screen ..."> e sem
-        duplicidade)...
+</div>
