@@ -1017,6 +1017,11 @@
 </div>
 
 @push('scripts')
+<style>
+    /* Força cores legíveis nas legendas do ApexCharts em light/dark mode */
+    .apexcharts-legend-text { color: #0f172a !important; }
+    .dark .apexcharts-legend-text, .apexcharts-theme-dark .apexcharts-legend-text { color: #E5E7EB !important; }
+</style>
 <script src="https://cdn.jsdelivr.net/npm/apexcharts@latest"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
