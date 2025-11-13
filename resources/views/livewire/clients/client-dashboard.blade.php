@@ -1,170 +1,210 @@
 <div class="client-dashboard w-full">
-    <!-- Incluir CSS personalizado -->
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <!-- Header Moderno -->
+    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-6 mx-4 sm:mx-6 lg:mx-8 mt-6">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
+        <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
+        <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
 
+        <div class="relative px-6 py-4">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div class="flex items-center gap-4">
+                    <div class="relative">
+                        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg flex items-center justify-center ring-4 ring-white/50 dark:ring-slate-700/50">
+                            <i class="fas fa-user-circle text-white text-2xl"></i>
+                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 to-transparent opacity-40"></div>
+                        </div>
+                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm">
+                            <div class="w-full h-full bg-green-500 rounded-full animate-ping opacity-75"></div>
+                        </div>
+                    </div>
 
-    <!-- Header Modernizado -->
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
-        <x-client-dashboard-header
-            :client="$client"
-            :dias-como-cliente="$diasComoCliente"
-            :back-route="route('clients.index')"
-            :cliente-class="$totalVendas >= 5 && ($totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0) >= 90 ? 'VIP' : 'Premium'" />
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-200 mb-1">
+                            <i class="fas fa-user mr-1"></i>
+                            <span class="text-white font-medium">Dashboard do Cliente</span>
+                        </div>
+                        <h1 class="text-2xl lg:text-3xl font-bold text-white">
+                            {{ $client->name }}
+                        </h1>
+                        <div class="flex items-center gap-3 text-sm text-slate-200">
+                            <span class="flex items-center">
+                                <i class="fas fa-calendar mr-1"></i>
+                                <span class="text-slate-200">Cliente há {{ $diasComoCliente }} dias</span>
+                            </span>
+                            @if($totalVendas >= 5 && ($totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0) >= 90)
+                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-200 rounded-lg text-xs font-bold">
+                                    <i class="fas fa-crown mr-1"></i>VIP
+                                </span>
+                            @else
+                                <span class="px-2 py-1 bg-purple-500/20 text-purple-200 rounded-lg text-xs font-bold">
+                                    <i class="fas fa-star mr-1"></i>Premium
+                                </span>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="inline-flex items-center space-x-2 px-3 py-2 bg-green-600/20 dark:bg-green-700/80 rounded-lg border border-green-700/30 dark:border-green-800 shadow-sm">
+                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span class="text-xs font-medium text-white">Ativo</span>
+                    </div>
+
+                    <a href="{{ route('clients.index') }}"
+                        class="group inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-md hover:shadow-xl text-sm transform hover:scale-105">
+                        <i class="fas fa-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Voltar</span>
+                    </a>
+
+                    <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
+                        class="group inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-md hover:shadow-xl text-sm transform hover:scale-105">
+                        <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                        <span>Nova Venda</span>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Filtros Modernos -->
-    <x-client-filters
-        :vendas="$vendas"
-        :filter-year="$filterYear"
-        :filter-month="$filterMonth"
-        :filter-status="$filterStatus"
-        :filter-payment-type="$filterPaymentType" />
+
+    <div class="w-full px-4 sm:px-6 lg:px-8">
 
 
-
-    <!-- Alertas e Performance -->
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-6">
-        <x-client-alerts
-            :parcelas="$parcelas"
-            :total-vendas="$totalVendas"
-            :total-pago="$totalPago"
-            :total-faturado="$totalFaturado"
-            :ultima-compra="$ultimaCompra" />
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-6 mb-8">
+        <!-- KPIs Principais Modernos -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Total de Vendas -->
-            <div class="stats-card bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-blue-100 text-sm font-medium">Total de Vendas</p>
-                        <p class="text-3xl font-bold" data-animate-number>{{ $totalVendas }}</p>
-                        <p class="text-blue-200 text-xs mt-1">
-                            <i class="bi bi-trending-up mr-1"></i>
-                            Volume total
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-blue-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-cart text-2xl"></i>
+            <div class="group relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 rounded-xl shadow-lg border border-blue-200 dark:border-blue-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-blue-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-shopping-cart text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-blue-800 dark:text-blue-300 font-medium">Total de Vendas</p>
+                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">{{ $totalVendas }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Total Faturado -->
-            <div class="stats-card bg-gradient-to-br from-green-500 to-green-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-green-100 text-sm font-medium">Total Faturado</p>
-                        <p class="text-3xl font-bold">R$ {{ number_format($totalFaturado, 2, ',', '.') }}</p>
-                        <p class="text-green-200 text-xs mt-1">
-                            <i class="bi bi-cash-coin mr-1"></i>
-                            Receita bruta
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-green-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-currency-dollar text-2xl"></i>
+            <div class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-green-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-dollar-sign text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-green-800 dark:text-green-300 font-medium">Total Faturado</p>
+                            <p class="text-2xl font-bold text-green-700 dark:text-green-400">R$ {{ number_format($totalFaturado, 2, ',', '.') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Total Pago -->
-            <div class="stats-card bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-purple-100 text-sm font-medium">Total Pago</p>
-                        <p class="text-3xl font-bold">R$ {{ number_format($totalPago, 2, ',', '.') }}</p>
-                        <p class="text-purple-200 text-xs mt-1">
-                            <i class="bi bi-check-circle mr-1"></i>
-                            Receita líquida
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-purple-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-check-circle text-2xl"></i>
+            <div class="group relative bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/30 rounded-xl shadow-lg border border-purple-200 dark:border-purple-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-purple-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-check-circle text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-purple-800 dark:text-purple-300 font-medium">Total Pago</p>
+                            <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">R$ {{ number_format($totalPago, 2, ',', '.') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Restante a Pagar -->
-            <div class="stats-card bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-amber-100 text-sm font-medium">Restante a Pagar</p>
-                        <p class="text-3xl font-bold">R$ {{ number_format($totalPendente, 2, ',', '.') }}</p>
-                        <p class="text-amber-200 text-xs mt-1">
-                            <i class="bi bi-hourglass-split mr-1"></i>
-                            @if($totalFaturado > 0)
-                                {{ number_format(($totalPendente / $totalFaturado) * 100, 1) }}% pendente
-                            @else
-                                0% pendente
-                            @endif
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-amber-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-hourglass-split text-2xl"></i>
+            <div class="group relative bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/30 rounded-xl shadow-lg border border-amber-200 dark:border-amber-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="absolute top-0 right-0 w-20 h-20 bg-amber-400/10 rounded-full transform translate-x-8 -translate-y-8"></div>
+                <div class="relative">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
+                            <i class="fas fa-hourglass-half text-white text-xl"></i>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-xs text-amber-800 dark:text-amber-300 font-medium">Restante a Pagar</p>
+                            <p class="text-2xl font-bold text-amber-700 dark:text-amber-400">R$ {{ number_format($totalPendente, 2, ',', '.') }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
+        <!-- KPIs Secundários -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
             <!-- Ticket Médio -->
-            <div class="stats-card bg-gradient-to-br from-orange-500 to-orange-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-orange-100 text-sm font-medium">Ticket Médio</p>
-                        <p class="text-3xl font-bold">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</p>
-                        <p class="text-orange-200 text-xs mt-1">
-                            <i class="bi bi-graph-up mr-1"></i>
-                            Valor médio
-                        </p>
+            <div class="group relative bg-gradient-to-br from-cyan-50 to-blue-100 dark:from-cyan-900/20 dark:to-blue-900/30 rounded-xl shadow-lg border border-cyan-200 dark:border-cyan-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white text-sm"></i>
                     </div>
-                    <div class="w-12 h-12 bg-orange-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-graph-up text-2xl"></i>
+                    <div class="flex-1">
+                        <p class="text-xs text-cyan-800 dark:text-cyan-300 font-medium">Ticket Médio</p>
+                        <p class="text-lg font-bold text-cyan-700 dark:text-cyan-400">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Última Compra -->
-            <div class="stats-card bg-gradient-to-br from-teal-500 to-teal-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-teal-100 text-sm font-medium">Última Compra</p>
-                        <p class="text-2xl font-bold">
-                            {{ count($vendas) > 0 ? \Carbon\Carbon::parse($vendas[0]['created_at'])->diffForHumans() : 'Nunca' }}
-                        </p>
-                        <p class="text-teal-200 text-xs mt-1">
-                            <i class="bi bi-clock-history mr-1"></i>
-                            Atividade recente
-                        </p>
+            <div class="group relative bg-gradient-to-br from-teal-50 to-emerald-100 dark:from-teal-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-teal-200 dark:border-teal-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-teal-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-sm"></i>
                     </div>
-                    <div class="w-12 h-12 bg-teal-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-clock text-2xl"></i>
+                    <div class="flex-1">
+                        <p class="text-xs text-teal-800 dark:text-teal-300 font-medium">Última Compra</p>
+                        <p class="text-lg font-bold text-teal-700 dark:text-teal-400">{{ count($vendas) > 0 ? \Carbon\Carbon::parse($vendas[0]['created_at'])->diffForHumans() : 'Nunca' }}</p>
                     </div>
                 </div>
             </div>
 
             <!-- Parcelas Vencidas -->
-            <div class="stats-card bg-gradient-to-br from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-xl hover-scale transform hover:scale-105 transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-red-100 text-sm font-medium">Parcelas Vencidas</p>
-                        <p class="text-3xl font-bold">
+            <div class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-xs text-red-800 dark:text-red-300 font-medium">Parcelas Vencidas</p>
+                        <p class="text-lg font-bold text-red-700 dark:text-red-400">
                             {{ collect($parcelas)->filter(function($parcela) {
                                 return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast();
                             })->count() }}
                         </p>
-                        <p class="text-red-200 text-xs mt-1">
-                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                            @php
-                                $valorVencido = collect($parcelas)->filter(function($parcela) {
-                                    return $parcela['status'] === 'pendente' && \Carbon\Carbon::parse($parcela['data_vencimento'])->isPast();
-                                })->sum('valor');
-                            @endphp
-                            R$ {{ number_format($valorVencido, 2, ',', '.') }}
-                        </p>
-                    </div>
-                    <div class="w-12 h-12 bg-red-400/30 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-exclamation-triangle text-2xl"></i>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Principais -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Vendas por Mês -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                        <i class="fas fa-chart-area text-indigo-500 mr-2"></i>
+                        Vendas por Mês
+                    </h3>
+                </div>
+                <div id="vendasMesChart" class="h-80"></div>
+            </div>
+
+            <!-- Vendas por Status -->
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                        <i class="fas fa-chart-pie text-purple-500 mr-2"></i>
+                        Vendas por Status
+                    </h3>
+                </div>
+                <div id="vendasStatusChart" class="h-80"></div>
             </div>
         </div>
 
@@ -1114,5 +1154,64 @@ document.addEventListener('DOMContentLoaded', function() {
             animateValue(element, 0, finalValue, 1000);
         }, 300);
     });
+
+    // ApexCharts para gráficos modernos
+    const isDark = document.documentElement.classList.contains('dark');
+
+    // Gráfico de Vendas por Mês
+    if (document.querySelector("#vendasMesChart")) {
+        const vendasMesData = @json($vendasPorMes ?? []);
+        if (vendasMesData && vendasMesData.length > 0) {
+            const vendasMesOptions = {
+                series: [{
+                    name: 'Faturamento',
+                    data: vendasMesData.map(item => parseFloat(item.faturamento || 0))
+                }, {
+                    name: 'Vendas',
+                    data: vendasMesData.map(item => parseInt(item.vendas || 0))
+                }],
+                chart: { type: 'area', height: 320, toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
+                colors: ['#6366F1', '#8B5CF6'],
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 3 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.7, opacityTo: 0.2 } },
+                xaxis: { categories: vendasMesData.map(item => item.mes || 'Mês'), labels: { style: { colors: '#64748b' } } },
+                yaxis: { labels: { formatter: function(value) { return 'R$ ' + value.toFixed(0); }, style: { colors: '#64748b' } } },
+                grid: { borderColor: '#e2e8f0' },
+                legend: { position: 'top', horizontalAlign: 'right', labels: { colors: [isDark ? '#ffffff' : '#0f172a'] } },
+                tooltip: { theme: 'dark', y: { formatter: function(value, { seriesIndex }) { return seriesIndex === 0 ? 'R$ ' + value.toFixed(2) : value + ' vendas'; } } }
+            };
+            new ApexCharts(document.querySelector("#vendasMesChart"), vendasMesOptions).render();
+        }
+    }
+
+    // Gráfico de Vendas por Status
+    if (document.querySelector("#vendasStatusChart")) {
+        const statusData = @json($vendasPorStatus ?? []);
+        if (statusData && Object.keys(statusData).length > 0) {
+            const statusOptions = {
+                series: Object.values(statusData).map(v => parseInt(v)),
+                labels: Object.keys(statusData).map(k => k.charAt(0).toUpperCase() + k.slice(1)),
+                chart: { type: 'donut', height: 320 },
+                colors: ['#10B981', '#F59E0B', '#EF4444'],
+                legend: { position: 'bottom', labels: { colors: [isDark ? '#ffffff' : '#0f172a'] } },
+                responsive: [{ breakpoint: 480, options: { chart: { width: 200 }, legend: { position: 'bottom' } } }],
+                tooltip: { theme: 'dark' }
+            };
+            new ApexCharts(document.querySelector("#vendasStatusChart"), statusOptions).render();
+        }
+    }
 });
 </script>
+</div>
+
+@push('styles')
+<style>
+    .apexcharts-legend-text { color: #0f172a !important; }
+    .dark .apexcharts-legend-text, .apexcharts-theme-dark .apexcharts-legend-text { color: #E5E7EB !important; }
+</style>
+@endpush
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+@endpush
