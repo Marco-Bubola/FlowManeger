@@ -4,11 +4,37 @@
 ])
 
 <div class="space-y-6">
-    <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-            <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400"></i>
+    <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400"></i>
+            </div>
+            <h2 class="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">Produtos Extraídos</h2>
         </div>
-        <h2 class="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">Produtos Extraídos</h2>
+
+        @if(!empty($products) && count($products) > 0 && $showBackButton)
+        <!-- Botões de Ação no Header -->
+        <div class="flex gap-3">
+            <button wire:click="$set('showProductsTable', false)"
+                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                Voltar
+            </button>
+
+            <button wire:click="store"
+                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
+                    wire:loading.attr="disabled">
+                <span wire:loading.remove class="flex items-center">
+                    <i class="bi bi-check-circle mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                    Salvar ({{ !empty($products) ? count($products) : 0 }})
+                </span>
+                <span wire:loading class="flex items-center">
+                    <i class="bi bi-arrow-clockwise animate-spin mr-2"></i>
+                    Salvando...
+                </span>
+            </button>
+        </div>
+        @endif
     </div>
 
     <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-8">
@@ -24,8 +50,8 @@
         </div>
 
         @if(!empty($products) && count($products) > 0)
-            <!-- Grid de Cards de Produtos - 5 por linha -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-5 gap-6">
+            <!-- Grid de Cards de Produtos - até 8 por linha em telas ultrawide -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-8 ultrawind:grid-cols-8 gap-6">
                 @foreach($products as $index => $product)
                     <div class="product-card-modern" style="min-height: 420px;">
                         <!-- Botões de ação modernos -->
@@ -117,19 +143,16 @@
                             <div class="product-title-editable">
                                 <input type="text"
                                        wire:model.lazy="productsUpload.{{ $index }}.name"
-                                       class="w-full text-center font-bold bg-transparent border-none text-inherit focus:outline-none focus:ring-2 focus:ring-purple-300 focus:bg-white focus:bg-opacity-10 rounded px-2 py-1"
+                                       class="w-full text-center font-bold bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-purple-300 focus:bg-white focus:bg-opacity-10 rounded px-2 py-1"
                                        placeholder="Nome do produto"
-                                       style="font-size: inherit; color: inherit;">
+                                       style="font-size: 1.1em; color: #1a1a1a; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
                             </div>
 
-                            <!-- Status como mini badge -->
-                            <div class="flex justify-center mt-2 mb-4">
-                                <select wire:model.lazy="productsUpload.{{ $index }}.status"
-                                        class="status-select">
-                                    <option value="ativo">✅ Ativo</option>
-                                    <option value="inativo">⏸️ Inativo</option>
-                                    <option value="descontinuado">❌ Descontinuado</option>
-                                </select>
+                            <!-- Status sempre ativo (badge fixo) -->
+                            <div class="flex justify-center mt-1 mb-1">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    <i class="bi bi-check-circle-fill mr-1"></i> Ativo
+                                </span>
                             </div>
                         </div>
 
@@ -157,33 +180,7 @@
                 @endforeach
             </div>
 
-            @if($showBackButton)
-                <!-- Botões de Ação Modernos -->
-                <div class="flex flex-col sm:flex-row gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-gray-600">
-                    <button wire:click="$set('showProductsTable', false)"
-                            class="group relative inline-flex items-center justify-center px-6 py-3 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
-                        <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                        Voltar
-                        <!-- Efeito hover ring -->
-                        <div class="absolute inset-0 rounded-2xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </button>
 
-                    <button wire:click="store"
-                            class="group relative inline-flex items-center justify-center flex-1 px-6 py-3 rounded-2xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
-                            wire:loading.attr="disabled">
-                        <span wire:loading.remove class="flex items-center">
-                            <i class="bi bi-check-circle mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                            Salvar Produtos ({{ !empty($products) ? count($products) : 0 }})
-                        </span>
-                        <span wire:loading class="flex items-center">
-                            <i class="bi bi-arrow-clockwise animate-spin mr-2"></i>
-                            Salvando...
-                        </span>
-                        <!-- Efeito hover ring -->
-                        <div class="absolute inset-0 rounded-2xl bg-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </button>
-                </div>
-            @endif
         @endif
     </div>
 </div>
