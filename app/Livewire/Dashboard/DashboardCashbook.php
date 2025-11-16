@@ -5,6 +5,7 @@ namespace App\Livewire\Dashboard;
 use App\Models\Cashbook;
 use App\Models\Bank;
 use App\Models\Invoice;
+use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\On;
@@ -35,12 +36,18 @@ class DashboardCashbook extends Component
     public float $totalInvoicesBancos = 0;
     public float $saldoTotalBancos = 0;
     public float $totalSaidasBancos = 0;
-    public array $bancosEvolucaoMeses = [];
-    public array $bancosEvolucaoSaldos = [];
+    public array $gastosMensaisMeses = [];
+    public array $gastosMensaisPorCategoria = [];
+    public array $gastosMensaisPorBanco = [];
+    public array $gastosMensaisPorCategoriaBanco = [];
 
     // Gráfico diário de invoices
     public array $diasInvoices = [];
     public array $valoresInvoices = [];
+
+    // Gráfico de categorias
+    public array $categorias = [];
+    public array $valoresCategorias = [];
 
     // Calendário
     public array $cashbookDays = [];
@@ -119,10 +126,13 @@ class DashboardCashbook extends Component
 
         // Dados dos bancos
         $this->loadBanksData();
-        
+
         // Dados de invoices
         $this->loadInvoicesData();
-        
+
+        // Dados de categorias
+        $this->loadCategoriasData();
+
         // Dados do calendário
         $this->loadCalendarData();
     }
@@ -163,22 +173,99 @@ class DashboardCashbook extends Component
         $this->saldoTotalBancos = collect($this->bancosInfo)->sum('saldo');
         $this->totalSaidasBancos = collect($this->bancosInfo)->sum('saidas');
 
-        // Evolução do saldo total dos bancos nos últimos 12 meses
-        $this->bancosEvolucaoMeses = [];
-        $this->bancosEvolucaoSaldos = [];
-        $saldoAcumulado = 0;
+        // Gastos mensais de invoices agrupados por categoria e banco (últimos 12 meses)
+        $this->gastosMensaisMeses = [];
+        $categoriasPorMes = [];
+        $bancosPorMes = [];
+        $categoriasPorBanco = [];
+
+        $invoiceTable = (new Invoice)->getTable();
+        $categoryTable = (new Category)->getTable();
+        $bankTable = (new Bank)->getTable();
+
         $mesRef = now()->copy()->subMonths(11)->startOfMonth();
         for ($i = 0; $i < 12; $i++) {
-            $mesLabel = $mesRef->format('m/Y');
-            $invoicesMes = Invoice::where('user_id', $userId)
-                ->whereBetween('invoice_date', [$mesRef->copy()->startOfMonth(), $mesRef->copy()->endOfMonth()])
+            $mesLabel = $mesRef->locale('pt_BR')->format('M/y');
+            $this->gastosMensaisMeses[] = $mesLabel;
+
+            // Gastos por categoria no mês
+            $gastosCategorias = Invoice::where("{$invoiceTable}.user_id", $userId)
+                ->whereBetween("{$invoiceTable}.invoice_date", [$mesRef->copy()->startOfMonth(), $mesRef->copy()->endOfMonth()])
+                ->join($categoryTable, "{$invoiceTable}.category_id", '=', "{$categoryTable}.id_category")
+                ->selectRaw("{$categoryTable}.name as categoria, SUM({$invoiceTable}.value) as total")
+                ->groupBy("{$categoryTable}.id_category", "{$categoryTable}.name")
                 ->get();
-            $saidasMes = $invoicesMes->sum('value');
-            $saldoAcumulado -= $saidasMes;
-            $this->bancosEvolucaoMeses[] = $mesLabel;
-            $this->bancosEvolucaoSaldos[] = $saldoAcumulado;
+
+            foreach ($gastosCategorias as $cat) {
+                if (!isset($categoriasPorMes[$cat->categoria])) {
+                    $categoriasPorMes[$cat->categoria] = array_fill(0, 12, 0);
+                }
+                $categoriasPorMes[$cat->categoria][$i] = (float)$cat->total;
+            }
+
+            // Gastos por categoria+bank no mês
+            $gastosCatBanco = Invoice::where("{$invoiceTable}.user_id", $userId)
+                ->whereBetween("{$invoiceTable}.invoice_date", [$mesRef->copy()->startOfMonth(), $mesRef->copy()->endOfMonth()])
+                ->join($categoryTable, "{$invoiceTable}.category_id", '=', "{$categoryTable}.id_category")
+                ->join($bankTable, "{$invoiceTable}.id_bank", '=', "{$bankTable}.id_bank")
+                ->selectRaw("{$categoryTable}.name as categoria, {$bankTable}.name as banco, SUM({$invoiceTable}.value) as total")
+                ->groupBy("{$categoryTable}.id_category", "{$bankTable}.id_bank", "{$categoryTable}.name", "{$bankTable}.name")
+                ->get();
+
+            foreach ($gastosCatBanco as $row) {
+                $keyCat = $row->categoria;
+                $keyBanco = $row->banco;
+                $compoundKey = $keyCat . '||' . $keyBanco;
+                if (!isset($categoriasPorBanco[$compoundKey])) {
+                    $categoriasPorBanco[$compoundKey] = array_fill(0, 12, 0);
+                }
+                $categoriasPorBanco[$compoundKey][$i] = (float)$row->total;
+            }
+
+            // Gastos por banco no mês
+            $gastosBancos = Invoice::where("{$invoiceTable}.user_id", $userId)
+                ->whereBetween("{$invoiceTable}.invoice_date", [$mesRef->copy()->startOfMonth(), $mesRef->copy()->endOfMonth()])
+                ->join($bankTable, "{$invoiceTable}.id_bank", '=', "{$bankTable}.id_bank")
+                ->selectRaw("{$bankTable}.name as banco, SUM({$invoiceTable}.value) as total")
+                ->groupBy("{$bankTable}.id_bank", "{$bankTable}.name")
+                ->get();
+
+            foreach ($gastosBancos as $banco) {
+                if (!isset($bancosPorMes[$banco->banco])) {
+                    $bancosPorMes[$banco->banco] = array_fill(0, 12, 0);
+                }
+                $bancosPorMes[$banco->banco][$i] = (float)$banco->total;
+            }
+
             $mesRef->addMonth();
         }
+
+        // Pega top 5 categorias e top 3 bancos
+        $topCategorias = collect($categoriasPorMes)
+            ->sortByDesc(fn($valores) => array_sum($valores))
+            ->take(5);
+
+        $topBancos = collect($bancosPorMes)
+            ->sortByDesc(fn($valores) => array_sum($valores))
+            ->take(3);
+
+        $this->gastosMensaisPorCategoria = $topCategorias->toArray();
+        $this->gastosMensaisPorBanco = $topBancos->toArray();
+
+        // Filtra combinações categoria+banco para incluir apenas top categorias e top bancos
+        $topCategoriaKeys = array_keys($this->gastosMensaisPorCategoria);
+        $topBancoKeys = array_keys($this->gastosMensaisPorBanco);
+
+        $filteredCatBanco = [];
+        foreach ($categoriasPorBanco as $compound => $values) {
+            [$catName, $bankName] = explode('||', $compound);
+            if (in_array($catName, $topCategoriaKeys) && in_array($bankName, $topBancoKeys)) {
+                $label = $catName . ' — ' . $bankName;
+                $filteredCatBanco[$label] = $values;
+            }
+        }
+
+        $this->gastosMensaisPorCategoriaBanco = $filteredCatBanco;
     }
 
     private function loadInvoicesData()
@@ -197,6 +284,26 @@ class DashboardCashbook extends Component
                 ->sum('value');
             $this->valoresInvoices[] = (float)$valorDia;
         }
+    }
+
+    private function loadCategoriasData()
+    {
+        $userId = Auth::id();
+        // Usa os nomes corretos de tabela/coluna a partir do model
+        $invoiceTable = (new Invoice)->getTable();
+        $categoryTable = (new Category)->getTable();
+
+        // Busca invoices com categorias agrupadas (top 10)
+        $invoicesPorCategoria = Invoice::where("{$invoiceTable}.user_id", $userId)
+            ->join($categoryTable, "{$invoiceTable}.category_id", '=', "{$categoryTable}.id_category")
+            ->selectRaw("{$categoryTable}.name as categoria, SUM({$invoiceTable}.value) as total")
+            ->groupBy("{$categoryTable}.id_category", "{$categoryTable}.name")
+            ->orderByDesc('total')
+            ->limit(10)
+            ->get();
+
+        $this->categorias = $invoicesPorCategoria->pluck('categoria')->toArray();
+        $this->valoresCategorias = $invoicesPorCategoria->pluck('total')->map(fn($v) => (float)$v)->toArray();
     }
 
     private function loadCalendarData()
@@ -233,7 +340,7 @@ class DashboardCashbook extends Component
     public function getDayDetails($date)
     {
         $userId = Auth::id();
-        
+
         // Receitas
         $receitas = Cashbook::where('user_id', $userId)
             ->where('type_id', 1)
