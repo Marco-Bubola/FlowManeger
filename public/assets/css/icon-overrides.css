@@ -1,0 +1,10 @@
+/* Overrides for icon colors to ensure Font Awesome icons inherit parent color unless explicitly set */
+.fa, .fas, .far, .fal, .fab {
+    color: inherit !important;
+}
+
+/* Ensure SVG-based icons also inherit color */
+svg[class*="fa-"], svg.fas, svg.far, svg.fab {
+    color: inherit !important;
+    fill: currentColor !important;
+}
