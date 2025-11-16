@@ -58,7 +58,7 @@
         </div>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="">
         <!-- KPIs Principais -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <!-- Saldo Total -->
@@ -155,15 +155,15 @@
 
         <!-- Segunda linha de gráficos -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <!-- Evolução do Saldo dos Bancos -->
+            <!-- Gastos Mensais por Categoria e Banco -->
             <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
-                        <i class="fas fa-university text-indigo-500 mr-2"></i>
-                        Evolução do Saldo dos Bancos (12 meses)
+                        <i class="fas fa-layer-group text-indigo-500 mr-2"></i>
+                        Gastos Mensais de Invoices (Top Categorias × Bancos)
                     </h3>
                 </div>
-                <div id="bankBalanceChart" class="h-80"></div>
+                <div id="gastosMensaisChart" class="h-80"></div>
             </div>
 
             <!-- Gastos Diários de Invoices -->
@@ -177,6 +177,19 @@
                 <div id="dailyInvoicesChart" class="h-80"></div>
             </div>
         </div>
+
+        <!-- Gráfico de Categorias -->
+        @if(count($categorias) > 0)
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
+                    <i class="fas fa-tags text-purple-500 mr-2"></i>
+                    Top 10 Categorias de Invoices (Total Geral)
+                </h3>
+            </div>
+            <div id="categoriasChart" class="h-96"></div>
+        </div>
+        @endif
 
         <!-- Cards de Resumo Financeiro -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -331,8 +344,6 @@
             const dadosReceita = @json($dadosReceita);
             const dadosDespesa = @json($dadosDespesa);
             const saldosMes = @json($saldosMes);
-            const bancosEvolucaoMeses = @json($bancosEvolucaoMeses);
-            const bancosEvolucaoSaldos = @json($bancosEvolucaoSaldos);
             const diasInvoices = @json($diasInvoices);
             const valoresInvoices = @json($valoresInvoices);
 
@@ -367,20 +378,42 @@
             };
             new ApexCharts(document.querySelector("#revenueExpenseChart"), revenueExpenseOptions).render();
 
-            const bankBalanceOptions = {
-                series: [{ name: 'Saldo Acumulado', data: bancosEvolucaoSaldos }],
-                chart: { type: 'line', height: 320, toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
-                colors: ['#6366f1'],
-                dataLabels: { enabled: false },
-                stroke: { curve: 'smooth', width: 3 },
-                markers: { size: 5, strokeColors: '#fff', strokeWidth: 2, hover: { size: 7 } },
-                xaxis: { categories: bancosEvolucaoMeses, labels: { style: { colors: '#64748b' } } },
-                yaxis: { labels: { formatter: function(value) { return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }, style: { colors: '#64748b' } } },
-                grid: { borderColor: '#e2e8f0' },
-                legend: { position: 'top', horizontalAlign: 'right', labels: { colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a'] } },
-                tooltip: { theme: 'dark', style: { fontSize: '13px', colors: ['#ffffff'] }, y: { formatter: function(value) { return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }); } } }
-            };
-            new ApexCharts(document.querySelector("#bankBalanceChart"), bankBalanceOptions).render();
+            // Gráfico de Gastos Mensais por Categoria e Banco
+            const gastosMensaisMeses = @json($gastosMensaisMeses ?? []);
+            const gastosPorCategoria = @json($gastosMensaisPorCategoria ?? []);
+            const gastosPorCatBank = @json($gastosMensaisPorCategoriaBanco ?? []);
+
+            if (gastosMensaisMeses.length > 0 && document.querySelector("#gastosMensaisChart")) {
+                const seriesData = [];
+                const palette = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#06b6d4', '#f97316', '#ef4444', '#0ea5a4', '#a78bfa'];
+
+                if (Object.keys(gastosPorCatBank).length > 0) {
+                    // Cada série é uma combinação Categoria — Banco (limitada pelo backend aos top categories x top banks)
+                    for (const [label, valores] of Object.entries(gastosPorCatBank)) {
+                        seriesData.push({ name: label, data: valores });
+                    }
+                } else if (Object.keys(gastosPorCategoria).length > 0) {
+                    // Fallback: apenas categorias
+                    for (const [categoria, valores] of Object.entries(gastosPorCategoria)) {
+                        seriesData.push({ name: categoria, data: valores });
+                    }
+                }
+
+                const gastosMensaisOptions = {
+                    series: seriesData,
+                    chart: { type: 'bar', height: 320, toolbar: { show: false }, stacked: true },
+                    colors: palette,
+                    plotOptions: { bar: { borderRadius: 6, columnWidth: '70%' } },
+                    dataLabels: { enabled: false },
+                    xaxis: { categories: gastosMensaisMeses, labels: { style: { colors: '#64748b' } } },
+                    yaxis: { labels: { formatter: function(value) { return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }, style: { colors: '#64748b' } } },
+                    grid: { borderColor: '#e2e8f0' },
+                    legend: { position: 'top', horizontalAlign: 'right', labels: { colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a'] } },
+                    tooltip: { theme: 'dark', style: { fontSize: '13px', colors: ['#ffffff'] }, y: { formatter: function(value) { return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }); } } }
+                };
+
+                new ApexCharts(document.querySelector("#gastosMensaisChart"), gastosMensaisOptions).render();
+            }
 
             const dailyInvoicesOptions = {
                 series: [{ name: 'Gastos', data: valoresInvoices }],
@@ -395,6 +428,60 @@
                 tooltip: { theme: 'dark', style: { fontSize: '13px', colors: ['#ffffff'] }, y: { formatter: function(value) { return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 }); } } }
             };
             new ApexCharts(document.querySelector("#dailyInvoicesChart"), dailyInvoicesOptions).render();
+
+            // Gráfico de Categorias (Barras Horizontais)
+            const categorias = @json($categorias ?? []);
+            const valoresCategorias = @json($valoresCategorias ?? []);
+
+            if (categorias.length > 0 && document.querySelector("#categoriasChart")) {
+                const categoriasOptions = {
+                    series: [{ name: 'Total Gastos', data: valoresCategorias }],
+                    chart: { type: 'bar', height: 384, toolbar: { show: false } },
+                    colors: ['#8b5cf6'],
+                    plotOptions: {
+                        bar: {
+                            horizontal: true,
+                            borderRadius: 8,
+                            dataLabels: { position: 'top' }
+                        }
+                    },
+                    dataLabels: {
+                        enabled: true,
+                        formatter: function(value) {
+                            return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                        },
+                        offsetX: 0,
+                        style: { fontSize: '12px', colors: ['#fff'] }
+                    },
+                    xaxis: {
+                        categories: categorias,
+                        labels: {
+                            formatter: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            },
+                            style: { colors: '#64748b' }
+                        }
+                    },
+                    yaxis: {
+                        labels: {
+                            style: { colors: '#64748b', fontSize: '13px' },
+                            maxWidth: 200
+                        }
+                    },
+                    grid: { borderColor: '#e2e8f0' },
+                    legend: { position: 'top', horizontalAlign: 'right', labels: { colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a'] } },
+                    tooltip: {
+                        theme: 'dark',
+                        style: { fontSize: '13px', colors: ['#ffffff'] },
+                        y: {
+                            formatter: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                            }
+                        }
+                    }
+                };
+                new ApexCharts(document.querySelector("#categoriasChart"), categoriasOptions).render();
+            }
         });
     </script>
 </div>
