@@ -223,7 +223,7 @@
     @else
     <!-- Grid de Produtos com CSS customizado mantido -->
     <form>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-10 gap-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-8 ultrawind:grid-cols-8 gap-6">
         @foreach($products as $product)
         @if($product->tipo === 'kit')
         <!-- Kit Card com informações extras -->
