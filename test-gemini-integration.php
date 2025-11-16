@@ -32,16 +32,35 @@ $pdfPath = $pdfFiles[0];
 echo "✓ PDF selecionado: $pdfPath\n";
 echo "  Tamanho: " . number_format(filesize($pdfPath) / 1024, 2) . " KB\n\n";
 
+// Extrair texto do PDF primeiro
+echo "Extraindo texto do PDF...\n";
+$parser = new Smalot\PdfParser\Parser();
+$pdf = $parser->parseFile($pdfPath);
+$pdfText = $pdf->getText();
+
+echo "✓ Texto extraído: " . number_format(strlen($pdfText)) . " caracteres\n\n";
+
+// Filtrar apenas a parte relevante
+$startPos = strpos($pdfText, 'OPERAÇÃO');
+$endPos = strpos($pdfText, 'PRODUTOS NÃO DISPONÍVEIS');
+if ($endPos === false) $endPos = strpos($pdfText, 'AJUSTES');
+
+$filteredText = '';
+if ($startPos !== false && $endPos !== false) {
+    $filteredText = substr($pdfText, $startPos, $endPos - $startPos);
+    echo "✓ Texto filtrado: " . number_format(strlen($filteredText)) . " caracteres\n\n";
+} else {
+    $filteredText = $pdfText;
+}
+
 // Testar conexão com Gemini
 echo "Testando conexão com Gemini API...\n";
 echo str_repeat('-', 100) . "\n";
 
-$pdfContent = base64_encode(file_get_contents($pdfPath));
-
 $prompt = <<<PROMPT
 Você é um extrator de dados de notas fiscais.
 
-Analise o PDF e extraia TODOS os produtos com operação "Venda" (ignore "Brinde").
+Abaixo está o texto extraído de uma nota fiscal. Extraia TODOS os produtos com operação "Venda" (ignore "Brinde").
 
 RETORNE APENAS JSON neste formato:
 {
@@ -65,15 +84,15 @@ REGRAS:
 - Código formato XX.XXX
 - Valores como float
 - Nome em uma linha
-- Extraia de todas as páginas
 - APENAS JSON, sem comentários
 
-COMECE:
-PROMPT;
+TEXTO DA NOTA FISCAL:
+$filteredText
 
-$startTime = microtime(true);
+RETORNE O JSON:
+PROMPT;$startTime = microtime(true);
 
-$ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}");
+$ch = curl_init("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={$apiKey}");
 
 curl_setopt_array($ch, [
     CURLOPT_RETURNTRANSFER => true,
@@ -84,20 +103,14 @@ curl_setopt_array($ch, [
         'contents' => [
             [
                 'parts' => [
-                    ['text' => $prompt],
-                    [
-                        'inline_data' => [
-                            'mime_type' => 'application/pdf',
-                            'data' => $pdfContent
-                        ]
-                    ]
+                    ['text' => $prompt]
                 ]
             ]
         ],
         'generationConfig' => [
             'temperature' => 0.1,
-            'topK' => 1,
-            'topP' => 1,
+            'topK' => 40,
+            'topP' => 0.95,
         ]
     ])
 ]);
