@@ -30,12 +30,36 @@
     <style>
         /* Tornar os cards de produto mais altos */
         .product-card-modern {
-            min-height: 520px !important;
+            min-height: 420px !important;
             height: auto;
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
         }
+
+        /* Reduzir espaçamento entre status e valores */
+        .product-card-modern .card-body {
+            padding: 0.8em 1em 0.5em 1em !important;
+            min-height: auto !important;
+            gap: 0.3em !important;
+        }
+
+        /* Corrigir imagem para não sair do quadrado */
+        .product-card-modern .product-img-area {
+            position: relative;
+            overflow: hidden !important;
+            border-top-left-radius: 1.2em;
+            border-top-right-radius: 1.2em;
+        }
+
+        .product-card-modern .product-img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-top-left-radius: 1.2em;
+            border-top-right-radius: 1.2em;
+        }
+
         /* Grupo de botões de ação */
         .btn-action-group {
             display: flex;
@@ -269,7 +293,8 @@
 
         // Função para copiar apenas o código do produto
         function copyProductCode(index, code) {
-            const productCode = code || 'Sem código';
+            // Remover pontos do código antes de copiar
+            const productCode = (code || 'Sem código').replace(/\./g, '');
 
             // Tentar usar a API moderna do clipboard
             if (navigator.clipboard && window.isSecureContext) {
