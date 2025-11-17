@@ -11,11 +11,13 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Illuminate\Support\Collection;
 
 class CreateSale extends Component
 {
     public int $currentStep = 1;
     public $client_id = '';
+    public string $clientSearch = '';
     public $sale_date;
     public $tipo_pagamento = 'a_vista';
     public $parcelas = 1;
@@ -50,7 +52,9 @@ class CreateSale extends Component
 
     public function mount()
     {
-        $this->clients = Client::where('user_id', Auth::id())->get();
+        $this->clients = Client::where('user_id', Auth::id())
+            ->orderBy('name')
+            ->get();
         $this->availableProducts = Product::where('user_id', Auth::id())
                                         ->where('stock_quantity', '>', 0)
                                         ->get();
@@ -91,6 +95,46 @@ class CreateSale extends Component
     public function getTotalAmount()
     {
         return $this->getTotalPrice();
+    }
+
+    public function updatedClientId($value): void
+    {
+        $this->clientSearch = '';
+    }
+
+    public function getFilteredClientsProperty()
+    {
+        $clients = collect($this->clients)->sortBy(function ($client) {
+            return mb_strtolower($client->name);
+        })->values();
+
+        if (empty($this->clientSearch)) {
+            return $clients;
+        }
+
+        $needle = mb_strtolower($this->clientSearch);
+        $needleDigits = preg_replace('/\D+/', '', $needle);
+
+        return $clients->filter(function ($client) use ($needle, $needleDigits) {
+            $nameMatch = str_contains(mb_strtolower($client->name), $needle);
+            $phoneDigits = preg_replace('/\D+/', '', $client->phone ?? '');
+            $phoneMatch = $needleDigits !== '' && str_contains($phoneDigits, $needleDigits);
+
+            return $nameMatch || $phoneMatch;
+        })->values();
+    }
+
+    public function getSelectedClientProperty()
+    {
+        if (empty($this->client_id)) {
+            return null;
+        }
+
+        $clients = $this->clients instanceof Collection
+            ? $this->clients
+            : collect($this->clients ?? []);
+
+        return $clients->firstWhere('id', (int) $this->client_id);
     }
 
     public function save()
