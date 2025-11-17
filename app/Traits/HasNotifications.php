@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use App\Support\NotificationCenter;
+
 trait HasNotifications
 {
     /**
@@ -9,10 +11,12 @@ trait HasNotifications
      */
     public function notifySuccess($message, $duration = 5000)
     {
+        NotificationCenter::success($message, ['duration' => $duration]);
         $this->dispatch('notify', [
             'type' => 'success',
             'message' => $message,
-            'duration' => $duration
+            'duration' => $duration,
+            'persistOnRedirect' => true,
         ]);
     }
 
@@ -21,10 +25,12 @@ trait HasNotifications
      */
     public function notifyError($message, $duration = 7000)
     {
+        NotificationCenter::error($message, ['duration' => $duration]);
         $this->dispatch('notify', [
             'type' => 'error',
             'message' => $message,
-            'duration' => $duration
+            'duration' => $duration,
+            'persistOnRedirect' => true,
         ]);
     }
 
@@ -33,10 +39,12 @@ trait HasNotifications
      */
     public function notifyWarning($message, $duration = 6000)
     {
+        NotificationCenter::warning($message, ['duration' => $duration]);
         $this->dispatch('notify', [
             'type' => 'warning',
             'message' => $message,
-            'duration' => $duration
+            'duration' => $duration,
+            'persistOnRedirect' => true,
         ]);
     }
 
@@ -45,10 +53,12 @@ trait HasNotifications
      */
     public function notifyInfo($message, $duration = 5000)
     {
+        NotificationCenter::info($message, ['duration' => $duration]);
         $this->dispatch('notify', [
             'type' => 'info',
             'message' => $message,
-            'duration' => $duration
+            'duration' => $duration,
+            'persistOnRedirect' => true,
         ]);
     }
 
@@ -57,11 +67,14 @@ trait HasNotifications
      */
     public function redirectWithNotification($route, $message, $type = 'success', $delay = 1500)
     {
+        NotificationCenter::flash($type, $message, ['duration' => $delay]);
+
         // Envia notificação
         $this->dispatch('notify', [
             'type' => $type,
             'message' => $message,
-            'duration' => $delay
+            'duration' => $delay,
+            'persistOnRedirect' => true,
         ]);
 
         // Agenda o redirecionamento
@@ -70,4 +83,5 @@ trait HasNotifications
             'delay' => $delay
         ]);
     }
+
 }
