@@ -1,4 +1,6 @@
 <div x-data="{ showFilters: false }" class=" w-full">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     <style>
         [x-cloak] { display: none !important; }
     </style>
@@ -50,7 +52,7 @@
                                         x-transition:leave="transition ease-in duration-150"
                                         x-transition:leave-start="opacity-100 scale-100"
                                         x-transition:leave-end="opacity-0 scale-50"
-                                        class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500
+                                        class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-700 dark:hover:bg-red-600
                                                text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white
                                                rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
                                         title="Limpar busca">
@@ -323,11 +325,11 @@
 
                     <!-- Center: Page buttons -->
                     <div class="flex items-center gap-2">
-                        <button wire:click.prevent="gotoPage(1)" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                        <button wire:click.prevent="gotoPage(1)" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors">
                             <i class="bi bi-chevron-double-left"></i>
                         </button>
 
-                        <button @if($sales->onFirstPage()) disabled @endif wire:click.prevent="previousPage" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                        <button @if($sales->onFirstPage()) disabled @endif wire:click.prevent="previousPage" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors">
                             <i class="bi bi-chevron-left"></i>
                         </button>
 
@@ -338,16 +340,16 @@
                         @endphp
 
                         @for($i = $start; $i <= $end; $i++)
-                            <button wire:click.prevent="gotoPage({{ $i }})" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm {{ $sales->currentPage() === $i ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600' }}">
+                            <button wire:click.prevent="gotoPage({{ $i }})" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm {{ $sales->currentPage() === $i ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors' }}">
                                 {{ $i }}
                             </button>
                         @endfor
 
-                        <button @if(!$sales->hasMorePages()) disabled @endif wire:click.prevent="nextPage" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                        <button @if(!$sales->hasMorePages()) disabled @endif wire:click.prevent="nextPage" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors">
                             <i class="bi bi-chevron-right"></i>
                         </button>
 
-                        <button wire:click.prevent="gotoPage({{ $sales->lastPage() }})" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
+                        <button wire:click.prevent="gotoPage({{ $sales->lastPage() }})" wire:loading.attr="disabled" class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-zinc-600 transition-colors">
                             <i class="bi bi-chevron-double-right"></i>
                         </button>
                     </div>
