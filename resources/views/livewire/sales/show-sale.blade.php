@@ -1,4 +1,6 @@
 <div class="w-full">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     <!-- Header modernizado usando sales-header -->
     @php
         if($sale->client) {
@@ -34,7 +36,7 @@
     </x-sales-header>
 
     <!-- Sistema de Abas com Design Moderno -->
-    <div class="container mx-auto px-6 py-8">
+    <div class="container-fluid mx-auto px-6 py-8">
         <div class="mx-auto">
             <!-- Navegação das Abas com Design Melhorado -->
             <div class="mb-8">
