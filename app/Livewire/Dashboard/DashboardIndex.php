@@ -198,9 +198,11 @@ class DashboardIndex extends Component
 
         // Gastos mensais de invoices (últimos 6 meses)
         // Ajuste para o schema do seu banco: Invoice usa 'invoice_date' e 'value'
+        $monthExpr = $this->monthExpression('invoice_date');
+
         $gastosInvoice = Invoice::where('user_id', $userId)
             ->where('invoice_date', '>=', now()->subMonths(6))
-            ->selectRaw('MONTH(invoice_date) as mes, SUM(value) as total')
+            ->selectRaw("{$monthExpr} as mes, SUM(value) as total")
             ->groupBy('mes')
             ->orderBy('mes')
             ->get();
@@ -215,7 +217,7 @@ class DashboardIndex extends Component
         // Agrupar gastos por banco (últimos 6 meses)
         $gastosPorBancoRaw = Invoice::where('user_id', $userId)
             ->where('invoice_date', '>=', now()->subMonths(6))
-            ->selectRaw('MONTH(invoice_date) as mes, id_bank, SUM(value) as total')
+            ->selectRaw("{$monthExpr} as mes, id_bank, SUM(value) as total")
             ->groupBy('mes', 'id_bank')
             ->orderBy('mes')
             ->get();
@@ -304,5 +306,14 @@ class DashboardIndex extends Component
             'taxaCrescimento' => $this->taxaCrescimento ?? 0,
             'produtosAtivos' => $this->produtosAtivos ?? 0,
         ]);
+    }
+
+    protected function monthExpression(string $column): string
+    {
+        $format = DB::getDriverName() === 'sqlite'
+            ? "CAST(strftime('%%m', %s) AS INTEGER)"
+            : 'MONTH(%s)';
+
+        return sprintf($format, $column);
     }
 }
