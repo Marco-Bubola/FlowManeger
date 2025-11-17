@@ -1,9 +1,15 @@
 <div class=" w-full "
-     x-data="{
-        showFilters: false,
-        showQuickActions: false,
-        hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }}
-     }">
+      x-data="{
+          showFilters: false,
+          showQuickActions: false,
+          hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }},
+          initUltraWatcher() {
+                const sync = () => $wire.set('ultraWideScreen', window.matchMedia('(min-width: 1920px)').matches);
+                sync();
+                window.addEventListener('resize', sync);
+          }
+      }"
+      x-init="initUltraWatcher()">
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -30,6 +36,7 @@
         :preco_min="$preco_min"
         :preco_max="$preco_max"
         :per-page="$perPage"
+        :per-page-options="$perPageOptions"
         :ordem="$ordem"
         :estoque_filtro="$estoque ?? ''"
         :data_filtro="$data_inicio ?? ''"
@@ -292,7 +299,7 @@
         <!-- Produto Simples com CSS customizado mantido -->
         <div class="product-card-modern">
             <!-- Botões flutuantes -->
-            <div class="btn-action-group flex gap-2">
+            <div class="btn-action-group">
                 <input type="checkbox"
                        wire:model.live="selectedProducts"
                        value="{{ $product->id }}"
