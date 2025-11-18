@@ -59,7 +59,7 @@
                                         <i class="bi bi-person text-slate-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="client_id"
-                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                             {{ $errors->has('client_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                             focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um cliente</option>
@@ -85,7 +85,7 @@
                                     Data
                                 </label>
                                 <input wire:model="date" type="date"
-                                       class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                       class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                        {{ $errors->has('date') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
                                        focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                 @error('date')
@@ -110,7 +110,7 @@
                                     <textarea wire:model="description"
                                               id="description"
                                               rows="3"
-                                              class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none
+                                              class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none
                                               {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                               focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm"
                                               placeholder="Descrição da transação"></textarea>
@@ -138,7 +138,7 @@
                                         <i class="bi bi-tags-fill text-slate-400 group-hover:text-purple-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="category_id"
-                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                             {{ $errors->has('category_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
                                             focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione uma categoria</option>
@@ -162,7 +162,7 @@
                                         <i class="bi bi-arrow-left-right text-slate-400 group-hover:text-indigo-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="type_id"
-                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                             {{ $errors->has('type_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                             focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um tipo</option>
@@ -186,7 +186,7 @@
                                         <i class="bi bi-piggy-bank text-slate-400 group-hover:text-amber-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="cofrinho_id"
-                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                             {{ $errors->has('cofrinho_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                             focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um cofrinho</option>
