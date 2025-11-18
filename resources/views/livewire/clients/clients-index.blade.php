@@ -95,7 +95,7 @@
             <!-- Primeira/Anterior -->
             @if ($clients->currentPage() > 1)
                 <a href="{{ $clients->url(1) }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
                     title="Primeira página">
                     <i class="bi bi-chevron-double-left text-sm"></i>
                 </a>
@@ -103,7 +103,7 @@
 
             @if ($clients->previousPageUrl())
                 <a href="{{ $clients->previousPageUrl() }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
                     title="Página anterior">
                     <i class="bi bi-chevron-left text-sm"></i>
                 </a>
@@ -119,7 +119,7 @@
             <!-- Próxima/Última -->
             @if ($clients->nextPageUrl())
                 <a href="{{ $clients->nextPageUrl() }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
                     title="Próxima página">
                     <i class="bi bi-chevron-right text-sm"></i>
                 </a>
@@ -127,7 +127,7 @@
 
             @if ($clients->currentPage() < $clients->lastPage())
                 <a href="{{ $clients->url($clients->lastPage()) }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
+                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
                     title="Última página">
                     <i class="bi bi-chevron-double-right text-sm"></i>
                 </a>
