@@ -48,7 +48,7 @@
                                         <input type="text"
                                             wire:model="name"
                                             id="name"
-                                            class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                             {{ $errors->has('name') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
                                             focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                             placeholder="Ex: Notebook Dell Inspiron 15">
@@ -83,8 +83,8 @@
                                         <input type="text"
                                             wire:model="product_code"
                                             id="product_code"
-                                            class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
-                                            {{ $errors->has('product_code') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
+                                            class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
+                                            {{ $errors->has('product_code') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                             focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                             placeholder="Ex: NB-DELL-001">
                                         <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
@@ -223,7 +223,7 @@
                                         <textarea wire:model="description"
                                             id="description"
                                             rows="4"
-                                            class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 resize-none
+                                            class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 resize-none
                                             {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                             focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                             placeholder="Descreva as principais características do produto..."></textarea>
@@ -306,17 +306,31 @@
                                     </p>
                                 </div>
 
-                                <!-- Componente de Upload Melhorado -->
-                                <x-image-upload
-                                    name="image"
-                                    id="image"
-                                    wire-model="image"
-                                    title="Atualizar Imagem do Produto"
-                                    description="Clique para selecionar ou arraste e solte sua imagem aqui"
-                                    :existing-image="$this->existingImageUrl"
-                                    :new-image="$image"
-                                    height="h-96"
-                                />
+                                <!-- Componente de Upload Melhorado + botão copiar nome -->
+                                <div x-data="{ name: @entangle('name'), copied: false }" class="relative">
+                                    <x-image-upload
+                                        name="image"
+                                        id="image"
+                                        wire-model="image"
+                                        title="Atualizar Imagem do Produto"
+                                        description="Clique para selecionar ou arraste e solte sua imagem aqui"
+                                        :existing-image="$this->existingImageUrl"
+                                        :new-image="$image"
+                                        height="h-96"
+                                    />
+
+                                    <!-- Botão de copiar nome (ao lado do card) -->
+                                        <button type="button"
+                                            x-on:click="(function(){ let clean = name ? name.replace(/[\/()\-]/g,'').replace(/\s+/g,' ').trim() : ''; navigator.clipboard.writeText(clean).then(()=>{ copied=true; setTimeout(()=>copied=false,1500) }) })()"
+                                            class="absolute top-4 right-4 inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition">
+                                        <i class="bi bi-clipboard mr-2"></i>
+                                        Copiar nome
+                                    </button>
+
+                                    <div x-show="copied" x-cloak class="absolute top-16 right-4 bg-emerald-500 text-white px-3 py-1 rounded shadow">
+                                        Copiado!
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
