@@ -114,8 +114,7 @@ class InvoicesIndex extends Component
             // Preparar dados do calendário
             $this->prepareCalendarData();
 
-            // Log temporário
-            session()->flash('debug_info', "Dados carregados para: " . $this->month . "/" . $this->year . " - Total invoices: " . count($this->invoices));
+            // debug flashes removed
 
         } catch (\Exception $e) {
             session()->flash('error', 'Erro ao carregar os dados: ' . $e->getMessage());
@@ -506,13 +505,7 @@ class InvoicesIndex extends Component
         $this->calendarDays = $calendarDays;
 
         // Log temporário
-        session()->flash('calendar_debug', sprintf(
-            "Calendário do ciclo preparado - Total dias: %d - Ciclo: %s até %s - Total invoices: %d",
-            count($calendarDays),
-            $firstDayOfCycle->format('d/m/Y'),
-            $lastDayOfCycle->format('d/m/Y'),
-            count($this->calendarInvoices)
-        ));
+        // calendar debug removed
     }
 
     public function changeBank($newBankId)
@@ -541,6 +534,34 @@ class InvoicesIndex extends Component
     {
         $this->showDeleteModal = false;
         $this->deletingInvoice = null;
+    }
+
+    /**
+     * Alterna o modo de visualização entre 'cards' e 'list'.
+     */
+    public function toggleViewMode(): void
+    {
+        $this->viewMode = $this->viewMode === 'cards' ? 'list' : 'cards';
+        // Opcional: recarregar dados ou disparar evento
+        $this->dispatch('view-mode-changed', ['mode' => $this->viewMode]);
+    }
+
+    /**
+     * Define explicitamente o modo de visualização.
+     * @param string $mode
+     */
+    public function setViewMode(string $mode): void
+    {
+        if (!in_array($mode, ['cards', 'list'])) {
+            return;
+        }
+
+        if ($this->viewMode === $mode) {
+            return;
+        }
+
+        $this->viewMode = $mode;
+        $this->dispatch('view-mode-changed', ['mode' => $this->viewMode]);
     }
 
     #[On('invoice-updated')]
