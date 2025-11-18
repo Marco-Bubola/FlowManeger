@@ -294,6 +294,11 @@ class EditSale extends Component
     {
         $query = collect($this->products);
 
+        // Preparar lista de IDs selecionados atuais (manter visíveis mesmo com estoque zerado)
+        $selectedIds = collect($this->selectedProducts)->pluck('product_id')->filter()->map(function($id) {
+            return (int) $id;
+        })->all();
+
         // Filtrar por termo de busca
         if ($this->searchTerm) {
             $searchTerm = strtolower($this->searchTerm);
@@ -304,13 +309,25 @@ class EditSale extends Component
             });
         }
 
+        // Excluir produtos com estoque zerado, exceto os já selecionados na venda atual
+        $query = $query->filter(function($product) use ($selectedIds) {
+            // Se produto está entre os selecionados, sempre mostrar (permite editar itens já adicionados)
+            if (in_array((int)$product->id, $selectedIds)) {
+                return true;
+            }
+
+            // Caso contrário, somente produtos com estoque positivo
+            return isset($product->stock_quantity) ? ((int)$product->stock_quantity > 0) : true;
+        });
+
         // Se showOnlySelected estiver ativo, filtrar apenas produtos selecionados
         if ($this->showOnlySelected) {
-            $selectedIds = collect($this->selectedProducts)->pluck('product_id')->filter();
-            $query = $query->whereIn('id', $selectedIds);
+            $query = $query->filter(function($product) use ($selectedIds) {
+                return in_array((int)$product->id, $selectedIds);
+            });
         }
 
-        return $query;
+        return $query->values();
     }
 
     public function incrementQuantity($index)
