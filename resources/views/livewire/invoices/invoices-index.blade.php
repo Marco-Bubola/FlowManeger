@@ -360,11 +360,11 @@
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center space-x-3">
                                                     @if((is_array($invoice) ? ($invoice['category'] ?? null) : $invoice->category) && (is_array($invoice) ? ($invoice['category']['icone'] ?? null) : $invoice->category->icone))
-                                                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                                        <div class="w-10 h-10 bg-white/20 dark:bg-slate-700/20 rounded-xl flex items-center justify-center">
                                                             <i class="{{ is_array($invoice) ? ($invoice['category']['icone'] ?? '') : $invoice->category->icone }} text-white text-lg"></i>
                                                         </div>
                                                     @else
-                                                        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+                                                        <div class="w-10 h-10 bg-white/20 dark:bg-slate-700/20 rounded-xl flex items-center justify-center">
                                                             <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                                                             </svg>
@@ -380,7 +380,7 @@
                                                     </div>
                                                 </div>
 
-                                                <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
+                                                <div class="w-8 h-8 bg-white/20 dark:bg-slate-700/20 rounded-full flex items-center justify-center">
                                                     <svg class="w-4 h-4 text-white expand-icon transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                                     </svg>
