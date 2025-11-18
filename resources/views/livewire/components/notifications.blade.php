@@ -1,12 +1,12 @@
-<div x-data="notificationManager()" 
+<div x-data="notificationManager()"
      x-init="init()"
      @notify.window="addNotification($event.detail)"
      class="fixed top-4 right-4 z-50 space-y-3 max-w-sm w-full">
-    
+
     <!-- Renderizar notificações do Livewire -->
     @foreach($notifications as $notification)
-        <div x-data="{ 
-                show: false, 
+        <div x-data="{
+                show: false,
                 id: '{{ $notification['id'] }}',
                 type: '{{ $notification['type'] }}',
                 message: '{{ addslashes($notification['message']) }}',
@@ -30,9 +30,9 @@
              x-transition:leave-end="translate-x-full opacity-0"
              class="notification-item"
              role="alert">
-            
+
             <!-- Success Notification -->
-            <div x-show="type === 'success'" 
+            <div x-show="type === 'success'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-green-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
                     <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400 text-lg"></i>
@@ -41,14 +41,14 @@
                     <h3 class="text-sm font-bold text-green-800 dark:text-green-200">Sucesso!</h3>
                     <p class="text-sm text-green-700 dark:text-green-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)" 
+                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
                         class="ml-4 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
             </div>
 
             <!-- Error Notification -->
-            <div x-show="type === 'error'" 
+            <div x-show="type === 'error'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-red-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg mr-3">
                     <i class="bi bi-exclamation-triangle-fill text-red-600 dark:text-red-400 text-lg"></i>
@@ -57,14 +57,14 @@
                     <h3 class="text-sm font-bold text-red-800 dark:text-red-200">Erro!</h3>
                     <p class="text-sm text-red-700 dark:text-red-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)" 
+                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
                         class="ml-4 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
             </div>
 
             <!-- Warning Notification -->
-            <div x-show="type === 'warning'" 
+            <div x-show="type === 'warning'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-yellow-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mr-3">
                     <i class="bi bi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-lg"></i>
@@ -73,14 +73,14 @@
                     <h3 class="text-sm font-bold text-yellow-800 dark:text-yellow-200">Atenção!</h3>
                     <p class="text-sm text-yellow-700 dark:text-yellow-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)" 
+                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
                         class="ml-4 text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
             </div>
 
             <!-- Info Notification -->
-            <div x-show="type === 'info'" 
+            <div x-show="type === 'info'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-blue-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
                     <i class="bi bi-info-circle-fill text-blue-600 dark:text-blue-400 text-lg"></i>
@@ -89,7 +89,7 @@
                     <h3 class="text-sm font-bold text-blue-800 dark:text-blue-200">Informação</h3>
                     <p class="text-sm text-blue-700 dark:text-blue-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)" 
+                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
                         class="ml-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
@@ -118,9 +118,9 @@
              x-transition:leave-end="translate-x-full opacity-0"
              class="notification-item"
              role="alert">
-            
+
             <!-- Success Notification -->
-            <div x-show="notification.type === 'success'" 
+            <div x-show="notification.type === 'success'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-green-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg mr-3">
                     <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400 text-lg"></i>
@@ -129,14 +129,14 @@
                     <h3 class="text-sm font-bold text-green-800 dark:text-green-200">Sucesso!</h3>
                     <p class="text-sm text-green-700 dark:text-green-300" x-text="notification.message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)" 
+                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)"
                         class="ml-4 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
             </div>
 
             <!-- Error Notification -->
-            <div x-show="notification.type === 'error'" 
+            <div x-show="notification.type === 'error'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-red-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-lg mr-3">
                     <i class="bi bi-exclamation-triangle-fill text-red-600 dark:text-red-400 text-lg"></i>
@@ -145,14 +145,14 @@
                     <h3 class="text-sm font-bold text-red-800 dark:text-red-200">Erro!</h3>
                     <p class="text-sm text-red-700 dark:text-red-300" x-text="notification.message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)" 
+                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)"
                         class="ml-4 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
             </div>
 
             <!-- Warning Notification -->
-            <div x-show="notification.type === 'warning'" 
+            <div x-show="notification.type === 'warning'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-yellow-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg mr-3">
                     <i class="bi bi-exclamation-triangle text-yellow-600 dark:text-yellow-400 text-lg"></i>
@@ -161,14 +161,14 @@
                     <h3 class="text-sm font-bold text-yellow-800 dark:text-yellow-200">Atenção!</h3>
                     <p class="text-sm text-yellow-700 dark:text-yellow-300" x-text="notification.message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)" 
+                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)"
                         class="ml-4 text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
             </div>
 
             <!-- Info Notification -->
-            <div x-show="notification.type === 'info'" 
+            <div x-show="notification.type === 'info'"
                  class="flex items-center p-4 bg-white dark:bg-neutral-800 border-l-4 border-blue-500 rounded-lg shadow-lg">
                 <div class="flex items-center justify-center w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg mr-3">
                     <i class="bi bi-info-circle-fill text-blue-600 dark:text-blue-400 text-lg"></i>
@@ -177,7 +177,7 @@
                     <h3 class="text-sm font-bold text-blue-800 dark:text-blue-200">Informação</h3>
                     <p class="text-sm text-blue-700 dark:text-blue-300" x-text="notification.message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)" 
+                <button @click="show = false; setTimeout(() => removeJsNotification(notification.id), 300)"
                         class="ml-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
@@ -190,14 +190,14 @@
 function notificationManager() {
     return {
         jsNotifications: [],
-        
+
         init() {
             // Escuta eventos globais de notificação
             window.addEventListener('notify', (event) => {
                 this.addNotification(event.detail);
             });
         },
-        
+
         addNotification(notification) {
             const newNotification = {
                 id: notification.id || Date.now() + Math.random(),
@@ -205,10 +205,10 @@ function notificationManager() {
                 message: notification.message || '',
                 duration: notification.duration || 5000
             };
-            
+
             this.jsNotifications.push(newNotification);
         },
-        
+
         removeJsNotification(id) {
             this.jsNotifications = this.jsNotifications.filter(n => n.id !== id);
         }
