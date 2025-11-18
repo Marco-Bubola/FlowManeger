@@ -22,7 +22,7 @@
                 <div class="flex-1 space-y-4 animate-fadeIn">
                     <!-- Card Container Principal -->
                     <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg shadow-slate-200/30 dark:shadow-slate-900/30 border border-white/20 dark:border-slate-700/50 w-full">
-                        
+
                         <!-- Seção superior: Descrição / Valor (2 colunas) -->
                         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                             <!-- Descrição -->
@@ -39,7 +39,7 @@
                                     </div>
                                     <input wire:model="description" type="text" id="description"
                                         placeholder="Descrição..."
-                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
                                         focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                 </div>
@@ -81,7 +81,7 @@
                                         <i class="bi bi-tags-fill text-slate-400 group-hover:text-rose-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="category_id" id="category_id"
-                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('category_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-rose-500 focus:ring-rose-500/20 hover:border-rose-300' }}
                                         focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione uma categoria</option>
@@ -111,7 +111,7 @@
                                         <i class="bi bi-person text-slate-400 group-hover:text-cyan-500 transition-colors duration-200"></i>
                                     </div>
                                     <select wire:model="client_id" id="client_id"
-                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('client_id') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-cyan-500 focus:ring-cyan-500/20 hover:border-cyan-300' }}
                                         focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                         <option value="">Selecione um cliente</option>
@@ -144,7 +144,7 @@
                                         <i class="bi bi-calendar text-slate-400 group-hover:text-blue-500 transition-colors duration-200"></i>
                                     </div>
                                     <input wire:model="invoice_date" type="date" id="invoice_date"
-                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('invoice_date') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
                                         focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                 </div>
@@ -170,7 +170,7 @@
                                     </div>
                                     <input wire:model="installments" type="text" id="installments"
                                         placeholder="1x, 2x, 3x..."
-                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('installments') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                         focus:ring-2 focus:outline-none transition-all duration-200 shadow-sm">
                                 </div>
