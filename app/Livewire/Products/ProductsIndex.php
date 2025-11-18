@@ -29,7 +29,10 @@ class ProductsIndex extends Component
     public string $data_fim = '';
     public string $ordem = '';
     public bool $sem_imagem = false;
-    // public int $perPage = 18; // Removido para evitar duplicidade
+    public bool $fullHdLayout = false;
+    public bool $ultraLayout = false;
+    public int $perPage = 18;
+    public int $page = 1;
 
     // Modal de exclusão
     public ?Product $deletingProduct = null;
@@ -39,10 +42,44 @@ class ProductsIndex extends Component
     {
         // Debug: forçar para testar
         // $this->showDeleteModal = true;
+
+        // Define o padrão de itens por página para lojas específicas
+        $this->queryString['perPage']['except'] = $this->defaultPerPage();
+
+        if (!request()->query('perPage')) {
+            $this->perPage = $this->defaultPerPage();
+        }
+
+        $this->alignPerPageToOptions();
     }
 
-    public $perPage = 18;
-    public $page = 1;
+    private function isUltraWind(): bool
+    {
+        $clientName = env('CLIENT_NAME', config('app.client_name', ''));
+        return strtolower(trim($clientName)) === 'ultra wind';
+    }
+
+    private function usesUltraMultipliers(): bool
+    {
+        // Permite ativar multiplicadores "ultra" a partir do cliente (largura)
+        // ou pela variável de ambiente para compatibilidade.
+        return $this->ultraLayout || $this->isUltraWind();
+    }
+
+    private function defaultPerPage(): int
+    {
+        return $this->isUltraWind() ? 32 : 18;
+    }
+
+    private function alignPerPageToOptions(): void
+    {
+        $allowed = $this->getPerPageOptions();
+        $current = (int) $this->perPage;
+
+        if (!in_array($current, $allowed, true)) {
+            $this->perPage = $allowed[array_key_first($allowed)];
+        }
+    }
 
     // Seleção em massa
     public array $selectedProducts = [];
@@ -61,7 +98,44 @@ class ProductsIndex extends Component
         'ordem' => ['except' => ''],
         'perPage' => ['except' => 18],
         'page' => ['except' => 1],
+        'ultraLayout' => ['except' => false],
     ];
+
+    public function updatingPerPage($value): void
+    {
+        $target = (int) $value;
+        $allowed = $this->getPerPageOptions();
+
+        if (!in_array($target, $allowed, true)) {
+            $this->perPage = $allowed[array_key_first($allowed)];
+            session()->flash('info', 'Use um dos tamanhos sugeridos para esta visualização.');
+        }
+
+        $this->resetPage();
+    }
+
+    public function updatedFullHdLayout(bool $isFullHd): void
+    {
+        if ($this->isUltraWind()) {
+            return;
+        }
+
+        // Ajusta o valor 'except' usado no queryString para perPage baseado
+        // no layout Full HD. Não forçamos resetPage aqui porque esse método
+        // pode ser chamado repetidamente durante re-renders do Livewire
+        // (por exemplo quando o Alpine reaplica o valor) e isso causava
+        // o comportamento em que a paginação voltava para a primeira página.
+        $this->queryString['perPage']['except'] = $isFullHd ? 25 : 18;
+        $this->alignPerPageToOptions();
+    }
+
+    public function updatedUltraLayout(bool $isUltra): void
+    {
+        // Alinha as opções de perPage quando o cliente informa ultra layout.
+        // Não resetamos a página para evitar comportamento de retornar
+        // à página 1 quando Alpine reaplica a propriedade.
+        $this->alignPerPageToOptions();
+    }
 
     public function updatingSearch()
     {
@@ -245,6 +319,26 @@ class ProductsIndex extends Component
         $this->deletingProduct = null;
     }
 
+    /**
+     * Gera as opções de paginação com base no cliente.
+     * Ultra Wind: múltiplos de 8. Padrão: múltiplos de 6.
+     */
+    public function getPerPageOptions(): array
+    {
+        if ($this->usesUltraMultipliers()) {
+            // Múltiplos de 8 para grids mais largos
+            return [32, 40, 48, 56, 64, 80, 96];
+        }
+
+        if ($this->fullHdLayout) {
+            // Layout pensado para monitores 1920px (5 cards por linha)
+            return [25, 30, 35, 40, 45, 50];
+        }
+
+        // Múltiplos de 6 (padrão)
+        return [12, 18, 24, 30, 36, 42, 48];
+    }
+
     #[On('product-created')]
     #[On('product-updated')]
     #[On('kit-created')]
@@ -342,7 +436,40 @@ class ProductsIndex extends Component
             $query->orderByRaw('stock_quantity > 0 DESC');
         }
 
-        return $query->paginate($this->perPage);
+        $products = $query->paginate($this->perPage);
+
+        // Garante que os links de paginação apontem para a rota pública (evita herdar
+        // o caminho interno do Livewire como `/livewire/update`) e preserva os filtros
+        // atuais, especialmente `perPage`, para que a seleção de itens por página não seja perdida.
+        try {
+            $appends = [
+                'search' => $this->search,
+                'category' => $this->category,
+                'status_filtro' => $this->status_filtro,
+                'tipo' => $this->tipo,
+                'preco_min' => $this->preco_min,
+                'preco_max' => $this->preco_max,
+                'estoque' => $this->estoque,
+                'estoque_valor' => $this->estoque_valor,
+                'data_inicio' => $this->data_inicio,
+                'data_fim' => $this->data_fim,
+                'ordem' => $this->ordem,
+                'perPage' => $this->perPage,
+                'sem_imagem' => $this->sem_imagem ? 1 : 0,
+            ];
+
+            // Remover chaves vazias para URLs mais limpas
+            $appends = array_filter($appends, function ($v) {
+                return $v !== '' && $v !== null;
+            });
+
+            $products->appends($appends);
+            $products->setPath(route('products.index'));
+        } catch (\Exception $e) {
+            Log::warning('Falha ao ajustar path do paginator: ' . $e->getMessage());
+        }
+
+        return $products;
     }
 
     public function getCategoriesProperty()
@@ -359,6 +486,7 @@ class ProductsIndex extends Component
         return view('livewire.products.products-index', [
             'products' => $this->products,
             'categories' => $this->categories,
+            'perPageOptions' => $this->getPerPageOptions(),
         ]);
     }
 }
