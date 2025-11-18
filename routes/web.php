@@ -90,7 +90,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::redirect('/dashboard', '/dashboard/main')
+Route::get('/dashboard', DashboardIndex::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
