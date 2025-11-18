@@ -28,6 +28,8 @@ class SalesIndex extends Component
     public string $min_value = '';
     public string $max_value = '';
     public int $perPage = 12;
+    public bool $fullHdLayout = false;
+    public bool $ultraWindClient = false;
 
     // Novos filtros para componentes modernos
     public string $statusFilter = '';
@@ -64,6 +66,9 @@ class SalesIndex extends Component
 
     public function mount()
     {
+        $this->ultraWindClient = $this->isUltraWind();
+        $this->queryString['perPage']['except'] = $this->defaultPerPage();
+
         $this->search = request('search', '');
         $this->status = request('status', '');
         $this->filter = request('filter', '');
@@ -72,7 +77,70 @@ class SalesIndex extends Component
         $this->date_end = request('date_end', '');
         $this->min_value = request('min_value', '');
         $this->max_value = request('max_value', '');
-        $this->perPage = request('perPage', 12);
+        $this->perPage = (int) request('perPage', $this->defaultPerPage());
+
+        $this->alignPerPageToOptions();
+    }
+
+    private function isUltraWind(): bool
+    {
+        $clientName = env('CLIENT_NAME', config('app.client_name', ''));
+        return strtolower(trim($clientName)) === 'ultra wind';
+    }
+
+    private function usesUltraMultipliers(): bool
+    {
+        return $this->ultraWindClient;
+    }
+
+    private function defaultPerPage(): int
+    {
+        return $this->usesUltraMultipliers() ? 16 : 12;
+    }
+
+    private function alignPerPageToOptions(): void
+    {
+        $allowed = $this->getPerPageOptions();
+
+        if (empty($allowed)) {
+            return;
+        }
+
+        $current = (int) $this->perPage;
+
+        if (!in_array($current, $allowed, true)) {
+            $this->perPage = $allowed[array_key_first($allowed)];
+        }
+    }
+
+    public function updatingPerPage($value): void
+    {
+        $target = (int) $value;
+        $allowed = $this->getPerPageOptions();
+
+        if (!in_array($target, $allowed, true)) {
+            $this->perPage = $allowed[array_key_first($allowed)];
+            session()->flash('info', 'Selecione um tamanho compatível com este layout.');
+        } else {
+            $this->perPage = $target;
+        }
+
+        $this->resetPage();
+    }
+
+    public function updatedFullHdLayout(bool $isFullHd): void
+    {
+        if ($this->ultraWindClient) {
+            return;
+        }
+
+        $options = $this->getPerPageOptions();
+        if (!empty($options)) {
+            $this->queryString['perPage']['except'] = $options[array_key_first($options)];
+        }
+
+        $this->alignPerPageToOptions();
+        $this->resetPage();
     }
 
     public function updatingSearch()
@@ -100,7 +168,8 @@ class SalesIndex extends Component
         $this->date_end = '';
         $this->min_value = '';
         $this->max_value = '';
-        $this->perPage = 12;
+        $this->perPage = $this->defaultPerPage();
+        $this->alignPerPageToOptions();
 
         // Limpar também os novos filtros
         $this->statusFilter = '';
@@ -368,6 +437,19 @@ class SalesIndex extends Component
         return $query->paginate($this->perPage);
     }
 
+    public function getPerPageOptions(): array
+    {
+        if ($this->usesUltraMultipliers()) {
+            return [16, 24, 32, 40, 48, 56, 64];
+        }
+
+        if ($this->fullHdLayout) {
+            return [10, 12, 14, 16, 18, 20, 24];
+        }
+
+        return [12, 14, 16, 18, 20, 24, 28];
+    }
+
     public function getClientsProperty()
     {
         return Client::where('user_id', Auth::id())->get();
@@ -393,6 +475,8 @@ class SalesIndex extends Component
             'pendingSales' => $pendingSales,
             'todaySales' => $todaySales,
             'totalRevenue' => $totalRevenue,
+            'perPageOptions' => $this->getPerPageOptions(),
+            'ultraWindClient' => $this->ultraWindClient,
         ]);
     }
 
