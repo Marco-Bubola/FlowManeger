@@ -332,17 +332,20 @@
                                 </div>
                             </div>
                             @if($bankId && count($invoices) > 0)
-                                <div class="flex items-center space-x-2">
-                                    <button wire:click="$toggle('viewMode')"
-                                        class="inline-flex items-center px-2 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200">
-                                        @if($viewMode === 'cards')
-                                            <i class="fas fa-list mr-1 text-xs"></i>
-                                            Lista
-                                        @else
-                                            <i class="fas fa-th mr-1 text-xs"></i>
-                                            Cards
-                                        @endif
-                                    </button>
+                                <div class="flex items-center">
+                                    <div role="tablist" aria-label="Modo de visualização" class="inline-flex rounded-xl bg-blue-50 dark:bg-blue-900/50 p-1">
+                                        <button type="button" wire:click="setViewMode('cards')" role="tab" aria-pressed="{{ $viewMode === 'cards' ? 'true' : 'false' }}"
+                                            class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150 {{ $viewMode === 'cards' ? 'bg-white text-slate-900 shadow' : 'text-blue-600 dark:text-blue-300 text-opacity-80' }}">
+                                            <i class="fas fa-th text-xs"></i>
+                                            <span class="hidden sm:inline">Cards</span>
+                                        </button>
+
+                                        <button type="button" wire:click="setViewMode('list')" role="tab" aria-pressed="{{ $viewMode === 'list' ? 'true' : 'false' }}"
+                                            class="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-lg transition-all duration-150 {{ $viewMode === 'list' ? 'bg-white text-slate-900 shadow' : 'text-blue-600 dark:text-blue-300 text-opacity-80' }}">
+                                            <i class="fas fa-list text-xs"></i>
+                                            <span class="hidden sm:inline">Lista</span>
+                                        </button>
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -351,12 +354,13 @@
                     @if($invoices && count($invoices) > 0)
                         @if($viewMode === 'cards')
                             <!-- Cards View -->
-                            <div class="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-6">
+                            <div class="cards-scroll max-h-[75vh] lg:max-h-[82vh] overflow-auto pr-2">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ultrawind:grid-cols-6 gap-6">
                                 @foreach($invoices as $invoice)
-                                    <div class="invoice-card bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden cursor-pointer"
+                                    <div class="invoice-card bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-visible cursor-pointer"
                                          onclick="toggleCardExpansion(this)">
                                         <!-- Card Header -->
-                                        <div class="bg-gradient-to-r from-red-500 to-pink-600 p-4">
+                                        <div class="bg-gradient-to-r from-red-500 to-pink-600 p-4 rounded-t-3xl">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center space-x-3">
                                                     @if((is_array($invoice) ? ($invoice['category'] ?? null) : $invoice->category) && (is_array($invoice) ? ($invoice['category']['icone'] ?? null) : $invoice->category->icone))
@@ -431,7 +435,7 @@
 
                                         <!-- Card Actions (Hidden by default, shown on hover) -->
                                         @if($bankId)
-                                            <div class="card-actions bg-gray-50/80 dark:bg-gray-700/50 px-6 py-4 flex items-center justify-between opacity-0 transform translate-y-2 transition-all duration-300"
+                                            <div class="card-actions bg-gray-50/80 dark:bg-gray-700/50 px-6 py-4 flex flex-col items-center gap-3 opacity-0 transform translate-y-2 transition-all duration-300"
                                                  onclick="event.stopPropagation()">
                                                 <div class="flex items-center space-x-2">
                                                     <a href="{{ route('invoices.edit', [
@@ -463,17 +467,19 @@
                                                     </button>
                                                 </div>
 
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">
                                                     ID: {{ is_array($invoice) ? ($invoice['id_invoice'] ?? $invoice['id'] ?? '') : ($invoice->id_invoice ?? $invoice->id) }}
                                                 </div>
                                             </div>
                                         @endif
                                     </div>
                                 @endforeach
+                                </div>
                             </div>
                         @else
                             <!-- List View -->
-                            <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden">
+                            <div class="cards-scroll max-h-[75vh] lg:max-h-[82vh] overflow-auto pr-2">
+                                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden">
                                 <div class="divide-y divide-gray-200/50 dark:divide-gray-700/50">
                                     @foreach($invoices as $invoice)
                                         <div class="p-6 hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-all duration-300">
@@ -553,6 +559,7 @@
                                             </div>
                                         </div>
                                     @endforeach
+                                </div>
                                 </div>
                             </div>
                         @endif
@@ -720,10 +727,11 @@
         }
 
         /* Invoice Card Interactions */
+        .invoice-card { overflow: visible; }
         .invoice-card:hover .card-actions {
             opacity: 1 !important;
             transform: translateY(0) !important;
-            max-height: 80px !important;
+            max-height: 160px !important;
         }
 
         .card-actions {
@@ -739,6 +747,8 @@
         .invoice-card:hover .card-actions {
             margin-top: 0.75rem !important;
             padding-top: 0.75rem !important;
+            /* assegura que o conteúdo apareça sem cortes */
+            overflow: visible !important;
         }
 
         .invoice-card.expanded .expand-icon {
@@ -763,6 +773,31 @@
 
         .dark .invoice-card.expanded .card-details {
             border-top-color: rgba(75, 85, 99, 0.5);
+        }
+
+        /* Scrollbar styles for the cards/list scroll area */
+        .cards-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(100,100,100,0.22) transparent;
+        }
+
+        .cards-scroll::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .cards-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .cards-scroll::-webkit-scrollbar-thumb {
+            background: rgba(100,100,100,0.18);
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .dark .cards-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.06);
         }
     </style>
 
