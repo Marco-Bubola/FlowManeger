@@ -12,8 +12,8 @@ module.exports = {
       screens: {
         // Breakpoint personalizado para telas ultra-wide
         // Ajuste o valor se quiser outra largura mínima
-        // Reduzido para 1920px para compatibilidade com monitores comuns
-        ultrawind: '1920px',
+        // Definido para 2498px conforme preferência do cliente
+        ultrawind: '2498px',
       },
     },
   },
