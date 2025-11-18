@@ -1,15 +1,45 @@
 <div class=" w-full "
-      x-data="{
-          showFilters: false,
-          showQuickActions: false,
-          hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }},
-          initUltraWatcher() {
-                const sync = () => $wire.set('ultraWideScreen', window.matchMedia('(min-width: 1920px)').matches);
-                sync();
-                window.addEventListener('resize', sync);
-          }
-      }"
-      x-init="initUltraWatcher()">
+     x-data="{
+        showFilters: false,
+        showQuickActions: false,
+        hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }},
+            fullHd: false,
+            ultra: false,
+        initResponsiveWatcher() {
+            const mq = window.matchMedia('(min-width: 1920px)');
+                const mqUltra = window.matchMedia('(min-width: 2498px)');
+
+            const sync = () => {
+                this.fullHd = mq.matches;
+                if ($wire) {
+                    $wire.set('fullHdLayout', mq.matches);
+                }
+            };
+
+                const syncUltra = () => {
+                    this.ultra = mqUltra.matches;
+                    if ($wire) {
+                        $wire.set('ultraLayout', mqUltra.matches);
+                    }
+                };
+
+            sync();
+                syncUltra();
+
+            if (typeof mq.addEventListener === 'function') {
+                mq.addEventListener('change', sync);
+            } else {
+                mq.addListener(sync);
+            }
+
+                if (typeof mqUltra.addEventListener === 'function') {
+                    mqUltra.addEventListener('change', syncUltra);
+                } else {
+                    mqUltra.addListener(syncUltra);
+                }
+        }
+     }"
+     x-init="initResponsiveWatcher()">
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -230,7 +260,11 @@
     @else
     <!-- Grid de Produtos com CSS customizado mantido -->
     <form>
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-8 ultrawind:grid-cols-8 gap-6">
+        <div class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-6"
+            data-ultrawind="{{ ($ultraLayout ?? false) ? 'true' : 'false' }}"
+            data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
+            x-bind:data-ultrawind="ultra ? 'true' : 'false'"
+            x-bind:data-full-hd="fullHd ? 'true' : 'false'">
         @foreach($products as $product)
         @if($product->tipo === 'kit')
         <!-- Kit Card com informações extras -->
@@ -253,11 +287,7 @@
                 </div>
 
                 <div class="text-center">
-                    <input type="checkbox"
-                           wire:model.live="selectedProducts"
-                           value="{{ $product->id }}"
-                           class="mb-2"
-                           title="Selecionar">
+
                     <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
                         alt="{{ $product->name }}"
                         class="w-24 h-24 mx-auto rounded-lg object-cover bg-neutral-100 dark:bg-neutral-700 mb-3">
@@ -300,10 +330,7 @@
         <div class="product-card-modern">
             <!-- Botões flutuantes -->
             <div class="btn-action-group">
-                <input type="checkbox"
-                       wire:model.live="selectedProducts"
-                       value="{{ $product->id }}"
-                       title="Selecionar">
+
                 <a href="{{ route('products.show', $product->product_code) }}" class="btn btn-secondary" title="Ver Detalhes">
                     <i class="bi bi-eye"></i>
                 </a>
@@ -370,46 +397,6 @@
         @endforeach
     </div>
     </form>
-
-    <!-- Barra de Seleção em Massa (aparece quando há seleções) -->
-    <div x-data="{ selectedCount: 0 }"
-         x-show="selectedCount > 0"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform -translate-y-4"
-         x-transition:enter-end="opacity-100 transform translate-y-0"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100 transform translate-y-0"
-         x-transition:leave-end="opacity-0 transform -translate-y-4"
-         class="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-30 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl p-4 shadow-2xl border border-white/20 dark:border-slate-700/50">
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-2">
-                <div class="p-2 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg text-white">
-                    <i class="bi bi-check-square text-lg"></i>
-                </div>
-                <span class="font-semibold text-slate-800 dark:text-slate-200">
-                    <span x-text="selectedCount"></span> selecionados
-                </span>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <button class="px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
-                    <i class="bi bi-check-circle"></i> Ativar
-                </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
-                    <i class="bi bi-pencil"></i> Editar
-                </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
-                    <i class="bi bi-files"></i> Duplicar
-                </button>
-                <button wire:click="confirmDeleteSelected" class="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center gap-2">
-                    <i class="bi bi-trash3"></i> Excluir
-                </button>
-                <button @click="selectedCount = 0" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors duration-200">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-        </div>
-    </div>
 
     <!-- Paginação Aprimorada Inferior -->
     <div class="mt-8 space-y-6">
@@ -555,26 +542,6 @@
         </div>
         @endif
 
-        <!-- Ações Rápidas Inferiores -->
-        <div class="bg-gradient-to-br from-white/70 to-slate-50/70 dark:from-slate-800/70 dark:to-slate-900/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
-            <div class="flex flex-wrap items-center justify-center gap-3">
-                <button class="px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                    <i class="bi bi-plus-square"></i> Novo Produto
-                </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                    <i class="bi bi-boxes"></i> Novo Kit
-                </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                    <i class="bi bi-upload"></i> Importar
-                </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                    <i class="bi bi-graph-up-arrow"></i> Relatórios
-                </button>
-                <button class="px-4 py-2 bg-gradient-to-r from-pink-500 to-pink-600 hover:from-pink-600 hover:to-pink-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                    <i class="bi bi-gear"></i> Configurações
-                </button>
-            </div>
-        </div>
     </div>
     @endif
 
