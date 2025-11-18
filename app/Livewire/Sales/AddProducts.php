@@ -60,7 +60,7 @@ class AddProducts extends Component
     public function toggleProduct($productId)
     {
         $existingIndex = null;
-        
+
         // Procurar se o produto já está selecionado
         foreach ($this->newProducts as $index => $item) {
             if ($item['product_id'] == $productId) {
@@ -140,7 +140,7 @@ class AddProducts extends Component
         if (str_contains($key, '.product_id')) {
             $index = explode('.', $key)[0];
             $productId = $this->newProducts[$index]['product_id'];
-            
+
             if ($productId) {
                 $product = Product::find($productId);
                 if ($product) {
