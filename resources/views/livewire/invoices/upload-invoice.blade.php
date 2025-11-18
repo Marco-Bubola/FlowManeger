@@ -14,74 +14,10 @@
     @include('components.toast-notifications')
 
     <div class="">
-        <!-- Header with animated gradient -->
-        <div
-            class="w-full bg-gradient-to-r from-white via-blue-50 to-purple-50 dark:from-gray-800 dark:via-blue-900 dark:to-purple-900 shadow-lg border-b border-blue-200 dark:border-gray-700 backdrop-blur-sm">
-            <div class="w-full px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between items-center py-8">
-                    <div class="flex items-center space-x-6">
-                        <!-- Botão de voltar com hover animado -->
-                        <a href="{{ route('invoices.index', ['bankId' => $bankId]) }}"
-                            class="group flex items-center justify-center w-12 h-12 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-xl hover:from-blue-500 hover:to-purple-600 dark:hover:from-blue-600 dark:hover:to-purple-700 transition-all duration-300 transform hover:scale-110 shadow-lg hover:shadow-xl">
-                            <svg class="w-6 h-6 text-gray-600 dark:text-gray-300 group-hover:text-white transition-colors duration-300"
-                                fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 19l-7-7 7-7"></path>
-                            </svg>
-                        </a>
-
-                        <!-- Título com ícone animado -->
-                        <div class="flex items-center space-x-4">
-                            <div
-                                class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 rounded-2xl shadow-lg transform rotate-3 hover:rotate-0 transition-transform duration-300">
-                                <svg class="w-8 h-8 text-white animate-pulse" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h1
-                                    class="text-3xl font-black bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
-                                    Upload de Transações
-                                </h1>
-                                <p class="text-lg text-gray-600 dark:text-gray-300 font-medium">
-                                    <svg class="w-5 h-5 inline mr-2 text-blue-500" fill="none" stroke="currentColor"
-                                        viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Importe transações de arquivo PDF ou CSV de forma inteligente
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ícone decorativo com animação -->
-                    <div class="relative">
-                        <div
-                            class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 dark:from-purple-600 dark:via-pink-600 dark:to-red-600 rounded-2xl shadow-xl transform hover:scale-110 transition-all duration-300 animate-bounce">
-                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
-                                </path>
-                            </svg>
-                        </div>
-                        <!-- Círculos decorativos -->
-                        <div
-                            class="absolute -top-2 -right-2 w-6 h-6 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full animate-ping">
-                        </div>
-                        <div
-                            class="absolute -bottom-2 -left-2 w-4 h-4 bg-gradient-to-r from-green-400 to-blue-500 rounded-full animate-pulse">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- Modern header component (apenas um) -->
+        <x-upload-header :title="'Upload de Transações'" :description="'Impor transações a partir de arquivo PDF ou CSV'" :backRoute="route('invoices.index', ['bankId' => $bankId])" :showConfirmation="$showConfirmation" :transactionsCount="count($transactions)" />
         <!-- Content -->
-        <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
+        <div class="w-full px-4 sm:px-6 lg:px-8 ">
             @if (!$showConfirmation)
                 <!-- Upload Form -->
                 <div
@@ -101,10 +37,10 @@
                             </div>
                             <div>
                                 <h2
-                                    class="text-2xl font-bold bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+                                    class="text-3xl lg:text-4xl font-extrabold bg-gradient-to-r from-gray-800 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
                                     Enviar Arquivo
                                 </h2>
-                                <p class="text-lg text-gray-600 dark:text-gray-300 font-medium">
+                                <p class="text-lg lg:text-xl text-gray-600 dark:text-gray-300 font-medium">
                                     <svg class="w-4 h-4 inline mr-1 text-blue-500" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -319,72 +255,12 @@
                 </div>
             @else
                 <!-- Confirmation View - Full Width -->
-                <div class="w-full space-y-8">
-                    <!-- Header da confirmação - Full Width -->
-                    <div
-                        class="w-full bg-gradient-to-r from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl p-8 border border-green-200 dark:border-green-700 shadow-lg">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center space-x-4">
-                                <div
-                                    class="flex items-center justify-center w-16 h-16 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 dark:from-green-600 dark:via-emerald-600 dark:to-teal-600 rounded-2xl shadow-lg">
-                                    <svg class="w-8 h-8 text-white animate-pulse" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                </div>
-                                <div>
-                                    <h2
-                                        class="text-3xl font-bold bg-gradient-to-r from-gray-800 via-green-800 to-emerald-800 dark:from-white dark:via-green-200 dark:to-emerald-200 bg-clip-text text-transparent">
-                                        ✅ Confirmar Transações
-                                    </h2>
-                                    <div class="flex items-center space-x-2 mt-2">
-                                        <div
-                                            class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                                            <span
-                                                class="text-white font-bold text-lg">{{ count($transactions) }}</span>
-                                        </div>
-                                        <p class="text-xl text-gray-600 dark:text-gray-300 font-medium">
-                                            transações encontradas e processadas
-                                        </p>
-                                        <svg class="w-6 h-6 text-green-500 animate-bounce" fill="none"
-                                            stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex space-x-4">
-                                <button wire:click="cancelUpload"
-                                    class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-gray-500 to-gray-600 dark:from-gray-600 dark:to-gray-700 text-white font-bold text-lg rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                                    <svg class="w-6 h-6 mr-3 group-hover:animate-pulse" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M6 18L18 6M6 6l12 12"></path>
-                                    </svg>
-                                    Cancelar
-                                </button>
-                                <button wire:click="confirmTransactions"
-                                    class="group relative inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-600 via-emerald-600 to-teal-600 dark:from-green-700 dark:via-emerald-700 dark:to-teal-700 text-white font-bold text-lg rounded-xl hover:from-green-700 hover:via-emerald-700 hover:to-teal-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                                    <div
-                                        class="absolute inset-0 bg-gradient-to-r from-white/20 via-transparent to-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                    </div>
-                                    <svg class="w-6 h-6 mr-3 group-hover:animate-bounce relative z-10" fill="none"
-                                        stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    <span class="relative z-10">Confirmar Todas</span>
-                                    <div class="ml-3 w-3 h-3 bg-white rounded-full animate-ping relative z-10"></div>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                <div class="w-full ">
+                    {{-- Header já renderizado acima; não repetir aqui --}}
 
-                    <!-- Transações em Grid 3 por linha -->
+                    <!-- Transações em Grid: 4 por linha (normal) e 6 em ultrawind -->
                     <div class="w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ultrawind:grid-cols-6 gap-6">
                             @foreach ($transactions as $index => $transaction)
                                 <div
                                     class="group relative bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20 border-2 border-gray-200 dark:border-gray-600 rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg">
