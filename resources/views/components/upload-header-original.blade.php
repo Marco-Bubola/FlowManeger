@@ -1,7 +1,9 @@
 @props([
     'title' => 'Upload de Produtos',
     'description' => 'Importe produtos através de arquivo PDF ou CSV',
-    'backRoute' => null
+    'backRoute' => null,
+    'showProductsInfo' => false,
+    'productsCount' => 0
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
@@ -42,6 +44,13 @@
                     </p>
                 </div>
             </div>
+
+            <!-- Slot para botões adicionais -->
+            @if(isset($actions))
+            <div class="flex items-center gap-3">
+                {{ $actions }}
+            </div>
+            @endif
         </div>
     </div>
 </div>
