@@ -61,10 +61,10 @@
                                     </label>
                                     <!-- Dropdown customizado sem Alpine, apenas Blade + Livewire -->
                                     <div class="relative" x-data="{ open: false }">
-                                        <button type="button" class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg flex items-center justify-between" @click="open = !open">
+                                        <button type="button" class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg flex items-center justify-between" @click="open = !open; $nextTick(() => { if (open) $refs.clientSearch.focus() })">
                                             <div class="flex items-center space-x-3">
                                                 @php
-                                                    $selectedClient = $clients->find($client_id);
+                                                    $selectedClient = $this->selectedClient;
                                                 @endphp
                                                 @if($selectedClient)
                                                     <div class="flex items-center space-x-3">
@@ -87,18 +87,44 @@
                                             </div>
                                             <i class="bi bi-chevron-down transition-transform duration-200" :class="open ? 'transform rotate-180' : ''"></i>
                                         </button>
-                                        <div x-show="open" @click.away="open = false" class="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl shadow-lg max-h-60 overflow-y-auto">
-                                            @foreach($clients as $client)
-                                                <button type="button" wire:click="$set('client_id', {{ $client->id }})" @click="open = false" class="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-zinc-600 flex items-center space-x-3 transition-colors duration-150">
-                                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                                                        <span>{{ strtoupper(substr($client->name, 0, 1) . (strpos($client->name, ' ') !== false ? substr($client->name, strpos($client->name, ' ') + 1, 1) : '')) }}</span>
+                                        <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl shadow-lg max-h-72 overflow-hidden">
+                                            <div class="p-3 border-b border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800">
+                                                <div class="relative">
+                                                    <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+                                                        <i class="bi bi-search"></i>
+                                                    </span>
+                                                       <input x-ref="clientSearch" type="text"
+                                                           wire:model.live.debounce.250ms="clientSearch"
+                                                           placeholder="Buscar cliente por nome ou telefone..."
+                                                           class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                                </div>
+                                            </div>
+                                            <div class="max-h-52 overflow-y-auto">
+                                                @php
+                                                    $filteredClients = $this->filteredClients;
+                                                @endphp
+                                                @if($filteredClients->isEmpty())
+                                                    <div class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-300">
+                                                        <i class="bi bi-emoji-frown mr-2"></i>
+                                                        Nenhum cliente encontrado.
                                                     </div>
-                                                    <div class="flex flex-col items-start">
-                                                        <span class="font-medium text-gray-900 dark:text-white">{{ $client->name }}</span>
-                                                        <span class="text-sm text-gray-500 dark:text-gray-400">{{ $client->phone }}</span>
-                                                    </div>
-                                                </button>
-                                            @endforeach
+                                                @else
+                                                    @foreach($filteredClients as $client)
+                                                        <button type="button"
+                                                                wire:click="$set('client_id', {{ $client->id }})"
+                                                                @click="open = false; $wire.set('clientSearch', '')"
+                                                                class="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-zinc-600 flex items-center space-x-3 transition-colors duration-150">
+                                                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                                                <span>{{ strtoupper(substr($client->name, 0, 1) . (strpos($client->name, ' ') !== false ? substr($client->name, strpos($client->name, ' ') + 1, 1) : '')) }}</span>
+                                                            </div>
+                                                            <div class="flex flex-col items-start">
+                                                                <span class="font-medium text-gray-900 dark:text-white">{{ $client->name }}</span>
+                                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ $client->phone }}</span>
+                                                            </div>
+                                                        </button>
+                                                    @endforeach
+                                                @endif
+                                            </div>
                                         </div>
                                     </div>
 
@@ -117,10 +143,10 @@
                                         <label for="sale_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                             <i class="bi bi-calendar text-gray-400 mr-2"></i>Data da Venda *
                                         </label>
-                                        <input type="date"
-                                            wire:model="sale_date"
-                                            id="sale_date"
-                                            class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('sale_date') border-red-300 @enderror">
+                                            <input type="date"
+                                                wire:model="sale_date"
+                                                id="sale_date"
+                                                class="w-full px-4 py-4 border rounded-xl transition-colors duração-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg focus:outline-none {{ $errors->has('sale_date') ? 'border-red-300 dark:border-red-400 focus:ring-2 focus:ring-red-200 focus:border-red-400' : 'border-gray-300 dark:border-zinc-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500' }}">
                                         @error('sale_date')
                                         <p class="mt-2 text-sm text-red-600 flex items-center">
                                             <i class="bi bi-exclamation-triangle mr-1"></i>
@@ -134,9 +160,9 @@
                                         <label for="tipo_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                                             <i class="bi bi-credit-card text-gray-400 mr-2"></i>Tipo de Pagamento *
                                         </label>
-                                        <select wire:model.live="tipo_pagamento"
-                                            id="tipo_pagamento"
-                                            class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg @error('tipo_pagamento') border-red-300 @enderror">
+                                            <select wire:model.live="tipo_pagamento"
+                                                id="tipo_pagamento"
+                                                class="w-full px-4 py-4 border rounded-xl transition-colors duração-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg focus:outline-none {{ $errors->has('tipo_pagamento') ? 'border-red-300 dark:border-red-400 focus:ring-2 focus:ring-red-200 focus:border-red-400' : 'border-gray-300 dark:border-zinc-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500' }}">
                                             <option value="a_vista">À Vista</option>
                                             <option value="parcelado">Parcelado</option>
                                         </select>
@@ -204,10 +230,10 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full h-[75vh] flex">
+                    class="w-full h-[82vh] flex">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col">
+                    <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col h-full">
                         <!-- Header com Controles -->
                         <div class="p-2 border-b border-gray-200 dark:border-zinc-700">
 
@@ -229,11 +255,14 @@
 
                                 <!-- Toggle para mostrar apenas selecionados -->
                                 <div class="flex items-center">
-                                    <label class="flex items-center space-x-3 cursor-pointer">
+                                    <label class="toggle-filter">
                                         <input type="checkbox"
-                                            wire:model.live="showOnlySelected"
-                                            class="w-5 h-5 text-purple-600 bg-gray-100 border-gray-300 rounded focus:ring-purple-500 dark:focus:ring-purple-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
-                                        <span class="text-gray-700 dark:text-gray-300 font-medium">
+                                               wire:model.live="showOnlySelected"
+                                               class="toggle-filter-input">
+                                        <span class="toggle-filter-track">
+                                            <span class="toggle-filter-thumb"></span>
+                                        </span>
+                                        <span class="toggle-filter-text text-gray-700 dark:text-gray-300 font-medium">
                                             <i class="bi bi-funnel mr-1"></i>
                                             Apenas selecionados
                                         </span>
@@ -243,7 +272,7 @@
                         </div>
 
                         <!-- Grid de Produtos com Scroll -->
-                        <div class="flex-1 p-6 overflow-y-auto">
+                        <div class="flex-1 p-6 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
                             <!-- Estado vazio -->
                             <div class="flex flex-col items-center justify-center h-full">
@@ -273,7 +302,7 @@
                             </div>
                             @else
                             <!-- Grid de Cards de Produtos usando o mesmo estilo da página de produtos -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 products-step-grid">
                                 @foreach($this->getFilteredProducts() as $product)
                                 @php
                                     $isSelected = in_array($product->id, $selectedProducts);
@@ -289,7 +318,7 @@
                                         <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer
                                                     {{ $isSelected
                                                         ? 'bg-purple-600 border-purple-600 text-white'
-                                                        : 'bg-white border-gray-300 text-transparent hover:border-purple-400' }}">
+                                                        : 'bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-transparent hover:border-purple-400 dark:hover:border-purple-500' }}">
                                             @if($isSelected)
                                             <i class="bi bi-check text-sm"></i>
                                             @endif
@@ -354,7 +383,7 @@
                 </div>
 
                 <!-- Lado Direito: Produtos Selecionados (1/4 da tela) -->
-                <div class="w-1/4  flex flex-col">
+                <div class="w-1/4 flex flex-col h-[80vh]">
                     <!-- Header do painel direito -->
                     <div class="p-3 border-b border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
                         <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
