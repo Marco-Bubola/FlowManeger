@@ -73,13 +73,11 @@ class UploadProducts extends Component
         Log::info('Upload método chamado');
         $this->validate();
 
-        // Inicializar estados
         $this->isProcessing = true;
         $this->uploadProgress = 10;
         $this->errorMessage = '';
         $this->successMessage = '';
 
-        // Usa o caminho real do arquivo temporário do Livewire
         $filePath = $this->pdf_file->getRealPath();
         $extension = $this->pdf_file->extension();
 
@@ -93,40 +91,74 @@ class UploadProducts extends Component
                 Log::info('Processando PDF...');
                 $this->uploadProgress = 40;
 
-                // Processa o PDF usando o caminho real
                 $parser = new Parser();
                 $pdf = $parser->parseFile($filePath);
                 $text = $pdf->getText();
-
-                $this->uploadProgress = 60;
                 Log::info('Texto extraído do PDF (primeiros 500 chars): ' . substr($text, 0, 500));
 
-                // Filtra o texto para pegar apenas os dados entre "OPERAÇÃO" e "PEDIDO Nº"
                 $filteredText = $this->filterText($text);
+                Log::info('Texto filtrado para IA e Regex: ' . substr($filteredText, 0, 500));
 
-                Log::info('Texto filtrado: ' . substr($filteredText, 0, 500));
+                if (empty(trim($filteredText))) {
+                    Log::warning('Texto filtrado está vazio. Não há produtos para extrair.');
+                    $this->errorMessage = 'Não foi possível encontrar a lista de produtos no PDF.';
+                    $this->isProcessing = false;
+                    $this->uploadProgress = 0;
+                    return;
+                }
 
-                // Limpa o texto de tabulações e múltiplos espaços
-                $cleanText = preg_replace('/\s+/', ' ', $filteredText);
+                $geminiService = new \App\Services\GeminiPdfExtractorService();
 
-                // Organize o texto limpo em produtos individuais
-                $productsText = $this->separateProducts($cleanText);
+                if ($geminiService->isConfigured()) {
+                    Log::info('🤖 Tentando extração com IA (Gemini)...');
+
+                    try {
+                        $geminiProducts = $geminiService->extractProductsFromPdf($filteredText);
+
+                        if (!empty($geminiProducts)) {
+                            Log::info("✓ IA extraiu " . count($geminiProducts) . " produtos com sucesso!");
+                            $this->productsUpload = $geminiProducts;
+                            $this->uploadProgress = 70;
+
+                            foreach ($this->productsUpload as $key => $product) {
+                                if (($product['stock_quantity'] ?? 0) > 0) {
+                                    $this->productsUpload[$key]['price'] = ($product['price'] ?? 0) / $product['stock_quantity'];
+                                    $this->productsUpload[$key]['price_sale'] = ($product['price_sale'] ?? 0) / $product['stock_quantity'];
+                                }
+                                $this->autoFillProductData($key);
+                            }
+
+                            $this->uploadProgress = 100;
+                            $this->showProductsTable = true;
+                            $this->successMessage = "🤖 IA extraiu " . count($geminiProducts) . " produtos automaticamente!";
+                            Log::info('Definindo showProductsTable como true (IA)');
+                            return;
+                        }
+                        Log::warning('IA não retornou produtos, usando método tradicional...');
+                    } catch (\Exception $e) {
+                        Log::warning('Erro ao usar IA, fallback para regex: ' . $e->getMessage());
+                    }
+                } else {
+                    Log::info('Gemini não configurado, usando extração tradicional');
+                }
+
+                Log::info('📄 Usando extração tradicional (regex)...');
+                $this->uploadProgress = 60;
+
+                $productsText = $this->separateProducts($filteredText);
 
                 $this->uploadProgress = 80;
                 Log::info('Produtos separados: ' . json_encode($productsText));
 
-                // Extraí os produtos do texto separado
                 $this->productsUpload = $this->extractProductsFromText($productsText);
 
                 Log::info('Produtos extraídos: ' . count($this->productsUpload));
             } elseif ($extension === 'csv') {
                 $this->uploadProgress = 50;
-                // Processa o CSV usando o caminho real
                 $this->productsUpload = $this->extractProductsFromCsv($filePath);
                 $this->uploadProgress = 80;
             }
 
-            // Verifica se algum produto foi extraído
             if (empty($this->productsUpload)) {
                 Log::info('Nenhum produto encontrado');
                 $this->errorMessage = 'Nenhum produto encontrado no arquivo. Verifique o formato e tente novamente.';
@@ -137,10 +169,12 @@ class UploadProducts extends Component
 
             Log::info('Produtos encontrados: ' . count($this->productsUpload));
 
-            // Agora, vamos dividir o price e price_sale pela quantidade de cada produto
             foreach ($this->productsUpload as $key => $product) {
-                $this->productsUpload[$key]['price'] = $product['price'] / $product['stock_quantity'];
-                $this->productsUpload[$key]['price_sale'] = $product['price_sale'] / $product['stock_quantity'];
+                if (($product['stock_quantity'] ?? 0) > 0) {
+                    $this->productsUpload[$key]['price'] = ($product['price'] ?? 0) / $product['stock_quantity'];
+                    $this->productsUpload[$key]['price_sale'] = ($product['price_sale'] ?? 0) / $product['stock_quantity'];
+                }
+                $this->autoFillProductData($key);
             }
 
             $this->uploadProgress = 100;
@@ -148,8 +182,6 @@ class UploadProducts extends Component
             $this->successMessage = 'Produtos extraídos com sucesso! Revise os dados abaixo antes de salvar.';
 
             Log::info('Definindo showProductsTable como true');
-            Log::info('Valor atual de showProductsTable: ' . ($this->showProductsTable ? 'true' : 'false'));
-
         } catch (\Exception $e) {
             Log::error('Erro ao processar arquivo: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
@@ -158,7 +190,6 @@ class UploadProducts extends Component
             $this->isProcessing = false;
             $this->uploadProgress = 0;
 
-            // Reset states on error
             $this->reset(['productsUpload', 'showProductsTable']);
         } finally {
             $this->isProcessing = false;
@@ -225,7 +256,7 @@ class UploadProducts extends Component
                     } else {
                         // Caso o preço de venda seja diferente, cria um novo produto com o mesmo código
                         Product::create([
-                            'name' => $product['name'],
+                            'name' => $this->sanitizeName($product['name'] ?? ''),
                             'description' => $product['description'] ?? null,
                             'price' => $product['price'],
                             'price_sale' => $product['price_sale'],
@@ -241,8 +272,8 @@ class UploadProducts extends Component
                     }
                 } else {
                     // Se o produto não existe, cria um novo produto
-                    Product::create([
-                        'name' => $product['name'],
+                    $newProduct = Product::create([
+                        'name' => $this->sanitizeName($product['name'] ?? ''),
                         'description' => $product['description'] ?? null,
                         'price' => $product['price'],
                         'price_sale' => $product['price_sale'],
@@ -255,6 +286,9 @@ class UploadProducts extends Component
                         'user_id' => Auth::id(),
                         'category_id' => $product['category_id'] ?? 1,
                     ]);
+
+                    // Aprender categorização para futuros produtos similares
+                    $this->learnCategorization($newProduct);
                 }
             } catch (\Exception $e) {
                 // Log: Erro durante o processamento
@@ -282,7 +316,12 @@ class UploadProducts extends Component
 
     public function updateProduct($index, $field, $value)
     {
-        $this->productsUpload[$index][$field] = $value;
+        // Se for campo nome, sanitiza imediatamente para manter consistência
+        if ($field === 'name') {
+            $this->productsUpload[$index][$field] = $this->sanitizeName($value);
+        } else {
+            $this->productsUpload[$index][$field] = $value;
+        }
     }
 
     public function removeProduct($index)
@@ -305,52 +344,130 @@ class UploadProducts extends Component
 
     private function filterText($text)
     {
+        // A primeira ocorrência de 'OPERAÇÃO' marca o início do cabeçalho da tabela de produtos.
         $startPos = strpos($text, 'OPERAÇÃO');
-        $endPos = strpos($text, 'PEDIDO Nº');
-
-        if ($startPos !== false && $endPos !== false) {
-            $filteredText = substr($text, $startPos + strlen('OPERAÇÃO'), $endPos - ($startPos + strlen('OPERAÇÃO')));
-            $filteredText = preg_replace('/\s+/', ' ', $filteredText);
-            $filteredText = preg_replace('/\bOPERAÇÃO\b/', '', $filteredText);
-            return $filteredText;
+        if ($startPos === false) {
+            Log::warning('Marcador inicial "OPERAÇÃO" não encontrado no texto do PDF.');
+            return ''; // Retorna vazio se não encontrar o início
         }
 
-        return '';
+        // O marcador final é a linha que começa com "TOTAL"
+        // Usamos regex com modo multiline (m) para encontrar a linha que começa com TOTAL
+        $endPos = false;
+        if (preg_match('/^\s*TOTAL/m', $text, $matches, PREG_OFFSET_CAPTURE, $startPos)) {
+            $endPos = $matches[0][1];
+            Log::info('Marcador final "TOTAL" encontrado na posição: ' . $endPos);
+        }
+
+        // Fallbacks, caso "TOTAL" não seja encontrado
+        if ($endPos === false) {
+            $endPos = strpos($text, 'PRODUTOS NÃO DISPONÍVEIS', $startPos);
+            if($endPos) Log::info('Usando fallback "PRODUTOS NÃO DISPONÍVEIS"');
+        }
+        if ($endPos === false) {
+            $endPos = strpos($text, 'AJUSTES', $startPos);
+            if($endPos) Log::info('Usando fallback "AJUSTES"');
+        }
+        if ($endPos === false) {
+            $endPos = strpos($text, 'PLANO DE PAGAMENTO', $startPos);
+            if($endPos) Log::info('Usando fallback "PLANO DE PAGAMENTO"');
+        }
+
+        // Pega o texto a partir do fim do marcador 'OPERAÇÃO'
+        $textStart = $startPos + strlen('OPERAÇÃO');
+
+        $filteredText = '';
+        if ($endPos !== false) {
+            $filteredText = substr($text, $textStart, $endPos - $textStart);
+        } else {
+            // Se NENHUM marcador final for encontrado, pega tudo do início até o fim do texto.
+            Log::warning('Nenhum marcador final foi encontrado. Usando o resto do texto a partir de "OPERAÇÃO".');
+            $filteredText = substr($text, $textStart);
+        }
+
+        Log::info('Texto filtrado (com quebras de linha) - caracteres: ' . strlen($filteredText));
+        return trim($filteredText);
     }
 
     private function separateProducts($text)
     {
-        if (!is_string($text)) {
-            // Se for um array, transforma-o em uma string
-            $text = implode(' ', $text); // converte array para string com separação por espaço
+        $lines = explode("\n", $text);
+        $allProducts = [];
+        $currentProduct = null;
+        $productRegex = '/^(\d{2,5}\.\d{3})\s+(\d+)\s+(.*)/';
+        $valuesRegex = '/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+(Venda|Brinde)$/';
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if (empty($line)) continue;
+
+            // Tenta casar o início de um produto
+            $isNewProductLine = preg_match($productRegex, $line, $matches);
+
+            if ($isNewProductLine) {
+                // Se um produto estava sendo montado, salva ele (caso de linha órfã)
+                if ($currentProduct) {
+                    $allProducts[] = $currentProduct;
+                }
+
+                $potentialName = trim($matches[3]);
+                $currentProduct = [
+                    'product_code' => $matches[1],
+                    'stock_quantity' => (int)$matches[2],
+                    'name' => $potentialName,
+                    'values' => [],
+                    'operation' => ''
+                ];
+
+                // VERIFICA SE A MESMA LINHA JÁ CONTÉM OS VALORES (PRODUTO DE LINHA ÚNICA)
+                if (preg_match($valuesRegex, $potentialName, $valueMatches)) {
+                    // Remove a parte dos valores do nome do produto
+                    $currentProduct['name'] = trim(preg_replace($valuesRegex, '', $potentialName));
+                    $currentProduct['values'] = array_slice($valueMatches, 1, 5);
+                    $currentProduct['operation'] = end($valueMatches);
+
+                    $allProducts[] = $currentProduct;
+                    $currentProduct = null; // Reseta pois o produto está completo
+                }
+
+            } elseif ($currentProduct) {
+                // SE É CONTINUAÇÃO, VERIFICA SE É A LINHA DE VALORES
+                if (preg_match($valuesRegex, $line, $valueMatches)) {
+                    $currentProduct['values'] = array_slice($valueMatches, 1, 5);
+                    $currentProduct['operation'] = end($valueMatches);
+
+                    $allProducts[] = $currentProduct;
+                    $currentProduct = null; // Reseta
+                } else {
+                    // SE NÃO, É CONTINUAÇÃO DO NOME
+                    $currentProduct['name'] .= ' ' . $line;
+                }
+            }
         }
-        // A regex para separação dos produtos, com modificação para aceitar parênteses nos nomes dos produtos
-        $pattern = '/(\d{1,5}\.\d{3})\s+           # Código do produto (CÓD.)
-                (\d+)\s+                       # Quantidade (QTD.)
-                ([A-Za-z0-9À-ÿ\s&\-\/,()+=]+(?:\s*\+\s*\d+\s*[A-Za-z0-9À-ÿ\s&\-\/,()]*)*)\s+   # Nome do produto (incluindo + números)
-                ([\d,\.]+)\s+                  # Preço Tabela (R$ TABELA)
-                ([\d,\.]+)\s+                  # Preço Praticado (R$ PRATICADO)
-                ([\d,\.]+)\s+                  # Preço Revenda (R$ REVENDA)
-                ([\d,\.]+)\s+                  # Preço a Pagar (R$ A PAGAR)
-                ([\d,\.]+)\s+                  # Lucro (R$ LUCRO)
-                (Venda)?                       # Operação (opcional)
-            /x';
 
-        preg_match_all($pattern, $text, $matches, PREG_OFFSET_CAPTURE);
+        // Adiciona o último produto se ele existir (caso o arquivo termine)
+        if ($currentProduct) {
+            $allProducts[] = $currentProduct;
+        }
 
-        $productsText = [];
+        Log::info('Regex finalizou ' . count($allProducts) . ' produtos completos.');
 
-        if ($matches) {
-            foreach ($matches[0] as $key => $match) {
-                $productsText[] = [
-                    'product_code' => (string) $matches[1][$key][0],
-                    'stock_quantity' => (string) $matches[2][$key][0],
-                    'name' => trim((string) $matches[3][$key][0]),
-                    'price_resell' => $this->formatPrice((string) $matches[4][$key][0]),
-                    'price_to_pay' => $this->formatPrice((string) $matches[5][$key][0]),
-                    'price_sale' => $this->formatPrice((string) $matches[6][$key][0]),
-                    'price' => $this->formatPrice((string) $matches[7][$key][0]),
-                    'profit' => $this->formatPrice((string) $matches[8][$key][0]),
+        $formattedProducts = [];
+        foreach ($allProducts as $p) {
+            if (!empty($p['operation']) && (count($p['values']) === 5 || $p['operation'] === 'Brinde')) {
+                 // Para brindes, os valores podem não estar presentes, mas ainda assim são produtos válidos.
+                $isBrindeSemValor = ($p['operation'] === 'Brinde' && empty($p['values']));
+
+                $formattedProducts[] = [
+                    'product_code' => $p['product_code'],
+                    'name' => preg_replace('/\s+/', ' ', trim($p['name'])),
+                    'stock_quantity' => $p['stock_quantity'],
+                    'price_resell' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][0]),
+                    'price_to_pay' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][1]),
+                    'price_sale' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][2]),
+                    'price' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][3]),
+                    'profit' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][4]),
+                    'operation' => $p['operation'],
                     'category_id' => 1,
                     'user_id' => Auth::id(),
                     'image' => 'product-placeholder.png',
@@ -359,7 +476,7 @@ class UploadProducts extends Component
             }
         }
 
-        return ['products' => $productsText];
+        return ['products' => $formattedProducts];
     }
 
     private function extractProductsFromText($productsText)
@@ -409,8 +526,132 @@ class UploadProducts extends Component
         return $productsUpload;
     }
 
+    /**
+     * Busca produto existente por código e preenche dados automaticamente
+     */
+    private function autoFillProductData($index)
+    {
+        $productCode = $this->productsUpload[$index]['product_code'] ?? null;
+
+        if (!$productCode) {
+            return;
+        }
+
+        // Buscar produto existente no sistema
+        $existingProduct = Product::where('product_code', $productCode)
+            ->where('user_id', Auth::id())
+            ->latest()
+            ->first();
+
+        if ($existingProduct) {
+            Log::info("Produto encontrado por código {$productCode}, preenchendo dados automaticamente");
+
+            // Preencher imagem se houver
+            if ($existingProduct->image && $existingProduct->image !== 'product-placeholder.png') {
+                $imagePath = storage_path('app/public/products/' . $existingProduct->image);
+                if (file_exists($imagePath)) {
+                    $imageData = base64_encode(file_get_contents($imagePath));
+                    $mimeType = mime_content_type($imagePath);
+                    $this->productsUpload[$index]['temp_image'] = "data:{$mimeType};base64,{$imageData}";
+                    $this->productsUpload[$index]['image_base64'] = "data:{$mimeType};base64,{$imageData}";
+                }
+            }
+
+            // Preencher categoria
+            if ($existingProduct->category_id) {
+                $this->productsUpload[$index]['category_id'] = $existingProduct->category_id;
+            }
+
+            Log::info("Dados preenchidos: imagem e categoria do produto {$productCode}");
+        } else {
+            // Se não encontrou por código, tentar sugerir categoria por nome
+            $this->suggestCategoryByName($index);
+        }
+    }
+
+    /**
+     * Sugere categoria baseada em aprendizado anterior
+     */
+    private function suggestCategoryByName($index)
+    {
+        $productName = $this->productsUpload[$index]['name'] ?? '';
+
+        if (!$productName) {
+            return;
+        }
+
+        // Buscar produtos similares por nome
+        $similarProducts = Product::where('user_id', Auth::id())
+            ->where('name', 'LIKE', '%' . substr($productName, 0, 10) . '%')
+            ->whereNotNull('category_id')
+            ->get();
+
+        if ($similarProducts->isNotEmpty()) {
+            // Pegar a categoria mais comum entre produtos similares
+            $categoryCount = [];
+            foreach ($similarProducts as $product) {
+                $categoryId = $product->category_id;
+                $categoryCount[$categoryId] = ($categoryCount[$categoryId] ?? 0) + 1;
+            }
+
+            // Ordenar por frequência e pegar a mais comum
+            arsort($categoryCount);
+            $suggestedCategoryId = array_key_first($categoryCount);
+
+            if ($suggestedCategoryId) {
+                $this->productsUpload[$index]['category_id'] = $suggestedCategoryId;
+                Log::info("Categoria sugerida para '{$productName}': {$suggestedCategoryId}");
+            }
+        }
+    }
+
+    /**
+     * Aprende a categorização para futuros produtos
+     */
+    private function learnCategorization($product)
+    {
+        try {
+            // Salvar no modelo de aprendizado (InvoiceCategoryLearning pode ser reutilizado)
+            \App\Models\InvoiceCategoryLearning::updateOrCreate(
+                [
+                    'text' => substr($product->name, 0, 100),
+                    'user_id' => Auth::id(),
+                ],
+                [
+                    'category_id' => $product->category_id,
+                    'confidence' => 1.0,
+                    'last_used_at' => now(),
+                ]
+            );
+
+            Log::info("Aprendizado salvo para produto: {$product->name} -> categoria {$product->category_id}");
+        } catch (\Exception $e) {
+            Log::warning("Erro ao salvar aprendizado: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Sanitiza nomes de produtos para armazenamento: remove / ( ) - e normaliza espaços.
+     */
+    private function sanitizeName($name)
+    {
+        $clean = trim((string)$name);
+        // Remove caracteres indesejados
+        $clean = preg_replace('/[\/(\)\-]/', '', $clean);
+        // Colapsar múltiplos espaços
+        $clean = preg_replace('/\s+/', ' ', $clean);
+        return $clean;
+    }
+
     public function render()
     {
-        return view('livewire.products.upload-products');
+        $categories = \App\Models\Category::where('user_id', Auth::id())
+            ->orWhereNull('user_id')
+            ->orderBy('name')
+            ->get();
+
+        return view('livewire.products.upload-products', [
+            'categories' => $categories
+        ]);
     }
 }
