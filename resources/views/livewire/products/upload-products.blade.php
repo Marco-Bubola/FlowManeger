@@ -3,15 +3,42 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
 
     <!-- Header -->
+    @if(!$showProductsTable)
     <x-upload-header-original
         title="Upload de Produtos"
         description="Importe produtos através de arquivo PDF ou CSV"
         :back-route="route('products.index')" />
+    @else
+    <x-upload-header-original
+        title="Produtos Extraídos"
+
+        :back-route="null">
+        <x-slot name="actions">
+            <button wire:click="$set('showProductsTable', false)"
+                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                Voltar
+            </button>
+
+            <button wire:click="store"
+                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
+                    wire:loading.attr="disabled">
+                <span wire:loading.remove class="flex items-center">
+                    <i class="bi bi-check-circle mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                    Salvar ({{ count($productsUpload ?? []) }})
+                </span>
+                <span wire:loading class="flex items-center">
+                    <i class="bi bi-arrow-clockwise animate-spin mr-2"></i>
+                    Salvando...
+                </span>
+            </button>
+        </x-slot>
+    </x-upload-header-original>
+    @endif
 
     <!-- Conteúdo Principal -->
-    <div class="px-6 py-8">
-        <!-- DEBUG: showProductsTable = {{ $showProductsTable ? 'true' : 'false' }} -->
-        <!-- DEBUG: count productsUpload = {{ count($productsUpload ?? []) }} -->
+    <div class="">
+
 
         @if(!$showProductsTable)
             <!-- Seção de Upload -->
@@ -22,6 +49,7 @@
             <!-- Tabela de Produtos Extraídos -->
             <x-products-preview-original
                 :products="$productsUpload ?? []"
+                :categories="$categories ?? []"
                 :show-back-button="true" />
         @endif
     </div>
@@ -47,7 +75,7 @@
         /* Corrigir imagem para não sair do quadrado */
         .product-card-modern .product-img-area {
             position: relative;
-            overflow: hidden !important;
+            overflow: visible !important;
             border-top-left-radius: 1.2em;
             border-top-right-radius: 1.2em;
         }
@@ -58,6 +86,12 @@
             object-fit: cover !important;
             border-top-left-radius: 1.2em;
             border-top-right-radius: 1.2em;
+        }
+
+        /* Corrigir categoria não sendo cortada */
+        .product-card-modern .category-icon-wrapper {
+            z-index: 10 !important;
+            position: absolute !important;
         }
 
         /* Grupo de botões de ação */
@@ -237,6 +271,25 @@
             border-color: rgba(147, 51, 234, 0.3);
         }
 
+        /* Select de categoria */
+        .category-select {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 4px rgba(147, 51, 234, 0.1);
+        }
+
+        .category-select:hover {
+            background: rgba(243, 244, 246, 0.9) !important;
+            border-color: rgba(147, 51, 234, 0.5) !important;
+            transform: scale(1.02);
+        }
+
+        .category-select:focus {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.2);
+        }
+
         /* Loading states */
         .product-img.loading {
             filter: blur(1px);
@@ -273,9 +326,32 @@
 
     <!-- Script para upload de imagens (detecta produtos automaticamente) -->
     <script>
-        // Função para copiar apenas o nome do produto
+        // Função para atualizar ícone da categoria
+        function updateCategoryIcon(productIndex, selectElement) {
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            const iconClass = selectedOption.getAttribute('data-icon') || 'bi bi-box-seam';
+            const iconElement = document.getElementById('category-icon-' + productIndex);
+
+            if (iconElement) {
+                // Remover todas as classes antigas
+                iconElement.className = '';
+                // Adicionar novas classes
+                iconElement.className = iconClass + ' category-icon';
+                console.log('\u00cdcone atualizado para produto ' + productIndex + ': ' + iconClass);
+            }
+        }
+
+        // Função para limpar e copiar apenas o nome do produto
         function copyProductName(index, name) {
-            const productName = name || 'Sem nome';
+            let productName = name || 'Sem nome';
+
+            // Limpeza: remover / ( ) - e colapsar múltiplos espaços
+            try {
+                productName = productName.replace(/[\/(\)\-]/g, '');
+                productName = productName.replace(/\s+/g, ' ').trim();
+            } catch (e) {
+                console.warn('Erro ao limpar nome do produto antes de copiar', e);
+            }
 
             // Tentar usar a API moderna do clipboard
             if (navigator.clipboard && window.isSecureContext) {
