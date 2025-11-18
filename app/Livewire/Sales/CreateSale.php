@@ -273,9 +273,27 @@ class CreateSale extends Component
 
         // Filtro por pesquisa
         if ($this->searchProduct) {
-            $query = $query->filter(function($product) {
-                return str_contains(strtolower($product->name), strtolower($this->searchProduct)) ||
-                       str_contains(strtolower($product->product_code), strtolower($this->searchProduct));
+            $needle = mb_strtolower($this->searchProduct);
+            // Também extrair apenas dígitos para permitir buscas como '49025' encontrarem '49.025'
+            $needleDigits = preg_replace('/\D+/', '', $needle);
+
+            $query = $query->filter(function($product) use ($needle, $needleDigits) {
+                $nameMatch = str_contains(mb_strtolower($product->name), $needle);
+
+                $code = (string) ($product->product_code ?? '');
+                $codeLower = mb_strtolower($code);
+                // Normaliza código removendo tudo que não for dígito
+                $codeDigits = preg_replace('/\D+/', '', $codeLower);
+
+                $codeMatch = false;
+                if ($needleDigits !== '') {
+                    $codeMatch = str_contains($codeDigits, $needleDigits);
+                } else {
+                    // Se não há dígitos somente na busca, fazer comparação direta por texto
+                    $codeMatch = str_contains($codeLower, $needle);
+                }
+
+                return $nameMatch || $codeMatch;
             });
         }
 
