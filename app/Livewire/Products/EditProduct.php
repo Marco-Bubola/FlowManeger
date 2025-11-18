@@ -109,6 +109,9 @@ class EditProduct extends Component
             $this->price_sale = (string)$price_sale;
 
             // Validação do formulário
+            // Sanitizar o nome no backend (remover '/', '(', ')', '-' e normalizar espaços)
+            $this->name = preg_replace('/\s+/', ' ', trim(preg_replace('/[\/()\-]/', '', $this->name)));
+
             $validated = $this->validate();
 
             // Atualizar imagem se necessário
@@ -172,7 +175,7 @@ class EditProduct extends Component
             // Emite evento para atualizar a lista
             $this->dispatch('product-updated');
 
-            // Notifica sucesso
+            // Notifica sucesso (exibe o nome já sanitizado)
             $this->notifySuccess('Produto "' . $this->name . '" atualizado com sucesso!');
 
             // Redireciona diretamente
