@@ -27,6 +27,11 @@ class UploadInvoice extends Component
     public $categories = [];
     public $clients = [];
 
+    protected $listeners = [
+        'confirmTransactions',
+        'cancelUpload'
+    ];
+
     protected $rules = [
         'file' => 'required|file|mimes:pdf,csv|max:10240', // 10MB max
     ];
@@ -229,7 +234,22 @@ class UploadInvoice extends Component
 
     public function cancelUpload()
     {
+        // Log para depuração
+        try {
+            Log::info('cancelUpload called', [
+                'user_id' => Auth::id(),
+                'bankId' => $this->bankId,
+                'transactions_count' => count($this->transactions)
+            ]);
+        } catch (\Exception $e) {
+            // não bloquear em caso de erro no log
+        }
+
         $this->reset(['file', 'transactions', 'showConfirmation']);
+
+        // Feedback visível para o usuário
+        session()->flash('info', 'Upload cancelado pelo usuário.');
+        $this->dispatchBrowserEvent('upload-cancelled');
     }
 
     protected function extractTransactionsFromCsv($csvPath)
