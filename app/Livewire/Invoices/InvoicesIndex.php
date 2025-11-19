@@ -42,6 +42,7 @@ class InvoicesIndex extends Component
     public $categories = [];
     public $clients = [];
     public $invoices = [];
+    public $invoicesByCategory = [];
     public $invoiceDates = [];
     public $eventsGroupedByMonthAndCategory = [];
     public $eventsDetailed = [];
@@ -353,6 +354,50 @@ class InvoicesIndex extends Component
 
         // Converter de volta para array para o Livewire DEPOIS de todos os cálculos
         $this->invoices = $processedInvoices->toArray();
+
+        // Agrupar invoices por categoria para a view de cards
+        $grouped = $processedInvoices->groupBy(function($invoice) {
+            // Retornar id da categoria ou 'sem_categoria'
+            if (is_array($invoice)) {
+                return $invoice['category']['id_category'] ?? 'sem_categoria';
+            }
+            return $invoice->category->id_category ?? 'sem_categoria';
+        });
+
+        $invoicesByCategory = [];
+        foreach ($grouped as $categoryId => $group) {
+            $first = $group->first();
+            if (is_array($first)) {
+                $cat = $first['category'] ?? null;
+                $catName = $cat['name'] ?? 'Sem categoria';
+                $catColor = $cat['hexcolor_category'] ?? null;
+                $catIcon = $cat['icon'] ?? ($cat['icone'] ?? null);
+            } else {
+                $catObj = $first->category ?? null;
+                $catName = $catObj->name ?? 'Sem categoria';
+                $catColor = $catObj->hexcolor_category ?? null;
+                $catIcon = $catObj->icone ?? null;
+            }
+
+            // Calcular o total da categoria
+            $categoryTotal = $group->sum(function($invoice) {
+                $value = is_array($invoice) ? $invoice['value'] : $invoice->value;
+                return abs($value);
+            });
+
+            $invoicesByCategory[] = [
+                'category_id' => $categoryId,
+                'category' => [
+                    'name' => $catName,
+                    'hexcolor_category' => $catColor,
+                    'icone' => $catIcon,
+                ],
+                'total' => $categoryTotal,
+                'invoices' => $group->values()->toArray(),
+            ];
+        }
+
+        $this->invoicesByCategory = $invoicesByCategory;
     }
 
     /**
