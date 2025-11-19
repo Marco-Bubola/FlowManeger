@@ -13,7 +13,7 @@
         <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer
                     {{ $selected
                         ? 'bg-purple-600 border-purple-600 text-white'
-                        : 'bg-white border-gray-300 text-transparent hover:border-purple-400' }}">
+                        : 'bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-transparent hover:border-purple-400 dark:hover:border-purple-500' }}">
             @if($selected)
             <i class="bi bi-check text-sm"></i>
             @endif
