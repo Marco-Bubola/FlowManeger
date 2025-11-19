@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         @include('partials.head')
     </head>
@@ -23,7 +23,64 @@
             <flux:navlist variant="outline">
                 <flux:navlist.group :heading="__('Financeiro')">
                     <flux:navlist.item icon="credit-card" :href="url('banks')" :current="Request::is('banks')" wire:navigate>Bancos</flux:navlist.item>
-                    <flux:navlist.item icon="document-text" :href="url('invoices')" :current="Request::is('invoices*')" wire:navigate>Transações</flux:navlist.item>
+                    {{-- Lista dinâmica de bancos abaixo do item 'Bancos' (sub-links) --}}
+                    @php
+                        $__sidebar_banks = collect();
+                        try {
+                            if (auth()->check()) {
+                                $__sidebar_banks = \App\Models\Bank::where('user_id', auth()->id())->orderBy('name')->get();
+                            }
+                        } catch (\Throwable $e) {
+                            $__sidebar_banks = collect();
+                        }
+                    @endphp
+
+                    @if($__sidebar_banks->isNotEmpty())
+                        <div class="ml-4 mt-2 space-y-1">
+                            @foreach ($__sidebar_banks as $__bank)
+                                    @php
+                                        $__isCurrentBank = Request::is('invoices*') && (int) request()->get('bankId') === (int) $__bank->id_bank;
+                                        // resolve icon src (supports absolute URL or storage path)
+                                        $__iconSrc = null;
+                                        try {
+                                            if (!empty($__bank->caminho_icone)) {
+                                                $__path = $__bank->caminho_icone;
+                                                $__isFull = \Illuminate\Support\Str::startsWith($__path, ['http://', 'https://', '/']);
+                                                $__iconSrc = $__isFull ? $__path : asset('storage/' . ltrim($__path, '/'));
+                                            }
+                                        } catch (\Throwable $__e) {
+                                            $__iconSrc = null;
+                                        }
+
+                                        // initials fallback
+                                        $__initials = '';
+                                        try {
+                                            $__parts = preg_split('/\s+/', trim($__bank->name));
+                                            foreach ($__parts as $__p) {
+                                                $__initials .= mb_substr($__p, 0, 1);
+                                                if (mb_strlen($__initials) >= 2) break;
+                                            }
+                                            $__initials = strtoupper($__initials ?: mb_substr($__bank->name, 0, 1));
+                                        } catch (\Throwable $__e) {
+                                            $__initials = '';
+                                        }
+                                    @endphp
+                                    <flux:navlist.item :href="route('invoices.index', ['bankId' => $__bank->id_bank])" :current="$__isCurrentBank" wire:navigate class="text-sm">
+                                        <span class="flex items-center gap-2">
+                                            <span class="w-6 h-6 rounded-full overflow-hidden flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-xs font-semibold text-gray-800 dark:text-gray-200">
+                                                @if($__iconSrc)
+                                                    <img src="{{ $__iconSrc }}" alt="{{ $__bank->name }}" class="w-full h-full object-contain" />
+                                                @else
+                                                    {{ $__initials }}
+                                                @endif
+                                            </span>
+                                            <span class="truncate">{{ $__bank->name }}</span>
+                                        </span>
+                                    </flux:navlist.item>
+                            @endforeach
+                        </div>
+                    @endif
+
                     <flux:navlist.item icon="wallet" :href="url('cashbook')" :current="Request::is('cashbook')" wire:navigate>Livro Caixa</flux:navlist.item>
                     <flux:navlist.item icon="banknotes" :href="url('cofrinhos')" :current="Request::is('cofrinhos*')" wire:navigate>Cofrinhos</flux:navlist.item>
                 </flux:navlist.group>
