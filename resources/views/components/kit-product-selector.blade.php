@@ -29,7 +29,7 @@
                         }
                     });
                 "
-                class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 dark:border-slate-600 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
+                class="w-full pl-12 pr-4 py-4 border-2 border-slate-200 dark:border-slate-600 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-purple-500 focus:ring-purple-500/20 focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                 placeholder="Buscar produtos...">
         </div>
 
