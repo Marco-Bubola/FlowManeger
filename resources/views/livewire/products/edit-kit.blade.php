@@ -54,9 +54,9 @@
                                     <input type="text"
                                         wire:model="name"
                                         id="name"
-                                        class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
-                                        {{ $errors->has('name') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
-                                        focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
+                                    class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
+                                    {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-purple-500 focus:ring-purple-500/20 hover:border-purple-300' }}
+                                    focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                         placeholder="Ex: Kit Notebook + Mouse + Teclado">
                                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center">
                                         @if($name && !$errors->has('name'))
@@ -158,7 +158,7 @@
                                     <input type="text"
                                         wire:model="product_code"
                                         id="product_code"
-                                        class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-14 pr-14 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('product_code') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-indigo-500 focus:ring-indigo-500/20 hover:border-indigo-300' }}
                                         focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                         placeholder="Ex: KIT-001">
@@ -195,7 +195,7 @@
                                     wire:model="description"
                                     id="description"
                                     rows="4"
-                                    class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                    class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                     {{ $errors->has('description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-slate-500 focus:ring-slate-500/20 hover:border-slate-300' }}
                                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl resize-none"
                                     placeholder="Descreva o kit, suas características ou instruções especiais..."></textarea>
@@ -264,7 +264,7 @@
                                         id="additional_costs"
                                         wire:model.live="additional_costs"
                                         wire:keyup="calculateTotals"
-                                        class="w-full pl-10 pr-4 py-3 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                        class="w-full pl-10 pr-4 py-3 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                         {{ $errors->has('additional_costs') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-amber-500 focus:ring-amber-500/20 hover:border-amber-300' }}
                                         focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                         placeholder="0,00"
@@ -286,7 +286,7 @@
                                     id="additional_costs_description"
                                     wire:model.live="additional_costs_description"
                                     rows="4"
-                                    class="w-full px-4 py-3 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                    class="w-full px-4 py-3 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                     {{ $errors->has('additional_costs_description') ? 'border-red-400 focus:border-red-500 focus:ring-red-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-amber-500 focus:ring-amber-500/20 hover:border-amber-300' }}
                                     focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl resize-none"
                                     placeholder="Descreva os custos adicionais..."
@@ -387,7 +387,7 @@
                                             id="real_sale_price"
                                             wire:model.live="real_sale_price"
                                             placeholder="{{ number_format($this->suggestedSalePrice ?? 0, 2, ',', '.') }}"
-                                            class="w-full pl-10 pr-4 py-3 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
+                                            class="w-full pl-10 pr-4 py-3 border-2 rounded-xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
                                             border-slate-200 dark:border-slate-600 focus:border-emerald-500 focus:ring-emerald-500/20 hover:border-emerald-300
                                             focus:ring-4 focus:outline-none transition-all duration-300 shadow-lg hover:shadow-xl"
                                         />
