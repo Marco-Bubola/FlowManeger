@@ -89,16 +89,7 @@
 
                 <!-- Botões de Ação Secundários -->
                 <div class="flex items-center gap-2">
-                    <button wire:click="exportSales"
-                            class="group p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                            title="Exportar vendas">
-                        <i class="bi bi-download group-hover:scale-110 transition-transform duration-200"></i>
-                    </button>
-                    <button wire:click="$refresh"
-                            class="group p-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                            title="Atualizar lista">
-                        <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
-                    </button>
+
                     <button @click="showFilters = !showFilters"
                             class="group p-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
                             :class="{ 'ring-4 ring-purple-300 dark:ring-purple-600': showFilters }"
