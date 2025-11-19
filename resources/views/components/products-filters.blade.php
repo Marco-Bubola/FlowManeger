@@ -7,6 +7,7 @@
     'preco_min' => '',
     'preco_max' => '',
     'perPage' => 12,
+    'perPageOptions' => [],
     'ordem' => '',
     'estoque_filtro' => '',
     'data_filtro' => '',
@@ -30,7 +31,7 @@
                 <i class="bi bi-funnel-fill text-white text-xl"></i>
             </div>
             <div>
-                <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-800 via-purple-600 to-indigo-600 dark:from-slate-200 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent">
+                <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-800 via-purple-600 to-indigo-600 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
                     Filtros Avançados
                 </h3>
                 <p class="text-slate-600 dark:text-slate-400">
@@ -49,8 +50,8 @@
                 <input type="text"
                        wire:model.live.debounce.300ms="search"
                        placeholder="Buscar produtos..."
-                       class="w-56 pl-10 pr-10 py-2 border rounded-lg bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400
-                       {{ $search ? 'border-blue-400 focus:border-blue-500 focus:ring-blue-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 focus:ring-blue-500/20 hover:border-blue-300' }}
+                       class="w-56 pl-10 pr-10 py-2 border rounded-lg bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
+                       {{ $search ? 'border-blue-400 dark:border-blue-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500/20' : 'border-slate-200 dark:border-slate-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-blue-500/20 hover:border-blue-300 dark:hover:border-blue-500' }}
                        focus:ring-2 focus:outline-none transition-all duration-300 shadow-sm hover:shadow-md">
                 @if($search)
                 <button wire:click="$set('search', '')"
@@ -209,7 +210,7 @@
                                placeholder="0,00"
                                step="0.01"
                                min="0"
-                               class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $preco_min ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
+                               class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $preco_min ? 'ring-2 ring-green-500 dark:ring-green-400 bg-green-50 dark:bg-green-900/30' : '' }}">
                         <label class="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-700 text-xs font-medium text-green-600 dark:text-green-400">
                             Mínimo
                         </label>
@@ -222,7 +223,7 @@
                                placeholder="∞"
                                step="0.01"
                                min="0"
-                               class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $preco_max ? 'ring-2 ring-green-500 bg-green-50 dark:bg-green-900/30' : '' }}">
+                               class="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400 focus:border-transparent transition-all duration-200 shadow-sm hover:shadow-md {{ $preco_max ? 'ring-2 ring-green-500 dark:ring-green-400 bg-green-50 dark:bg-green-900/30' : '' }}">
                         <label class="absolute -top-2 left-3 px-1 bg-white dark:bg-slate-700 text-xs font-medium text-green-600 dark:text-green-400">
                             Máximo
                         </label>
@@ -299,42 +300,16 @@
                     <i class="bi bi-eye mr-2 text-pink-500"></i>
                     Itens por Página
                 </h4>
-                <div class="grid grid-cols-2 gap-2">
-                    <!-- 12 por página -->
-                    <button wire:click="$set('perPage', '12')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage == '12' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
+                <div class="grid grid-cols-3 md:grid-cols-6 gap-2">
+                    @foreach($perPageOptions as $option)
+                    <button wire:click="$set('perPage', {{ $option }})"
+                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage == $option ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
                         <div class="flex items-center justify-center gap-2">
-                            <i class="bi bi-grid-3x3 text-pink-500 text-sm"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">12</span>
+                            <i class="bi bi-grid-3x2-gap text-pink-500 text-sm"></i>
+                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">{{ $option }}</span>
                         </div>
                     </button>
-
-                    <!-- 24 por página -->
-                    <button wire:click="$set('perPage', '24')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage == '24' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                        <div class="flex items-center justify-center gap-2">
-                            <i class="bi bi-grid text-pink-500 text-sm"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">24</span>
-                        </div>
-                    </button>
-
-                    <!-- 36 por página -->
-                    <button wire:click="$set('perPage', '36')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage == '36' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                        <div class="flex items-center justify-center gap-2">
-                            <i class="bi bi-grid-1x2 text-pink-500 text-sm"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">36</span>
-                        </div>
-                    </button>
-
-                    <!-- 48 por página -->
-                    <button wire:click="$set('perPage', '48')"
-                            class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-pink-300 dark:hover:border-pink-500 transition-all duration-200 {{ $perPage == '48' ? 'ring-2 ring-pink-500 bg-pink-50 dark:bg-pink-900/30' : '' }}">
-                        <div class="flex items-center justify-center gap-2">
-                            <i class="bi bi-list-ul text-pink-500 text-sm"></i>
-                            <span class="text-xs font-medium text-slate-700 dark:text-slate-300">48</span>
-                        </div>
-                    </button>
+                    @endforeach
                 </div>
             </div>
 
