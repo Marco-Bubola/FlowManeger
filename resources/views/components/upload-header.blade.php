@@ -1,64 +1,84 @@
 @props([
-    'title' => 'Upload de Produtos',
-    'description' => 'Importe produtos através de arquivo PDF ou CSV',
+    'title' => 'Upload de Transações',
+    'description' => 'Impor transações a partir de arquivo PDF ou CSV',
     'icon' => 'bi bi-file-earmark-arrow-up',
-    'backRoute' => null
+    'backRoute' => null,
+    'showConfirmation' => false,
+    'transactionsCount' => 0,
+    'actions' => null,
 ])
+<!-- Header Moderno e Organizado -->
+<div class="relative overflow-hidden rounded-2xl mb-4">
+    <div class="absolute inset-0 bg-gradient-to-r from-white/85 to-indigo-50/60 dark:from-slate-900/70 dark:to-indigo-900/20 backdrop-blur-md pointer-events-none"></div>
 
-<!-- Header Moderno para Upload -->
-<div class="bg-white/80 dark:bg-neutral-800/80 backdrop-blur-xl border-b border-neutral-200/50 dark:border-neutral-700/50 sticky top-0 z-50">
-    <div class="px-6 py-6">
-        <div class="flex items-center justify-between">
-            <!-- Breadcrumb e Título -->
-            <div class="flex items-center space-x-4">
-                @if($backRoute)
-                <a href="{{ $backRoute }}"
-                   class="group inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-600 hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800 dark:hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                    <i class="bi bi-arrow-left text-neutral-600 dark:text-neutral-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200"></i>
-                </a>
+    <div class="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-gradient-to-br from-purple-300/20 to-indigo-300/20 blur-2xl pointer-events-none"></div>
+    <div class="absolute -bottom-8 -left-6 w-36 h-36 rounded-full bg-gradient-to-tr from-emerald-200/10 to-blue-200/10 blur-xl pointer-events-none"></div>
+
+    <div class="relative px-6 py-6 lg:py-8">
+        <div class="flex items-start justify-between gap-6">
+            <div class="flex items-start gap-4">
+                @if ($backRoute)
+                    <a href="{{ $backRoute }}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/70 dark:bg-slate-800/80 shadow-sm border border-white/30 hover:scale-105 transition">
+                        <i class="bi bi-arrow-left text-lg text-slate-700 dark:text-slate-200"></i>
+                    </a>
                 @endif
 
-                <div class="space-y-1">
-                    <!-- Breadcrumb -->
-                    <nav class="flex items-center space-x-2 text-sm text-neutral-500 dark:text-neutral-400">
-                        <a href="{{ route('products.index') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-200">
-                            <i class="bi bi-box-seam mr-1"></i>
-                            Produtos
-                        </a>
-                        <i class="bi bi-chevron-right text-xs"></i>
-                        <span class="text-neutral-700 dark:text-neutral-300 font-medium">Upload</span>
-                    </nav>
+                <div class="flex items-center gap-4">
+                    <div class="flex items-center justify-center w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-600 to-pink-500 shadow-xl text-white">
+                        <i class="{{ $icon }} text-3xl"></i>
+                    </div>
 
-                    <!-- Título Principal -->
-                    <h1 class="text-3xl font-bold bg-gradient-to-r from-neutral-800 to-neutral-600 dark:from-neutral-100 dark:to-neutral-300 bg-clip-text text-transparent flex items-center">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center mr-4 shadow-lg">
-                            <i class="{{ $icon }} text-white text-lg"></i>
-                        </div>
-                        {{ $title }}
-                    </h1>
-
-                    <!-- Descrição -->
-                    <p class="text-neutral-600 dark:text-neutral-400 max-w-2xl">{{ $description }}</p>
+                    <div class="min-w-0">
+                        <h1 class="text-3xl lg:text-4xl font-extrabold leading-tight text-slate-900 dark:text-white">
+                            {{ $title }}
+                        </h1>
+                        <p class="mt-1 text-sm lg:text-base text-slate-600 dark:text-slate-300">
+                            {!! $description !!}
+                        </p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Actions/Stats -->
-            <div class="hidden lg:flex items-center space-x-4">
-                <!-- Upload Status -->
-                <div class="bg-gradient-to-r from-emerald-50 to-blue-50 dark:from-emerald-900/20 dark:to-blue-900/20 rounded-xl px-4 py-3 border border-emerald-200/50 dark:border-emerald-700/50">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                        <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-                            Sistema pronto para upload
-                        </span>
-                    </div>
-                </div>
+            <div class="flex items-center gap-3 z-20">
+                {!! $actions ?? '' !!}
 
-                <!-- Help Button -->
-                <button class="group p-3 bg-gradient-to-br from-neutral-100 to-neutral-200 dark:from-neutral-700 dark:to-neutral-600 rounded-xl hover:from-purple-100 hover:to-purple-200 dark:hover:from-purple-800 dark:hover:to-purple-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        title="Ajuda">
-                    <i class="bi bi-question-circle text-neutral-600 dark:text-neutral-300 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-200"></i>
-                </button>
+                <div class="hidden lg:flex items-center gap-3">
+                    <div class="rounded-xl px-3 py-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200/50 dark:border-emerald-700/30 flex items-center gap-3">
+                        <span class="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></span>
+                        <span class="text-sm font-medium text-emerald-700 dark:text-emerald-200">Pronto para upload</span>
+                    </div>
+
+                    @if ($showConfirmation)
+                        <div class="flex items-center gap-3 bg-white/10 rounded-lg px-3 py-2 ring-1 ring-white/20">
+                            <div class="flex items-center gap-3">
+                                <div class="bg-white/10 text-white rounded-md px-3 py-2 flex items-center gap-2">
+                                    <i class="bi bi-collection-fill text-white text-lg"></i>
+                                    <span class="text-white font-bold text-lg">{{ $transactionsCount }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button" wire:click="cancelUpload"
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-white text-slate-700 rounded-md shadow hover:scale-105 transition transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-300 z-30">
+                                    <i class="bi bi-x-lg text-base"></i>
+                                    <span class="text-sm font-medium">Cancelar</span>
+                                </button>
+
+                                <button type="button" wire:click="confirmTransactions"
+                                    wire:loading.attr="disabled" wire:target="confirmTransactions"
+                                    @if($processing) disabled @endif
+                                    class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-emerald-500 to-green-500 text-white rounded-md shadow-lg hover:scale-105 transition transform hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-300 z-40">
+                                    <i class="bi bi-check-lg"></i>
+                                    <span class="text-sm font-semibold">Confirmar</span>
+                                </button>
+                            </div>
+                        </div>
+                    @endif
+
+                    <button class="p-3 rounded-lg bg-white/60 dark:bg-slate-800/60 shadow-sm hover:scale-105 transition" title="Ajuda">
+                        <i class="bi bi-question-circle text-slate-700 dark:text-slate-300"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
