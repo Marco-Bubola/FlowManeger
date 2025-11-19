@@ -11,7 +11,7 @@
             <i class="bi bi-check-circle-fill text-white text-xl"></i>
         </div>
         <div>
-            <h2 class="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-blue-700 dark:from-emerald-300 dark:to-blue-300 bg-clip-text text-transparent">
+            <h2 class="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-blue-700 dark:from-emerald-300 dark:via-blue-300 dark:to-purple-300 bg-clip-text text-transparent">
                 Produtos Extraídos
             </h2>
             <p class="text-neutral-600 dark:text-neutral-400">
@@ -118,7 +118,7 @@
                                     <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-2 py-1 rounded-lg text-xs font-medium shadow-lg">
                                         <input type="text"
                                                wire:model.lazy="productsUpload.{{ $index }}.product_code"
-                                               class="bg-transparent border-none text-white placeholder-purple-200 w-16 text-center focus:outline-none"
+                                               class="bg-transparent border-none text-white placeholder-purple-200 dark:placeholder-purple-300 w-16 text-center focus:outline-none"
                                                placeholder="Código"
                                                maxlength="15">
                                     </div>
@@ -128,7 +128,7 @@
                                         <input type="number"
                                                wire:model.lazy="productsUpload.{{ $index }}.stock_quantity"
                                                min="0"
-                                               class="bg-transparent border-none text-white placeholder-blue-200 w-12 text-center focus:outline-none"
+                                               class="bg-transparent border-none text-white placeholder-blue-200 dark:placeholder-blue-300 w-12 text-center focus:outline-none"
                                                placeholder="0">
                                     </div>
                                 </div>
@@ -164,7 +164,7 @@
                                             <input type="number"
                                                    wire:model.lazy="productsUpload.{{ $index }}.price"
                                                    step="0.01"
-                                                   class="bg-transparent border-none text-orange-700 dark:text-orange-300 placeholder-orange-400 text-sm w-full focus:outline-none"
+                                                   class="bg-transparent border-none text-orange-700 dark:text-orange-300 placeholder-orange-400 dark:placeholder-orange-500 text-sm w-full focus:outline-none"
                                                    placeholder="0,00">
                                         </div>
                                     </div>
@@ -177,7 +177,7 @@
                                             <input type="number"
                                                    wire:model.lazy="productsUpload.{{ $index }}.price_sale"
                                                    step="0.01"
-                                                   class="bg-transparent border-none text-emerald-700 dark:text-emerald-300 placeholder-emerald-400 text-sm w-full focus:outline-none"
+                                                   class="bg-transparent border-none text-emerald-700 dark:text-emerald-300 placeholder-emerald-400 dark:placeholder-emerald-500 text-sm w-full focus:outline-none"
                                                    placeholder="0,00">
                                         </div>
                                     </div>
