@@ -7,7 +7,7 @@
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
+<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
     <!-- Efeito de brilho sutil -->
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
@@ -27,7 +27,7 @@
                 </div>
 
                 <div class="space-y-2">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
                         {{ $title }}
                     </h1>
 
@@ -83,8 +83,8 @@
 
                 <!-- Botão de filtros -->
                 <button @click="showFilters = !showFilters"
-                    class="group relative inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                    :class="{'from-slate-700 to-slate-800': showFilters}">
+                    class="group relative inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 dark:from-slate-600 dark:to-slate-700 dark:hover:from-slate-500 dark:hover:to-slate-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    :class="{'from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600': showFilters}">
                     <i class="bi bi-funnel-fill mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                     <span class="hidden sm:inline">Filtros</span>
                     <!-- Indicador de filtros ativos -->
