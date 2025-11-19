@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\InvoiceCategoryLearning;
+use App\Services\GeminiTransactionProcessorService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -22,6 +23,7 @@ class UploadInvoice extends Component
     public $file;
     public $transactions = [];
     public $showConfirmation = false;
+    public $processing = false;
 
     public $banks = [];
     public $categories = [];
@@ -120,42 +122,82 @@ class UploadInvoice extends Component
 
     public function confirmTransactions()
     {
+        // Evitar re-submissões concorrentes
+        if ($this->processing) {
+            Log::warning('confirmTransactions chamado enquanto já está em processamento');
+            session()->flash('info', 'Processamento em andamento. Aguarde um momento.');
+            return;
+        }
+
+        $this->processing = true;
+
         try {
+            $created = 0;
+            $skipped = 0;
+
             foreach ($this->transactions as $transaction) {
-                if (!empty($transaction['date']) && !empty($transaction['description']) && !empty($transaction['value'])) {
-                    // Criar a invoice
-                    Invoice::create([
-                        'id_bank' => $this->bankId,
-                        'invoice_date' => $transaction['date'],
+                if (empty($transaction['date']) || empty($transaction['description']) || empty($transaction['value'])) {
+                    continue;
+                }
+
+                // Checar duplicata: mesmo banco, data, valor, descrição e usuário
+                $exists = Invoice::where('id_bank', $this->bankId)
+                    ->where('invoice_date', $transaction['date'])
+                    ->where('value', $transaction['value'])
+                    ->where('description', $transaction['description'])
+                    ->where('user_id', Auth::id())
+                    ->exists();
+
+                if ($exists) {
+                    $skipped++;
+                    Log::info('Invoice ignorada por duplicata', [
+                        'date' => $transaction['date'],
                         'value' => $transaction['value'],
-                        'description' => $transaction['description'],
-                        'installments' => $transaction['installments'] ?? null,
-                        'category_id' => $transaction['category_id'] ?? '1',
-                        'client_id' => $transaction['client_id'] ?? null,
-                        'user_id' => Auth::id(),
+                        'description' => $transaction['description']
                     ]);
+                    continue;
+                }
 
-                    // APRENDIZADO: Salvar a associação descrição → categoria para aprendizado futuro
-                    if (!empty($transaction['category_id'])) {
-                        InvoiceCategoryLearning::learn(
-                            $transaction['description'],
-                            $transaction['category_id'],
-                            Auth::id()
-                        );
+                // Criar a invoice
+                Invoice::create([
+                    'id_bank' => $this->bankId,
+                    'invoice_date' => $transaction['date'],
+                    'value' => $transaction['value'],
+                    'description' => $transaction['description'],
+                    'installments' => $transaction['installments'] ?? null,
+                    'category_id' => $transaction['category_id'] ?? '1',
+                    'client_id' => $transaction['client_id'] ?? null,
+                    'user_id' => Auth::id(),
+                ]);
 
-                        Log::info('Padrão de categorização aprendido', [
-                            'description' => $transaction['description'],
-                            'category_id' => $transaction['category_id'],
-                            'normalized_pattern' => InvoiceCategoryLearning::normalizeDescription($transaction['description'])
-                        ]);
-                    }
+                $created++;
+
+                // APRENDIZADO: Salvar a associação descrição → categoria para aprendizado futuro
+                if (!empty($transaction['category_id'])) {
+                    InvoiceCategoryLearning::learn(
+                        $transaction['description'],
+                        $transaction['category_id'],
+                        Auth::id()
+                    );
+
+                    Log::info('Padrão de categorização aprendido', [
+                        'description' => $transaction['description'],
+                        'category_id' => $transaction['category_id'],
+                        'normalized_pattern' => InvoiceCategoryLearning::normalizeDescription($transaction['description'])
+                    ]);
                 }
             }
 
-            session()->flash('success', 'Transações confirmadas com sucesso!');
-            $this->dispatch('invoice-created');
+            // Limpar estado para evitar re-submissões acidentais
+            $this->transactions = [];
+            $this->showConfirmation = false;
 
-            return redirect()->route('invoices.index', ['bankId' => $this->bankId]);
+            $msg = "Transações processadas: {$created}. Ignoradas por duplicata: {$skipped}.";
+            session()->flash('success', $msg);
+            $this->dispatchBrowserEvent('invoice-created', ['created' => $created, 'skipped' => $skipped]);
+
+            // Usar redirect do Livewire
+            return $this->redirectRoute('invoices.index', ['bankId' => $this->bankId]);
 
         } catch (\Exception $e) {
             Log::error('Erro ao confirmar transações', [
@@ -163,6 +205,9 @@ class UploadInvoice extends Component
                 'trace' => $e->getTraceAsString()
             ]);
             session()->flash('error', 'Erro ao confirmar as transações: ' . $e->getMessage());
+        } finally {
+            // Garantir que a flag seja limpa
+            $this->processing = false;
         }
     }
 
@@ -306,6 +351,26 @@ class UploadInvoice extends Component
             $headers = fgetcsv($handle, 1000, $separator);
             Log::info('Headers CSV detectados', ['headers' => $headers]);
 
+            // Detectar formato do CSV baseado nos headers
+            $csvFormat = 'default'; // formato padrão (5 colunas: date, description, category, type, value)
+            if ($headers && count($headers) === 3) {
+                // Verificar se é formato Nubank (date, title, amount)
+                $header0 = strtolower(trim($headers[0]));
+                $header1 = strtolower(trim($headers[1]));
+                $header2 = strtolower(trim($headers[2]));
+
+                if (($header0 === 'date' || $header0 === 'data') &&
+                    ($header1 === 'title' || $header1 === 'description' || $header1 === 'titulo' || $header1 === 'descrição') &&
+                    ($header2 === 'amount' || $header2 === 'value' || $header2 === 'valor')) {
+                    $csvFormat = 'nubank';
+                    Log::info('Formato Nubank detectado (3 colunas: date, title, amount)');
+                }
+            }
+            Log::info('Formato CSV detectado', ['format' => $csvFormat, 'columns' => count($headers)]);
+
+            // Array para acumular transações Nubank antes do processamento Gemini
+            $nubankRawTransactions = [];
+
             $lineNumber = 1;
             while (($data = fgetcsv($handle, 1000, $separator)) !== false) {
                 $lineNumber++;
@@ -317,7 +382,36 @@ class UploadInvoice extends Component
 
                 Log::debug("Processando linha {$lineNumber}", ['data' => $data]);
 
-                if (count($data) >= 5) {
+                $transaction = null;
+
+                if ($csvFormat === 'nubank' && count($data) >= 3) {
+                    // Formato Nubank: date, title, amount
+                    $dateString = $data[0] ?? '';
+                    $description = $data[1] ?? 'Descrição não disponível';
+                    $valueString = $data[2] ?? '0';
+
+                    $parsedDate = $this->parseDate($dateString);
+                    $parsedValue = $this->processValue($valueString);
+
+                    // Valores negativos são receitas (invertemos para tornar positivo se for despesa)
+                    // Valores positivos são despesas
+                    if ($parsedValue < 0) {
+                        // Receita - ignorar ou processar conforme necessário
+                        Log::debug("Transação ignorada (receita/crédito)", ['description' => $description, 'value' => $parsedValue]);
+                        continue;
+                    }
+
+                    // Acumular transação bruta para processamento em lote com Gemini
+                    $nubankRawTransactions[] = [
+                        'date' => $parsedDate,
+                        'description' => $description,
+                        'value' => abs($parsedValue),
+                    ];
+
+                    Log::debug("Transação Nubank acumulada", ['description' => $description]);
+
+                } elseif (count($data) >= 5) {
+                    // Formato padrão (Inter/outros): date, description, category, type, value
                     $dateString = $data[0] ?? '';
                     $description = $data[1] ?? 'Descrição não disponível';
                     $category = $data[2] ?? '';
@@ -336,28 +430,90 @@ class UploadInvoice extends Component
                         'client_id' => null,
                     ];
 
-                    Log::debug("Transação processada", $transaction);
-
-                    if ($transaction['value'] > 0 && !empty($transaction['date']) && !empty($transaction['description'])) {
-                        $transactions[] = $transaction;
-                        Log::info("Transação adicionada", $transaction);
-                    } else {
-                        Log::warning("Transação rejeitada - dados insuficientes", [
-                            'transaction' => $transaction,
-                            'value_empty' => empty($transaction['value']),
-                            'date_empty' => empty($transaction['date']),
-                            'description_empty' => empty($transaction['description'])
-                        ]);
-                    }
+                    Log::debug("Transação padrão processada", $transaction);
                 } else {
-                    Log::warning("Linha {$lineNumber} tem menos de 5 colunas", [
+                    Log::warning("Linha {$lineNumber} não corresponde a nenhum formato esperado", [
                         'data_count' => count($data),
-                        'data' => $data
+                        'data' => $data,
+                        'expected_format' => $csvFormat
+                    ]);
+                }
+
+                // Adicionar transação se válida
+                if ($transaction && $transaction['value'] > 0 && !empty($transaction['date']) && !empty($transaction['description'])) {
+                    $transactions[] = $transaction;
+                    Log::info("Transação adicionada", $transaction);
+                } elseif ($transaction) {
+                    Log::warning("Transação rejeitada - dados insuficientes", [
+                        'transaction' => $transaction,
+                        'value_empty' => empty($transaction['value']),
+                        'date_empty' => empty($transaction['date']),
+                        'description_empty' => empty($transaction['description'])
                     ]);
                 }
             }
 
             fclose($handle);
+
+            // Processar transações Nubank com Gemini se houver alguma
+            if ($csvFormat === 'nubank' && !empty($nubankRawTransactions)) {
+                Log::info('Processando transações Nubank com Gemini AI', [
+                    'total_raw_transactions' => count($nubankRawTransactions)
+                ]);
+
+                try {
+                    $geminiService = new GeminiTransactionProcessorService();
+
+                    // Preparar categorias disponíveis para o Gemini
+                    $availableCategories = $this->categories->map(function($cat) {
+                        return [
+                            'id' => $cat->id,
+                            'name' => $cat->name,
+                        ];
+                    })->toArray();
+
+                    $processedTransactions = $geminiService->processTransactions(
+                        $nubankRawTransactions,
+                        $availableCategories
+                    );
+
+                    // Preencher category_id para transações que não tiveram categorização pelo Gemini
+                    foreach ($processedTransactions as &$transaction) {
+                        if (empty($transaction['category_id'])) {
+                            $transaction['category_id'] = $this->determineCategoryId(
+                                $transaction['description'],
+                                $categoryMapping
+                            );
+                        }
+                    }
+
+                    $transactions = array_merge($transactions, $processedTransactions);
+
+                    Log::info('Processamento Gemini concluído', [
+                        'total_processed' => count($processedTransactions)
+                    ]);
+
+                } catch (\Exception $e) {
+                    Log::error('Erro ao processar com Gemini, usando fallback', [
+                        'error' => $e->getMessage()
+                    ]);
+
+                    // Fallback: processar sem Gemini
+                    foreach ($nubankRawTransactions as $rawTransaction) {
+                        $transactions[] = [
+                            'date' => $rawTransaction['date'],
+                            'description' => $rawTransaction['description'],
+                            'installments' => 'Compra à vista',
+                            'value' => $rawTransaction['value'],
+                            'category_id' => $this->determineCategoryId(
+                                $rawTransaction['description'],
+                                $categoryMapping
+                            ),
+                            'client_id' => null,
+                        ];
+                    }
+                }
+            }
         } else {
             Log::error('Não foi possível abrir o arquivo CSV', ['path' => $csvPath]);
         }
