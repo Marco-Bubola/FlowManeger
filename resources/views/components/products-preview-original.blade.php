@@ -1,42 +1,10 @@
 @props([
     'products' => [],
+    'categories' => [],
     'showBackButton' => true
 ])
 
 <div class="space-y-6">
-    <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                <i class="bi bi-check-circle-fill text-green-600 dark:text-green-400"></i>
-            </div>
-            <h2 class="text-2xl font-semibold text-neutral-800 dark:text-neutral-100">Produtos Extraídos</h2>
-        </div>
-
-        @if(!empty($products) && count($products) > 0 && $showBackButton)
-        <!-- Botões de Ação no Header -->
-        <div class="flex gap-3">
-            <button wire:click="$set('showProductsTable', false)"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
-                <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                Voltar
-            </button>
-
-            <button wire:click="store"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
-                    wire:loading.attr="disabled">
-                <span wire:loading.remove class="flex items-center">
-                    <i class="bi bi-check-circle mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                    Salvar ({{ !empty($products) ? count($products) : 0 }})
-                </span>
-                <span wire:loading class="flex items-center">
-                    <i class="bi bi-arrow-clockwise animate-spin mr-2"></i>
-                    Salvando...
-                </span>
-            </button>
-        </div>
-        @endif
-    </div>
-
     <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-8">
         <div class="flex items-center justify-between mb-6">
             <div>
@@ -133,7 +101,8 @@
 
                             <!-- Ícone da categoria -->
                             <div class="category-icon-wrapper">
-                                <i class="bi bi-box-seam category-icon"></i>
+                                <i id="category-icon-{{ $index }}"
+                                   class="{{ $categories->firstWhere('id_category', $product['category_id'] ?? 1)->icone ?? 'bi bi-box-seam' }} category-icon"></i>
                             </div>
                         </div>
 
@@ -153,6 +122,21 @@
                                 <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                     <i class="bi bi-check-circle-fill mr-1"></i> Ativo
                                 </span>
+                            </div>
+
+                            <!-- Select de Categoria -->
+                            <div class="flex justify-center mt-2">
+                                <select wire:model.live="productsUpload.{{ $index }}.category_id"
+                                        class="category-select text-xs px-3 py-1.5 rounded-lg border border-purple-200 bg-white dark:bg-slate-700 dark:border-purple-700 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
+                                        onchange="updateCategoryIcon({{ $index }}, this)">
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id_category }}"
+                                                data-icon="{{ $category->icone ?? 'bi bi-box-seam' }}"
+                                                {{ ($product['category_id'] ?? 1) == $category->id_category ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
                             </div>
                         </div>
 
