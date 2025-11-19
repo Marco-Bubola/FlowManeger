@@ -18,7 +18,7 @@
             <i class="bi bi-lightning-fill text-white text-xl"></i>
         </div>
         <div>
-            <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-800 via-green-600 to-emerald-600 dark:from-slate-200 dark:via-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+            <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-800 via-green-600 to-emerald-600 dark:from-green-300 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent">
                 Ações Rápidas
             </h3>
             <p class="text-slate-600 dark:text-slate-400">
@@ -104,22 +104,22 @@
         </h4>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 dark:from-red-600 dark:to-pink-700 dark:hover:from-red-500 dark:hover:to-pink-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-trash3"></i>
                 <span class="text-sm">Excluir Selecionados</span>
             </button>
 
-            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 dark:from-green-600 dark:to-emerald-700 dark:hover:from-green-500 dark:hover:to-emerald-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-check-circle"></i>
                 <span class="text-sm">Ativar Selecionados</span>
             </button>
 
-            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 dark:from-slate-600 dark:to-slate-700 dark:hover:from-slate-500 dark:hover:to-slate-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-slash-circle"></i>
                 <span class="text-sm">Inativar Selecionados</span>
             </button>
 
-            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+            <button class="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 dark:from-blue-600 dark:to-indigo-700 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                 <i class="bi bi-pencil-square"></i>
                 <span class="text-sm">Editar Selecionados</span>
             </button>
