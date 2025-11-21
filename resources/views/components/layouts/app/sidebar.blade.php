@@ -44,10 +44,7 @@
                     <div class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 custom-scrollbar">
                         <!-- Dashboards Section -->
                         <div class="mb-6">
-                            <div class="flex items-center gap-2 px-3 mb-3">
-                                <div class="w-1 h-4 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
-                                <h3 class="sidebar-text text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Dashboards</h3>
-                            </div>
+
                             <nav class="space-y-1">
                                 <a href="{{ route('dashboard.index') }}" class="relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('dashboard.index') ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 text-blue-600 dark:text-blue-400 font-semibold' : '' }}" wire:navigate>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('dashboard.index') ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30' : '' }}">
@@ -94,10 +91,7 @@
 
                         <!-- Financeiro Section -->
                         <div class="mb-6">
-                            <div class="flex items-center gap-2 px-3 mb-3">
-                                <div class="w-1 h-4 bg-gradient-to-b from-emerald-500 to-teal-500 rounded-full"></div>
-                                <h3 class="sidebar-text text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Financeiro</h3>
-                            </div>
+
                             <nav class="space-y-1">
                                 <a href="{{ url('banks') }}" class="relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('banks') ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 text-emerald-600 dark:text-emerald-400 font-semibold' : '' }}" wire:navigate>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('banks') ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/30' : '' }}">
@@ -126,8 +120,8 @@
                                             @php
                                                 // Melhor detecção de banco ativo
                                                 $__currentUrl = request()->fullUrl();
-                                                $__isCurrentBank = Request::is('invoices*') && 
-                                                    (str_contains($__currentUrl, 'bankId=' . $__bank->id_bank) || 
+                                                $__isCurrentBank = Request::is('invoices*') &&
+                                                    (str_contains($__currentUrl, 'bankId=' . $__bank->id_bank) ||
                                                      str_contains($__currentUrl, '/invoices/' . $__bank->id_bank));
                                                 $__iconSrc = null;
                                                 try {
@@ -192,10 +186,7 @@
 
                         <!-- Vendas e Produtos Section -->
                         <div class="mb-6">
-                            <div class="flex items-center gap-2 px-3 mb-3">
-                                <div class="w-1 h-4 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full"></div>
-                                <h3 class="sidebar-text text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Vendas & Produtos</h3>
-                            </div>
+
                             <nav class="space-y-1">
                                 <a href="{{ url('products') }}" class="relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
@@ -438,7 +429,7 @@
 
             // Inicializar no carregamento
             document.addEventListener('DOMContentLoaded', initSidebar);
-            
+
             // Reinicializar após navegação Livewire
             document.addEventListener('livewire:navigated', initSidebar);
         </script>
