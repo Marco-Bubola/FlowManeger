@@ -10,41 +10,43 @@ $bankIcons = [
 ];
 @endphp
 <div class="w-full">
-    <header class="w-full py-8 px-6 md:px-16 flex flex-col items-center justify-center text-center gap-2">
-        <div class="flex items-center gap-4 justify-center">
-            <!-- Ícone de banco/cartão -->
-            <svg class="w-16 h-16 text-gray-700 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><path d="M2 11h20" stroke-width="2" stroke="currentColor"/></svg>
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-2">Editar Cartão/Banco</h1>
-            <!-- Ícone de edição -->
-            <svg class="w-12 h-12 text-gray-400 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6-6 3 3-6 6H9v-3z" /></svg>
-        </div>
-        <div class="flex items-center gap-2 justify-center">
-            <!-- Ícone de informação -->
-            <svg class="w-10 h-10 text-gray-400 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"/><path d="M12 16v-4M12 8h.01" stroke-width="2" stroke="currentColor"/></svg>
-            <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400">Atualize as informações do seu cartão ou banco.</p>
-        </div>
-    </header>
+    <!-- Header componentizado para consistência visual -->
+    <x-sales-header :back-route="route('banks.index')" title="Editar Cartão/Banco" description="Atualize as informações do seu cartão ou banco.">
+        <x-slot name="actions">
+            <div class="hidden md:flex items-center space-x-4">
+                <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+                    <kbd class="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded shadow">Ctrl</kbd>
+                    <span class="text-gray-500 dark:text-gray-400">+</span>
+                    <kbd class="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded shadow">S</kbd>
+                    <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">Salvar</span>
+                </div>
+            </div>
+        </x-slot>
+    </x-sales-header>
     <form wire:submit.prevent="update" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-8 px-4 md:px-10 pb-8 overflow-auto">
+        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20 dark:border-slate-700/50">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
-                <label for="edit_name" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">Titular do Cartão</label>
+                <label for="edit_name" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl mr-4 shadow-lg">
+                        <i class="bi bi-person text-white"></i>
+                    </div>
+                    Titular do Cartão
+                </label>
                 <div class="relative">
-                    <span class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2">
-                        <!-- Ícone de usuário -->
-                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1112 21a9 9 0 01-6.879-3.196z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    </span>
                     <input type="text" id="edit_name" wire:model="name"
-                        class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-10 outline-none transition text-xl" required placeholder="Nome do titular">
+                        class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-indigo-500 focus:ring-indigo-500/20 transition-all duration-300 shadow-lg" required placeholder="Nome do titular">
                 </div>
-                @error('name') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+                @error('name') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
             <div>
-                <label for="edit_description" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-300">Número do Cartão</label>
+                <label for="edit_description" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-xl mr-4 shadow-lg">
+                        <i class="bi bi-credit-card text-white"></i>
+                    </div>
+                    Número do Cartão
+                </label>
                 <div class="relative">
-                    <span class="absolute left-0 top-1/2 transform -translate-y-1/2 pl-2">
-                        <!-- Ícone de cartão -->
-                        <svg class="w-6 h-6 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="10" rx="2" ry="2" stroke-width="2" stroke="currentColor" fill="none"/><path d="M2 11h20" stroke-width="2" stroke="currentColor"/></svg>
-                    </span>
                     <input type="text" maxlength="19" id="edit_description" wire:model="description"
                         x-model="cardNumber" x-on:input="
                             let value = cardNumber.replace(/\D/g, '').slice(0,16);
@@ -54,9 +56,9 @@ $bankIcons = [
                                 formatted += value.substr(i, 4);
                             }
                             cardNumber = formatted;"
-                        class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-10 outline-none transition text-xl" required placeholder="0000-0000-0000-0000">
+                        class="w-full pl-14 pr-4 py-4 border-2 rounded-2xl bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:border-yellow-500 focus:ring-yellow-500/20 transition-all duration-300 shadow-lg" required placeholder="0000-0000-0000-0000">
                 </div>
-                @error('description') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+                @error('description') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
         </div>
         <div>
@@ -76,26 +78,28 @@ $bankIcons = [
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
-                <label for="edit_start_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    📅 Dia de Abertura da Fatura
+                <label for="edit_start_date" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl mr-4 shadow-lg">
+                        <i class="bi bi-calendar-event text-white"></i>
+                    </div>
+                    Dia de Abertura da Fatura
                 </label>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Dia do mês em que a fatura do cartão abre (ex: dia 6)
-                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Dia do mês em que a fatura do cartão abre (ex: dia 6)</p>
                 <input type="date" id="edit_start_date" wire:model="start_date"
-                    class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
-                @error('start_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+                    class="w-full pl-4 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-medium shadow-lg" required>
+                @error('start_date') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
             <div>
-                <label for="edit_end_date" class="block mb-2 text-lg font-semibold text-gray-700 dark:text-gray-200">
-                    🔒 Dia de Fechamento da Fatura
+                <label for="edit_end_date" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl mr-4 shadow-lg">
+                        <i class="bi bi-clock-history text-white"></i>
+                    </div>
+                    Dia de Fechamento da Fatura
                 </label>
-                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                    Dia do mês em que a fatura do cartão fecha (ex: dia 5)
-                </p>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Dia do mês em que a fatura do cartão fecha (ex: dia 5)</p>
                 <input type="date" id="edit_end_date" wire:model="end_date"
-                    class="w-full bg-transparent border-b border-gray-300 dark:border-gray-700 focus:border-blue-500 dark:focus:border-white text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 py-3 px-0 outline-none transition text-lg" required>
-                @error('end_date') <div class="mt-1 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+                    class="w-full pl-4 pr-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-orange-500/20 focus:border-orange-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-medium shadow-lg" required>
+                @error('end_date') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
             </div>
         </div>
 
