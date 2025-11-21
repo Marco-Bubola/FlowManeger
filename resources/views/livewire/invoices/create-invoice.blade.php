@@ -3,32 +3,9 @@
     <div class="relative  bg-gradient-to-br overflow-hidden">
 
 
-        <!-- Modern Header -->
-        <div class="relative z-10 backdrop-blur-xl border-b">
-            <div class="max-w-7xl mx-auto px-6 py-8">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-6">
-                        <div class="relative">
-                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-xl">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                            </div>
-                            <div class="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-                        </div>
-                        <div>
-                            <h1 class="text-3xl font-black bg-gradient-to-r from-gray-900 via-purple-800 to-indigo-800 dark:from-white dark:via-purple-200 dark:to-blue-200 bg-clip-text text-transparent">
-                                ✨ Nova Transação
-                            </h1>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 font-medium mt-1">
-                                🚀 Crie transações de forma rápida e intuitiva
-                            </p>
-                        </div>
-                    </div>
+            <!-- Modern Header (componentizado para manter consistência com outras páginas) -->
+            <x-sales-header :back-route="route('invoices.index')" title="Nova Transação" description="Crie transações de forma rápida e intuitiva">
+                <x-slot name="actions">
                     <div class="hidden md:flex items-center space-x-4">
                         <div class="flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
                             <kbd class="px-2 py-1 text-xs font-semibold text-gray-800 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded shadow">Ctrl</kbd>
@@ -37,9 +14,8 @@
                             <span class="text-xs text-gray-600 dark:text-gray-400 ml-2">Salvar</span>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+                </x-slot>
+            </x-sales-header>
 
         <!-- Main Content Container -->
         <div class="relative z-10 max-w-7xl mx-auto px-6 py-8">
