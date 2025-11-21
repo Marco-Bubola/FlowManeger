@@ -260,7 +260,7 @@
 
                     <!-- Transações em Grid: 4 por linha (normal) e 6 em ultrawind -->
                     <div class="w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ultrawind:grid-cols-6 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 ultrawind:grid-cols-6 gap-6">
                             @foreach ($transactions as $index => $transaction)
                                 <div
                                     class="group relative bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20 border-2 border-gray-200 dark:border-gray-600 rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg">
