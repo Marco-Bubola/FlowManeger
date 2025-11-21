@@ -1,23 +1,16 @@
 <div class="w-full">
     <!-- Header -->
-    <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="w-full px-4">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('cofrinhos.index') }}" wire:navigate
-                   class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors backdrop-blur-sm">
-                    <i class="bi bi-arrow-left text-white text-xl"></i>
-                </a>
-                <div>
-                    <h1 class="text-4xl font-bold text-white mb-2">Criar Novo Cofrinho</h1>
-                    <p class="text-white/90 text-lg">Defina sua meta e comece a economizar</p>
-                </div>
+    <x-sales-header title="Criar Novo Cofrinho" subtitle="Defina sua meta e comece a economizar">
+        <x-slot name="actions">
+            <div class="hidden sm:flex items-center gap-3">
+                <span class="text-sm text-gray-400">Salvar: <kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">Ctrl</kbd>+<kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">S</kbd></span>
             </div>
-        </div>
-    </div>
+        </x-slot>
+    </x-sales-header>
 
     <!-- Formulário -->
     <div class="w-full px-6 py-8">
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden mx-4">
+        <div class="bg-white/70 dark:bg-zinc-800/60 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden mx-4 backdrop-blur-sm">
             <div class="p-8">
                 <form wire:submit="save">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -28,9 +21,9 @@
                                 <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                                     <i class="bi bi-piggy-bank text-purple-600 mr-2"></i>Nome do Cofrinho
                                 </label>
-                                <input type="text" wire:model="nome"
-                                       class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
-                                       placeholder="Ex: Viagem dos Sonhos, Carro Novo, Casa Própria...">
+                                    <input type="text" wire:model="nome"
+                                        class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
+                                        placeholder="Ex: Viagem dos Sonhos, Carro Novo, Casa Própria...">
                                 @error('nome')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">
                                     <i class="bi bi-exclamation-circle mr-1"></i>{{ $message }}
@@ -45,9 +38,9 @@
                                 </label>
                                 <div class="relative">
                                     <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">R$</span>
-                                    <input type="number" wire:model="meta_valor" step="0.01" min="0"
-                                           class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
-                                           placeholder="0,00">
+                                     <input type="number" wire:model="meta_valor" step="0.01" min="0"
+                                         class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
+                                         placeholder="0,00">
                                 </div>
                                 @error('meta_valor')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -62,7 +55,7 @@
                                     <i class="bi bi-chat-text text-blue-600 mr-2"></i>Descrição <span class="text-gray-500 text-xs">(opcional)</span>
                                 </label>
                                 <textarea wire:model="description" rows="6"
-                                          class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-zinc-700 dark:text-white resize-none transition-all duration-200"
+                                          class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-zinc-700 dark:text-white resize-none transition-all duration-200"
                                           placeholder="Descreva o objetivo do seu cofrinho, quando pretende alcançar a meta, etc..."></textarea>
                                 @error('description')
                                 <p class="mt-2 text-sm text-red-600 dark:text-red-400">
