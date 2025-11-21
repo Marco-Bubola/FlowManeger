@@ -57,7 +57,7 @@
          @if($disabled) disabled @endif
          class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl
              bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm
-             text-slate-900 dark:text-slate-100 placeholder-slate-400
+             text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500
              {{ $borderErrorColor }}
              focus:ring-2 {{ $focusRingColor }} focus:outline-none
              transition-all duration-200 shadow-sm hover:shadow-sm

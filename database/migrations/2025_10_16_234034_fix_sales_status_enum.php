@@ -13,6 +13,10 @@ return new class extends Migration
     public function up(): void
     {
         // Alterar o campo status para VARCHAR para permitir os valores necessários
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE `sales` MODIFY `status` VARCHAR(20) NOT NULL DEFAULT 'pendente'");
     }
 
@@ -22,6 +26,10 @@ return new class extends Migration
     public function down(): void
     {
         // Reverter para o tipo anterior, se necessário
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE `sales` MODIFY `status` VARCHAR(20) NOT NULL DEFAULT 'pendente'");
     }
 };

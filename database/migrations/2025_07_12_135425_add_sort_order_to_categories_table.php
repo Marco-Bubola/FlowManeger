@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('category') || Schema::hasColumn('category', 'sort_order')) {
+            return;
+        }
+
         Schema::table('category', function (Blueprint $table) {
             $table->integer('sort_order')->nullable()->after('is_active');
             $table->index('sort_order');
@@ -22,6 +26,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('category') || ! Schema::hasColumn('category', 'sort_order')) {
+            return;
+        }
+
         Schema::table('category', function (Blueprint $table) {
             $table->dropIndex(['sort_order']);
             $table->dropColumn('sort_order');
