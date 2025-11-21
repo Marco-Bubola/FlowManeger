@@ -1,23 +1,16 @@
 <div class="w-full">
     <!-- Header -->
-    <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="w-full px-4">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('cofrinhos.index') }}" wire:navigate
-                   class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors backdrop-blur-sm">
-                    <i class="bi bi-arrow-left text-white text-xl"></i>
-                </a>
-                <div>
-                    <h1 class="text-4xl font-bold text-white mb-2">Editar Cofrinho</h1>
-                    <p class="text-white/90 text-lg">Atualize as informações do seu cofrinho</p>
-                </div>
+    <x-sales-header title="Editar Cofrinho" subtitle="Atualize as informações do seu cofrinho">
+        <x-slot name="actions">
+            <div class="hidden sm:flex items-center gap-3">
+                <span class="text-sm text-gray-400">Salvar: <kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">Ctrl</kbd>+<kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">S</kbd></span>
             </div>
-        </div>
-    </div>
+        </x-slot>
+    </x-sales-header>
 
     <!-- Formulário -->
     <div class="w-full px-6 py-8">
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden mx-4">
+        <div class="bg-white/70 dark:bg-zinc-800/60 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 overflow-hidden mx-4 backdrop-blur-sm">
             <div class="p-8">
                 <form wire:submit="save">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -29,8 +22,8 @@
                                 <i class="bi bi-piggy-bank text-purple-600 mr-2"></i>Nome do Cofrinho
                             </label>
                             <input type="text" wire:model="nome"
-                                   class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
-                                   placeholder="Ex: Viagem dos Sonhos, Carro Novo, Casa Própria...">
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
+                                placeholder="Ex: Viagem dos Sonhos, Carro Novo, Casa Própria...">
                             @error('nome')
                             <p class="mt-2 text-sm text-red-600 dark:text-red-400">
                                 <i class="bi bi-exclamation-circle mr-1"></i>{{ $message }}
@@ -45,9 +38,9 @@
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">R$</span>
-                                <input type="number" wire:model="meta_valor" step="0.01" min="0"
-                                       class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
-                                       placeholder="0,00">
+                                    <input type="number" wire:model="meta_valor" step="0.01" min="0"
+                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
+                                        placeholder="0,00">
                             </div>
                             @error('meta_valor')
                             <p class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -62,7 +55,7 @@
                                 <i class="bi bi-chat-text text-blue-600 mr-2"></i>Descrição <span class="text-gray-500 text-xs">(opcional)</span>
                             </label>
                             <textarea wire:model="description" rows="4"
-                                      class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-zinc-700 dark:text-white resize-none transition-all duration-200"
+                                      class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-zinc-700 dark:text-white resize-none transition-all duration-200"
                                       placeholder="Descreva o objetivo do seu cofrinho, quando pretende alcançar a meta, etc..."></textarea>
                             @error('description')
                             <p class="mt-2 text-sm text-red-600 dark:text-red-400">
@@ -76,8 +69,8 @@
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                                 <i class="bi bi-toggle-on text-indigo-600 mr-2"></i>Status
                             </label>
-                            <select wire:model="status"
-                                    class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white transition-all duration-200">
+                                <select wire:model="status"
+                                    class="w-full px-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white transition-all duration-200">
                                 <option value="ativo">Ativo</option>
                                 <option value="inativo">Inativo</option>
                             </select>
@@ -127,17 +120,12 @@
 
                     <!-- Botões de Ação -->
                     <div class="flex flex-col sm:flex-row gap-4 justify-end mt-8 pt-6 border-t border-gray-200 dark:border-zinc-700">
-                        </div>
-                    </div>
-
-                    <!-- Botões de Ação -->
-                    <div class="flex flex-col sm:flex-row gap-4 justify-end mt-8 pt-6 border-t border-gray-200 dark:border-zinc-700">
                         <button type="button" wire:click="cancel"
-                                class="w-full sm:w-auto px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                                class="w-full sm:w-auto px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
                             <i class="bi bi-x-circle mr-2"></i>Cancelar
                         </button>
                         <button type="submit"
-                                class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
                             <i class="bi bi-check-circle mr-2"></i>Salvar Alterações
                         </button>
                     </div>
