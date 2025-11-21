@@ -1,18 +1,9 @@
 <div class="w-full">
     <!-- Header -->
-    <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="w-full px-4">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-                <div class="flex items-center gap-4 mb-6 lg:mb-0">
-                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                        <i class="bi bi-piggy-bank text-white text-3xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-4xl font-bold text-white mb-2">Meus Cofrinhos</h1>
-                        <p class="text-white/90 text-lg">"O segredo do sucesso é a constância do propósito." - Benjamin Disraeli</p>
-                    </div>
-                </div>
-                <div class="flex flex-col sm:flex-row gap-4 lg:text-right">
+    <x-sales-header title="Meus Cofrinhos" subtitle="&quot;O segredo do sucesso é a constância do propósito.&quot; - Benjamin Disraeli">
+        <x-slot name="actions">
+            <div class="flex items-center gap-4">
+                <div class="hidden md:flex items-center gap-4">
                     <div class="bg-white/20 backdrop-blur-sm rounded-xl p-4 text-center">
                         <div class="text-white/80 text-sm font-medium">Total Acumulado</div>
                         <div class="text-white text-2xl font-bold">R$ {{ number_format(collect($cofrinhos)->sum('valor_acumulado'), 2, ',', '.') }}</div>
@@ -22,21 +13,20 @@
                         <div class="text-white text-2xl font-bold">{{ count($cofrinhos) }}</div>
                     </div>
                 </div>
+
+                <a href="{{ route('cofrinhos.create') }}" wire:navigate
+                   class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-200">
+                    <i class="bi bi-plus-circle-fill text-lg mr-2"></i>
+                    Criar
+                </a>
             </div>
-        </div>
-    </div>
+        </x-slot>
+    </x-sales-header>
 
     <!-- Conteúdo Principal -->
     <div class="w-full px-6 py-8">
 
-        <!-- Botão Criar Novo Cofrinho -->
-        <div class="mb-8">
-            <a href="{{ route('cofrinhos.create') }}" wire:navigate
-               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <i class="bi bi-plus-circle-fill text-xl mr-2"></i>
-                Criar Novo Cofrinho
-            </a>
-        </div>
+        <!-- Botão Criar movido para o header -->
 
         <!-- Ranking dos Cofrinhos -->
         @if(collect($ranking)->sum('crescimento') > 0)
@@ -163,8 +153,8 @@
             <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
                 Crie seu primeiro cofrinho para começar a economizar e acompanhar suas metas financeiras.
             </p>
-            <a href="{{ route('cofrinhos.create') }}" wire:navigate
-               class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <a href="{{ route('cofrinhos.create') }}" wire:navigate
+                    class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                 <i class="bi bi-plus-circle-fill text-xl mr-2"></i>
                 Criar Primeiro Cofrinho
             </a>
