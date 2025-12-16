@@ -14,6 +14,22 @@
 
         :back-route="null">
         <x-slot name="actions">
+            <!-- Botão Desfazer (se houver produtos removidos) -->
+            @if(!empty($removedProducts))
+            <button wire:click="undoRemove"
+                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-yellow-300 backdrop-blur-sm">
+                <i class="bi bi-arrow-counterclockwise mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                Desfazer ({{ count($removedProducts) }})
+            </button>
+            @endif
+
+            <!-- Botão Validar Duplicatas -->
+            <button wire:click="checkDuplicates"
+                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm">
+                <i class="bi bi-shield-check mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                Validar
+            </button>
+
             <button wire:click="$set('showProductsTable', false)"
                     class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
                 <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
@@ -36,6 +52,60 @@
     </x-upload-header-original>
     @endif
 
+    <!-- Alerta de Duplicatas -->
+    @if(!empty($duplicates))
+    <div class="mb-6 bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded-r-lg">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <i class="bi bi-exclamation-triangle-fill text-yellow-400 text-2xl"></i>
+            </div>
+            <div class="ml-3 flex-1">
+                <h3 class="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                    {{ count($duplicates) }} produto(s) duplicado(s) encontrado(s)
+                </h3>
+                <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                    <p>Escolha uma ação para cada produto duplicado abaixo:</p>
+                </div>
+                <div class="mt-4 space-y-3">
+                    @foreach($duplicates as $index => $duplicate)
+                    <div class="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <p class="font-medium text-slate-800 dark:text-slate-200">
+                                    {{ $duplicate['product']['name'] ?? 'Produto sem nome' }}
+                                </p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">
+                                    Código: {{ $duplicate['product']['product_code'] }} | 
+                                    Estoque atual: {{ $duplicate['existing']->stock_quantity }} | 
+                                    Nova quantidade: {{ $duplicate['product']['stock_quantity'] }}
+                                </p>
+                            </div>
+                            <div class="flex gap-2 ml-4">
+                                <button wire:click="setDuplicateAction({{ $index }}, 'sum_stock')"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200
+                                        {{ ($duplicate['action'] ?? 'sum_stock') === 'sum_stock' ? 'bg-green-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300' }}">
+                                    <i class="bi bi-plus-circle mr-1"></i> Somar
+                                </button>
+                                <button wire:click="setDuplicateAction({{ $index }}, 'skip')"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200
+                                        {{ ($duplicate['action'] ?? 'sum_stock') === 'skip' ? 'bg-blue-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300' }}">
+                                    <i class="bi bi-skip-forward mr-1"></i> Pular
+                                </button>
+                                <button wire:click="setDuplicateAction({{ $index }}, 'replace')"
+                                        class="px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200
+                                        {{ ($duplicate['action'] ?? 'sum_stock') === 'replace' ? 'bg-orange-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-300' }}">
+                                    <i class="bi bi-arrow-repeat mr-1"></i> Substituir
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- Conteúdo Principal -->
     <div class="">
 
@@ -46,6 +116,50 @@
                 wire-model="pdf_file"
                 :current-file="$pdf_file" />
         @else
+            <!-- Barra de Ferramentas de Edição em Massa -->
+            <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 border border-slate-200 dark:border-slate-700">
+                <div class="flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center gap-2">
+                        <i class="bi bi-tools text-slate-600 dark:text-slate-400 text-lg"></i>
+                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Edição em Massa:</span>
+                    </div>
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <!-- Alterar Categoria de Todos -->
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-600 dark:text-slate-400">Categoria:</label>
+                            <select wire:model.live="bulkCategoryId"
+                                    class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400">
+                                <option value="">Selecione...</option>
+                                @foreach($categories as $category)
+                                    <option value="{{ $category->id_category }}">{{ $category->name }}</option>
+                                @endforeach
+                            </select>
+                            <button wire:click="bulkUpdateCategory($bulkCategoryId)"
+                                    :disabled="!$wire.bulkCategoryId"
+                                    class="px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="bi bi-check-all mr-1"></i> Aplicar
+                            </button>
+                        </div>
+
+                        <!-- Alterar Status de Todos -->
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs text-slate-600 dark:text-slate-400">Status:</label>
+                            <select wire:model.live="bulkStatus"
+                                    class="text-xs px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-green-400">
+                                <option value="">Selecione...</option>
+                                <option value="ativo">Ativo</option>
+                                <option value="inativo">Inativo</option>
+                            </select>
+                            <button wire:click="bulkUpdateStatus($bulkStatus)"
+                                    :disabled="!$wire.bulkStatus"
+                                    class="px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
+                                <i class="bi bi-check-all mr-1"></i> Aplicar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Tabela de Produtos Extraídos -->
             <x-products-preview-original
                 :products="$productsUpload ?? []"
