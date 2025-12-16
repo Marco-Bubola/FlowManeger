@@ -48,7 +48,7 @@
     <!-- Header Modernizado -->
     <x-products-header
         title="Catálogo de Produtos"
-        description="Gerencie todo seu catálogo de produtos e kits"
+        description=""
         :total-products="$products->total() ?? 0"
         :total-categories="$categories->count()"
         :show-quick-actions="true"
