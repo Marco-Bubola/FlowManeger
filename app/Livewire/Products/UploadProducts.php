@@ -31,6 +31,7 @@ class UploadProducts extends Component
     public $showHistory = false; // Controle para exibir histórico
     public $uploadHistory = []; // Histórico de uploads
     public $currentUploadId = null; // ID do upload atual
+    public $showTipsModal = false; // Controle para exibir modal de dicas
 
     public function mount()
     {
@@ -51,6 +52,40 @@ class UploadProducts extends Component
         if ($this->showHistory) {
             $this->loadUploadHistory();
         }
+    }
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
+    }
+
+    public function getCategoryIcon($icone)
+    {
+        // Mapear ícones icons8 para Bootstrap Icons
+        $iconMap = [
+            'icons8-perfume' => 'bi-emoji-heart-eyes',
+            'icons8-nubank' => 'bi-credit-card-2-front',
+            'icons8-pagamento' => 'bi-currency-dollar',
+            'icons8-pix' => 'bi-lightning-charge',
+            'icons8-xp' => 'bi-graph-up-arrow',
+            'icons8-inter' => 'bi-bank',
+            'icons8-rendimento' => 'bi-graph-up',
+            'icons8-restaurante' => 'bi-cup-straw',
+            'icons8-beleza' => 'bi-heart',
+            'icons8-supermercado' => 'bi-cart',
+            'icons8-transporte' => 'bi-bus-front',
+            'icons8-casa' => 'bi-house',
+            'icons8-saude' => 'bi-heart-pulse',
+            'icons8-educacao' => 'bi-book',
+            'icons8-entretenimento' => 'bi-controller',
+            'icons8-vestuario' => 'bi-bag',
+            'icons8-tecnologia' => 'bi-laptop',
+            'icons8-combustivel' => 'bi-fuel-pump',
+            'icons8-farmacia' => 'bi-capsule',
+            'icons8-pet' => 'bi-heart',
+        ];
+
+        return $iconMap[$icone] ?? 'bi-tag';
     }
 
     public function rules()
