@@ -78,6 +78,13 @@
                         </div>
                     </div>
 
+                    <!-- Botão Export -->
+                    <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
+                        class="group inline-flex items-center px-6 py-4 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-bold rounded-2xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
+                        <i class="bi bi-file-earmark-image mr-3 text-lg group-hover:scale-110 transition-transform duration-300"></i>
+                        Exportar Card
+                    </button>
+
                     <a href="{{ route('products.edit', $mainProduct->id) }}"
                         class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
                         <i class="bi bi-pencil-square mr-3 text-lg group-hover:rotate-12 transition-transform duration-300"></i>
@@ -1173,11 +1180,17 @@
                             @endif
                         </div>
 
-                        <div class="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-700/50">
+                        <div class="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex gap-3">
+                            <button wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
+                                class="flex-1 group/btn inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                                <i class="bi bi-file-earmark-image mr-2 group-hover/btn:scale-110 transition-transform duration-300"></i>
+                                Exportar
+                            </button>
+
                             <a href="{{ route('products.edit', $product->id) }}"
-                                class="w-full group/btn inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                                class="flex-1 group/btn inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                                 <i class="bi bi-pencil mr-2 group-hover/btn:rotate-12 transition-transform duration-300"></i>
-                                Editar Variação
+                                Editar
                                 <i class="bi bi-arrow-right ml-2 group-hover/btn:translate-x-1 transition-transform duration-300"></i>
                             </a>
                         </div>
@@ -1187,6 +1200,9 @@
             </div>
         </div>
     </div>
+    
+    <!-- Export Modal Component -->
+    @livewire('products.export-product-card')
 </div>
 
 @push('scripts')
