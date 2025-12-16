@@ -118,6 +118,27 @@ class EditInvoice extends Component
 
     public function render()
     {
-        return view('livewire.invoices.edit-invoice');
+        return view('livewire.invoices.edit-invoice', [
+            'selectedCategoryName' => $this->getSelectedCategoryName(),
+            'selectedClientName' => $this->getSelectedClientName(),
+        ]);
+    }
+
+    private function getSelectedCategoryName()
+    {
+        if ($this->category_id) {
+            $category = Category::find($this->category_id);
+            return $category ? $category->name : 'Selecione uma categoria';
+        }
+        return 'Selecione uma categoria';
+    }
+
+    private function getSelectedClientName()
+    {
+        if ($this->client_id) {
+            $client = Client::find($this->client_id);
+            return $client ? $client->name : 'Selecione um cliente';
+        }
+        return 'Selecione um cliente';
     }
 }
