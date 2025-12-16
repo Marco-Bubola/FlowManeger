@@ -107,411 +107,388 @@
         </div>
     </div>
 
+    @php
+        $displayTotal = collect($allInvoices ?? [])->sum(fn($invoice) => abs($invoice['value'] ?? 0));
+        $displayLabel = $selectedDate
+            ? 'Despesas de ' . \Carbon\Carbon::parse($selectedDate)->format('d/m/Y')
+            : 'Despesas do mês';
+        $categoriesChartData = collect($invoicesByCategory ?? [])->map(function ($group) {
+            return [
+                'label' => $group['category']['name'] ?? 'Sem categoria',
+                'value' => $group['total'] ?? 0,
+                'color' => $group['category']['hexcolor_category'] ?? '#6366f1',
+            ];
+        })->filter(fn($item) => ($item['value'] ?? 0) > 0)->values()->toArray();
+        $currentMonthLabel = \Carbon\Carbon::create($year, $month, 1)->locale('pt_BR')->isoFormat('MMMM [de] YYYY');
+    @endphp
+
     <div class="flex flex-col lg:flex-row gap-6">
         <!-- Sidebar Esquerda - Calendário e Estatísticas (1/4) -->
         <div class="w-full lg:w-1/4 flex flex-col space-y-6">
-            <!-- Calendário Moderno -->
-            <div
-                class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center">
-                        <div class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl p-2 mr-3">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+            <div class="relative rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%); border: 2px solid rgba(59, 130, 246, 0.2);">
+                <div class="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl opacity-10"
+                    style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);"></div>
+
+                <div class="relative px-5 py-4 backdrop-blur-sm">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="relative group">
+                            <div class="absolute inset-0 rounded-2xl blur-2xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);"></div>
+                            <div class="relative w-12 h-12 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);">
+                                <svg class="w-6 h-6 text-gray-900 dark:text-white" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-xl font-black text-gray-900 dark:text-white">Calendário</h3>
+                            <p class="text-xs text-gray-600 dark:text-gray-400">
+                                {{ \Illuminate\Support\Str::ucfirst($currentMonthLabel) }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2">
+                        <button wire:click="previousMonth"
+                            class="p-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-md hover:shadow-lg text-gray-700 dark:text-gray-300 transition-all duration-200 transform hover:scale-105 border border-white/20 dark:border-gray-700/30">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <div class="flex items-center gap-2 flex-1">
+                            <select wire:model.live="month"
+                                class="flex-1 rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
+                                @foreach (range(1, 12) as $m)
+                                    <option value="{{ $m }}">
+                                        {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMM') }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <select wire:model.live="year"
+                                class="rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
+                                @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                    <option value="{{ $y }}">{{ $y }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <button wire:click="nextMonth"
+                            class="p-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-md hover:shadow-lg text-gray-700 dark:text-gray-300 transition-all duration-200 transform hover:scale-105 border border-white/20 dark:border-gray-700/30">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                    d="M9 5l7 7-7 7">
                                 </path>
                             </svg>
-                        </div>
-                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Calendário</h3>
-                    </div>
-                </div>
-
-                <!-- Navegação do Calendário com selects e botões -->
-                <div class="flex items-center justify-between mb-6">
-                    <button wire:click="previousMonth"
-                        class="p-2 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                        </svg>
-                    </button>
-                    <div class="flex items-center space-x-2">
-                        <select wire:model="month"
-                            class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
-                            @foreach (range(1, 12) as $m)
-                                <option value="{{ $m }}">
-                                    {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMMM') }}
-                                </option>
-                            @endforeach
-                        </select>
-                        <select wire:model="year"
-                            class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
-                            @foreach (range(now()->year - 5, now()->year + 2) as $y)
-                                <option value="{{ $y }}">{{ $y }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <button wire:click="nextMonth"
-                        class="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                        </svg>
-                    </button>
-                </div>
-                <!-- Cabeçalho do calendário -->
-                <div class="grid grid-cols-7 gap-1 mb-3">
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        D</div>
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        S</div>
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        T</div>
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        Q</div>
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        Q</div>
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        S</div>
-                    <div
-                        class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-2 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-                        S</div>
-                </div>
-                <!-- Dias do calendário -->
-                <div class="grid grid-cols-7 gap-2">
-                    @foreach ($calendarDays as $day)
-                        <div wire:click="selectDate('{{ $day['date'] }}')"
-                            class="relative min-h-[40px] p-2 border-2 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 {{ $day['isCurrentMonth'] ? 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 border-gray-200 dark:border-gray-600' : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-500' }} {{ $day['isToday'] ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/25' : '' }} {{ $selectedDate === $day['date'] ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg shadow-green-500/25' : '' }}">
-                            <div
-                                class="text-sm font-bold {{ $day['isCurrentMonth'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }} {{ $day['isToday'] ? 'text-blue-600 dark:text-blue-400' : '' }} {{ $selectedDate === $day['date'] ? 'text-green-600 dark:text-green-400' : '' }}">
-                                {{ $day['day'] }}
-                            </div>
-                            @if (!empty($day['invoices']))
-                                <div class="absolute bottom-1 right-1">
-                                    <div
-                                        class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg">
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                    @endforeach
-                </div>
-                @if ($selectedDate)
-                    <div class="mt-4">
-                        <button wire:click="clearDateSelection"
-                            class="w-full text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                            Limpar Filtro
                         </button>
                     </div>
-                @endif
+                </div>
+
+                <div class="px-5 pb-5">
+                    <div class="grid grid-cols-7 gap-1 mb-3">
+                        @foreach (['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as $label)
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                {{ $label }}</div>
+                        @endforeach
+                    </div>
+
+                    <div class="grid grid-cols-7">
+                        @foreach ($calendarDays as $day)
+                            <div wire:click="selectDate('{{ $day['date'] }}')"
+                                class="calendar-day relative min-h-[42px] p-2 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md {{ $day['isCurrentMonth'] ? 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-2 border-white/40 dark:border-gray-700/40 hover:border-blue-300 dark:hover:border-blue-600' : 'bg-gray-100/60 dark:bg-gray-700/60 backdrop-blur-sm border-2 border-gray-200/40 dark:border-gray-600/40' }} {{ $day['isToday'] ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30' : '' }} {{ $selectedDate === $day['date'] ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 shadow-lg shadow-green-500/30' : '' }} {{ !empty($day['invoices']) ? 'has-invoices' : '' }}">
+                                <div
+                                    class="text-sm font-bold {{ $day['isCurrentMonth'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }} {{ $day['isToday'] ? 'text-blue-700 dark:text-blue-400' : '' }} {{ $selectedDate === $day['date'] ? 'text-green-700 dark:text-green-400' : '' }}">
+                                    {{ $day['day'] }}
+                                </div>
+                                @if (!empty($day['invoices']))
+                                    <div class="absolute bottom-1 right-1">
+                                        <div class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg animate-pulse"></div>
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+
+                    @if ($selectedDate)
+                        <div class="mt-4">
+                            <button wire:click="clearDateSelection"
+                                class="w-full text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl py-2.5 px-4 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                Limpar Filtro
+                            </button>
+                        </div>
+                    @endif
+                </div>
             </div>
 
-            <!-- Gráfico Pie ApexCharts Moderno -->
-            <div
-                class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6">
-                <div class="flex items-center mb-4">
-                    <div class="bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl p-2 mr-3">
-                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
-                            </path>
-                        </svg>
+            <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.2);">
+                <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+                    style="background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);"></div>
+
+                <div class="relative px-6 py-5 backdrop-blur-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="relative group">
+                            <div class="absolute inset-0 rounded-2xl blur-2xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                style="background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);"></div>
+                            <div class="relative w-14 h-14 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                style="background: linear-gradient(135deg, rgba(139,92,246,0.2) 0%, rgba(59,130,246,0.15) 100%);">
+                                <svg class="w-7 h-7 text-gray-900 dark:text-white" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.911c.969 0 1.371 1.24.588 1.81l-3.974 2.888a1 1 0 00-.364 1.118l1.518 4.674c.3.922-.755 1.688-1.54 1.118l-3.973-2.888a1 1 0 00-1.176 0l-3.973 2.888c-.785.57-1.84-.196-1.54-1.118l1.518-4.674a1 1 0 00-.364-1.118L2.08 10.1c-.783-.57-.38-1.81.588-1.81h4.912a1 1 0 00.95-.69l1.519-4.674z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex-1">
+                            <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-1">Gastos por Categoria</h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Visualização dinâmica da distribuição de despesas</p>
+                        </div>
                     </div>
-                    <h4 class="text-lg font-bold text-gray-900 dark:text-white">Gastos por Categoria</h4>
                 </div>
-                <div wire:ignore id="pie-category-chart" class="w-full h-64"></div>
+
+                <div class="relative px-6 pb-6">
+                    @if (count($categoriesChartData) > 0)
+                        <div id="apex-pie" class="w-full" style="height: 240px;"></div>
+                        <script type="application/json" id="categories-data">@json($categoriesChartData)</script>
+                    @else
+                        <div
+                            class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 text-center shadow-lg border border-white/20 dark:border-gray-700/30">
+                            <div
+                                class="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
+                            <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Nenhuma despesa categorizada</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Adicione transações para ver o gráfico atualizado</p>
+                        </div>
+                    @endif
+                </div>
             </div>
         </div>
-        <!-- Área Central - Transações (2/4) -->
-        <div class="w-full lg:w-2/4 flex flex-col">
-            <div
-                class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6 flex flex-col h-full">
-                <div class="flex items-center justify-between mb-6">
-                    <div class="flex items-center">
-                        <div class="bg-gradient-to-r from-red-500 to-pink-500 rounded-xl p-2 mr-3">
-                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                </path>
-                            </svg>
+        <!-- Área Central - Resumo e Grupos (2/4) -->
+        <div class="w-full lg:w-2/4 flex flex-col space-y-4">
+            @php
+                $displayTotal = collect($allInvoices ?? [])->sum(fn($invoice) => abs($invoice['value'] ?? 0));
+                $displayLabel = $selectedDate
+                    ? 'Despesas de ' . \Carbon\Carbon::parse($selectedDate)->format('d/m/Y')
+                    : 'Despesas do mês';
+                $categoriesChartData = collect($invoicesByCategory ?? [])->map(function ($group) {
+                    return [
+                        'label' => $group['category']['name'] ?? 'Sem categoria',
+                        'value' => $group['total'] ?? 0,
+                        'color' => $group['category']['hexcolor_category'] ?? '#6366f1',
+                    ];
+                })->filter(fn($item) => ($item['value'] ?? 0) > 0)->values()->toArray();
+            @endphp
+
+            <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                style="background: linear-gradient(135deg, rgba(244, 63, 94, 0.08) 0%, rgba(249, 115, 22, 0.05) 100%); border: 2px solid rgba(244, 63, 94, 0.2);">
+                <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+                    style="background: linear-gradient(135deg, #f43f5e 0%, #fb923c 100%);"></div>
+
+                <div class="relative px-6 py-5 backdrop-blur-sm flex items-center justify-between gap-6">
+                    <div class="flex items-center gap-4">
+                        <div class="relative group">
+                            <div class="absolute inset-0 rounded-2xl blur-2xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                style="background: linear-gradient(135deg, #f43f5e 0%, #fb7185 100%);"></div>
+                            <div class="relative w-14 h-14 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                style="background: linear-gradient(135deg, rgba(244,63,94,0.2) 0%, rgba(251,113,133,0.15) 100%);">
+                                <svg class="w-7 h-7 text-gray-900 dark:text-white" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-gray-900 dark:text-white">
-                                @if ($selectedDate)
-                                    Despesas de {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}
-                                @else
-                                    Despesas do Mês
-                                @endif
-                            </h2>
-                            <p class="text-sm text-gray-500 dark:text-gray-400">Gerencie seus gastos</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">{{ $displayLabel }}</p>
+                            <h3 class="text-2xl font-black text-gray-900 dark:text-white">Resumo de Gastos</h3>
                         </div>
                     </div>
-
-                    <!-- Botão para adicionar nova despesa -->
-                    <button
-                        class="bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white px-4 py-2 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                        </svg>
-                        Nova Despesa
-                    </button>
-                </div>
-
-                <!-- Container com scroll personalizado para as transações -->
-                <div id="transactionsContainer" class="flex-grow overflow-y-auto scrollbar-modern pr-2 max-h-[700px]">
-                    <!-- Grid responsivo com tamanhos fixos -->
-                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4 auto-rows-fr">
-                        @if ($selectedDate)
-                            @if (isset($calendarInvoices[$selectedDate]))
-                                @foreach ($calendarInvoices[$selectedDate] as $invoice)
-                                    <div class="invoice-card bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden cursor-pointer group h-48 flex flex-col"
-                                        onclick="toggleCardExpansion(this)">
-                                        <!-- Card Header com gradiente baseado no tipo (apenas despesas/negativos) -->
-                                        <div class="bg-gradient-to-r from-red-500 to-pink-600 p-3 flex-shrink-0">
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center space-x-3">
-                                                    @if (isset($invoice['category']) && $invoice['category']['icon'])
-                                                        <div
-                                                            class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                                                            @if (Str::startsWith($invoice['category']['icon'], 'icons8-'))
-                                                                <span
-                                                                    class="w-4 h-4 {{ $invoice['category']['icon'] }} text-white"></span>
-                                                            @else
-                                                                <img class="w-4 h-4"
-                                                                    src="{{ $invoice['category']['icon'] }}"
-                                                                    alt="{{ $invoice['category']['name'] ?? 'Categoria' }}">
-                                                            @endif
-                                                        </div>
-                                                    @else
-                                                        <div
-                                                            class="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                                                            <svg class="w-4 h-4 text-white" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
-                                                                </path>
-                                                            </svg>
-                                                        </div>
-                                                    @endif
-                                                    <div>
-                                                        <p class="text-white font-bold text-base">
-                                                            - R$
-                                                            {{ number_format(abs($invoice['value']), 2, ',', '.') }}
-                                                        </p>
-                                                        <p class="text-white/80 text-xs">
-                                                            {{ $invoice['category']['name'] ?? 'Sem Categoria' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                                                    <svg class="w-3 h-3 text-white expand-icon transition-transform duration-300"
-                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Card Body -->
-                                        <div class="p-4 flex-grow flex flex-col">
-                                            <h4 class="text-sm font-bold text-gray-900 dark:text-white line-clamp-2 mb-3 flex-shrink-0"
-                                                onclick="event.stopPropagation()">
-                                                {{ $invoice['description'] }}
-                                            </h4>
-
-                                            <!-- Expandable Details (Hidden by default) -->
-                                            <div class="card-details space-y-2 flex-grow">
-                                                <div
-                                                    class="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                                                    <div
-                                                        class="w-5 h-5 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-2">
-                                                        <svg class="w-3 h-3 text-white" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                    <span
-                                                        class="font-medium">{{ \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') }}</span>
-                                                </div>
-
-                                                <div
-                                                    class="flex items-center text-xs text-gray-600 dark:text-gray-400">
-                                                    <div
-                                                        class="w-5 h-5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-2">
-                                                        <svg class="w-3 h-3 text-white" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                    <span
-                                                        class="font-medium">{{ $invoice['bank']['name'] ?? 'N/A' }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="text-center py-12 lg:col-span-2">
-                                    <div
-                                        class="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-3xl p-8">
-                                        <div
-                                            class="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"
-                                                stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                                </path>
-                                            </svg>
-                                        </div>
-                                        <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Nenhuma
-                                            despesa encontrada</h3>
-                                        <p class="text-gray-500 dark:text-gray-400">Não há despesas registradas para
-                                            {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}.</p>
-                                    </div>
-                                </div>
-                            @endif
-                        @else
-                            @if (!empty($allInvoices))
-                                @foreach ($allInvoices as $invoice)
-                                    <div class="invoice-card bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden cursor-pointer group"
-                                        onclick="toggleCardExpansion(this)">
-                                        <!-- Card Header - Sempre vermelho para despesas -->
-                                        <div class="bg-gradient-to-r from-red-500 to-pink-600 p-4">
-                                            <div class="flex items-center justify-between">
-                                                <div class="flex items-center space-x-3">
-                                                    @if (isset($invoice['category']) && $invoice['category']['icon'])
-                                                        <div
-                                                            class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                                                            @if (Str::startsWith($invoice['category']['icon'], 'icons8-'))
-                                                                <span
-                                                                    class="w-5 h-5 {{ $invoice['category']['icon'] }} text-white"></span>
-                                                            @else
-                                                                <img class="w-5 h-5"
-                                                                    src="{{ $invoice['category']['icon'] }}"
-                                                                    alt="{{ $invoice['category']['name'] ?? 'Categoria' }}">
-                                                            @endif
-                                                        </div>
-                                                    @else
-                                                        <div
-                                                            class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                                                            <svg class="w-5 h-5 text-white" fill="none"
-                                                                stroke="currentColor" viewBox="0 0 24 24">
-                                                                <path stroke-linecap="round" stroke-linejoin="round"
-                                                                    stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3">
-                                                                </path>
-                                                            </svg>
-                                                        </div>
-                                                    @endif
-                                                    <div>
-                                                        <p class="text-white font-bold text-lg">
-                                                            - R$
-                                                            {{ number_format(abs($invoice['value']), 2, ',', '.') }}
-                                                        </p>
-                                                        <p class="text-white/80 text-sm">
-                                                            {{ $invoice['category']['name'] ?? 'Sem Categoria' }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-                                                    <svg class="w-4 h-4 text-white expand-icon transition-transform duration-300"
-                                                        fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                                    </svg>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Card Body -->
-                                        <div class="p-6">
-                                            <h4 class="text-lg font-bold text-gray-900 dark:text-white line-clamp-2 mb-3"
-                                                onclick="event.stopPropagation()">
-                                                {{ $invoice['description'] }}
-                                            </h4>
-
-                                            <!-- Expandable Details (Hidden by default) -->
-                                            <div class="card-details space-y-3">
-                                                <div
-                                                    class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                                    <div
-                                                        class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
-                                                        <svg class="w-3 h-3 text-white" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                    <span
-                                                        class="font-medium">{{ \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') }}</span>
-                                                </div>
-
-                                                <div
-                                                    class="flex items-center text-sm text-gray-600 dark:text-gray-400">
-                                                    <div
-                                                        class="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-3">
-                                                        <svg class="w-3 h-3 text-white" fill="none"
-                                                            stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round"
-                                                                stroke-width="2"
-                                                                d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z">
-                                                            </path>
-                                                        </svg>
-                                                    </div>
-                                                    <span
-                                                        class="font-medium">{{ $invoice['bank']['name'] ?? 'N/A' }}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="text-center py-12 lg:col-span-2">
-                                    <div
-                                        class="bg-gradient-to-r from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 rounded-3xl p-8">
-                                        <div
-                                            class="w-16 h-16 bg-gradient-to-r from-gray-400 to-gray-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <svg class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24"
-                                                stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                                </path>
-                                            </svg>
-                                        </div>
-                                        <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 mb-2">Nenhuma
-                                            despesa encontrada</h3>
-                                        <p class="text-gray-500 dark:text-gray-400">Não há despesas registradas para
-                                            este mês.</p>
-                                    </div>
-                                </div>
-                            @endif
-                        @endif
+                    <div class="text-right">
+                        <p class="text-xs font-semibold text-gray-600 dark:text-gray-400">Total exibido</p>
+                        <p class="text-3xl font-black text-gray-900 dark:text-white">R$
+                            {{ number_format($displayTotal, 2, ',', '.') }}</p>
                     </div>
                 </div>
+            </div>
+
+
+
+            <div class="cards-scroll max-h-[60vh] lg:max-h-[70vh] overflow-auto pr-2">
+                @if (!empty($invoicesByCategory))
+                    @foreach ($invoicesByCategory as $group)
+                        @php
+                            $cat = $group['category'] ?? [];
+                            $catColor = $cat['hexcolor_category'] ?? '#f87171';
+                            $catName = $cat['name'] ?? 'Sem categoria';
+                            $catIcon = $cat['icone'] ?? 'fas fa-tag';
+                            $catId = $group['category_id'] ?? 'sem_categoria';
+                            $catTotal = $group['total'] ?? 0;
+                            $catCount = isset($group['invoices']) ? count($group['invoices']) : 0;
+                        @endphp
+
+                        <div class="category-group mb-8 transform transition-all duration-500 expanded" data-category-id="{{ $catId }}">
+                            <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                                style="background: linear-gradient(135deg, {{ $catColor }}15 0%, {{ $catColor }}08 100%); border: 2px solid {{ $catColor }}40;">
+                                <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20" style="background: {{ $catColor }};"></div>
+
+                                <div class="relative px-6 py-5 backdrop-blur-sm">
+                                    <div class="flex items-center justify-between gap-4">
+                                        <div class="flex items-center gap-4 flex-1">
+                                            <div class="relative group">
+                                                <div class="absolute inset-0 rounded-2xl blur-3xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                                    style="background: {{ $catColor }}33;"></div>
+                                                <div class="relative w-16 h-16 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                                    style="background: linear-gradient(135deg, {{ $catColor }}33 0%, {{ $catColor }}22 100%);">
+                                                    @if (Str::startsWith($catIcon, 'fas') || Str::startsWith($catIcon, 'bi') || Str::startsWith($catIcon, 'ph'))
+                                                        <i class="{{ $catIcon }} text-gray-900 text-2xl"></i>
+                                                    @else
+                                                        <img src="{{ $catIcon }}" alt="{{ $catName }}" class="w-8 h-8">
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="text-2xl font-black mb-1 text-gray-900 dark:text-white">
+                                                    {{ $catName }}
+                                                </h3>
+                                                <div class="flex flex-wrap items-center gap-3 text-sm">
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold text-gray-900 dark:text-white shadow-lg"
+                                                        style="background: linear-gradient(135deg, {{ $catColor }}22 0%, {{ $catColor }}11 100%);">
+                                                        <svg class="w-4 h-4 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                        </svg>
+                                                        <span class="text-sm font-medium">{{ $catCount }} {{ $catCount === 1 ? 'transação' : 'transações' }}</span>
+                                                    </span>
+                                                    <span class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-bold text-black shadow-lg transform hover:scale-105 transition-transform"
+                                                        style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%);">
+                                                        <svg class="w-4 h-4 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                        </svg>
+                                                        <span>R$ {{ number_format($catTotal, 2, ',', '.') }}</span>
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <button type="button"
+                                            class="category-toggle-btn flex items-center gap-3 px-4 py-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent"
+                                            data-category-id="{{ $catId }}" data-expanded="true" style="--cat-color: {{ $catColor }};"
+                                            aria-label="Alternar visibilidade da categoria {{ $catName }}">
+                                            <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 toggle-label">Ocultar</span>
+                                            <div class="relative w-11 h-6 rounded-full transition-colors duration-300 toggle-switch"
+                                                style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%);">
+                                                <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb"
+                                                    style="transform: translateX(20px);"></div>
+                                            </div>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="group-invoices-wrapper overflow-hidden transition-all duration-500">
+                                    <div class="px-6 pb-6">
+                                        <div class="group-invoices grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                            @foreach ($group['invoices'] as $invoice)
+                                                @php
+                                                    $value = abs($invoice['value'] ?? 0);
+                                                    $desc = $invoice['description'] ?? '';
+                                                    $invoiceDate = isset($invoice['date']) ? \Carbon\Carbon::parse($invoice['date'])->format('d/m/Y') : '';
+                                                    $bankName = $invoice['bank']['name'] ?? 'Banco não informado';
+                                                @endphp
+
+                                                <div class="invoice-card group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden cursor-pointer"
+                                                    onclick="toggleCardExpansion(this)">
+                                                    <div class="absolute top-0 left-0 right-0 h-1.5 transition-all duration-300 group-hover:h-2"
+                                                        style="background: linear-gradient(90deg, {{ $catColor }} 0%, {{ $catColor }}aa 100%);"></div>
+
+                                                    <div class="p-4 pt-5 pb-3">
+                                                        <div class="flex items-start justify-between gap-3 mb-3">
+                                                            <div class="flex-1 min-w-0">
+                                                                <h4 class="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 transition-all duration-300">
+                                                                    {{ $desc }}
+                                                                </h4>
+                                                                <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                                    </svg>
+                                                                    <span class="font-medium">{{ $invoiceDate }}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div class="flex-shrink-0">
+                                                                <div class="inline-flex items-center gap-1 px-3 py-2 rounded-full font-bold text-sm shadow-md text-black"
+                                                                    style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%);">
+                                                                    <svg class="w-3.5 h-3.5 text-black" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                                    </svg>
+                                                                    <span>{{ number_format($value, 2, ',', '.') }}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="card-details">
+                                                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400 mb-2">
+                                                                <div class="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
+                                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                                                                    </svg>
+                                                                </div>
+                                                                <span class="font-medium">{{ $invoiceDate }}</span>
+                                                            </div>
+                                                            <div class="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                                                                <div class="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center mr-3">
+                                                                    <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                                            d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                                                                    </svg>
+                                                                </div>
+                                                                <span class="font-medium">{{ $bankName }}</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                @else
+                    <div class="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl border border-white/20 dark:border-gray-700/30 shadow-xl p-12 text-center">
+                        <div class="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                            <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Nenhuma despesa encontrada</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">
+                            @if ($selectedDate)
+                                Não há transações registradas para {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}.
+                            @else
+                                Ainda não existem transações para este período.
+                            @endif
+                        </p>
+                    </div>
+                @endif
             </div>
         </div>
         <!-- Sidebar Direita - Cartões (1/4) -->
@@ -1096,188 +1073,78 @@
         });
     </script>
 
-    <!-- Script do Gráfico ApexCharts Melhorado -->
+    <!-- Loader compartilhado para ApexCharts -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            let chart = null;
+        (function() {
+            const chartsScriptUrl = "{{ asset('js/invoices-charts.js') }}";
+            const fallbackData = @json($categoriesChartData ?? []);
 
-            function renderPieChart(data) {
-                // Sempre busca o elemento atualizado do DOM
-                const chartDiv = document.querySelector("#pie-category-chart");
-                if (!chartDiv) return;
-
-                // Sempre destrói o gráfico anterior antes de criar um novo
-                if (chart) {
-                    chart.destroy();
-                    chart = null;
+            function ensureGlobalData() {
+                try {
+                    window.__categoriesChartData = Array.isArray(fallbackData) ? fallbackData : [];
+                } catch (error) {
+                    window.__categoriesChartData = [];
                 }
-
-                const categories = Array.isArray(data) ? data.map(item => item.name) : [];
-                const values = Array.isArray(data) ? data.map(item => parseFloat(item.total)) : [];
-
-                if (values.length === 0 || values.every(v => v === 0)) {
-                    chartDiv.innerHTML = `
-                        <div class="flex flex-col items-center justify-center h-full py-12 text-gray-400">
-                            <div class="w-16 h-16 bg-gradient-to-r from-gray-300 to-gray-400 rounded-2xl flex items-center justify-center mb-4">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                                </svg>
-                            </div>
-                            <span class="text-base font-medium text-gray-600 dark:text-gray-300">Nenhum dado disponível</span>
-                            <span class="text-sm text-gray-500 dark:text-gray-400 mt-1">Adicione algumas despesas para ver o gráfico</span>
-                        </div>
-                    `;
-                    return;
-                }
-
-                chartDiv.innerHTML = '';
-                const options = {
-                    series: values,
-                    chart: {
-                        type: 'donut',
-                        height: 250,
-                        fontFamily: 'Inter, ui-sans-serif, system-ui',
-                        animations: {
-                            enabled: true,
-                            easing: 'easeinout',
-                            speed: 800,
-                            animateGradually: {
-                                enabled: true,
-                                delay: 150
-                            },
-                            dynamicAnimation: {
-                                enabled: true,
-                                speed: 350
-                            }
-                        }
-                    },
-                    labels: categories,
-                    legend: {
-                        show: false
-                    },
-                    colors: [
-                        '#ef4444', '#f97316', '#f59e0b', '#eab308',
-                        '#84cc16', '#22c55e', '#10b981', '#14b8a6',
-                        '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1',
-                        '#8b5cf6', '#a855f7', '#c084fc', '#d946ef',
-                        '#ec4899', '#f43f5e'
-                    ],
-                    plotOptions: {
-                        pie: {
-                            donut: {
-                                size: '70%',
-                                labels: {
-                                    show: true,
-                                    name: {
-                                        show: true,
-                                        fontSize: '14px',
-                                        fontWeight: 600,
-                                        color: '#374151',
-                                        formatter: function(val) {
-                                            return val;
-                                        }
-                                    },
-                                    value: {
-                                        show: true,
-                                        fontSize: '16px',
-                                        fontWeight: 700,
-                                        color: '#111827',
-                                        formatter: function(val) {
-                                            return 'R$ ' + parseFloat(val).toLocaleString('pt-BR', {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2
-                                            });
-                                        }
-                                    },
-                                    total: {
-                                        show: true,
-                                        showAlways: false,
-                                        label: 'Total Gasto',
-                                        fontSize: '14px',
-                                        fontWeight: 600,
-                                        color: '#6b7280',
-                                        formatter: function(w) {
-                                            const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-                                            return 'R$ ' + total.toLocaleString('pt-BR', {
-                                                minimumFractionDigits: 2,
-                                                maximumFractionDigits: 2
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    dataLabels: {
-                        enabled: true,
-                        style: {
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            colors: ['#ffffff']
-                        },
-                        formatter: function(val, opts) {
-                            const seriesValue = opts.w.globals.series[opts.seriesIndex];
-                            return 'R$ ' + seriesValue.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                            });
-                        },
-                        dropShadow: {
-                            enabled: true,
-                            top: 1,
-                            left: 1,
-                            blur: 1,
-                            color: '#000',
-                            opacity: 0.3
-                        }
-                    },
-                    stroke: {
-                        show: true,
-                        width: 2,
-                        colors: ['#ffffff']
-                    },
-                    tooltip: {
-                        enabled: true,
-                        theme: 'light',
-                        style: {
-                            fontSize: '12px',
-                        },
-                        y: {
-                            formatter: function(val, opts) {
-                                const total = opts.series.reduce((a, b) => a + b, 0);
-                                const percentage = ((val / total) * 100).toFixed(1);
-                                return `R$ ${val.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} (${percentage}%)`;
-                            }
-                        }
-                    },
-                    responsive: [{
-                        breakpoint: 480,
-                        options: {
-                            chart: {
-                                height: 200
-                            },
-                            legend: {
-                                show: false
-                            }
-                        }
-                    }]
-                };
-                chart = new ApexCharts(chartDiv, options);
-                chart.render();
             }
 
-            // Inicializa com os dados do backend
-            renderPieChart(@json($pieData ?? []));
+            function loadScriptOnce(src, id, readyCheck) {
+                return new Promise((resolve, reject) => {
+                    if (typeof readyCheck === 'function' && readyCheck()) {
+                        resolve();
+                        return;
+                    }
 
-            // Atualiza quando o Livewire emitir o evento
-            if (window.Livewire) {
-                Livewire.on('update-pie-chart', ({
-                    data
-                }) => {
-                    renderPieChart(data);
+                    let existing = id ? document.getElementById(id) : null;
+                    if (existing) {
+                        if (existing.getAttribute('data-loaded') === 'true') {
+                            resolve();
+                        } else {
+                            existing.addEventListener('load', () => {
+                                existing.setAttribute('data-loaded', 'true');
+                                resolve();
+                            }, {
+                                once: true
+                            });
+                            existing.addEventListener('error', reject, {
+                                once: true
+                            });
+                        }
+                        return;
+                    }
+
+                    const script = document.createElement('script');
+                    script.src = src;
+                    script.async = false;
+                    if (id) script.id = id;
+                    script.addEventListener('load', () => {
+                        script.setAttribute('data-loaded', 'true');
+                        resolve();
+                    }, {
+                        once: true
+                    });
+                    script.addEventListener('error', reject, {
+                        once: true
+                    });
+                    document.head.appendChild(script);
                 });
             }
-        });
+
+            function bootstrapCharts() {
+                ensureGlobalData();
+                loadScriptOnce('https://cdn.jsdelivr.net/npm/apexcharts', 'apexcharts-cdn-script', () => typeof window.ApexCharts !== 'undefined')
+                    .then(() => loadScriptOnce(chartsScriptUrl, 'banks-invoices-chart-script'))
+                    .catch(error => console.error('[banks-dashboard] Falha ao carregar scripts do gráfico', error));
+            }
+
+            if (document.readyState === 'complete' || document.readyState === 'interactive') {
+                bootstrapCharts();
+            } else {
+                document.addEventListener('DOMContentLoaded', function handleReady() {
+                    document.removeEventListener('DOMContentLoaded', handleReady);
+                    bootstrapCharts();
+                });
+            }
+        })();
     </script>
 
 </div>
