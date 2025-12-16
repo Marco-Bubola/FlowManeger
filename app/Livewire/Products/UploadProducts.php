@@ -25,6 +25,8 @@ class UploadProducts extends Component
     public $successMessage = '';
     public $duplicates = []; // Produtos duplicados encontrados
     public $removedProducts = []; // Produtos removidos (para undo)
+    public $bulkCategoryId = null; // Categoria para edição em massa
+    public $bulkStatus = null; // Status para edição em massa
 
     public function rules()
     {
