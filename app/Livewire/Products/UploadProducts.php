@@ -5,6 +5,7 @@ namespace App\Livewire\Products;
 use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductCategoryLearning;
+use App\Models\ProductUploadHistory;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +28,33 @@ class UploadProducts extends Component
     public $removedProducts = []; // Produtos removidos (para undo)
     public $bulkCategoryId = null; // Categoria para edição em massa
     public $bulkStatus = null; // Status para edição em massa
+    public $showHistory = false; // Controle para exibir histórico
+    public $uploadHistory = []; // Histórico de uploads
+    public $currentUploadId = null; // ID do upload atual
+
+    public function mount()
+    {
+        $this->loadUploadHistory();
+    }
+
+    public function loadUploadHistory()
+    {
+        $this->uploadHistory = ProductUploadHistory::forUser(Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+    }
+
+    public function toggleHistory()
+    {
+        $this->showHistory = !$this->showHistory;
+        if ($this->showHistory) {
+            $this->loadUploadHistory();
+        }
+    }
+    public $showHistory = false; // Controle para exibir histórico
+    public $uploadHistory = []; // Histórico de uploads
+    public $currentUploadId = null; // ID do upload atual
 
     public function rules()
     {
@@ -262,7 +290,7 @@ class UploadProducts extends Component
                     // Ação: SOMA ESTOQUE + Mantém imagem se não enviar nova
                     Log::info("Produto {$product['product_code']} já existe, somando estoque");
                     $existingProduct->stock_quantity += $product['stock_quantity'];
-                    
+
                     // Atualizar imagem apenas se foi enviada uma nova
                     if ($shouldUpdateImage) {
                         $existingProduct->image = $imageName;
@@ -270,7 +298,7 @@ class UploadProducts extends Component
                     } else {
                         Log::info("Mantendo imagem existente: {$existingProduct->image}");
                     }
-                    
+
                     $existingProduct->save();
                 } else {
                     // Verificar se existe produto com mesmo código mas preço diferente
@@ -366,10 +394,10 @@ class UploadProducts extends Component
                 'timestamp' => now()
             ];
         }
-        
+
         unset($this->productsUpload[$index]);
         $this->productsUpload = array_values($this->productsUpload); // Reindexar array
-        
+
         $this->successMessage = "Produto removido! Use 'Desfazer' para recuperar.";
     }
 
@@ -388,10 +416,10 @@ class UploadProducts extends Component
     public function checkDuplicates()
     {
         $this->duplicates = [];
-        
+
         foreach ($this->productsUpload as $index => $product) {
             $productCode = $product['product_code'] ?? null;
-            
+
             if (!$productCode) {
                 continue;
             }
