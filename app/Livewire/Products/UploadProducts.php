@@ -52,9 +52,6 @@ class UploadProducts extends Component
             $this->loadUploadHistory();
         }
     }
-    public $showHistory = false; // Controle para exibir histórico
-    public $uploadHistory = []; // Histórico de uploads
-    public $currentUploadId = null; // ID do upload atual
 
     public function rules()
     {
@@ -237,6 +234,22 @@ class UploadProducts extends Component
             return;
         }
 
+        // Criar registro de histórico
+        $uploadHistory = ProductUploadHistory::create([
+            'user_id' => Auth::id(),
+            'filename' => $this->pdf_file ? $this->pdf_file->getClientOriginalName() : 'upload_manual',
+            'file_type' => $this->pdf_file ? $this->pdf_file->extension() : 'manual',
+            'total_products' => count($this->productsUpload),
+            'status' => 'processing',
+            'started_at' => now(),
+        ]);
+
+        $this->currentUploadId = $uploadHistory->id;
+
+        $productsCreated = 0;
+        $productsUpdated = 0;
+        $productsSkipped = 0;
+
         // Processar cada produto
         foreach ($this->productsUpload as $index => $product) {
             $imageName = 'product-placeholder.png'; // Imagem padrão
@@ -300,6 +313,7 @@ class UploadProducts extends Component
                     }
 
                     $existingProduct->save();
+                    $productsUpdated++;
                 } else {
                     // Verificar se existe produto com mesmo código mas preço diferente
                     $similarProduct = Product::where('product_code', $product['product_code'])
@@ -327,6 +341,7 @@ class UploadProducts extends Component
 
                         // Aprender categorização
                         $this->learnCategorization($newProduct);
+                        $productsCreated++;
                     } else {
                         // ✅ CENÁRIO C: Produto NÃO EXISTE
                         // Ação: CRIA NOVO PRODUTO
@@ -348,6 +363,7 @@ class UploadProducts extends Component
 
                         // Aprender categorização para futuros produtos similares
                         $this->learnCategorization($newProduct);
+                        $productsCreated++;
                     }
                 }
             } catch (\Exception $e) {
@@ -358,11 +374,39 @@ class UploadProducts extends Component
                 ]);
 
                 session()->flash('error', 'Erro ao salvar os produtos: ' . $e->getMessage());
+
+                // Atualizar histórico como falho
+                if ($uploadHistory) {
+                    $uploadHistory->update([
+                        'status' => 'failed',
+                        'error_message' => $e->getMessage(),
+                        'completed_at' => now(),
+                    ]);
+                }
+
                 return;
             }
         }
 
-        session()->flash('success', 'Produtos salvos com sucesso!');
+        // Atualizar histórico como completo
+        $uploadHistory->update([
+            'status' => 'completed',
+            'products_created' => $productsCreated,
+            'products_updated' => $productsUpdated,
+            'products_skipped' => $productsSkipped,
+            'completed_at' => now(),
+            'summary' => [
+                'created' => $productsCreated,
+                'updated' => $productsUpdated,
+                'skipped' => $productsSkipped,
+                'total' => count($this->productsUpload),
+            ],
+        ]);
+
+        session()->flash('success', "Produtos salvos! Criados: {$productsCreated}, Atualizados: {$productsUpdated}, Pulados: {$productsSkipped}");
+
+        // Recarregar histórico
+        $this->loadUploadHistory();
 
         // Reset do formulário
         $this->reset();
@@ -388,29 +432,44 @@ class UploadProducts extends Component
     {
         // Salvar produto removido para possível undo
         if (isset($this->productsUpload[$index])) {
+            $productName = $this->productsUpload[$index]['name'] ?? 'Produto';
+
             $this->removedProducts[] = [
                 'index' => $index,
                 'product' => $this->productsUpload[$index],
                 'timestamp' => now()
             ];
+
+            unset($this->productsUpload[$index]);
+            $this->productsUpload = array_values($this->productsUpload); // Reindexar array
+
+            // Disparar evento para toast notification
+            $this->dispatch('show-toast', [
+                'type' => 'warning',
+                'message' => "'{$productName}' removido! Use 'Desfazer' para recuperar.",
+                'duration' => 5000
+            ]);
         }
-
-        unset($this->productsUpload[$index]);
-        $this->productsUpload = array_values($this->productsUpload); // Reindexar array
-
-        $this->successMessage = "Produto removido! Use 'Desfazer' para recuperar.";
-    }
-
-    public function undoRemove()
+    }    public function undoRemove()
     {
         if (empty($this->removedProducts)) {
-            $this->errorMessage = 'Nenhum produto para desfazer.';
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => 'Nenhum produto para desfazer.',
+                'duration' => 3000
+            ]);
             return;
         }
 
         $lastRemoved = array_pop($this->removedProducts);
         $this->productsUpload[] = $lastRemoved['product'];
-        $this->successMessage = 'Produto recuperado com sucesso!';
+
+        $productName = $lastRemoved['product']['name'] ?? 'Produto';
+        $this->dispatch('show-toast', [
+            'type' => 'success',
+            'message' => "'{$productName}' recuperado com sucesso!",
+            'duration' => 3000
+        ]);
     }
 
     public function checkDuplicates()
