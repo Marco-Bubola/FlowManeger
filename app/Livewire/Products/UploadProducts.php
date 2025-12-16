@@ -3,6 +3,8 @@
 namespace App\Livewire\Products;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Models\ProductCategoryLearning;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -21,6 +23,8 @@ class UploadProducts extends Component
     public $isProcessing = false;
     public $errorMessage = '';
     public $successMessage = '';
+    public $duplicates = []; // Produtos duplicados encontrados
+    public $removedProducts = []; // Produtos removidos (para undo)
 
     public function rules()
     {
@@ -206,6 +210,7 @@ class UploadProducts extends Component
         // Processar cada produto
         foreach ($this->productsUpload as $index => $product) {
             $imageName = 'product-placeholder.png'; // Imagem padrão
+            $shouldUpdateImage = false;
 
             // Verificar se há imagem base64 (prioritário) ou temp_image
             $imageData = $product['image_base64'] ?? $product['temp_image'] ?? null;
@@ -229,6 +234,7 @@ class UploadProducts extends Component
 
                     if ($saved) {
                         Log::info("Imagem salva com sucesso: {$imageName}");
+                        $shouldUpdateImage = true;
                     } else {
                         Log::error("Falha ao salvar imagem para produto {$index}");
                         $imageName = 'product-placeholder.png'; // Fallback
@@ -242,20 +248,60 @@ class UploadProducts extends Component
             }
 
             try {
+                // Buscar produto existente apenas por código e usuário
                 $existingProduct = Product::where('product_code', $product['product_code'])
+                    ->where('user_id', Auth::id())
                     ->where('price', $product['price'])
                     ->where('price_sale', $product['price_sale'])
-                    ->where('user_id', Auth::id())
                     ->first();
 
                 if ($existingProduct) {
-                    // Se o preço de venda for o mesmo, apenas atualiza a quantidade
-                    if ($existingProduct->price_sale == $product['price_sale']) {
-                        $existingProduct->stock_quantity += $product['stock_quantity']; // Aumenta a quantidade
-                        $existingProduct->save(); // Salva as alterações
+                    // ✅ CENÁRIO A: Produto existe com EXATAMENTE mesmo preço custo E venda
+                    // Ação: SOMA ESTOQUE + Mantém imagem se não enviar nova
+                    Log::info("Produto {$product['product_code']} já existe, somando estoque");
+                    $existingProduct->stock_quantity += $product['stock_quantity'];
+                    
+                    // Atualizar imagem apenas se foi enviada uma nova
+                    if ($shouldUpdateImage) {
+                        $existingProduct->image = $imageName;
+                        Log::info("Imagem atualizada para produto existente: {$imageName}");
                     } else {
-                        // Caso o preço de venda seja diferente, cria um novo produto com o mesmo código
-                        Product::create([
+                        Log::info("Mantendo imagem existente: {$existingProduct->image}");
+                    }
+                    
+                    $existingProduct->save();
+                } else {
+                    // Verificar se existe produto com mesmo código mas preço diferente
+                    $similarProduct = Product::where('product_code', $product['product_code'])
+                        ->where('user_id', Auth::id())
+                        ->first();
+
+                    if ($similarProduct) {
+                        // ✅ CENÁRIO B: Produto existe mas com preço DIFERENTE
+                        // Ação: CRIA NOVA VARIAÇÃO
+                        Log::info("Criando nova variação para {$product['product_code']} com preço diferente");
+                        $newProduct = Product::create([
+                            'name' => $this->sanitizeName($product['name'] ?? ''),
+                            'description' => $product['description'] ?? null,
+                            'price' => $product['price'],
+                            'price_sale' => $product['price_sale'],
+                            'stock_quantity' => $product['stock_quantity'],
+                            'product_code' => $product['product_code'],
+                            'status' => $product['status'] ?? 'ativo',
+                            'tipo' => $product['tipo'] ?? 'simples',
+                            'custos_adicionais' => $product['custos_adicionais'] ?? 0,
+                            'image' => $imageName,
+                            'user_id' => Auth::id(),
+                            'category_id' => $similarProduct->category_id, // Usa categoria do produto similar
+                        ]);
+
+                        // Aprender categorização
+                        $this->learnCategorization($newProduct);
+                    } else {
+                        // ✅ CENÁRIO C: Produto NÃO EXISTE
+                        // Ação: CRIA NOVO PRODUTO
+                        Log::info("Criando produto novo: {$product['product_code']}");
+                        $newProduct = Product::create([
                             'name' => $this->sanitizeName($product['name'] ?? ''),
                             'description' => $product['description'] ?? null,
                             'price' => $product['price'],
@@ -269,26 +315,10 @@ class UploadProducts extends Component
                             'user_id' => Auth::id(),
                             'category_id' => $product['category_id'] ?? 1,
                         ]);
-                    }
-                } else {
-                    // Se o produto não existe, cria um novo produto
-                    $newProduct = Product::create([
-                        'name' => $this->sanitizeName($product['name'] ?? ''),
-                        'description' => $product['description'] ?? null,
-                        'price' => $product['price'],
-                        'price_sale' => $product['price_sale'],
-                        'stock_quantity' => $product['stock_quantity'],
-                        'product_code' => $product['product_code'],
-                        'status' => $product['status'] ?? 'ativo',
-                        'tipo' => $product['tipo'] ?? 'simples',
-                        'custos_adicionais' => $product['custos_adicionais'] ?? 0,
-                        'image' => $imageName,
-                        'user_id' => Auth::id(),
-                        'category_id' => $product['category_id'] ?? 1,
-                    ]);
 
-                    // Aprender categorização para futuros produtos similares
-                    $this->learnCategorization($newProduct);
+                        // Aprender categorização para futuros produtos similares
+                        $this->learnCategorization($newProduct);
+                    }
                 }
             } catch (\Exception $e) {
                 // Log: Erro durante o processamento
@@ -326,8 +356,68 @@ class UploadProducts extends Component
 
     public function removeProduct($index)
     {
+        // Salvar produto removido para possível undo
+        if (isset($this->productsUpload[$index])) {
+            $this->removedProducts[] = [
+                'index' => $index,
+                'product' => $this->productsUpload[$index],
+                'timestamp' => now()
+            ];
+        }
+        
         unset($this->productsUpload[$index]);
         $this->productsUpload = array_values($this->productsUpload); // Reindexar array
+        
+        $this->successMessage = "Produto removido! Use 'Desfazer' para recuperar.";
+    }
+
+    public function undoRemove()
+    {
+        if (empty($this->removedProducts)) {
+            $this->errorMessage = 'Nenhum produto para desfazer.';
+            return;
+        }
+
+        $lastRemoved = array_pop($this->removedProducts);
+        $this->productsUpload[] = $lastRemoved['product'];
+        $this->successMessage = 'Produto recuperado com sucesso!';
+    }
+
+    public function checkDuplicates()
+    {
+        $this->duplicates = [];
+        
+        foreach ($this->productsUpload as $index => $product) {
+            $productCode = $product['product_code'] ?? null;
+            
+            if (!$productCode) {
+                continue;
+            }
+
+            // Buscar produto existente no sistema
+            $existing = Product::where('product_code', $productCode)
+                ->where('user_id', Auth::id())
+                ->where('price', $product['price'])
+                ->where('price_sale', $product['price_sale'])
+                ->first();
+
+            if ($existing) {
+                $this->duplicates[$index] = [
+                    'product' => $product,
+                    'existing' => $existing,
+                    'action' => 'sum_stock', // Padrão: somar estoque
+                ];
+            }
+        }
+
+        return count($this->duplicates) > 0;
+    }
+
+    public function setDuplicateAction($index, $action)
+    {
+        if (isset($this->duplicates[$index])) {
+            $this->duplicates[$index]['action'] = $action;
+        }
     }
 
     public function updateProductImage($index, $base64Image)
@@ -340,6 +430,22 @@ class UploadProducts extends Component
 
             Log::info("Imagem atualizada para produto {$index}");
         }
+    }
+
+    public function bulkUpdateCategory($categoryId)
+    {
+        foreach ($this->productsUpload as $index => $product) {
+            $this->productsUpload[$index]['category_id'] = $categoryId;
+        }
+        $this->successMessage = "Categoria atualizada para todos os produtos!";
+    }
+
+    public function bulkUpdateStatus($status)
+    {
+        foreach ($this->productsUpload as $index => $product) {
+            $this->productsUpload[$index]['status'] = $status;
+        }
+        $this->successMessage = "Status atualizado para todos os produtos!";
     }
 
     private function filterText($text)
@@ -570,39 +676,105 @@ class UploadProducts extends Component
     }
 
     /**
-     * Sugere categoria baseada em aprendizado anterior
+     * Sugere categoria baseada em aprendizado anterior e análise inteligente
      */
     private function suggestCategoryByName($index)
     {
         $productName = $this->productsUpload[$index]['name'] ?? '';
+        $productCode = $this->productsUpload[$index]['product_code'] ?? '';
 
         if (!$productName) {
             return;
         }
 
-        // Buscar produtos similares por nome
+        Log::info("Sugerindo categoria para: {$productName}");
+
+        // 🧠 ESTRATÉGIA 1: Buscar em ProductCategoryLearning (histórico de aprendizado)
+        $suggestedCategoryId = ProductCategoryLearning::suggestCategory(Auth::id(), $productName);
+
+        if ($suggestedCategoryId) {
+            $this->productsUpload[$index]['category_id'] = $suggestedCategoryId;
+            Log::info("✓ Categoria sugerida por aprendizado para '{$productName}': {$suggestedCategoryId}");
+            return;
+        }
+
+        // 🔍 ESTRATÉGIA 2: Buscar produtos similares por código (prioridade)
+        if ($productCode) {
+            $similarByCode = Product::where('user_id', Auth::id())
+                ->where('product_code', $productCode)
+                ->whereNotNull('category_id')
+                ->first();
+
+            if ($similarByCode) {
+                $this->productsUpload[$index]['category_id'] = $similarByCode->category_id;
+                Log::info("✓ Categoria sugerida por código '{$productCode}': {$similarByCode->category_id}");
+                return;
+            }
+        }
+
+        // 📦 ESTRATÉGIA 3: Buscar produtos similares por nome
+        $words = explode(' ', $productName);
+        $firstWords = implode(' ', array_slice($words, 0, min(3, count($words))));
+
         $similarProducts = Product::where('user_id', Auth::id())
-            ->where('name', 'LIKE', '%' . substr($productName, 0, 10) . '%')
+            ->where('name', 'LIKE', '%' . $firstWords . '%')
             ->whereNotNull('category_id')
             ->get();
 
         if ($similarProducts->isNotEmpty()) {
-            // Pegar a categoria mais comum entre produtos similares
+            // Pegar a categoria mais comum
             $categoryCount = [];
             foreach ($similarProducts as $product) {
                 $categoryId = $product->category_id;
                 $categoryCount[$categoryId] = ($categoryCount[$categoryId] ?? 0) + 1;
             }
-
-            // Ordenar por frequência e pegar a mais comum
             arsort($categoryCount);
             $suggestedCategoryId = array_key_first($categoryCount);
 
             if ($suggestedCategoryId) {
                 $this->productsUpload[$index]['category_id'] = $suggestedCategoryId;
-                Log::info("Categoria sugerida para '{$productName}': {$suggestedCategoryId}");
+                Log::info("✓ Categoria sugerida por nome similar '{$firstWords}': {$suggestedCategoryId}");
+                return;
             }
         }
+
+        // 🏷️ ESTRATÉGIA 4: Buscar em categorias tipo 'produto' por palavras-chave no nome
+        $categories = Category::where('user_id', Auth::id())
+            ->orWhereNull('user_id')
+            ->where('tipo', 'produto')
+            ->get();
+
+        if ($categories->isNotEmpty()) {
+            $normalizedProductName = strtolower($productName);
+            $bestMatch = null;
+            $bestScore = 0;
+
+            foreach ($categories as $category) {
+                $categoryName = strtolower($category->name);
+                $categoryWords = explode(' ', $categoryName);
+
+                // Calcular score de similaridade
+                $score = 0;
+                foreach ($categoryWords as $word) {
+                    if (strlen($word) > 3 && strpos($normalizedProductName, $word) !== false) {
+                        $score += strlen($word); // Palavras maiores têm mais peso
+                    }
+                }
+
+                if ($score > $bestScore) {
+                    $bestScore = $score;
+                    $bestMatch = $category->id_category;
+                }
+            }
+
+            if ($bestMatch && $bestScore >= 4) { // Score mínimo de 4
+                $this->productsUpload[$index]['category_id'] = $bestMatch;
+                Log::info("✓ Categoria sugerida por análise de palavras-chave: {$bestMatch} (score: {$bestScore})");
+                return;
+            }
+        }
+
+        Log::info("⚠ Nenhuma categoria sugerida para '{$productName}', usando padrão");
     }
 
     /**
@@ -611,20 +783,30 @@ class UploadProducts extends Component
     private function learnCategorization($product)
     {
         try {
-            // Salvar no modelo de aprendizado (InvoiceCategoryLearning pode ser reutilizado)
-            \App\Models\InvoiceCategoryLearning::updateOrCreate(
-                [
-                    'text' => substr($product->name, 0, 100),
-                    'user_id' => Auth::id(),
-                ],
-                [
-                    'category_id' => $product->category_id,
-                    'confidence' => 1.0,
-                    'last_used_at' => now(),
-                ]
-            );
+            $normalizedName = ProductCategoryLearning::normalizeProductName($product->name);
 
-            Log::info("Aprendizado salvo para produto: {$product->name} -> categoria {$product->category_id}");
+            // Buscar se já existe aprendizado
+            $learning = ProductCategoryLearning::where('user_id', Auth::id())
+                ->where('product_name_pattern', $normalizedName)
+                ->where('category_id', $product->category_id)
+                ->first();
+
+            if ($learning) {
+                // Se existe, incrementa confiança
+                $learning->incrementConfidence();
+                Log::info("Aprendizado atualizado para '{$product->name}' (confidence: {$learning->confidence})");
+            } else {
+                // Se não existe, cria novo
+                ProductCategoryLearning::create([
+                    'user_id' => Auth::id(),
+                    'product_name_pattern' => $normalizedName,
+                    'product_code' => $product->product_code,
+                    'category_id' => $product->category_id,
+                    'confidence' => 1,
+                    'last_used_at' => now(),
+                ]);
+                Log::info("Aprendizado criado para '{$product->name}' -> categoria {$product->category_id}");
+            }
         } catch (\Exception $e) {
             Log::warning("Erro ao salvar aprendizado: " . $e->getMessage());
         }
