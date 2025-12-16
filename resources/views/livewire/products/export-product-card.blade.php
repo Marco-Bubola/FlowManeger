@@ -65,7 +65,17 @@
                     const url = URL.createObjectURL(blob);
                     const link = document.createElement('a');
                     const productName = cardElement.dataset.productName;
-                    const typeLabel = type === 'complete' ? 'completo' : 'publico';
+
+                    // Define o nome do arquivo baseado no tipo
+                    const typeLabels = {
+                        'complete': 'completo',
+                        'public': 'publico',
+                        'image-only': 'apenas-imagem',
+                        'image-name': 'imagem-nome',
+                        'image-price': 'imagem-preco'
+                    };
+                    const typeLabel = typeLabels[type] || type;
+
                     link.href = url;
                     link.download = `${productName}-${typeLabel}.png`;
                     document.body.appendChild(link);
@@ -296,25 +306,59 @@
                             </label>
 
                             @if($product)
-                            <!-- Card Preview - Estilo EXATO da imagem 2 -->
-                            <div id="export-card-{{ $product->id }}"
-                                 data-product-name="{{ $product->product_code }}"
-                                 style="width: 380px; background: #ffffff; border-radius: 28px; border: 6px solid #b39ddb; box-shadow: 0 12px 32px rgba(149, 117, 205, 0.25); overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative;">
 
-                                <!-- Badge Código (Top-Left) -->
-                                <div style="position: absolute; top: 16px; left: 16px; background: linear-gradient(135deg, #9575cd, #b39ddb); color: #fff; padding: 8px 18px; border-radius: 18px; font-size: 14px; font-weight: 700; border: 3px solid #ffe0b2; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.4); display: flex; align-items: center; gap: 6px; z-index: 20;">
-                                    <i class="bi bi-upc-scan" style="font-size: 16px;"></i> {{ $product->product_code }}
-                                </div>
+                            <!-- CARD COMPLETO -->
+                            <template x-if="exportType === 'complete' || exportType === 'public'">
+                                <div id="export-card-{{ $product->id }}"
+                                     data-product-name="{{ $product->product_code }}"
+                                     style="width: 380px; background: #ffffff; border-radius: 28px; border: 6px solid #b39ddb; box-shadow: 0 12px 32px rgba(149, 117, 205, 0.25); overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative;">
 
-                                <!-- Badge Quantidade (Bottom-Right da Imagem) - APENAS no modo completo -->
-                                <template x-if="exportType === 'complete'">
-                                    <div style="position: absolute; top: 380px; right: 16px; background: linear-gradient(135deg, #f8bbd0, #ba68c8); color: #fff; padding: 8px 18px; border-radius: 18px; font-size: 14px; font-weight: 700; border: 3px solid #ffe0b2; box-shadow: 0 4px 12px rgba(248, 187, 208, 0.4); display: flex; align-items: center; gap: 6px; z-index: 20;">
-                                        <i class="bi bi-stack" style="font-size: 16px;"></i> {{ $product->stock_quantity }}
+                                    <div style="position: absolute; top: 16px; left: 16px; background: linear-gradient(135deg, #9575cd, #b39ddb); color: #fff; padding: 8px 18px; border-radius: 18px; font-size: 14px; font-weight: 700; border: 3px solid #ffe0b2; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.4); display: flex; align-items: center; gap: 6px; z-index: 20;">
+                                        <i class="bi bi-upc-scan" style="font-size: 16px;"></i> {{ $product->product_code }}
                                     </div>
-                                </template>
 
-                                <!-- Imagem do Produto (Maior, ocupando mais espaço) -->
-                                <div style="position: relative; width: 100%; height: 420px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                                    <template x-if="exportType === 'complete'">
+                                        <div style="position: absolute; top: 380px; right: 16px; background: linear-gradient(135deg, #f8bbd0, #ba68c8); color: #fff; padding: 8px 18px; border-radius: 18px; font-size: 14px; font-weight: 700; border: 3px solid #ffe0b2; box-shadow: 0 4px 12px rgba(248, 187, 208, 0.4); display: flex; align-items: center; gap: 6px; z-index: 20;">
+                                            <i class="bi bi-stack" style="font-size: 16px;"></i> {{ $product->stock_quantity }}
+                                        </div>
+                                    </template>
+
+                                    <div style="position: relative; width: 100%; height: 420px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                                        <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
+                                             alt="{{ $product->name }}"
+                                             crossorigin="anonymous"
+                                             loading="eager"
+                                             decoding="sync"
+                                             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    </div>
+
+                                    <div style="background: linear-gradient(135deg, #e1bee7 0%, #ba68c8 50%, #9575cd 100%); padding: 20px 16px; text-align: center;">
+                                        <h3 style="font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #fff; margin: 0; line-height: 1.3; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); max-height: 54px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
+                                            {{ ucwords(substr($product->name, 0, 60)) }}{{ strlen($product->name) > 60 ? '...' : '' }}
+                                        </h3>
+                                    </div>
+
+                                    <div style="background: linear-gradient(180deg, #f3e5f5 0%, #e1bee7 100%); padding: 24px 20px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;">
+                                        <template x-if="exportType === 'complete'">
+                                            <div style="background: linear-gradient(135deg, #f8bbd0, #f48fb1); color: #424242; padding: 14px 32px; border-radius: 20px; font-size: 20px; font-weight: 700; box-shadow: 0 4px 12px rgba(244, 143, 177, 0.3); display: flex; align-items: center; gap: 8px; border: 2px solid rgba(255, 255, 255, 0.5);">
+                                                <i class="bi bi-tag" style="font-size: 22px;"></i>
+                                                <span>R$ {{ number_format($product->price, 2, ',', '.') }}</span>
+                                            </div>
+                                        </template>
+
+                                        <div style="background: linear-gradient(135deg, #ffcdd2, #f8bbd0); color: #424242; padding: 16px 36px; border-radius: 24px; font-size: 24px; font-weight: 800; box-shadow: 0 6px 16px rgba(248, 187, 208, 0.4); display: flex; align-items: center; gap: 10px; border: 3px solid rgba(255, 255, 255, 0.6);">
+                                            <i class="bi bi-currency-dollar" style="font-size: 28px;"></i>
+                                            <span>R$ {{ number_format($product->price_sale, 2, ',', '.') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- APENAS IMAGEM -->
+                            <template x-if="exportType === 'image-only'">
+                                <div id="export-card-{{ $product->id }}"
+                                     data-product-name="{{ $product->product_code }}"
+                                     style="width: 500px; height: 500px; background: #fff; border-radius: 20px; overflow: hidden; margin: 0 auto; display: flex; align-items: center; justify-content: center; padding: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);">
                                     <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
                                          alt="{{ $product->name }}"
                                          crossorigin="anonymous"
@@ -322,29 +366,55 @@
                                          decoding="sync"
                                          style="max-width: 100%; max-height: 100%; object-fit: contain;">
                                 </div>
+                            </template>
 
-                                <!-- Faixa com Nome do Produto -->
-                                <div style="background: linear-gradient(135deg, #e1bee7 0%, #ba68c8 50%, #9575cd 100%); padding: 20px 16px; text-align: center;">
-                                    <h3 style="font-size: 20px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #fff; margin: 0; line-height: 1.3; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); max-height: 54px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
-                                        {{ ucwords(substr($product->name, 0, 60)) }}{{ strlen($product->name) > 60 ? '...' : '' }}
-                                    </h3>
-                                </div>
+                            <!-- IMAGEM + NOME -->
+                            <template x-if="exportType === 'image-name'">
+                                <div id="export-card-{{ $product->id }}"
+                                     data-product-name="{{ $product->product_code }}"
+                                     style="width: 450px; background: #ffffff; border-radius: 24px; border: 4px solid #b39ddb; overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; box-shadow: 0 8px 24px rgba(149, 117, 205, 0.2);">
 
-                                <!-- Área de Preços -->
-                                <div style="background: linear-gradient(180deg, #f3e5f5 0%, #e1bee7 100%); padding: 24px 20px; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap;">
-                                    <template x-if="exportType === 'complete'">
-                                        <div style="background: linear-gradient(135deg, #f8bbd0, #f48fb1); color: #424242; padding: 14px 32px; border-radius: 20px; font-size: 20px; font-weight: 700; box-shadow: 0 4px 12px rgba(244, 143, 177, 0.3); display: flex; align-items: center; gap: 8px; border: 2px solid rgba(255, 255, 255, 0.5);">
-                                            <i class="bi bi-tag" style="font-size: 22px;"></i>
-                                            <span>R$ {{ number_format($product->price, 2, ',', '.') }}</span>
-                                        </div>
-                                    </template>
+                                    <div style="width: 100%; height: 400px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                                        <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
+                                             alt="{{ $product->name }}"
+                                             crossorigin="anonymous"
+                                             loading="eager"
+                                             decoding="sync"
+                                             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    </div>
 
-                                    <div style="background: linear-gradient(135deg, #ffcdd2, #f8bbd0); color: #424242; padding: 16px 36px; border-radius: 24px; font-size: 24px; font-weight: 800; box-shadow: 0 6px 16px rgba(248, 187, 208, 0.4); display: flex; align-items: center; gap: 10px; border: 3px solid rgba(255, 255, 255, 0.6);">
-                                        <i class="bi bi-currency-dollar" style="font-size: 28px;"></i>
-                                        <span>R$ {{ number_format($product->price_sale, 2, ',', '.') }}</span>
+                                    <div style="background: linear-gradient(135deg, #e1bee7 0%, #ba68c8 50%, #9575cd 100%); padding: 24px 20px; text-align: center;">
+                                        <h3 style="font-size: 22px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase; color: #fff; margin: 0; line-height: 1.3; text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);">
+                                            {{ ucwords($product->name) }}
+                                        </h3>
                                     </div>
                                 </div>
-                            </div>
+                            </template>
+
+                            <!-- IMAGEM + PREÇO -->
+                            <template x-if="exportType === 'image-price'">
+                                <div id="export-card-{{ $product->id }}"
+                                     data-product-name="{{ $product->product_code }}"
+                                     style="width: 450px; background: #ffffff; border-radius: 24px; border: 4px solid #b39ddb; overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative; box-shadow: 0 8px 24px rgba(149, 117, 205, 0.2);">
+
+                                    <div style="width: 100%; height: 400px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 20px;">
+                                        <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
+                                             alt="{{ $product->name }}"
+                                             crossorigin="anonymous"
+                                             loading="eager"
+                                             decoding="sync"
+                                             style="max-width: 100%; max-height: 100%; object-fit: contain;">
+                                    </div>
+
+                                    <div style="background: linear-gradient(180deg, #f3e5f5 0%, #e1bee7 100%); padding: 28px 20px; display: flex; align-items: center; justify-content: center;">
+                                        <div style="background: linear-gradient(135deg, #ffcdd2, #f8bbd0); color: #424242; padding: 18px 40px; border-radius: 28px; font-size: 28px; font-weight: 800; box-shadow: 0 6px 16px rgba(248, 187, 208, 0.4); display: flex; align-items: center; gap: 12px; border: 3px solid rgba(255, 255, 255, 0.6);">
+                                            <i class="bi bi-currency-dollar" style="font-size: 32px;"></i>
+                                            <span>R$ {{ number_format($product->price_sale, 2, ',', '.') }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+
                             @endif
                         </div>
                     </div>
