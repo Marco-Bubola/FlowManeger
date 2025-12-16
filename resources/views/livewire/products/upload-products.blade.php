@@ -75,8 +75,8 @@
                                     {{ $duplicate['product']['name'] ?? 'Produto sem nome' }}
                                 </p>
                                 <p class="text-sm text-slate-500 dark:text-slate-400">
-                                    Código: {{ $duplicate['product']['product_code'] }} | 
-                                    Estoque atual: {{ $duplicate['existing']->stock_quantity }} | 
+                                    Código: {{ $duplicate['product']['product_code'] }} |
+                                    Estoque atual: {{ $duplicate['existing']->stock_quantity }} |
                                     Nova quantidade: {{ $duplicate['product']['stock_quantity'] }}
                                 </p>
                             </div>
