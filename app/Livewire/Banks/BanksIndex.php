@@ -20,6 +20,7 @@ class BanksIndex extends Component
     public $banks = [];
     public $groupedInvoices = [];
     public $allInvoices = [];
+    public $invoicesByCategory = [];
     public float $totalMonth = 0;
     public $highestInvoice = null;
     public $lowestInvoice = null;
@@ -94,25 +95,30 @@ class BanksIndex extends Component
         // Calculando as métricas e convertendo para arrays
         $this->groupedInvoices = $invoicesByDate->toArray();
 
-        // Criar array com todas as invoices para exibição sem agrupamento por data
-        $this->allInvoices = $invoices->map(function ($invoice) {
-            return [
-                'id' => $invoice->id,
-                'description' => $invoice->description,
-                'value' => $invoice->value,
-                'date' => $invoice->invoice_date,
-                'bank' => $invoice->bank ? [
-                    'id' => $invoice->bank->id_bank,
-                    'name' => $invoice->bank->name,
-                    'icon' => $invoice->bank->caminho_icone
-                ] : null,
-                'category' => $invoice->category ? [
-                    'id' => $invoice->category->id_category,
-                    'name' => $invoice->category->name,
-                    'icon' => $invoice->category->icone ?? null
-                ] : null
-            ];
-        })->toArray();
+        $displayInvoices = $invoices;
+
+        if ($this->selectedDate) {
+            $displayInvoices = $invoices->filter(function ($invoice) {
+                return Carbon::parse($invoice->invoice_date)->format('Y-m-d') === $this->selectedDate;
+            });
+        }
+
+        $this->allInvoices = $displayInvoices->map(fn ($invoice) => $this->mapInvoice($invoice))->toArray();
+        $this->invoicesByCategory = $this->groupInvoicesByCategory($displayInvoices);
+
+        $this->pieData = collect($this->invoicesByCategory)
+            ->map(function ($group) {
+                return [
+                    'label' => $group['category']['name'] ?? 'Sem Categoria',
+                    'value' => $group['total'] ?? 0,
+                    'color' => $group['category']['hexcolor_category'] ?? '#6366f1',
+                ];
+            })
+            ->filter(fn ($item) => ($item['value'] ?? 0) > 0)
+            ->values()
+            ->toArray();
+
+        $this->dispatch('update-pie-chart', data: $this->pieData);
 
         $this->totalMonth = $invoices->sum('value');
 
@@ -128,24 +134,58 @@ class BanksIndex extends Component
         $this->prepareCalendarData($year, $month, $invoicesByDate);
 
         // Pie chart data: gastos por categoria
-        $invoicesForPie = $invoices;
-        if ($this->selectedDate) {
-            $invoicesForPie = $invoices->filter(function ($invoice) {
-                return Carbon::parse($invoice->invoice_date)->format('Y-m-d') === $this->selectedDate;
-            });
+    }
+
+    private function mapInvoice($invoice): array
+    {
+        return [
+            'id' => $invoice->id,
+            'description' => $invoice->description,
+            'value' => $invoice->value,
+            'date' => $invoice->invoice_date,
+            'bank' => $invoice->bank ? [
+                'id' => $invoice->bank->id_bank,
+                'name' => $invoice->bank->name,
+                'icon' => $invoice->bank->caminho_icone
+            ] : null,
+            'category' => $invoice->category ? [
+                'id_category' => $invoice->category->id_category,
+                'name' => $invoice->category->name,
+                'hexcolor_category' => $invoice->category->hexcolor_category ?? null,
+                'icone' => $invoice->category->icone ?? null,
+            ] : null,
+        ];
+    }
+
+    private function groupInvoicesByCategory($invoices): array
+    {
+        if ($invoices->isEmpty()) {
+            return [];
         }
-        // CORREÇÃO: Ajustar o formato dos dados para o que o JavaScript espera.
-        // O JS espera um array de objetos: [{'name': 'Categoria', 'total': 123.45}, ...]
-        // O código anterior gerava um array associativo: ['Categoria' => 123.45]
-        $this->pieData = $invoicesForPie
-            ->groupBy(function($inv) { return $inv->category->name ?? 'Sem Categoria'; })
-            ->map(function($group, $categoryName) {
-                return ['name' => $categoryName, 'total' => $group->sum('value')];
-            })
-            ->values() // Garante que o resultado seja um array com chaves numéricas
-            ->toArray();
-        // CORREÇÃO: Usar parâmetros nomeados é a prática recomendada no Livewire 3.
-        $this->dispatch('update-pie-chart', data: $this->pieData);
+
+        return $invoices->groupBy(function ($invoice) {
+            return optional($invoice->category)->id_category ?? 'sem_categoria';
+        })->map(function ($group, $categoryId) {
+            $first = $group->first();
+            $category = $first->category ?? null;
+
+            $categoryName = $category->name ?? 'Sem Categoria';
+            $categoryColor = $category->hexcolor_category ?? '#64748b';
+            $categoryIcon = $category->icone ?? 'fas fa-tag';
+
+            $formattedInvoices = $group->map(fn ($invoice) => $this->mapInvoice($invoice))->toArray();
+
+            return [
+                'category_id' => $categoryId,
+                'category' => [
+                    'name' => $categoryName,
+                    'hexcolor_category' => $categoryColor,
+                    'icone' => $categoryIcon,
+                ],
+                'total' => $group->sum(fn ($invoice) => abs($invoice->value)),
+                'invoices' => $formattedInvoices,
+            ];
+        })->values()->sortByDesc('total')->values()->toArray();
     }
     /**
      * Prepara os dados do calendário para o mês selecionado.
