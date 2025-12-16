@@ -338,6 +338,12 @@
                     <i class="bi bi-pencil-square"></i>
                 </a>
                 <button type="button"
+                        wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
+                        class="btn btn-success"
+                        title="Exportar Card">
+                    <i class="bi bi-file-earmark-image"></i>
+                </button>
+                <button type="button"
                         wire:click="confirmDelete({{ $product->id }})"
                         class="btn btn-danger"
                         title="Excluir">
@@ -666,4 +672,7 @@
         </div>
     </div>
     @endif
+
+    <!-- Componente de Exportação de Card -->
+    @livewire('products.export-product-card')
 </div>
