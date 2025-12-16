@@ -1,139 +1,172 @@
 <div x-data="{
     activeTab: 'overview',
     chartInitialized: false
-}" class=" w-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 relative">
-    <!-- Animated Background Pattern -->
-    <div class="absolute inset-0 opacity-30 dark:opacity-20 pointer-events-none">
-        <div class="absolute top-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl animate-blob"></div>
-        <div class="absolute top-40 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-2000"></div>
-        <div class="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl animate-blob animation-delay-4000"></div>
-    </div>
+}" class="w-full">
 
-    <!-- Header -->
-    <div class="relative backdrop-blur-md bg-white/80 dark:bg-slate-900/80 shadow-xl border-b border-white/20 dark:border-slate-700/50 sticky top-0 z-50">
-        <div class="max-w-full px-6 py-6 mx-auto">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-6">
-                    <!-- Voltar -->
-                    <a href="{{ route('products.index') }}"
-                        class="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-800 dark:hover:to-indigo-800 transition-all duration-300 shadow-md hover:shadow-lg group">
-                        <i class="bi bi-arrow-left text-xl text-slate-600 dark:text-slate-300 group-hover:scale-110 transition-transform duration-300"></i>
-                    </a>
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+@endpush
 
-                    <!-- Imagem do produto -->
-                    <div class="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center group">
-                        @if($mainProduct->image)
-                        <img src="{{ asset('storage/products/' . $mainProduct->image) }}"
-                            alt="{{ $mainProduct->name }}"
-                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                        @else
-                        <div class="relative">
-                            <i class="bi bi-box-seam text-3xl text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors duration-300"></i>
-                            <div class="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full animate-pulse"></div>
-                        </div>
-                        @endif
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                    </div>
+<!-- Header Moderno com Gradiente e Glassmorphism -->
+<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
+    <!-- Efeito de brilho sutil -->
+    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
-                    <!-- Info básica -->
-                    <div class="space-y-3">
-                        <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-slate-800 via-blue-600 to-indigo-600 dark:from-slate-100 dark:via-blue-400 dark:to-indigo-400">{{ $mainProduct->name }}</h1>
-                        <div class="flex items-center space-x-4 mt-3">
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 text-white shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
-                                <i class="bi bi-hash mr-2 text-white/80"></i>
-                                {{ $productCode }}
-                            </span>
-                            @if($category)
-                            <span class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-semibold bg-gradient-to-r from-purple-100 via-pink-50 to-purple-100 dark:from-purple-900 dark:via-purple-800 dark:to-purple-900 text-purple-800 dark:text-purple-200 shadow-lg border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-all duration-300">
-                                <i class="{{ $this->getCategoryIcon($category->icone) }} mr-1.5 text-sm text-purple-600 dark:text-purple-400"></i>
-                                {{ $category->name }}
-                            </span>
-                            @endif
-                            <span class="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold shadow-lg border transition-all duration-300 hover:shadow-xl
-                                {{ $products->count() > 1 ? 'bg-gradient-to-r from-amber-100 via-orange-50 to-amber-100 dark:from-amber-900 dark:via-orange-900 dark:to-amber-900 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-700 hover:from-amber-200 hover:to-orange-200' : 'bg-gradient-to-r from-green-100 via-emerald-50 to-green-100 dark:from-green-900 dark:via-emerald-900 dark:to-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700 hover:from-green-200 hover:to-emerald-200' }}">
-                                <i class="bi bi-layers mr-2 {{ $products->count() > 1 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400' }}"></i>
-                                {{ $products->count() }} {{ $products->count() === 1 ? 'variação' : 'variações' }}
-                            </span>
-                        </div>
-                    </div>
+    <!-- Background decorativo -->
+    <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
+    <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
+
+    <div class="relative px-8 py-6">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <!-- Título e Info do Produto -->
+            <div class="flex items-center gap-6">
+                <!-- Voltar -->
+                <a href="{{ route('products.index') }}"
+                    class="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 transition-all duration-300 shadow-lg hover:shadow-xl group">
+                    <i class="bi bi-arrow-left text-white text-xl group-hover:scale-110 transition-transform duration-300"></i>
+                </a>
+
+                <!-- Imagem do produto -->
+                <div class="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center group">
+                    @if($mainProduct->image)
+                    <img src="{{ asset('storage/products/' . $mainProduct->image) }}"
+                        alt="{{ $mainProduct->name }}"
+                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
+                    @else
+                    <i class="bi bi-box-seam text-3xl text-slate-400 dark:text-slate-500"></i>
+                    @endif
                 </div>
 
-                <!-- Editar -->
-                <div class="flex items-center space-x-4">
-                    <!-- Quick Stats -->
-                    <div class="hidden lg:flex items-center space-x-6 px-6 py-3 bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-white/20 dark:border-slate-700/50 shadow-lg">
-                        <div class="text-center">
-                            <div class="text-sm font-medium text-slate-600 dark:text-slate-400">Vendas</div>
-                            <div class="text-xl font-bold text-green-600 dark:text-green-400">{{ number_format($analytics['total_quantity_sold']) }}</div>
-                        </div>
-                        <div class="w-px h-8 bg-slate-300 dark:bg-slate-600"></div>
-                        <div class="text-center">
-                            <div class="text-sm font-medium text-slate-600 dark:text-slate-400">Receita</div>
-                            <div class="text-xl font-bold text-blue-600 dark:text-blue-400">R$ {{ number_format($analytics['total_revenue'], 0, ',', '.') }}</div>
-                        </div>
-                        <div class="w-px h-8 bg-slate-300 dark:bg-slate-600"></div>
-                        <div class="text-center">
-                            <div class="text-sm font-medium text-slate-600 dark:text-slate-400">Estoque</div>
-                            <div class="text-xl font-bold text-purple-600 dark:text-purple-400">{{ number_format($analytics['total_stock']) }}</div>
-                        </div>
+                <div class="space-y-2">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
+                        {{ $mainProduct->name }}
+                    </h1>
+
+                    <!-- Badges do produto -->
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg">
+                            <i class="bi bi-upc-scan mr-2"></i>
+                            {{ $productCode }}
+                        </span>
+                        @if($category)
+                        <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold bg-white/80 dark:bg-slate-700/80 text-purple-700 dark:text-purple-300 shadow-lg border border-purple-200 dark:border-purple-700">
+                            <i class="{{ $this->getCategoryIcon($category->icone) }} mr-1.5"></i>
+                            {{ $category->name }}
+                        </span>
+                        @endif
+                        <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold shadow-lg border
+                            {{ $products->count() > 1 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-300' : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-300' }}">
+                            <i class="bi bi-layers mr-2"></i>
+                            {{ $products->count() }} {{ $products->count() === 1 ? 'variação' : 'variações' }}
+                        </span>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Botão Export -->
-                    <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
-                        class="group inline-flex items-center px-6 py-4 bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500 hover:from-green-600 hover:via-emerald-600 hover:to-teal-600 text-white font-bold rounded-2xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                        <i class="bi bi-file-earmark-image mr-3 text-lg group-hover:scale-110 transition-transform duration-300"></i>
-                        Exportar Card
-                    </button>
-
-                    <a href="{{ route('products.edit', $mainProduct->id) }}"
-                        class="group inline-flex items-center px-8 py-4 bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 hover:from-orange-600 hover:via-red-600 hover:to-pink-600 text-white font-bold rounded-2xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 transform hover:scale-105 hover:-translate-y-1">
-                        <i class="bi bi-pencil-square mr-3 text-lg group-hover:rotate-12 transition-transform duration-300"></i>
-                        Editar Produto
-                        <i class="bi bi-arrow-right ml-2 group-hover:translate-x-1 transition-transform duration-300"></i>
-                    </a>
+            <!-- Quick Stats -->
+            <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
+                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg">
+                        <i class="bi bi-cart-check text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Vendas</div>
+                        <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_quantity_sold']) }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
+                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg">
+                        <i class="bi bi-currency-dollar text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Receita</div>
+                        <div class="text-lg font-bold text-slate-800 dark:text-slate-200">R$ {{ number_format($analytics['total_revenue'], 0, ',', '.') }}</div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
+                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
+                        <i class="bi bi-boxes text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">Estoque</div>
+                        <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_stock']) }}</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Tabs Navigation -->
-    <div class="relative backdrop-blur-md bg-white/90 dark:bg-slate-900/90 w-full sticky top-16 z-40 border-b border-white/20 dark:border-slate-700/50">
-        <div class="max-w-full px-6 mx-auto">
-            <nav class="flex space-x-8 overflow-x-auto scrollbar-hide">
-                <button @click="activeTab = 'overview'"
-                    :class="activeTab === 'overview' ? 'border-blue-500 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'"
-                    class="group relative whitespace-nowrap py-4 px-6 border-b-3 font-bold text-sm transition-all duration-300 rounded-t-xl">
-                    <i class="bi bi-grid-3x3-gap mr-3 text-base group-hover:scale-110 transition-transform duration-300"></i>
-                    Visão Geral
-                    <div :class="activeTab === 'overview' ? 'w-full' : 'w-0 group-hover:w-full'" class="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-indigo-500 transition-all duration-300"></div>
-                </button>
-                <button @click="activeTab = 'analytics'"
-                    :class="activeTab === 'analytics' ? 'border-purple-500 text-purple-600 dark:text-purple-400 bg-purple-50/50 dark:bg-purple-900/20' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'"
-                    class="group relative whitespace-nowrap py-4 px-6 border-b-3 font-bold text-sm transition-all duration-300 rounded-t-xl">
-                    <i class="bi bi-graph-up mr-3 text-base group-hover:scale-110 transition-transform duration-300"></i>
-                    Analytics
-                    <div :class="activeTab === 'analytics' ? 'w-full' : 'w-0 group-hover:w-full'" class="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 transition-all duration-300"></div>
-                </button>
-                <button @click="activeTab = 'sales'"
-                    :class="activeTab === 'sales' ? 'border-green-500 text-green-600 dark:text-green-400 bg-green-50/50 dark:bg-green-900/20' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'"
-                    class="group relative whitespace-nowrap py-4 px-6 border-b-3 font-bold text-sm transition-all duration-300 rounded-t-xl">
-                    <i class="bi bi-cart-check mr-3 text-base group-hover:scale-110 transition-transform duration-300"></i>
-                    Vendas
-                    <div :class="activeTab === 'sales' ? 'w-full' : 'w-0 group-hover:w-full'" class="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-green-500 to-emerald-500 transition-all duration-300"></div>
-                </button>
-                <button @click="activeTab = 'variations'"
-                    :class="activeTab === 'variations' ? 'border-orange-500 text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/20' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50/50 dark:hover:bg-slate-800/50'"
-                    class="group relative whitespace-nowrap py-4 px-6 border-b-3 font-bold text-sm transition-all duration-300 rounded-t-xl">
-                    <i class="bi bi-layers mr-3 text-base group-hover:scale-110 transition-transform duration-300"></i>
-                    Variações
-                    <div :class="activeTab === 'variations' ? 'w-full' : 'w-0 group-hover:w-full'" class="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-orange-500 to-red-500 transition-all duration-300"></div>
-                </button>
-            </nav>
-        </div>
+<!-- Tabs Navigation Modernas - Full Width -->
+<div class="relative mb-8">
+    <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-slate-700/50 p-2">
+        <nav class="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <!-- Overview Tab -->
+            <button @click="activeTab = 'overview'"
+                :class="activeTab === 'overview' ?
+                    'bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg scale-105' :
+                    'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'"
+                class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-bold text-sm transition-all duration-300 group">
+                <div class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform duration-300 group-hover:scale-110"
+                    :class="activeTab === 'overview' ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'">
+                    <i class="bi bi-grid-3x3-gap text-xl"
+                        :class="activeTab === 'overview' ? 'text-white' : 'text-blue-500'"></i>
+                </div>
+                <span class="text-center">Visão Geral</span>
+                <div x-show="activeTab === 'overview'" class="absolute inset-0 rounded-xl bg-gradient-to-r from-blue-400/20 to-indigo-400/20 animate-pulse"></div>
+            </button>
+
+            <!-- Analytics Tab -->
+            <button @click="activeTab = 'analytics'"
+                :class="activeTab === 'analytics' ?
+                    'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg scale-105' :
+                    'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'"
+                class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-bold text-sm transition-all duration-300 group">
+                <div class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform duration-300 group-hover:scale-110"
+                    :class="activeTab === 'analytics' ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'">
+                    <i class="bi bi-graph-up text-xl"
+                        :class="activeTab === 'analytics' ? 'text-white' : 'text-purple-500'"></i>
+                </div>
+                <span class="text-center">Analytics</span>
+                <div x-show="activeTab === 'analytics'" class="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-400/20 to-pink-400/20 animate-pulse"></div>
+            </button>
+
+            <!-- Sales Tab -->
+            <button @click="activeTab = 'sales'"
+                :class="activeTab === 'sales' ?
+                    'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg scale-105' :
+                    'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'"
+                class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-bold text-sm transition-all duration-300 group">
+                <div class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform duration-300 group-hover:scale-110"
+                    :class="activeTab === 'sales' ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'">
+                    <i class="bi bi-cart-check text-xl"
+                        :class="activeTab === 'sales' ? 'text-white' : 'text-green-500'"></i>
+                </div>
+                <span class="text-center">Vendas</span>
+                <div x-show="activeTab === 'sales'" class="absolute inset-0 rounded-xl bg-gradient-to-r from-green-400/20 to-emerald-400/20 animate-pulse"></div>
+            </button>
+
+            <!-- Variations Tab -->
+            <button @click="activeTab = 'variations'"
+                :class="activeTab === 'variations' ?
+                    'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg scale-105' :
+                    'bg-transparent text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50'"
+                class="relative flex flex-col items-center justify-center gap-2 p-4 rounded-xl font-bold text-sm transition-all duration-300 group">
+                <div class="flex items-center justify-center w-10 h-10 rounded-lg transition-transform duration-300 group-hover:scale-110"
+                    :class="activeTab === 'variations' ? 'bg-white/20' : 'bg-slate-200 dark:bg-slate-700'">
+                    <i class="bi bi-layers text-xl"
+                        :class="activeTab === 'variations' ? 'text-white' : 'text-orange-500'"></i>
+                </div>
+                <span class="text-center">Variações</span>
+                <span x-show="activeTab !== 'variations'" class="absolute -top-1 -right-1 px-2 py-0.5 bg-orange-500 text-white text-xs font-bold rounded-full">{{ $products->count() }}</span>
+                <div x-show="activeTab === 'variations'" class="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-400/20 to-red-400/20 animate-pulse"></div>
+            </button>
+        </nav>
     </div>
+</div>
 
-    <!-- Content -->
-    <div class="relative max-w-full px-6 py-8 mx-auto">
+<!-- Content Container -->
+<div class="space-y-8">
 
         <!-- Overview Tab -->
         <div x-show="activeTab === 'overview'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0">
@@ -632,29 +665,16 @@
 
                 @if(isset($salesData) && $salesData->isNotEmpty())
                 <div class="p-6">
-                    <!-- Debug Info - Remover em produção -->
-                    @if(config('app.debug'))
-                    <div class="mb-4 p-3 bg-yellow-100 border border-yellow-300 rounded text-sm">
-                        <div class="flex justify-between items-center">
-                            <span><strong>Debug:</strong> {{ $salesData->count() }} vendas encontradas para este produto</span>
-                            <button wire:click="checkDatabaseData" class="px-3 py-1 bg-blue-500 text-white rounded text-xs">
-                                Verificar BD
-                            </button>
-                        </div>
-                        @if(session('debug_info'))
-                            <div class="mt-2 text-xs">
-                                <pre>{{ json_encode(session('debug_info'), JSON_PRETTY_PRINT) }}</pre>
-                            </div>
-                        @endif
-                    </div>
-                    @endif
                     <!-- Filtros e Controles -->
                     <div class="mb-6 flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
                         <div class="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                             <!-- Filtro por período -->
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium text-slate-600 dark:text-slate-400">Período:</label>
-                                <select class="filter-select px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" data-filter="period">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    <i class="bi bi-calendar3 mr-1"></i>
+                                    Período:
+                                </label>
+                                <select class="px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500" data-filter="period">
                                     <option value="30">Últimos 30 dias</option>
                                     <option value="90">Últimos 90 dias</option>
                                     <option value="180">Últimos 6 meses</option>
@@ -664,9 +684,12 @@
                             </div>
 
                             <!-- Filtro por status -->
-                            <div class="flex items-center space-x-2">
-                                <label class="text-sm font-medium text-slate-600 dark:text-slate-400">Status:</label>
-                                <select class="filter-select px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent" data-filter="status">
+                            <div class="flex items-center gap-2">
+                                <label class="text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    <i class="bi bi-check-circle mr-1"></i>
+                                    Status:
+                                </label>
+                                <select class="px-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500" data-filter="status">
                                     <option value="all">Todos</option>
                                     <option value="pendente">Pendente</option>
                                     <option value="orcamento">Orçamento</option>
@@ -681,8 +704,8 @@
                         <div class="relative">
                             <input type="text"
                                 placeholder="Buscar por cliente ou pedido..."
-                                class="filter-input pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent w-64">
-                            <i class="bi bi-search absolute left-3 top-3 text-slate-400 text-sm"></i>
+                                class="pl-10 pr-4 py-2.5 border-2 border-slate-200 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-500 w-64">
+                            <i class="bi bi-search absolute left-3 top-3.5 text-slate-400"></i>
                         </div>
                     </div>
 
@@ -1098,109 +1121,85 @@
 
         <!-- Variations Tab -->
         <div x-show="activeTab === 'variations'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0">
-            <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 @foreach($products as $product)
-                <div class="group relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 overflow-hidden border border-white/20 dark:border-slate-700/50 transform hover:scale-105 hover:-translate-y-2">
-                    <!-- Background Pattern -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-slate-50/50 to-transparent dark:from-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-
-                    <div class="aspect-w-16 aspect-h-9 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-600 relative overflow-hidden">
-                        @if($product->image)
-                        <img src="{{ asset('storage/products/' . $product->image) }}"
-                            alt="{{ $product->name }}"
-                            class="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-500">
-                        @else
-                        <div class="w-full h-48 flex items-center justify-center">
-                            <div class="relative">
-                                <i class="bi bi-box-seam text-4xl text-slate-400 dark:text-slate-500 group-hover:text-blue-500 transition-colors duration-300"></i>
-                                <div class="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full animate-pulse"></div>
-                            </div>
-                        </div>
-                        @endif
-                        <!-- Overlay -->
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <!-- Card no estilo produtos.css -->
+                <div class="product-card-modern">
+                    <!-- Botões flutuantes -->
+                    <div class="btn-action-group">
+                        <a href="{{ route('products.show', $product->product_code) }}" class="btn btn-secondary" title="Ver Detalhes">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{{ route('products.edit', $product) }}" class="btn btn-primary" title="Editar">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                        <button type="button"
+                                wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
+                                class="btn btn-success"
+                                title="Exportar Card">
+                            <i class="bi bi-file-earmark-image"></i>
+                        </button>
+                        <button type="button"
+                                wire:click="confirmDelete({{ $product->id }})"
+                                class="btn btn-danger"
+                                title="Excluir">
+                            <i class="bi bi-trash3"></i>
+                        </button>
                     </div>
 
-                    <div class="relative p-6">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center space-x-3">
-                                <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                                    {{ $product->id }}
-                                </div>
-                                <h4 class="text-lg font-bold text-slate-800 dark:text-slate-100">Variação {{ $product->id }}</h4>
-                            </div>
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium shadow-lg
-                                    {{ $product->status === 'ativo' ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700' :
-                                       ($product->status === 'inativo' ? 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700' :
-                                        'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border border-red-200 dark:border-red-700') }}">
-                                <i class="bi bi-{{ $product->status === 'ativo' ? 'check-circle' : ($product->status === 'inativo' ? 'pause-circle' : 'x-circle') }} mr-1"></i>
-                                {{ ucfirst($product->status) }}
-                            </span>
+                    <!-- Área da imagem com badges -->
+                    <div class="product-img-area">
+                        <img src="{{ asset('storage/products/' . $product->image) }}" class="product-img" alt="{{ $product->name }}">
+
+                        @if($product->stock_quantity == 0)
+                        <div class="out-of-stock">
+                            <i class="bi bi-x-circle"></i> Fora de Estoque
+                        </div>
+                        @endif
+
+                        <!-- Código do produto -->
+                        <span class="badge-product-code" title="Código do Produto">
+                            <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
+                        </span>
+
+                        <!-- Quantidade -->
+                        <span class="badge-quantity" title="Quantidade em Estoque">
+                            <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
+                        </span>
+
+                        <!-- Ícone da categoria -->
+                        <div class="category-icon-wrapper">
+                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo -->
+                    <div class="card-body">
+                        <div class="product-title" title="{{ $product->name }}">
+                            {{ ucwords($product->name) }}
                         </div>
 
-                        <div class="space-y-4">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/50">
-                                    <span class="text-xs text-blue-600 dark:text-blue-400 font-medium flex items-center">
-                                        <i class="bi bi-boxes mr-1"></i>
-                                        Estoque
-                                    </span>
-                                    <span class="text-lg font-bold text-slate-900 dark:text-slate-100">{{ $product->stock_quantity }}</span>
-                                </div>
-                                <div class="p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border border-green-200/50 dark:border-green-700/50">
-                                    <span class="text-xs text-green-600 dark:text-green-400 font-medium flex items-center">
-                                        <i class="bi bi-currency-dollar mr-1"></i>
-                                        Preço
-                                    </span>
-                                    <span class="text-lg font-bold text-slate-900 dark:text-slate-100">R$ {{ number_format($product->price_sale, 2, ',', '.') }}</span>
-                                </div>
+                        <!-- Área de preços dentro do card-body -->
+                        <div class="price-area mt-3">
+                            <div class="flex flex-col gap-2">
+                                <span class="badge-price" title="Preço de Custo">
+                                    <i class="bi bi-tag"></i>
+                                    R$ {{ number_format($product->price, 2, ',', '.') }}
+                                </span>
+
+                                <span class="badge-price-sale" title="Preço de Venda">
+                                    <i class="bi bi-currency-dollar"></i>
+                                    R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                                </span>
                             </div>
-
-                            @php
-                                $performance = collect($analytics['variation_performance'] ?? [])->firstWhere('product.id', $product->id);
-                            @endphp
-
-                            @if($performance)
-                            <div class="grid grid-cols-2 gap-4">
-                                <div class="p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-700/50">
-                                    <span class="text-xs text-purple-600 dark:text-purple-400 font-medium flex items-center">
-                                        <i class="bi bi-graph-up mr-1"></i>
-                                        Vendido
-                                    </span>
-                                    <span class="text-lg font-bold text-green-600 dark:text-green-400">{{ $performance['quantity_sold'] }}</span>
-                                </div>
-                                <div class="p-3 bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 rounded-xl border border-orange-200/50 dark:border-orange-700/50">
-                                    <span class="text-xs text-orange-600 dark:text-orange-400 font-medium flex items-center">
-                                        <i class="bi bi-cash mr-1"></i>
-                                        Receita
-                                    </span>
-                                    <span class="text-lg font-bold text-green-600 dark:text-green-400">R$ {{ number_format($performance['revenue'], 0, ',', '.') }}</span>
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-
-                        <div class="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex gap-3">
-                            <button wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
-                                class="flex-1 group/btn inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                                <i class="bi bi-file-earmark-image mr-2 group-hover/btn:scale-110 transition-transform duration-300"></i>
-                                Exportar
-                            </button>
-
-                            <a href="{{ route('products.edit', $product->id) }}"
-                                class="flex-1 group/btn inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-medium rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                                <i class="bi bi-pencil mr-2 group-hover/btn:rotate-12 transition-transform duration-300"></i>
-                                Editar
-                                <i class="bi bi-arrow-right ml-2 group-hover/btn:translate-x-1 transition-transform duration-300"></i>
-                            </a>
                         </div>
                     </div>
                 </div>
                 @endforeach
             </div>
         </div>
-    </div>
-    
+</div>
+
     <!-- Export Modal Component -->
     @livewire('products.export-product-card')
 </div>
@@ -1421,6 +1420,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         console.log('Inicializando gráfico de receita...');
+        showLoading('revenueChart');
 
         if (revenueChart) {
             revenueChart.destroy();
@@ -1511,11 +1511,14 @@ document.addEventListener('DOMContentLoaded', function() {
             revenueChart = new ApexCharts(chartElement, revenueOptions);
             revenueChart.render().then(() => {
                 console.log('Gráfico de receita renderizado com sucesso');
+                hideLoading('revenueChart');
             }).catch(error => {
                 console.error('Erro ao renderizar gráfico de receita:', error);
+                hideLoading('revenueChart');
             });
         } catch (error) {
             console.error('Erro ao criar gráfico de receita:', error);
+            hideLoading('revenueChart');
         }
     }
 
@@ -1527,6 +1530,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         console.log('Inicializando gráfico de variações...');
+        showLoading('variationChart');
 
         if (variationChart) {
             variationChart.destroy();
@@ -1606,11 +1610,14 @@ document.addEventListener('DOMContentLoaded', function() {
             variationChart = new ApexCharts(chartElement, variationOptions);
             variationChart.render().then(() => {
                 console.log('Gráfico de variações renderizado com sucesso');
+                hideLoading('variationChart');
             }).catch(error => {
                 console.error('Erro ao renderizar gráfico de variações:', error);
+                hideLoading('variationChart');
             });
         } catch (error) {
             console.error('Erro ao criar gráfico de variações:', error);
+            hideLoading('variationChart');
         }
     }
 
@@ -2485,4 +2492,8 @@ html, body {
     }
 }
 </style>
+
+<!-- CSS do produtos.css -->
+<link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+
 @endpush
