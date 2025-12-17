@@ -3,6 +3,7 @@
 namespace App\Livewire\Cashbook;
 
 use App\Models\Cashbook;
+use App\Models\CashbookUploadHistory;
 use App\Models\Category;
 use App\Models\Type;
 use App\Models\Segment;
@@ -20,6 +21,7 @@ class UploadCashbook extends Component
     use WithFileUploads;
 
     public $file;
+    public $newFile;
     public $transactions = [];
     public $categories = [];
     public $types = [];
@@ -28,6 +30,9 @@ class UploadCashbook extends Component
     public $cofrinhos = [];
     public $cofrinho_id = '';
     public $step = 1; // 1 = upload, 2 = preview
+    public $uploadHistory = [];
+    public $currentUploadId = null;
+    public $showConfirmation = false;
 
     protected $rules = [
         'file' => 'required|mimes:pdf,csv|max:2048',
@@ -51,6 +56,7 @@ class UploadCashbook extends Component
     public function mount()
     {
         $this->loadData();
+        $this->loadUploadHistory();
     }
 
     public function loadData()
@@ -73,18 +79,79 @@ class UploadCashbook extends Component
 
         $this->cofrinhos = Cofrinho::where('user_id', Auth::id())->get();
     }
+uploadFile()
+    {
+        $this->validate([
+            'newFile' => 'required|mimes:pdf,csv|max:2048'
+        ], [
+            'newFile.required' => 'Por favor, selecione um arquivo.',
+            'newFile.mimes' => 'O arquivo deve ser PDF ou CSV.',
+            'newFile.max' => 'O arquivo deve ter no máximo 2MB.',
+        ]);
+
+        try {
+            $this->file = $this->newFile;
+            
+            // Create upload history record
+            $uploadHistory = CashbookUploadHistory::create([
+                'user_id' => Auth::id(),
+                'cofrinho_id' => $this->cofrinho_id ?: null,
+                'file_name' => $this->file->getClientOriginalName(),
+                'file_type' => $this->file->getClientOriginalExtension(),
+                'file_size' => $this->file->getSize(),
+                'status' => 'processing',
+                'started_at' => now(),
+            ]);
+
+            $this->currentUploadId = $uploadHistory->id;
+
+            $transactions = [];
+
+            if ($this->file->getClientOriginalExtension() === 'pdf') {
+                $parser = new Parser();
+                $pdf = $parser->parseFile($this->file->getPathname());
+                $text = $pdf->getText();
+                $transactions = $this->extractTransactionsFromPdf($text);
+                foreach ($transactions as $i => $t) {
+                    $this->applyAutomationsToTransaction($transactions[$i]);
+                }
+            } elseif ($this->file->getClientOriginalExtension() === 'csv') {
+                $transactions = $this->parseCsvFile();
+                foreach ($transactions as $i => $t) {
+                    $this->applyAutomationsToTransaction($transactions[$i]);
+                }
+            }
+
+            $this->transactions = $transactions;
+            
+            // Update history with total transactions
+            $uploadHistory->update([
+                'total_transactions' => count($transactions)
+            ]);
+            
+            $this->showConfirmation = true;
+            $this->step = 2;
+        } catch (\Exception $e) {
+            Log::error('Error processing cashbook file', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if (isset($uploadHistory)) {
+                $uploadHistory->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                    'completed_at' => now(),
+                ]);
+            }
+            
+            session()->flash('error', 'Erro ao processar arquivo: ' . $e->getMessage());
+        }
+    }
 
     public function processFile()
     {
-        $this->validate();
-
-        $transactions = [];
-
-        if ($this->file->getClientOriginalExtension() === 'pdf') {
-            $parser = new Parser();
-            $pdf = $parser->parseFile($this->file->getPathname());
-            $text = $pdf->getText();
-            $transactions = $this->extractTransactionsFromPdf($text);
+        $this->uploadFile()ns = $this->extractTransactionsFromPdf($text);
             // Apply automations so preview already shows mapped cofrinho/client/category
             foreach ($transactions as $i => $t) {
                 $this->applyAutomationsToTransaction($transactions[$i]);
@@ -257,10 +324,13 @@ class UploadCashbook extends Component
             return;
         }
 
-    $success = true;
-    $duplicated = [];
-    $inserted = [];
-    $saveErrors = [];
+        try {
+            $success = true;
+            $duplicated = [];
+            $inserted = [];
+            $saveErrors = [];
+            $created = 0;
+            $skipped = 0;
 
         foreach ($this->transactions as $idx => $trans) {
             try {
@@ -370,6 +440,7 @@ class UploadCashbook extends Component
                         'value' => $trans['value'],
                         'description' => $trans['description'] ?? '',
                     ];
+                    $skipped++;
                     continue;
                 }
 
@@ -392,6 +463,7 @@ class UploadCashbook extends Component
                         'value' => $trans['value'],
                         'description' => $trans['description'] ?? '',
                     ];
+                    $created++;
                 } else {
                     $success = false;
                 }
@@ -405,6 +477,17 @@ class UploadCashbook extends Component
                 $saveErrors[] = "Linha " . ($idx + 1) . ": " . $e->getMessage();
             }
         }
+
+            // Update upload history
+            if ($this->currentUploadId) {
+                CashbookUploadHistory::find($this->currentUploadId)->update([
+                    'transactions_created' => $created,
+                    'transactions_skipped' => $skipped,
+                    'status' => $success ? 'completed' : 'failed',
+                    'completed_at' => now(),
+                    'error_message' => !$success && !empty($saveErrors) ? implode("\n", $saveErrors) : null,
+                ]);
+            }
 
         if ($success) {
             $msg = 'Transações salvas com sucesso.';
@@ -420,13 +503,44 @@ class UploadCashbook extends Component
             }
 
             $this->dispatch('transaction-created');
-            $this->redirect(route('cashbook.index'));
-        } else {
+                $this->reset(['file', 'newFile', 'transactions', 'showConfirmation', 'currentUploadId', 'step']);
+        if ($this->currentUploadId) {
+            CashbookUploadHistory::find($this->currentUploadId)->update([
+                'status' => 'failed',
+                'error_message' => 'Upload cancelado pelo usuário',
+                'completed_at' => now(),
+            ]);
+        }
+        
+        $this->reset(['file', 'newFile', 'transactions', 'showConfirmation', 'currentUploadId', 'step']);
+        $this->loadUploadHistory();
+    }
+
+    public function cancelUpload()
+    {
+        $this->backToUpload();
+        $this->dispatch('upload-cancelled')
             $message = 'Houve um erro ao salvar as transações.';
             if (!empty($saveErrors)) {
                 $message .= "\n\nDetalhes:\n" . implode("\n", $saveErrors);
             }
             session()->flash('error', $message);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error confirming cashbook transactions', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            if ($this->currentUploadId) {
+                CashbookUploadHistory::find($this->currentUploadId)->update([
+                    'status' => 'failed',
+                    'error_message' => $e->getMessage(),
+                    'completed_at' => now(),
+                ]);
+            }
+            
+            session()->flash('error', 'Erro ao confirmar transações: ' . $e->getMessage());
         }
     }
 
