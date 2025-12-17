@@ -10,7 +10,27 @@
             title="Editar Cliente"
             description="Atualize as informações do cliente {{ $client->name }}"
             :back-route="route('clients.index')"
-            :show-steps="false" />
+            :show-steps="false">
+            <x-slot name="actions">
+                <a href="{{ route('clients.index') }}"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-200 border-2 border-slate-600 hover:border-slate-500 shadow-lg hover:shadow-xl">
+                    <i class="bi bi-x-lg"></i>
+                    Cancelar
+                </a>
+                <button type="submit" form="client-edit-form"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105"
+                    wire:loading.attr="disabled">
+                    <div wire:loading.remove wire:target="update" class="flex items-center gap-2">
+                        <i class="bi bi-check-lg"></i>
+                        Atualizar Cliente
+                    </div>
+                    <div wire:loading wire:target="update" class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        Atualizando...
+                    </div>
+                </button>
+            </x-slot>
+        </x-client-create-header>
 
         <!-- Conteúdo Principal -->
         <div class="flex flex-col xl:flex-row gap-8">
