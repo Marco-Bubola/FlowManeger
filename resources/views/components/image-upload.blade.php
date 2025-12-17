@@ -38,20 +38,20 @@
         <div class="relative flex flex-col items-center justify-center px-10 py-10 z-10">
             @if(($newImage && $showPreview) || ($existingImage && $showPreview && !$newImage))
                 <!-- Preview da Imagem com Efeitos -->
-                <div class="relative group/image">
+                <div class="relative group/image w-full h-full flex items-center justify-center">
                     @if($newImage)
                         <!-- Nova imagem selecionada -->
-                        <img src="{{ $newImage->temporaryUrl() }}" class="w-40 h-40 object-cover rounded-2xl shadow-2xl group-hover:scale-110 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
+                        <img src="{{ $newImage->temporaryUrl() }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @elseif(is_string($existingImage))
                         <!-- Imagem existente -->
-                        <img src="{{ $existingImage }}" class="w-40 h-40 object-cover rounded-2xl shadow-2xl group-hover:scale-110 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
+                        <img src="{{ $existingImage }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @else
                         <!-- Imagem existente (objeto) -->
-                        <img src="{{ $existingImage->temporaryUrl() }}" class="w-40 h-40 object-cover rounded-2xl shadow-2xl group-hover:scale-110 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
+                        <img src="{{ $existingImage->temporaryUrl() }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @endif
 
                     <!-- Badge de sucesso animado -->
-                    <div class="absolute -top-3 -right-3 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 text-white rounded-full p-3 shadow-2xl shadow-green-500/40 animate-bounce">
+                    <div class="absolute top-4 right-4 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 text-white rounded-full p-3 shadow-2xl shadow-green-500/40 animate-bounce">
                         <i class="bi bi-check-lg text-lg font-bold"></i>
                         <!-- Ring de sucesso -->
                         <div class="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30"></div>
@@ -59,20 +59,15 @@
 
                     <!-- Overlay com ícone de edição -->
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                        <i class="bi bi-pencil-square text-white text-2xl"></i>
+                        <i class="bi bi-pencil-square text-white text-3xl"></i>
                     </div>
                 </div>
 
-                <div class="text-center space-y-3 mt-6">
-                    <p class="text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent flex items-center justify-center">
-                        <i class="bi bi-check-circle-fill text-emerald-500 mr-3 text-2xl animate-pulse"></i>
-                        @if($newImage)
-                            Nova imagem selecionada!
-                        @else
-                            Imagem carregada com sucesso!
-                        @endif
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-3 rounded-xl shadow-lg">
+                    <p class="text-sm font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                        <i class="bi bi-check-circle-fill text-emerald-500 text-lg animate-pulse"></i>
+                        Clique para alterar
                     </p>
-                    <p class="text-sm text-slate-500 dark:text-slate-400 font-medium">Clique para alterar a imagem</p>
                 </div>
             @else
                 <!-- Estado vazio com animações -->
