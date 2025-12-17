@@ -434,6 +434,7 @@
             document.addEventListener('livewire:navigated', initSidebar);
         </script>
 
+        @stack('scripts')
         @fluxScripts
     </body>
 </html>
