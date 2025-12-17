@@ -21,7 +21,7 @@
     </div>
 
     <!-- Formulário -->
-    <form wire:submit="update" class="space-y-6" x-data="{
+    <form id="client-edit-form" wire:submit="update" class="space-y-6" x-data="{
         formatPhone(value) {
             // Remove tudo que não é número
             let cleaned = value.replace(/\D/g, '');
@@ -197,33 +197,6 @@
                     </div>
                 @enderror
             </div>
-        </div>
-
-        <!-- Botões de Ação -->
-        <div class="flex flex-col sm:flex-row sm:justify-end gap-4 pt-6 border-t border-slate-200/50 dark:border-slate-700/50">
-            <a href="{{ route('clients.index') }}"
-               class="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-slate-200 hover:to-slate-300 dark:from-slate-700 dark:to-slate-600 dark:hover:from-slate-600 dark:hover:to-slate-500
-                      text-slate-700 dark:text-slate-200 font-semibold rounded-2xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 border border-slate-300 dark:border-slate-600">
-                <i class="bi bi-x-circle mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                Cancelar
-                <!-- Efeito hover ring -->
-                <div class="absolute inset-0 rounded-2xl bg-slate-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </a>
-
-            <button type="submit"
-                    class="group relative inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-orange-600 via-amber-600 to-yellow-600 hover:from-orange-700 hover:via-amber-700 hover:to-yellow-700 text-white font-bold rounded-2xl transition-all duration-300 shadow-xl shadow-orange-500/25 hover:shadow-2xl hover:shadow-orange-500/40 transform hover:scale-105 border border-orange-400"
-                    wire:loading.attr="disabled">
-                <div wire:loading.remove wire:target="update" class="flex items-center">
-                    <i class="bi bi-floppy mr-2 text-xl group-hover:scale-110 transition-transform duration-200"></i>
-                    Atualizar Cliente
-                </div>
-                <div wire:loading wire:target="update" class="flex items-center">
-                    <div class="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>
-                    Atualizando...
-                </div>
-                <!-- Efeito hover ring -->
-                <div class="absolute inset-0 rounded-2xl bg-orange-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </button>
         </div>
     </form>
 </div>
