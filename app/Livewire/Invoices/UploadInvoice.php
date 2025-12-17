@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\InvoiceCategoryLearning;
+use App\Models\InvoiceUploadHistory;
 use App\Services\GeminiTransactionProcessorService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +30,9 @@ class UploadInvoice extends Component
     public $categories = [];
     public $clients = [];
 
+    public $uploadHistory = [];
+    public $currentUploadId = null;
+
     protected $listeners = [
         'confirmTransactions',
         'cancelUpload'
@@ -48,6 +52,7 @@ class UploadInvoice extends Component
     {
         $this->bankId = $bankId;
         $this->loadData();
+        $this->loadUploadHistory();
     }
 
     public function loadData()
@@ -61,6 +66,21 @@ class UploadInvoice extends Component
         $this->clients = Client::all();
     }
 
+    public function loadUploadHistory()
+    {
+        $this->uploadHistory = InvoiceUploadHistory::forUserAndBank(Auth::id(), $this->bankId)
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get();
+
+        Log::info('Histórico carregado', [
+            'user_id' => Auth::id(),
+            'bank_id' => $this->bankId,
+            'count' => $this->uploadHistory->count(),
+            'uploads' => $this->uploadHistory->pluck('id', 'filename')->toArray()
+        ]);
+    }
+
     public function uploadFile()
     {
         $this->validate();
@@ -72,6 +92,12 @@ class UploadInvoice extends Component
                 'file_size' => $this->file->getSize(),
                 'user_id' => Auth::id()
             ]);
+
+            // Salvar arquivo PDF para visualização futura
+            $filePath = null;
+            if ($this->file) {
+                $filePath = $this->file->store('uploads/invoices', 'public');
+            }
 
             // Emite evento para mostrar feedback de carregamento
             $this->dispatch('processing-file', 'Processando arquivo...');
@@ -102,6 +128,20 @@ class UploadInvoice extends Component
                 $this->dispatch('file-error', 'Nenhuma transação encontrada');
                 return;
             }
+
+            // Criar registro de histórico
+            $uploadHistory = InvoiceUploadHistory::create([
+                'user_id' => Auth::id(),
+                'bank_id' => $this->bankId,
+                'filename' => $this->file->getClientOriginalName(),
+                'file_path' => $filePath,
+                'file_type' => $fileExtension,
+                'total_transactions' => count($this->transactions),
+                'status' => 'processing',
+                'started_at' => now(),
+            ]);
+
+            $this->currentUploadId = $uploadHistory->id;
 
             $this->showConfirmation = true;
             session()->flash('success', count($this->transactions) . ' transações foram encontradas no arquivo.');
@@ -137,6 +177,9 @@ class UploadInvoice extends Component
 
             foreach ($this->transactions as $transaction) {
                 if (empty($transaction['date']) || empty($transaction['description']) || empty($transaction['value'])) {
+                    Log::warning('Transação ignorada - dados incompletos', [
+                        'transaction' => $transaction
+                    ]);
                     continue;
                 }
 
@@ -188,26 +231,60 @@ class UploadInvoice extends Component
                 }
             }
 
-            // Limpar estado para evitar re-submissões acidentais
-            $this->transactions = [];
-            $this->showConfirmation = false;
+            // Atualizar histórico de upload com estatísticas finais
+            if ($this->currentUploadId) {
+                InvoiceUploadHistory::where('id', $this->currentUploadId)->update([
+                    'transactions_created' => $created,
+                    'transactions_updated' => 0,
+                    'transactions_skipped' => $skipped,
+                    'status' => 'completed',
+                    'completed_at' => now(),
+                ]);
 
-            $msg = "Transações processadas: {$created}. Ignoradas por duplicata: {$skipped}.";
+                Log::info('Upload finalizado com sucesso', [
+                    'upload_id' => $this->currentUploadId,
+                    'created' => $created,
+                    'skipped' => $skipped
+                ]);
+            }
+
+            // Limpar estado completamente
+            $this->reset(['file', 'transactions', 'showConfirmation', 'currentUploadId']);
+            $this->processing = false;
+
+            // Recarregar histórico
+            $this->loadUploadHistory();
+
+            $msg = "✅ {$created} transações criadas com sucesso!" . ($skipped > 0 ? " {$skipped} duplicatas ignoradas." : "");
             session()->flash('success', $msg);
-            $this->dispatchBrowserEvent('invoice-created', ['created' => $created, 'skipped' => $skipped]);
 
-            // Usar redirect do Livewire
-            return $this->redirectRoute('invoices.index', ['bankId' => $this->bankId]);
+            Log::info('Redirecionando para index', ['bankId' => $this->bankId]);
+
+            // Redirecionar para a index do banco
+            return redirect()->route('invoices.index', ['bankId' => $this->bankId]);
 
         } catch (\Exception $e) {
+            $this->processing = false;
+
             Log::error('Erro ao confirmar transações', [
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
             ]);
+
+            // Atualizar histórico como failed
+            if ($this->currentUploadId) {
+                InvoiceUploadHistory::where('id', $this->currentUploadId)->update([
+                    'status' => 'failed',
+                    'completed_at' => now(),
+                ]);
+            }
+
             session()->flash('error', 'Erro ao confirmar as transações: ' . $e->getMessage());
-        } finally {
-            // Garantir que a flag seja limpa
-            $this->processing = false;
+
+            // Não redirecionar em caso de erro, manter na página
+            return;
         }
     }
 
@@ -279,22 +356,29 @@ class UploadInvoice extends Component
 
     public function cancelUpload()
     {
-        // Log para depuração
-        try {
-            Log::info('cancelUpload called', [
-                'user_id' => Auth::id(),
-                'bankId' => $this->bankId,
-                'transactions_count' => count($this->transactions)
+        Log::info('Upload cancelado pelo usuário', [
+            'user_id' => Auth::id(),
+            'bankId' => $this->bankId,
+            'transactions_count' => count($this->transactions),
+            'upload_id' => $this->currentUploadId
+        ]);
+
+        // Atualizar histórico como cancelado se existir
+        if ($this->currentUploadId) {
+            InvoiceUploadHistory::where('id', $this->currentUploadId)->update([
+                'status' => 'failed',
+                'completed_at' => now(),
             ]);
-        } catch (\Exception $e) {
-            // não bloquear em caso de erro no log
         }
 
-        $this->reset(['file', 'transactions', 'showConfirmation']);
+        // Resetar tudo
+        $this->reset(['file', 'transactions', 'showConfirmation', 'currentUploadId', 'processing']);
 
-        // Feedback visível para o usuário
-        session()->flash('info', 'Upload cancelado pelo usuário.');
-        $this->dispatchBrowserEvent('upload-cancelled');
+        // Recarregar histórico
+        $this->loadUploadHistory();
+
+        session()->flash('info', 'Upload cancelado.');
+        $this->dispatch('upload-cancelled');
     }
 
     protected function extractTransactionsFromCsv($csvPath)
@@ -318,6 +402,11 @@ class UploadInvoice extends Component
         // Verificar o tamanho do arquivo
         $fileSize = filesize($csvPath);
         Log::info('Tamanho do arquivo CSV', ['size' => $fileSize]);
+
+        if ($fileSize === 0) {
+            Log::error('Arquivo CSV está vazio');
+            return $transactions;
+        }
 
         if (($handle = fopen($csvPath, 'r')) !== false) {
             // Primeiro, vamos ler o arquivo linha por linha para debug
@@ -349,11 +438,19 @@ class UploadInvoice extends Component
             }
 
             $headers = fgetcsv($handle, 1000, $separator);
+
+            // Verificar se conseguiu ler os headers
+            if ($headers === false || !is_array($headers)) {
+                Log::error('Falha ao ler headers do CSV');
+                fclose($handle);
+                return [];
+            }
+
             Log::info('Headers CSV detectados', ['headers' => $headers]);
 
             // Detectar formato do CSV baseado nos headers
             $csvFormat = 'default'; // formato padrão (5 colunas: date, description, category, type, value)
-            if ($headers && count($headers) === 3) {
+            if (count($headers) === 3) {
                 // Verificar se é formato Nubank (date, title, amount)
                 $header0 = strtolower(trim($headers[0]));
                 $header1 = strtolower(trim($headers[1]));
