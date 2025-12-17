@@ -4,15 +4,42 @@
     'showBackButton' => true
 ])
 
+@php
+    // Mapeamento de ícones icons8 para Bootstrap Icons
+    $iconMap = [
+        'icons8-perfume' => 'bi-emoji-heart-eyes',
+        'icons8-nubank' => 'bi-credit-card-2-front',
+        'icons8-pagamento' => 'bi-currency-dollar',
+        'icons8-pix' => 'bi-lightning-charge',
+        'icons8-xp' => 'bi-graph-up-arrow',
+        'icons8-inter' => 'bi-bank',
+        'icons8-rendimento' => 'bi-graph-up',
+        'icons8-restaurante' => 'bi-cup-straw',
+        'icons8-beleza' => 'bi-heart',
+        'icons8-supermercado' => 'bi-cart',
+        'icons8-transporte' => 'bi-bus-front',
+        'icons8-casa' => 'bi-house',
+        'icons8-saude' => 'bi-heart-pulse',
+        'icons8-educacao' => 'bi-book',
+        'icons8-entretenimento' => 'bi-controller',
+        'icons8-vestuario' => 'bi-bag',
+        'icons8-tecnologia' => 'bi-laptop',
+        'icons8-combustivel' => 'bi-fuel-pump',
+        'icons8-farmacia' => 'bi-capsule',
+        'icons8-pet' => 'bi-heart',
+    ];
+@endphp
+
 <div class="space-y-6">
-    <div class="bg-white dark:bg-neutral-800 rounded-xl border border-neutral-200 dark:border-neutral-700 p-8">
+    <div class=" p-8">
         <div class="flex items-center justify-between mb-6">
-            <div>
-                <p class="text-neutral-600 dark:text-neutral-300">Revise os dados antes de salvar no sistema</p>
-            </div>
+
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                    {{ !empty($products) ? count($products) : 0 }} produtos encontrados
+                    @php
+                        $totalQuantity = !empty($products) ? array_sum(array_column($products, 'stock_quantity')) : 0;
+                    @endphp
+                    {{ $totalQuantity }} produtos encontrados
                 </span>
             </div>
         </div>
@@ -21,7 +48,10 @@
             <!-- Grid de Cards de Produtos - até 8 por linha em telas ultrawide -->
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-8 ultrawind:grid-cols-8 gap-6">
                 @foreach($products as $index => $product)
-                    <div class="product-card-modern" style="min-height: 420px;">
+                    <div class="product-card-modern"
+                         x-data="{ dropdownOpen: false }"
+                         :class="{ 'dropdown-open': dropdownOpen }"
+                         style="min-height: 420px;">
                         <!-- Botões de ação modernos -->
                         <div class="btn-action-group flex gap-2 mb-3">
                             <button type="button"
@@ -101,8 +131,12 @@
 
                             <!-- Ícone da categoria -->
                             <div class="category-icon-wrapper">
+                                @php
+                                    $category = $categories->firstWhere('id_category', $product['category_id'] ?? 1);
+                                    $iconClass = $iconMap[$category->icone ?? ''] ?? 'bi-tag';
+                                @endphp
                                 <i id="category-icon-{{ $index }}"
-                                   class="{{ $categories->firstWhere('id_category', $product['category_id'] ?? 1)->icone ?? 'bi bi-box-seam' }} category-icon"></i>
+                                   class="{{ $iconClass }} category-icon"></i>
                             </div>
                         </div>
 
@@ -124,19 +158,75 @@
                                 </span>
                             </div>
 
-                            <!-- Select de Categoria -->
-                            <div class="flex justify-center mt-2">
-                                <select wire:model.live="productsUpload.{{ $index }}.category_id"
-                                        class="category-select text-xs px-3 py-1.5 rounded-lg border border-purple-200 bg-white dark:bg-slate-700 dark:border-purple-700 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-200"
-                                        onchange="updateCategoryIcon({{ $index }}, this)">
-                                    @foreach($categories as $category)
-                                        <option value="{{ $category->id_category }}"
-                                                data-icon="{{ $category->icone ?? 'bi bi-box-seam' }}"
-                                                {{ ($product['category_id'] ?? 1) == $category->id_category ? 'selected' : '' }}>
-                                            {{ $category->name }}
-                                        </option>
-                                    @endforeach
-                                </select>
+                            <!-- Select de Categoria Estilizado -->
+                            <div class="flex justify-center mt-2" x-data="{
+                                open: false,
+                                search: '',
+                                selectedId: {{ $product['category_id'] ?? 1 }},
+                                categories: {{ Js::from($categories->map(function($cat) use ($iconMap) {
+                                    return [
+                                        'id' => $cat->id_category,
+                                        'name' => $cat->name,
+                                        'icon' => $iconMap[$cat->icone] ?? 'bi-tag'
+                                    ];
+                                })) }},
+                                get selectedCategory() {
+                                    return this.categories.find(c => c.id === this.selectedId) || this.categories[0];
+                                },
+                                get filteredCategories() {
+                                    if (!this.search) return this.categories;
+                                    return this.categories.filter(c =>
+                                        c.name.toLowerCase().includes(this.search.toLowerCase())
+                                    );
+                                },
+                                selectCategory(cat) {
+                                    this.selectedId = cat.id;
+                                    this.open = false;
+                                    this.search = '';
+                                    $wire.set('productsUpload.{{ $index }}.category_id', cat.id);
+                                    document.getElementById('category-icon-{{ $index }}').className = cat.icon + ' category-icon';
+                                    this.$parent.dropdownOpen = false;
+                                }
+                            }">
+                                <div class="relative w-full max-w-xs">
+                                    <button type="button"
+                                            @click="open = !open; $parent.dropdownOpen = open"
+                                            class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-purple-200 bg-white dark:bg-slate-700 dark:border-purple-700 text-slate-700 dark:text-slate-200 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-400/20 focus:outline-none transition-all duration-200 text-xs">
+                                        <span class="flex items-center gap-2 overflow-hidden">
+                                            <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0"></i>
+                                            <span x-text="selectedCategory.name" class="truncate max-w-[120px]"></span>
+                                        </span>
+                                        <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200 flex-shrink-0" :class="{ 'rotate-180': open }"></i>
+                                    </button>
+
+                                    <div x-show="open"
+                                         x-transition
+                                         @click.away="open = false; $parent.dropdownOpen = false"
+                                         class="absolute z-[9999] w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
+                                        <!-- Search -->
+                                        <div class="p-2 border-b border-slate-200 dark:border-slate-700">
+                                            <input type="text"
+                                                   x-model="search"
+                                                   @click.stop
+                                                   placeholder="Pesquisar..."
+                                                   class="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
+                                        </div>
+                                        <!-- Options -->
+                                        <div class="overflow-y-auto max-h-44">
+                                            <template x-for="cat in filteredCategories" :key="cat.id">
+                                                <button type="button"
+                                                        @click="selectCategory(cat)"
+                                                        class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
+                                                    <i :class="cat.icon" class="text-purple-500 text-xs"></i>
+                                                    <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="cat.name"></span>
+                                                </button>
+                                            </template>
+                                            <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 text-center">
+                                                Nenhuma categoria encontrada
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
