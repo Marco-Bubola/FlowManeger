@@ -192,6 +192,47 @@ class EditCashbook extends Component
 
     public function render()
     {
-        return view('livewire.cashbook.edit-cashbook');
+        return view('livewire.cashbook.edit-cashbook', [
+            'selectedClientName' => $this->getSelectedClientName(),
+            'selectedCategoryName' => $this->getSelectedCategoryName(),
+            'selectedTypeName' => $this->getSelectedTypeName(),
+            'selectedCofrinhoName' => $this->getSelectedCofrinhoName(),
+        ]);
+    }
+
+    protected function getSelectedClientName()
+    {
+        if ($this->client_id) {
+            $client = Client::find($this->client_id);
+            return $client ? $client->name : 'Selecione...';
+        }
+        return 'Selecione...';
+    }
+
+    protected function getSelectedCategoryName()
+    {
+        if ($this->category_id) {
+            $category = Category::where('id_category', $this->category_id)->first();
+            return $category ? $category->name : 'Selecione...';
+        }
+        return 'Selecione...';
+    }
+
+    protected function getSelectedTypeName()
+    {
+        if ($this->type_id) {
+            $type = Type::where('id_type', $this->type_id)->first();
+            return $type ? $type->desc_type : 'Selecione...';
+        }
+        return 'Selecione...';
+    }
+
+    protected function getSelectedCofrinhoName()
+    {
+        if ($this->cofrinho_id) {
+            $cofrinho = Cofrinho::find($this->cofrinho_id);
+            return $cofrinho ? $cofrinho->nome : 'Selecione...';
+        }
+        return 'Selecione...';
     }
 }
