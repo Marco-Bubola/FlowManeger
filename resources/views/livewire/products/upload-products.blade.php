@@ -276,85 +276,105 @@
                     </div>
 
                     <!-- Cards do Histórico -->
-                    <div class="space-y-4 max-h-[550px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[690px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse($uploadHistory as $upload)
-                        <div class="group relative bg-gradient-to-br from-white via-slate-50 to-purple-50/30 dark:from-slate-800 dark:via-slate-800/90 dark:to-purple-900/20 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 backdrop-blur-sm overflow-hidden">
+                        @php $badge = $upload->status_badge; @endphp
+                        <div class="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden">
 
-                            <!-- Linha de status colorida no topo -->
-                            @php $badge = $upload->status_badge; @endphp
-                            <div class="h-1.5 bg-gradient-to-r from-{{ $badge['color'] }}-400 to-{{ $badge['color'] }}-600"></div>
+                            <!-- Header com Gradiente -->
+                            <div class="relative bg-gradient-to-br from-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-500 via-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-600 to-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-700 p-4">
+                                <!-- Pattern decorativo -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
+                                <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/5 rounded-full -ml-12 -mb-12"></div>
 
-                            <div class="p-5">
-                                <!-- Header do Card -->
-                                <div class="flex items-start justify-between mb-4">
-                                    <div class="flex items-center gap-3 flex-1">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-{{ $upload->file_type === 'pdf' ? 'red' : 'green' }}-400 to-{{ $upload->file_type === 'pdf' ? 'red' : 'green' }}-600 rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                                            <i class="bi bi-file-earmark-{{ $upload->file_type === 'pdf' ? 'pdf' : 'spreadsheet' }} text-white text-xl"></i>
+                                <div class="relative flex items-start justify-between">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-xl border border-white/30 group-hover:scale-110 transition-transform duration-300">
+                                            <i class="bi bi-file-earmark-{{ $upload->file_type === 'pdf' ? 'pdf' : 'spreadsheet' }} text-white text-2xl drop-shadow-lg"></i>
                                         </div>
                                         <div class="flex-1 min-w-0">
-                                            <h4 class="font-bold text-slate-800 dark:text-slate-200 truncate text-sm" title="{{ $upload->filename }}">
+                                            <h4 class="font-bold text-white truncate text-sm mb-1 drop-shadow-md" title="{{ $upload->filename }}">
                                                 {{ $upload->filename }}
                                             </h4>
-                                            <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2 mt-1">
-                                                <i class="bi bi-calendar3"></i>
-                                                {{ $upload->created_at->format('d/m/Y') }}
-                                                <i class="bi bi-clock ml-2"></i>
-                                                {{ $upload->created_at->format('H:i') }}
+                                            <p class="text-xs text-white/90 flex items-center gap-2">
+                                                <span class="flex items-center gap-1">
+                                                    <i class="bi bi-calendar3"></i>
+                                                    {{ $upload->created_at->format('d/m/Y') }}
+                                                </span>
+                                                <span>•</span>
+                                                <span class="flex items-center gap-1">
+                                                    <i class="bi bi-clock"></i>
+                                                    {{ $upload->created_at->format('H:i') }}
+                                                </span>
                                             </p>
                                         </div>
                                     </div>
-
-                                    <!-- Badge de Status -->
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-{{ $badge['color'] }}-100 dark:bg-{{ $badge['color'] }}-900/30 text-{{ $badge['color'] }}-700 dark:text-{{ $badge['color'] }}-300 border border-{{ $badge['color'] }}-200 dark:border-{{ $badge['color'] }}-700">
+                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-white/90 text-{{ $badge['color'] }}-700 shadow-lg backdrop-blur-sm">
                                         <i class="bi {{ $badge['icon'] }} mr-1"></i>
                                         {{ $badge['label'] }}
                                     </span>
                                 </div>
+                            </div>
 
+                            <!-- Corpo do Card -->
+                            <div class="p-4">
                                 <!-- Estatísticas -->
-                                <div class="grid grid-cols-3 gap-3 mb-4">
-                                    <!-- Total -->
-                                    <div class="bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700/50 dark:to-slate-700/30 rounded-xl p-3 text-center border border-slate-300/50 dark:border-slate-600/50 group-hover:scale-105 transition-transform duration-300">
-                                        <div class="flex items-center justify-center gap-1 mb-1">
-                                            <i class="bi bi-box-seam text-slate-600 dark:text-slate-400 text-sm"></i>
+                                <div class="grid grid-cols-3 gap-2 mb-4">
+                                    <div class="relative group/stat">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-xl opacity-50 group-hover/stat:opacity-100 transition-opacity"></div>
+                                        <div class="relative bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700/80 dark:to-slate-700/60 rounded-xl p-3 text-center border border-slate-300/50 dark:border-slate-600/50">
+                                            <i class="bi bi-box-seam text-slate-600 dark:text-slate-400 text-lg mb-1 block"></i>
+                                            <p class="text-2xl font-black text-slate-800 dark:text-slate-100">{{ $upload->total_products }}</p>
+                                            <p class="text-[9px] text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider mt-0.5">Total</p>
                                         </div>
-                                        <p class="text-2xl font-bold text-slate-700 dark:text-slate-200">{{ $upload->total_products }}</p>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">Total</p>
                                     </div>
 
-                                    <!-- Criados -->
-                                    <div class="bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/30 dark:to-green-900/20 rounded-xl p-3 text-center border border-green-300/50 dark:border-green-700/50 group-hover:scale-105 transition-transform duration-300">
-                                        <div class="flex items-center justify-center gap-1 mb-1">
-                                            <i class="bi bi-plus-circle text-green-600 dark:text-green-400 text-sm"></i>
+                                    <div class="relative group/stat">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-green-200 to-green-300 dark:from-green-700 dark:to-green-800 rounded-xl opacity-50 group-hover/stat:opacity-100 transition-opacity"></div>
+                                        <div class="relative bg-gradient-to-br from-green-100 to-green-200 dark:from-green-900/50 dark:to-green-900/30 rounded-xl p-3 text-center border border-green-300/50 dark:border-green-700/50">
+                                            <i class="bi bi-plus-circle text-green-600 dark:text-green-400 text-lg mb-1 block"></i>
+                                            <p class="text-2xl font-black text-green-800 dark:text-green-100">{{ $upload->products_created }}</p>
+                                            <p class="text-[9px] text-green-700 dark:text-green-400 font-semibold uppercase tracking-wider mt-0.5">Criados</p>
                                         </div>
-                                        <p class="text-2xl font-bold text-green-700 dark:text-green-300">{{ $upload->products_created }}</p>
-                                        <p class="text-xs text-green-600 dark:text-green-400 font-medium mt-1">Criados</p>
                                     </div>
 
-                                    <!-- Atualizados -->
-                                    <div class="bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/30 dark:to-blue-900/20 rounded-xl p-3 text-center border border-blue-300/50 dark:border-blue-700/50 group-hover:scale-105 transition-transform duration-300">
-                                        <div class="flex items-center justify-center gap-1 mb-1">
-                                            <i class="bi bi-arrow-repeat text-blue-600 dark:text-blue-400 text-sm"></i>
+                                    <div class="relative group/stat">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-blue-200 to-blue-300 dark:from-blue-700 dark:to-blue-800 rounded-xl opacity-50 group-hover/stat:opacity-100 transition-opacity"></div>
+                                        <div class="relative bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-900/50 dark:to-blue-900/30 rounded-xl p-3 text-center border border-blue-300/50 dark:border-blue-700/50">
+                                            <i class="bi bi-arrow-repeat text-blue-600 dark:text-blue-400 text-lg mb-1 block"></i>
+                                            <p class="text-2xl font-black text-blue-800 dark:text-blue-100">{{ $upload->products_updated }}</p>
+                                            <p class="text-[9px] text-blue-700 dark:text-blue-400 font-semibold uppercase tracking-wider mt-0.5">Atualizados</p>
                                         </div>
-                                        <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ $upload->products_updated }}</p>
-                                        <p class="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">Atualizados</p>
                                     </div>
                                 </div>
 
-                                <!-- Footer com duração -->
-                                <div class="flex items-center justify-between pt-3 border-t border-slate-200 dark:border-slate-700">
-                                    <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
-                                        <i class="bi bi-stopwatch"></i>
-                                        <span class="font-medium">{{ $upload->formatted_duration }}</span>
+                                <!-- Footer com Ações -->
+                                <div class="flex items-center justify-between pt-3 border-t-2 border-slate-200 dark:border-slate-700">
+                                    <div class="flex flex-col gap-1">
+                                        <span class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                                            <i class="bi bi-stopwatch text-purple-500"></i>
+                                            <span class="font-semibold">{{ $upload->formatted_duration }}</span>
+                                        </span>
+                                        @if($upload->status === 'completed')
+                                        <span class="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                                            <i class="bi bi-check-circle-fill"></i>
+                                            {{ number_format($upload->success_rate, 1) }}% de sucesso
+                                        </span>
+                                        @endif
                                     </div>
-                                    @if($upload->status === 'completed')
-                                    <div class="flex items-center gap-2 text-xs text-emerald-600 dark:text-emerald-400">
-                                        <i class="bi bi-check-circle-fill"></i>
-                                        <span class="font-bold">{{ number_format($upload->success_rate, 1) }}% sucesso</span>
-                                    </div>
+                                    @if($upload->file_type === 'pdf' && $upload->file_path)
+                                    <a href="{{ Storage::url($upload->file_path) }}"
+                                       target="_blank"
+                                       class="group/btn inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
+                                        <i class="bi bi-file-earmark-pdf text-base group-hover/btn:rotate-12 transition-transform"></i>
+                                        <span>Abrir PDF</span>
+                                        <i class="bi bi-box-arrow-up-right text-[10px] group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"></i>
+                                    </a>
                                     @endif
                                 </div>
                             </div>
+
                         </div>
                         @empty
                         <div class="flex flex-col items-center justify-center py-16 px-6 bg-gradient-to-br from-slate-50 to-purple-50/30 dark:from-slate-800/50 dark:to-purple-900/10 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700">
@@ -370,135 +390,7 @@
 
             </div>
         @else
-            <!-- Barra de Ferramentas de Edição em Massa -->
-            <div class="mb-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg p-4 border border-slate-200 dark:border-slate-700">
-                <div class="flex items-center justify-between flex-wrap gap-4">
-                    <div class="flex items-center gap-2">
-                        <i class="bi bi-tools text-slate-600 dark:text-slate-400 text-lg"></i>
-                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Edição em Massa:</span>
-                    </div>
-                    <div class="flex items-center gap-3 flex-wrap">
-                        <!-- Alterar Categoria de Todos -->
-                        <div class="flex items-center gap-2" x-data="{
-                            openCategory: false,
-                            searchCategory: '',
-                            selectedCategoryId: @entangle('bulkCategoryId'),
-                            selectedCategoryName: 'Selecione...',
-                            selectedCategoryIcon: 'bi-grid-3x3-gap-fill',
-                            categories: {{ Js::from($categories->map(fn($cat) => [
-                                'id' => $cat->id_category,
-                                'name' => $cat->name,
-                                'icon' => $this->getCategoryIcon($cat->icone)
-                            ])) }},
-                            get filteredCategories() {
-                                if (!this.searchCategory) return this.categories;
-                                return this.categories.filter(cat =>
-                                    cat.name.toLowerCase().includes(this.searchCategory.toLowerCase())
-                                );
-                            },
-                            selectCategory(category) {
-                                this.selectedCategoryId = category.id;
-                                this.selectedCategoryName = category.name;
-                                this.selectedCategoryIcon = category.icon;
-                                this.openCategory = false;
-                                this.searchCategory = '';
-                                $wire.set('bulkCategoryId', category.id);
-                            }
-                        }">
-                            <label class="text-xs text-slate-600 dark:text-slate-400">Categoria:</label>
-                            <div class="relative">
-                                <button type="button"
-                                        @click="openCategory = !openCategory"
-                                        class="flex items-center justify-between px-3 py-1.5 rounded-lg border ">
-                                    <span class="flex items-center gap-2 text-xs">
-                                        <i :class="selectedCategoryIcon" class="text-purple-500"></i>
-                                        <span x-text="selectedCategoryName"></span>
-                                    </span>
-                                    <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200 text-xs" :class="{ 'rotate-180': openCategory }"></i>
-                                </button>
 
-                                <div x-show="openCategory"
-                                     x-transition
-                                     @click.away="openCategory = false"
-                                     class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
-                                    <!-- Search -->
-                                    <div class="p-2 border-b border-slate-200 dark:border-slate-700">
-                                        <input type="text"
-                                               x-model="searchCategory"
-                                               placeholder="Pesquisar..."
-                                               class="w-full px-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
-                                    </div>
-                                    <!-- Options -->
-                                    <div class="overflow-y-auto max-h-44">
-                                        <template x-for="category in filteredCategories" :key="category.id">
-                                            <button type="button"
-                                                    @click="selectCategory(category)"
-                                                    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
-                                                <i :class="category.icon" class="text-purple-500 text-xs"></i>
-                                                <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="category.name"></span>
-                                            </button>
-                                        </template>
-                                        <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 text-center">
-                                            Nenhuma categoria encontrada
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <button wire:click="bulkUpdateCategory($bulkCategoryId)"
-                                    :disabled="!selectedCategoryId"
-                                    class="px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-600 text-white text-xs font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="bi bi-check-all mr-1"></i> Aplicar
-                            </button>
-                        </div>
-
-                        <!-- Alterar Status de Todos -->
-                        <div class="flex items-center gap-2" x-data="{
-                            openStatus: false,
-                            selectedStatus: @entangle('bulkStatus'),
-                            selectedStatusName: 'Selecione...',
-                            statuses: [
-                                { value: 'ativo', name: 'Ativo', icon: 'bi-check-circle-fill', color: 'text-green-500' },
-                                { value: 'inativo', name: 'Inativo', icon: 'bi-x-circle-fill', color: 'text-red-500' }
-                            ],
-                            selectStatus(status) {
-                                this.selectedStatus = status.value;
-                                this.selectedStatusName = status.name;
-                                this.openStatus = false;
-                                $wire.set('bulkStatus', status.value);
-                            }
-                        }">
-                            <label class="text-xs text-slate-600 dark:text-slate-400">Status:</label>
-                            <div class="relative">
-                                <button type="button"
-                                        @click="openStatus = !openStatus"
-                                        class="flex items-center justify-between px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:border-green-400 focus:border-green-500 focus:ring-2 focus:ring-green-400/20 focus:outline-none transition-all duration-200 min-w-[150px]">
-                                    <span class="text-xs" x-text="selectedStatusName"></span>
-                                    <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200 text-xs" :class="{ 'rotate-180': openStatus }"></i>
-                                </button>
-
-                                <div x-show="openStatus"
-                                     x-transition
-                                     @click.away="openStatus = false"
-                                     class="absolute z-50 w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl overflow-hidden">
-                                    <template x-for="status in statuses" :key="status.value">
-                                        <button type="button"
-                                                @click="selectStatus(status)"
-                                                class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
-                                            <i :class="[status.icon, status.color]" class="text-xs"></i>
-                                            <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="status.name"></span>
-                                        </button>
-                                    </template>
-                                </div>
-                            </div>
-                            <button wire:click="bulkUpdateStatus($bulkStatus)"
-                                    :disabled="!selectedStatus"
-                                    class="px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">
-                                <i class="bi bi-check-all mr-1"></i> Aplicar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
 
             <!-- Tabela de Produtos Extraídos -->
             <x-products-preview-original
@@ -1384,6 +1276,10 @@
         document.addEventListener('livewire:init', () => {
             Livewire.on('show-toast', (event) => {
                 showToast(event.type, event.message, event.duration || 5000);
+            });
+
+            Livewire.on('open-pdf', (event) => {
+                window.open(event.url, '_blank');
             });
         });
 
