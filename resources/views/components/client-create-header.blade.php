@@ -84,13 +84,9 @@
                 </div>
             </div>
 
-            <!-- Ações rápidas (se necessário) -->
+            <!-- Ações (Botões Salvar/Cancelar) -->
             <div class="flex items-center gap-3">
-                <button wire:click="$refresh"
-                        class="group p-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        title="Atualizar formulário">
-                    <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
-                </button>
+                {{ $actions ?? '' }}
             </div>
         </div>
     </div>
