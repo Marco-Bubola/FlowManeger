@@ -46,9 +46,7 @@
                     <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">
                         {{ $title }}
                     </h1>
-                    <p class="text-lg text-slate-600 dark:text-slate-400">
-                        {{ $description ?: ($showSteps ? 'Registre uma nova venda no sistema seguindo os passos' : 'Gerencie e monitore todas as suas vendas') }}
-                    </p>
+
 
                     @if(!$showSteps)
                     <!-- Estatísticas Rápidas -->
