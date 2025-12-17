@@ -10,7 +10,27 @@
             title="Novo Cliente"
             description="Cadastre um novo cliente no sistema com todas as informações necessárias"
             :back-route="route('clients.index')"
-            :show-steps="false" />
+            :show-steps="false">
+            <x-slot name="actions">
+                <a href="{{ route('clients.index') }}"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-200 border-2 border-slate-600 hover:border-slate-500 shadow-lg hover:shadow-xl">
+                    <i class="bi bi-x-lg"></i>
+                    Cancelar
+                </a>
+                <button type="submit" form="client-form"
+                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105"
+                    wire:loading.attr="disabled">
+                    <div wire:loading.remove wire:target="store" class="flex items-center gap-2">
+                        <i class="bi bi-check-lg"></i>
+                        Salvar Cliente
+                    </div>
+                    <div wire:loading wire:target="store" class="flex items-center gap-2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        Salvando...
+                    </div>
+                </button>
+            </x-slot>
+        </x-client-create-header>
 
         <!-- Conteúdo Principal -->
         <div class="flex flex-col xl:flex-row gap-8">
