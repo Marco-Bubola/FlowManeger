@@ -59,6 +59,21 @@ class UploadProducts extends Component
         $this->showTipsModal = !$this->showTipsModal;
     }
 
+    public function viewPdf($uploadId)
+    {
+        $upload = ProductUploadHistory::find($uploadId);
+
+        if ($upload && $upload->file_path && Storage::exists($upload->file_path)) {
+            $pdfUrl = Storage::url($upload->file_path);
+            $this->dispatch('open-pdf', ['url' => $pdfUrl]);
+        } else {
+            $this->dispatch('show-toast', [
+                'type' => 'error',
+                'message' => 'Arquivo PDF não encontrado'
+            ]);
+        }
+    }
+
     public function getCategoryIcon($icone)
     {
         // Mapear ícones icons8 para Bootstrap Icons
@@ -269,10 +284,17 @@ class UploadProducts extends Component
             return;
         }
 
+        // Salvar arquivo PDF para visualização futura
+        $filePath = null;
+        if ($this->pdf_file) {
+            $filePath = $this->pdf_file->store('uploads/pdfs', 'public');
+        }
+
         // Criar registro de histórico
         $uploadHistory = ProductUploadHistory::create([
             'user_id' => Auth::id(),
             'filename' => $this->pdf_file ? $this->pdf_file->getClientOriginalName() : 'upload_manual',
+            'file_path' => $filePath,
             'file_type' => $this->pdf_file ? $this->pdf_file->extension() : 'manual',
             'total_products' => count($this->productsUpload),
             'status' => 'processing',
