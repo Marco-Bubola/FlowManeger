@@ -15,6 +15,7 @@ class ProductUploadHistory extends Model
     protected $fillable = [
         'user_id',
         'filename',
+        'file_path',
         'file_type',
         'total_products',
         'products_created',
