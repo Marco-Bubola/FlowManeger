@@ -31,7 +31,7 @@
     <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
     <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
 
-    <div class="relative px-8 py-6">
+    <div class="relative px-4 py-3">
         <!-- Primeira Linha: Título, Estatísticas e Barra de Controle -->
         <div class="flex items-center justify-between gap-6 mb-6">
             <!-- Lado Esquerdo: Título e Estatísticas -->
@@ -141,69 +141,7 @@
             @endif
         </div>
 
-        <!-- Segunda Linha: Pesquisas Rápidas e Indicadores (apenas quando há vendas) -->
-        @if($sales && !$showSteps)
-        <div class="flex items-center justify-between bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm rounded-xl p-3 border border-white/20 dark:border-slate-700/20">
-            <!-- Pesquisas Rápidas -->
-            <div class="flex flex-wrap gap-2">
-                <span class="text-xs text-slate-600 dark:text-slate-400 font-medium self-center">Atalhos:</span>
 
-                <button wire:click="setQuickSearch('pendente')"
-                    class="px-2.5 py-1 bg-yellow-100 hover:bg-yellow-200 dark:bg-yellow-900/30 dark:hover:bg-yellow-900/50 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-lg transition-all duration-200 border border-yellow-200 dark:border-yellow-700">
-                    <i class="bi bi-clock mr-1"></i>Pendentes
-                </button>
-
-                <button wire:click="setQuickSearch('pago')"
-                    class="px-2.5 py-1 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 text-xs font-medium rounded-lg transition-all duration-200 border border-green-200 dark:border-green-700">
-                    <i class="bi bi-check-circle mr-1"></i>Pagas
-                </button>
-
-                <button wire:click="setQuickSearch('pix')"
-                    class="px-2.5 py-1 bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-900/30 dark:hover:bg-cyan-900/50 text-cyan-700 dark:text-cyan-400 text-xs font-medium rounded-lg transition-all duration-200 border border-cyan-200 dark:border-cyan-700">
-                    <i class="bi bi-qr-code mr-1"></i>PIX
-                </button>
-
-                <button wire:click="setQuickSearch('cartão')"
-                    class="px-2.5 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 text-xs font-medium rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-700">
-                    <i class="bi bi-credit-card mr-1"></i>Cartão
-                </button>
-
-                <button wire:click="setQuickSearch('dinheiro')"
-                    class="px-2.5 py-1 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-lg transition-all duration-200 border border-emerald-200 dark:border-emerald-700">
-                    <i class="bi bi-cash mr-1"></i>Dinheiro
-                </button>
-
-                <button wire:click="setQuickSearch('hoje')"
-                    class="px-2.5 py-1 bg-indigo-100 hover:bg-indigo-200 dark:bg-indigo-900/30 dark:hover:bg-indigo-900/50 text-indigo-700 dark:text-indigo-400 text-xs font-medium rounded-lg transition-all duration-200 border border-indigo-200 dark:border-indigo-700">
-                    <i class="bi bi-calendar-day mr-1"></i>Hoje
-                </button>
-            </div>
-
-            <!-- Indicadores -->
-            <div class="flex items-center gap-2">
-                <div class="flex items-center gap-2 px-2.5 py-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg border border-indigo-200 dark:border-indigo-700">
-                    <i class="bi bi-arrow-up-down text-indigo-600 dark:text-indigo-400 text-xs"></i>
-                    <span class="text-xs font-semibold text-indigo-800 dark:text-indigo-300">
-                        {{ match ($sortBy) {
-                            'created_at' => 'Data',
-                            'total_price' => 'Valor',
-                            'client_name' => 'Cliente',
-                            'status' => 'Status',
-                            'id' => 'ID',
-                            default => 'Data',
-                        } }}
-                    </span>
-                </div>
-
-                @if ($search || $statusFilter || $clientFilter || $startDate || $endDate || $minValue || $maxValue)
-                <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                    <i class="bi bi-funnel-fill text-blue-600 dark:text-blue-400 text-xs"></i>
-                    <span class="text-xs font-semibold text-blue-800 dark:text-blue-300">Ativos</span>
-                </div>
-                @endif
-            </div>
-        </div>
-        @endif
 
         <!-- Steppers Modernos -->
         @if($showSteps && count($steps) > 0)
