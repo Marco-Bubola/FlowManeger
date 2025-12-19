@@ -48,7 +48,7 @@
                     <span class="text-sm">Nova</span>
                 </a>
 
-                <a href="{{ route('cashbook.upload') }}"
+                <a href="{{ route('cashbook.upload2') }}"
                    class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-upload mr-2 group-hover:scale-110 transition-transform duration-150"></i>
                     <span class="text-sm">Upload</span>
