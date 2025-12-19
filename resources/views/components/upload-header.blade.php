@@ -4,6 +4,8 @@
     'backRoute' => null,
     'showConfirmation' => false,
     'transactionsCount' => 0,
+    'totalValue' => 0,
+    'hasDuplicates' => false,
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism (estilo sales) -->
@@ -67,10 +69,28 @@
                         <div class="absolute inset-0 rounded-xl bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     </button>
                 @else
-                    <!-- Badge de contagem -->
-                    <div class="flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg px-4 py-2">
-                        <i class="bi bi-collection-fill text-indigo-600 dark:text-indigo-400 text-lg"></i>
-                        <span class="font-bold text-indigo-700 dark:text-indigo-300">{{ $transactionsCount }} transações</span>
+                    <!-- Badge de contagem e total -->
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg px-4 py-2">
+                            <i class="bi bi-collection-fill text-indigo-600 dark:text-indigo-400 text-lg"></i>
+                            <span class="font-bold text-indigo-700 dark:text-indigo-300">{{ $transactionsCount }} transações</span>
+                        </div>
+
+                        <div class="flex items-center gap-2 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 border border-green-200 dark:border-green-700 rounded-lg px-4 py-2">
+                            <i class="bi bi-cash-coin text-green-600 dark:text-green-400 text-lg"></i>
+                            <span class="font-bold text-lg bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                                R$ {{ number_format($totalValue, 2, ',', '.') }}
+                            </span>
+                        </div>
+
+                        @if($hasDuplicates)
+                        <!-- Botão Excluir Duplicadas -->
+                        <button wire:click="removeDuplicates" type="button"
+                            class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                            <i class="bi bi-trash-fill text-lg"></i>
+                            <span>Excluir Duplicadas</span>
+                        </button>
+                        @endif
                     </div>
 
                     <!-- Botões de ação -->
