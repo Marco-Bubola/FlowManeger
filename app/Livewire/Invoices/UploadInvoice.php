@@ -33,9 +33,15 @@ class UploadInvoice extends Component
     public $uploadHistory = [];
     public $currentUploadId = null;
 
+    // Modais
+    public $showDetailsModal = false;
+    public $selectedUpload = null;
+    public $confirmDeleteUploadId = null;
+
     protected $listeners = [
         'confirmTransactions',
-        'cancelUpload'
+        'cancelUpload',
+        'confirmDeleteUpload'
     ];
 
     protected $rules = [
@@ -129,6 +135,23 @@ class UploadInvoice extends Component
                 return;
             }
 
+            // Calcular valor total das transações
+            $totalValue = array_sum(array_column($this->transactions, 'value'));
+
+            // Verificar duplicatas e marcar transações
+            foreach ($this->transactions as $index => &$transaction) {
+                $exists = Invoice::where('id_bank', $this->bankId)
+                    ->where('invoice_date', $transaction['date'])
+                    ->where('value', $transaction['value'])
+                    ->where('description', $transaction['description'])
+                    ->where('user_id', Auth::id())
+                    ->exists();
+
+                $transaction['is_duplicate'] = $exists;
+                $transaction['force_create'] = false; // Flag para forçar criação
+            }
+            unset($transaction); // Quebrar referência
+
             // Criar registro de histórico
             $uploadHistory = InvoiceUploadHistory::create([
                 'user_id' => Auth::id(),
@@ -137,6 +160,7 @@ class UploadInvoice extends Component
                 'file_path' => $filePath,
                 'file_type' => $fileExtension,
                 'total_transactions' => count($this->transactions),
+                'total_value' => $totalValue,
                 'status' => 'processing',
                 'started_at' => now(),
             ]);
@@ -174,6 +198,9 @@ class UploadInvoice extends Component
         try {
             $created = 0;
             $skipped = 0;
+            $totalValue = 0;
+            $createdTransactions = [];
+            $skippedTransactions = [];
 
             foreach ($this->transactions as $transaction) {
                 if (empty($transaction['date']) || empty($transaction['description']) || empty($transaction['value'])) {
@@ -184,6 +211,7 @@ class UploadInvoice extends Component
                 }
 
                 // Checar duplicata: mesmo banco, data, valor, descrição e usuário
+                // Mas permitir se force_create estiver true
                 $exists = Invoice::where('id_bank', $this->bankId)
                     ->where('invoice_date', $transaction['date'])
                     ->where('value', $transaction['value'])
@@ -191,8 +219,16 @@ class UploadInvoice extends Component
                     ->where('user_id', Auth::id())
                     ->exists();
 
-                if ($exists) {
+                $forceCreate = $transaction['force_create'] ?? false;
+
+                if ($exists && !$forceCreate) {
                     $skipped++;
+                    $skippedTransactions[] = [
+                        'description' => $transaction['description'],
+                        'value' => $transaction['value'],
+                        'date' => $transaction['date'],
+                        'reason' => 'duplicata'
+                    ];
                     Log::info('Invoice ignorada por duplicata', [
                         'date' => $transaction['date'],
                         'value' => $transaction['value'],
@@ -202,7 +238,7 @@ class UploadInvoice extends Component
                 }
 
                 // Criar a invoice
-                Invoice::create([
+                $invoice = Invoice::create([
                     'id_bank' => $this->bankId,
                     'invoice_date' => $transaction['date'],
                     'value' => $transaction['value'],
@@ -214,6 +250,14 @@ class UploadInvoice extends Component
                 ]);
 
                 $created++;
+                $totalValue += $transaction['value'];
+
+                $createdTransactions[] = [
+                    'id' => $invoice->id,
+                    'description' => $transaction['description'],
+                    'value' => $transaction['value'],
+                    'date' => $transaction['date']
+                ];
 
                 // APRENDIZADO: Salvar a associação descrição → categoria para aprendizado futuro
                 if (!empty($transaction['category_id'])) {
@@ -237,14 +281,20 @@ class UploadInvoice extends Component
                     'transactions_created' => $created,
                     'transactions_updated' => 0,
                     'transactions_skipped' => $skipped,
+                    'total_value' => $totalValue,
                     'status' => 'completed',
                     'completed_at' => now(),
+                    'summary' => [
+                        'created' => $createdTransactions,
+                        'skipped' => $skippedTransactions,
+                    ],
                 ]);
 
                 Log::info('Upload finalizado com sucesso', [
                     'upload_id' => $this->currentUploadId,
                     'created' => $created,
-                    'skipped' => $skipped
+                    'skipped' => $skipped,
+                    'total_value' => $totalValue
                 ]);
             }
 
@@ -343,6 +393,122 @@ class UploadInvoice extends Component
     {
         if (isset($this->transactions[$index])) {
             $this->transactions[$index]['client_id'] = $clientId;
+        }
+    }
+
+    public function forceCreateTransaction($index)
+    {
+        if (isset($this->transactions[$index])) {
+            $this->transactions[$index]['force_create'] = true;
+            $this->transactions[$index]['is_duplicate'] = false;
+            session()->flash('success', 'Transação marcada para criação forçada.');
+        }
+    }
+
+    public function removeDuplicates()
+    {
+        $removedCount = 0;
+        $this->transactions = array_values(array_filter($this->transactions, function($transaction) use (&$removedCount) {
+            if ($transaction['is_duplicate'] ?? false) {
+                $removedCount++;
+                return false;
+            }
+            return true;
+        }));
+
+        session()->flash('success', $removedCount . ' transações duplicadas foram removidas.');
+
+        Log::info('Duplicatas removidas', [
+            'count' => $removedCount,
+            'remaining' => count($this->transactions)
+        ]);
+    }
+
+    public function showUploadDetails($uploadId)
+    {
+        $this->selectedUpload = InvoiceUploadHistory::find($uploadId);
+        $this->showDetailsModal = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->showDetailsModal = false;
+        $this->selectedUpload = null;
+    }
+
+    public function confirmDeleteUpload($uploadId)
+    {
+        $this->confirmDeleteUploadId = $uploadId;
+        $this->dispatch('show-delete-upload-modal');
+    }
+
+    public function deleteUpload()
+    {
+        try {
+            $upload = InvoiceUploadHistory::find($this->confirmDeleteUploadId);
+
+            if ($upload) {
+                // Deletar arquivo se existir
+                if ($upload->file_path && Storage::disk('public')->exists($upload->file_path)) {
+                    Storage::disk('public')->delete($upload->file_path);
+                }
+
+                $upload->delete();
+
+                session()->flash('success', 'Histórico de upload excluído com sucesso.');
+                Log::info('Histórico de upload excluído', ['upload_id' => $this->confirmDeleteUploadId]);
+            }
+
+            $this->confirmDeleteUploadId = null;
+            $this->loadUploadHistory();
+            $this->dispatch('hide-delete-upload-modal');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao excluir histórico de upload', [
+                'error' => $e->getMessage(),
+                'upload_id' => $this->confirmDeleteUploadId
+            ]);
+            session()->flash('error', 'Erro ao excluir histórico: ' . $e->getMessage());
+        }
+    }
+
+    public function createInvoiceFromSkipped($skippedData)
+    {
+        try {
+            // Verificar se os dados são válidos
+            if (empty($skippedData['description']) || empty($skippedData['value']) || empty($skippedData['date'])) {
+                session()->flash('error', 'Dados incompletos para criar a transação.');
+                return;
+            }
+
+            // Criar a invoice
+            $invoice = Invoice::create([
+                'id_bank' => $this->bankId,
+                'invoice_date' => $skippedData['date'],
+                'value' => $skippedData['value'],
+                'description' => $skippedData['description'],
+                'installments' => null,
+                'category_id' => 1, // Categoria padrão
+                'client_id' => null,
+                'user_id' => Auth::id(),
+            ]);
+
+            session()->flash('success', 'Transação criada com sucesso!');
+            Log::info('Invoice criada a partir de transação ignorada', [
+                'invoice_id' => $invoice->id,
+                'description' => $skippedData['description']
+            ]);
+
+            // Recarregar histórico
+            $this->loadUploadHistory();
+            $this->selectedUpload = InvoiceUploadHistory::find($this->selectedUpload->id);
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao criar invoice de transação ignorada', [
+                'error' => $e->getMessage(),
+                'data' => $skippedData
+            ]);
+            session()->flash('error', 'Erro ao criar transação: ' . $e->getMessage());
         }
     }
 
@@ -674,8 +840,16 @@ class UploadInvoice extends Component
                     }
                 }
 
-                // Processar parcelas
+                // Processar parcelas - Múltiplos formatos:
+                // 1. (8 de 10) ou (8/10)
+                // 2. Pcl8de10 ou Pcl 8 de 10
+                // 3. Parc8/10
+                // 4. 8de10
                 if (preg_match('/\(?\s*(\d+)\s*(?:de|\/)\s*(\d+)\s*\)?/', $trimmedLine, $parcelMatches)) {
+                    $currentTransaction['installments'] = "{$parcelMatches[1]} de {$parcelMatches[2]}";
+                } elseif (preg_match('/(?:pcl|parc|parcela)\s*(\d+)\s*(?:de|\/)\s*(\d+)/i', $trimmedLine, $parcelMatches)) {
+                    $currentTransaction['installments'] = "{$parcelMatches[1]} de {$parcelMatches[2]}";
+                } elseif (preg_match('/(?:^|\*|_)(\d+)\s*de\s*(\d+)(?:$|\*|_)/i', $trimmedLine, $parcelMatches)) {
                     $currentTransaction['installments'] = "{$parcelMatches[1]} de {$parcelMatches[2]}";
                 }
 
@@ -956,15 +1130,20 @@ class UploadInvoice extends Component
 
             // EUDORA & BOTICÁRIO
             if (stripos($categoryNameLower, 'eudora') !== false ||
-                stripos($categoryNameLower, 'boticario') !== false) {
+                stripos($categoryNameLower, 'boticario') !== false ||
+                stripos($categoryNameLower, 'boticário') !== false ||
+                stripos($categoryNameLower, 'cosmetico') !== false ||
+                stripos($categoryNameLower, 'cosmético') !== false) {
                 $mapping['BOTICARIO'] = $categoryId;
                 $mapping['BOTICÁRIO'] = $categoryId;
                 $mapping['NATURA'] = $categoryId;
                 $mapping['EUDORA'] = $categoryId;
+                $mapping['AVON'] = $categoryId;
             }
 
             // FARMÁCIAS E SAÚDE
             if (stripos($categoryNameLower, 'farmacia') !== false ||
+                stripos($categoryNameLower, 'farmácia') !== false ||
                 stripos($categoryNameLower, 'saude') !== false ||
                 stripos($categoryNameLower, 'saúde') !== false) {
                 $mapping['PHARMA'] = $categoryId;
@@ -973,6 +1152,21 @@ class UploadInvoice extends Component
                 $mapping['FARMÁCIA'] = $categoryId;
                 $mapping['DROGASIL'] = $categoryId;
                 $mapping['PACHECO'] = $categoryId;
+                $mapping['ULTRAFARMA'] = $categoryId;
+                $mapping['PAGUE MENOS'] = $categoryId;
+                $mapping['SAOPAULO'] = $categoryId;
+                $mapping['SÃO PAULO'] = $categoryId;
+            }
+
+            // SEGUROS E SERVIÇOS FINANCEIROS
+            if (stripos($categoryNameLower, 'seguro') !== false ||
+                stripos($categoryNameLower, 'protec') !== false) {
+                $mapping['MAPFRE'] = $categoryId;
+                $mapping['PORTO'] = $categoryId;
+                $mapping['PORTO SEGURO'] = $categoryId;
+                $mapping['SULAMERICA'] = $categoryId;
+                $mapping['ALLIANZ'] = $categoryId;
+                $mapping['BRADESCO SEGUROS'] = $categoryId;
             }
 
             // STREAMING
@@ -986,7 +1180,8 @@ class UploadInvoice extends Component
 
             // HOSPEDAGEM E VIAGENS
             if (stripos($categoryNameLower, 'hospedagem') !== false ||
-                stripos($categoryNameLower, 'viag') !== false) {
+                stripos($categoryNameLower, 'viag') !== false ||
+                stripos($categoryNameLower, 'turismo') !== false) {
                 $mapping['AIRBNB'] = $categoryId;
                 $mapping['HOTEL'] = $categoryId;
                 $mapping['POUSADA'] = $categoryId;
@@ -994,14 +1189,62 @@ class UploadInvoice extends Component
                 $mapping['DECOLAR'] = $categoryId;
                 $mapping['HOPI HARI'] = $categoryId;
                 $mapping['HOPIHARI'] = $categoryId;
+                $mapping['CVC'] = $categoryId;
+                $mapping['LATAM'] = $categoryId;
+                $mapping['GOL'] = $categoryId;
+                $mapping['AZUL'] = $categoryId;
             }
 
-            // ACADEMIA
-            if (stripos($categoryNameLower, 'academia') !== false) {
+            // ACADEMIA E FITNESS
+            if (stripos($categoryNameLower, 'academia') !== false ||
+                stripos($categoryNameLower, 'fitness') !== false) {
                 $mapping['ACADEMIA'] = $categoryId;
                 $mapping['GYM'] = $categoryId;
                 $mapping['FITNESS'] = $categoryId;
                 $mapping['SMARTFIT'] = $categoryId;
+                $mapping['BLUEFIT'] = $categoryId;
+            }
+
+            // EDUCAÇÃO E CURSOS
+            if (stripos($categoryNameLower, 'educacao') !== false ||
+                stripos($categoryNameLower, 'educação') !== false ||
+                stripos($categoryNameLower, 'curso') !== false ||
+                stripos($categoryNameLower, 'escola') !== false) {
+                $mapping['UDEMY'] = $categoryId;
+                $mapping['COURSERA'] = $categoryId;
+                $mapping['ALURA'] = $categoryId;
+                $mapping['ESCOLA'] = $categoryId;
+                $mapping['UNIVERSIDADE'] = $categoryId;
+                $mapping['FACULDADE'] = $categoryId;
+            }
+
+            // TRANSPORTES E MOBILIDADE
+            if (stripos($categoryNameLower, 'transport') !== false ||
+                stripos($categoryNameLower, 'uber') !== false ||
+                stripos($categoryNameLower, 'mobilidade') !== false ||
+                stripos($categoryNameLower, 'taxi') !== false) {
+                $mapping['UBER'] = $categoryId;
+                $mapping['99'] = $categoryId;
+                $mapping['99POP'] = $categoryId;
+                $mapping['CABIFY'] = $categoryId;
+                $mapping['TEM'] = $categoryId; // TEM (Transporte Escolar Municipal)
+            }
+
+            // CONTAS E UTILIDADES
+            if (stripos($categoryNameLower, 'conta') !== false ||
+                stripos($categoryNameLower, 'utilidade') !== false ||
+                stripos($categoryNameLower, 'energia') !== false ||
+                stripos($categoryNameLower, 'agua') !== false ||
+                stripos($categoryNameLower, 'água') !== false ||
+                stripos($categoryNameLower, 'internet') !== false ||
+                stripos($categoryNameLower, 'telefone') !== false) {
+                $mapping['CPFL'] = $categoryId;
+                $mapping['SABESP'] = $categoryId;
+                $mapping['VIVO'] = $categoryId;
+                $mapping['TIM'] = $categoryId;
+                $mapping['CLARO'] = $categoryId;
+                $mapping['NET'] = $categoryId;
+                $mapping['OI'] = $categoryId;
             }
 
             // Adicionar tags da categoria se existirem
