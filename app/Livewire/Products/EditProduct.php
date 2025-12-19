@@ -318,21 +318,10 @@ class EditProduct extends Component
 
     public function render()
     {
-        // Debug temporário
-        $categoryName = $this->selectedCategoryName;
-        $categoryIcon = $this->selectedCategoryIcon;
-
-        // Se ainda estiver como padrão, vamos investigar
-        if ($categoryName === 'Escolha uma categoria...') {
-            // Vamos verificar se temos category_id e se encontramos a categoria
-            if ($this->category_id) {
-                $category = Category::where('id_category', $this->category_id)->first();
-                Log::info('Render debug - category_id: ' . $this->category_id . ', category found: ' . ($category ? $category->name : 'NOT FOUND'));
-            }
-        }
-
         return view('livewire.products.edit-product', [
             'categories' => $this->categories,
+            'selectedCategoryName' => $this->selectedCategoryName,
+            'selectedCategoryIcon' => $this->selectedCategoryIcon,
         ]);
     }
 }
