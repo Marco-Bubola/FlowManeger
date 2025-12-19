@@ -177,6 +177,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cashbook/create', CreateCashbook::class)->name('cashbook.create');
     Route::get('/cashbook/{cashbook}/edit', EditCashbook::class)->name('cashbook.edit');
     Route::get('/cashbook/upload', UploadCashbook::class)->name('cashbook.upload');
+    Route::get('/cashbook/upload2', \App\Livewire\Cashbook\UploadCashbookMinimal::class)->name('cashbook.upload.minimal');
+    Route::get('/cashbook/upload3', \App\Livewire\Cashbook\UploadCashbook2::class)->name('cashbook.upload2');
 
     // --- Rotas de Cofrinhos (Livewire) ---
     Route::get('/cofrinhos', CofrinhoIndex::class)->name('cofrinhos.index');
