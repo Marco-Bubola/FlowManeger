@@ -64,12 +64,30 @@ class UploadInvoice extends Component
     public function loadData()
     {
         $this->banks = Bank::all();
-        // Carregar apenas categorias do tipo 'transaction' (transação)
-        $this->categories = Category::where('is_active', 1)
-            ->where('user_id', Auth::id())
-            ->where('type', 'transaction')
+
+        // Carregar categorias ordenadas por uso recente (MySQL compatível)
+        $this->categories = Category::where('category.is_active', 1)
+            ->where('category.user_id', Auth::id())
+            ->where('category.type', 'transaction')
+            ->leftJoin('invoice', 'category.id_category', '=', 'invoice.category_id')
+            ->select('category.*')
+            ->selectRaw('MAX(invoice.created_at) as last_used')
+            ->groupBy('category.id_category', 'category.name', 'category.description', 'category.is_active', 'category.type', 'category.user_id', 'category.created_at', 'category.updated_at')
+            ->orderByRaw('CASE WHEN last_used IS NULL THEN 1 ELSE 0 END')
+            ->orderByRaw('last_used DESC')
+            ->orderBy('category.name')
             ->get();
-        $this->clients = Client::all();
+
+        // Carregar clientes ordenados por uso recente (MySQL compatível)
+        $this->clients = Client::where('clients.user_id', Auth::id())
+            ->leftJoin('invoice', 'clients.id', '=', 'invoice.client_id')
+            ->select('clients.*')
+            ->selectRaw('MAX(invoice.created_at) as last_used')
+            ->groupBy('clients.id', 'clients.name', 'clients.email', 'clients.phone', 'clients.address', 'clients.user_id', 'clients.caminho_foto', 'clients.created_at', 'clients.updated_at')
+            ->orderByRaw('CASE WHEN last_used IS NULL THEN 1 ELSE 0 END')
+            ->orderByRaw('last_used DESC')
+            ->orderBy('clients.name')
+            ->get();
     }
 
     public function loadUploadHistory()
@@ -253,7 +271,7 @@ class UploadInvoice extends Component
                 $totalValue += $transaction['value'];
 
                 $createdTransactions[] = [
-                    'id' => $invoice->id,
+                    'id' => $invoice->id_invoice,
                     'description' => $transaction['description'],
                     'value' => $transaction['value'],
                     'date' => $transaction['date']
@@ -487,19 +505,52 @@ class UploadInvoice extends Component
                 'invoice_date' => $skippedData['date'],
                 'value' => $skippedData['value'],
                 'description' => $skippedData['description'],
-                'installments' => null,
+                'installments' => '-',
                 'category_id' => 1, // Categoria padrão
                 'client_id' => null,
                 'user_id' => Auth::id(),
             ]);
 
+            // Atualizar o summary do upload history
+            if ($this->selectedUpload && $this->selectedUpload->summary) {
+                $summary = $this->selectedUpload->summary;
+
+                // Encontrar e remover a transação de skipped
+                if (isset($summary['skipped']) && is_array($summary['skipped'])) {
+                    $summary['skipped'] = array_filter($summary['skipped'], function($item) use ($skippedData) {
+                        return !($item['description'] === $skippedData['description']
+                            && $item['value'] == $skippedData['value']
+                            && $item['date'] === $skippedData['date']);
+                    });
+                    $summary['skipped'] = array_values($summary['skipped']); // Reindexar array
+                }
+
+                // Adicionar aos criados
+                if (!isset($summary['created'])) {
+                    $summary['created'] = [];
+                }
+
+                $summary['created'][] = [
+                    'id' => $invoice->id_invoice,
+                    'description' => $invoice->description,
+                    'value' => $invoice->value,
+                    'date' => $invoice->invoice_date
+                ];
+
+                // Atualizar contadores
+                $this->selectedUpload->transactions_created = count($summary['created']);
+                $this->selectedUpload->transactions_skipped = count($summary['skipped']);
+                $this->selectedUpload->summary = $summary;
+                $this->selectedUpload->save();
+            }
+
             session()->flash('success', 'Transação criada com sucesso!');
             Log::info('Invoice criada a partir de transação ignorada', [
-                'invoice_id' => $invoice->id,
+                'invoice_id' => $invoice->id_invoice,
                 'description' => $skippedData['description']
             ]);
 
-            // Recarregar histórico
+            // Recarregar histórico e atualizar modal
             $this->loadUploadHistory();
             $this->selectedUpload = InvoiceUploadHistory::find($this->selectedUpload->id);
 
