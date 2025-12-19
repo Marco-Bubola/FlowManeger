@@ -21,6 +21,7 @@
             :backRoute="route('invoices.index', ['bankId' => $bankId])"
             :showConfirmation="$showConfirmation"
             :transactionsCount="is_array($transactions) ? count($transactions) : 0"
+            :totalValue="is_array($transactions) ? array_sum(array_column($transactions, 'value')) : 0"
         />
 
         <!-- Content -->
@@ -117,7 +118,7 @@
 
                                             <!-- Stats Grid -->
                                             <div class="p-4">
-                                                <div class="grid grid-cols-3 gap-2 mb-3">
+                                                <div class="grid grid-cols-2 gap-2 mb-3">
                                                     <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-3 rounded-lg hover:scale-105 transition-transform duration-200 shadow-sm">
                                                         <div class="text-xs text-gray-600 dark:text-gray-300 font-medium mb-1">Total</div>
                                                         <div class="text-lg font-bold text-blue-600 dark:text-blue-400">{{ $upload->total_transactions }}</div>
@@ -132,23 +133,34 @@
                                                         <div class="text-xs text-gray-600 dark:text-gray-300 font-medium mb-1">Ignorados</div>
                                                         <div class="text-lg font-bold text-orange-600 dark:text-orange-400">{{ $upload->transactions_skipped }}</div>
                                                     </div>
+
+                                                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 p-3 rounded-lg hover:scale-105 transition-transform duration-200 shadow-sm">
+                                                        <div class="text-xs text-gray-600 dark:text-gray-300 font-medium mb-1">Valor Total</div>
+                                                        <div class="text-sm font-bold text-purple-600 dark:text-purple-400">{{ $upload->formatted_total_value }}</div>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Ver PDF Button -->
-                                                @if($upload->file_path)
-                                                    <a href="{{ Storage::url($upload->file_path) }}" target="_blank"
-                                                        class="w-full flex items-center justify-center px-4 py-2
-                                                        bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600
-                                                        hover:from-blue-700 hover:via-purple-700 hover:to-pink-700
-                                                        text-white text-sm font-semibold rounded-lg shadow-lg
-                                                        transform hover:scale-105 transition-all duration-200">
-                                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                                                        </svg>
-                                                        Ver PDF
-                                                    </a>
-                                                @endif
+                                                <!-- Botões de Ação em Grid -->
+                                                <div class="grid grid-cols-3 gap-2 mb-3">
+                                                    @if($upload->file_path)
+                                                        <a href="{{ Storage::url($upload->file_path) }}" target="_blank"
+                                                            class="flex items-center justify-center px-3 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white text-xs font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                                                            <i class="bi bi-eye-fill"></i>
+                                                        </a>
+                                                    @endif
+
+                                                    @if($upload->summary && (count($upload->summary['created'] ?? []) > 0 || count($upload->summary['skipped'] ?? []) > 0))
+                                                        <button wire:click="showUploadDetails({{ $upload->id }})" type="button"
+                                                            class="flex items-center justify-center px-3 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white text-xs font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                                                            <i class="bi bi-list-ul"></i>
+                                                        </button>
+                                                    @endif
+
+                                                    <button wire:click="confirmDeleteUpload({{ $upload->id }})" type="button"
+                                                        class="flex items-center justify-center px-3 py-2 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white text-xs font-semibold rounded-lg shadow-lg transform hover:scale-105 transition-all duration-200">
+                                                        <i class="bi bi-trash-fill"></i>
+                                                    </button>
+                                                </div>
 
                                                 <!-- Status Badge -->
                                                 <div class="mt-3 mb-3">
@@ -192,11 +204,37 @@
             @else
                 <!-- Confirmation View - Full Width -->
                 <div class="w-full">
+                    <!-- Botão Excluir Duplicadas -->
+                    @php
+                        $hasDuplicates = collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false);
+                    @endphp
+
+                    @if($hasDuplicates)
+                        <div class="mb-6 flex justify-end">
+                            <button wire:click="removeDuplicates" type="button"
+                                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                                <i class="bi bi-trash-fill text-lg"></i>
+                                <span>Excluir Todas Duplicadas</span>
+                            </button>
+                        </div>
+                    @endif
+
                     <!-- Transações em Grid -->
                     <div class="w-full">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
                             @foreach ($transactions as $index => $transaction)
-                                <div class="group relative bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20 border-2 border-gray-200 dark:border-gray-600 rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg">
+                                <div class="group relative bg-gradient-to-br {{ ($transaction['is_duplicate'] ?? false) ? 'from-orange-50 via-red-50/30 to-orange-50/30 dark:from-red-900/20 dark:via-orange-900/20 dark:to-red-900/20 border-red-300 dark:border-red-700' : 'from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20' }} border-2 {{ ($transaction['is_duplicate'] ?? false) ? 'border-red-300 dark:border-red-700' : 'border-gray-200 dark:border-gray-600' }} rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg">
+
+                                    @if($transaction['is_duplicate'] ?? false)
+                                    <!-- Badge de Duplicata -->
+                                    <div class="absolute top-3 right-3 z-10">
+                                        <div class="flex items-center gap-2 bg-gradient-to-r from-red-500 to-orange-500 text-white px-3 py-1.5 rounded-lg shadow-lg text-xs font-bold uppercase animate-pulse">
+                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                            DUPLICATA
+                                        </div>
+                                    </div>
+                                    @endif
+
                                     <!-- Indicador visual lateral -->
                                     <div class="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 via-purple-500 to-pink-500 rounded-l-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
@@ -226,12 +264,25 @@
                                             </div>
                                         </div>
                                         <!-- Botão de remover -->
-                                        <button wire:click="removeTransaction({{ $index }})"
-                                            class="group flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 dark:from-red-600 dark:to-pink-700 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg">
-                                            <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                                            </svg>
-                                        </button>
+                                        <div class="flex items-center gap-2">
+                                            @if($transaction['is_duplicate'] ?? false)
+                                            <!-- Botão Forçar Criação -->
+                                            <button wire:click="forceCreateTransaction({{ $index }})"
+                                                type="button"
+                                                title="Forçar criação desta transação duplicada"
+                                                class="group flex items-center justify-center w-10 h-10 bg-gradient-to-r from-orange-500 to-amber-600 dark:from-orange-600 dark:to-amber-700 text-white rounded-lg hover:from-orange-600 hover:to-amber-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg">
+                                                <i class="bi bi-arrow-clockwise text-lg group-hover:rotate-180 transition-transform duration-300"></i>
+                                            </button>
+                                            @endif
+
+                                            <button wire:click="removeTransaction({{ $index }})"
+                                                type="button"
+                                                class="group flex items-center justify-center w-10 h-10 bg-gradient-to-r from-red-500 to-pink-600 dark:from-red-600 dark:to-pink-700 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all duration-300 transform hover:scale-110 hover:shadow-lg">
+                                                <svg class="w-5 h-5 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
 
                                     <!-- Conteúdo do Card -->
@@ -294,7 +345,7 @@
                                                     </button>
 
                                                     <div x-show="open" @click.away="open = false" x-transition
-                                                        class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-60 overflow-hidden">
+                                                        class="absolute z-50 w-full bottom-full mb-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-60 overflow-hidden">
                                                         <div class="p-2 border-b border-gray-200 dark:border-gray-600">
                                                             <input type="text" x-model="search" @click.stop
                                                                 placeholder="Buscar categoria..."
@@ -349,7 +400,7 @@
                                                     </button>
 
                                                     <div x-show="open" @click.away="open = false" x-transition
-                                                        class="absolute z-50 w-full mt-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-60 overflow-hidden">
+                                                        class="absolute z-50 w-full bottom-full mb-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-60 overflow-hidden">
                                                         <div class="p-2 border-b border-gray-200 dark:border-gray-600">
                                                             <input type="text" x-model="search" @click.stop
                                                                 placeholder="Buscar cliente..."
@@ -382,6 +433,198 @@
                     </div>
                 </div>
             @endif
+        </div>
+    </div>
+
+    <!-- Modal de Detalhes do Upload -->
+    @if($showDetailsModal && $selectedUpload)
+        <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showDetailsModal') }">
+            <!-- Backdrop -->
+            <div x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                @click="$wire.closeDetailsModal()"></div>
+
+            <!-- Modal -->
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="relative w-full max-w-4xl bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20 rounded-3xl shadow-2xl overflow-hidden">
+
+                    <!-- Header do Modal -->
+                    <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-6 py-5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                <i class="bi bi-file-earmark-text-fill text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Detalhes do Upload</h3>
+                                <p class="text-sm text-white/80">{{ $selectedUpload->filename }}</p>
+                            </div>
+                        </div>
+                        <button @click="$wire.closeDetailsModal()"
+                            class="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all">
+                            <i class="bi bi-x-lg text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo do Modal -->
+                    <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                        <!-- Estatísticas -->
+                        <div class="grid grid-cols-4 gap-4 mb-6">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->total_transactions }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Total</div>
+                            </div>
+                            <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ $selectedUpload->transactions_created }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Criadas</div>
+                            </div>
+                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ $selectedUpload->transactions_skipped }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Ignoradas</div>
+                            </div>
+                            <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 text-center">
+                                <div class="text-lg font-bold text-purple-600 dark:text-purple-400">{{ $selectedUpload->formatted_total_value }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Valor Total</div>
+                            </div>
+                        </div>
+
+                        <!-- Transações Criadas -->
+                        @if(count($selectedUpload->summary['created'] ?? []) > 0)
+                            <div class="mb-6">
+                                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                    <i class="bi bi-check-circle-fill text-green-500"></i>
+                                    Transações Criadas ({{ count($selectedUpload->summary['created']) }})
+                                </h4>
+                                <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                    @foreach($selectedUpload->summary['created'] as $created)
+                                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
+                                            <div class="flex items-start justify-between gap-4">
+                                                <div class="flex-1">
+                                                    <div class="font-semibold text-gray-900 dark:text-white">{{ $created['description'] ?? 'N/A' }}</div>
+                                                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                        <span class="font-bold text-green-600 dark:text-green-400">R$ {{ number_format($created['value'] ?? 0, 2, ',', '.') }}</span>
+                                                        <span class="mx-2">•</span>
+                                                        <span>{{ \Carbon\Carbon::parse($created['date'])->format('d/m/Y') }}</span>
+                                                    </div>
+                                                </div>
+                                                <a href="{{ route('invoices.index', ['bankId' => $selectedUpload->bank_id]) }}"
+                                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                                    <i class="bi bi-arrow-right-circle-fill text-xl"></i>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+
+                        <!-- Transações Ignoradas -->
+                        @if(count($selectedUpload->summary['skipped'] ?? []) > 0)
+                            <div>
+                                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                    <i class="bi bi-exclamation-triangle-fill text-orange-500"></i>
+                                    Transações Ignoradas ({{ count($selectedUpload->summary['skipped']) }})
+                                </h4>
+                                <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
+                                    @foreach($selectedUpload->summary['skipped'] as $skipped)
+                                        <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
+                                            <div class="font-semibold text-gray-900 dark:text-white">{{ $skipped['description'] ?? 'N/A' }}</div>
+                                            <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                <span class="font-bold text-orange-600 dark:text-orange-400">R$ {{ number_format($skipped['value'] ?? 0, 2, ',', '.') }}</span>
+                                                <span class="mx-2">•</span>
+                                                <span>{{ \Carbon\Carbon::parse($skipped['date'])->format('d/m/Y') }}</span>
+                                                <span class="mx-2">•</span>
+                                                <span class="px-2 py-1 bg-orange-200 dark:bg-orange-800 rounded text-xs">{{ $skipped['reason'] ?? 'Desconhecido' }}</span>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div x-data="{
+        show: false,
+        init() {
+            this.$wire.on('show-delete-upload-modal', () => { this.show = true });
+            this.$wire.on('hide-delete-upload-modal', () => { this.show = false });
+        }
+    }">
+        <div x-show="show"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            style="display: none;">
+            <!-- Backdrop -->
+            <div x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                @click="show = false"></div>
+
+            <!-- Modal -->
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                                <i class="bi bi-exclamation-triangle-fill text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-bold text-white">Confirmar Exclusão</h3>
+                                <p class="text-sm text-white/80">Esta ação não pode ser desfeita</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo -->
+                    <div class="p-6">
+                        <p class="text-gray-700 dark:text-gray-300 mb-6">
+                            Tem certeza que deseja excluir este histórico de upload? O arquivo PDF também será removido.
+                        </p>
+
+                        <!-- Botões -->
+                        <div class="flex gap-3">
+                            <button @click="show = false" type="button"
+                                class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-all">
+                                Cancelar
+                            </button>
+                            <button wire:click="deleteUpload" @click="show = false" type="button"
+                                class="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg">
+                                Excluir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
