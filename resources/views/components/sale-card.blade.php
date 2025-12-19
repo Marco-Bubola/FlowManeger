@@ -43,41 +43,47 @@
         $lastUpdateLabel = $sale->updated_at?->diffForHumans() ?? 'Agora mesmo';
 @endphp
 
-<div class="sale-card shadow-lg" style="--sale-card-accent: {{ $status['color'] }};">
+<div class="sale-card shadow-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-950 dark:to-black border border-slate-200 dark:border-gray-900" style="--sale-card-accent: {{ $status['color'] }};">
     <div class="sale-card-header">
-        <div class="sale-card-status" style="--sale-status-color: {{ $status['color'] }}">
-            <i class="bi {{ $status['icon'] }}"></i>
-            <span>{{ $status['label'] }}</span>
-        </div>
-        <div class="sale-card-total">
-            <span>Total da venda</span>
-            <strong>R$ {{ number_format($sale->total_price, 2, ',', '.') }}</strong>
-        </div>
-    </div>
+        <div class="flex items-center justify-between w-full">
+            <!-- Status à esquerda -->
+            <div class="sale-card-status" style="--sale-status-color: {{ $status['color'] }}">
+                <i class="bi {{ $status['icon'] }}"></i>
+                <span>{{ $status['label'] }}</span>
+            </div>
 
-    <div class="sale-card-chip-row">
-        <span class="sale-card-chip">
-            <i class="bi bi-hash"></i>
-            Pedido #{{ $sale->id }}
-        </span>
-        <span class="sale-card-chip">
-            <i class="bi bi-box-seam"></i>
-            {{ $productsCount }} {{ \Illuminate\Support\Str::plural('item', $productsCount) }}
-        </span>
-        <span class="sale-card-chip">
-            <i class="bi bi-clock-history"></i>
-            {{ $sale->created_at->format('d/m/Y H:i') }}
-        </span>
+            <!-- Info à direita -->
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+                <span class="sale-card-chip">
+                    <i class="bi bi-hash"></i>
+                    Pedido #{{ $sale->id }}
+                </span>
+                <span class="sale-card-chip">
+                    <i class="bi bi-box-seam"></i>
+                    {{ $productsCount }} {{ \Illuminate\Support\Str::plural('item', $productsCount) }}
+                </span>
+                <span class="sale-card-chip">
+                    <i class="bi bi-calendar3"></i>
+                    {{ $sale->created_at->format('d/m/Y') }}
+                </span>
+            </div>
+        </div>
     </div>
 
     <div class="sale-card-body">
         <div class="sale-card-client">
             <div class="sale-card-avatar">
-                <span>{{ strtoupper($clientInitials ?: 'CL') }}</span>
+                @if($sale->client && $sale->client->caminho_foto)
+                    <img src="{{ $sale->client->caminho_foto }}"
+                         alt="Avatar de {{ $clientName }}"
+                         class="w-full h-full rounded-full object-cover">
+                @else
+                    <span>{{ strtoupper($clientInitials ?: 'CL') }}</span>
+                @endif
             </div>
             <div class="sale-card-client-info">
-                <h3 title="{{ $clientName }}">{{ $clientName }}</h3>
-                <span>
+                <h3 class="text-slate-900 dark:text-white" title="{{ $clientName }}">{{ $clientName }}</h3>
+                <span class="text-slate-600 dark:text-slate-400">
                     <i class="bi bi-geo-alt"></i>
                     {{ $clientCity ?? 'Cidade não informada' }}
                 </span>
@@ -85,17 +91,24 @@
 
             <div class="sale-card-payment-pills">
                 @if($paymentMethodLabel)
-                    <span class="sale-card-tag">
+                    <span class="sale-card-tag bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700">
                         <i class="bi bi-credit-card"></i>
                         {{ $paymentMethodLabel }}
                     </span>
                 @endif
 
                 @if($paymentTypeLabel)
-                    <span class="sale-card-tag">
-                        <i class="bi bi-wallet2"></i>
-                        {{ $paymentTypeLabel }}
-                    </span>
+                    @if($sale->tipo_pagamento === 'parcelado')
+                        <span class="sale-card-tag bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
+                            <i class="bi bi-credit-card-2-front"></i>
+                            {{ $paymentTypeLabel }}
+                        </span>
+                    @else
+                        <span class="sale-card-tag bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700">
+                            <i class="bi bi-cash-stack"></i>
+                            {{ $paymentTypeLabel }}
+                        </span>
+                    @endif
                 @endif
             </div>
         </div>
@@ -104,26 +117,34 @@
             <x-sale-card-products :items="$sale->saleItems" :max="3" />
         </div>
 
-        <div class="sale-card-financial">
-            <div class="sale-card-financial-block">
-                <span>Pago</span>
-                <strong>R$ {{ number_format($totalPaid, 2, ',', '.') }}</strong>
+        <div class="sale-card-financial !flex !flex-row !flex-nowrap gap-2" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;">
+            <div class="sale-card-financial-block flex-1 min-w-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3">
+                <span class="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-1">Pago</span>
+                <strong class="text-lg font-black text-slate-900 dark:text-white block truncate">R$ {{ number_format($totalPaid, 2, ',', '.') }}</strong>
             </div>
-            <div class="sale-card-financial-block">
-                <span>Pendente</span>
-                <strong class="{{ $remainingAmount <= 0 ? 'text-emerald-500' : 'text-amber-500' }}">
-                    {{ $remainingAmount <= 0 ? 'Tudo pago' : 'R$ ' . number_format($remainingAmount, 2, ',', '.') }}
+
+            @if($remainingAmount > 0)
+            <div class="sale-card-financial-block flex-1 min-w-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3">
+                <span class="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-1">Pendente</span>
+                <strong class="text-lg font-black text-slate-900 dark:text-white block truncate">
+                    R$ {{ number_format($remainingAmount, 2, ',', '.') }}
                 </strong>
+            </div>
+            @endif
+
+            <div class="sale-card-total-block flex-1 min-w-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border border-blue-200 dark:border-blue-900 rounded-xl p-3">
+                <span class="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-1">Total</span>
+                <strong class="text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent block truncate">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</strong>
             </div>
         </div>
 
         <div class="sale-card-progress">
             <div class="sale-card-progress-info">
-                <span>Status financeiro</span>
-                <strong>{{ number_format($paymentPercentage, 0) }}%</strong>
+                <span class="text-slate-600 dark:text-slate-400">Status financeiro</span>
+                <strong class="text-slate-900 dark:text-white">{{ number_format($paymentPercentage, 0) }}%</strong>
             </div>
-            <div class="sale-card-overview-progress">
-                <div class="sale-card-overview-progress-bar" style="width: {{ $paymentPercentage }}%"></div>
+            <div class="sale-card-overview-progress bg-slate-200 dark:bg-slate-700">
+                <div class="sale-card-overview-progress-bar bg-gradient-to-r from-emerald-500 to-green-500" style="width: {{ $paymentPercentage }}%"></div>
             </div>
         </div>
     </div>
@@ -137,41 +158,43 @@
             <i class="bi bi-pencil"></i>
             Editar
         </a>
+        <button type="button" wire:click="exportPdf({{ $sale->id }})" class="sale-card-button sale-card-button-view bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-red-500 dark:border-red-600">
+            <i class="bi bi-file-earmark-pdf"></i>
+            PDF
+        </button>
 
         <div x-data="{ open: false }" class="sale-card-menu">
             <button @click="open = !open" @click.away="open = false" class="sale-card-button sale-card-button-more">
-                <i class="bi bi-three-dots"></i>
+                <i class="bi bi-three-dots-vertical"></i>
             </button>
 
             <div x-show="open"
-                 x-transition:enter="transition ease-out duration-100"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 x-transition:leave="transition ease-in duration-75"
-                 x-transition:leave-start="opacity-100 scale-100"
-                 x-transition:leave-end="opacity-0 scale-95"
-                 class="sale-card-dropdown" style="display: none;">
-                <a href="{{ route('sales.add-products', $sale->id) }}">
-                    <i class="bi bi-plus-circle"></i>
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                 class="sale-card-dropdown bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl"
+                 style="display: none;">
+                <a href="{{ route('sales.add-products', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                    <i class="bi bi-plus-circle text-blue-600 dark:text-blue-400"></i>
                     Adicionar Produtos
                 </a>
-                <a href="{{ route('sales.edit-prices', $sale->id) }}">
-                    <i class="bi bi-currency-dollar"></i>
+                <a href="{{ route('sales.edit-prices', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-900/20">
+                    <i class="bi bi-currency-dollar text-purple-600 dark:text-purple-400"></i>
                     Editar Preços
                 </a>
-                <a href="{{ route('sales.add-payments', $sale->id) }}">
-                    <i class="bi bi-credit-card"></i>
+                <a href="{{ route('sales.add-payments', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <i class="bi bi-credit-card text-green-600 dark:text-green-400"></i>
                     Adicionar Pagamento
                 </a>
-                <a href="{{ route('sales.edit-payments', $sale->id) }}">
-                    <i class="bi bi-pencil-square"></i>
+                <a href="{{ route('sales.edit-payments', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
+                    <i class="bi bi-pencil-square text-indigo-600 dark:text-indigo-400"></i>
                     Editar Pagamentos
                 </a>
-                <button type="button" wire:click="exportPdf({{ $sale->id }})">
-                    <i class="bi bi-file-earmark-pdf"></i>
-                    Exportar PDF
-                </button>
-                <button type="button" wire:click="confirmDelete({{ $sale->id }})" class="sale-card-dropdown-danger">
+                <div class="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+                <button type="button" wire:click="confirmDelete({{ $sale->id }})" class="sale-card-dropdown-danger text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                     <i class="bi bi-trash"></i>
                     Excluir Venda
                 </button>
