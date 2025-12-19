@@ -22,6 +22,7 @@
             :showConfirmation="$showConfirmation"
             :transactionsCount="is_array($transactions) ? count($transactions) : 0"
             :totalValue="is_array($transactions) ? array_sum(array_column($transactions, 'value')) : 0"
+            :hasDuplicates="is_array($transactions) ? collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false) : false"
         />
 
         <!-- Content -->
@@ -204,21 +205,6 @@
             @else
                 <!-- Confirmation View - Full Width -->
                 <div class="w-full">
-                    <!-- Botão Excluir Duplicadas -->
-                    @php
-                        $hasDuplicates = collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false);
-                    @endphp
-
-                    @if($hasDuplicates)
-                        <div class="mb-6 flex justify-end">
-                            <button wire:click="removeDuplicates" type="button"
-                                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                                <i class="bi bi-trash-fill text-lg"></i>
-                                <span>Excluir Todas Duplicadas</span>
-                            </button>
-                        </div>
-                    @endif
-
                     <!-- Transações em Grid -->
                     <div class="w-full">
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
@@ -500,59 +486,72 @@
                             </div>
                         </div>
 
-                        <!-- Transações Criadas -->
-                        @if(count($selectedUpload->summary['created'] ?? []) > 0)
-                            <div class="mb-6">
-                                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                    <i class="bi bi-check-circle-fill text-green-500"></i>
-                                    Transações Criadas ({{ count($selectedUpload->summary['created']) }})
-                                </h4>
-                                <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                                    @foreach($selectedUpload->summary['created'] as $created)
-                                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                                            <div class="flex items-start justify-between gap-4">
-                                                <div class="flex-1">
-                                                    <div class="font-semibold text-gray-900 dark:text-white">{{ $created['description'] ?? 'N/A' }}</div>
-                                                    <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                        <span class="font-bold text-green-600 dark:text-green-400">R$ {{ number_format($created['value'] ?? 0, 2, ',', '.') }}</span>
-                                                        <span class="mx-2">•</span>
-                                                        <span>{{ \Carbon\Carbon::parse($created['date'])->format('d/m/Y') }}</span>
+                        <!-- Grid de 2 Colunas: Criadas e Ignoradas -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <!-- Transações Criadas -->
+                            @if(count($selectedUpload->summary['created'] ?? []) > 0)
+                                <div>
+                                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                        <i class="bi bi-check-circle-fill text-green-500"></i>
+                                        Transações Criadas ({{ count($selectedUpload->summary['created']) }})
+                                    </h4>
+                                    <div class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                                        @foreach($selectedUpload->summary['created'] as $created)
+                                            <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-800 hover:shadow-lg transition-shadow">
+                                                <div class="flex items-start justify-between gap-4">
+                                                    <div class="flex-1">
+                                                        <div class="font-semibold text-gray-900 dark:text-white">{{ $created['description'] ?? 'N/A' }}</div>
+                                                        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                            <span class="font-bold text-green-600 dark:text-green-400">R$ {{ number_format($created['value'] ?? 0, 2, ',', '.') }}</span>
+                                                            <span class="mx-2">•</span>
+                                                            <span>{{ \Carbon\Carbon::parse($created['date'])->format('d/m/Y') }}</span>
+                                                        </div>
                                                     </div>
+                                                    <a href="{{ route('invoices.index', ['bankId' => $selectedUpload->bank_id]) }}"
+                                                        class="text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 transition-colors">
+                                                        <i class="bi bi-arrow-right-circle-fill text-xl"></i>
+                                                    </a>
                                                 </div>
-                                                <a href="{{ route('invoices.index', ['bankId' => $selectedUpload->bank_id]) }}"
-                                                    class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
-                                                    <i class="bi bi-arrow-right-circle-fill text-xl"></i>
-                                                </a>
                                             </div>
-                                        </div>
-                                    @endforeach
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
-                        @endif
+                            @endif
 
-                        <!-- Transações Ignoradas -->
-                        @if(count($selectedUpload->summary['skipped'] ?? []) > 0)
-                            <div>
-                                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
-                                    <i class="bi bi-exclamation-triangle-fill text-orange-500"></i>
-                                    Transações Ignoradas ({{ count($selectedUpload->summary['skipped']) }})
-                                </h4>
-                                <div class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar">
-                                    @foreach($selectedUpload->summary['skipped'] as $skipped)
-                                        <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
-                                            <div class="font-semibold text-gray-900 dark:text-white">{{ $skipped['description'] ?? 'N/A' }}</div>
-                                            <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                <span class="font-bold text-orange-600 dark:text-orange-400">R$ {{ number_format($skipped['value'] ?? 0, 2, ',', '.') }}</span>
-                                                <span class="mx-2">•</span>
-                                                <span>{{ \Carbon\Carbon::parse($skipped['date'])->format('d/m/Y') }}</span>
-                                                <span class="mx-2">•</span>
-                                                <span class="px-2 py-1 bg-orange-200 dark:bg-orange-800 rounded text-xs">{{ $skipped['reason'] ?? 'Desconhecido' }}</span>
+                            <!-- Transações Ignoradas -->
+                            @if(count($selectedUpload->summary['skipped'] ?? []) > 0)
+                                <div>
+                                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                        <i class="bi bi-exclamation-triangle-fill text-orange-500"></i>
+                                        Transações Ignoradas ({{ count($selectedUpload->summary['skipped']) }})
+                                    </h4>
+                                    <div class="space-y-2 max-h-96 overflow-y-auto custom-scrollbar">
+                                        @foreach($selectedUpload->summary['skipped'] as $index => $skipped)
+                                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <div class="flex-1">
+                                                        <div class="font-semibold text-gray-900 dark:text-white">{{ $skipped['description'] ?? 'N/A' }}</div>
+                                                        <div class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                            <span class="font-bold text-orange-600 dark:text-orange-400">R$ {{ number_format($skipped['value'] ?? 0, 2, ',', '.') }}</span>
+                                                            <span class="mx-2">•</span>
+                                                            <span>{{ \Carbon\Carbon::parse($skipped['date'])->format('d/m/Y') }}</span>
+                                                        </div>
+                                                        <div class="mt-2">
+                                                            <span class="px-2 py-1 bg-orange-200 dark:bg-orange-800 rounded text-xs font-semibold">{{ $skipped['reason'] ?? 'Desconhecido' }}</span>
+                                                        </div>
+                                                    </div>
+                                                    <button wire:click="createInvoiceFromSkipped({{ json_encode($skipped) }})" type="button"
+                                                        title="Criar transação"
+                                                        class="flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg transition-all transform hover:scale-110 shadow-md">
+                                                        <i class="bi bi-plus-lg text-lg"></i>
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    @endforeach
+                                        @endforeach
+                                    </div>
                                 </div>
-                            </div>
-                        @endif
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>
@@ -578,48 +577,85 @@
                 x-transition:leave="transition ease-in duration-200"
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
-                class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                class="fixed inset-0 bg-black/70 backdrop-blur-md"
                 @click="show = false"></div>
 
             <!-- Modal -->
             <div class="flex min-h-screen items-center justify-center p-4">
                 <div x-show="show"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 scale-95"
-                    x-transition:enter-end="opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 scale-100"
-                    x-transition:leave-end="opacity-0 scale-95"
-                    class="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden">
+                    x-transition:enter="transition ease-out duration-300 transform"
+                    x-transition:enter-start="opacity-0 scale-90 -translate-y-4"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-200 transform"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-90 translate-y-4"
+                    class="relative w-full max-w-lg bg-gradient-to-br from-white via-red-50/30 to-pink-50/30 dark:from-gray-800 dark:via-red-900/10 dark:to-pink-900/10 rounded-3xl shadow-2xl overflow-hidden border-2 border-red-200/50 dark:border-red-800/50">
 
-                    <!-- Header -->
-                    <div class="bg-gradient-to-r from-red-600 to-pink-600 px-6 py-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
-                                <i class="bi bi-exclamation-triangle-fill text-white text-2xl"></i>
+                    <!-- Efeitos decorativos -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-400/20 to-red-400/20 rounded-full blur-2xl"></div>
+
+                    <!-- Header Moderno -->
+                    <div class="relative bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 px-8 py-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-4">
+                                <!-- Ícone animado -->
+                                <div class="relative">
+                                    <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center animate-pulse">
+                                        <i class="bi bi-exclamation-triangle-fill text-white text-3xl"></i>
+                                    </div>
+                                    <div class="absolute inset-0 bg-white/10 rounded-2xl animate-ping"></div>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-white mb-1">Confirmar Exclusão</h3>
+                                    <p class="text-sm text-white/90 font-medium">⚠️ Esta ação não pode ser desfeita</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-white">Confirmar Exclusão</h3>
-                                <p class="text-sm text-white/80">Esta ação não pode ser desfeita</p>
-                            </div>
+                            <button @click="show = false"
+                                class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all hover:rotate-90 duration-300">
+                                <i class="bi bi-x-lg text-xl"></i>
+                            </button>
                         </div>
                     </div>
 
                     <!-- Conteúdo -->
-                    <div class="p-6">
-                        <p class="text-gray-700 dark:text-gray-300 mb-6">
-                            Tem certeza que deseja excluir este histórico de upload? O arquivo PDF também será removido.
+                    <div class="relative p-8">
+                        <!-- Alerta visual -->
+                        <div class="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-600 dark:border-red-500 rounded-lg p-4 mb-6">
+                            <div class="flex gap-3">
+                                <i class="bi bi-info-circle-fill text-red-600 dark:text-red-400 text-xl flex-shrink-0 mt-0.5"></i>
+                                <div class="text-sm text-gray-800 dark:text-gray-200">
+                                    <p class="font-bold mb-1">Você está prestes a excluir:</p>
+                                    <ul class="list-disc list-inside space-y-1 text-gray-700 dark:text-gray-300">
+                                        <li>Histórico de upload completo</li>
+                                        <li>Arquivo PDF associado</li>
+                                        <li>Todas as informações de transações</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-700 dark:text-gray-300 text-center mb-8 font-medium">
+                            Deseja realmente continuar com a exclusão?
                         </p>
 
-                        <!-- Botões -->
-                        <div class="flex gap-3">
+                        <!-- Botões Modernos -->
+                        <div class="grid grid-cols-2 gap-4">
                             <button @click="show = false" type="button"
-                                class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 font-semibold rounded-xl transition-all">
-                                Cancelar
+                                class="group relative px-6 py-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                <div class="relative flex items-center justify-center gap-2">
+                                    <i class="bi bi-x-circle text-lg"></i>
+                                    <span>Cancelar</span>
+                                </div>
                             </button>
                             <button wire:click="deleteUpload" @click="show = false" type="button"
-                                class="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 text-white font-semibold rounded-xl transition-all shadow-lg">
-                                Excluir
+                                class="group relative px-6 py-4 bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:from-red-700 hover:via-rose-700 hover:to-pink-700 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-2xl overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                <div class="relative flex items-center justify-center gap-2">
+                                    <i class="bi bi-trash-fill text-lg"></i>
+                                    <span>Excluir Agora</span>
+                                </div>
                             </button>
                         </div>
                     </div>
