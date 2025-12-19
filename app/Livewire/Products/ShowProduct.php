@@ -21,7 +21,7 @@ class ShowProduct extends Component
     public $analytics;
 
     // Filtros para gráficos
-    public string $period = '6months'; // 30days, 3months, 6months, 1year, all
+    public string $period = 'all'; // 30days, 3months, 6months, 1year, all
     public string $chartType = 'sales'; // sales, profit, quantity
 
     public function mount($productCode)
@@ -44,7 +44,7 @@ class ShowProduct extends Component
 
         // Produto principal (primeiro encontrado ou ativo)
         $this->mainProduct = $this->products->where('status', 'ativo')->first() ?? $this->products->first();
-        
+
         // Categoria do produto
         $this->category = Category::find($this->mainProduct->category_id);
     }
@@ -52,7 +52,7 @@ class ShowProduct extends Component
     public function loadAnalytics()
     {
         $productIds = $this->products->pluck('id');
-        
+
         // Carregar vendas completas com relacionamentos
         $salesQuery = Sale::whereHas('saleItems', function($query) use ($productIds) {
                 $query->whereIn('product_id', $productIds);
@@ -120,7 +120,7 @@ class ShowProduct extends Component
     {
         // Total em estoque
         $totalStock = $this->products->sum('stock_quantity');
-        
+
         // Valor total em estoque
         $stockValue = $this->products->sum(function($product) {
             return $product->stock_quantity * $product->price_sale;
@@ -144,8 +144,8 @@ class ShowProduct extends Component
 
         // Calcular lucro
         $totalProfit = ($salesStats->total_revenue ?? 0) - ($salesStats->total_cost ?? 0);
-        $profitMargin = $salesStats->total_revenue > 0 
-            ? ($totalProfit / $salesStats->total_revenue) * 100 
+        $profitMargin = $salesStats->total_revenue > 0
+            ? ($totalProfit / $salesStats->total_revenue) * 100
             : 0;
 
         // Vendas por mês (últimos 12 meses)
@@ -233,7 +233,7 @@ class ShowProduct extends Component
     {
         try {
             $originalSale = Sale::findOrFail($saleId);
-            
+
             // Criar nova venda baseada na original
             $newSale = Sale::create([
                 'client_id' => $originalSale->client_id,
@@ -258,7 +258,7 @@ class ShowProduct extends Component
 
             session()->flash('success', 'Venda duplicada com sucesso!');
             $this->loadAnalytics(); // Recarregar dados
-            
+
         } catch (\Exception $e) {
             session()->flash('error', 'Erro ao duplicar venda: ' . $e->getMessage());
         }
@@ -274,7 +274,7 @@ class ShowProduct extends Component
     public function checkDatabaseData()
     {
         $productIds = $this->products->pluck('id');
-        
+
         $debug = [
             'product_ids' => $productIds->toArray(),
             'total_sales' => Sale::where('user_id', Auth::id())->count(),
@@ -284,9 +284,9 @@ class ShowProduct extends Component
                 $query->whereIn('product_id', $productIds);
             })->where('user_id', Auth::id())->count()
         ];
-        
+
         session()->flash('debug_info', $debug);
-        
+
         return $debug;
     }
 
@@ -299,22 +299,22 @@ class ShowProduct extends Component
     public function getChartDataProperty()
     {
         $monthlySales = $this->analytics['monthly_sales'];
-        
+
         $labels = [];
         $salesData = [];
         $revenueData = [];
-        
+
         // Gerar últimos 12 meses
         for ($i = 11; $i >= 0; $i--) {
             $date = Carbon::now()->subMonths($i);
             $monthKey = $date->year . '-' . $date->month;
-            
+
             $labels[] = $date->format('M Y');
-            
+
             $monthData = $monthlySales->where('year', $date->year)
                                    ->where('month', $date->month)
                                    ->first();
-            
+
             $salesData[] = $monthData ? (int)$monthData->quantity : 0;
             $revenueData[] = $monthData ? (float)$monthData->revenue : 0;
         }
