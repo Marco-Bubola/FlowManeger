@@ -464,7 +464,8 @@
     box-shadow: 0 2px 16px var(--card-shadow2);
     position: relative;
     z-index: 2;
-    overflow: hidden; /* Cortar elementos que saiam da área da imagem, necessário para a faixa diagonal */
+    /* Permitir elementos (como o ícone de categoria) transbordarem sem serem cortados */
+    overflow: visible;
 }
 .product-card-modern .product-img {
     width: 100%;
@@ -491,7 +492,8 @@
     left: 50%;
     bottom: -32px;
     transform: translateX(-50%);
-    z-index: 3;
+    /* Trazer o ícone acima do pseudo-elemento ::before (z-index:99) e outros elementos */
+    z-index: 120;
 }
 .product-card-modern .category-icon {
     font-size: 2.5em;
