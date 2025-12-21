@@ -445,12 +445,14 @@
                                     <!-- Quantidade -->
                                     <div>
                                         <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Quantidade</label>
-                                        <input type="number"
-                                               wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
-                                               value="{{ $productItem['quantity'] }}"
-                                               min="1"
-                                               max="{{ $selectedProduct->stock_quantity }}"
-                                               class="w-full h-7 text-center text-xs border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                             <input type="number"
+                                                 wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
+                                                 value="{{ $productItem['quantity'] }}"
+                                                 min="1"
+                                                 @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
+                                                  max="{{ $selectedProduct->stock_quantity }}"
+                                                 @endif
+                                                 class="w-full h-7 text-center text-xs border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
                                     </div>
 
                                     <!-- Preço Unitário -->
