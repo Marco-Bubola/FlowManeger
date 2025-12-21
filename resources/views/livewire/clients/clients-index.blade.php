@@ -37,20 +37,18 @@
                                 <i class="bi bi-search text-slate-500 dark:text-slate-400 text-lg group-focus-within:text-purple-500 transition-colors duration-200"></i>
                             </div>
 
-                            <!-- Botão limpar -->
+                            <!-- Botão limpar (visibilidade controlada por Blade para evitar expressão Alpine problemática) -->
                             <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <button wire:click="$set('search', '')"
-            x-show="$wire.search && $wire.search.length > 0" x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 scale-50" x-transition:enter-end="opacity-100 scale-100"
-            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
-            x-transition:leave-end="opacity-0 scale-50"
-            class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500
-                                               text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white
-                                               rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
-            title="Limpar busca">
-            <i class="bi bi-x-lg text-xs group-hover/clear:rotate-90 transition-transform duration-200"></i>
-            </button>
-    </div>
+                                @if($search)
+                                    <button wire:click="$set('search', '')"
+                                        class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500
+                                                   text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white
+                                                   rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
+                                        title="Limpar busca">
+                                        <i class="bi bi-x-lg text-xs group-hover/clear:rotate-90 transition-transform duration-200"></i>
+                                    </button>
+                                @endif
+                            </div>
 
     <!-- Indicador de carregamento -->
     <div wire:loading.delay wire:target="search" class="absolute right-12 top-1/2 transform -translate-y-1/2">
