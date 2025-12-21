@@ -55,8 +55,15 @@ class CreateSale extends Component
         $this->clients = Client::where('user_id', Auth::id())
             ->orderBy('name')
             ->get();
+        // Carrega produtos disponíveis: mantém produtos 'simples' com estoque
+        // e também inclui produtos do tipo 'kit' (independentemente do estoque)
         $this->availableProducts = Product::where('user_id', Auth::id())
-                                        ->where('stock_quantity', '>', 0)
+                                        ->where(function($q) {
+                                            $q->where(function($q2) {
+                                                $q2->where('tipo', 'simples')
+                                                   ->where('stock_quantity', '>', 0);
+                                            })->orWhere('tipo', 'kit');
+                                        })
                                         ->get();
         $this->sale_date = now()->format('Y-m-d');
     }
@@ -162,14 +169,21 @@ class CreateSale extends Component
 
             $this->validate();
 
-            // Verificar estoque
+            // Verificar estoque para produtos do tipo 'simples'.
+            // Produtos do tipo 'kit' serão validados/consumidos separadamente (se necessário).
             foreach ($this->products as $item) {
                 $product = Product::find($item['product_id']);
-            if ($product->stock_quantity < $item['quantity']) {
-                session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
-                return;
+                if (!$product) {
+                    session()->flash('error', 'Produto não encontrado.');
+                    return;
+                }
+                if (($product->tipo ?? 'simples') === 'simples') {
+                    if ($product->stock_quantity < $item['quantity']) {
+                        session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
+                        return;
+                    }
+                }
             }
-        }
 
         $totalPrice = $this->getTotalPrice();
 
@@ -185,7 +199,7 @@ class CreateSale extends Component
                 'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->parcelas : 1,
             ]);
 
-            // Criar os itens da venda e atualizar estoque
+            // Criar os itens da venda e atualizar estoque apenas para 'simples'.
             foreach ($this->products as $item) {
                 $product = Product::find($item['product_id']);
 
@@ -197,9 +211,13 @@ class CreateSale extends Component
                     'price_sale' => $item['unit_price'],
                 ]);
 
-                // Atualizar estoque
-                $product->stock_quantity -= $item['quantity'];
-                $product->save();
+                // Atualizar estoque somente para produtos simples.
+                if (($product->tipo ?? 'simples') === 'simples') {
+                    $product->stock_quantity -= $item['quantity'];
+                    $product->save();
+                }
+                // Se for 'kit', idealmente devemos decrementar os componentes do kit aqui.
+                // Implementação futura: validar e decrementar componentes via relacionamento `componentes()`.
             }
 
             // Gerar parcelas se for parcelado
