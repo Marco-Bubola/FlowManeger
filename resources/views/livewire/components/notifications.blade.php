@@ -17,7 +17,7 @@
                 if (duration > 0) {
                     setTimeout(() => {
                         show = false;
-                        setTimeout(() => $wire.removeNotification(id), 300);
+                        setTimeout(() => window.livewire?.emit('removeNotification', id), 300);
                     }, duration);
                 }
              "
@@ -41,7 +41,7 @@
                     <h3 class="text-sm font-bold text-green-800 dark:text-green-200">Sucesso!</h3>
                     <p class="text-sm text-green-700 dark:text-green-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
+                <button @click="show = false; setTimeout(() => window.livewire?.emit('removeNotification', id), 300)"
                         class="ml-4 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
@@ -57,7 +57,7 @@
                     <h3 class="text-sm font-bold text-red-800 dark:text-red-200">Erro!</h3>
                     <p class="text-sm text-red-700 dark:text-red-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
+                <button @click="show = false; setTimeout(() => window.livewire?.emit('removeNotification', id), 300)"
                         class="ml-4 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
@@ -73,7 +73,7 @@
                     <h3 class="text-sm font-bold text-yellow-800 dark:text-yellow-200">Atenção!</h3>
                     <p class="text-sm text-yellow-700 dark:text-yellow-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
+                <button @click="show = false; setTimeout(() => window.livewire?.emit('removeNotification', id), 300)"
                         class="ml-4 text-yellow-600 hover:text-yellow-800 dark:text-yellow-400 dark:hover:text-yellow-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
@@ -89,7 +89,7 @@
                     <h3 class="text-sm font-bold text-blue-800 dark:text-blue-200">Informação</h3>
                     <p class="text-sm text-blue-700 dark:text-blue-300" x-text="message"></p>
                 </div>
-                <button @click="show = false; setTimeout(() => $wire.removeNotification(id), 300)"
+                <button @click="show = false; setTimeout(() => window.livewire?.emit('removeNotification', id), 300)"
                         class="ml-4 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-200">
                     <i class="bi bi-x text-lg"></i>
                 </button>
