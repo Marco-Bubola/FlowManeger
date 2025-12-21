@@ -169,18 +169,41 @@ class CreateSale extends Component
 
             $this->validate();
 
-            // Verificar estoque para produtos do tipo 'simples'.
-            // Produtos do tipo 'kit' serão validados/consumidos separadamente (se necessário).
+            // Verificar estoque para produtos do tipo 'simples' e para componentes de 'kit'.
             foreach ($this->products as $item) {
                 $product = Product::find($item['product_id']);
                 if (!$product) {
                     session()->flash('error', 'Produto não encontrado.');
                     return;
                 }
+
+                // Verifica estoque do próprio produto se for simples
                 if (($product->tipo ?? 'simples') === 'simples') {
                     if ($product->stock_quantity < $item['quantity']) {
                         session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
                         return;
+                    }
+                }
+
+                // Se for kit, verificar estoque dos componentes necessários
+                if (($product->tipo ?? '') === 'kit') {
+                    $componentes = $product->componentes()->get();
+                    if ($componentes->isEmpty()) {
+                        session()->flash('error', "Kit '{$product->name}' não possui componentes definidos.");
+                        return;
+                    }
+
+                    foreach ($componentes as $pc) {
+                        $componentProduct = $pc->componente()->first();
+                        if (!$componentProduct) {
+                            session()->flash('error', "Componente do kit '{$product->name}' não encontrado (ID: {$pc->componente_produto_id}).");
+                            return;
+                        }
+                        $requiredQty = ($pc->quantidade ?? 0) * $item['quantity'];
+                        if ($componentProduct->stock_quantity < $requiredQty) {
+                            session()->flash('error', "Estoque insuficiente para o componente '{$componentProduct->name}' do kit '{$product->name}'. Pedido: {$requiredQty}, Disponível: {$componentProduct->stock_quantity}.");
+                            return;
+                        }
                     }
                 }
             }
@@ -216,8 +239,24 @@ class CreateSale extends Component
                     $product->stock_quantity -= $item['quantity'];
                     $product->save();
                 }
-                // Se for 'kit', idealmente devemos decrementar os componentes do kit aqui.
-                // Implementação futura: validar e decrementar componentes via relacionamento `componentes()`.
+
+                // Se for kit, decrementar estoque dos componentes conforme quantidade do kit vendida
+                if (($product->tipo ?? '') === 'kit') {
+                    $componentes = $product->componentes()->get();
+                    foreach ($componentes as $pc) {
+                        $componentProduct = $pc->componente()->first();
+                        if (!$componentProduct) {
+                            // Pula se componente não encontrado (já validamos antes)
+                            continue;
+                        }
+                        $requiredQty = ($pc->quantidade ?? 0) * $item['quantity'];
+                        $componentProduct->stock_quantity -= $requiredQty;
+                        if ($componentProduct->stock_quantity < 0) {
+                            $componentProduct->stock_quantity = 0;
+                        }
+                        $componentProduct->save();
+                    }
+                }
             }
 
             // Gerar parcelas se for parcelado
