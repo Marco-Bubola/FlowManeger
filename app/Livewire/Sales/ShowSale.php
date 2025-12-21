@@ -247,6 +247,47 @@ class ShowSale extends Component
         }
     }
 
+    /**
+     * Registrar pagamento integral para a venda exibida (pagar tudo).
+     */
+    public function payFull($paymentMethod = 'dinheiro')
+    {
+        // Recarregar para garantir dados atualizados
+        $this->sale->refresh();
+
+        $paid = (float) $this->sale->payments()->where('payment_method', '<>', 'desconto')->sum('amount_paid');
+        $remaining = max(0, (float) $this->sale->total_price - $paid);
+
+        if ($remaining <= 0) {
+            session()->flash('info', 'Não há valor restante para pagar nesta venda.');
+            return;
+        }
+
+        try {
+            SalePayment::create([
+                'sale_id' => $this->sale->id,
+                'amount_paid' => $remaining,
+                'payment_method' => $paymentMethod,
+                'payment_date' => now()->format('Y-m-d'),
+            ]);
+
+            // Atualizar valores e status
+            $this->sale->refresh();
+            $this->sale->amount_paid = (float) $this->sale->payments()->sum('amount_paid');
+            $this->sale->status = ($this->sale->total_paid >= $this->sale->total_price) ? 'pago' : 'pendente';
+            $this->sale->save();
+
+            // Atualizar parcelas e relacionamentos
+            $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)->orderBy('numero_parcela')->get();
+
+            session()->flash('message', 'Pagamento integral registrado com sucesso!');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao registrar pagamento integral: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao registrar pagamento.');
+        }
+    }
+
     public function confirmPayment()
     {
         $this->validate([
