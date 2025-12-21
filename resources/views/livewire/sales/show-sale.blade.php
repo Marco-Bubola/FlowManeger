@@ -26,6 +26,13 @@
                 <span class="hidden md:inline">Exportar PDF</span>
             </button>
             @if($sale->remaining_amount > 0)
+                <button wire:click="payFull"
+                        class="ml-3 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                    <i class="bi bi-cash-stack mr-2 text-lg"></i>
+                    <span class="hidden md:inline">Pagar Tudo</span>
+                </button>
+            @endif
+            @if($sale->remaining_amount > 0)
                 <button wire:click="openDiscountModal"
                         class="ml-3 inline-flex items-center justify-center px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl">
                     <i class="bi bi-tag mr-2 text-lg"></i>
