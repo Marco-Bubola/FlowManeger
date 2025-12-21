@@ -194,6 +194,11 @@
                     Editar Pagamentos
                 </a>
                 <div class="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+                <button type="button" wire:click="payFull({{ $sale->id }})" class="sale-card-dropdown-action text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
+                    <i class="bi bi-cash-stack"></i>
+                    Pagar Tudo
+                </button>
+
                 <button type="button" wire:click="confirmDelete({{ $sale->id }})" class="sale-card-dropdown-danger text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
                     <i class="bi bi-trash"></i>
                     Excluir Venda
