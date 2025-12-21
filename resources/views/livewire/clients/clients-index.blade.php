@@ -736,11 +736,12 @@
                                     <i class="bi bi-whatsapp mr-1 text-green-600"></i>
                                     WhatsApp
                                 </button>
-                                <button
-                                    class="flex items-center justify-center px-3 py-1.5 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
+                                <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
+                                    class="flex items-center justify-center px-3 py-1.5 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
+                                    title="Nova Venda para {{ $client->name }}">
                                     <i class="bi bi-plus-circle mr-1 text-blue-600"></i>
                                     Nova Venda
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>
