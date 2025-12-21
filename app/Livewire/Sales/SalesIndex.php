@@ -330,6 +330,46 @@ class SalesIndex extends Component
         }
     }
 
+    /**
+     * Registrar pagamento integral da venda (pagar tudo).
+     * Pode ser chamado a partir dos cards na listagem.
+     */
+    public function payFull($saleId, $paymentMethod = 'dinheiro')
+    {
+        $sale = Sale::with('payments')->find($saleId);
+
+        if (!$sale || $sale->user_id !== Auth::id()) {
+            session()->flash('error', 'Venda não encontrada ou acesso negado.');
+            return;
+        }
+
+        $paid = (float) $sale->payments()->where('payment_method', '<>', 'desconto')->sum('amount_paid');
+        $remaining = max(0, (float) $sale->total_price - $paid);
+
+        if ($remaining <= 0) {
+            session()->flash('info', 'Não há valor restante para pagar nesta venda.');
+            return;
+        }
+
+        // Registrar pagamento completo
+        SalePayment::create([
+            'sale_id' => $sale->id,
+            'amount_paid' => $remaining,
+            'payment_method' => $paymentMethod,
+            'payment_date' => now()->format('Y-m-d'),
+        ]);
+
+        // Atualizar campos da venda e status
+        $totalPaid = (float) $sale->payments()->sum('amount_paid');
+        $sale->amount_paid = $totalPaid;
+        $sale->status = 'pago';
+        $sale->save();
+
+        // Notificar e atualizar interface
+        $this->dispatch('sale-updated', ['saleId' => $sale->id]);
+        session()->flash('message', 'Pagamento integral registrado com sucesso!');
+    }
+
     #[On('sale-updated')]
     public function refreshSales()
     {
