@@ -402,7 +402,28 @@ class SalesIndex extends Component
         }
 
         if ($this->paymentMethodFilter) {
-            $query->where('tipo_pagamento', $this->paymentMethodFilter);
+            // Mapear valores amigáveis (usados na UI) para os valores reais salvos
+            // no banco. Ex: 'cash' -> 'dinheiro', 'card' -> ['cartao_credito','cartao_debito']
+            $filter = $this->paymentMethodFilter;
+            $methods = [];
+
+            if ($filter === 'cash' || $filter === 'dinheiro') {
+                $methods = ['dinheiro'];
+            } elseif ($filter === 'card' || $filter === 'cartao') {
+                $methods = ['cartao_credito', 'cartao_debito', 'cartao'];
+            } elseif ($filter === 'pix') {
+                $methods = ['pix'];
+            } else {
+                // Se for outro valor, tente usar direto
+                $methods = [$filter];
+            }
+
+            $query->where(function($q) use ($methods) {
+                $q->whereIn('payment_method', $methods)
+                  ->orWhereHas('payments', function($p) use ($methods) {
+                      $p->whereIn('payment_method', $methods);
+                  });
+            });
         }
 
         if ($this->sellerFilter) {
@@ -480,6 +501,17 @@ class SalesIndex extends Component
         ]);
     }
 
+    // Serve como ponte: chamado a partir do botão no card para abrir o modal de export
+    public function openExportSaleModalFromCard($saleId)
+    {
+        // Log para diagnóstico
+        \Log::debug('SalesIndex::openExportSaleModalFromCard called', ['saleId' => $saleId]);
+
+        // Dispatch a browser/livewire event para abrir o modal (compatível com o atributo #[On('openExportSaleModal')])
+        $this->dispatch('openExportSaleModal', ['saleId' => $saleId]);
+    }
+
+    #[On('exportSalePdf')]
     public function exportPdf($saleId)
     {
         try {
