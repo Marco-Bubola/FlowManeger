@@ -13,6 +13,7 @@
     'quickFilter' => '',
     'sortBy' => 'created_at',
     'sortDirection' => 'desc'
+    ,'perPageOptions' => []
 ])
 
 <!-- Filtros Avançados -->
@@ -150,8 +151,26 @@
                     </div>
                 </div>
 
-                <!-- Coluna 3-4: Ordenação -->
-                <div class="lg:col-span-2">
+                <!-- Coluna 3: Itens por página -->
+                <div>
+                    <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        <i class="bi bi-list-ol mr-1 text-amber-500"></i>
+                        Itens por página
+                    </h4>
+                    <div class="grid grid-cols-3 gap-2">
+                        @foreach($perPageOptions as $option)
+                            <button wire:click="$set('perPage', {{ $option }})"
+                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-amber-300 dark:hover:border-amber-500 transition-all duration-200 {{ (isset($perPage) && $perPage == $option) ? 'ring-2 ring-amber-500 bg-amber-50 dark:bg-amber-900/30' : '' }}">
+                                <div class="text-center">
+                                    <div class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ $option }}</div>
+                                </div>
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                <!-- Coluna 4: Ordenação -->
+                <div>
                         <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-4">
                             <i class="bi bi-arrow-up-down mr-1 text-indigo-500"></i>
                             Ordenação
