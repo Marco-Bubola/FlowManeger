@@ -158,7 +158,7 @@
             <i class="bi bi-pencil"></i>
             Editar
         </a>
-        <button type="button" wire:click="exportPdf({{ $sale->id }})" class="sale-card-button sale-card-button-view bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-red-500 dark:border-red-600">
+        <button type="button" wire:click="openExportSaleModalFromCard({{ $sale->id }})" class="sale-card-button sale-card-button-view bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-red-500 dark:border-red-600" title="Exportar">
             <i class="bi bi-file-earmark-pdf"></i>
             PDF
         </button>
