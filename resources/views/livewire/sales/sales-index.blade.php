@@ -75,7 +75,7 @@
         <!-- Filtros Avançados -->
         <x-sales-filters :show-filters="false" :clients="$clients ?? collect()" :sellers="$sellers ?? collect()" :status-filter="$statusFilter" :client-filter="$clientFilter"
             :start-date="$startDate" :end-date="$endDate" :min-value="$minValue" :max-value="$maxValue" :payment-method-filter="$paymentMethodFilter"
-            :seller-filter="$sellerFilter" :quick-filter="$quickFilter" :sort-by="$sortBy" :sort-direction="$sortDirection" />
+            :seller-filter="$sellerFilter" :quick-filter="$quickFilter" :sort-by="$sortBy" :sort-direction="$sortDirection" :per-page-options="$perPageOptions" />
 
         <!-- Grid de Cards de Vendas -->
         <div class="sales-grid gap-4 mb-8" x-ref="salesGrid"
@@ -193,6 +193,8 @@
                 </div>
             </div>
         @endif
+        <!-- Componente de Exportação de Venda (modal) -->
+        @livewire('sales.export-sale-modal')
     </div>
 
     <!-- Modal de Confirmação de Exclusão -->
