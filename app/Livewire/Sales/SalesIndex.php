@@ -18,6 +18,10 @@ class SalesIndex extends Component
 {
     use WithPagination;
 
+    protected $listeners = [
+        'sales:confirm-delete' => 'confirmDelete',
+    ];
+
     // Filtros
     public string $search = '';
     public string $status = '';
