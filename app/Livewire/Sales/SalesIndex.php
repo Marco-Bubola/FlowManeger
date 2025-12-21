@@ -350,9 +350,38 @@ class SalesIndex extends Component
             });
         }
 
-        // Filtro de status
-        if ($this->status) {
-            $query->where('status', $this->status);
+        // Filtro de status (legado $this->status e moderno $this->statusFilter)
+        $statusValue = $this->statusFilter ?: $this->status;
+        if ($statusValue) {
+            $val = strtolower($statusValue);
+            switch ($val) {
+                case 'pending':
+                case 'pendente':
+                    $query->where(function($q){
+                        $q->where('status', 'pendente')
+                          ->orWhereRaw("(select COALESCE(sum(amount_paid),0) from sale_payments where sale_payments.sale_id = sales.id) < sales.total_price");
+                    });
+                    break;
+                case 'paid':
+                case 'pago':
+                case 'concluida':
+                case 'finalizada':
+                case 'confirmada':
+                    $query->where(function($q){
+                        $q->whereIn('status', ['pago','concluida','finalizada','confirmada'])
+                          ->orWhereRaw("(select COALESCE(sum(amount_paid),0) from sale_payments where sale_payments.sale_id = sales.id) >= sales.total_price");
+                    });
+                    break;
+                case 'partially_paid':
+                case 'parcial':
+                case 'parcialmente_pago':
+                    $query->whereRaw("(select COALESCE(sum(amount_paid),0) from sale_payments where sale_payments.sale_id = sales.id) > 0")
+                          ->whereRaw("(select COALESCE(sum(amount_paid),0) from sale_payments where sale_payments.sale_id = sales.id) < sales.total_price");
+                    break;
+                default:
+                    $query->where('status', $statusValue);
+                    break;
+            }
         }
 
         // Filtro de tipo de pagamento
@@ -376,10 +405,8 @@ class SalesIndex extends Component
             $query->where('total_price', '<=', $this->max_value);
         }
 
-        // Novos filtros modernos
-        if ($this->statusFilter) {
-            $query->where('status', $this->statusFilter);
-        }
+        // Status filter already applied above (compatibility for legacy and modern values)
+
 
         if ($this->clientFilter) {
             $query->where('client_id', $this->clientFilter);
