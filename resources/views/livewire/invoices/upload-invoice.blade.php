@@ -426,7 +426,7 @@
     @if($showDetailsModal && $selectedUpload)
         <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showDetailsModal') }">
             <!-- Backdrop -->
-            <div x-show="show"
+                <div x-show="show"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0"
                 x-transition:enter-end="opacity-100"
@@ -434,7 +434,7 @@
                 x-transition:leave-start="opacity-100"
                 x-transition:leave-end="opacity-0"
                 class="fixed inset-0 bg-black/60 backdrop-blur-sm"
-                @click="$wire.closeDetailsModal()"></div>
+                wire:click="closeDetailsModal"></div>
 
             <!-- Modal -->
             <div class="flex min-h-screen items-center justify-center p-4">
@@ -458,7 +458,7 @@
                                 <p class="text-sm text-white/80">{{ $selectedUpload->filename }}</p>
                             </div>
                         </div>
-                        <button @click="$wire.closeDetailsModal()"
+                        <button wire:click="closeDetailsModal"
                             class="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all">
                             <i class="bi bi-x-lg text-xl"></i>
                         </button>
