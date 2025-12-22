@@ -11,230 +11,88 @@
         <x-clients-index-header title="Clientes" :total-clients="$clients->total() ?? 0" :active-clients="$clients->where('status', 'ativo')->count() ?? 0" :premium-clients="$clients->where('type', 'premium')->count() ?? 0" :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
             :show-quick-actions="true">
 
-        <!-- Barra de Controle Superior com Pesquisa e Paginação -->
-        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
-
-            <!-- Linha Principal: Pesquisa (50%) + Controles e Paginação (50%) -->
-            <div class="flex items-center gap-6">
-
-                <!-- Lado Esquerdo: Campo de Pesquisa (50%) -->
-                <div class="flex-1">
-                    <div class="relative group">
-                        <!-- Input principal -->
-                        <div class="relative">
+            <!-- Bloco de Controles Central -->
+            <div class="w-full">
+                <div class="flex flex-col gap-4">
+                    <!-- Linha 1: Pesquisa e Contadores -->
+                    <div class="flex items-center gap-4">
+                        <!-- Input de Pesquisa -->
+                        <div class="relative flex-1 group">
                             <input type="text"
                                    wire:model.live.debounce.300ms="search"
                                    placeholder="Buscar clientes por nome, email, telefone ou cidade..."
-                                   class="w-full pl-12 pr-16 py-3 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900
-                                          border border-slate-200/50 dark:border-slate-600/50 rounded-xl
-                                          text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400
-                                          focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400
-                                          transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm
-                                          text-base font-medium">
-
-                            <!-- Ícone de busca -->
-                            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                <i class="bi bi-search text-slate-500 dark:text-slate-400 text-lg group-focus-within:text-purple-500 transition-colors duration-200"></i>
+                                   class="w-full pl-10 pr-4 py-2.5 bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-300 shadow-sm backdrop-blur-sm text-sm font-medium">
+                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                                <i class="bi bi-search text-slate-500 dark:text-slate-400 text-sm group-focus-within:text-purple-500 transition-colors duration-200"></i>
                             </div>
-
-                            <!-- Botão limpar (visibilidade controlada por Blade para evitar expressão Alpine problemática) -->
-                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                @if($search)
-                                    <button wire:click="$set('search', '')"
-                                        class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500
-                                                   text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white
-                                                   rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
-                                        title="Limpar busca">
-                                        <i class="bi bi-x-lg text-xs group-hover/clear:rotate-90 transition-transform duration-200"></i>
+                            @if($search)
+                                <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                                    <button wire:click="$set('search', '')" class="group/clear p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-md transition-all duration-200" title="Limpar busca">
+                                        <i class="bi bi-x-lg text-xs"></i>
                                     </button>
-                                @endif
+                                </div>
+                            @endif
+                        </div>
+
+                        <!-- Contadores e Filtros -->
+                        <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm">
+                                <i class="bi bi-people text-purple-600 dark:text-purple-400"></i>
+                                <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                                    {{ $clients->total() }} Clientes
+                                </div>
+                                <span class="text-xs text-slate-500 dark:text-slate-400">
+                                    {{ $clients->firstItem() ?? 0 }}-{{ $clients->lastItem() ?? 0 }}
+                                </span>
                             </div>
+                             <button @click="showFilters = !showFilters"
+                                class="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm transition-all"
+                                :class="{ 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 ring-2 ring-purple-500': showFilters }"
+                                title="Filtros avançados">
+                                <i class="bi bi-funnel text-base"></i>
+                            </button>
+                        </div>
+                    </div>
 
-    <!-- Indicador de carregamento -->
-    <div wire:loading.delay wire:target="search" class="absolute right-12 top-1/2 transform -translate-y-1/2">
-        <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
-    </div>
+                    <!-- Linha 2: Pesquisas Rápidas e Ordenação -->
+                    <div class="flex items-center justify-between">
+                         <!-- Pesquisas Rápidas -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Pesquisas Rápidas:</span>
+                            <button wire:click="setQuickSearch('ativo')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $statusFilter === 'ativo' ? 'bg-green-100 text-green-800 border-green-300 ring-2 ring-green-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-green-100 hover:border-green-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-green-900/50 dark:hover:border-green-700">Ativos</button>
+                            <button wire:click="setQuickSearch('premium')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $statusFilter === 'premium' ? 'bg-purple-100 text-purple-800 border-purple-300 ring-2 ring-purple-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-purple-100 hover:border-purple-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-purple-900/50 dark:hover:border-purple-700">Premium</button>
+                            <button wire:click="setQuickSearch('recente')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $dateFilter === 'mes' ? 'bg-blue-100 text-blue-800 border-blue-300 ring-2 ring-blue-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-blue-100 hover:border-blue-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-blue-900/50 dark:hover:border-blue-700">Recentes</button>
+                            <button wire:click="setQuickSearch('mais_compras')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $sortBy === 'most_sales' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 ring-2 ring-emerald-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-emerald-100 hover:border-emerald-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-emerald-900/50 dark:hover:border-emerald-700">Mais Compras</button>
+                            <button wire:click="setQuickSearch('inativos')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $statusFilter === 'inativo' ? 'bg-red-100 text-red-800 border-red-300 ring-2 ring-red-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-red-100 hover:border-red-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-red-900/50 dark:hover:border-red-700">Inativos</button>
+                        </div>
 
-    <!-- Efeito de brilho -->
-    <div
-        class="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none">
-    </div>
-</div>
-</div>
-</div>
-
-
-<!-- Lado Direito: Informações + Paginação + Controles (50%) -->
-<div class="flex items-center gap-4">
-
-    <!-- Contador de Resultados -->
-    <div class="flex items-center gap-2">
-        <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
-            <i class="bi bi-people text-base"></i>
-        </div>
-        <div>
-            <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">
-                @if ($clients->total())
-                    {{ $clients->total() }} {{ $clients->total() === 1 ? 'Cliente' : 'Clientes' }}
-                @else
-                    Nenhum cliente
-                @endif
-            </h3>
-            @if ($clients->total() > 0)
-                <p class="text-xs text-slate-600 dark:text-slate-400">
-                    {{ $clients->firstItem() ?? 0 }} - {{ $clients->lastItem() ?? 0 }}
-                </p>
-            @endif
-        </div>
-    </div>
-
-    <!-- Paginação Compacta -->
-    @if ($clients->hasPages())
-        <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-            <!-- Primeira/Anterior -->
-            @if ($clients->currentPage() > 1)
-                <a href="{{ $clients->url(1) }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
-                    title="Primeira página">
-                    <i class="bi bi-chevron-double-left text-sm"></i>
-                </a>
-            @endif
-
-            @if ($clients->previousPageUrl())
-                <a href="{{ $clients->previousPageUrl() }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
-                    title="Página anterior">
-                    <i class="bi bi-chevron-left text-sm"></i>
-                </a>
-            @endif
-
-            <!-- Páginas -->
-            <div class="flex items-center px-3 py-1">
-                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {{ $clients->currentPage() }} / {{ $clients->lastPage() }}
-                </span>
+                        <!-- Ordenação e Stats -->
+                        <div class="flex items-center gap-3">
+                             <div class="flex items-center gap-2 px-3 py-1.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50">
+                                <span class="text-sm font-semibold text-slate-800 dark:text-slate-300">
+                                    Por {{ match ($sortBy ?? 'name') { 'created_at' => 'Data', 'name' => 'Nome', 'email' => 'Email', 'status' => 'Status', 'phone' => 'Telefone', 'most_sales' => 'Compras', default => 'Nome' } }}
+                                </span>
+                                <button wire:click="toggleSort('{{$sortBy}}')">
+                                    <i class="bi bi-{{ ($sortDirection ?? 'asc') === 'asc' ? 'arrow-up' : 'arrow-down' }}"></i>
+                                </button>
+                            </div>
+                            <div class="hidden lg:flex items-center gap-4 text-sm">
+                                <div class="flex items-center gap-1 text-green-600 dark:text-green-400">
+                                    <i class="bi bi-person-check"></i>
+                                    <span>{{ $clients->where('status', 'ativo')->count() }} Ativos</span>
+                                </div>
+                                <div class="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                                    <i class="bi bi-star"></i>
+                                    <span>{{ $clients->where('type', 'premium')->count() }} Premium</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            <!-- Próxima/Última -->
-            @if ($clients->nextPageUrl())
-                <a href="{{ $clients->nextPageUrl() }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
-                    title="Próxima página">
-                    <i class="bi bi-chevron-right text-sm"></i>
-                </a>
-            @endif
-
-            @if ($clients->currentPage() < $clients->lastPage())
-                <a href="{{ $clients->url($clients->lastPage()) }}"
-                    class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
-                    title="Última página">
-                    <i class="bi bi-chevron-double-right text-sm"></i>
-                </a>
-            @endif
-        </div>
-    @endif
-
-    <!-- Botão de Filtros -->
-    <button @click="showFilters = !showFilters"
-        class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-all duration-200"
-        :class="{ 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300': showFilters }"
-        title="Filtros avançados">
-        <i class="bi bi-funnel text-lg"></i>
-    </button>
-</div>
-</div>
-
-<!-- Linha Secundária: Pesquisas rápidas e indicadores -->
-<div class="mt-4 flex items-center justify-between">
-    <!-- Pesquisas Rápidas -->
-    <div class="flex flex-wrap gap-2">
-        <span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Pesquisas Rápidas:</span>
-
-        <button wire:click="setQuickSearch('ativo')"
-            class="group px-3 py-1 bg-green-100 hover:bg-green-200 dark:bg-green-900/30 dark:hover:bg-green-900/50
-                                   text-green-700 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300
-                                   text-xs font-medium rounded-lg transition-all duration-200 border border-green-200 dark:border-green-700">
-            <i class="bi bi-person-check mr-1"></i>
-            Ativos
-        </button>
-
-        <button wire:click="setQuickSearch('premium')"
-            class="group px-3 py-1 bg-purple-100 hover:bg-purple-200 dark:bg-purple-900/30 dark:hover:bg-purple-900/50
-                                   text-purple-700 hover:text-purple-800 dark:text-purple-400 dark:hover:text-purple-300
-                                   text-xs font-medium rounded-lg transition-all duration-200 border border-purple-200 dark:border-purple-700">
-            <i class="bi bi-star mr-1"></i>
-            Premium
-        </button>
-
-        <button wire:click="setQuickSearch('recente')"
-            class="group px-3 py-1 bg-blue-100 hover:bg-blue-200 dark:bg-blue-900/30 dark:hover:bg-blue-900/50
-                                   text-blue-700 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300
-                                   text-xs font-medium rounded-lg transition-all duration-200 border border-blue-200 dark:border-blue-700">
-            <i class="bi bi-clock mr-1"></i>
-            Recentes
-        </button>
-
-        <button wire:click="setQuickSearch('mais_compras')"
-            class="group px-3 py-1 bg-emerald-100 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:hover:bg-emerald-900/50
-                                   text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 dark:hover:text-emerald-300
-                                   text-xs font-medium rounded-lg transition-all duration-200 border border-emerald-200 dark:border-emerald-700">
-            <i class="bi bi-graph-up mr-1"></i>
-            Mais Compras
-        </button>
-
-        <button wire:click="setQuickSearch('inativos')"
-            class="group px-3 py-1 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50
-                                   text-red-700 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300
-                                   text-xs font-medium rounded-lg transition-all duration-200 border border-red-200 dark:border-red-700">
-            <i class="bi bi-person-x mr-1"></i>
-            Inativos
-        </button>
-    </div>
-
-    <!-- Indicadores de Status e Ordenação -->
-    <div class="flex items-center gap-3">
-        <!-- Indicador de Ordenação Atual -->
-        <div
-            class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-200 dark:border-indigo-700">
-            <i class="bi bi-arrow-up-down text-indigo-600 dark:text-indigo-400 text-sm"></i>
-            <span class="text-sm font-semibold text-indigo-800 dark:text-indigo-300">
-                {{ match ($sortBy ?? 'name') {
-                    'created_at' => 'Por Data',
-                    'name' => 'Por Nome',
-                    'email' => 'Por Email',
-                    'status' => 'Por Status',
-                    'phone' => 'Por Telefone',
-                    default => 'Por Nome',
-                } }}
-                <i class="bi bi-{{ ($sortDirection ?? 'asc') === 'asc' ? 'arrow-up' : 'arrow-down' }} ml-1"></i>
-            </span>
-        </div>
-
-        @if ($search || ($statusFilter ?? false) || ($clientFilter ?? false) || ($startDate ?? false) || ($endDate ?? false))
-            <div
-                class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-200 dark:border-blue-700">
-                <i class="bi bi-funnel-fill text-blue-600 dark:text-blue-400 text-sm"></i>
-                <span class="text-sm font-semibold text-blue-800 dark:text-blue-300">Filtros Ativos</span>
-            </div>
-        @endif
-
-        <!-- Quick Stats -->
-        <div class="hidden lg:flex items-center gap-4 text-sm">
-            <div class="flex items-center gap-1 text-green-600 dark:text-green-400">
-                <i class="bi bi-person-check"></i>
-                <span>{{ $clients->where('status', 'ativo')->count() }} Ativos</span>
-            </div>
-            <div class="flex items-center gap-1 text-purple-600 dark:text-purple-400">
-                <i class="bi bi-star"></i>
-                <span>{{ $clients->where('type', 'premium')->count() }} Premium</span>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
+        </x-clients-index-header>
 
 <!-- Filtros Avançados (usando showFilters do Alpine.js) -->
-    </x-clients-index-header>
 <div x-show="showFilters" x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="opacity-0 transform -translate-y-4"
     x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200"
