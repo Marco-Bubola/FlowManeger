@@ -22,9 +22,9 @@
     <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
 
     <div class="relative px-8 py-6">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+        <div class="flex flex-col lg:flex-row justify-between items-center gap-6">
             <!-- Título e Estatísticas -->
-            <div class="flex items-center gap-6">
+            <div class="flex-shrink-0 flex items-center gap-6">
                 @if($backRoute)
                 <!-- Botão voltar melhorado -->
                 <a href="{{ $backRoute }}"
@@ -74,43 +74,27 @@
                 </div>
             </div>
 
-            @if($showQuickActions && !$showSteps)
-            <div class="mt-6 flex items-start gap-6 justify-between">
-                <!-- Controles vindos da view (slot) -->
-                <div class="flex-1">
-                    @if(trim(str_replace(['\n','\r',' '], '', $slot)) !== '')
-                        <div class="bg-white/60 dark:bg-slate-800/60 rounded-2xl p-3 shadow-sm border border-white/10">
-                            {{ $slot }}
-                        </div>
-                    @endif
-                </div>
+            <!-- Controles e Ação Principal (Direita) -->
+            <div class="flex-1 flex items-center justify-end gap-4">
+                 @if(trim(str_replace(['\n','\r',' '], '', $slot)) !== '')
+                    <div class="flex-1">
+                        {{ $slot }}
+                    </div>
+                @endif
 
-                <!-- Ações Rápidas alinhadas à direita -->
-                <div class="flex-shrink-0 flex flex-col items-end gap-3">
+                @if($showQuickActions && !$showSteps)
+                <div class="flex-shrink-0">
                     <a href="{{ route('clients.create') }}"
-                       class="group relative inline-flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/40 transform hover:scale-105">
+                       class="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/40 transform hover:scale-105">
                         <i class="bi bi-plus-circle text-xl group-hover:rotate-90 transition-transform duration-300"></i>
                         <div class="flex flex-col items-start">
                             <span class="text-sm font-bold">Novo Cliente</span>
                             <span class="text-xs opacity-90">Cadastrar cliente</span>
                         </div>
                     </a>
-
-                    <div class="flex items-center gap-2">
-                        <button wire:click="exportClients"
-                                class="group p-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                title="Exportar clientes">
-                            <i class="bi bi-download group-hover:scale-110 transition-transform duration-200"></i>
-                        </button>
-                        <button wire:click="$refresh"
-                                class="group p-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
-                                title="Atualizar lista">
-                            <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
-                        </button>
-                    </div>
                 </div>
+                @endif
             </div>
-            @endif
         </div>
     </div>
 </div>
