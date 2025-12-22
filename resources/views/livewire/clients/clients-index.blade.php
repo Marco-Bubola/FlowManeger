@@ -9,7 +9,7 @@
 
         <!-- Header Moderno -->
         <x-clients-index-header title="Clientes" :total-clients="$clients->total() ?? 0" :active-clients="$clients->where('status', 'ativo')->count() ?? 0" :premium-clients="$clients->where('type', 'premium')->count() ?? 0" :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
-            :show-quick-actions="true" />
+            :show-quick-actions="true">
 
         <!-- Barra de Controle Superior com Pesquisa e Paginação -->
         <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
@@ -234,6 +234,7 @@
 </div>
 
 <!-- Filtros Avançados (usando showFilters do Alpine.js) -->
+    </x-clients-index-header>
 <div x-show="showFilters" x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="opacity-0 transform -translate-y-4"
     x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200"
