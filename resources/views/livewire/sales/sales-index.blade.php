@@ -7,6 +7,7 @@
     showFilters: false,
     fullHd: false,
     ultra: false,
+    showDeleteModal: @entangle('showDeleteModal').live,
     initResponsiveWatcher() {
         const mq = window.matchMedia('(min-width: 1850px)');
         const mqUltra = window.matchMedia('(min-width: 2400px)');
@@ -83,7 +84,7 @@
             data-full-hd="{{ $fullHdLayout ? 'true' : 'false' }}" x-bind:data-ultrawind="ultra ? 'true' : 'false'"
             x-bind:data-full-hd="fullHd ? 'true' : 'false'">
             @forelse($sales as $sale)
-                <x-sale-card :sale="$sale" />
+                <x-sale-card :sale="$sale" wire:delete-action="openDeleteModal" />
             @empty
                 <!-- Estado Vazio -->
                 <div class="col-span-full">
@@ -195,14 +196,17 @@
         @endif
         <!-- Componente de Exportação de Venda (modal) -->
         @livewire('sales.export-sale-modal')
-    </div>
 
-    <!-- Modal de Confirmação de Exclusão -->
-    @if ($showDeleteModal ?? false)
+        <!-- Modal de Confirmação de Exclusão -->
         <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
-            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" wire:click="cancelDelete"
+            x-show="showDeleteModal"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0"
+            x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200"
+            x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0"
+            wire:click="cancelDelete"
             aria-labelledby="modal-title" role="dialog" aria-modal="true">
             <div class="relative p-4 w-full max-w-lg max-h-full transform transition-all duration-300 scale-100"
                 x-transition:enter="transition ease-out duration-300 delay-75"
@@ -311,5 +315,4 @@
                 </div>
             </div>
         </div>
-    @endif
-</div>
+    </div>
