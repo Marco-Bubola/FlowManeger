@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: false }" class=" w-full ">
+<div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class=" w-full ">
     <style>
         [x-cloak] {
             display: none !important;
@@ -63,6 +63,7 @@
 </div>
 </div>
 
+</div>
 <!-- Lado Direito: Informações + Paginação + Controles (50%) -->
 <div class="flex items-center gap-4">
 
@@ -719,11 +720,13 @@
                                 title="Enviar E-mail">
                                 <i class="bi bi-envelope"></i>
                             </a>
+                            @if($client->sales->count() == 0)
                             <button wire:click="confirmDelete({{ $client->id }})"
                                 class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-700 transition-all duration-200"
                                 title="Excluir Cliente">
                                 <i class="bi bi-trash"></i>
                             </button>
+                            @endif
                         </div>
 
                         <!-- Ações rápidas -->
@@ -750,8 +753,8 @@
 </div>
 
 <!-- Modal de Confirmação de Exclusão -->
-@if ($showDeleteModal ?? false)
     <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
+        x-show="showDeleteModal"
         x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0"
         x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200"
         x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" wire:click="cancelDelete">
@@ -782,7 +785,7 @@
                         </h3>
                     </div>
                     <button type="button" wire:click="cancelDelete"
-                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100/50 hover:bg-slate-200/70 dark:bg-slate-700/50 dark:hover:bg-slate-600/70 rounded-xl text-sm w-10 h-10 flex justify-center items-center transition-all duration-200 backdrop-blur-sm"
+                        class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100/50 hover:bg-slate-200/70 dark:bg-slate-700/50 dark:hover:bg-slate-600/70 rounded-xl text-sm w-10 h-10 flex justify-center items-center transition-all duration-200"
                         title="Fechar">
                         <i class="bi bi-x-lg text-lg"></i>
                     </button>
@@ -860,221 +863,220 @@
             </div>
         </div>
     </div>
-@endif
 
-<!-- Notificações Toast -->
-@if (session()->has('message'))
-    <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show"
-        x-transition:enter="transform ease-out duration-300 transition"
-        x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0">
-        <div
-            class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-green-400 backdrop-blur-sm">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <i class="bi bi-check-circle text-xl"></i>
-                </div>
-                <div class="ml-3 flex-1">
-                    <p class="text-sm font-medium">{{ session('message') }}</p>
-                </div>
-                <div class="ml-4">
-                    <button @click="show = false"
-                        class="text-green-200 hover:text-white transition-colors duration-200">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-@endif
-
-@if (session()->has('error'))
-    <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show"
-        x-transition:enter="transform ease-out duration-300 transition"
-        x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
-        x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-        x-transition:leave-end="opacity-0">
-        <div
-            class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-red-400 backdrop-blur-sm">
-            <div class="flex items-center">
-                <div class="flex-shrink-0">
-                    <i class="bi bi-exclamation-triangle text-xl"></i>
-                </div>
-                <div class="ml-3 flex-1">
-                    <p class="text-sm font-medium">{{ session('error') }}</p>
-                </div>
-                <div class="ml-4">
-                    <button @click="show = false"
-                        class="text-red-200 hover:text-white transition-colors duration-200">
-                        <i class="bi bi-x-lg"></i>
-                    </button>
+    <!-- Notificações Toast -->
+    @if (session()->has('message'))
+        <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show"
+            x-transition:enter="transform ease-out duration-300 transition"
+            x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0">
+            <div
+                class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-green-400 backdrop-blur-sm">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-check-circle text-xl"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium">{{ session('message') }}</p>
+                    </div>
+                    <div class="ml-4">
+                        <button @click="show = false"
+                            class="text-green-200 hover:text-white transition-colors duration-200">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-@endif
+    @endif
 
-<!-- Modal de Importação -->
-<div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"
-    style="display: none;">
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
-                <i class="bi bi-upload text-green-500 mr-2"></i>
-                Importar Clientes
-            </h3>
-            <button onclick="document.getElementById('importModal').style.display='none'"
-                class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
-                <i class="bi bi-x-lg text-xl"></i>
-            </button>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Selecione o arquivo CSV
-                </label>
-                <input type="file" accept=".csv"
-                    class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
-            </div>
-
-            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
-                <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Formato do arquivo:</h4>
-                <p class="text-xs text-blue-700 dark:text-blue-400">
-                    O arquivo deve conter as colunas: nome, email, telefone, endereço, cidade
-                </p>
-            </div>
-        </div>
-
-        <div class="flex gap-3 mt-6">
-            <button onclick="document.getElementById('importModal').style.display='none'"
-                class="flex-1 px-4 py-2 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
-                Cancelar
-            </button>
-            <button class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
-                Importar
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Navegação de Paginação no Final da Página -->
-@if ($clients->hasPages())
-    <div
-        class="mt-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
-        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <!-- Informações da Paginação -->
-            <div class="flex items-center gap-3">
-                <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
-                    <i class="bi bi-people text-lg"></i>
+    @if (session()->has('error'))
+        <div class="fixed top-4 right-4 z-50 max-w-sm w-full" x-data="{ show: true }" x-show="show"
+            x-transition:enter="transform ease-out duration-300 transition"
+            x-transition:enter-start="translate-x-full opacity-0" x-transition:enter-end="translate-x-0 opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0">
+            <div
+                class="bg-gradient-to-r from-red-500 to-red-600 text-white px-6 py-4 rounded-xl shadow-2xl border border-red-400 backdrop-blur-sm">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-exclamation-triangle text-xl"></i>
+                    </div>
+                    <div class="ml-3 flex-1">
+                        <p class="text-sm font-medium">{{ session('error') }}</p>
+                    </div>
+                    <div class="ml-4">
+                        <button @click="show = false"
+                            class="text-red-200 hover:text-white transition-colors duration-200">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
                 </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Importação -->
+    <div id="importModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4"
+        style="display: none;">
+        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center">
+                    <i class="bi bi-upload text-green-500 mr-2"></i>
+                    Importar Clientes
+                </h3>
+                <button onclick="document.getElementById('importModal').style.display='none'"
+                    class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300">
+                    <i class="bi bi-x-lg text-xl"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
                 <div>
-                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">
-                        Página {{ $clients->currentPage() }} de {{ $clients->lastPage() }}
-                    </h3>
-                    <p class="text-sm text-slate-600 dark:text-slate-400">
-                        Mostrando {{ $clients->firstItem() ?? 0 }} - {{ $clients->lastItem() ?? 0 }} de
-                        {{ $clients->total() }} {{ $clients->total() === 1 ? 'cliente' : 'clientes' }}
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Selecione o arquivo CSV
+                    </label>
+                    <input type="file" accept=".csv"
+                        class="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100">
+                </div>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                    <h4 class="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">Formato do arquivo:</h4>
+                    <p class="text-xs text-blue-700 dark:text-blue-400">
+                        O arquivo deve conter as colunas: nome, email, telefone, endereço, cidade
                     </p>
                 </div>
             </div>
 
-            <!-- Controles de Navegação -->
-            <div class="flex items-center gap-2">
-                <!-- Primeira Página -->
-                @if ($clients->currentPage() > 1)
-                    <a href="{{ $clients->url(1) }}"
-                        class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-indigo-500 hover:to-purple-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-indigo-500 dark:hover:to-purple-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        title="Primeira página">
-                        <i
-                            class="bi bi-chevron-double-left text-lg group-hover:scale-110 transition-transform duration-200"></i>
-                    </a>
-                @else
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
-                        <i class="bi bi-chevron-double-left text-lg"></i>
-                    </div>
-                @endif
-
-                <!-- Página Anterior -->
-                @if ($clients->previousPageUrl())
-                    <a href="{{ $clients->previousPageUrl() }}"
-                        class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-blue-500 hover:to-indigo-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        title="Página anterior">
-                        <i
-                            class="bi bi-chevron-left text-lg group-hover:scale-110 transition-transform duration-200"></i>
-                    </a>
-                @else
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
-                        <i class="bi bi-chevron-left text-lg"></i>
-                    </div>
-                @endif
-
-                <!-- Páginas Numeradas -->
-                <div
-                    class="hidden sm:flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
-                    @php
-                        $start = max(1, $clients->currentPage() - 2);
-                        $end = min($clients->lastPage(), $clients->currentPage() + 2);
-                    @endphp
-
-                    @for ($i = $start; $i <= $end; $i++)
-                        @if ($i == $clients->currentPage())
-                            <div
-                                class="px-3 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg">
-                                {{ $i }}
-                            </div>
-                        @else
-                            <a href="{{ $clients->url($i) }}"
-                                class="px-3 py-1 text-slate-600 hover:text-purple-600 dark:text-slate-300 dark:hover:text-purple-400 hover:bg-white/50 dark:hover:bg-slate-700/50 rounded-lg transition-all duration-200">
-                                {{ $i }}
-                            </a>
-                        @endif
-                    @endfor
-                </div>
-
-                <!-- Próxima Página -->
-                @if ($clients->nextPageUrl())
-                    <a href="{{ $clients->nextPageUrl() }}"
-                        class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-blue-500 hover:to-indigo-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        title="Próxima página">
-                        <i
-                            class="bi bi-chevron-right text-lg group-hover:scale-110 transition-transform duration-200"></i>
-                    </a>
-                @else
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
-                        <i class="bi bi-chevron-right text-lg"></i>
-                    </div>
-                @endif
-
-                <!-- Última Página -->
-                @if ($clients->currentPage() < $clients->lastPage())
-                    <a href="{{ $clients->url($clients->lastPage()) }}"
-                        class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-indigo-500 hover:to-purple-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-indigo-500 dark:hover:to-purple-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
-                        title="Última página">
-                        <i
-                            class="bi bi-chevron-double-right text-lg group-hover:scale-110 transition-transform duration-200"></i>
-                    </a>
-                @else
-                    <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
-                        <i class="bi bi-chevron-double-right text-lg"></i>
-                    </div>
-                @endif
-            </div>
-
-            <!-- Seletor de Itens por Página -->
-            <div class="flex items-center gap-3">
-                <label class="text-sm font-medium text-slate-600 dark:text-slate-400">Por página:</label>
-                <select wire:model.live="perPage"
-                    class="px-3 py-2 bg-gradient-to-r from-white to-slate-50 dark:from-slate-700 dark:to-slate-600 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
-                    <option value="12">12</option>
-                    <option value="24">24</option>
-                    <option value="36">36</option>
-                    <option value="48">48</option>
-                </select>
+            <div class="flex gap-3 mt-6">
+                <button onclick="document.getElementById('importModal').style.display='none'"
+                    class="flex-1 px-4 py-2 text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">
+                    Cancelar
+                </button>
+                <button class="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                    Importar
+                </button>
             </div>
         </div>
     </div>
-@endif
+
+    <!-- Navegação de Paginação no Final da Página -->
+    @if ($clients->hasPages())
+        <div
+            class="mt-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+                <!-- Informações da Paginação -->
+                <div class="flex items-center gap-3">
+                    <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
+                        <i class="bi bi-people text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">
+                            Página {{ $clients->currentPage() }} de {{ $clients->lastPage() }}
+                        </h3>
+                        <p class="text-sm text-slate-600 dark:text-slate-400">
+                            Mostrando {{ $clients->firstItem() ?? 0 }} - {{ $clients->lastItem() ?? 0 }} de
+                            {{ $clients->total() }} {{ $clients->total() === 1 ? 'cliente' : 'clientes' }}
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Controles de Navegação -->
+                <div class="flex items-center gap-2">
+                    <!-- Primeira Página -->
+                    @if ($clients->currentPage() > 1)
+                        <a href="{{ $clients->url(1) }}"
+                            class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-indigo-500 hover:to-purple-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-indigo-500 dark:hover:to-purple-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                            title="Primeira página">
+                            <i
+                                class="bi bi-chevron-double-left text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                        </a>
+                    @else
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                            <i class="bi bi-chevron-double-left text-lg"></i>
+                        </div>
+                    @endif
+
+                    <!-- Página Anterior -->
+                    @if ($clients->previousPageUrl())
+                        <a href="{{ $clients->previousPageUrl() }}"
+                            class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-blue-500 hover:to-indigo-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                            title="Página anterior">
+                            <i
+                                class="bi bi-chevron-left text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                        </a>
+                    @else
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                            <i class="bi bi-chevron-left text-lg"></i>
+                        </div>
+                    @endif
+
+                    <!-- Páginas Numeradas -->
+                    <div
+                        class="hidden sm:flex items-center gap-1 px-4 py-2 bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-xl border border-purple-200 dark:border-purple-700">
+                        @php
+                            $start = max(1, $clients->currentPage() - 2);
+                            $end = min($clients->lastPage(), $clients->currentPage() + 2);
+                        @endphp
+
+                        @for ($i = $start; $i <= $end; $i++)
+                            @if ($i == $clients->currentPage())
+                                <div
+                                    class="px-3 py-1 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold rounded-lg shadow-lg">
+                                    {{ $i }}
+                                </div>
+                            @else
+                                <a href="{{ $clients->url($i) }}"
+                                    class="px-3 py-1 text-slate-600 hover:text-purple-600 dark:text-slate-300 dark:hover:text-purple-400 hover:bg-white/50 dark:hover:bg-slate-700/50 rounded-lg transition-all duration-200">
+                                    {{ $i }}
+                                </a>
+                            @endif
+                        @endfor
+                    </div>
+
+                    <!-- Próxima Página -->
+                    @if ($clients->nextPageUrl())
+                        <a href="{{ $clients->nextPageUrl() }}"
+                            class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-blue-500 hover:to-indigo-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-blue-500 dark:hover:to-indigo-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                            title="Próxima página">
+                            <i
+                                class="bi bi-chevron-right text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                        </a>
+                    @else
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                            <i class="bi bi-chevron-right text-lg"></i>
+                        </div>
+                    @endif
+
+                    <!-- Última Página -->
+                    @if ($clients->currentPage() < $clients->lastPage())
+                        <a href="{{ $clients->url($clients->lastPage()) }}"
+                            class="group p-3 bg-gradient-to-r from-slate-100 to-slate-200 hover:from-indigo-500 hover:to-purple-600 dark:from-slate-700 dark:to-slate-600 dark:hover:from-indigo-500 dark:hover:to-purple-600 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                            title="Última página">
+                            <i
+                                class="bi bi-chevron-double-right text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                        </a>
+                    @else
+                        <div class="p-3 bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600 rounded-xl">
+                            <i class="bi bi-chevron-double-right text-lg"></i>
+                        </div>
+                    @endif
+                </div>
+
+                <!-- Seletor de Itens por Página -->
+                <div class="flex items-center gap-3">
+                    <label class="text-sm font-medium text-slate-600 dark:text-slate-400">Por página:</label>
+                    <select wire:model.live="perPage"
+                        class="px-3 py-2 bg-gradient-to-r from-white to-slate-50 dark:from-slate-700 dark:to-slate-600 border border-slate-200 dark:border-slate-600 rounded-lg text-slate-700 dark:text-slate-300 font-medium focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200">
+                        <option value="12">12</option>
+                        <option value="24">24</option>
+                        <option value="36">36</option>
+                        <option value="48">48</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 
