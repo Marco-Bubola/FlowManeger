@@ -1,144 +1,184 @@
-[2025-12-16 13:14:03] [INFO] ============================================================
-[2025-12-16 13:14:03] [INFO] FlowManeger start script
-[2025-12-16 13:14:03] [INFO] cwd: C:\projetos\FlowManeger
-[2025-12-16 13:14:03] [INFO] node: v18.5.0
-[2025-12-16 13:14:03] [INFO] options: nenhuma
-[2025-12-16 13:14:03] [INFO] log file: C:\projetos\FlowManeger\logs\start.log
-[2025-12-16 13:14:03] [INFO] ============================================================
-[2025-12-16 13:14:03] [INFO] 🚀 Modo servidor apenas (padrão) - pulando instalações e migrações
-[2025-12-16 13:14:03] [INFO] 💡 Para executar instalação completa use: --full-setup
-[2025-12-16 13:14:03] [INFO] 
+[2025-12-22 12:34:35] [INFO] ============================================================
+[2025-12-22 12:34:35] [INFO] FlowManeger start script
+[2025-12-22 12:34:35] [INFO] cwd: C:\projetos\FlowManeger
+[2025-12-22 12:34:35] [INFO] node: v18.5.0
+[2025-12-22 12:34:35] [INFO] options: nenhuma
+[2025-12-22 12:34:35] [INFO] log file: C:\projetos\FlowManeger\logs\start.log
+[2025-12-22 12:34:35] [INFO] ============================================================
+[2025-12-22 12:34:35] [INFO] 🚀 Modo servidor apenas (padrão) - pulando instalações e migrações
+[2025-12-22 12:34:35] [INFO] 💡 Para executar instalação completa use: --full-setup
+[2025-12-22 12:34:35] [INFO] 
 === FASE 1: Pulando instalação de dependências (modo servidor apenas) ===
-[2025-12-16 13:14:03] [INFO] 
+[2025-12-22 12:34:35] [INFO] 
 === FASE 2: Iniciando servidores ===
-[2025-12-16 13:14:03] [INFO] 
+[2025-12-22 12:34:35] [INFO] 
 -> Iniciando em background: npm run dev
-[2025-12-16 13:14:03] [INFO] ✓ Vite iniciado (PID: 17560)
-[2025-12-16 13:14:03] [INFO] Aguardando Vite inicializar...
-[2025-12-16 13:14:05] [Vite] 
+[2025-12-22 12:34:35] [INFO] ✓ Vite iniciado (PID: 18032)
+[2025-12-22 12:34:35] [INFO] Aguardando Vite inicializar...
+[2025-12-22 12:34:37] [Vite] 
 > dev
 > vite
 
-[2025-12-16 13:14:06] [INFO] 
+[2025-12-22 12:34:38] [INFO] 
 -> Iniciando em background: php artisan serve
-[2025-12-16 13:14:06] [INFO] ✓ Laravel Server iniciado (PID: 18828)
-[2025-12-16 13:14:06] [INFO] 
+[2025-12-22 12:34:38] [INFO] ✓ Laravel Server iniciado (PID: 13944)
+[2025-12-22 12:34:38] [INFO] 
 === FASE 3: Aguardando servidor ===
-[2025-12-16 13:14:06] [INFO] 
+[2025-12-22 12:34:38] [INFO] 
 Aguardando servidor estar pronto em http://127.0.0.1:8000...
-[2025-12-16 13:14:06] [INFO] ⏳ Tentativa 1/30: aguardando servidor... (ECONNREFUSED)
-[2025-12-16 13:14:07] [Vite] 
-  [32m[1mVITE[22m v6.4.1[39m  [2mready in [0m[1m2219[22m[2m[0m ms[22m
+[2025-12-22 12:34:38] [INFO] ⏳ Tentativa 1/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:34:41] [Vite] 
+  [32m[1mVITE[22m v6.4.1[39m  [2mready in [0m[1m4177[22m[2m[0m ms[22m
 
-[2025-12-16 13:14:07] [Vite]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2025-12-22 12:34:41] [Vite]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
 [2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
-[2025-12-16 13:14:07] [Vite] 
+[2025-12-22 12:34:41] [Vite] 
   [31m[1mLARAVEL[22m v12.19.3[39m  [2mplugin[22m [1mv1.2.0[22m
-[2025-12-16 13:14:07] [Vite] 
+[2025-12-22 12:34:41] [Vite] 
   [32m➜[39m  [1mAPP_URL[22m: [36mhttp://localhost:[1m8000[22m[39m
-[2025-12-16 13:14:10] [INFO] ⏳ Tentativa 5/30: aguardando servidor... (ECONNREFUSED)
-[2025-12-16 13:14:15] [INFO] ⏳ Tentativa 10/30: aguardando servidor... (ECONNREFUSED)
-[2025-12-16 13:14:20] [INFO] ⏳ Tentativa 15/30: aguardando servidor... (ECONNREFUSED)
-[2025-12-16 13:14:25] [INFO] ⏳ Tentativa 20/30: aguardando servidor... (ECONNREFUSED)
-[2025-12-16 13:14:32] [Laravel Server] 
+[2025-12-22 12:34:42] [INFO] ⏳ Tentativa 5/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:34:47] [INFO] ⏳ Tentativa 10/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:34:52] [INFO] ⏳ Tentativa 15/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:34:58] [INFO] ⏳ Tentativa 20/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:35:03] [INFO] ⏳ Tentativa 25/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:35:08] [INFO] ⏳ Tentativa 30/30: aguardando servidor... (ECONNREFUSED)
+[2025-12-22 12:35:08] [ERROR] Servidor não ficou pronto após 30 tentativas (30s)
+[2025-12-22 12:35:08] [ERROR] 
+✗ ERRO: Servidor não ficou pronto após 30 tentativas (30s)
+[2025-12-22 12:35:08] [ERROR] 
+Possíveis causas:
+[2025-12-22 12:35:08] [ERROR] - PHP não está instalado ou não está no PATH
+[2025-12-22 12:35:08] [ERROR] - Porta 8000 já está em uso
+[2025-12-22 12:35:09] [ERROR] - Erro no Laravel (verifique .env e configurações)
+[2025-12-22 12:35:09] [ERROR] 
+Verifique o log completo em: C:\projetos\FlowManeger\logs\start.log
+[2025-12-22 12:35:09] [INFO] 
+============================================================
+[2025-12-22 12:35:09] [ERROR] ERRO DETECTADO! Verifique o log em: logs/start.log
+[2025-12-22 12:35:09] [INFO] Pressione qualquer tecla para fechar esta janela...
+[2025-12-22 12:35:09] [INFO] ============================================================
+[2025-12-22 12:35:09] [WARN] ⚠ Vite encerrado com sinal SIGTERM
+[2025-12-22 12:35:09] [WARN] ⚠ Laravel Server encerrado com sinal SIGTERM
+[2025-12-22 12:35:38] [Laravel Server] 
    INFO  Server running on [http://127.0.0.1:8000].  
 
-[2025-12-16 13:14:32] [Laravel Server]   Press Ctrl+C to stop the server
+[2025-12-22 12:35:38] [Laravel Server]   Press Ctrl+C to stop the server
 
-[2025-12-16 13:14:34] [INFO] ✓ Servidor pronto! (tentativa 25)
-[2025-12-16 13:14:34] [INFO] 
-=== FASE 4: Abrindo navegador ===
-[2025-12-16 13:14:34] [INFO] 
--> Abrindo navegador: http://127.0.0.1:8000
-[2025-12-16 13:14:34] [INFO] ============================================================
-[2025-12-16 13:14:34] [INFO] ✓ Projeto iniciado com sucesso!
-[2025-12-16 13:14:34] [INFO] ✓ Laravel: http://127.0.0.1:8000
-[2025-12-16 13:14:34] [INFO] ✓ Vite: http://localhost:5173
-[2025-12-16 13:14:34] [INFO] 
-📝 Log completo: C:\projetos\FlowManeger\logs\start.log
-[2025-12-16 13:14:34] [INFO] 
-⚠ IMPORTANTE: Mantenha esta janela aberta!
-[2025-12-16 13:14:34] [INFO]    Os servidores estão rodando nesta janela.
-[2025-12-16 13:14:34] [INFO]    Pressione Ctrl+C para encerrar os servidores.
-[2025-12-16 13:14:34] [INFO] ============================================================
-[2025-12-16 13:14:34] [INFO] ✓ Chrome aberto com sucesso
-[2025-12-16 13:14:34] [Laravel Server]   2025-12-16 10:14:30[2025-12-16 13:14:34] [Laravel Server]  /[2025-12-16 13:14:34] [Laravel Server]  ........................................................................................[2025-12-16 13:14:34] [Laravel Server]  ~ 2s
-[2025-12-16 13:14:35] [Laravel Server]   2025-12-16 10:14:34[2025-12-16 13:14:35] [Laravel Server]  / ........................................................................................ ~ 1s
-[2025-12-16 13:14:36] [Laravel Server]   2025-12-16 10:14:34[2025-12-16 13:14:36] [Laravel Server]  /favicon.svg ............................................................................. ~ 1s
-  2025-12-16 10:14:36 /favicon.ico ......................................................................... ~ 0.04ms
-[2025-12-16 13:14:50] [Laravel Server]   2025-12-16 10:14:46[2025-12-16 13:14:50] [Laravel Server]  /dashboard ............................................................................... ~ 3s
-  2025-12-16 10:14:46 /assets/css/flow-theme.css ............................................................... ~ 3s
-  2025-12-16 10:14:50 /assets/img/banks/nubank.svg .........................................................[2025-12-16 13:14:50] [Laravel Server]  ~ 1.00ms
-  2025-12-16 10:14:50 /assets/img/banks/inter.png .......................................................... ~ 3.82ms
-[2025-12-16 13:14:50] [Laravel Server]   2025-12-16 10:14:50[2025-12-16 13:14:50] [Laravel Server]  /assets/css/icon-category.css ........................................................ ~ 0.21ms
-[2025-12-16 13:14:51] [Laravel Server]   2025-12-16 10:14:50[2025-12-16 13:14:51] [Laravel Server]  /livewire/livewire.js .............................................................. ~ 514.34ms
-  2025-12-16 10:14:50 /assets/css/icon-overrides.css[2025-12-16 13:14:51] [Laravel Server]  ..................................................... ~ 514.93ms
-  2025-12-16 10:14:50 /flux/flux.js ........................................................................ ~ 0.08ms
-[2025-12-16 13:14:53] [Vite] [2m10:14:53[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\components\clients-filters.blade.php[22m
-[2025-12-16 13:14:53] [Vite] [2m10:14:53[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\components\section-header.blade.php[22m
-[2025-12-16 13:21:10] [Laravel Server]   2025-12-16 10:21:08[2025-12-16 13:21:10] [Laravel Server]  /dashboard/cashbook ...................................................................... ~ 1s
-  2025-12-16 10:21:10 /assets/css/flow-theme.css ........................................................... ~ 0.07ms
-  2025-12-16 10:21:10 /assets/img/banks/inter.png .......................................................... ~ 0.54ms
-  2025-12-16 10:21:10 /assets/img/banks/nubank.svg ......................................................... ~ 1.02ms
-  2025-12-16 10:21:10 /assets/css/icon-category.css ........................................................ ~ 0.04ms
-[2025-12-16 13:21:10] [Laravel Server]   2025-12-16 10:21:10[2025-12-16 13:21:10] [Laravel Server]  /assets/css/icon-overrides.css .......................................................[2025-12-16 13:21:10] [Laravel Server]  ~ 0.07ms
-[2025-12-16 13:21:14] [Laravel Server]   2025-12-16 10:21:12[2025-12-16 13:21:14] [Laravel Server]  /invoices/8[2025-12-16 13:21:14] [Laravel Server]  .............................................................................. ~ 2s
-  2025-12-16 10:21:14 /assets/css/icon-category.css ........................................................ ~ 0.29ms
-  2025-12-16 10:21:14 /assets/css/icon-overrides.css[2025-12-16 13:21:14] [Laravel Server]  ....................................................... ~ 0.93ms
-[2025-12-16 13:21:17] [Laravel Server]   2025-12-16 10:21:16[2025-12-16 13:21:17] [Laravel Server]  /invoices/8/create .......................................................................[2025-12-16 13:21:17] [Laravel Server]  ~ 1s
-  2025-12-16 10:21:16 /assets/css/flow-theme.css ...............................................................[2025-12-16 13:21:17] [Laravel Server]  ~ 1s
-  2025-12-16 10:21:17 /assets/img/banks/nubank.svg ......................................................... ~ 1.95ms
-[2025-12-16 13:21:17] [Laravel Server]   2025-12-16 10:21:17 /assets/img/banks/inter.png .......................................................... ~ 3.01ms
-  2025-12-16 10:21:17 /assets/css/icon-category.css ........................................................[2025-12-16 13:21:17] [Laravel Server]  ~ 0.08ms
-  2025-12-16 10:21:17 /assets/css/icon-overrides.css ....................................................... ~ 1.44ms
-[2025-12-16 13:21:22] [Laravel Server]   2025-12-16 10:21:21[2025-12-16 13:21:23] [Laravel Server]  /cashbook ................................................................................ ~ 1s
-  2025-12-16 10:21:22 /assets/css/icon-category.css ........................................................ ~ 0.08ms
-  2025-12-16 10:21:22 /assets/css/icon-overrides.css ....................................................... ~ 0.04ms
-[2025-12-16 13:21:25] [Laravel Server]   2025-12-16 10:21:24[2025-12-16 13:21:25] [Laravel Server]  /cashbook/create[2025-12-16 13:21:25] [Laravel Server]  ......................................................................... ~ 1s
-  2025-12-16 10:21:24 /assets/css/flow-theme.css ...............................................................[2025-12-16 13:21:25] [Laravel Server]  ~ 1s
-  2025-12-16 10:21:25 /assets/img/banks/inter.png .......................................................... ~ 1.08ms
-  2025-12-16 10:21:25 /assets/img/banks/nubank.svg[2025-12-16 13:21:25] [Laravel Server]  ......................................................... ~ 2.78ms
-  2025-12-16 10:21:25 /assets/css/icon-category.css[2025-12-16 13:21:25] [Laravel Server]  ........................................................ ~ 0.12ms
-  2025-12-16 10:21:25 /assets/css/icon-overrides.css .......................................................[2025-12-16 13:21:25] [Laravel Server]  ~ 0.95ms
-[2025-12-16 13:21:28] [Laravel Server]   2025-12-16 10:21:26[2025-12-16 13:21:28] [Laravel Server]  /dashboard/sales ......................................................................... ~ 1s
-  2025-12-16 10:21:27 /assets/css/icon-category.css ........................................................[2025-12-16 13:21:28] [Laravel Server]  ~ 0.09ms
-  2025-12-16 10:21:27 /assets/css/icon-overrides.css ....................................................... ~ 0.81ms
-[2025-12-16 13:21:29] [Laravel Server]   2025-12-16 10:21:28 /cashbook[2025-12-16 13:21:29] [Laravel Server]  ..........................................................................[2025-12-16 13:21:29] [Laravel Server]  ~ 506.78ms
-[2025-12-16 13:21:29] [Laravel Server]   2025-12-16 10:21:29[2025-12-16 13:21:29] [Laravel Server]  /assets/css/icon-category.css ........................................................[2025-12-16 13:21:29] [Laravel Server]  ~ 0.91ms
-  2025-12-16 10:21:29 /assets/css/icon-overrides.css[2025-12-16 13:21:29] [Laravel Server]  .......................................................[2025-12-16 13:21:29] [Laravel Server]  ~ 1.64ms
-[2025-12-16 13:21:30] [Laravel Server]   2025-12-16 10:21:29[2025-12-16 13:21:30] [Laravel Server]  /cofrinhos ......................................................................... ~ 579.90ms
-  2025-12-16 10:21:29 /assets/css/flow-theme.css ......................................................... ~ 580.49ms
-  2025-12-16 10:21:30 /assets/img/banks/inter.png .......................................................... ~ 0.06ms
-  2025-12-16 10:21:30 /assets/img/banks/nubank.svg ......................................................... ~ 0.55ms
-  2025-12-16 10:21:30 /assets/css/icon-category.css ........................................................ ~ 0.06ms
-  2025-12-16 10:21:30 /assets/css/icon-overrides.css ....................................................... ~ 0.56ms
-[2025-12-16 13:21:33] [Laravel Server]   2025-12-16 10:21:31[2025-12-16 13:21:33] [Laravel Server]  /products ................................................................................ ~ 2s
-[2025-12-16 13:21:34] [Laravel Server]   2025-12-16 10:21:33[2025-12-16 13:21:34] [Laravel Server]  /livewire/update ......................................................................... ~ 1s
-  2025-12-16 10:21:34 /assets/css/produtos.css ............................................................. ~ 0.10ms
-  2025-12-16 10:21:34 /assets/css/produtos-extra.css ....................................................... ~ 0.70ms
-  2025-12-16 10:21:34 /storage/products/1qyLv8pOBew56at5XkHZsYIaQgtp8cSSeiJBHgBh.webp ...................... ~ 1.16ms
-  2025-12-16 10:21:34 /storage/products/djlmwLGQC1pa4rp2NMoFPpyypKGlnMCTRh6jt3L1.webp ...................... ~ 1.40ms
-  2025-12-16 10:21:34 /storage/products/5bOitbT0THSJScNo682QLvOwqHIEQaJzF0y5xCSi.webp ...................... ~ 1.61ms
-  2025-12-16 10:21:34 /assets/css/icon-category.css ........................................................ ~ 1.35ms
-  2025-12-16 10:21:34 /assets/css/icon-overrides.css ....................................................... ~ 1.35ms
-  2025-12-16 10:21:34 /storage/products/kRBqI7bPl0cFu6XzCo2vODdEj9Djw0FEqlBQg20T.jpg ....................... ~ 1.57ms
-  2025-12-16 10:21:34 /storage/products/j8dLOpTCBRcBP8QKVXsaqOd6RSPQYacbGnfz0xSV.webp ...................... ~ 0.25ms
-  2025-12-16 10:21:34 /storage/products/aQNZHfXKkEOefG7Qh5O13pyq7dPCeak7xwxNjT3y.webp ...................... ~ 0.03ms
-  2025-12-16 10:21:34 /storage/products/jPIQhZwCaFJ6c5btMZLamLLVHpw9QrLmu3kz1Hqz.webp ...................... ~ 0.08ms
-  2025-12-16 10:21:34 /storage/products/AaM6ZzbRa5WMfwvBrBE9njdSoNsa1iEf0iz0ClFD.webp ...................... ~ 0.30ms
-  2025-12-16 10:21:34 /storage/products/TXsdWyghq3U5g263gMYFfpvXsVtw3O9iu38iXT2q.webp ...................... ~ 1.85ms
-  2025-12-16 10:21:34 /storage/products/aXu9m89RpsCtrX40FT3bPvd8RYjLDgaxDbzRBoic.webp ...................... ~ 2.12ms
-  2025-12-16 10:21:34 /storage/products/piQC0DbJlnRhB9z8AZ2S47DzK641ZJoYoEmK9Bjm.jpg ....................... ~ 2.42ms
-  2025-12-16 10:21:34 /storage/products/4mDNXHszhy35aPXLTHxpLMZ1pXmrcIyxlctoA0Ut.jpg ....................... ~ 2.64ms
-  2025-12-16 10:21:34 /storage/products/1KPPprXys4OHhHlIq8T8wzSh43eUOqqFo5WjvJFb.webp ...................... ~ 2.62ms
-  2025-12-16 10:21:34 /storage/products/jSRss15yWirA8GcZzL4yYe1FOCb9rEwnFGYVxoU2.webp ...................... ~ 0.73ms
-  2025-12-16 10:21:34 /storage/products/pvpMFF782PhWty1DaPHv1HMzoX8OH5aJ7DV6f2KY.webp ...................... ~ 0.91ms
-  2025-12-16 10:21:34 /storage/products/5R5cqIvx3VTaQlLwzqm0Nthmk2M652kPtPMXucCW.jpg ....................... ~ 1.10ms
-  2025-12-16 10:21:34 /storage/products/NrKZxhd1wZzimmmSUpWHW1AIKsl1MhZCBWb5V8jt.webp ...................... ~ 0.68ms
-  2025-12-16 10:21:34 /storage/products/GLtaYbZKaPSiWmFt6Rh76L7HvQLyoDJbfzcRpos0.jpg ....................... ~ 0.23ms
-[2025-12-16 13:21:37] [Laravel Server]   2025-12-16 10:21:36[2025-12-16 13:21:37] [Laravel Server]  /products/create ......................................................................... ~ 1s
-  2025-12-16 10:21:36 /assets/css/flow-theme.css[2025-12-16 13:21:37] [Laravel Server]  ............................................................... ~ 1s
-  2025-12-16 10:21:37 /assets/img/banks/nubank.svg ......................................................... ~ 1.21ms
-  2025-12-16 10:21:37 /assets/img/banks/inter.png .......................................................... ~ 1.76ms
-  2025-12-16 10:21:37 /assets/css/icon-category.css ........................................................ ~ 0.03ms
-  2025-12-16 10:21:37 /assets/css/icon-overrides.css ....................................................... ~ 0.03ms
+[2025-12-22 12:37:49] [Laravel Server]   2025-12-22 09:37:46[2025-12-22 12:37:49] [Laravel Server]  /[2025-12-22 12:37:49] [Laravel Server]  ........................................................................................[2025-12-22 12:37:49] [Laravel Server]  ~ 2s
+  2025-12-22 09:37:48 /[2025-12-22 12:37:49] [Laravel Server]  .................................................................................... ~ 0.08ms
+[2025-12-22 12:37:55] [Laravel Server]   2025-12-22 09:37:54[2025-12-22 12:37:55] [Laravel Server]  /login ................................................................................... ~ 1s
+  2025-12-22 09:37:54 /assets/css/flatpickr-custom.css ......................................................... ~ 1s
+[2025-12-22 12:37:56] [Laravel Server]   2025-12-22 09:37:55[2025-12-22 12:37:56] [Laravel Server]  /flux/flux.js ...................................................................... ~ 509.10ms
+[2025-12-22 12:37:56] [Laravel Server]   2025-12-22 09:37:55[2025-12-22 12:37:56] [Laravel Server]  /livewire/livewire.js ....................................................................[2025-12-22 12:37:56] [Laravel Server]  ~ 1s
+  2025-12-22 09:37:55[2025-12-22 12:37:56] [Laravel Server]  /assets/css/flow-theme.css[2025-12-22 12:37:56] [Laravel Server]  ...............................................................[2025-12-22 12:37:56] [Laravel Server]  ~ 1s
+[2025-12-22 12:40:19] [Laravel Server]   2025-12-22 09:40:18[2025-12-22 12:40:19] [Laravel Server]  /livewire/update[2025-12-22 12:40:19] [Laravel Server]  .........................................................................[2025-12-22 12:40:19] [Laravel Server]  ~ 1s
+[2025-12-22 12:40:19] [Laravel Server]   2025-12-22 09:40:19[2025-12-22 12:40:20] [Laravel Server]  /dashboard ......................................................................... ~ 523.60ms
+  2025-12-22 09:40:19 /assets/css/icon-category.css ........................................................ ~ 0.05ms
+  2025-12-22 09:40:19 /assets/css/icon-overrides.css ....................................................... ~ 0.09ms
+  2025-12-22 09:40:19 /assets/img/banks/bb.png ............................................................. ~ 0.85ms
+  2025-12-22 09:40:19 /assets/img/banks/bradesco.png ....................................................... ~ 1.43ms
+  2025-12-22 09:40:19 /assets/img/banks/itau.png ........................................................... ~ 1.89ms
+  2025-12-22 09:40:19 /assets/img/banks/caixa.png .......................................................... ~ 2.48ms
+  2025-12-22 09:40:19 /assets/img/banks/inter.png .......................................................... ~ 0.05ms
+  2025-12-22 09:40:19 /assets/img/banks/nubank.svg ......................................................... ~ 0.10ms
+  2025-12-22 09:40:19 /assets/img/banks/santander.png ...................................................... ~ 1.51ms
+[2025-12-22 12:40:25] [Laravel Server]   2025-12-22 09:40:24[2025-12-22 12:40:25] [Laravel Server]  /products .......................................................................... ~ 601.36ms
+[2025-12-22 12:40:26] [Laravel Server]   2025-12-22 09:40:25[2025-12-22 12:40:26] [Laravel Server]  /storage/products/product_686868659d6a8.webp ............................................. ~ 1s
+[2025-12-22 12:40:26] [Laravel Server]   2025-12-22 09:40:25[2025-12-22 12:40:26] [Laravel Server]  /livewire/update ................................................................... ~ 510.13ms
+  2025-12-22 09:40:25 /assets/css/produtos.css .................................................................[2025-12-22 12:40:26] [Laravel Server]  ~ 1s
+  2025-12-22 09:40:25 /assets/css/produtos-extra.css ........................................................... ~ 1s
+  2025-12-22 09:40:25 /storage/products/s1VH6eRyT32nydmDAp8dublD8vOvFqx4RpUsGkMT.webp .......................... ~ 1s
+[2025-12-22 12:40:27] [Laravel Server]   2025-12-22 09:40:26[2025-12-22 12:40:27] [Laravel Server]  /storage/products/product_68686865bc234.webp ....................................... ~ 506.52ms
+  2025-12-22 09:40:26 /storage/products/product_68686865891c3.webp ....................................... ~ 507.06ms
+  2025-12-22 09:40:25 /assets/css/icon-category.css ............................................................ ~ 1s
+[2025-12-22 12:40:27] [Laravel Server]   2025-12-22 09:40:26[2025-12-22 12:40:27] [Laravel Server]  /storage/products/product_68686865a204d.webp ....................................... ~ 510.72ms
+  2025-12-22 09:40:26 /assets/css/icon-overrides.css ...........................................................[2025-12-22 12:40:27] [Laravel Server]  ~ 1s
+  2025-12-22 09:40:27 /storage/products/product_68686865aa6e7.webp .......................................[2025-12-22 12:40:27] [Laravel Server]  ~ 510.97ms
+[2025-12-22 12:40:28] [Laravel Server]   2025-12-22 09:40:27 /storage/products/product_68686865b4930.webp[2025-12-22 12:40:28] [Laravel Server]  ....................................... ~ 504.78ms
+  2025-12-22 09:40:27 /storage/products/product_68686865b787e.jpeg[2025-12-22 12:40:28] [Laravel Server]  ....................................... ~ 504.06ms
+[2025-12-22 12:40:28] [Laravel Server]   2025-12-22 09:40:28[2025-12-22 12:40:28] [Laravel Server]  /storage/products/product_68686865b1888.webp ....................................... ~ 509.69ms
+[2025-12-22 12:40:29] [Laravel Server]   2025-12-22 09:40:28[2025-12-22 12:40:29] [Laravel Server]  /storage/products/product_68686865ae227.webp ....................................... ~ 520.52ms
+  2025-12-22 09:40:28 /storage/products/product_68686865a8871.webp ......................................... ~ 0.08ms
+  2025-12-22 09:40:28 /storage/products/I63aM37gqo5nRpxHlXyCKY7GD6WLqi69sY5cs86f.webp .......................... ~ 1s
+[2025-12-22 12:40:29] [Laravel Server]   2025-12-22 09:40:28[2025-12-22 12:40:29] [Laravel Server]  /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp .................... ~ 522.92ms
+  2025-12-22 09:40:28 /storage/products/hT4PHX1RrBJE9ALIegGIoA0Mw1Bx3Q0Q4hsfbkiO.webp .......................... ~ 1s
+[2025-12-22 12:40:30] [Laravel Server]   2025-12-22 09:40:29[2025-12-22 12:40:30] [Laravel Server]  /storage/products/product-placeholder.png .......................................... ~ 502.79ms
+[2025-12-22 12:40:30] [Laravel Server]   2025-12-22 09:40:29[2025-12-22 12:40:30] [Laravel Server]  /storage/products/product_686868659d6a8.webp ............................................. ~ 1s
+  2025-12-22 09:40:29 /storage/products/BufeRCxWxX6Px4iUnBrRu8ml14P7JaUd2Gwt4T75.webp .......................... ~ 1s
+[2025-12-22 12:40:35] [Laravel Server]   2025-12-22 09:40:35[2025-12-22 12:40:35] [Laravel Server]  /livewire/update ..................................................................... ~ 0.19ms
+[2025-12-22 12:40:35] [Laravel Server]   2025-12-22 09:40:35[2025-12-22 12:40:35] [Laravel Server]  /storage/products/product_6865be9940273.jpeg .........................................[2025-12-22 12:40:35] [Laravel Server]  ~ 0.08ms
+[2025-12-22 12:40:36] [Laravel Server]   2025-12-22 09:40:35[2025-12-22 12:40:36] [Laravel Server]  /storage/products/product_6865be99421d4.webp ....................................... ~ 519.32ms
+  2025-12-22 09:40:35 /storage/products/product-placeholder.png .......................................... ~ 519.09ms
+  2025-12-22 09:40:35 /storage/products/gN9nBrByxJNy84sFUTSguns8Hxs0tNBNuNE8ZblB.webp .......................... ~ 1s
+[2025-12-22 12:40:36] [Laravel Server]   2025-12-22 09:40:36 /storage/products/product_6854273d3b256.webp[2025-12-22 12:40:36] [Laravel Server]  ....................................... ~ 501.89ms
+  2025-12-22 09:40:36 /storage/products/f3DXccLqFznM0nvDTtAV1JD82qiNxrERPs7u66YS.webp ....................[2025-12-22 12:40:36] [Laravel Server]  ~ 501.38ms
+[2025-12-22 12:40:48] [Laravel Server]   2025-12-22 09:40:47[2025-12-22 12:40:48] [Laravel Server]  /sales ............................................................................. ~ 523.84ms
+  2025-12-22 09:40:47 /assets/css/icon-category.css ........................................................ ~ 0.09ms
+  2025-12-22 09:40:47 /assets/css/icon-overrides.css ....................................................... ~ 2.83ms
+  2025-12-22 09:40:47 /assets/css/produtos.css .............................................................[2025-12-22 12:40:48] [Laravel Server]  ~ 3.31ms
+  2025-12-22 09:40:47 /assets/css/produtos-extra.css ....................................................... ~ 4.89ms
+[2025-12-22 12:40:48] [Laravel Server]   2025-12-22 09:40:47[2025-12-22 12:40:48] [Laravel Server]  /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp .................... ~ 510.62ms
+[2025-12-22 12:40:49] [Laravel Server]   2025-12-22 09:40:48[2025-12-22 12:40:49] [Laravel Server]  /livewire/update ................................................................... ~ 510.04ms
+  2025-12-22 09:40:47 /storage/products/baVuxtzdimylgB9uC6jY3XSNLjZqdldxa8ZZo8Oo.webp .......................... ~ 1s
+  2025-12-22 09:40:47 /storage/products/HN9jma2xUQGwNdZtXIEvfQIY1IB1zefaovdwT2qv.webp .......................... ~ 1s
+  2025-12-22 09:40:47 /storage/products/TOUbLa4qxbbciM6a9mlJizExe2H5qJVRPIqKglGH.webp .......................... ~ 1s
+  2025-12-22 09:40:48 /storage/products/NxwW6ginKwBVgKHz5pHcJbYEev38SLlOYEBQN39W.webp .................... ~ 512.42ms
+  2025-12-22 09:40:48 /storage/products/VEFAEF0CUWV6hjT9p82xRypOuJNdumj2ryQIdaMa.webp .................... ~ 512.76ms
+[2025-12-22 12:40:49] [Laravel Server]   2025-12-22 09:40:48[2025-12-22 12:40:49] [Laravel Server]  /storage/products/product-placeholder.png .......................................... ~ 521.92ms
+  2025-12-22 09:40:48 /storage/products/R4ySagcOvfgs6MHMHpbuAREfAqDAo9z5ajUSWQBr.webp .................... ~ 523.15ms
+  2025-12-22 09:40:49 /storage/products/v0ljFZYd52Zh041oCPxHTNJWX5XU9o9AtYucREMl.webp ...................... ~ 0.41ms
+  2025-12-22 09:40:48 /storage/products/ggolNeZqxR9oBtkUcaKqyNScZbc9zFxeyOjgkjt5.webp .................... ~ 523.48ms
+[2025-12-22 12:40:50] [Laravel Server]   2025-12-22 09:40:48[2025-12-22 12:40:50] [Laravel Server]  /storage/products/txTulOuVTZkYP7ERTzsUnoYIsrxgVzpcCMXPpYLm.webp .......................... ~ 1s
+  2025-12-22 09:40:49 /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp ...................... ~ 0.53ms
+  2025-12-22 09:40:49 /storage/products/YXegrI0lbHSyYCFpqxpSLCpujH4ca0EX6rKSwcuk.webp .................... ~ 519.49ms
+  2025-12-22 09:40:49 /storage/products/PAdV40pwndl0d75bYzDZQfEYjbHA4gqhFppbiDYS.webp .................... ~ 519.04ms
+[2025-12-22 12:40:58] [Laravel Server]   2025-12-22 09:40:58[2025-12-22 12:40:58] [Laravel Server]  /livewire/update ...................................................................[2025-12-22 12:40:58] [Laravel Server]  ~ 510.58ms
+[2025-12-22 12:40:59] [Laravel Server]   2025-12-22 09:40:58[2025-12-22 12:40:59] [Laravel Server]  /storage/products/product-placeholder.png .......................................... ~ 507.95ms
+[2025-12-22 12:40:59] [Laravel Server]   2025-12-22 09:40:58 /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp ...................... ~ 0.08ms
+[2025-12-22 12:40:59] [Laravel Server]   2025-12-22 09:40:58 /storage/products/v0ljFZYd52Zh041oCPxHTNJWX5XU9o9AtYucREMl.webp[2025-12-22 12:40:59] [Laravel Server]  .................... ~ 515.42ms
+[2025-12-22 12:41:11] [Vite] [2m09:41:11[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\sales\sales-index.blade.php[22m
+[2025-12-22 12:41:11] [Vite] [2m09:41:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/sales/sales-index.blade.php[22m
+[2025-12-22 12:41:11] [Vite] [2m09:41:11[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\sales\sales-index.blade.php[22m
+[2025-12-22 12:41:11] [Vite] [2m09:41:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/sales/sales-index.blade.php[22m
+[2025-12-22 12:41:12] [Laravel Server]   2025-12-22 09:41:11[2025-12-22 12:41:12] [Laravel Server]  /sales ............................................................................. ~ 739.13ms
+  2025-12-22 09:41:12 /assets/css/flatpickr-custom.css ..................................................... ~ 3.08ms
+  2025-12-22 09:41:12 /assets/css/flow-theme.css ........................................................... ~ 0.05ms
+  2025-12-22 09:41:12 /assets/css/produtos.css ............................................................. ~ 0.05ms
+  2025-12-22 09:41:12 /assets/css/produtos-extra.css ....................................................... ~ 0.05ms
+  2025-12-22 09:41:12 /assets/img/banks/bb.png ............................................................. ~ 0.04ms
+  2025-12-22 09:41:12 /assets/img/banks/bradesco.png ....................................................... ~ 0.14ms
+[2025-12-22 12:41:13] [Laravel Server]   2025-12-22 09:41:12[2025-12-22 12:41:13] [Laravel Server]  /assets/img/banks/caixa.png .......................................................... ~ 0.23ms
+  2025-12-22 09:41:12 /assets/img/banks/itau.png ........................................................... ~ 1.05ms
+  2025-12-22 09:41:12 /assets/img/banks/inter.png .......................................................... ~ 0.05ms
+  2025-12-22 09:41:12 /assets/css/icon-category.css ........................................................ ~ 0.50ms
+  2025-12-22 09:41:12 /assets/css/icon-overrides.css ....................................................... ~ 0.04ms
+[2025-12-22 12:41:14] [Vite] [2m09:41:14[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\components\sale-card.blade.php[22m
+[2025-12-22 12:41:14] [Vite] [2m09:41:14[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/components/sale-card.blade.php[22m
+[2025-12-22 12:41:14] [Vite] [2m09:41:14[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Sales\SalesIndex.php[22m
+[2025-12-22 12:41:14] [Vite] [2m09:41:14[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Sales/SalesIndex.php[22m
+[2025-12-22 12:41:14] [Laravel Server]   2025-12-22 09:41:14[2025-12-22 12:41:14] [Laravel Server]  /assets/img/banks/nubank.svg ......................................................... ~ 0.08ms
+  2025-12-22 09:41:14 /assets/img/banks/santander.png ...................................................... ~ 0.04ms
+[2025-12-22 12:41:16] [Laravel Server]   2025-12-22 09:41:14[2025-12-22 12:41:16] [Laravel Server]  /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp .......................... ~ 1s
+  2025-12-22 09:41:15 /storage/products/HN9jma2xUQGwNdZtXIEvfQIY1IB1zefaovdwT2qv.webp ...................... ~ 0.08ms
+  2025-12-22 09:41:15 /storage/products/baVuxtzdimylgB9uC6jY3XSNLjZqdldxa8ZZo8Oo.webp ...................... ~ 0.33ms
+  2025-12-22 09:41:15 /storage/products/BufeRCxWxX6Px4iUnBrRu8ml14P7JaUd2Gwt4T75.webp ...................... ~ 0.54ms
+  2025-12-22 09:41:15 /storage/products/hT4PHX1RrBJE9ALIegGIoA0Mw1Bx3Q0Q4hsfbkiO.webp ...................... ~ 0.75ms
+  2025-12-22 09:41:15 /storage/products/I63aM37gqo5nRpxHlXyCKY7GD6WLqi69sY5cs86f.webp ...................... ~ 0.95ms
+  2025-12-22 09:41:15 /storage/products/TOUbLa4qxbbciM6a9mlJizExe2H5qJVRPIqKglGH.webp ...................... ~ 0.96ms
+[2025-12-22 12:41:16] [Laravel Server]   2025-12-22 09:41:15[2025-12-22 12:41:16] [Laravel Server]  /livewire/update ................................................................... ~ 511.99ms
+  2025-12-22 09:41:15 /storage/products/NxwW6ginKwBVgKHz5pHcJbYEev38SLlOYEBQN39W.webp .................... ~ 513.36ms
+[2025-12-22 12:41:17] [Laravel Server]   2025-12-22 09:41:16[2025-12-22 12:41:17] [Laravel Server]  /storage/products/product-placeholder.png .......................................... ~ 502.97ms
+  2025-12-22 09:41:16 /storage/products/ggolNeZqxR9oBtkUcaKqyNScZbc9zFxeyOjgkjt5.webp .................... ~ 504.21ms
+  2025-12-22 09:41:16 /storage/products/R4ySagcOvfgs6MHMHpbuAREfAqDAo9z5ajUSWQBr.webp .................... ~ 504.49ms
+  2025-12-22 09:41:16 /storage/products/VEFAEF0CUWV6hjT9p82xRypOuJNdumj2ryQIdaMa.webp .................... ~ 504.36ms
+[2025-12-22 12:41:17] [Laravel Server]   2025-12-22 09:41:17[2025-12-22 12:41:17] [Laravel Server]  /storage/products/v0ljFZYd52Zh041oCPxHTNJWX5XU9o9AtYucREMl.webp .................... ~ 512.18ms
+  2025-12-22 09:41:17 /storage/products/txTulOuVTZkYP7ERTzsUnoYIsrxgVzpcCMXPpYLm.webp .................... ~ 512.81ms
+[2025-12-22 12:41:18] [Laravel Server]   2025-12-22 09:41:17[2025-12-22 12:41:18] [Laravel Server]  /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp .................... ~ 515.08ms
+  2025-12-22 09:41:17 /storage/products/YXegrI0lbHSyYCFpqxpSLCpujH4ca0EX6rKSwcuk.webp .......................... ~ 1s
+  2025-12-22 09:41:17 /storage/products/PAdV40pwndl0d75bYzDZQfEYjbHA4gqhFppbiDYS.webp[2025-12-22 12:41:18] [Laravel Server]  .................... ~ 516.04ms
+  2025-12-22 09:41:17 /favicon.svg ......................................................................... ~ 0.04ms
+  2025-12-22 09:41:17[2025-12-22 12:41:18] [Laravel Server]  /favicon.ico ......................................................................... ~ 0.79ms
+[2025-12-22 12:41:24] [Laravel Server]   2025-12-22 09:41:23[2025-12-22 12:41:24] [Laravel Server]  /livewire/update ................................................................... ~ 511.55ms
+[2025-12-22 12:41:25] [Laravel Server]   2025-12-22 09:41:24[2025-12-22 12:41:25] [Laravel Server]  /storage/products/CnbAEe6thEt6vDzofpdZgg85CnHuAKDn4EFea2ny.webp .................... ~ 521.88ms
+[2025-12-22 12:41:26] [Laravel Server]   2025-12-22 09:41:24[2025-12-22 12:41:26] [Laravel Server]  /storage/products/v0ljFZYd52Zh041oCPxHTNJWX5XU9o9AtYucREMl.webp .......................... ~ 1s
+[2025-12-22 12:41:26] [Laravel Server]   2025-12-22 09:41:25[2025-12-22 12:41:26] [Laravel Server]  /storage/products/product-placeholder.png ................................................ ~ 1s
