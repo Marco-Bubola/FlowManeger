@@ -365,40 +365,32 @@ class ClientsIndex extends Component
 
         // Filtro por status
         if (!empty($this->statusFilter)) {
-            switch ($this->statusFilter) {
-                case 'vip':
-                    $query->withCount('sales')->having('sales_count', '>=', 10);
-                    break;
-                case 'premium':
-                    $query->withCount('sales')->having('sales_count', '>=', 5)->having('sales_count', '<', 10);
-                    break;
-                case 'new':
-                    $query->where('created_at', '>=', now()->subDays(30));
-                    break;
-                case 'inactive':
-                    $query->whereDoesntHave('sales', function($q) {
-                        $q->where('created_at', '>=', now()->subMonths(6));
-                    });
-                    break;
+            if ($this->statusFilter === 'inativo') {
+                // Considera inativo quem não compra há mais de 30 dias, por exemplo
+                $query->whereDoesntHave('sales', function ($q) {
+                    $q->where('created_at', '>=', now()->subDays(30));
+                });
+            } else {
+                $query->where('status', $this->statusFilter);
             }
         }
 
         // Filtro por período de cadastro
-        if (!empty($this->periodFilter)) {
-            switch ($this->periodFilter) {
-                case 'today':
+        if (!empty($this->dateFilter)) {
+            switch ($this->dateFilter) {
+                case 'hoje':
                     $query->whereDate('created_at', now()->toDateString());
                     break;
-                case 'week':
+                case 'semana':
                     $query->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]);
                     break;
-                case 'month':
+                case 'mes':
                     $query->whereBetween('created_at', [now()->startOfMonth(), now()->endOfMonth()]);
                     break;
-                case 'quarter':
+                case 'trimestre':
                     $query->where('created_at', '>=', now()->subMonths(3));
                     break;
-                case 'year':
+                case 'ano':
                     $query->whereBetween('created_at', [now()->startOfYear(), now()->endOfYear()]);
                     break;
             }
@@ -426,25 +418,31 @@ class ClientsIndex extends Component
             }
         }
 
-        // Filtros de ordenação
-        switch ($this->filter) {
+        // Filtros de ordenação usando sortBy e sortDirection
+        switch ($this->sortBy) {
             case 'created_at':
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('created_at', $this->sortDirection);
                 break;
             case 'updated_at':
-                $query->orderBy('updated_at', 'desc');
+                $query->orderBy('updated_at', $this->sortDirection);
                 break;
-            case 'name_asc':
-                $query->orderBy('name', 'asc');
+            case 'name':
+                $query->orderBy('name', $this->sortDirection);
                 break;
-            case 'name_desc':
-                $query->orderBy('name', 'desc');
+            case 'email':
+                $query->orderBy('email', $this->sortDirection);
+                break;
+            case 'status':
+                $query->orderBy('status', $this->sortDirection);
+                break;
+            case 'phone':
+                $query->orderBy('phone', $this->sortDirection);
                 break;
             case 'most_sales':
-                $query->withCount('sales')->orderBy('sales_count', 'desc');
+                $query->withCount('sales')->orderBy('sales_count', $this->sortDirection);
                 break;
             case 'best_customers':
-                $query->withSum('sales', 'total_price')->orderBy('sales_sum_total_price', 'desc');
+                $query->withSum('sales', 'total_price')->orderBy('sales_sum_total_price', $this->sortDirection);
                 break;
             case 'recent_activity':
                 $query->with(['sales' => function($q) {
@@ -454,7 +452,7 @@ class ClientsIndex extends Component
                 });
                 break;
             default:
-                $query->orderBy('created_at', 'desc');
+                $query->orderBy('created_at', $this->sortDirection);
                 break;
         }
 
@@ -470,9 +468,8 @@ class ClientsIndex extends Component
      */
     public function setQuickSearch($type)
     {
-        $this->search = '';
-        $this->statusFilter = '';
-        $this->periodFilter = '';
+        // Limpa filtros existentes para evitar conflitos
+        $this->clearFilters();
 
         switch ($type) {
             case 'ativo':
@@ -481,14 +478,15 @@ class ClientsIndex extends Component
             case 'premium':
                 $this->statusFilter = 'premium';
                 break;
-            case 'inativo':
+            case 'inativos':
                 $this->statusFilter = 'inativo';
                 break;
             case 'recente':
-                $this->periodFilter = 'mes';
+                $this->dateFilter = 'mes';
                 break;
             case 'mais_compras':
-                $this->filter = 'mais_compras';
+                $this->sortBy = 'most_sales';
+                $this->sortDirection = 'desc';
                 break;
         }
 
@@ -500,14 +498,36 @@ class ClientsIndex extends Component
      */
     public function clearFilters()
     {
-        $this->search = '';
-        $this->statusFilter = '';
-        $this->periodFilter = '';
-        $this->minValue = '';
-        $this->maxValue = '';
-        $this->minSales = '';
-        $this->maxSales = '';
-        $this->filter = '';
+        $this->reset([
+            'search',
+            'filter',
+            'statusFilter',
+            'periodFilter',
+            'dateFilter',
+            'sortBy',
+            'sortDirection',
+            'minValue',
+            'maxValue',
+            'minSales',
+            'maxSales',
+            'perPage'
+        ]);
+        $this->resetPage();
+    }
+
+    /**
+     * Alterna a ordenação: se já estiver na mesma coluna, inverte direção;
+     * caso contrário, seleciona a coluna e define direção asc.
+     */
+    public function toggleSort(string $column): void
+    {
+        if ($this->sortBy === $column) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $column;
+            $this->sortDirection = 'asc';
+        }
+
         $this->resetPage();
     }
 
