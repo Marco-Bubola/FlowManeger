@@ -63,7 +63,7 @@
 </div>
 </div>
 
-</div>
+
 <!-- Lado Direito: Informações + Paginação + Controles (50%) -->
 <div class="flex items-center gap-4">
 
@@ -246,10 +246,10 @@
         Filtros Avançados
     </h3>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
         <!-- Coluna Esquerda: Status e Período -->
-        <div class="space-y-4">
+
 
             <!-- Status do Cliente -->
             <div class="space-y-2">
@@ -350,10 +350,10 @@
                 </div>
             </div>
 
-        </div>
 
-        <!-- Coluna Direita: Ordenação e Paginação -->
-        <div class="space-y-4">
+
+
+
 
             <!-- Ordenação -->
             <div class="space-y-2">
@@ -363,7 +363,7 @@
                 </h4>
                 <div class="grid grid-cols-3 gap-1">
                     <!-- Por Nome -->
-                    <button wire:click="$set('sortBy', 'name')"
+                    <button wire:click="toggleSort('name')"
                         class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-200 {{ $sortBy === 'name' ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' : '' }}">
                         <div class="text-center">
                             <i class="bi bi-person text-emerald-500 text-sm"></i>
@@ -372,7 +372,7 @@
                     </button>
 
                     <!-- Por Data -->
-                    <button wire:click="$set('sortBy', 'created_at')"
+                    <button wire:click="toggleSort('created_at')"
                         class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-500 transition-all duration-200 {{ $sortBy === 'created_at' ? 'ring-2 ring-blue-500 bg-blue-50 dark:bg-blue-900/30' : '' }}">
                         <div class="text-center">
                             <i class="bi bi-calendar text-blue-500 text-sm"></i>
@@ -381,7 +381,7 @@
                     </button>
 
                     <!-- Por Email -->
-                    <button wire:click="$set('sortBy', 'email')"
+                    <button wire:click="toggleSort('email')"
                         class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $sortBy === 'email' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
                         <div class="text-center">
                             <i class="bi bi-envelope text-purple-500 text-sm"></i>
@@ -390,7 +390,7 @@
                     </button>
 
                     <!-- Por Status -->
-                    <button wire:click="$set('sortBy', 'status')"
+                    <button wire:click="toggleSort('status')"
                         class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-orange-300 dark:hover:border-orange-500 transition-all duration-200 {{ $sortBy === 'status' ? 'ring-2 ring-orange-500 bg-orange-50 dark:bg-orange-900/30' : '' }}">
                         <div class="text-center">
                             <i class="bi bi-flag text-orange-500 text-sm"></i>
@@ -399,7 +399,7 @@
                     </button>
 
                     <!-- Por Telefone -->
-                    <button wire:click="$set('sortBy', 'phone')"
+                    <button wire:click="toggleSort('phone')"
                         class="group p-2 bg-white dark:bg-slate-700 rounded-lg border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-500 transition-all duration-200 {{ $sortBy === 'phone' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-900/30' : '' }}">
                         <div class="text-center">
                             <i class="bi bi-telephone text-teal-500 text-sm"></i>
