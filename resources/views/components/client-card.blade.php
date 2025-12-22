@@ -110,12 +110,14 @@
                 <i class="bi bi-pencil text-sm mr-1"></i>
                 <span class="text-xs font-medium">Editar</span>
             </a>
+            @if($client->sales->count() == 0)
             <button wire:click="confirmDelete({{ $client->id }})"
                     class="flex-1 p-2 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-lg transition-colors duration-200"
                     title="Excluir">
                 <i class="bi bi-trash text-sm mr-1"></i>
                 <span class="text-xs font-medium">Excluir</span>
             </button>
+            @endif
         </div>
     </div>
 </div>
