@@ -303,6 +303,7 @@ class SalesIndex extends Component
     {
         $this->deletingSale = Sale::find($saleId);
         $this->showDeleteModal = true;
+        $this->dispatch('refreshComponent');
     }
 
     public function cancelDelete()
@@ -375,6 +376,7 @@ class SalesIndex extends Component
     }
 
     #[On('sale-updated')]
+    #[On('refreshComponent')]
     public function refreshSales()
     {
         // Método para atualizar a lista quando houver mudanças
@@ -580,6 +582,11 @@ class SalesIndex extends Component
 
         // Dispatch a browser/livewire event para abrir o modal (compatível com o atributo #[On('openExportSaleModal')])
         $this->dispatch('openExportSaleModal', ['saleId' => $saleId]);
+    }
+
+    public function openDeleteModal($saleId)
+    {
+        $this->dispatch('sales:confirm-delete', ['saleId' => $saleId]);
     }
 
     #[On('exportSalePdf')]
