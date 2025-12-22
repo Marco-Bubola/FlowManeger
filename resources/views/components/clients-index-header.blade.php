@@ -81,19 +81,6 @@
                         {{ $slot }}
                     </div>
                 @endif
-
-                @if($showQuickActions && !$showSteps)
-                <div class="flex-shrink-0">
-                    <a href="{{ route('clients.create') }}"
-                       class="group relative inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white font-semibold rounded-2xl transition-all duration-300 shadow-xl shadow-purple-500/25 hover:shadow-2xl hover:shadow-purple-500/40 transform hover:scale-105">
-                        <i class="bi bi-plus-circle text-xl group-hover:rotate-90 transition-transform duration-300"></i>
-                        <div class="flex flex-col items-start">
-                            <span class="text-sm font-bold">Novo Cliente</span>
-                            <span class="text-xs opacity-90">Cadastrar cliente</span>
-                        </div>
-                    </a>
-                </div>
-                @endif
             </div>
         </div>
     </div>
