@@ -51,21 +51,17 @@
                                 title="Filtros avançados">
                                 <i class="bi bi-funnel text-base"></i>
                             </button>
+
+                             <a href="{{ route('clients.create') }}"
+                                   class="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm transition-all text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:ring-2 hover:ring-purple-500"
+                                   title="Novo Cliente">
+                                <i class="bi bi-plus-lg text-base"></i>
+                            </a>
                         </div>
                     </div>
 
-                    <!-- Linha 2: Pesquisas Rápidas e Ordenação -->
-                    <div class="flex items-center justify-between">
-                         <!-- Pesquisas Rápidas -->
-                        <div class="flex items-center gap-2">
-                            <span class="text-sm text-slate-600 dark:text-slate-400 font-medium">Pesquisas Rápidas:</span>
-                            <button wire:click="setQuickSearch('ativo')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $statusFilter === 'ativo' ? 'bg-green-100 text-green-800 border-green-300 ring-2 ring-green-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-green-100 hover:border-green-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-green-900/50 dark:hover:border-green-700">Ativos</button>
-                            <button wire:click="setQuickSearch('premium')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $statusFilter === 'premium' ? 'bg-purple-100 text-purple-800 border-purple-300 ring-2 ring-purple-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-purple-100 hover:border-purple-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-purple-900/50 dark:hover:border-purple-700">Premium</button>
-                            <button wire:click="setQuickSearch('recente')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $dateFilter === 'mes' ? 'bg-blue-100 text-blue-800 border-blue-300 ring-2 ring-blue-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-blue-100 hover:border-blue-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-blue-900/50 dark:hover:border-blue-700">Recentes</button>
-                            <button wire:click="setQuickSearch('mais_compras')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $sortBy === 'most_sales' ? 'bg-emerald-100 text-emerald-800 border-emerald-300 ring-2 ring-emerald-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-emerald-100 hover:border-emerald-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-emerald-900/50 dark:hover:border-emerald-700">Mais Compras</button>
-                            <button wire:click="setQuickSearch('inativos')" class="px-3 py-1 text-xs font-medium rounded-lg transition-all border {{ $statusFilter === 'inativo' ? 'bg-red-100 text-red-800 border-red-300 ring-2 ring-red-300' : 'bg-white/80 text-slate-700 border-slate-200' }} hover:bg-red-100 hover:border-red-300 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600 dark:hover:bg-red-900/50 dark:hover:border-red-700">Inativos</button>
-                        </div>
-
+                    <!-- Linha 2: Ordenação -->
+                    <div class="flex items-center justify-end">
                         <!-- Ordenação e Stats -->
                         <div class="flex items-center gap-3">
                              <div class="flex items-center gap-2 px-3 py-1.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50">
