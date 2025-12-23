@@ -274,17 +274,19 @@
                                         <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg shadow-sm category-preview"
                                             style="background: linear-gradient(135deg, {{ $hexcolor_category }}, {{ $hexcolor_category }}dd)">
                                             {{-- Mostrar ícone selecionado (pode ser fontawesome ou classe de CSS customizada) --}}
-                                            @if(str_contains($icone ?? '', ' '))
-                                                @php $last = last(explode(' ', $icone)); @endphp
-                                                <i class="{{ $last }}"></i>
+                                            @php
+                                                $iconClassForPreview = trim($icone ?? '');
+                                            @endphp
+                                            @if(Str::startsWith($iconClassForPreview, 'icons8-'))
+                                                <i class="{{ $iconClassForPreview }}" style="width:100%;height:100%;display:inline-block;background-position:50% 50%;background-repeat:no-repeat;background-size:contain;"></i>
                                             @else
-                                                <i class="{{ $icone }}"></i>
+                                                <i class="{{ $iconClassForPreview }}"></i>
                                             @endif
                                         </div>
 
                                         <input id="{{ $iconeInputId }}" type="hidden" wire:model.live="icone">
 
-                                        <div class="flex-1" x-data="iconDropdown(@json($availableIcons), '{{ $icone ?? '' }}', '{{ $iconeInputId }}')">
+                                        <div class="flex-1" x-data="{ open: false, search: '', selected: null, icons: [], inputId: null }" x-init="icons = JSON.parse($el.dataset.icons || '[]'); selected = $el.dataset.initial || null; inputId = $el.dataset.inputId || null" data-icons='@json($availableIcons)' data-initial="{{ $icone ?? '' }}" data-input-id="{{ $iconeInputId }}">
                                             <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium transition-all duration-200 hover:border-purple-500 focus:ring-2 focus:ring-purple-500">
                                                 <span class="flex items-center gap-3">
                                                     <span class="inline-block w-6 h-6">
@@ -300,15 +302,15 @@
                                                     <input type="text" x-model="search" placeholder="Buscar ícone..." class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-800 border border-slate-300 rounded-lg focus:outline-none">
                                                 </div>
                                                 <div class="p-2 grid grid-cols-2 gap-2">
-                                                    <template x-for="icon in filtered" :key="icon">
-                                                        <button type="button" @click="select(icon)" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 text-sm text-left">
+                                                    <template x-for="icon in icons.filter(i => (i + '').toLowerCase().includes((search || '').toLowerCase()))" :key="icon">
+                                                        <button type="button" @click="(function(){ selected = icon; if(inputId){ const h = document.getElementById(inputId); if(h){ h.value = icon; h.dispatchEvent(new Event('input')); } } open = false; })()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 text-sm text-left">
                                                             <span class="inline-block w-8 h-8 rounded-md overflow-hidden flex items-center justify-center bg-white dark:bg-slate-800">
-                                                                <span :class="icon" class="inline-block"></span>
+                                                                <span :class="icon" class="inline-block" style="width:100%;height:100%;display:inline-block;background-position:50% 50%;background-repeat:no-repeat;background-size:contain;"></span>
                                                             </span>
                                                             <span x-text="icon" class="truncate"></span>
                                                         </button>
                                                     </template>
-                                                    <template x-if="filtered.length === 0">
+                                                    <template x-if="icons.filter(i => (i + '').toLowerCase().includes((search || '').toLowerCase())).length === 0">
                                                         <div class="text-sm text-gray-500 p-3">Nenhum ícone encontrado</div>
                                                     </template>
                                                 </div>
@@ -508,5 +510,7 @@ document.addEventListener('livewire:init', () => {
         }
     });
 });
+
+// dropdown de ícones: inicialização reduzida agora feita inline com x-init
 </script>
 @endpush
