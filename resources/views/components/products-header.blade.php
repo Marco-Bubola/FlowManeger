@@ -58,14 +58,21 @@
                 </div>
             </div>
 
-            @if($showQuickActions)
-            <!-- Ações Rápidas Principais -->
+            @php
+                $hasSlot = trim(str_replace(['\n','\r',' '], '', $slot)) !== '';
+            @endphp
+
+            @if($hasSlot)
+                <div class="flex-1 flex items-center justify-end gap-4">
+                    {{ $slot }}
+                </div>
+            @elseif($showQuickActions)
+            <!-- Ações Rápidas Principais (fallback) -->
             <div class="flex flex-wrap gap-3 items-center">
                 <a href="{{ route('products.create') }}"
                    class="group relative inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <i class="bi bi-plus-lg mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                     Novo Produto
-                    <!-- Efeito hover ring -->
                     <div class="absolute inset-0 rounded-xl bg-green-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </a>
 
@@ -87,7 +94,6 @@
                     :class="{'from-purple-600 to-purple-700 dark:from-purple-500 dark:to-purple-600': showFilters}">
                     <i class="bi bi-funnel-fill mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                     <span class="hidden sm:inline">Filtros</span>
-                    <!-- Indicador de filtros ativos -->
                     <span x-show="hasActiveFilters" class="ml-2 w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
                 </button>
             </div>
