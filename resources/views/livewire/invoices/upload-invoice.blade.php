@@ -14,16 +14,18 @@
     @include('components.toast-notifications')
 
     <div class="">
-        <!-- Modern header component -->
-        <x-upload-header
-            :title="'Upload de Transações'"
-            :description="'Importar transações a partir de arquivo PDF ou CSV'"
-            :backRoute="route('invoices.index', ['bankId' => $bankId])"
-            :showConfirmation="$showConfirmation"
-            :transactionsCount="is_array($transactions) ? count($transactions) : 0"
-            :totalValue="is_array($transactions) ? array_sum(array_column($transactions, 'value')) : 0"
-            :hasDuplicates="is_array($transactions) ? collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false) : false"
-        />
+        <!-- Modern header component (flutuante/sticky) -->
+        <div class="sticky top-4 z-50 mx-4 sm:mx-6 lg:mx-8">
+            <x-upload-header
+                :title="'Upload de Transações'"
+                :description="'Importar transações a partir de arquivo PDF ou CSV'"
+                :backRoute="route('invoices.index', ['bankId' => $bankId])"
+                :showConfirmation="$showConfirmation"
+                :transactionsCount="is_array($transactions) ? count($transactions) : 0"
+                :totalValue="is_array($transactions) ? array_sum(array_column($transactions, 'value')) : 0"
+                :hasDuplicates="is_array($transactions) ? collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false) : false"
+            />
+        </div>
 
         <!-- Content -->
         <div class="w-full px-4 sm:px-6 lg:px-8">
@@ -207,7 +209,7 @@
                 <div class="w-full">
                     <!-- Transações em Grid -->
                     <div class="w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 ultrawind:grid-cols-6 gap-6">
                             @foreach ($transactions as $index => $transaction)
                                 <div class="group relative bg-gradient-to-br {{ ($transaction['is_duplicate'] ?? false) ? 'from-orange-50 via-red-50/30 to-orange-50/30 dark:from-red-900/20 dark:via-orange-900/20 dark:to-red-900/20 border-red-300 dark:border-red-700' : 'from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20' }} border-2 {{ ($transaction['is_duplicate'] ?? false) ? 'border-red-300 dark:border-red-700' : 'border-gray-200 dark:border-gray-600' }} rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg">
 
