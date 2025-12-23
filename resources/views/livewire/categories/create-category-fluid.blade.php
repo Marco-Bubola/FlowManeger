@@ -208,6 +208,43 @@
                             </h3>
                         </div>
                         <div class="p-4 space-y-4 flex-1">
+                            @php
+                                // Ler o CSS de ícones e extrair classes (.icons8-...)
+                                $cssPath = public_path('assets/css/icon-category.css');
+                                $availableIcons = [];
+                                if (file_exists($cssPath)) {
+                                    $css = file_get_contents($cssPath);
+                                    if (preg_match_all('/\.([a-zA-Z0-9\-_]+)\s*\{/', $css, $m)) {
+                                        $availableIcons = array_values(array_unique($m[1]));
+                                    }
+                                }
+
+                                // Buscar categorias já salvas e detectar ícones faltantes
+                                $missingIcons = [];
+                                try {
+                                    $cats = \App\Models\Category::select('name','icone')->get();
+                                    foreach ($cats as $c) {
+                                        $iconClass = trim($c->icone ?? '');
+                                        // extrair última classe se houver múltiplas (ex: 'fas fa-box')
+                                        $parts = preg_split('/\s+/', $iconClass);
+                                        $check = end($parts) ?: $iconClass;
+                                        if ($check && !in_array($check, $availableIcons) && !in_array($iconClass, $availableIcons)) {
+                                            $missingIcons[] = ['category' => $c->name, 'icon' => $iconClass];
+                                        }
+                                    }
+                                } catch (\Throwable $e) {
+                                    // silêncio — em dev local pode não haver DB
+                                }
+
+                                // Id para input hidden que sincroniza com Livewire
+                                $iconeInputId = 'icone_hidden_'.\Illuminate\Support\Str::random(8);
+
+                                // Gerar arquivo JSON com ícones faltantes para revisão (sobrescreve)
+                                if (!empty($missingIcons)) {
+                                    $outPath = public_path('assets/icons-missing.json');
+                                    @file_put_contents($outPath, json_encode($missingIcons, JSON_PRETTY_PRINT));
+                                }
+                            @endphp
                             <!-- Cor e Ícone -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -234,30 +271,49 @@
                                         Ícone
                                     </label>
                                     <div class="flex items-center space-x-3">
-                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg shadow-sm"
-                                             style="background: linear-gradient(135deg, {{ $hexcolor_category }}, {{ $hexcolor_category }}dd)">
-                                            <i class="{{ $icone }}"></i>
+                                        <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg shadow-sm category-preview"
+                                            style="background: linear-gradient(135deg, {{ $hexcolor_category }}, {{ $hexcolor_category }}dd)">
+                                            {{-- Mostrar ícone selecionado (pode ser fontawesome ou classe de CSS customizada) --}}
+                                            @if(str_contains($icone ?? '', ' '))
+                                                @php $last = last(explode(' ', $icone)); @endphp
+                                                <i class="{{ $last }}"></i>
+                                            @else
+                                                <i class="{{ $icone }}"></i>
+                                            @endif
                                         </div>
-                                        <select wire:model.live="icone"
-                                                class="flex-1 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:focus:border-purple-400 bg-white dark:bg-slate-700 text-slate-900 dark:text-white">
-                                            <optgroup label="💰 Financeiro">
-                                                <option value="fas fa-dollar-sign">💵 Dólar</option>
-                                                <option value="fas fa-credit-card">💳 Cartão</option>
-                                                <option value="fas fa-coins">🪙 Moedas</option>
-                                            </optgroup>
-                                            <optgroup label="🔄 Transferências">
-                                                <option value="fas fa-exchange-alt">🔄 Transferência</option>
-                                                <option value="fas fa-arrow-right">➡️ Enviar</option>
-                                                <option value="fas fa-mobile-alt">📱 PIX</option>
-                                            </optgroup>
-                                            <optgroup label="🏠 Gerais">
-                                                <option value="fas fa-home">🏠 Casa</option>
-                                                <option value="fas fa-car">🚗 Transporte</option>
-                                                <option value="fas fa-utensils">🍽️ Alimentação</option>
-                                                <option value="fas fa-tag">🏷️ Tag</option>
-                                                <option value="fas fa-box">📦 Produtos</option>
-                                            </optgroup>
-                                        </select>
+
+                                        <input id="{{ $iconeInputId }}" type="hidden" wire:model.live="icone">
+
+                                        <div class="flex-1" x-data="iconDropdown(@json($availableIcons), '{{ $icone ?? '' }}', '{{ $iconeInputId }}')">
+                                            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium transition-all duration-200 hover:border-purple-500 focus:ring-2 focus:ring-purple-500">
+                                                <span class="flex items-center gap-3">
+                                                    <span class="inline-block w-6 h-6">
+                                                        <span :class="selected" class="inline-block w-6 h-6"></span>
+                                                    </span>
+                                                    <span x-text="selected || 'Selecione um ícone'">Selecione um ícone</span>
+                                                </span>
+                                                <i class="bi bi-chevron-down text-slate-400" :class="{'rotate-180': open}"></i>
+                                            </button>
+
+                                            <div x-show="open" x-transition @click.away="open = false" class="absolute z-50 w-full mt-2 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl shadow-2xl max-h-72 overflow-y-auto">
+                                                <div class="p-2 border-b border-slate-200 dark:border-slate-600">
+                                                    <input type="text" x-model="search" placeholder="Buscar ícone..." class="w-full px-3 py-2 text-sm bg-gray-50 dark:bg-slate-800 border border-slate-300 rounded-lg focus:outline-none">
+                                                </div>
+                                                <div class="p-2 grid grid-cols-2 gap-2">
+                                                    <template x-for="icon in filtered" :key="icon">
+                                                        <button type="button" @click="select(icon)" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 text-sm text-left">
+                                                            <span class="inline-block w-8 h-8 rounded-md overflow-hidden flex items-center justify-center bg-white dark:bg-slate-800">
+                                                                <span :class="icon" class="inline-block"></span>
+                                                            </span>
+                                                            <span x-text="icon" class="truncate"></span>
+                                                        </button>
+                                                    </template>
+                                                    <template x-if="filtered.length === 0">
+                                                        <div class="text-sm text-gray-500 p-3">Nenhum ícone encontrado</div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
