@@ -286,8 +286,27 @@
 
                                         <input id="{{ $iconeInputId }}" type="hidden" wire:model.live="icone">
 
-                                        <div class="flex-1" x-data="{ open: false, search: '', selected: null, icons: [], inputId: null }" x-init="icons = JSON.parse($el.dataset.icons || '[]'); selected = $el.dataset.initial || null; inputId = $el.dataset.inputId || null" data-icons='@json($availableIcons)' data-initial="{{ $icone ?? '' }}" data-input-id="{{ $iconeInputId }}">
-                                            <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium transition-all duration-200 hover:border-purple-500 focus:ring-2 focus:ring-purple-500">
+                                        <div class="flex-1" x-data="{
+                                            open: false,
+                                            search: '',
+                                            selected: null,
+                                            icons: [],
+                                            inputId: null,
+                                            select(icon){
+                                                try{
+                                                    this.selected = icon;
+                                                    if(this.inputId){
+                                                        const h = document.getElementById(this.inputId);
+                                                        if(h){
+                                                            h.value = icon;
+                                                            h.dispatchEvent(new Event('input', { bubbles: true }));
+                                                        }
+                                                    }
+                                                }catch(e){ console.error(e); }
+                                                this.open = false;
+                                            }
+                                        }" x-init="icons = JSON.parse($el.dataset.icons || '[]'); selected = $el.dataset.initial || null; inputId = $el.dataset.inputId || null" data-icons='@json($availableIcons)' data-initial="{{ $icone ?? '' }}" data-input-id="{{ $iconeInputId }}">
+                                            <button type="button" @click.prevent="open = !open" @keydown.escape="open = false" class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-medium transition-all duration-200 hover:border-purple-500 focus:ring-2 focus:ring-purple-500">
                                                 <span class="flex items-center gap-3">
                                                     <span class="inline-block w-6 h-6">
                                                         <span :class="selected" class="inline-block w-6 h-6"></span>
@@ -303,7 +322,7 @@
                                                 </div>
                                                 <div class="p-2 grid grid-cols-2 gap-2">
                                                     <template x-for="icon in icons.filter(i => (i + '').toLowerCase().includes((search || '').toLowerCase()))" :key="icon">
-                                                        <button type="button" @click="(function(){ selected = icon; if(inputId){ const h = document.getElementById(inputId); if(h){ h.value = icon; h.dispatchEvent(new Event('input')); } } open = false; })()" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 text-sm text-left">
+                                                        <button type="button" @click.prevent="select(icon)" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-600 text-sm text-left">
                                                             <span class="inline-block w-8 h-8 rounded-md overflow-hidden flex items-center justify-center bg-white dark:bg-slate-800">
                                                                 <span :class="icon" class="inline-block" style="width:100%;height:100%;display:inline-block;background-position:50% 50%;background-repeat:no-repeat;background-size:contain;"></span>
                                                             </span>
