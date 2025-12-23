@@ -1,676 +1,699 @@
-<div class=" w-full "
-     x-data="{
-        showFilters: false,
-        showQuickActions: false,
-        hasActiveFilters: {{ ($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim) ? 'true' : 'false' }},
-            fullHd: false,
-            ultra: false,
-        initResponsiveWatcher() {
-            const mq = window.matchMedia('(min-width: 1920px)');
-                const mqUltra = window.matchMedia('(min-width: 2498px)');
+<div class=" w-full " x-data="{
+    showFilters: false,
+    showQuickActions: false,
+    hasActiveFilters: {{ $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim ? 'true' : 'false' }},
+    fullHd: false,
+    ultra: false,
+    initResponsiveWatcher() {
+        const mq = window.matchMedia('(min-width: 1920px)');
+        const mqUltra = window.matchMedia('(min-width: 2498px)');
 
-            const sync = () => {
-                this.fullHd = mq.matches;
-                if ($wire) {
-                    $wire.set('fullHdLayout', mq.matches);
-                }
-            };
-
-                const syncUltra = () => {
-                    this.ultra = mqUltra.matches;
-                    if ($wire) {
-                        $wire.set('ultraLayout', mqUltra.matches);
-                    }
-                };
-
-            sync();
-                syncUltra();
-
-            if (typeof mq.addEventListener === 'function') {
-                mq.addEventListener('change', sync);
-            } else {
-                mq.addListener(sync);
+        const sync = () => {
+            this.fullHd = mq.matches;
+            if ($wire) {
+                $wire.set('fullHdLayout', mq.matches);
             }
+        };
 
-                if (typeof mqUltra.addEventListener === 'function') {
-                    mqUltra.addEventListener('change', syncUltra);
-                } else {
-                    mqUltra.addListener(syncUltra);
-                }
+        const syncUltra = () => {
+            this.ultra = mqUltra.matches;
+            if ($wire) {
+                $wire.set('ultraLayout', mqUltra.matches);
+            }
+        };
+
+        sync();
+        syncUltra();
+
+        if (typeof mq.addEventListener === 'function') {
+            mq.addEventListener('change', sync);
+        } else {
+            mq.addListener(sync);
         }
-     }"
-     x-init="initResponsiveWatcher()">
+
+        if (typeof mqUltra.addEventListener === 'function') {
+            mqUltra.addEventListener('change', syncUltra);
+        } else {
+            mqUltra.addListener(syncUltra);
+        }
+    }
+}" x-init="initResponsiveWatcher()">
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     @endpush
 
-    <!-- Header Modernizado -->
-    <x-products-header
-        title="Catálogo de Produtos"
-        description=""
-        :total-products="$products->total() ?? 0"
-        :total-categories="$categories->count()"
-        :show-quick-actions="true"
-    />
+    <!-- Header Modernizado (com slot para controles) -->
+    <x-products-header title="Catálogo de Produtos" description="" :total-products="$products->total() ?? 0" :total-categories="$categories->count()"
+        :show-quick-actions="false">
 
-
-
-    <!-- Filtros Modernizados -->
-    <x-products-filters
-        :categories="$categories"
-        :search="$search"
-        :category="$category"
-        :tipo="$tipo"
-        :status_filtro="$status_filtro"
-        :preco_min="$preco_min"
-        :preco_max="$preco_max"
-        :per-page="$perPage"
-        :per-page-options="$perPageOptions"
-        :ordem="$ordem"
-        :estoque_filtro="$estoque ?? ''"
-        :data_filtro="$data_inicio ?? ''"
-        :total-products="$products->total() ?? 0"
-    />
-
-    <!-- Barra de Controle Superior com Pesquisa e Paginação -->
-    <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-4 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
-        <!-- Linha Principal: Pesquisa (50%) + Controles e Paginação (50%) -->
-        <div class="flex items-center gap-6">
-            <!-- Lado Esquerdo: Campo de Pesquisa (50%) -->
+        <!-- Barra de Controle integrada ao header (slot) -->
+        <div class="flex items-center gap-6 w-full">
+            <!-- Lado Esquerdo: Campo de Pesquisa (flex-1) -->
             <div class="flex-1">
                 <div class="relative group">
-                    <!-- Input principal -->
                     <div class="relative">
-                        <input type="text"
-                               wire:model.live.debounce.300ms="search"
-                               placeholder="Buscar produtos por nome, código, categoria ou descrição..."
-                               class="w-full pl-12 pr-16 py-3 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900
-                                      border border-slate-200/50 dark:border-slate-600/50 rounded-xl
-                                      text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400
-                                      focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400
-                                      transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm
-                                      text-base font-medium">
+                        <input type="text" wire:model.live.debounce.300ms="search"
+                            placeholder="Buscar produtos por nome, código, categoria ou descrição..."
+                            class="w-full pl-12 pr-16 py-3 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 border border-slate-200/50 dark:border-slate-600/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-300 shadow-sm backdrop-blur-sm text-base font-medium">
 
-                        <!-- Ícone de busca -->
                         <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
                             <i class="bi bi-search text-slate-500 dark:text-slate-400 text-lg group-focus-within:text-purple-500 transition-colors duration-200"></i>
                         </div>
 
-                        <!-- Botão limpar -->
                         <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                            <button wire:click="$set('search', '')"
-                                    x-show="$wire.search && $wire.search.length > 0"
-                                    x-transition:enter="transition ease-out duration-200"
-                                    x-transition:enter-start="opacity-0 scale-50"
-                                    x-transition:enter-end="opacity-100 scale-100"
-                                    x-transition:leave="transition ease-in duration-150"
-                                    x-transition:leave-start="opacity-100 scale-100"
-                                    x-transition:leave-end="opacity-0 scale-50"
-                                    class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500
-                                           text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white
-                                           rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
-                                    title="Limpar busca">
+                            <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 scale-50"
+                                x-transition:enter-end="opacity-100 scale-100"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 scale-100"
+                                x-transition:leave-end="opacity-0 scale-50"
+                                class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
+                                title="Limpar busca">
                                 <i class="bi bi-x-lg text-xs group-hover/clear:rotate-90 transition-transform duration-200"></i>
                             </button>
                         </div>
 
-                        <!-- Indicador de carregamento -->
-                        <div wire:loading.delay wire:target="search"
-                             class="absolute right-12 top-1/2 transform -translate-y-1/2">
+                        <div wire:loading.delay wire:target="search" class="absolute right-12 top-1/2 transform -translate-y-1/2">
                             <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
                         </div>
-
-                        <!-- Efeito de brilho -->
-                        <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/10 via-transparent to-blue-500/10 opacity-0 group-focus-within:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Lado Direito: Informações + Paginação + Controles (50%) -->
+            <!-- Lado Direito: Informações + Paginação + Controles -->
             <div class="flex items-center gap-4">
-                <!-- Contador de Resultados -->
                 <div class="flex items-center gap-2">
                     <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
                         <i class="bi bi-box text-base"></i>
                     </div>
                     <div>
                         <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">
-                            @if($products->total())
+                            @if ($products->total())
                                 {{ $products->total() }} {{ $products->total() === 1 ? 'Produto' : 'Produtos' }}
                             @else
                                 Nenhum produto
                             @endif
                         </h3>
-                        @if($products->total() > 0)
-                        <p class="text-xs text-slate-600 dark:text-slate-400">
-                            {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }}
-                        </p>
+                        @if ($products->total() > 0)
+                            <p class="text-xs text-slate-600 dark:text-slate-400">
+                                {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }}
+                            </p>
                         @endif
                     </div>
                 </div>
 
-                <!-- Paginação Compacta -->
-                @if($products->hasPages())
-                <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-                    <!-- Primeira/Anterior -->
-                    @if($products->currentPage() > 1)
-                    <a href="{{ $products->url(1) }}"
-                       class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
-                       title="Primeira página">
-                        <i class="bi bi-chevron-double-left text-sm"></i>
-                    </a>
-                    @endif
+                @if ($products->hasPages())
+                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
+                        @if ($products->currentPage() > 1)
+                            <a href="{{ $products->url(1) }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Primeira página">
+                                <i class="bi bi-chevron-double-left text-sm"></i>
+                            </a>
+                        @endif
 
-                    @if($products->previousPageUrl())
-                    <a href="{{ $products->previousPageUrl() }}"
-                       class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
-                       title="Página anterior">
-                        <i class="bi bi-chevron-left text-sm"></i>
-                    </a>
-                    @endif
+                        @if ($products->previousPageUrl())
+                            <a href="{{ $products->previousPageUrl() }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Página anterior">
+                                <i class="bi bi-chevron-left text-sm"></i>
+                            </a>
+                        @endif
 
-                    <!-- Páginas -->
-                    <div class="flex items-center px-3 py-1">
-                        <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {{ $products->currentPage() }} / {{ $products->lastPage() }}
-                        </span>
+                        <div class="flex items-center px-3 py-1">
+                            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
+                        </div>
+
+                        @if ($products->nextPageUrl())
+                            <a href="{{ $products->nextPageUrl() }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Próxima página">
+                                <i class="bi bi-chevron-right text-sm"></i>
+                            </a>
+                        @endif
+
+                        @if ($products->currentPage() < $products->lastPage())
+                            <a href="{{ $products->url($products->lastPage()) }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Última página">
+                                <i class="bi bi-chevron-double-right text-sm"></i>
+                            </a>
+                        @endif
                     </div>
-
-                    <!-- Próxima/Última -->
-                    @if($products->nextPageUrl())
-                    <a href="{{ $products->nextPageUrl() }}"
-                       class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
-                       title="Próxima página">
-                        <i class="bi bi-chevron-right text-sm"></i>
-                    </a>
-                    @endif
-
-                    @if($products->currentPage() < $products->lastPage())
-                    <a href="{{ $products->url($products->lastPage()) }}"
-                       class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200"
-                       title="Última página">
-                        <i class="bi bi-chevron-double-right text-sm"></i>
-                    </a>
-                    @endif
-                </div>
                 @endif
 
-                <!-- Botão de Filtros -->
-                <button @click="showFilters = !showFilters"
-                        class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-all duration-200"
-                        :class="{ 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300': showFilters }"
-                        title="Filtros avançados">
+                <button @click="showFilters = !showFilters" class="p-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 rounded-lg transition-all duration-200" :class="{ 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300': showFilters }" title="Filtros avançados">
                     <i class="bi bi-funnel text-lg"></i>
                 </button>
+
+                <!-- Ações rápidas: Novo Produto / Novo Kit / Upload -->
+                <div class="flex items-center gap-2 ml-3">
+                    <a href="{{ route('products.create') }}" class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30 hover:shadow-sm transition-all duration-200">
+                        <i class="bi bi-plus-lg"></i>
+                        <span class="hidden sm:inline text-sm font-semibold">Novo Produto</span>
+                    </a>
+
+                    <a href="{{ route('products.kit.create') }}" class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:shadow-sm transition-all duration-200">
+                        <i class="bi bi-boxes"></i>
+                        <span class="hidden sm:inline text-sm font-semibold">Novo Kit</span>
+                    </a>
+
+                    <a href="{{ route('products.upload') }}" class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/30 hover:shadow-sm transition-all duration-200">
+                        <i class="bi bi-file-earmark-arrow-up"></i>
+                        <span class="hidden sm:inline text-sm font-semibold">Upload</span>
+                    </a>
+                </div>
             </div>
         </div>
-    </div>
+
+    </x-products-header>
+
+
+
+    <!-- Filtros Modernizados -->
+    <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
+        :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
+        :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" />
+
+    <!-- Barra de Controle removida daqui (integrada ao header via slot) -->
 
     <!-- Lista de Produtos -->
-    @if($products->isEmpty())
-    <!-- Estado vazio aprimorado -->
-    <div class="empty-state flex flex-col items-center justify-center py-20 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-700 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-600">
-        <div class="relative">
-            <!-- Ícone animado -->
-            <div class="w-32 h-32 mx-auto mb-6 text-neutral-400 relative">
-                <div class="absolute inset-0 bg-gradient-to-br from-purple-200 to-blue-200 dark:from-purple-800 dark:to-blue-800 rounded-full opacity-20 animate-pulse"></div>
-                <svg class="w-full h-full relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 5l7 7" />
-                </svg>
-            </div>
-
-            <!-- Elementos decorativos -->
-            <div class="absolute top-0 left-0 w-4 h-4 bg-purple-300 rounded-full opacity-50 animate-bounce"></div>
-            <div class="absolute top-4 right-0 w-3 h-3 bg-blue-300 rounded-full opacity-50 animate-bounce" style="animation-delay: 0.5s;"></div>
-            <div class="absolute bottom-0 left-4 w-2 h-2 bg-pink-300 rounded-full opacity-50 animate-bounce" style="animation-delay: 1s;"></div>
-        </div>
-
-        <h3 class="text-3xl font-bold text-neutral-800 dark:text-neutral-100 mb-3">📦 Nenhum produto encontrado</h3>
-        <p class="text-neutral-600 dark:text-neutral-400 text-center mb-8 max-w-md text-lg">
-            @if($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim)
-            Nenhum produto corresponde aos filtros aplicados. Tente ajustar os critérios de busca.
-            @else
-            Sua prateleira está vazia! Que tal começar adicionando seu primeiro produto ao catálogo?
-            @endif
-        </p>
-
-        <div class="flex flex-col sm:flex-row gap-4">
-            @if($search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim)
-            <button wire:click="clearFilters"
-                class="btn-gradient inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                <i class="bi bi-x-circle mr-2 icon-rotate"></i>
-                🔄 Limpar Filtros
-            </button>
-            @else
-            <a href="{{ route('products.create') }}"
-                class="btn-gradient inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                <i class="bi bi-plus-square mr-3 text-xl floating-badge"></i>
-                ✨ Criar Primeiro Produto
-            </a>
-            @endif
-
-            <a href="{{ route('products.upload') }}"
-                class="btn-gradient inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
-                <i class="bi bi-file-earmark-arrow-up mr-2 icon-pulse"></i>
-                📂 Upload em Lote
-            </a>
-        </div>
-    </div>
-    @else
-    <!-- Grid de Produtos com CSS customizado mantido -->
-    <form>
-        <div class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-6"
-            data-ultrawind="{{ ($ultraLayout ?? false) ? 'true' : 'false' }}"
-            data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
-            x-bind:data-ultrawind="ultra ? 'true' : 'false'"
-            x-bind:data-full-hd="fullHd ? 'true' : 'false'">
-        @foreach($products as $product)
-        @if($product->tipo === 'kit')
-        <!-- Kit Card com informações extras -->
-        <div class="bg-white dark:bg-neutral-800 rounded-xl border-2 border-blue-200 dark:border-blue-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-            <div class="relative p-4">
-                <div class="absolute top-2 right-2 flex gap-2">
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        <i class="bi bi-boxes mr-1"></i>KIT
-                    </span>
-                    <!-- Badge de status -->
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-100 text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-800" title="Status">
-                        <i class="bi bi-circle-fill mr-1"></i> {{ ucfirst($product->status) }}
-                    </span>
-                    <!-- Badge de novo -->
-                    @if(\Carbon\Carbon::parse($product->created_at)->diffInDays(now()) <= 7)
-                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800" title="Novo Produto">
-                        <i class="bi bi-stars mr-1"></i> Novo
-                    </span>
-                    @endif
+    @if ($products->isEmpty())
+        <!-- Estado vazio aprimorado -->
+        <div
+            class="empty-state flex flex-col items-center justify-center py-20 bg-gradient-to-br from-neutral-50 to-white dark:from-neutral-800 dark:to-neutral-700 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-600">
+            <div class="relative">
+                <!-- Ícone animado -->
+                <div class="w-32 h-32 mx-auto mb-6 text-neutral-400 relative">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-purple-200 to-blue-200 dark:from-purple-800 dark:to-blue-800 rounded-full opacity-20 animate-pulse">
+                    </div>
+                    <svg class="w-full h-full relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                            d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M9 5l7 7" />
+                    </svg>
                 </div>
 
-                <div class="text-center">
-
-                    <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
-                        alt="{{ $product->name }}"
-                        class="w-24 h-24 mx-auto rounded-lg object-cover bg-neutral-100 dark:bg-neutral-700 mb-3">
-
-                    <!-- Categoria com ícone -->
-                    <div class="mb-1">
-                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} mr-1"></i> {{ $product->category->name ?? '-' }}
-                        </span>
-                    </div>
-
-                    <h3 class="font-bold text-neutral-800 dark:text-neutral-100 text-sm mb-1" title="{{ $product->name }}">
-                        {{ $product->name }}
-                    </h3>
-                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-2" title="Código do produto">#{{ $product->product_code }}</p>
-
-                    <div class="space-y-1 text-xs">
-                        <div class="text-green-600 dark:text-green-400 font-semibold" title="Preço de venda">
-                            <i class="bi bi-currency-dollar"></i> R$ {{ number_format($product->price_sale, 2, ',', '.') }}
-                        </div>
-                    </div>
-
-                    <div class="mt-3 flex gap-2 justify-center">
-                        <a href="{{ route('products.show', $product->product_code) }}"
-                            class="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-colors duration-200"
-                            title="Ver Detalhes">
-                            <i class="bi bi-eye"></i>
-                        </a>
-                        <a href="{{ route('products.kit.edit', $product) }}"
-                            class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors duration-200"
-                            title="Editar">
-                            <i class="bi bi-pencil-square"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        @else
-        <!-- Produto Simples com CSS customizado mantido -->
-        <div class="product-card-modern">
-            <!-- Botões flutuantes -->
-            <div class="btn-action-group">
-
-                <a href="{{ route('products.show', $product->product_code) }}" class="btn btn-secondary" title="Ver Detalhes">
-                    <i class="bi bi-eye"></i>
-                </a>
-                <a href="{{ route('products.edit', $product) }}" class="btn btn-primary" title="Editar">
-                    <i class="bi bi-pencil-square"></i>
-                </a>
-                <button type="button"
-                        wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
-                        class="btn btn-success"
-                        title="Exportar Card">
-                    <i class="bi bi-file-earmark-image"></i>
-                </button>
-                <button type="button"
-                        wire:click="confirmDelete({{ $product->id }})"
-                        class="btn btn-danger"
-                        title="Excluir">
-                    <i class="bi bi-trash3"></i>
-                </button>
+                <!-- Elementos decorativos -->
+                <div class="absolute top-0 left-0 w-4 h-4 bg-purple-300 rounded-full opacity-50 animate-bounce"></div>
+                <div class="absolute top-4 right-0 w-3 h-3 bg-blue-300 rounded-full opacity-50 animate-bounce"
+                    style="animation-delay: 0.5s;"></div>
+                <div class="absolute bottom-0 left-4 w-2 h-2 bg-pink-300 rounded-full opacity-50 animate-bounce"
+                    style="animation-delay: 1s;"></div>
             </div>
 
-            <!-- Área da imagem com badges -->
-            <div class="product-img-area">
-                <img src="{{ asset('storage/products/' . $product->image) }}" class="product-img" alt="{{ $product->name }}">
+            <h3 class="text-3xl font-bold text-neutral-800 dark:text-neutral-100 mb-3">📦 Nenhum produto encontrado</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 text-center mb-8 max-w-md text-lg">
+                @if (
+                    $search ||
+                        $category ||
+                        $tipo ||
+                        $status_filtro ||
+                        $preco_min ||
+                        $preco_max ||
+                        $estoque ||
+                        $data_inicio ||
+                        $data_fim)
+                    Nenhum produto corresponde aos filtros aplicados. Tente ajustar os critérios de busca.
+                @else
+                    Sua prateleira está vazia! Que tal começar adicionando seu primeiro produto ao catálogo?
+                @endif
+            </p>
 
-                @if($product->stock_quantity == 0)
-                <div class="out-of-stock">
-                    <i class="bi bi-x-circle"></i> Fora de Estoque
-                </div>
+            <div class="flex flex-col sm:flex-row gap-4">
+                @if (
+                    $search ||
+                        $category ||
+                        $tipo ||
+                        $status_filtro ||
+                        $preco_min ||
+                        $preco_max ||
+                        $estoque ||
+                        $data_inicio ||
+                        $data_fim)
+                    <button wire:click="clearFilters"
+                        class="btn-gradient inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                        <i class="bi bi-x-circle mr-2 icon-rotate"></i>
+                        🔄 Limpar Filtros
+                    </button>
+                @else
+                    <a href="{{ route('products.create') }}"
+                        class="btn-gradient inline-flex items-center px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                        <i class="bi bi-plus-square mr-3 text-xl floating-badge"></i>
+                        ✨ Criar Primeiro Produto
+                    </a>
                 @endif
 
-                <!-- Código do produto -->
-                <span class="badge-product-code" title="Código do Produto">
-                    <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
-                </span>
-
-                <!-- Quantidade -->
-                <span class="badge-quantity" title="Quantidade em Estoque">
-                    <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
-                </span>
-
-                <!-- Ícone da categoria -->
-                <div class="category-icon-wrapper">
-                    <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
-                </div>
-            </div>
-
-            <!-- Conteúdo -->
-            <div class="card-body">
-                <div class="product-title" title="{{ $product->name }}">
-                    {{ ucwords($product->name) }}
-                </div>
-
-                <!-- Área de preços dentro do card-body -->
-                <div class="price-area mt-3">
-                    <div class="flex flex-col gap-2">
-                        <span class="badge-price" title="Preço de Custo">
-                            <i class="bi bi-tag"></i>
-                            R$ {{ number_format($product->price, 2, ',', '.') }}
-                        </span>
-
-                        <span class="badge-price-sale" title="Preço de Venda">
-                            <i class="bi bi-currency-dollar"></i>
-                            R$ {{ number_format($product->price_sale, 2, ',', '.') }}
-                        </span>
-                    </div>
-                </div>
+                <a href="{{ route('products.upload') }}"
+                    class="btn-gradient inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105">
+                    <i class="bi bi-file-earmark-arrow-up mr-2 icon-pulse"></i>
+                    📂 Upload em Lote
+                </a>
             </div>
         </div>
-        @endif
-        @endforeach
-    </div>
-    </form>
+    @else
+        <!-- Grid de Produtos com CSS customizado mantido -->
+        <form>
+            <div class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 ultrawind:grid-cols-8 gap-6"
+                data-ultrawind="{{ $ultraLayout ?? false ? 'true' : 'false' }}"
+                data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
+                x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
+                @foreach ($products as $product)
+                    @if ($product->tipo === 'kit')
+                        <!-- Kit Card com informações extras -->
+                        <div
+                            class="bg-white dark:bg-neutral-800 rounded-xl border-2 border-blue-200 dark:border-blue-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
+                            <div class="relative p-4">
+                                <div class="absolute top-2 right-2 flex gap-2">
+                                    <span
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                        <i class="bi bi-boxes mr-1"></i>KIT
+                                    </span>
+                                    <!-- Badge de status -->
+                                    <span
+                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-100 text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-800"
+                                        title="Status">
+                                        <i class="bi bi-circle-fill mr-1"></i> {{ ucfirst($product->status) }}
+                                    </span>
+                                    <!-- Badge de novo -->
+                                    @if (\Carbon\Carbon::parse($product->created_at)->diffInDays(now()) <= 7)
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                                            title="Novo Produto">
+                                            <i class="bi bi-stars mr-1"></i> Novo
+                                        </span>
+                                    @endif
+                                </div>
 
-    <!-- Paginação Aprimorada Inferior -->
-    <div class="mt-8 space-y-6">
-        <!-- Estatísticas e Resumo -->
-        @if($products->total() > 0)
-        <div class="bg-gradient-to-br from-white/60 to-slate-50/60 dark:from-slate-800/60 dark:to-slate-900/60 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                <!-- Total de Produtos -->
-                <div class="text-center">
-                    <div class="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl text-white mx-auto w-fit mb-2">
-                        <i class="bi bi-boxes text-2xl"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">{{ $products->total() }}</div>
-                    <div class="text-sm text-slate-600 dark:text-slate-400">Total de Produtos</div>
-                </div>
+                                <div class="text-center">
 
-                <!-- Produtos Ativos -->
-                <div class="text-center">
-                    <div class="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl text-white mx-auto w-fit mb-2">
-                        <i class="bi bi-check-circle text-2xl"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">{{ $products->where('status', 'ativo')->count() }}</div>
-                    <div class="text-sm text-slate-600 dark:text-slate-400">Produtos Ativos</div>
-                </div>
+                                    <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
+                                        alt="{{ $product->name }}"
+                                        class="w-24 h-24 mx-auto rounded-lg object-cover bg-neutral-100 dark:bg-neutral-700 mb-3">
 
-                <!-- Estoque Baixo -->
-                <div class="text-center">
-                    <div class="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl text-white mx-auto w-fit mb-2">
-                        <i class="bi bi-exclamation-triangle text-2xl"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">{{ $products->where('stock_quantity', '<=', 5)->count() }}</div>
-                    <div class="text-sm text-slate-600 dark:text-slate-400">Estoque Baixo</div>
-                </div>
+                                    <!-- Categoria com ícone -->
+                                    <div class="mb-1">
+                                        <span
+                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} mr-1"></i>
+                                            {{ $product->category->name ?? '-' }}
+                                        </span>
+                                    </div>
 
-                <!-- Sem Imagem -->
-                <div class="text-center">
-                    <div class="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl text-white mx-auto w-fit mb-2">
-                        <i class="bi bi-image text-2xl"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">{{ $products->whereNull('image')->count() }}</div>
-                    <div class="text-sm text-slate-600 dark:text-slate-400">Sem Imagem</div>
-                </div>
+                                    <h3 class="font-bold text-neutral-800 dark:text-neutral-100 text-sm mb-1"
+                                        title="{{ $product->name }}">
+                                        {{ $product->name }}
+                                    </h3>
+                                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-2"
+                                        title="Código do produto">#{{ $product->product_code }}</p>
 
-                <!-- Valor Total -->
-                <div class="text-center">
-                    <div class="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white mx-auto w-fit mb-2">
-                        <i class="bi bi-currency-dollar text-2xl"></i>
-                    </div>
-                    <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                        R$ {{ number_format($products->sum('price_sale'), 0, ',', '.') }}
-                    </div>
-                    <div class="text-sm text-slate-600 dark:text-slate-400">Valor Total</div>
-                </div>
-            </div>
-        </div>
-        @endif
+                                    <div class="space-y-1 text-xs">
+                                        <div class="text-green-600 dark:text-green-400 font-semibold"
+                                            title="Preço de venda">
+                                            <i class="bi bi-currency-dollar"></i> R$
+                                            {{ number_format($product->price_sale, 2, ',', '.') }}
+                                        </div>
+                                    </div>
 
-        <!-- Paginação Principal -->
-        @if($products->hasPages())
-        <div class="bg-gradient-to-br from-white/70 to-slate-50/70 dark:from-slate-800/70 dark:to-slate-900/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
-            <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
-                <!-- Informações da Paginação -->
-                <div class="flex items-center gap-4">
-                    <div class="text-sm text-slate-600 dark:text-slate-400">
-                        📊 Exibindo
-                        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ $products->firstItem() ?? 0 }}</span>
-                        até
-                        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ $products->lastItem() ?? 0 }}</span>
-                        de
-                        <span class="font-semibold text-slate-800 dark:text-slate-200">{{ $products->total() }}</span>
-                        produtos
-                    </div>
-                    <div class="text-xs text-purple-500">
-                        ({{ $products->lastPage() }} {{ $products->lastPage() === 1 ? 'página' : 'páginas' }})
-                    </div>
-                </div>
-
-                <!-- Controles de Paginação -->
-                <div class="flex items-center gap-2">
-                    <!-- Primeira -->
-                    @if($products->currentPage() > 1)
-                    <a href="{{ $products->url(1) }}"
-                        class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
-                        title="Primeira página">
-                        <i class="bi bi-chevron-double-left"></i>
-                    </a>
-                    @endif
-
-                    <!-- Anterior -->
-                    @if($products->previousPageUrl())
-                    <a href="{{ $products->previousPageUrl() }}"
-                        class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
-                        title="Página anterior">
-                        <i class="bi bi-chevron-left"></i>
-                    </a>
-                    @endif
-
-                    <!-- Páginas -->
-                    @foreach($products->getUrlRange(max(1, $products->currentPage() - 2), min($products->lastPage(), $products->currentPage() + 2)) as $page => $url)
-                    @if($page == $products->currentPage())
-                    <span class="px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold shadow-lg">
-                        {{ $page }}
-                    </span>
+                                    <div class="mt-3 flex gap-2 justify-center">
+                                        <a href="{{ route('products.show', $product->product_code) }}"
+                                            class="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                                            title="Ver Detalhes">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{{ route('products.kit.edit', $product) }}"
+                                            class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors duration-200"
+                                            title="Editar">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @else
-                    <a href="{{ $url }}"
-                        class="px-4 py-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600">
-                        {{ $page }}
-                    </a>
-                    @endif
-                    @endforeach
+                        <!-- Produto Simples com CSS customizado mantido -->
+                        <div class="product-card-modern">
+                            <!-- Botões flutuantes -->
+                            <div class="btn-action-group">
 
-                    <!-- Próxima -->
-                    @if($products->nextPageUrl())
-                    <a href="{{ $products->nextPageUrl() }}"
-                        class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
-                        title="Próxima página">
-                        <i class="bi bi-chevron-right"></i>
-                    </a>
-                    @endif
+                                <a href="{{ route('products.show', $product->product_code) }}"
+                                    class="btn btn-secondary" title="Ver Detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('products.edit', $product) }}" class="btn btn-primary"
+                                    title="Editar">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button"
+                                    wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
+                                    class="btn btn-success" title="Exportar Card">
+                                    <i class="bi bi-file-earmark-image"></i>
+                                </button>
+                                <button type="button" wire:click="confirmDelete({{ $product->id }})"
+                                    class="btn btn-danger" title="Excluir">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
 
-                    <!-- Última -->
-                    @if($products->currentPage() < $products->lastPage())
-                    <a href="{{ $products->url($products->lastPage()) }}"
-                        class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
-                        title="Última página">
-                        <i class="bi bi-chevron-double-right"></i>
-                    </a>
-                    @endif
-                </div>
+                            <!-- Área da imagem com badges -->
+                            <div class="product-img-area">
+                                <img src="{{ asset('storage/products/' . $product->image) }}" class="product-img"
+                                    alt="{{ $product->name }}">
 
-                <!-- Ações Adicionais -->
-                <div class="flex items-center gap-2">
-                    <button class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                        <i class="bi bi-file-earmark-arrow-down"></i>
-                        <span class="hidden sm:inline">Exportar</span>
-                    </button>
-                    <button class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
-                        <i class="bi bi-printer"></i>
-                        <span class="hidden sm:inline">Imprimir</span>
-                    </button>
-                </div>
+                                @if ($product->stock_quantity == 0)
+                                    <div class="out-of-stock">
+                                        <i class="bi bi-x-circle"></i> Fora de Estoque
+                                    </div>
+                                @endif
+
+                                <!-- Código do produto -->
+                                <span class="badge-product-code" title="Código do Produto">
+                                    <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
+                                </span>
+
+                                <!-- Quantidade -->
+                                <span class="badge-quantity" title="Quantidade em Estoque">
+                                    <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
+                                </span>
+
+                                <!-- Ícone da categoria -->
+                                <div class="category-icon-wrapper">
+                                    <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
+                                </div>
+                            </div>
+
+                            <!-- Conteúdo -->
+                            <div class="card-body">
+                                <div class="product-title" title="{{ $product->name }}">
+                                    {{ ucwords($product->name) }}
+                                </div>
+
+                                <!-- Área de preços dentro do card-body -->
+                                <div class="price-area mt-3">
+                                    <div class="flex flex-col gap-2">
+                                        <span class="badge-price" title="Preço de Custo">
+                                            <i class="bi bi-tag"></i>
+                                            R$ {{ number_format($product->price, 2, ',', '.') }}
+                                        </span>
+
+                                        <span class="badge-price-sale" title="Preço de Venda">
+                                            <i class="bi bi-currency-dollar"></i>
+                                            R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
             </div>
-        </div>
-        @endif
+        </form>
 
-    </div>
-    @endif
+        <!-- Paginação Aprimorada Inferior -->
+        <div class="mt-8 space-y-6">
+            <!-- Estatísticas e Resumo -->
+            @if ($products->total() > 0)
+                <div
+                    class="bg-gradient-to-br from-white/60 to-slate-50/60 dark:from-slate-800/60 dark:to-slate-900/60 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
+                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                        <!-- Total de Produtos -->
+                        <div class="text-center">
+                            <div
+                                class="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl text-white mx-auto w-fit mb-2">
+                                <i class="bi bi-boxes text-2xl"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                                {{ $products->total() }}</div>
+                            <div class="text-sm text-slate-600 dark:text-slate-400">Total de Produtos</div>
+                        </div>
 
-    <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
-    @if($showDeleteModal)
-    <div x-data="{ modalOpen: true }"
-         x-show="modalOpen"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[99999] overflow-y-auto">
-        <!-- Backdrop com blur e gradiente -->
-        <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md"></div>
+                        <!-- Produtos Ativos -->
+                        <div class="text-center">
+                            <div
+                                class="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl text-white mx-auto w-fit mb-2">
+                                <i class="bi bi-check-circle text-2xl"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                                {{ $products->where('status', 'ativo')->count() }}</div>
+                            <div class="text-sm text-slate-600 dark:text-slate-400">Produtos Ativos</div>
+                        </div>
 
-        <!-- Container do Modal -->
-        <div class="flex min-h-full items-center justify-center p-4">
-            <!-- Modal -->
-            <div x-show="modalOpen"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
-                 x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
-                 x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
-                 class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+                        <!-- Estoque Baixo -->
+                        <div class="text-center">
+                            <div
+                                class="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl text-white mx-auto w-fit mb-2">
+                                <i class="bi bi-exclamation-triangle text-2xl"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                                {{ $products->where('stock_quantity', '<=', 5)->count() }}</div>
+                            <div class="text-sm text-slate-600 dark:text-slate-400">Estoque Baixo</div>
+                        </div>
 
-                <!-- Efeitos visuais de fundo -->
-                <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
-                <div class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
-                <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl"></div>
+                        <!-- Sem Imagem -->
+                        <div class="text-center">
+                            <div
+                                class="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl text-white mx-auto w-fit mb-2">
+                                <i class="bi bi-image text-2xl"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                                {{ $products->whereNull('image')->count() }}</div>
+                            <div class="text-sm text-slate-600 dark:text-slate-400">Sem Imagem</div>
+                        </div>
 
-                <!-- Conteúdo do Modal -->
-                <div class="relative z-10">
-                    <!-- Header com ícone animado -->
-                    <div class="text-center pt-8 pb-4">
-                        <div class="relative inline-flex items-center justify-center">
-                            <!-- Círculos de fundo animados -->
-                            <div class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse"></div>
-                            <div class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping"></div>
+                        <!-- Valor Total -->
+                        <div class="text-center">
+                            <div
+                                class="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white mx-auto w-fit mb-2">
+                                <i class="bi bi-currency-dollar text-2xl"></i>
+                            </div>
+                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
+                                R$ {{ number_format($products->sum('price_sale'), 0, ',', '.') }}
+                            </div>
+                            <div class="text-sm text-slate-600 dark:text-slate-400">Valor Total</div>
+                        </div>
+                    </div>
+                </div>
+            @endif
 
-                            <!-- Ícone principal -->
-                            <div class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                                <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
+            <!-- Paginação Principal -->
+            @if ($products->hasPages())
+                <div
+                    class="bg-gradient-to-br from-white/70 to-slate-50/70 dark:from-slate-800/70 dark:to-slate-900/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
+                    <div class="flex flex-col lg:flex-row items-center justify-between gap-4">
+                        <!-- Informações da Paginação -->
+                        <div class="flex items-center gap-4">
+                            <div class="text-sm text-slate-600 dark:text-slate-400">
+                                📊 Exibindo
+                                <span
+                                    class="font-semibold text-slate-800 dark:text-slate-200">{{ $products->firstItem() ?? 0 }}</span>
+                                até
+                                <span
+                                    class="font-semibold text-slate-800 dark:text-slate-200">{{ $products->lastItem() ?? 0 }}</span>
+                                de
+                                <span
+                                    class="font-semibold text-slate-800 dark:text-slate-200">{{ $products->total() }}</span>
+                                produtos
+                            </div>
+                            <div class="text-xs text-purple-500">
+                                ({{ $products->lastPage() }} {{ $products->lastPage() === 1 ? 'página' : 'páginas' }})
                             </div>
                         </div>
 
-                        <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">
-                            <i class="bi bi-shield-exclamation text-red-500 mr-2"></i>
-                            Confirmar Exclusão
-                        </h3>
-                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 font-medium">
-                            <i class="bi bi-info-circle text-amber-500 mr-1"></i>
-                            Esta ação não pode ser desfeita
-                        </p>
-                    </div>
+                        <!-- Controles de Paginação -->
+                        <div class="flex items-center gap-2">
+                            <!-- Primeira -->
+                            @if ($products->currentPage() > 1)
+                                <a href="{{ $products->url(1) }}"
+                                    class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
+                                    title="Primeira página">
+                                    <i class="bi bi-chevron-double-left"></i>
+                                </a>
+                            @endif
 
-                    <!-- Corpo com informações -->
-                    <div class="px-8 pb-4">
-                        <div class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-4 border border-red-200/50 dark:border-red-700/50">
-                            @if(count($selectedProducts) > 0)
-                                <div class="text-center">
-                                    <i class="bi bi-boxes text-3xl text-red-500 mb-2"></i>
-                                    <p class="text-gray-700 dark:text-gray-300">
-                                        Você está prestes a excluir
-                                        <span class="font-bold text-red-600 dark:text-red-400">{{ count($selectedProducts) }} produto(s)</span>
-                                        selecionado(s).
-                                    </p>
-                                </div>
-                            @else
-                                <div class="text-center">
-                                    <i class="bi bi-box text-3xl text-red-500 mb-2"></i>
-                                    <p class="text-gray-700 dark:text-gray-300">
-                                        Você está prestes a excluir o produto:
-                                    </p>
-                                    <p class="font-bold text-red-600 dark:text-red-400 text-lg mt-1">
-                                        "{{ $deletingProduct->name ?? '' }}"
-                                    </p>
-                                </div>
+                            <!-- Anterior -->
+                            @if ($products->previousPageUrl())
+                                <a href="{{ $products->previousPageUrl() }}"
+                                    class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
+                                    title="Página anterior">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            @endif
+
+                            <!-- Páginas -->
+                            @foreach ($products->getUrlRange(max(1, $products->currentPage() - 2), min($products->lastPage(), $products->currentPage() + 2)) as $page => $url)
+                                @if ($page == $products->currentPage())
+                                    <span
+                                        class="px-4 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold shadow-lg">
+                                        {{ $page }}
+                                    </span>
+                                @else
+                                    <a href="{{ $url }}"
+                                        class="px-4 py-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600">
+                                        {{ $page }}
+                                    </a>
+                                @endif
+                            @endforeach
+
+                            <!-- Próxima -->
+                            @if ($products->nextPageUrl())
+                                <a href="{{ $products->nextPageUrl() }}"
+                                    class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
+                                    title="Próxima página">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            @endif
+
+                            <!-- Última -->
+                            @if ($products->currentPage() < $products->lastPage())
+                                <a href="{{ $products->url($products->lastPage()) }}"
+                                    class="p-3 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-600"
+                                    title="Última página">
+                                    <i class="bi bi-chevron-double-right"></i>
+                                </a>
                             @endif
                         </div>
 
-                        <!-- Aviso adicional -->
-                        <div class="mt-4 flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
-                            <i class="bi bi-clock-history"></i>
-                            <span class="text-sm font-medium">Esta ação é permanente</span>
+                        <!-- Ações Adicionais -->
+                        <div class="flex items-center gap-2">
+                            <button
+                                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
+                                <i class="bi bi-file-earmark-arrow-down"></i>
+                                <span class="hidden sm:inline">Exportar</span>
+                            </button>
+                            <button
+                                class="px-4 py-2 bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-medium rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 flex items-center gap-2">
+                                <i class="bi bi-printer"></i>
+                                <span class="hidden sm:inline">Imprimir</span>
+                            </button>
                         </div>
                     </div>
+                </div>
+            @endif
 
-                    <!-- Botões de ação -->
-                    <div class="px-8 pb-8">
-                        <div class="flex gap-4">
-                            <!-- Botão Cancelar -->
-                            <button wire:click="$set('showDeleteModal', false)"
-                                    @click="modalOpen = false"
-                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                <i class="bi bi-x-circle mr-2"></i>
-                                Cancelar
-                            </button>
+        </div>
+    @endif
 
-                            <!-- Botão Excluir -->
-                            <button wire:click="delete"
-                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-red-400/50">
-                                <i class="bi bi-trash3 mr-2"></i>
-                                Excluir
-                            </button>
+    <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
+    @if ($showDeleteModal)
+        <div x-data="{ modalOpen: true }" x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 z-[99999] overflow-y-auto">
+            <!-- Backdrop com blur e gradiente -->
+            <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md">
+            </div>
+
+            <!-- Container do Modal -->
+            <div class="flex min-h-full items-center justify-center p-4">
+                <!-- Modal -->
+                <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
+                    x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
+                    x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
+                    class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+
+                    <!-- Efeitos visuais de fundo -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
+                    <div
+                        class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl">
+                    </div>
+                    <div
+                        class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl">
+                    </div>
+
+                    <!-- Conteúdo do Modal -->
+                    <div class="relative z-10">
+                        <!-- Header com ícone animado -->
+                        <div class="text-center pt-8 pb-4">
+                            <div class="relative inline-flex items-center justify-center">
+                                <!-- Círculos de fundo animados -->
+                                <div
+                                    class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse">
+                                </div>
+                                <div
+                                    class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping">
+                                </div>
+
+                                <!-- Ícone principal -->
+                                <div
+                                    class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
+                                </div>
+                            </div>
+
+                            <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">
+                                <i class="bi bi-shield-exclamation text-red-500 mr-2"></i>
+                                Confirmar Exclusão
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 font-medium">
+                                <i class="bi bi-info-circle text-amber-500 mr-1"></i>
+                                Esta ação não pode ser desfeita
+                            </p>
                         </div>
 
-                        <!-- Botão de escape -->
-                        <div class="mt-3 text-center">
-                            <button @click="modalOpen = false; $wire.set('showDeleteModal', false)"
+                        <!-- Corpo com informações -->
+                        <div class="px-8 pb-4">
+                            <div
+                                class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-4 border border-red-200/50 dark:border-red-700/50">
+                                @if (count($selectedProducts) > 0)
+                                    <div class="text-center">
+                                        <i class="bi bi-boxes text-3xl text-red-500 mb-2"></i>
+                                        <p class="text-gray-700 dark:text-gray-300">
+                                            Você está prestes a excluir
+                                            <span
+                                                class="font-bold text-red-600 dark:text-red-400">{{ count($selectedProducts) }}
+                                                produto(s)</span>
+                                            selecionado(s).
+                                        </p>
+                                    </div>
+                                @else
+                                    <div class="text-center">
+                                        <i class="bi bi-box text-3xl text-red-500 mb-2"></i>
+                                        <p class="text-gray-700 dark:text-gray-300">
+                                            Você está prestes a excluir o produto:
+                                        </p>
+                                        <p class="font-bold text-red-600 dark:text-red-400 text-lg mt-1">
+                                            "{{ $deletingProduct->name ?? '' }}"
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <!-- Aviso adicional -->
+                            <div
+                                class="mt-4 flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
+                                <i class="bi bi-clock-history"></i>
+                                <span class="text-sm font-medium">Esta ação é permanente</span>
+                            </div>
+                        </div>
+
+                        <!-- Botões de ação -->
+                        <div class="px-8 pb-8">
+                            <div class="flex gap-4">
+                                <!-- Botão Cancelar -->
+                                <button wire:click="$set('showDeleteModal', false)" @click="modalOpen = false"
+                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                    <i class="bi bi-x-circle mr-2"></i>
+                                    Cancelar
+                                </button>
+
+                                <!-- Botão Excluir -->
+                                <button wire:click="delete"
+                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-red-400/50">
+                                    <i class="bi bi-trash3 mr-2"></i>
+                                    Excluir
+                                </button>
+                            </div>
+
+                            <!-- Botão de escape -->
+                            <div class="mt-3 text-center">
+                                <button @click="modalOpen = false; $wire.set('showDeleteModal', false)"
                                     class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200">
-                                <i class="bi bi-escape mr-1"></i>
-                                Pressione ESC para cancelar
-                            </button>
+                                    <i class="bi bi-escape mr-1"></i>
+                                    Pressione ESC para cancelar
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
 
     <!-- Componente de Exportação de Card -->
