@@ -38,6 +38,9 @@ class ProductsIndex extends Component
     public ?Product $deletingProduct = null;
     public bool $showDeleteModal = false;
 
+    // Modal de dicas
+    public bool $showTipsModal = false;
+
     public function mount()
     {
         // Debug: forçar para testar
