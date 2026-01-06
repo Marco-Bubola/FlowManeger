@@ -86,150 +86,54 @@
 </div>
 
 <script>
-    // Máscara de moeda para o campo {{ $id }} - Versão melhorada
-    function formatCurrency_{{ $id }}(value) {
-        // Remove tudo que não é dígito
-        const digits = value.replace(/\D/g, '');
+    document.addEventListener('alpine:init', () => {
+        const inputMasked = document.getElementById('{{ $id }}');
+        const inputHidden = document.getElementById('{{ $id }}_hidden');
+        // Pega o valor inicial passado, tratando como uma string para manipulação
+        const initialValue = '{{ $attributes->get('value', '0') }}';
 
-        // Se não há dígitos, retorna 0,00
-        if (!digits) return '0,00';
-
-        // Converte para centavos
-        const centavos = parseInt(digits);
-
-        // Formata para reais
-        const reais = (centavos / 100).toFixed(2).replace('.', ',');
-
-        return reais;
-    }
-
-    function applyCurrencyMask_{{ $id }}(input) {
-        const formatted = formatCurrency_{{ $id }}(input.value);
-        input.value = formatted;
-
-        // Efeito visual de feedback
-        input.classList.add('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
-        setTimeout(() => {
-            input.classList.remove('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
-        }, 200);
-
-        // Atualiza o input hidden com o valor numérico (formato US para validação)
-        const numericValue = formatted.replace(',', '.');
-        const hidden = document.getElementById('{{ $id }}_hidden');
-        if (hidden) {
-            hidden.value = numericValue;
-            // Dispara event para Livewire reconhecer alteração
-            hidden.dispatchEvent(new Event('input', { bubbles: true }));
-        }
-    }
-
-    // Configuração melhorada do campo {{ $id }}
-    document.addEventListener('DOMContentLoaded', function() {
-        const input_{{ $id }} = document.getElementById('{{ $id }}');
-
-            if (input_{{ $id }}) {
-            // Inicializa hidden e visível com valores atuais do Livewire, quando existirem
-            const hiddenInit = document.getElementById('{{ $id }}_hidden');
-            // Se foi passado um valor inicial via prop blade, usa-o para init
-            @if(!is_null($initial))
-                try {
-                    const initialVal = String(@json($initial));
-                    if (hiddenInit) {
-                        hiddenInit.value = initialVal;
-                    }
-                    const digitsFromInitial = initialVal.replace(/\D/g, '');
-                    if (digitsFromInitial) {
-                        input_{{ $id }}.value = formatCurrency_{{ $id }}(digitsFromInitial);
-                    }
-                } catch(e) {}
-            @else
-                if (hiddenInit) {
-                    // Se o hidden já tem um valor (ex: edição via Livewire), sincroniza para o campo visível
-                    if (hiddenInit.value && hiddenInit.value !== '0') {
-                        const digitsFromHidden = hiddenInit.value.replace(/\D/g, '');
-                        if (digitsFromHidden) {
-                            input_{{ $id }}.value = formatCurrency_{{ $id }}(digitsFromHidden);
-                        }
-                    } else {
-                        // Caso contrário, inicializa hidden a partir do campo visível padrão
-                        if (!input_{{ $id }}.value || input_{{ $id }}.value === '0') {
-                            input_{{ $id }}.value = '0,00';
-                        }
-                        hiddenInit.value = input_{{ $id }}.value.replace(',', '.');
-                    }
-                } else {
-                    // Sem hidden: garante uma exibição padrão
-                    if (!input_{{ $id }}.value || input_{{ $id }}.value === '0') {
-                        input_{{ $id }}.value = '0,00';
-                    }
-                }
-            @endif
-
-            // Eventos de input com feedback visual
-            input_{{ $id }}.addEventListener('input', function() {
-                applyCurrencyMask_{{ $id }}(this);
+        // Converte um valor numérico (ex: 123.45) para uma string formatada (ex: '123,45')
+        const formatNumber = (numStr) => {
+            const num = parseFloat(numStr);
+            if (isNaN(num)) return '0,00';
+            return num.toLocaleString('pt-BR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
             });
+        };
 
-            input_{{ $id }}.addEventListener('focus', function() {
-                if (this.value === '0,00') {
-                    this.value = '';
-                }
-                // Efeito de glow no focus
-                this.parentElement.classList.add('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
-            });
+        // Converte o valor de input do usuário para o formato de moeda
+        const formatInput = (value) => {
+            if (!value) return '';
+            const digits = value.replace(/\D/g, '');
+            if (digits === '') return '';
 
-            input_{{ $id }}.addEventListener('blur', function() {
-                if (this.value === '') {
-                    this.value = '0,00';
-                    applyCurrencyMask_{{ $id }}(this);
-                }
-                // Remove efeito de glow
-                this.parentElement.classList.remove('ring-4', 'ring-{{ $iconColor }}-200', 'dark:ring-{{ $iconColor }}-800');
-            });
+            const numberValue = parseInt(digits, 10) / 100;
+            return formatNumber(numberValue.toFixed(2));
+        };
 
-            // Restringir entrada apenas a números com feedback
-            input_{{ $id }}.addEventListener('keydown', function(e) {
-                // Permite: backspace, delete, tab, escape, enter e .
-                if ([46, 8, 9, 27, 13, 110, 190].indexOf(e.keyCode) !== -1 ||
-                    // Permite: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                    (e.keyCode === 65 && e.ctrlKey === true) ||
-                    (e.keyCode === 67 && e.ctrlKey === true) ||
-                    (e.keyCode === 86 && e.ctrlKey === true) ||
-                    (e.keyCode === 88 && e.ctrlKey === true) ||
-                    // Permite: home, end, left, right
-                    (e.keyCode >= 35 && e.keyCode <= 39)) {
-                    return;
-                }
-                // Garante que é um número e previne outros caracteres
-                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
-                    e.preventDefault();
-                    // Feedback visual para entrada inválida
-                    this.classList.add('animate-shake');
-                    setTimeout(() => {
-                        this.classList.remove('animate-shake');
-                    }, 300);
-                }
-            });
-        }
-    });
+        // Converte uma string formatada (ex: '1.234,56') para um formato numérico para o backend (ex: '1234.56')
+        const unformat = (value) => {
+            if (!value) return '0.00';
+            return value.replace(/\./g, '').replace(',', '.');
+        };
 
-    // Sincroniza o campo visível a partir do hidden (valor do Livewire)
-    function syncFromHidden_{{ $id }}() {
-        const inputEl = document.getElementById('{{ $id }}');
-        const hidden = document.getElementById('{{ $id }}_hidden');
-        if (!inputEl || !hidden) return;
-        const hv = String(hidden.value || '').trim();
-        if (!hv) return;
-        // Aceita formatos como '123.45', '123,45' ou apenas dígitos
-        const digits = hv.replace(/\D/g, '');
-        if (!digits) return;
-        inputEl.value = formatCurrency_{{ $id }}(digits);
-    }
 
-    // Escuta vários eventos do Livewire para garantir sincronização após hidratação/atualizações
-    ['livewire:load', 'livewire:update', 'livewire:message.processed', 'livewire:navigated'].forEach(evt => {
-        document.addEventListener(evt, function() {
-            try { syncFromHidden_{{ $id }}(); } catch (e) { /* ignore */ }
+        // --- INICIALIZAÇÃO ---
+        // 1. Define o valor inicial formatado no campo visível
+        inputMasked.value = formatNumber(initialValue);
+        // 2. Define o valor numérico correspondente no campo oculto
+        inputHidden.value = unformat(inputMasked.value);
+        // 3. Notifica o Livewire sobre o valor inicial para evitar que ele seja limpo
+        inputHidden.dispatchEvent(new Event('input'));
+
+
+        // --- ATUALIZAÇÃO NO INPUT DO USUÁRIO ---
+        inputMasked.addEventListener('input', (e) => {
+            const formattedValue = formatInput(e.target.value);
+            e.target.value = formattedValue;
+            inputHidden.value = unformat(formattedValue);
+            inputHidden.dispatchEvent(new Event('input')); // Notifica o Livewire a cada mudança
         });
     });
 </script>
