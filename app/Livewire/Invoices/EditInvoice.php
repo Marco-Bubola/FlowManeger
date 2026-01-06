@@ -64,7 +64,7 @@ class EditInvoice extends Component
     {
         $this->invoice = Invoice::findOrFail($this->invoiceId);
         $this->description = $this->invoice->description;
-        $this->value = str_replace('.', ',', $this->invoice->value);
+        $this->value = $this->invoice->value; // Removida a formatação str_replace
         $this->installments = $this->invoice->installments;
         $this->category_id = $this->invoice->category_id;
         $this->client_id = $this->invoice->client_id;
@@ -74,26 +74,50 @@ class EditInvoice extends Component
     public function loadData()
     {
         $this->banks = Bank::all();
-        $this->categories = Category::all();
-        $this->clients = Client::all();
+
+        // Carregar categorias ordenadas por uso recente (compatível com MySQL)
+        $this->categories = Category::where('category.is_active', 1)
+            ->where('category.user_id', Auth::id())
+            ->where('category.type', 'transaction')
+            ->leftJoin('invoice', 'category.id_category', '=', 'invoice.category_id')
+            ->select('category.*')
+            ->selectRaw('MAX(invoice.created_at) as last_used')
+            ->groupBy('category.id_category', 'category.name', 'category.description', 'category.is_active', 'category.type', 'category.user_id', 'category.created_at', 'category.updated_at')
+            ->orderByRaw('CASE WHEN last_used IS NULL THEN 1 ELSE 0 END')
+            ->orderByRaw('last_used DESC')
+            ->orderBy('category.name')
+            ->get();
+
+        // Carregar clientes ordenados por uso recente (compatível com MySQL)
+        $this->clients = Client::where('clients.user_id', Auth::id())
+            ->leftJoin('invoice', 'clients.id', '=', 'invoice.client_id')
+            ->select('clients.*')
+            ->selectRaw('MAX(invoice.created_at) as last_used')
+            ->groupBy('clients.id', 'clients.name', 'clients.email', 'clients.phone', 'clients.address', 'clients.user_id', 'clients.caminho_foto', 'clients.created_at', 'clients.updated_at')
+            ->orderByRaw('CASE WHEN last_used IS NULL THEN 1 ELSE 0 END')
+            ->orderByRaw('last_used DESC')
+            ->orderBy('clients.name')
+            ->get();
     }
 
     public function save()
     {
-        $this->validate();
+        // Mensagem de depuração para confirmar que o método foi chamado
+        session()->flash('info', 'O método save() foi acionado.');
+
+        // A propriedade 'value' já está no formato 'xxxx.xx' vinda do componente de moeda.
+        $validatedData = $this->validate([
+            'description' => 'required|string|max:255',
+            'value' => 'required|numeric|gt:0', // Valida a string numérica
+            'installments' => 'nullable|string|max:255',
+            'category_id' => 'required|exists:category,id_category',
+            'client_id' => 'nullable|exists:clients,id',
+            'invoice_date' => 'required|date',
+        ]);
 
         try {
-            // Converter vírgula para ponto no valor
-            $value = str_replace(',', '.', $this->value);
-
-            $this->invoice->update([
-                'description' => $this->description,
-                'value' => $value,
-                'installments' => $this->installments,
-                'category_id' => $this->category_id,
-                'client_id' => $this->client_id ?: null,
-                'invoice_date' => $this->invoice_date,
-            ]);
+            // A atualização usará apenas os dados que passaram na validação
+            $this->invoice->update($validatedData);
 
             session()->flash('success', 'Transação atualizada com sucesso!');
             $this->dispatch('invoice-updated');
@@ -113,6 +137,8 @@ class EditInvoice extends Component
 
         } catch (\Exception $e) {
             session()->flash('error', 'Erro ao atualizar a transação: ' . $e->getMessage());
+            // Log para facilitar a depuração no futuro
+            \Illuminate\Support\Facades\Log::error('Erro ao atualizar fatura: ' . $e->getMessage());
         }
     }
 
