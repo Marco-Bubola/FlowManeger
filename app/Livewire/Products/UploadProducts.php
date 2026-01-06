@@ -32,6 +32,9 @@ class UploadProducts extends Component
     public $uploadHistory = []; // Histórico de uploads
     public $currentUploadId = null; // ID do upload atual
     public $showTipsModal = false; // Controle para exibir modal de dicas
+    public $showDetailsModal = false; // Controle para exibir modal de detalhes
+    public $selectedUpload = null; // Upload selecionado para visualização
+    public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
 
     public function mount()
     {
@@ -71,6 +74,54 @@ class UploadProducts extends Component
                 'type' => 'error',
                 'message' => 'Arquivo PDF não encontrado'
             ]);
+        }
+    }
+
+    public function showUploadDetails($uploadId)
+    {
+        $this->selectedUpload = ProductUploadHistory::find($uploadId);
+        $this->showDetailsModal = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->showDetailsModal = false;
+        $this->selectedUpload = null;
+    }
+
+    public function confirmDeleteUpload($uploadId)
+    {
+        $this->confirmDeleteUploadId = $uploadId;
+        $this->dispatch('show-delete-upload-modal');
+    }
+
+    public function deleteUpload()
+    {
+        try {
+            $upload = ProductUploadHistory::find($this->confirmDeleteUploadId);
+
+            if ($upload) {
+                // Deletar arquivo se existir
+                if ($upload->file_path && Storage::exists($upload->file_path)) {
+                    Storage::delete($upload->file_path);
+                }
+
+                $upload->delete();
+
+                session()->flash('success', 'Histórico de upload excluído com sucesso.');
+                Log::info('Histórico de upload de produto excluído', ['upload_id' => $this->confirmDeleteUploadId]);
+            }
+
+            $this->confirmDeleteUploadId = null;
+            $this->loadUploadHistory();
+            $this->dispatch('hide-delete-upload-modal');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao excluir histórico de upload de produto', [
+                'error' => $e->getMessage(),
+                'upload_id' => $this->confirmDeleteUploadId
+            ]);
+            session()->flash('error', 'Erro ao excluir histórico: ' . $e->getMessage());
         }
     }
 
@@ -306,6 +357,9 @@ class UploadProducts extends Component
         $productsCreated = 0;
         $productsUpdated = 0;
         $productsSkipped = 0;
+        $createdList = [];
+        $updatedList = [];
+        $skippedList = [];
 
         // Processar cada produto
         foreach ($this->productsUpload as $index => $product) {
@@ -371,6 +425,11 @@ class UploadProducts extends Component
 
                     $existingProduct->save();
                     $productsUpdated++;
+                    $updatedList[] = [
+                        'name' => $existingProduct->name,
+                        'code' => $existingProduct->product_code,
+                        'price' => $existingProduct->price,
+                    ];
                 } else {
                     // Verificar se existe produto com mesmo código mas preço diferente
                     $similarProduct = Product::where('product_code', $product['product_code'])
@@ -399,6 +458,11 @@ class UploadProducts extends Component
                         // Aprender categorização
                         $this->learnCategorization($newProduct);
                         $productsCreated++;
+                        $createdList[] = [
+                            'name' => $newProduct->name,
+                            'code' => $newProduct->product_code,
+                            'price' => $newProduct->price,
+                        ];
                     } else {
                         // ✅ CENÁRIO C: Produto NÃO EXISTE
                         // Ação: CRIA NOVO PRODUTO
@@ -421,6 +485,11 @@ class UploadProducts extends Component
                         // Aprender categorização para futuros produtos similares
                         $this->learnCategorization($newProduct);
                         $productsCreated++;
+                        $createdList[] = [
+                            'name' => $newProduct->name,
+                            'code' => $newProduct->product_code,
+                            'price' => $newProduct->price,
+                        ];
                     }
                 }
             } catch (\Exception $e) {
@@ -429,6 +498,13 @@ class UploadProducts extends Component
                     'error' => $e->getMessage(),
                     'product' => $product
                 ]);
+
+                $productsSkipped++;
+                $skippedList[] = [
+                    'name' => $product['name'] ?? 'N/A',
+                    'code' => $product['product_code'] ?? 'N/A',
+                    'reason' => $e->getMessage(),
+                ];
 
                 session()->flash('error', 'Erro ao salvar os produtos: ' . $e->getMessage());
 
@@ -453,9 +529,9 @@ class UploadProducts extends Component
             'products_skipped' => $productsSkipped,
             'completed_at' => now(),
             'summary' => [
-                'created' => $productsCreated,
-                'updated' => $productsUpdated,
-                'skipped' => $productsSkipped,
+                'created' => $createdList,
+                'updated' => $updatedList,
+                'skipped' => $skippedList,
                 'total' => count($this->productsUpload),
             ],
         ]);
