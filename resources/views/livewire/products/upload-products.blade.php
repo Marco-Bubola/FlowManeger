@@ -363,15 +363,32 @@
                                         </span>
                                         @endif
                                     </div>
-                                    @if($upload->file_type === 'pdf' && $upload->file_path)
-                                    <a href="{{ Storage::url($upload->file_path) }}"
-                                       target="_blank"
-                                       class="group/btn inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
-                                        <i class="bi bi-file-earmark-pdf text-base group-hover/btn:rotate-12 transition-transform"></i>
-                                        <span>Abrir PDF</span>
-                                        <i class="bi bi-box-arrow-up-right text-[10px] group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform"></i>
-                                    </a>
-                                    @endif
+
+                                    <!-- Botões de Ação -->
+                                    <div class="flex items-center gap-2">
+                                        <!-- Botão Ver Detalhes -->
+                                        <button wire:click="showUploadDetails({{ $upload->id }})"
+                                            class="group/btn inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/50 hover:scale-105">
+                                            <i class="bi bi-info-circle text-base group-hover/btn:rotate-12 transition-transform"></i>
+                                            <span>Detalhes</span>
+                                        </button>
+
+                                        @if($upload->file_type === 'pdf' && $upload->file_path)
+                                        <!-- Botão Abrir PDF -->
+                                        <a href="{{ Storage::url($upload->file_path) }}"
+                                           target="_blank"
+                                           class="group/btn inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
+                                            <i class="bi bi-file-earmark-pdf text-base group-hover/btn:rotate-12 transition-transform"></i>
+                                            <span>PDF</span>
+                                        </a>
+                                        @endif
+
+                                        <!-- Botão Excluir -->
+                                        <button wire:click="confirmDeleteUpload({{ $upload->id }})"
+                                            class="group/btn inline-flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-red-500 via-rose-600 to-pink-600 hover:from-red-600 hover:via-rose-700 hover:to-pink-700 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
+                                            <i class="bi bi-trash text-base group-hover/btn:rotate-12 transition-transform"></i>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
 
@@ -402,122 +419,714 @@
 
     <!-- Modal de Dicas -->
     @if($showTipsModal)
-    <div class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
-            <div class="fixed inset-0 bg-slate-900 bg-opacity-75 transition-opacity" wire:click="toggleTips"></div>
+        <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{
+            show: @entangle('showTipsModal'),
+            currentStep: 1,
+            totalSteps: 5,
+            nextStep() {
+                if(this.currentStep < this.totalSteps) this.currentStep++;
+            },
+            prevStep() {
+                if(this.currentStep > 1) this.currentStep--;
+            }
+        }">
+            <!-- Backdrop com Blur -->
+            <div x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-900/40 backdrop-blur-md"
+                @click="$wire.toggleTips()"></div>
 
-            <!-- Modal panel -->
-            <div class="inline-block align-bottom bg-white dark:bg-slate-800 rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
-                <!-- Header -->
-                <div class="bg-gradient-to-r from-blue-500 to-indigo-600 px-6 py-5">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-                                <i class="bi bi-lightbulb-fill text-white text-2xl"></i>
+            <!-- Modal -->
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    @click.away=""
+                    class="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+
+                <!-- Header com Progress Bar -->
+                <div class="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 px-8 py-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-4 ring-white/30">
+                                <i class="bi bi-lightbulb-fill text-white text-3xl"></i>
                             </div>
                             <div>
-                                <h3 class="text-xl font-bold text-white" id="modal-title">
-                                    Dicas para Upload de Produtos
+                                <h3 class="text-2xl font-bold text-white">
+                                    Guia de Upload de Produtos
                                 </h3>
-                                <p class="text-sm text-blue-100 mt-1">
-                                    Siga estas orientações para um upload bem-sucedido
+                                <p class="text-sm text-white/80 mt-1 font-medium">
+                                    <span x-text="'Passo ' + currentStep + ' de ' + totalSteps"></span>
                                 </p>
                             </div>
                         </div>
-                        <button wire:click="toggleTips" class="text-white hover:text-blue-100 transition-colors duration-200">
+                        <button @click="$wire.toggleTips()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
                             <i class="bi bi-x-lg text-2xl"></i>
                         </button>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="flex items-center gap-2">
+                        <template x-for="step in totalSteps" :key="step">
+                            <div class="flex-1 h-2.5 rounded-full overflow-hidden bg-white/20">
+                                <div class="h-full bg-white rounded-full transition-all duration-500 ease-out"
+                                     :style="step <= currentStep ? 'width: 100%' : 'width: 0%'"></div>
+                            </div>
+                        </template>
                     </div>
                 </div>
 
                 <!-- Content -->
-                <div class="px-6 py-6 space-y-5">
-                    <!-- Formato -->
-                    <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-900/10 rounded-xl border-2 border-purple-200 dark:border-purple-700">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                                <i class="bi bi-file-earmark-pdf text-white text-lg"></i>
+                <div class="px-10 py-12 min-h-[520px] relative">
+                    <!-- Step 1: Prepare seu Arquivo -->
+                    <div x-show="currentStep === 1"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-purple-100 dark:ring-purple-900/30">
+                                <i class="bi bi-file-earmark-pdf text-white text-5xl"></i>
                             </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Prepare seu Arquivo</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Escolha o formato adequado para seu upload</p>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-purple-500"></i>
-                                Formato do Arquivo
-                            </h4>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">
-                                Use <strong>PDF</strong> com produtos listados ou <strong>CSV</strong> com colunas organizadas (código, nome, preço, estoque)
-                            </p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl border-2 border-purple-200 dark:border-purple-700">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <i class="bi bi-filetype-pdf text-white text-xl"></i>
+                                    </div>
+                                    <h5 class="text-xl font-bold text-slate-800 dark:text-white">Arquivo PDF</h5>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
+                                        <span>Lista ou tabela de produtos formatada</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
+                                        <span>Texto legível e bem organizado</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
+                                        <span>Máximo de 2MB por arquivo</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                        <i class="bi bi-filetype-csv text-white text-xl"></i>
+                                    </div>
+                                    <h5 class="text-xl font-bold text-slate-800 dark:text-white">Planilha CSV</h5>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
+                                        <span>Colunas: código, nome, preço, estoque</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
+                                        <span>Separado por vírgula ou ponto e vírgula</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
+                                        <span>Formato UTF-8 recomendado</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Tamanho -->
-                    <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-900/10 rounded-xl border-2 border-green-200 dark:border-green-700">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-lg flex items-center justify-center">
-                                <i class="bi bi-hdd text-white text-lg"></i>
+                    <!-- Step 2: Faça o Upload -->
+                    <div x-show="currentStep === 2"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-blue-100 dark:ring-blue-900/30">
+                                <i class="bi bi-cloud-upload text-white text-5xl"></i>
                             </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Faça o Upload</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Envie seu arquivo de forma simples e rápida</p>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-green-500"></i>
-                                Tamanho do Arquivo
-                            </h4>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">
-                                O arquivo deve ter no <strong>máximo 2MB</strong>. Arquivos maiores serão rejeitados.
-                            </p>
+                        <div class="space-y-6">
+                            <div class="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl border-2 border-dashed border-blue-300 dark:border-blue-700">
+                                <div class="text-center space-y-4">
+                                    <i class="bi bi-file-earmark-arrow-up text-6xl text-blue-500"></i>
+                                    <div>
+                                        <p class="text-lg font-semibold text-slate-800 dark:text-white">Arraste seu arquivo aqui</p>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">ou clique para selecionar do seu computador</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i class="bi bi-shield-check text-3xl text-green-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Validação Automática</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Formato verificado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i class="bi bi-lightning-charge text-3xl text-yellow-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Processamento Rápido</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Análise inteligente</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i class="bi bi-lock text-3xl text-blue-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">100% Seguro</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Dados protegidos</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Duplicatas -->
-                    <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-900/10 rounded-xl border-2 border-yellow-200 dark:border-yellow-700">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center">
-                                <i class="bi bi-exclamation-triangle text-white text-lg"></i>
+                    <!-- Step 3: Revise os Produtos -->
+                    <div x-show="currentStep === 3"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-yellow-100 dark:ring-yellow-900/30">
+                                <i class="bi bi-eye text-white text-5xl"></i>
                             </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Revise os Produtos</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Confira e ajuste os dados antes de salvar</p>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-yellow-500"></i>
-                                Produtos Duplicados
-                            </h4>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">
-                                Produtos existentes serão <strong>identificados automaticamente</strong>. Você poderá escolher se deseja somar estoque, substituir ou pular.
-                            </p>
+                        <div class="space-y-5">
+                            <div class="p-6 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border-2 border-yellow-200 dark:border-yellow-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-exclamation-triangle text-white text-2xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Detecção de Duplicados</h5>
+                                        <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">Produtos que já existem no sistema serão marcados automaticamente</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-semibold">Somar Estoque</span>
+                                            <span class="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-xs font-semibold">Substituir</span>
+                                            <span class="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg text-xs font-semibold">Pular</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                    <i class="bi bi-pencil-square text-3xl text-blue-500 mb-3"></i>
+                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Edição Rápida</h6>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Ajuste categorias, preços e estoque</p>
+                                </div>
+                                <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                    <i class="bi bi-trash text-3xl text-red-500 mb-3"></i>
+                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Remover Itens</h6>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Exclua produtos indesejados</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Categorização IA -->
-                    <div class="flex items-start gap-4 p-4 bg-gradient-to-br from-indigo-50 to-indigo-100 dark:from-indigo-900/20 dark:to-indigo-900/10 rounded-xl border-2 border-indigo-200 dark:border-indigo-700">
-                        <div class="flex-shrink-0">
-                            <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-blue-500 rounded-lg flex items-center justify-center">
-                                <i class="bi bi-robot text-white text-lg"></i>
+                    <!-- Step 4: IA Categoriza -->
+                    <div x-show="currentStep === 4"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-green-100 dark:ring-green-900/30">
+                                <i class="bi bi-stars text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">IA Categoriza Automaticamente</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Inteligência artificial trabalhando para você</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="p-8 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl border-2 border-green-200 dark:border-green-700">
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
+                                        <i class="bi bi-robot text-white text-3xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="text-2xl font-bold text-slate-800 dark:text-white">Sistema Inteligente</h5>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">Análise automática de produtos</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Análise de Nome e Código</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Sistema identifica padrões nos produtos</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Aprendizado Contínuo</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Melhora com cada upload realizado</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Sugestões Precisas</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Categorias sugeridas baseadas no histórico</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                                <div class="flex items-start gap-3">
+                                    <i class="bi bi-info-circle text-2xl text-blue-600"></i>
+                                    <p class="text-sm text-slate-700 dark:text-slate-300">
+                                        <strong>Dica:</strong> Você sempre pode revisar e modificar as categorias sugeridas antes de salvar.
+                                    </p>
+                                </div>
                             </div>
                         </div>
-                        <div class="flex-1">
-                            <h4 class="text-sm font-bold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-indigo-500"></i>
-                                Categorização Inteligente
-                            </h4>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">
-                                O sistema usará <strong>Inteligência Artificial</strong> para sugerir categorias automaticamente baseado no nome e código dos produtos.
-                            </p>
+                    </div>
+
+                    <!-- Step 5: Confirme e Salve -->
+                    <div x-show="currentStep === 5"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-indigo-100 dark:ring-indigo-900/30">
+                                <i class="bi bi-check2-circle text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Confirme e Salve</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Finalize seu upload e salve no sistema</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="p-8 bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-violet-900/20 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
+                                <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
+                                    <i class="bi bi-clipboard-check text-2xl text-indigo-600"></i>
+                                    Antes de Confirmar
+                                </h5>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Revise o Resumo</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Contagem total de produtos</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Verifique Dados</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Preços e estoques corretos</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Confirme Categorias</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Produtos bem organizados</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Salve no Sistema</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Histórico registrado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <i class="bi bi-clock-history text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Histórico Salvo</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Acesso posterior</p>
+                                </div>
+                                <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <i class="bi bi-eye text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Visualizar Detalhes</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Ver o que foi criado</p>
+                                </div>
+                                <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <i class="bi bi-trash text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Excluir Uploads</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Gerenciar histórico</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer -->
-                <div class="bg-slate-50 dark:bg-slate-900 px-6 py-4 flex justify-end">
-                    <button wire:click="toggleTips"
-                            class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-medium transition-all duration-300 shadow-lg hover:shadow-xl">
-                        <i class="bi bi-check-lg mr-2"></i>
-                        Entendi!
+                <!-- Footer com Navegação -->
+                <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-10 py-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
+                    <button @click="prevStep()"
+                            x-show="currentStep > 1"
+                            x-transition
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-100 dark:hover:bg-slate-600 transition-all duration-300 shadow hover:shadow-lg border border-slate-200 dark:border-slate-600">
+                        <i class="bi bi-arrow-left text-lg"></i>
+                        Anterior
                     </button>
+
+                    <div x-show="currentStep <= 1" class="w-24"></div>
+
+                    <div class="flex items-center gap-3">
+                        <template x-for="step in totalSteps" :key="step">
+                            <button @click="currentStep = step"
+                                    class="transition-all duration-300 rounded-full"
+                                    :class="step === currentStep ? 'w-10 h-3 bg-gradient-to-r from-blue-500 to-indigo-600' : 'w-3 h-3 bg-slate-300 dark:bg-slate-600 hover:bg-blue-400 hover:w-6'">
+                            </button>
+                        </template>
+                    </div>
+
+                    <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
+                            class="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-600 hover:via-indigo-700 hover:to-purple-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <span x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir!'" class="text-lg"></span>
+                        <i class="bi text-xl" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-lg'"></i>
+                    </button>
+                </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Detalhes do Upload -->
+    @if($showDetailsModal && $selectedUpload)
+        <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{ show: @entangle('showDetailsModal') }">
+            <!-- Backdrop -->
+            <div x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/60 backdrop-blur-sm"
+                wire:click="closeDetailsModal"></div>
+
+            <!-- Modal -->
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    class="relative w-full max-w-4xl bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20 rounded-3xl shadow-2xl overflow-hidden">
+
+                    <!-- Header do Modal -->
+                    <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-6 py-5 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                <i class="bi bi-file-earmark-text-fill text-white text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">Detalhes do Upload</h3>
+                                <p class="text-sm text-white/80">{{ $selectedUpload->filename }}</p>
+                            </div>
+                        </div>
+                        <button wire:click="closeDetailsModal"
+                            class="w-10 h-10 rounded-lg bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all">
+                            <i class="bi bi-x-lg text-xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Conteúdo do Modal -->
+                    <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                        <!-- Estatísticas -->
+                        <div class="grid grid-cols-4 gap-4 mb-6">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->total_products }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Total</div>
+                            </div>
+                            <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ $selectedUpload->products_created }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Criados</div>
+                            </div>
+                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->products_updated }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Atualizados</div>
+                            </div>
+                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-xl p-4 text-center">
+                                <div class="text-2xl font-bold text-orange-600 dark:text-orange-400">{{ $selectedUpload->products_skipped }}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">Ignorados</div>
+                            </div>
+                        </div>
+
+                        <!-- Grid de 3 Colunas: Criados, Atualizados e Ignorados -->
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            @php
+                                // Verificar se o summary tem arrays ou apenas contadores (formato antigo)
+                                $summaryCreated = $selectedUpload->summary['created'] ?? [];
+                                $summaryUpdated = $selectedUpload->summary['updated'] ?? [];
+                                $summarySkipped = $selectedUpload->summary['skipped'] ?? [];
+
+                                // Se forem números (formato antigo), criar arrays vazios
+                                $created = is_array($summaryCreated) ? $summaryCreated : [];
+                                $updated = is_array($summaryUpdated) ? $summaryUpdated : [];
+                                $skipped = is_array($summarySkipped) ? $summarySkipped : [];
+
+                                // Flag para saber se é formato antigo
+                                $isOldFormat = !is_array($summaryCreated) || !is_array($summaryUpdated) || !is_array($summarySkipped);
+                            @endphp
+
+                            @if($isOldFormat)
+                                <!-- Mensagem para formato antigo -->
+                                <div class="col-span-full bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 rounded-lg p-4">
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-info-circle-fill text-yellow-600 dark:text-yellow-400 text-xl flex-shrink-0 mt-0.5"></i>
+                                        <div class="text-sm text-gray-800 dark:text-gray-200">
+                                            <p class="font-bold mb-1">Upload Antigo</p>
+                                            <p>Este upload foi criado com uma versão anterior do sistema. Os detalhes dos produtos não estão disponíveis, mas você pode ver os totais acima.</p>
+                                            <p class="mt-2 text-xs">Faça um novo upload para ver todos os detalhes dos produtos.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Produtos Criados -->
+                            @if(!$isOldFormat && count($created) > 0)
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                        <i class="bi bi-plus-circle text-green-600"></i>
+                                        Produtos Criados ({{ count($created) }})
+                                    </h4>
+                                    <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                                        @foreach($created as $item)
+                                            <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-800 hover:shadow-lg transition-shadow">
+                                                <div class="font-semibold text-xs text-gray-900 dark:text-white truncate" title="{{ $item['name'] ?? 'N/A' }}">
+                                                    {{ $item['name'] ?? 'N/A' }}
+                                                </div>
+                                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                    Código: {{ $item['code'] ?? 'N/A' }}
+                                                </div>
+                                                @if(isset($item['price']))
+                                                    <div class="text-xs text-green-600 dark:text-green-400 font-semibold mt-1">
+                                                        R$ {{ number_format($item['price'], 2, ',', '.') }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 text-center">
+                                    <i class="bi bi-inbox text-3xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum produto criado</p>
+                                </div>
+                            @endif
+
+                            <!-- Produtos Atualizados -->
+                            @if(!$isOldFormat && count($updated) > 0)
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                        <i class="bi bi-arrow-repeat text-blue-600"></i>
+                                        Produtos Atualizados ({{ count($updated) }})
+                                    </h4>
+                                    <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                                        @foreach($updated as $item)
+                                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-shadow">
+                                                <div class="font-semibold text-xs text-gray-900 dark:text-white truncate" title="{{ $item['name'] ?? 'N/A' }}">
+                                                    {{ $item['name'] ?? 'N/A' }}
+                                                </div>
+                                                <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                    Código: {{ $item['code'] ?? 'N/A' }}
+                                                </div>
+                                                @if(isset($item['price']))
+                                                    <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">
+                                                        R$ {{ number_format($item['price'], 2, ',', '.') }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 text-center">
+                                    <i class="bi bi-inbox text-3xl text-gray-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum produto atualizado</p>
+                                </div>
+                            @endif
+
+                            <!-- Produtos Ignorados -->
+                            @if(!$isOldFormat && count($skipped) > 0)
+                                <div>
+                                    <h4 class="text-sm font-bold text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                                        <i class="bi bi-dash-circle text-orange-600"></i>
+                                        Produtos Ignorados ({{ count($skipped) }})
+                                    </h4>
+                                    <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
+                                        @foreach($skipped as $item)
+                                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-3 border border-orange-200 dark:border-orange-800 hover:shadow-lg transition-shadow">
+                                                <div class="font-semibold text-xs text-gray-900 dark:text-white truncate" title="{{ $item['name'] ?? $item['reason'] ?? 'N/A' }}">
+                                                    {{ $item['name'] ?? 'Produto' }}
+                                                </div>
+                                                @if(isset($item['code']))
+                                                    <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                                                        Código: {{ $item['code'] }}
+                                                    </div>
+                                                @endif
+                                                <div class="text-xs text-orange-600 dark:text-orange-400 mt-1 italic">
+                                                    {{ $item['reason'] ?? 'Não especificado' }}
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @else
+                                <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 text-center">
+                                    <i class="bi bi-check-circle text-3xl text-green-400 mb-2"></i>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Nenhum produto ignorado</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div x-data="{
+        show: false,
+        init() {
+            this.$wire.on('show-delete-upload-modal', () => { this.show = true });
+            this.$wire.on('hide-delete-upload-modal', () => { this.show = false });
+        }
+    }">
+        <div x-show="show"
+            class="fixed inset-0 z-50 overflow-y-auto"
+            style="display: none;">
+            <!-- Backdrop -->
+            <div x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/70 backdrop-blur-md"
+                @click="show = false"></div>
+
+            <!-- Modal -->
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300 transform"
+                    x-transition:enter-start="opacity-0 scale-90 -translate-y-4"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-200 transform"
+                    x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave-end="opacity-0 scale-90 translate-y-4"
+                    class="relative w-full max-w-lg bg-gradient-to-br from-white via-red-50/30 to-pink-50/30 dark:from-gray-800 dark:via-red-900/10 dark:to-pink-900/10 rounded-3xl shadow-2xl overflow-hidden border-2 border-red-200/50 dark:border-red-800/50">
+
+                    <!-- Efeitos decorativos -->
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-red-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-orange-400/20 to-red-400/20 rounded-full blur-2xl"></div>
+
+                    <!-- Header Moderno -->
+                    <div class="relative bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 px-8 py-6">
+                        <div class="flex items-start justify-between">
+                            <div class="flex items-center gap-4">
+                                <!-- Ícone animado -->
+                                <div class="relative">
+                                    <div class="absolute inset-0 bg-white/30 rounded-xl animate-ping"></div>
+                                    <div class="relative w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                                        <i class="bi bi-exclamation-triangle-fill text-white text-3xl"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-white mb-1">Confirmar Exclusão</h3>
+                                    <p class="text-sm text-white/80">Esta ação não pode ser desfeita</p>
+                                </div>
+                            </div>
+                            <button @click="show = false"
+                                class="w-10 h-10 rounded-xl bg-white/20 hover:bg-white/30 text-white flex items-center justify-center transition-all hover:rotate-90 duration-300">
+                                <i class="bi bi-x-lg text-xl"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Conteúdo -->
+                    <div class="relative p-8">
+                        <!-- Alerta visual -->
+                        <div class="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-600 dark:border-red-500 rounded-lg p-4 mb-6">
+                            <div class="flex gap-3">
+                                <i class="bi bi-info-circle-fill text-red-600 dark:text-red-400 text-xl flex-shrink-0 mt-0.5"></i>
+                                <div class="text-sm text-gray-800 dark:text-gray-200">
+                                    <p class="font-bold mb-1">O que será excluído:</p>
+                                    <ul class="list-disc list-inside space-y-1">
+                                        <li>Histórico de upload</li>
+                                        <li>Arquivo PDF/CSV associado</li>
+                                        <li>Dados de produtos importados</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <p class="text-gray-700 dark:text-gray-300 text-center mb-8 font-medium">
+                            Deseja realmente continuar com a exclusão?
+                        </p>
+
+                        <!-- Botões Modernos -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <button @click="show = false" type="button"
+                                class="group relative px-6 py-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                <div class="relative flex items-center justify-center gap-2">
+                                    <i class="bi bi-x-circle"></i>
+                                    <span>Cancelar</span>
+                                </div>
+                            </button>
+                            <button wire:click="deleteUpload" @click="show = false" type="button"
+                                class="group relative px-6 py-4 bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 hover:from-red-700 hover:via-rose-700 hover:to-pink-700 text-white font-bold rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-2xl overflow-hidden">
+                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+                                <div class="relative flex items-center justify-center gap-2">
+                                    <i class="bi bi-trash"></i>
+                                    <span>Confirmar</span>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    @endif
 
     <!-- CSS personalizado para badges editáveis -->
     <style>
