@@ -273,20 +273,17 @@
                                     <div class="flex items-center space-x-3">
                                         <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg shadow-sm category-preview"
                                             style="background: linear-gradient(135deg, {{ $hexcolor_category }}, {{ $hexcolor_category }}dd)">
-                                            {{-- Mostrar ícone selecionado (pode ser fontawesome ou classe de CSS customizada) --}}
-                                            @php
-                                                $iconClassForPreview = trim($icone ?? '');
-                                            @endphp
-                                            @if(Str::startsWith($iconClassForPreview, 'icons8-'))
-                                                <i class="{{ $iconClassForPreview }}" style="width:100%;height:100%;display:inline-block;background-position:50% 50%;background-repeat:no-repeat;background-size:contain;"></i>
-                                            @else
-                                                <i class="{{ $iconClassForPreview }}"></i>
-                                            @endif
+                                            <template x-if="selectedIcon && selectedIcon.startsWith('icons8-')">
+                                                <i :class="selectedIcon" style="width:100%;height:100%;display:inline-block;background-position:50% 50%;background-repeat:no-repeat;background-size:contain;"></i>
+                                            </template>
+                                            <template x-if="!selectedIcon || !selectedIcon.startsWith('icons8-')">
+                                                <i :class="selectedIcon"></i>
+                                            </template>
                                         </div>
 
-                                        <input id="{{ $iconeInputId }}" type="hidden" wire:model.live="icone">
+                                        <input id="{{ $iconeInputId }}" type="hidden" wire:model="icone">
 
-                                        <div class="flex-1" x-data="{
+                                        <div class="flex-1" wire:ignore x-data="{
                                             open: false,
                                             search: '',
                                             selected: null,
@@ -295,6 +292,7 @@
                                             select(icon){
                                                 try{
                                                     this.selected = icon;
+                                                    this.selectedIcon = icon; // Atualiza a variável do preview
                                                     if(this.inputId){
                                                         const h = document.getElementById(this.inputId);
                                                         if(h){
