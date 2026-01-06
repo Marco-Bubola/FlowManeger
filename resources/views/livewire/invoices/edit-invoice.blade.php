@@ -1,4 +1,62 @@
+<script>
+    // Função global para inicializar e abrir o flatpickr
+    function initAndOpenFlatpickr(element) {
+        if (!element) {
+            console.error('initAndOpenFlatpickr: o elemento fornecido é nulo.');
+            return;
+        }
+
+        // Se o flatpickr já está inicializado neste elemento, apenas o abre.
+        if (element._flatpickr) {
+            console.debug('Flatpickr já inicializado. Abrindo...');
+            element._flatpickr.open();
+            return;
+        }
+
+        console.debug('Inicializando flatpickr no elemento:', element);
+
+        try {
+            // Garante que a localização em português esteja carregada
+            if (typeof flatpickr.l10ns.pt === 'undefined' && flatpickr.l10ns && flatpickr.l10ns.pt) {
+                flatpickr.localize(flatpickr.l10ns.pt);
+            }
+
+            const defaultConfig = {
+                locale: 'pt',
+                dateFormat: 'Y-m-d',
+                allowInput: true,
+                animate: true,
+                disableMobile: true,
+                prevArrow: '<i class="bi bi-chevron-left"></i>',
+                nextArrow: '<i class="bi bi-chevron-right"></i>',
+            };
+
+            // Lê a data existente a partir do atributo data-*
+            const existingDate = JSON.parse(element.dataset.existingDate || 'null');
+
+            const fp = flatpickr(element, {
+                ...defaultConfig,
+                defaultDate: existingDate,
+                onChange: function(selectedDates, dateStr) {
+                    // Atualiza a propriedade do Livewire de forma segura
+                    @this.set('invoice_date', dateStr);
+                }
+            });
+
+            console.debug('Flatpickr inicializado com sucesso.');
+
+            // Abre o calendário imediatamente após a inicialização
+            if (fp && typeof fp.open === 'function') {
+                fp.open();
+            }
+        } catch (err) {
+            console.error('Erro ao inicializar o flatpickr:', err);
+        }
+    }
+</script>
 <div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    @include('components.toast-notifications')
+
     <form wire:submit.prevent="save">
         <!-- Header com botões -->
         <x-sales-header title="Editar Fatura" description="Atualize os dados da sua fatura"
@@ -9,7 +67,7 @@
                     <i class="bi bi-x-lg"></i>
                     Cancelar
                 </a>
-                <button type="submit"
+                <button type="button" wire:click.prevent="save"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105">
                     <i class="bi bi-check-lg"></i>
                     Atualizar Fatura
@@ -19,6 +77,18 @@
 
         <!-- Conteúdo -->
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {{-- Bloco para exibir TODOS os erros de validação --}}
+            @if ($errors->any())
+                <div class="bg-red-500/10 border-2 border-red-500/30 text-white p-4 rounded-2xl mb-4">
+                    <div class="font-bold text-lg mb-2"><i class="bi bi-exclamation-triangle-fill"></i> Ocorreram erros de validação:</div>
+                    <ul class="list-disc list-inside space-y-1 text-red-300">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="bg-slate-800/50 backdrop-blur-xl rounded-2xl border-2 border-slate-700 shadow-2xl p-8 space-y-8">
 
                 <!-- Informações Básicas -->
@@ -41,8 +111,8 @@
                                 Descrição
                                 <span class="text-red-400">*</span>
                             </label>
-                            <input wire:model="description" type="text" id="description"
-                                placeholder="Digite uma descrição..."
+                            <input wire:model.live="description" type="text" id="description"
+                                placeholder="Digite uma descrição..." value="{{ $description }}"
                                 class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
                                 {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-purple-500 hover:border-slate-600' }}
                                 focus:ring-4 focus:ring-purple-500/20 focus:outline-none">
@@ -56,7 +126,8 @@
                         <!-- Valor -->
                         <div class="space-y-2">
                             <x-currency-input name="value" id="value" wireModel="value" label="Valor"
-                                icon="bi-currency-dollar" icon-color="yellow" :required="true" width="w-full" />
+                                icon="bi-currency-dollar" icon-color="yellow" :required="true" width="w-full"
+                                :value="$value" />
                         </div>
 
                         <!-- Data da Fatura -->
@@ -66,9 +137,13 @@
                                 Data da Fatura
                                 <span class="text-red-400">*</span>
                             </label>
-                            <div class="relative">
+                            <div class="relative" wire:ignore>
                                 <i class="bi bi-calendar-event absolute left-4 top-1/2 -translate-y-1/2 text-blue-400 text-lg pointer-events-none z-10"></i>
-                                <input wire:model="invoice_date" type="text" id="invoice_date" placeholder="Selecione a data..."
+                                <input wire:model.live="invoice_date" name="invoice_date" type="text" id="invoice_date"
+                                    placeholder="Selecione a data..."
+                                    onclick="initAndOpenFlatpickr(this)"
+                                    data-existing-date='{{ json_encode($invoice_date) }}'
+                                    value="{{ $invoice_date }}"
                                     class="w-full pl-12 pr-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
                                     {{ $errors->has('invoice_date') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-blue-600' }}
                                     focus:ring-4 focus:ring-blue-500/20 focus:outline-none cursor-pointer
@@ -247,8 +322,8 @@
                                 Parcelas
                                 <span class="text-slate-400 text-xs">(opcional)</span>
                             </label>
-                            <input wire:model="installments" type="text" id="installments"
-                                placeholder="1x, 2x, 3x, à vista..."
+                            <input wire:model.live="installments" type="text" id="installments"
+                                placeholder="1x, 2x, 3x, à vista..." value="{{ $installments }}"
                                 class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
                                 focus:border-indigo-500 hover:border-slate-600 focus:ring-4 focus:ring-indigo-500/20 focus:outline-none">
                             @error('installments')
@@ -267,44 +342,18 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        flatpickr.localize(flatpickr.l10ns.pt);
-
-        const defaultConfig = {
-            locale: 'pt',
-            dateFormat: 'Y-m-d',
-            allowInput: true,
-            animate: true,
-            disableMobile: true,
-            prevArrow: '<i class="bi bi-chevron-left"></i>',
-            nextArrow: '<i class="bi bi-chevron-right"></i>',
-        };
-
-        const invoiceDateInput = document.getElementById('invoice_date');
-        if (invoiceDateInput) {
-            const existingDate = '{{ $invoice_date }}';
-            flatpickr(invoiceDateInput, {
-                ...defaultConfig,
-                defaultDate: existingDate,
-                onChange: function(selectedDates, dateStr) {
-                    @this.set('invoice_date', dateStr);
-                }
-            });
+        // Apenas carrega a localização globalmente uma vez.
+        if (window.flatpickr && flatpickr.l10ns && flatpickr.l10ns.pt) {
+            flatpickr.localize(flatpickr.l10ns.pt);
         }
+    });
 
-        Livewire.hook('message.processed', (message, component) => {
-            setTimeout(() => {
-                if (document.getElementById('invoice_date') && !document.getElementById('invoice_date')._flatpickr) {
-                    const existingDate = '{{ $invoice_date }}';
-                    flatpickr('#invoice_date', {
-                        ...defaultConfig,
-                        defaultDate: existingDate,
-                        onChange: function(selectedDates, dateStr) {
-                            @this.set('invoice_date', dateStr);
-                        }
-                    });
-                }
-            }, 100);
-        });
+    Livewire.hook('message.processed', (message, component) => {
+        // Log para depurar re-renderizações do Livewire
+        setTimeout(() => {
+            const el = document.getElementById('invoice_date');
+            console.debug('Livewire re-renderizou. Elemento existe:', !!el, 'Tem flatpickr:', el ? !!el._flatpickr : 'N/A');
+        }, 100);
     });
 </script>
 @endpush
