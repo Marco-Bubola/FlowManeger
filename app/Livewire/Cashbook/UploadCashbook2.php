@@ -11,6 +11,7 @@ use App\Models\Client;
 use App\Models\Cofrinho;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Smalot\PdfParser\Parser;
@@ -33,6 +34,10 @@ class UploadCashbook2 extends Component
     public $uploadHistory = [];
     public $currentUploadId = null;
     public $showConfirmation = false;
+    public $showDetailsModal = false; // Controle para exibir modal de detalhes
+    public $selectedUpload = null; // Upload selecionado para visualização
+    public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
+    public $showTipsModal = false; // Controle para exibir modal de dicas
 
     protected $rules = [
         'newFile' => 'required|mimes:pdf,csv|max:10240',
@@ -103,8 +108,8 @@ class UploadCashbook2 extends Component
 
             if ($upload) {
                 // Deleta o arquivo físico se existir
-                if ($upload->file_path && \Storage::disk('public')->exists($upload->file_path)) {
-                    \Storage::disk('public')->delete($upload->file_path);
+                if ($upload->file_path && Storage::disk('public')->exists($upload->file_path)) {
+                    Storage::disk('public')->delete($upload->file_path);
                 }
 
                 $upload->delete();
@@ -132,6 +137,63 @@ class UploadCashbook2 extends Component
         }
 
         session()->flash('error', 'Arquivo não encontrado.');
+    }
+
+    public function showUploadDetails($uploadId)
+    {
+        $this->selectedUpload = CashbookUploadHistory::where('id', $uploadId)
+            ->where('user_id', Auth::id())
+            ->first();
+        $this->showDetailsModal = true;
+    }
+
+    public function closeDetailsModal()
+    {
+        $this->showDetailsModal = false;
+        $this->selectedUpload = null;
+    }
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
+    }
+
+    public function confirmDeleteUpload($uploadId)
+    {
+        $this->confirmDeleteUploadId = $uploadId;
+        $this->dispatch('show-delete-upload-modal');
+    }
+
+    public function deleteUpload()
+    {
+        try {
+            $upload = CashbookUploadHistory::where('id', $this->confirmDeleteUploadId)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if ($upload) {
+                // Deletar arquivo se existir
+                if ($upload->file_path && Storage::disk('public')->exists($upload->file_path)) {
+                    Storage::disk('public')->delete($upload->file_path);
+                }
+
+                $upload->delete();
+
+                session()->flash('success', 'Histórico de upload excluído com sucesso.');
+                Log::info('Histórico de upload de cashbook excluído', ['upload_id' => $this->confirmDeleteUploadId]);
+            }
+
+            $this->confirmDeleteUploadId = null;
+            $this->loadUploadHistory();
+            $this->dispatch('hide-delete-upload-modal');
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao excluir histórico de upload de cashbook', [
+                'error' => $e->getMessage(),
+                'upload_id' => $this->confirmDeleteUploadId
+            ]);
+            session()->flash('error', 'Erro ao excluir histórico: ' . $e->getMessage());
+        }
     }
 
     public function updatedNewFile()
@@ -430,6 +492,8 @@ class UploadCashbook2 extends Component
             $saveErrors = [];
             $created = 0;
             $skipped = 0;
+            $createdList = [];
+            $skippedList = [];
 
         foreach ($this->transactions as $idx => $trans) {
             try {
@@ -540,6 +604,12 @@ class UploadCashbook2 extends Component
                         'description' => $trans['description'] ?? '',
                     ];
                     $skipped++;
+                    $skippedList[] = [
+                        'date' => $trans['date'],
+                        'value' => $trans['value'],
+                        'description' => $trans['description'] ?? '',
+                        'reason' => 'Transação duplicada',
+                    ];
                     continue;
                 }
 
@@ -563,6 +633,11 @@ class UploadCashbook2 extends Component
                         'description' => $trans['description'] ?? '',
                     ];
                     $created++;
+                    $createdList[] = [
+                        'date' => $dateFormatted,
+                        'value' => $trans['value'],
+                        'description' => $trans['description'] ?? '',
+                    ];
                 } else {
                     $success = false;
                 }
@@ -574,6 +649,13 @@ class UploadCashbook2 extends Component
                 ]);
                 $success = false;
                 $saveErrors[] = "Linha " . ($idx + 1) . ": " . $e->getMessage();
+                $skipped++;
+                $skippedList[] = [
+                    'date' => $trans['date'] ?? 'N/A',
+                    'value' => $trans['value'] ?? 0,
+                    'description' => $trans['description'] ?? 'N/A',
+                    'reason' => $e->getMessage(),
+                ];
             }
         }
 
@@ -585,6 +667,11 @@ class UploadCashbook2 extends Component
                     'status' => $success ? 'completed' : 'failed',
                     'completed_at' => now(),
                     'error_message' => !$success && !empty($saveErrors) ? implode("\n", $saveErrors) : null,
+                    'summary' => [
+                        'created' => $createdList,
+                        'skipped' => $skippedList,
+                        'total' => count($this->transactions),
+                    ],
                 ]);
             }
 
