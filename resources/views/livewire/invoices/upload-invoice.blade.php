@@ -1,4 +1,28 @@
-<div class="w-full">
+<div class="w-full" x-data="{
+    fullHd: false,
+    ultra: false,
+    initResponsiveWatcher() {
+        const mq = window.matchMedia('(min-width: 1920px)');
+        const mqUltra = window.matchMedia('(min-width: 2498px)');
+
+        const sync = () => {
+            this.fullHd = mq.matches;
+            if ($wire) { $wire.set('fullHdLayout', mq.matches); }
+        };
+
+        const syncUltra = () => {
+            this.ultra = mqUltra.matches;
+            if ($wire) { $wire.set('ultraLayout', mqUltra.matches); }
+        };
+
+        sync();
+        syncUltra();
+
+        if (typeof mq.addEventListener === 'function') { mq.addEventListener('change', sync); } else { mq.addListener(sync); }
+        if (typeof mqUltra.addEventListener === 'function') { mqUltra.addEventListener('change', syncUltra); } else { mqUltra.addListener(syncUltra); }
+    }
+}"
+    x-init="initResponsiveWatcher()">
     @push('styles')
         @vite('resources/css/upload-animations.css')
     @endpush
@@ -209,7 +233,10 @@
                 <div class="w-full">
                     <!-- Transações em Grid -->
                     <div class="w-full">
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 ultrawind:grid-cols-6 gap-6">
+                        <div class="upload-transactions-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 2xl:grid-cols-4 ultrawind:grid-cols-6 gap-6"
+                            data-ultrawind="{{ $ultraLayout ?? false ? 'true' : 'false' }}"
+                            data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
+                            x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
                             @foreach ($transactions as $index => $transaction)
                                 <div class="group relative bg-gradient-to-br {{ ($transaction['is_duplicate'] ?? false) ? 'from-orange-50 via-red-50/30 to-orange-50/30 dark:from-red-900/20 dark:via-orange-900/20 dark:to-red-900/20 border-red-300 dark:border-red-700' : 'from-white via-blue-50/30 to-purple-50/30 dark:from-gray-800 dark:via-blue-900/20 dark:to-purple-900/20' }} border-2 {{ ($transaction['is_duplicate'] ?? false) ? 'border-red-300 dark:border-red-700' : 'border-gray-200 dark:border-gray-600' }} rounded-2xl p-6 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl shadow-lg">
 
@@ -683,4 +710,412 @@
             background: linear-gradient(180deg, #2563eb, #7c3aed);
         }
     </style>
+
+    <!-- Modal de Dicas -->
+    @if($showTipsModal)
+        <div class="fixed inset-0 z-50 overflow-y-auto" x-data="{
+            show: @entangle('showTipsModal'),
+            currentStep: 1,
+            totalSteps: 5,
+            nextStep() {
+                if(this.currentStep < this.totalSteps) this.currentStep++;
+            },
+            prevStep() {
+                if(this.currentStep > 1) this.currentStep--;
+            }
+        }">
+            <!-- Backdrop com Blur -->
+            <div x-show="show"
+                x-transition:enter="transition ease-out duration-300"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-200"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-slate-900/40 backdrop-blur-md"
+                @click="$wire.toggleTips()"></div>
+
+            <!-- Modal -->
+            <div class="flex min-h-screen items-center justify-center p-4">
+                <div x-show="show"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95"
+                    x-transition:enter-end="opacity-100 scale-100"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95"
+                    @click.away=""
+                    class="relative w-full max-w-4xl bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden">
+
+                <!-- Header com Progress Bar -->
+                <div class="bg-gradient-to-r from-blue-500 via-purple-500 to-pink-600 px-8 py-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center ring-4 ring-white/30">
+                                <i class="bi bi-lightbulb-fill text-white text-3xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-bold text-white">
+                                    Guia de Upload de Transações
+                                </h3>
+                                <p class="text-sm text-white/80 mt-1 font-medium">
+                                    <span x-text="'Passo ' + currentStep + ' de ' + totalSteps"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <button @click="$wire.toggleTips()" class="w-10 h-10 flex items-center justify-center rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
+                            <i class="bi bi-x-lg text-2xl"></i>
+                        </button>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="flex items-center gap-2">
+                        <template x-for="step in totalSteps" :key="step">
+                            <div class="flex-1 h-2.5 rounded-full overflow-hidden bg-white/20">
+                                <div class="h-full bg-white rounded-full transition-all duration-500 ease-out"
+                                     :style="step <= currentStep ? 'width: 100%' : 'width: 0%'"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+
+                <!-- Content -->
+                <div class="px-10 py-12 min-h-[520px] relative">
+                    <!-- Step 1: Prepare seu Extrato Bancário -->
+                    <div x-show="currentStep === 1"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-purple-100 dark:ring-purple-900/30">
+                                <i class="bi bi-file-earmark-pdf text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Prepare seu Extrato Bancário</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Escolha o formato adequado para seu upload</p>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="p-6 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-2xl border-2 border-purple-200 dark:border-purple-700">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center">
+                                        <i class="bi bi-filetype-pdf text-white text-xl"></i>
+                                    </div>
+                                    <h5 class="text-xl font-bold text-slate-800 dark:text-white">Extrato PDF</h5>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
+                                        <span>Extrato bancário com transações listadas</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
+                                        <span>Texto legível e bem organizado</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
+                                        <span>Máximo de 10MB por arquivo</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="p-6 bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                                        <i class="bi bi-filetype-csv text-white text-xl"></i>
+                                    </div>
+                                    <h5 class="text-xl font-bold text-slate-800 dark:text-white">Planilha CSV</h5>
+                                </div>
+                                <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
+                                        <span>Colunas: data, descrição, valor</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
+                                        <span>Separado por vírgula ou ponto e vírgula</span>
+                                    </li>
+                                    <li class="flex items-start gap-2">
+                                        <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
+                                        <span>Formato UTF-8 recomendado</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Faça o Upload -->
+                    <div x-show="currentStep === 2"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-blue-100 dark:ring-blue-900/30">
+                                <i class="bi bi-cloud-upload text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Faça o Upload</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Envie seu arquivo bancário de forma simples e rápida</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl border-2 border-dashed border-blue-300 dark:border-blue-700">
+                                <div class="text-center space-y-4">
+                                    <i class="bi bi-file-earmark-arrow-up text-6xl text-blue-500"></i>
+                                    <div>
+                                        <p class="text-lg font-semibold text-slate-800 dark:text-white">Arraste seu arquivo aqui</p>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">ou clique para selecionar do seu computador</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i class="bi bi-shield-check text-3xl text-green-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Validação Automática</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Formato verificado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i class="bi bi-lightning-charge text-3xl text-yellow-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Processamento Rápido</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Análise inteligente</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <div class="flex items-center gap-3">
+                                        <i class="bi bi-lock text-3xl text-blue-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">100% Seguro</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Dados protegidos</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Revise as Transações -->
+                    <div x-show="currentStep === 3"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-yellow-500 via-yellow-600 to-orange-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-yellow-100 dark:ring-yellow-900/30">
+                                <i class="bi bi-eye text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Revise as Transações</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Confira e ajuste as transações bancárias antes de salvar</p>
+                        </div>
+                        <div class="space-y-5">
+                            <div class="p-6 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border-2 border-yellow-200 dark:border-yellow-700">
+                                <div class="flex items-start gap-4">
+                                    <div class="w-14 h-14 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                        <i class="bi bi-exclamation-triangle text-white text-2xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Identificação de Duplicatas</h5>
+                                        <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">Transações que já existem no banco serão marcadas automaticamente</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <span class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-semibold">Forçar Criação</span>
+                                            <span class="px-3 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-lg text-xs font-semibold">Excluir Duplicata</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                    <i class="bi bi-pencil-square text-3xl text-blue-500 mb-3"></i>
+                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Edição Rápida</h6>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Ajuste datas, categorias e valores</p>
+                                </div>
+                                <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
+                                    <i class="bi bi-trash text-3xl text-red-500 mb-3"></i>
+                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Remover Itens</h6>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Exclua transações indesejadas</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: IA Categoriza Automaticamente -->
+                    <div x-show="currentStep === 4"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-500 via-emerald-600 to-teal-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-green-100 dark:ring-green-900/30">
+                                <i class="bi bi-stars text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">IA Categoriza Automaticamente</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Inteligência artificial trabalhando para você</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="p-8 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl border-2 border-green-200 dark:border-green-700">
+                                <div class="flex items-center gap-4 mb-6">
+                                    <div class="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center">
+                                        <i class="bi bi-robot text-white text-3xl"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <h5 class="text-2xl font-bold text-slate-800 dark:text-white">Sistema Inteligente</h5>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">Análise automática de transações bancárias</p>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Análise de Descrição</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Sistema identifica padrões nas transações bancárias</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Aprendizado Contínuo</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Melhora com cada upload realizado</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Categorização Inteligente</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Categorias sugeridas baseadas no histórico de transações</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-5 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                                <div class="flex items-start gap-3">
+                                    <i class="bi bi-info-circle text-2xl text-blue-600"></i>
+                                    <p class="text-sm text-slate-700 dark:text-slate-300">
+                                        <strong>Dica:</strong> Você sempre pode revisar e modificar as categorias sugeridas antes de salvar.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Confirme e Salve -->
+                    <div x-show="currentStep === 5"
+                         x-transition:enter="transition ease-out duration-300 delay-75"
+                         x-transition:enter-start="opacity-0 translate-x-8"
+                         x-transition:enter-end="opacity-100 translate-x-0"
+                         x-transition:leave="transition ease-in duration-200"
+                         x-transition:leave-start="opacity-100"
+                         x-transition:leave-end="opacity-0 absolute"
+                         class="space-y-8">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-600 to-violet-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-indigo-100 dark:ring-indigo-900/30">
+                                <i class="bi bi-check2-circle text-white text-5xl"></i>
+                            </div>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Confirme e Salve</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Finalize seu upload e salve no banco</p>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="p-8 bg-gradient-to-br from-indigo-50 via-purple-50 to-violet-50 dark:from-indigo-900/20 dark:via-purple-900/20 dark:to-violet-900/20 rounded-2xl border-2 border-indigo-200 dark:border-indigo-700">
+                                <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-6 flex items-center gap-3">
+                                    <i class="bi bi-clipboard-check text-2xl text-indigo-600"></i>
+                                    Antes de Confirmar
+                                </h5>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Revise o Resumo</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Contagem total de transações</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Verifique Dados</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Valores e datas corretos</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Confirme Categorias</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Transações bem organizadas</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
+                                        <div>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Salve no Banco</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Histórico registrado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <i class="bi bi-clock-history text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Histórico Salvo</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Acesso posterior</p>
+                                </div>
+                                <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <i class="bi bi-eye text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Visualizar Detalhes</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Ver o que foi criado</p>
+                                </div>
+                                <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
+                                    <i class="bi bi-trash text-3xl text-indigo-500 mb-2"></i>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Gerenciar Histórico</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Excluir uploads antigos</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer com Navegação -->
+                <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-10 py-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
+                    <button @click="prevStep()"
+                            x-show="currentStep > 1"
+                            x-transition
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-100 dark:hover:bg-slate-600 transition-all duration-300 shadow hover:shadow-lg border border-slate-200 dark:border-slate-600">
+                        <i class="bi bi-arrow-left text-lg"></i>
+                        Anterior
+                    </button>
+
+                    <div x-show="currentStep <= 1" class="w-24"></div>
+
+                    <div class="flex items-center gap-3">
+                        <template x-for="step in totalSteps" :key="step">
+                            <button @click="currentStep = step"
+                                    class="transition-all duration-300 rounded-full"
+                                    :class="step === currentStep ? 'w-10 h-3 bg-gradient-to-r from-blue-500 to-indigo-600' : 'w-3 h-3 bg-slate-300 dark:bg-slate-600 hover:bg-blue-400 hover:w-6'">
+                            </button>
+                        </template>
+                    </div>
+
+                    <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
+                            class="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-600 hover:via-indigo-700 hover:to-purple-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
+                        <span x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir!'" class="text-lg"></span>
+                        <i class="bi text-xl" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-lg'"></i>
+                    </button>
+                </div>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
+
