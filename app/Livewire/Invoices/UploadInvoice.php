@@ -30,6 +30,10 @@ class UploadInvoice extends Component
     public $categories = [];
     public $clients = [];
 
+    // Layout flags (mantidas para compatibilidade com Alpine/Livewire)
+    public bool $fullHdLayout = false;
+    public bool $ultraLayout = false;
+
     public $uploadHistory = [];
     public $currentUploadId = null;
 
@@ -37,6 +41,7 @@ class UploadInvoice extends Component
     public $showDetailsModal = false;
     public $selectedUpload = null;
     public $confirmDeleteUploadId = null;
+    public $showTipsModal = false;
 
     protected $listeners = [
         'confirmTransactions',
@@ -452,6 +457,11 @@ class UploadInvoice extends Component
     {
         $this->showDetailsModal = false;
         $this->selectedUpload = null;
+    }
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
     }
 
     public function confirmDeleteUpload($uploadId)
