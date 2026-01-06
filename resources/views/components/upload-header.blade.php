@@ -47,6 +47,13 @@
 
             <div class="flex items-center gap-3">
                 @if (!$showConfirmation)
+                    <!-- Botão Dicas -->
+                    <button wire:click="toggleTips" type="button"
+                        class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm">
+                        <i class="bi bi-lightbulb-fill mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                        Dicas
+                    </button>
+
                     <!-- Botão Processar Arquivo -->
                     <button type="button" wire:click="uploadFile"
                         wire:loading.attr="disabled"
