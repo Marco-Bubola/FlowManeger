@@ -646,6 +646,41 @@
     grid-template-columns: repeat(1, minmax(0, 1fr));
 }
 
+/* Upload transactions grid: comportamentos específicos para ultra-wide */
+.upload-transactions-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+@media (min-width: 640px) {
+    .upload-transactions-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 768px) {
+    .upload-transactions-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1024px) {
+    .upload-transactions-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1280px) {
+    .upload-transactions-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1800px) {
+    /* Quando o cliente indica ultrawind, forçar 6 colunas em telas largas */
+    .upload-transactions-grid[data-ultrawind='true'] {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    /* Full HD (1920) não-UltraWind: manter 4 colunas */
+    .upload-transactions-grid[data-full-hd='true']:not([data-ultrawind='true']) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
 @media (min-width: 640px) {
     .products-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
