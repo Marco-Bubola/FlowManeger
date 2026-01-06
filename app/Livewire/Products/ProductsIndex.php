@@ -342,6 +342,11 @@ class ProductsIndex extends Component
         return [12, 18, 24, 30, 36, 42, 48];
     }
 
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
+    }
+
     #[On('product-created')]
     #[On('product-updated')]
     #[On('kit-created')]
