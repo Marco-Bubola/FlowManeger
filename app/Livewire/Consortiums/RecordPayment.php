@@ -64,11 +64,44 @@ class RecordPayment extends Component
             'total_paid' => $participant->payments()->where('status', 'paid')->sum('amount')
         ]);
 
+        $this->tryAutoRedeemPayoff($participant);
+
         session()->flash('success', 'Pagamento registrado com sucesso!');
         $this->closeModal();
 
         // Refresh da página
         $this->dispatch('payment-recorded');
+    }
+
+    private function tryAutoRedeemPayoff($participant): void
+    {
+        $consortium = $participant->consortium;
+
+        if (!$consortium || $consortium->mode !== 'payoff') {
+            return;
+        }
+
+        $pending = $participant->payments()->where('status', '!=', 'paid')->count();
+        if ($pending > 0 || $participant->is_contemplated) {
+            return;
+        }
+
+        $participant->update([
+            'is_contemplated' => true,
+            'status' => 'contemplated',
+            'contemplation_date' => now(),
+            'contemplation_type' => 'payoff',
+        ]);
+
+        if (!$participant->contemplation) {
+            $participant->contemplation()->create([
+                'contemplation_type' => 'payoff',
+                'contemplation_date' => now(),
+                'redemption_type' => 'pending',
+                'status' => 'pending',
+                'products' => [],
+            ]);
+        }
     }
 
     public function render()
