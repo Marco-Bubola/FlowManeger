@@ -87,7 +87,7 @@
          x-transition:leave="transition ease-in duration-200"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[99999] overflow-y-auto"
+         class="fixed inset-0 z-[9999] overflow-y-auto"
          @keydown.escape.window="modalOpen = false; $wire.closeModal()">
 
         <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-slate-900/80 to-blue-900/40 backdrop-blur-md"></div>
