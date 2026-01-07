@@ -29,6 +29,9 @@ class CreateConsortium extends Component
     #[Validate('required|integer|min:2|max:1000')]
     public $max_participants = '';
 
+    #[Validate('required|in:draw,payoff')]
+    public $mode = 'draw';
+
     #[Validate('required|in:monthly,bimonthly,weekly')]
     public $draw_frequency = 'monthly';
 
@@ -104,6 +107,7 @@ class CreateConsortium extends Component
         } elseif ($this->currentStep === 2) {
             $this->validate([
                 'max_participants' => 'required|integer|min:2|max:1000',
+                'mode' => 'required|in:draw,payoff',
                 'draw_frequency' => 'required|in:monthly,bimonthly,weekly',
                 'start_date' => 'required|date|after_or_equal:today',
             ]);
@@ -119,6 +123,7 @@ class CreateConsortium extends Component
             'monthly_value' => 'required|numeric|min:0.01',
             'duration_months' => 'required|integer|min:1|max:120',
             'max_participants' => 'required|integer|min:2|max:1000',
+            'mode' => 'required|in:draw,payoff',
             'draw_frequency' => 'required|in:monthly,bimonthly,weekly',
             'start_date' => 'required|date|after_or_equal:today',
         ]);
