@@ -54,6 +54,9 @@ class SalesIndex extends Component
     public ?Sale $deletingSale = null;
     public bool $showDeleteModal = false;
 
+    // Modal de dicas
+    public bool $showTipsModal = false;
+
     protected $queryString = [
         'search' => ['except' => ''],
         'status' => ['except' => ''],
@@ -547,6 +550,11 @@ class SalesIndex extends Component
     public function getClientsProperty()
     {
         return Client::where('user_id', Auth::id())->get();
+    }
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
     }
 
     public function render()
