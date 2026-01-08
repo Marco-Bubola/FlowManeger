@@ -1,412 +1,399 @@
-<div class="max-w-5xl mx-auto px-4 py-8">
-    <!-- Header -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
+<div class="w-full space-y-4" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+    <!-- Header Original com Botões Integrados -->
+    <x-sales-header title="Novo Consórcio" subtitle="Configure todos os detalhes do consórcio" icon="bi-plus-circle-fill"
+        :backRoute="route('consortiums.index')">
+
+        <x-slot name="actions">
             <div class="flex items-center gap-4">
-                <a href="{{ route('consortiums.index') }}"
-                    class="flex items-center justify-center w-10 h-10 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-all">
-                    <i class="bi bi-arrow-left text-slate-600 dark:text-slate-400"></i>
-                </a>
-                <div>
-                    <h1
-                        class="text-3xl font-bold bg-gradient-to-r from-slate-800 via-emerald-700 to-teal-700 dark:from-slate-100 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent">
-                        Novo Consórcio
-                    </h1>
-                    <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
-                        Siga os passos para criar um novo consórcio
-                    </p>
+                <!-- Cards de Resumo -->
+                <div class="flex items-center gap-3">
+                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-cash-coin text-white/90 text-lg"></i>
+                            <div>
+                                <div class="text-xs text-white/70">Mensalidade</div>
+                                <div class="text-base font-black text-white">R$ {{ number_format($monthly_value ?: 0, 2, ',', '.') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-clock-history text-white/90 text-lg"></i>
+                            <div>
+                                <div class="text-xs text-white/70">Duração</div>
+                                <div class="text-base font-black text-white">{{ $duration_months ?: 0 }} meses</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
+                        <div class="flex items-center gap-2">
+                            <i class="bi bi-people text-white/90 text-lg"></i>
+                            <div>
+                                <div class="text-xs text-white/70">Vagas</div>
+                                <div class="text-base font-black text-white">{{ $max_participants ?: 0 }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Divisor -->
+                <div class="h-10 w-px bg-white/30"></div>
+
+                <!-- Botões de Ação -->
+                <div class="flex items-center gap-3">
+                    <a href="{{ route('consortiums.index') }}"
+                        class="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-bold rounded-lg border border-white/30 transition-all hover:scale-105 shadow-lg">
+                        <i class="bi bi-x-lg text-base"></i>
+                        <span class="text-sm">Cancelar</span>
+                    </a>
+
+                    <button type="submit" form="consortium-form"
+                        class="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-white/90 text-emerald-600 font-black rounded-lg transition-all shadow-lg hover:shadow-xl hover:scale-105">
+                        <i class="bi bi-check-circle-fill text-lg"></i>
+                        <span class="text-sm">Criar Consórcio</span>
+                    </button>
+                </div>
+            </div>
+        </x-slot>
+    </x-sales-header>
+
+    <!-- Form sem Card - Layout por Linhas -->
+    <form id="consortium-form" wire:submit.prevent="save" class="space-y-3 transition-all duration-700 delay-100"
+        :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
+
+        <!-- LINHA 1: Calendário + Info Básica -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
+
+            <!-- Calendário Moderno (4 colunas) -->
+            <div class="lg:col-span-4">
+                <div class="relative rounded-2xl shadow-xl p-5"
+                    style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%); border: 2px solid rgba(59, 130, 246, 0.3);">
+
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-2">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+                                <i class="bi bi-calendar-event text-white text-lg"></i>
+                            </div>
+                            <h3 class="text-base font-black text-gray-900 dark:text-white">Data de Início</h3>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button type="button" wire:click="previousMonth"
+                                class="p-2 rounded-lg bg-white/90 dark:bg-gray-800/90 hover:bg-white text-gray-700 dark:text-gray-300 shadow hover:shadow-md transition-all hover:scale-110">
+                                <i class="bi bi-chevron-left text-sm"></i>
+                            </button>
+                            <button type="button" wire:click="nextMonth"
+                                class="p-2 rounded-lg bg-white/90 dark:bg-gray-800/90 hover:bg-white text-gray-700 dark:text-gray-300 shadow hover:shadow-md transition-all hover:scale-110">
+                                <i class="bi bi-chevron-right text-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center text-sm font-black text-gray-900 dark:text-white mb-3">
+                        {{ \Carbon\Carbon::parse($start_date ?? now())->locale('pt_BR')->isoFormat('MMMM YYYY') }}
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1">
+                        @foreach (['D', 'S', 'T', 'Q', 'Q', 'S', 'S'] as $day)
+                            <div class="text-center text-sm font-black text-gray-600 dark:text-gray-400 py-2">
+                                {{ $day }}</div>
+                        @endforeach
+
+                        @php
+                            $date = \Carbon\Carbon::parse($start_date ?? now())->startOfMonth();
+                            $endDate = $date->copy()->endOfMonth();
+                            $startDay = $date->copy()->dayOfWeek;
+                            $selectedDate = \Carbon\Carbon::parse($start_date ?? now());
+                        @endphp
+
+                        @for ($i = 0; $i < $startDay; $i++)
+                            <div></div>
+                        @endfor
+
+                        @while ($date <= $endDate)
+                            @php
+                                $isSelected = $date->isSameDay($selectedDate);
+                                $isToday = $date->isToday();
+                                $dateString = $date->format('Y-m-d');
+                            @endphp
+                            <button type="button" wire:click="$set('start_date', '{{ $dateString }}')"
+                                class="aspect-square rounded-lg text-sm font-bold transition-all hover:scale-110 {{ $isSelected ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg scale-105' : ($isToday ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 ring-2 ring-blue-500' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300') }}">
+                                {{ $date->day }}
+                            </button>
+                            @php $date->addDay(); @endphp
+                        @endwhile
+                    </div>
+
+                    <div
+                        class="mt-4 p-3 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-2 border-blue-300 dark:border-blue-600 shadow-lg">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i class="bi bi-calendar-check-fill text-blue-500 text-lg"></i>
+                                <span class="text-sm text-gray-700 dark:text-gray-300 font-bold">Selecionada</span>
+                            </div>
+                            <span class="font-black text-base text-blue-600 dark:text-blue-400">
+                                {{ \Carbon\Carbon::parse($start_date ?? now())->format('d/m/Y') }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <button wire:click="toggleTips"
-                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg">
-                <i class="bi bi-lightbulb"></i>
-                <span class="text-sm font-medium">Dicas</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- Progress Steps -->
-    <div class="mb-8">
-        <div class="flex items-center justify-between">
-            @for ($i = 1; $i <= 3; $i++)
-                <div class="flex items-center {{ $i < 3 ? 'flex-1' : '' }}">
-                <button wire:click="goToStep({{ $i }})" @if ($i > $currentStep) disabled @endif
-                    class="relative flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 {{ $currentStep >= $i ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg scale-110' : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400' }}">
-                    @if ($currentStep > $i)
-                        <i class="bi bi-check-lg text-xl font-bold"></i>
-                    @else
-                        <span class="text-lg font-bold">{{ $i }}</span>
-                    @endif
-                    @if ($currentStep === $i)
-                        <div class="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-25"></div>
-                    @endif
-                </button>
-
-                @if ($i < 3)
-                    <div
-                        class="flex-1 h-1 mx-4 rounded-full transition-all duration-300 {{ $currentStep > $i ? 'bg-gradient-to-r from-emerald-500 to-teal-600' : 'bg-slate-200 dark:bg-slate-700' }}">
-                    </div>
-                @endif
-        </div>
-        @endfor
-    </div>
-
-    <div class="flex justify-between text-sm mt-2">
-        <span
-            class="text-xs font-medium {{ $currentStep === 1 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400' }}">
-            Informações Básicas
-        </span>
-        <span
-            class="text-xs font-medium {{ $currentStep === 2 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400' }}">
-            Configurações
-        </span>
-        <span
-            class="text-xs font-medium {{ $currentStep === 3 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400' }}">
-            Revisão
-        </span>
-    </div>
-    </div>
-
-    <!-- Form Card -->
-    <div
-        class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-
-        <form wire:submit.prevent="{{ $currentStep === 3 ? 'save' : 'nextStep' }}">
-            <!-- Passo 1: Informações Básicas -->
-            @if ($currentStep === 1)
-                <div class="p-8 space-y-6">
-                    <div class="flex items-center gap-3 mb-6">
+            <!-- Coluna com Informações Básicas + Valores Financeiros + Participantes (8 colunas) -->
+            <div class="lg:col-span-8 space-y-4">
+                <!-- Informações Básicas -->
+                <div class="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 pb-3 border-b-2 border-emerald-200 dark:border-emerald-700">
                         <div
-                            class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl">
-                            <i class="bi bi-info-circle text-white text-xl"></i>
+                            class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="bi bi-info-circle-fill text-white text-lg"></i>
                         </div>
+                        <h2 class="text-base font-black text-slate-900 dark:text-white">Informações Básicas</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-4">
                         <div>
-                            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Informações Básicas</h2>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Dados principais do consórcio</p>
+                            <label
+                                class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <i class="bi bi-bookmark-fill text-emerald-500 text-base"></i>
+                                Nome do Consórcio <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" wire:model.blur="name"
+                                class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-medium shadow-sm"
+                                placeholder="Ex: Consórcio de Veículos 2025">
+                            @error('name')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label
+                                class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <i class="bi bi-file-text-fill text-emerald-500 text-base"></i>
+                                Descrição <span class="text-slate-400 text-xs">(opcional)</span>
+                            </label>
+                            <input type="text" wire:model.blur="description"
+                                class="w-full px-4 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 text-sm font-medium shadow-sm"
+                                placeholder="Descrição breve...">
+                            @error('description')
+                                <p class="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
+                            @enderror
                         </div>
                     </div>
+                </div>
 
-                    <!-- Nome -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                            Nome do Consórcio <span class="text-red-500">*</span>
-                        </label>
-                        <input type="text" wire:model.blur="name"
-                            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                            placeholder="Ex: Consórcio de Veículos 2025">
-                        @error('name')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
+                <!-- Valores Financeiros -->
+                <div class="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-xl p-5 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 pb-3 border-b-2 border-blue-200 dark:border-blue-700">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="bi bi-cash-stack text-white text-lg"></i>
+                        </div>
+                        <h2 class="text-base font-black text-slate-900 dark:text-white">Valores Financeiros</h2>
                     </div>
 
-                    <!-- Descrição -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                            Descrição
-                        </label>
-                        <textarea wire:model.blur="description" rows="3"
-                            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                            placeholder="Descreva o objetivo e detalhes do consórcio..."></textarea>
-                        @error('description')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Valor Mensal -->
+                    <div class="grid grid-cols-2 gap-4 mt-4">
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                                Valor da Mensalidade <span class="text-red-500">*</span>
+                            <label
+                                class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <i class="bi bi-currency-dollar text-blue-500 text-base"></i>
+                                Mensalidade <span class="text-red-500">*</span>
                             </label>
                             <div class="relative">
-                                <div
-                                    class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500 dark:text-slate-400">
-                                    R$
-                                </div>
+                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">R$</span>
                                 <input type="number" wire:model.live="monthly_value" step="0.01" min="0.01"
-                                    class="w-full pl-12 pr-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                    class="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium shadow-sm"
                                     placeholder="0,00">
                             </div>
                             @error('monthly_value')
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
                             @enderror
                         </div>
 
-                        <!-- Duração -->
                         <div>
-                            <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                                Duração em Meses <span class="text-red-500">*</span>
+                            <label
+                                class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <i class="bi bi-clock-fill text-blue-500 text-base"></i>
+                                Duração <span class="text-red-500">*</span>
                             </label>
                             <input type="number" wire:model.live="duration_months" min="1" max="120"
-                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                                class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium shadow-sm"
                                 placeholder="Ex: 24">
                             @error('duration_months')
-                                <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                                <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Participantes + Total Geral -->
+                <div class="grid grid-cols-2 gap-4">
+                    <!-- Participantes -->
+                    <div class="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-xl p-5 border border-slate-200 dark:border-slate-700">
+                        <div class="flex items-center gap-3 pb-3 border-b-2 border-purple-200 dark:border-purple-700">
+                            <div
+                                class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <i class="bi bi-people-fill text-white text-lg"></i>
+                            </div>
+                            <h2 class="text-base font-black text-slate-900 dark:text-white">Participantes</h2>
+                        </div>
+
+                        <div class="mt-4">
+                            <label class="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">
+                                <i class="bi bi-person-check-fill text-purple-500 text-base"></i>
+                                Máximo de Participantes <span class="text-red-500">*</span>
+                            </label>
+                            <input type="number" wire:model.live="max_participants" min="2" max="1000"
+                                class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 text-sm font-medium shadow-sm"
+                                placeholder="Ex: 50">
+                            @error('max_participants')
+                                <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
+                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                </p>
                             @enderror
                         </div>
                     </div>
 
-                    <!-- Preview Valor Total -->
-                    @if ($total_value > 0)
-                        <div
-                            class="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-200 dark:border-emerald-700">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Valor total estimado por participante:
-                                </span>
-                                <span class="text-xl font-bold text-emerald-600 dark:text-emerald-400">
-                                    R$ {{ number_format($monthly_value * $duration_months, 2, ',', '.') }}
-                                </span>
+                    <!-- Total Geral -->
+                    <div
+                        class="relative p-5 rounded-2xl bg-gradient-to-br from-emerald-500/15 to-teal-500/15 border-2 border-emerald-300 dark:border-emerald-600 shadow-xl overflow-hidden">
+                        <div class="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-3xl"></div>
+                        <div class="relative">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-lg">
+                                    <i class="bi bi-calculator-fill text-white text-sm"></i>
+                                </div>
+                                <span class="text-sm font-black text-slate-700 dark:text-slate-300">Total Geral</span>
                             </div>
-                        </div>
-                    @endif
-                </div>
-            @endif
-
-            <!-- Passo 2: Configurações -->
-            @if ($currentStep === 2)
-                <div class="p-8 space-y-6">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div
-                            class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl">
-                            <i class="bi bi-gear text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Configurações</h2>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Defina as regras do consórcio</p>
-                        </div>
-                    </div>
-
-                    <!-- Máximo de Participantes -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                            Número Máximo de Participantes <span class="text-red-500">*</span>
-                        </label>
-                        <input type="number" wire:model.live="max_participants" min="2" max="1000"
-                            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
-                            placeholder="Ex: 50">
-                        @error('max_participants')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Frequência de Sorteios -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                            Frequência dos Sorteios <span class="text-red-500">*</span>
-                        </label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <label
-                                class="relative flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 border-2 rounded-xl cursor-pointer transition-all hover:border-emerald-500 {{ $draw_frequency === 'monthly' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700' }}">
-                                <input type="radio" wire:model.live="draw_frequency" value="monthly"
-                                    class="sr-only">
-                                <div
-                                    class="flex items-center justify-center w-10 h-10 rounded-lg {{ $draw_frequency === 'monthly' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
-                                    <i class="bi bi-calendar-month"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="font-semibold text-slate-900 dark:text-white">Mensal</div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400">1x por mês</div>
-                                </div>
-                            </label>
-
-                            <label
-                                class="relative flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 border-2 rounded-xl cursor-pointer transition-all hover:border-emerald-500 {{ $draw_frequency === 'bimonthly' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700' }}">
-                                <input type="radio" wire:model.live="draw_frequency" value="bimonthly"
-                                    class="sr-only">
-                                <div
-                                    class="flex items-center justify-center w-10 h-10 rounded-lg {{ $draw_frequency === 'bimonthly' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
-                                    <i class="bi bi-calendar2-range"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="font-semibold text-slate-900 dark:text-white">Bimestral</div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400">A cada 2 meses</div>
-                                </div>
-                            </label>
-
-                            <label
-                                class="relative flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-900 border-2 rounded-xl cursor-pointer transition-all hover:border-emerald-500 {{ $draw_frequency === 'weekly' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-700' }}">
-                                <input type="radio" wire:model.live="draw_frequency" value="weekly"
-                                    class="sr-only">
-                                <div
-                                    class="flex items-center justify-center w-10 h-10 rounded-lg {{ $draw_frequency === 'weekly' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
-                                    <i class="bi bi-calendar-week"></i>
-                                </div>
-                                <div class="flex-1">
-                                    <div class="font-semibold text-slate-900 dark:text-white">Semanal</div>
-                                    <div class="text-xs text-slate-500 dark:text-slate-400">1x por semana</div>
-                                </div>
-                            </label>
-                        </div>
-                        @error('draw_frequency')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Data de Início -->
-                    <div>
-                        <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                            Data de Início <span class="text-red-500">*</span>
-                        </label>
-                        <input type="date" wire:model.blur="start_date"
-                            class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all">
-                        @error('start_date')
-                            <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
-                        @enderror
-                    </div>
-
-                    <!-- Preview Valor Total do Consórcio -->
-                    @if ($total_value > 0)
-                        <div
-                            class="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
-                            <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    Valor total do consórcio:
-                                </span>
-                                <span class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                    R$ {{ number_format($total_value, 2, ',', '.') }}
-                                </span>
+                            <div class="text-3xl font-black text-emerald-600 dark:text-emerald-400 mb-2">
+                                R$ {{ number_format($total_value, 2, ',', '.') }}
                             </div>
-                        </div>
-                    @endif
-                </div>
-            @endif
-
-            <!-- Passo 3: Revisão -->
-            @if ($currentStep === 3)
-                <div class="p-8 space-y-6">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div
-                            class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl">
-                            <i class="bi bi-check-circle text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-slate-900 dark:text-white">Revisão</h2>
-                            <p class="text-sm text-slate-600 dark:text-slate-400">Confirme os dados antes de criar
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="space-y-4">
-                        <!-- Informações Básicas -->
-                        <div
-                            class="p-6 bg-gradient-to-r from-white to-emerald-50 dark:from-slate-900 dark:to-emerald-900/10 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <h3 class="text-sm font-semibold text-emerald-600 dark:text-emerald-400 mb-4 flex items-center gap-2">
-                                <i class="bi bi-info-circle"></i>
-                                Informações Básicas
-                            </h3>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Nome</span>
-                                    <p class="font-semibold text-slate-900 dark:text-white">{{ $name }}</p>
-                                </div>
-                                @if ($description)
-                                    <div class="col-span-2">
-                                        <span class="text-xs text-slate-500 dark:text-slate-400">Descrição</span>
-                                        <p class="text-sm text-slate-700 dark:text-slate-300">{{ $description }}</p>
-                                    </div>
-                                @endif
-                                <div>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Valor Mensal</span>
-                                    <p class="font-semibold text-slate-900 dark:text-white">R$
-                                        {{ number_format($monthly_value, 2, ',', '.') }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Duração</span>
-                                    <p class="font-semibold text-slate-900 dark:text-white">{{ $duration_months }}
-                                        meses</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Configurações -->
-                        <div
-                            class="p-6 bg-gradient-to-r from-white to-blue-50 dark:from-slate-900 dark:to-blue-900/10 rounded-xl border border-slate-200 dark:border-slate-700">
-                            <h3 class="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-4 flex items-center gap-2">
-                                <i class="bi bi-gear"></i>
-                                Configurações
-                            </h3>
-                            <div class="grid grid-cols-3 gap-4">
-                                <div>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Participantes</span>
-                                    <p class="font-semibold text-slate-900 dark:text-white">{{ $max_participants }}
-                                    </p>
-                                </div>
-                                <div>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Frequência</span>
-                                    <p class="font-semibold text-slate-900 dark:text-white">
-                                        {{ ucfirst($draw_frequency) }}</p>
-                                </div>
-                                <div>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Início</span>
-                                    <p class="font-semibold text-slate-900 dark:text-white">
-                                        {{ \Carbon\Carbon::parse($start_date)->format('d/m/Y') }}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Resumo Financeiro -->
-                        <div
-                            class="p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border-2 border-purple-200 dark:border-purple-700">
-                            <h3
-                                class="text-sm font-semibold text-purple-600 dark:text-purple-400 mb-4 flex items-center gap-2">
-                                <i class="bi bi-cash-stack"></i>
-                                Resumo Financeiro
-                            </h3>
-                            <div class="space-y-3">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-slate-600 dark:text-slate-400">Valor por
-                                        participante:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-white">R$
-                                        {{ number_format($monthly_value * $duration_months, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-sm text-slate-600 dark:text-slate-400">Mensalidade:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-white">R$
-                                        {{ number_format($monthly_value, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="h-px bg-purple-200 dark:bg-purple-700"></div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-base font-bold text-slate-900 dark:text-white">Total do
-                                        Consórcio:</span>
-                                    <span class="text-2xl font-bold text-purple-600 dark:text-purple-400">R$
-                                        {{ number_format($total_value, 2, ',', '.') }}</span>
-                                </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 bg-white/50 dark:bg-slate-800/50 rounded-lg px-2 py-1">
+                                <i class="bi bi-info-circle-fill text-emerald-500"></i>
+                                <span class="font-bold">{{ $max_participants ?: 0 }} participantes × R$ {{ number_format((floatval($monthly_value) * floatval($duration_months)) ?: 0, 2, ',', '.') }}</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            @endif
-
-            <!-- Action Buttons -->
-            <div
-                class="flex items-center justify-between gap-4 p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-200 dark:border-slate-700">
-                @if ($currentStep > 1)
-                    <button type="button" wire:click="previousStep"
-                        class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all">
-                        <i class="bi bi-arrow-left"></i>
-                        <span>Voltar</span>
-                    </button>
-                @else
-                    <a href="{{ route('consortiums.index') }}"
-                        class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all">
-                        <i class="bi bi-x-lg"></i>
-                        <span>Cancelar</span>
-                    </a>
-                @endif
-
-                <button type="submit"
-                    class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-xl transform hover:scale-105">
-                    @if ($currentStep === 3)
-                        <i class="bi bi-check-circle"></i>
-                        <span>Criar Consórcio</span>
-                    @else
-                        <span>Próximo</span>
-                        <i class="bi bi-arrow-right"></i>
-                    @endif
-                </button>
             </div>
+        </div>
+
+        <!-- LINHA 2: Configurações (Modo + Frequência) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div>
+                <div class="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-xl p-4 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 pb-3 mb-3 border-b-2 border-orange-200 dark:border-orange-700">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="bi bi-toggles text-white text-lg"></i>
+                        </div>
+                        <h2 class="text-base font-black text-slate-900 dark:text-white">Modo do Consórcio</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="mode" value="draw" class="sr-only peer">
+                            <div
+                                class="flex flex-col items-center gap-3 p-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all">
+                                <div
+                                    class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg {{ $mode === 'draw' ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
+                                    <i class="bi bi-trophy-fill text-xl"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-black text-sm text-slate-900 dark:text-white">Com Sorteio</div>
+                                    <div class="text-xs text-slate-600 dark:text-slate-400 mt-1">Sorteios regulares</div>
+                                </div>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="mode" value="payoff" class="sr-only peer">
+                            <div
+                                class="flex flex-col items-center gap-3 p-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all">
+                                <div
+                                    class="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg {{ $mode === 'payoff' ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
+                                    <i class="bi bi-box-seam-fill text-xl"></i>
+                                </div>
+                                <div class="text-center">
+                                    <div class="font-black text-sm text-slate-900 dark:text-white">Por Quitação</div>
+                                    <div class="text-xs text-slate-600 dark:text-slate-400 mt-1">Sem sorteio</div>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    @error('mode')
+                        <p class="mt-2 text-xs text-red-600 flex items-center gap-1">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+            </div>
+
+            <div>
+                <div class="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-xl p-4 border border-slate-200 dark:border-slate-700">
+                    <div class="flex items-center gap-3 pb-3 mb-3 border-b-2 border-orange-200 dark:border-orange-700">
+                        <div
+                            class="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <i class="bi bi-calendar-event-fill text-white text-lg"></i>
+                        </div>
+                        <h2 class="text-base font-black text-slate-900 dark:text-white">Frequência dos Sorteios</h2>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="draw_frequency" value="weekly" class="sr-only peer">
+                            <div
+                                class="flex flex-col items-center gap-2 p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all">
+                                <div
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg {{ $draw_frequency === 'weekly' ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
+                                    <i class="bi bi-calendar-week-fill text-base"></i>
+                                </div>
+                                <div class="font-black text-xs text-slate-900 dark:text-white text-center">Semanal</div>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="draw_frequency" value="monthly" class="sr-only peer">
+                            <div
+                                class="flex flex-col items-center gap-2 p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all">
+                                <div
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg {{ $draw_frequency === 'monthly' ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
+                                    <i class="bi bi-calendar-month-fill text-base"></i>
+                                </div>
+                                <div class="font-black text-xs text-slate-900 dark:text-white text-center">Mensal</div>
+                            </div>
+                        </label>
+
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="draw_frequency" value="bimonthly"
+                                class="sr-only peer">
+                            <div
+                                class="flex flex-col items-center gap-2 p-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all">
+                                <div
+                                    class="w-10 h-10 rounded-xl flex items-center justify-center shadow-lg {{ $draw_frequency === 'bimonthly' ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-500' }}">
+                                    <i class="bi bi-calendar2-range-fill text-base"></i>
+                                </div>
+                                <div class="font-black text-xs text-slate-900 dark:text-white text-center">Bimestral</div>
+                            </div>
+                        </label>
+                    </div>
+                    @error('draw_frequency')
+                        <p class="mt-2 text-xs text-red-600 flex items-center gap-1">
+                            <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                        </p>
+                    @enderror
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
         </form>
     </div>
-</div>
