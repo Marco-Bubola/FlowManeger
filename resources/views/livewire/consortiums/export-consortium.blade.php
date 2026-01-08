@@ -53,6 +53,22 @@
                 <!-- Conteúdo -->
                 <div class="p-6">
                     <div class="space-y-4">
+                        <!-- Seletor de Consórcio (quando não vem de detalhes) -->
+                        @if(!empty($availableConsortiums))
+                            <div class="mb-4">
+                                <label class="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-2">
+                                    <i class="bi bi-piggy-bank text-emerald-500 mr-2"></i>
+                                    Selecione o Consórcio:
+                                </label>
+                                <select wire:model.live="consortiumId"
+                                    class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-800 dark:text-slate-100 focus:ring-2 focus:ring-emerald-500 font-medium">
+                                    @foreach($availableConsortiums as $cons)
+                                        <option value="{{ $cons['id'] }}">{{ $cons['name'] }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
+
                         <div>
                             <label class="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-3">
                                 <i class="bi bi-toggles text-emerald-500 mr-2"></i>
