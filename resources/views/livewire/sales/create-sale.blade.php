@@ -30,7 +30,14 @@
                 'icon' => 'bi-check-circle',
                 'gradient' => 'from-green-500 to-emerald-500'
             ]
-        ]" />
+        ]">
+        <x-slot name="actions">
+            <button wire:click="toggleTips" type="button"
+                class="p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
+                <i class="bi bi-lightbulb"></i>
+            </button>
+        </x-slot>
+    </x-sales-header>
 
     <!-- Conteúdo Principal -->
     <div class="">
@@ -233,9 +240,9 @@
                     class="w-full h-[82vh] flex">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col h-full">
+                    <div class="w-3/4  flex flex-col h-full">
                         <!-- Header com Controles -->
-                        <div class="p-2 border-b border-gray-200 dark:border-zinc-700">
+                        <div class="p-2 border-b ">
 
 
                             <!-- Controles de pesquisa e filtro -->
@@ -385,7 +392,7 @@
                 <!-- Lado Direito: Produtos Selecionados (1/4 da tela) -->
                 <div class="w-1/4 flex flex-col h-[80vh]">
                     <!-- Header do painel direito -->
-                    <div class="p-3 border-b border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+                    <div class="p-3 border-b">
                         <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
                             <i class="bi bi-cart text-green-600 dark:text-green-400 mr-2 text-sm"></i>
                             Produtos ({{ count($selectedProducts) }})
@@ -773,5 +780,142 @@
         </button>
     </div>
 </div>
+@endif
+
+<!-- Modal de Dicas (Wizard) - Compacto -->
+@if($showTipsModal)
+    <div x-data="{
+        currentStep: 1,
+        totalSteps: 3,
+        nextStep() { if (this.currentStep < this.totalSteps) this.currentStep++; },
+        prevStep() { if (this.currentStep > 1) this.currentStep--; }
+    }" x-show="$wire.showTipsModal" x-cloak
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+        style="background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px);">
+
+        <div @click.away="if(currentStep === totalSteps) $wire.toggleTips()"
+            class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden border border-slate-200/50 dark:border-slate-700/50"
+            x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95">
+
+            <!-- Header -->
+            <div class="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-700 px-6 py-5 text-white">
+                <button @click="$wire.toggleTips()" class="absolute top-3 right-3 p-2 hover:bg-white/20 rounded-lg">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="p-2 bg-white/20 rounded-xl"><i class="bi bi-lightbulb-fill text-xl"></i></div>
+                    <div>
+                        <h2 class="text-2xl font-bold">Dicas: Criar Venda</h2>
+                        <p class="text-indigo-100 text-sm">Processo completo de registro de vendas</p>
+                    </div>
+                </div>
+                <div class="flex gap-1.5">
+                    <template x-for="step in totalSteps" :key="step">
+                        <div class="flex-1 h-1.5 rounded-full overflow-hidden bg-white/20">
+                            <div class="h-full bg-white rounded-full transition-all duration-500" :style="currentStep >= step ? 'width: 100%' : 'width: 0%'"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="overflow-y-auto max-h-[calc(85vh-200px)] p-6">
+                <!-- Step 1: Selecionar Cliente -->
+                <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8">
+                    <div class="text-center mb-6">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-xl mb-4">
+                            <i class="bi bi-person-plus text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Passo 1: Cliente</h3>
+                        <p class="text-slate-600 dark:text-slate-300">Selecione ou busque o cliente para esta venda</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50">
+                            <h4 class="font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2"><i class="bi bi-search text-blue-500"></i>Busca de Cliente</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-check-circle-fill text-green-500"></i>Digite o nome do cliente na barra de busca</li>
+                                <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-check-circle-fill text-green-500"></i>Use o dropdown para selecionar da lista</li>
+                                <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-check-circle-fill text-green-500"></i>Cliente é obrigatório para prosseguir</li>
+                            </ul>
+                        </div>
+                        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700">
+                            <p class="text-sm text-slate-700 dark:text-slate-300"><i class="bi bi-lightbulb-fill text-amber-500 mr-2"></i><strong>Dica:</strong> Você pode cadastrar novos clientes no menu "Clientes" antes de criar a venda</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 2: Adicionar Produtos -->
+                <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8">
+                    <div class="text-center mb-6">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-3xl shadow-xl mb-4">
+                            <i class="bi bi-box-seam text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Passo 2: Produtos</h3>
+                        <p class="text-slate-600 dark:text-slate-300">Adicione produtos à venda e defina quantidades</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50">
+                            <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-plus-square text-purple-500 mr-2"></i>Adicionando Produtos</h4>
+                            <div class="grid grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-purple-600 mb-1">1. Buscar</div><p class="text-slate-600 dark:text-slate-400">Use a busca para filtrar produtos</p></div>
+                                <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-blue-600 mb-1">2. Selecionar</div><p class="text-slate-600 dark:text-slate-400">Marque checkbox dos produtos</p></div>
+                                <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-green-600 mb-1">3. Quantidade</div><p class="text-slate-600 dark:text-slate-400">Defina a quantidade desejada</p></div>
+                                <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-orange-600 mb-1">4. Preço</div><p class="text-slate-600 dark:text-slate-400">Ajuste o preço se necessário</p></div>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
+                            <p class="text-sm text-slate-700 dark:text-slate-300"><i class="bi bi-info-circle-fill text-green-500 mr-2"></i>O sistema verifica automaticamente o estoque disponível antes de adicionar</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3: Resumo e Finalização -->
+                <div x-show="currentStep === 3" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8">
+                    <div class="text-center mb-6">
+                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl shadow-xl mb-4">
+                            <i class="bi bi-check-circle text-4xl text-white"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Passo 3: Finalizar</h3>
+                        <p class="text-slate-600 dark:text-slate-300">Revise tudo e complete a venda</p>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50">
+                            <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-cash text-blue-500 mr-2"></i>Formas de Pagamento</h4>
+                            <ul class="space-y-2 text-sm">
+                                <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-credit-card text-blue-500"></i><strong>À Vista:</strong> Pagamento imediato</li>
+                                <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-calendar-range text-purple-500"></i><strong>Parcelado:</strong> Defina número de parcelas</li>
+                            </ul>
+                        </div>
+                        <div class="p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50">
+                            <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-list-check text-green-500 mr-2"></i>Checklist Final</h4>
+                            <div class="space-y-2">
+                                <label class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg text-sm"><input type="checkbox" class="w-4 h-4 text-green-600 rounded"><span class="text-slate-700 dark:text-slate-300">Cliente selecionado corretamente</span></label>
+                                <label class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg text-sm"><input type="checkbox" class="w-4 h-4 text-green-600 rounded"><span class="text-slate-700 dark:text-slate-300">Produtos e quantidades conferidos</span></label>
+                                <label class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg text-sm"><input type="checkbox" class="w-4 h-4 text-green-600 rounded"><span class="text-slate-700 dark:text-slate-300">Forma de pagamento definida</span></label>
+                                <label class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg text-sm"><input type="checkbox" class="w-4 h-4 text-green-600 rounded"><span class="text-slate-700 dark:text-slate-300">Valores estão corretos</span></label>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-slate-700 dark:to-slate-600 rounded-xl border-2 border-amber-300">
+                            <div class="flex items-center gap-3"><i class="bi bi-emoji-smile-fill text-2xl text-amber-500"></i><div><h4 class="text-base font-bold text-slate-800 dark:text-white">Tudo Pronto!</h4><p class="text-sm text-slate-600 dark:text-slate-300">Clique em "Finalizar Venda" para concluir</p></div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+                <div class="flex items-center justify-between">
+                    <button @click="prevStep()" x-show="currentStep > 1" class="flex items-center gap-2 px-5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition-all hover:scale-105"><i class="bi bi-arrow-left"></i>Anterior</button>
+                    <div x-show="currentStep === 1"></div>
+                    <div class="flex items-center gap-2">
+                        <template x-for="step in totalSteps" :key="step">
+                            <button @click="currentStep = step" class="transition-all duration-300 rounded-full" :class="currentStep === step ? 'w-8 h-3 bg-gradient-to-r from-indigo-600 to-purple-600' : 'w-3 h-3 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400'"></button>
+                        </template>
+                    </div>
+                    <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()" class="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg transition-all hover:scale-105"><span x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir!'"></span><i class="bi" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-circle-fill'"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
 @endif
 </div>
