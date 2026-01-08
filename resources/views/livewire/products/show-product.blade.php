@@ -63,34 +63,64 @@
                 </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="flex items-center gap-4">
-                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg">
-                        <i class="bi bi-cart-check text-white text-sm"></i>
+            <!-- Botões de Ação - Organização Melhorada -->
+            <div class="flex flex-col gap-3">
+                <!-- Linha 1: Quick Stats -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
+                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg">
+                            <i class="bi bi-cart-check text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">Vendas</div>
+                            <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_quantity_sold']) }}</div>
+                        </div>
                     </div>
-                    <div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">Vendas</div>
-                        <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_quantity_sold']) }}</div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
+                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg">
+                            <i class="bi bi-currency-dollar text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">Receita</div>
+                            <div class="text-lg font-bold text-slate-800 dark:text-slate-200">R$ {{ number_format($analytics['total_revenue'], 0, ',', '.') }}</div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
+                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
+                            <i class="bi bi-boxes text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">Estoque</div>
+                            <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_stock']) }}</div>
+                        </div>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg">
-                        <i class="bi bi-currency-dollar text-white text-sm"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">Receita</div>
-                        <div class="text-lg font-bold text-slate-800 dark:text-slate-200">R$ {{ number_format($analytics['total_revenue'], 0, ',', '.') }}</div>
-                    </div>
-                </div>
-                <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                    <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
-                        <i class="bi bi-boxes text-white text-sm"></i>
-                    </div>
-                    <div>
-                        <div class="text-xs text-slate-500 dark:text-slate-400">Estoque</div>
-                        <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_stock']) }}</div>
-                    </div>
+
+                <!-- Linha 2: Ações do Produto -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <a href="{{ route('products.edit', $mainProduct) }}"
+                        class="flex items-center gap-2 px-4 py-2.5 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border-2 border-slate-300 dark:border-slate-600 transition-all duration-300 shadow-md hover:shadow-lg backdrop-blur-sm">
+                        <i class="bi bi-pencil-fill"></i>
+                        <span>Editar</span>
+                    </a>
+
+                    <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
+                        class="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <i class="bi bi-file-earmark-arrow-down"></i>
+                        <span>Exportar</span>
+                    </button>
+
+                    <button wire:click="duplicateProduct({{ $mainProduct->id }})"
+                        class="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <i class="bi bi-files"></i>
+                        <span>Duplicar</span>
+                    </button>
+
+                    <button wire:click="confirmDelete({{ $mainProduct->id }})"
+                        class="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                        <i class="bi bi-trash3"></i>
+                        <span>Excluir</span>
+                    </button>
                 </div>
             </div>
         </div>
