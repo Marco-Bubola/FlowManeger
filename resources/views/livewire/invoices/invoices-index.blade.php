@@ -76,6 +76,12 @@
                                 </svg>
                             </button>
                         </div>
+
+                        <!-- Bot\u00e3o de Dicas -->
+                        <button wire:click="toggleTips"
+                            class="p-2 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                            <i class="bi bi-lightbulb text-sm"></i>
+                        </button>
                     </div>
 
                     <!-- Conteúdo do calendário -->
