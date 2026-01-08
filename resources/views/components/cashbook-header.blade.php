@@ -42,6 +42,12 @@
 
             @if($showQuickActions)
             <div class="flex flex-wrap gap-2 items-center">
+                <button wire:click="toggleTips"
+                    class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+                    <i class="bi bi-lightbulb mr-2 group-hover:scale-110 transition-transform duration-150"></i>
+                    <span class="text-sm hidden sm:inline">Dicas</span>
+                </button>
+
                 <a href="{{ route('cashbook.create') }}"
                    class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform duration-150"></i>
