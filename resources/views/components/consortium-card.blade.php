@@ -188,6 +188,38 @@
             @endif
         </div>
 
+        <!-- Verificações para iniciar (se houver problemas) -->
+        @php
+            $warnings = [];
+
+            // Verifica se está ativo
+            if ($consortium->status !== 'active') {
+                $warnings[] = ['icon' => 'pause-circle', 'text' => 'Status: ' . $consortium->status_label, 'color' => 'red'];
+            }
+
+            // Verifica participantes
+            if ($consortium->active_participants_count === 0) {
+                $warnings[] = ['icon' => 'people', 'text' => 'Sem participantes ativos', 'color' => 'red'];
+            }
+
+            // Verifica data de início
+            if ($consortium->start_date && now()->lt($consortium->start_date)) {
+                $daysUntilStart = now()->diffInDays($consortium->start_date, false);
+                $warnings[] = ['icon' => 'clock-history', 'text' => 'Inicia em ' . abs($daysUntilStart) . ' dia(s)', 'color' => 'amber'];
+            }
+        @endphp
+
+        @if(count($warnings) > 0)
+            <div class="mt-3 space-y-2">
+                @foreach($warnings as $warning)
+                    <div class="flex items-center gap-2 px-3 py-2 bg-{{ $warning['color'] }}-50 dark:bg-{{ $warning['color'] }}-900/20 border border-{{ $warning['color'] }}-200 dark:border-{{ $warning['color'] }}-700 rounded-lg">
+                        <i class="bi bi-{{ $warning['icon'] }} text-{{ $warning['color'] }}-600 dark:text-{{ $warning['color'] }}-400"></i>
+                        <span class="text-xs font-medium text-{{ $warning['color'] }}-700 dark:text-{{ $warning['color'] }}-300">{{ $warning['text'] }}</span>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+
         <!-- Total Arrecadado -->
         @if ($consortium->total_collected > 0)
             <div
@@ -206,21 +238,39 @@
         @endif
     </div>
 
-    <!-- Botões de Ação Rápida -->
-    <div
-        class="flex items-center gap-2 p-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-slate-50/50 dark:bg-slate-900/30">
+    <!-- Botões de Ação Rápida (Mais Visíveis) -->
+    <div class="flex items-center gap-2 p-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/80 to-emerald-50/50 dark:from-slate-900/50 dark:to-emerald-900/20">
         <a href="{{ route('consortiums.show', $consortium) }}"
-            class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/30 hover:bg-emerald-200 dark:hover:bg-emerald-900/50 rounded-xl transition-all transform hover:scale-105 border border-emerald-200 dark:border-emerald-700">
-            <i class="bi bi-eye"></i>
-            <span>Ver Detalhes</span>
+            class="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+            <i class="bi bi-eye text-lg"></i>
+            <span>Detalhes</span>
         </a>
+
+        <a href="{{ route('consortiums.edit', $consortium) }}"
+            class="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+            <i class="bi bi-pencil text-lg"></i>
+            <span>Editar</span>
+        </a>
+
+        <button wire:click="$dispatch('openExportModal', { consortiumId: {{ $consortium->id }} })"
+            class="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
+            title="Exportar">
+            <i class="bi bi-download text-lg"></i>
+            <span>Exportar</span>
+        </button>
 
         @if ($consortium->canPerformDraw())
             <a href="{{ route('consortiums.draw', $consortium) }}"
-                class="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
-                <i class="bi bi-trophy-fill"></i>
+                class="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <i class="bi bi-trophy-fill text-lg"></i>
                 <span>Sortear</span>
             </a>
         @endif
+
+        <button wire:click="confirmDelete({{ $consortium->id }})"
+            class="flex items-center justify-center gap-1 p-2.5 text-red-600 hover:text-white hover:bg-red-600 dark:text-red-400 dark:hover:text-white dark:hover:bg-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-600 rounded-xl transition-all transform hover:scale-105 border border-red-200 dark:border-red-700"
+            title="Excluir">
+            <i class="bi bi-trash text-lg"></i>
+        </button>
     </div>
 </div>
