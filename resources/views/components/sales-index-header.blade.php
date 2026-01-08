@@ -124,6 +124,12 @@
                 </div>
                 @endif
 
+                <!-- Botão Dicas -->
+                <button wire:click="toggleTips"
+                    class="p-2.5 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
+                    <i class="bi bi-lightbulb"></i>
+                </button>
+
                 <!-- Botão Filtros -->
                 <button @click="showFilters = !showFilters"
                     class="p-2.5 bg-white/80 hover:bg-purple-100 dark:bg-slate-800/80 dark:hover:bg-purple-900/50 border border-slate-200 dark:border-slate-600 rounded-xl transition-all duration-200 shadow-md"
