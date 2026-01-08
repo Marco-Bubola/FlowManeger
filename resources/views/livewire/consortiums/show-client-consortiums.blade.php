@@ -1,6 +1,6 @@
-<div class="w-full max-w-7xl mx-auto px-4 py-8">
+<div class="w-full px-4 py-8">
     <!-- Header Moderno com Glassmorphism -->
-    <div class="w-full mb-8">
+    <div class="mb-8">
         <div class="relative bg-gradient-to-r from-white/80 via-emerald-50/90 to-teal-50/80 dark:from-slate-800/90 dark:via-emerald-900/30 dark:to-teal-900/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl">
             <!-- Decorações de fundo -->
             <div class="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
@@ -198,10 +198,13 @@
                         <!-- Contemplação (se contemplado) -->
                         @if($participation->is_contemplated && $participation->contemplation)
                             <div>
-                                <h4 class="font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                                    <i class="bi bi-trophy text-yellow-600"></i>
-                                    Contemplação
-                                </h4>
+                                <div class="flex items-center justify-between mb-4">
+                                    <h4 class="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                                        <i class="bi bi-trophy text-yellow-600"></i>
+                                        Contemplação
+                                    </h4>
+                                    @livewire('consortiums.register-contemplation-products', ['contemplation' => $participation->contemplation], key('client-register-products-'.$participation->contemplation->id))
+                                </div>
                                 <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
                                     <div class="space-y-2">
                                         <div class="flex justify-between">
@@ -302,9 +305,12 @@
                                                         @if ($payment->status !== 'paid')
                                                             @livewire('consortiums.record-payment', ['payment' => $payment], key('client-payment-'.$payment->id))
                                                         @else
-                                                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                                                <i class="bi bi-check-circle-fill"></i> Pago
-                                                            </span>
+                                                            <div class="flex flex-col gap-2">
+                                                                <span class="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
+                                                                    <i class="bi bi-check-circle-fill"></i> Pago
+                                                                </span>
+                                                                @livewire('consortiums.cancel-payment', ['payment' => $payment], key('client-cancel-payment-'.$payment->id))
+                                                            </div>
                                                         @endif
                                                     </div>
                                                 </div>
