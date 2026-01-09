@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\SaleItem;
+use App\Models\VendaParcela;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -284,10 +285,64 @@ class EditSale extends Component
                     $product->save();
                 }
             }
+
+            // Recalcular parcelas se a venda for parcelada
+            $this->recalcularParcelas($this->sale);
         });
 
-        session()->flash('message', 'Venda atualizada com sucesso!');
+        session()->flash('success', 'Venda atualizada com sucesso!');
         return redirect()->route('sales.show', $this->sale->id);
+    }
+
+    /**
+     * Recalcula e atualiza as parcelas da venda
+     */
+    private function recalcularParcelas($sale)
+    {
+        // Se a venda não for parcelada, não há parcelas para atualizar
+        if ($sale->tipo_pagamento !== 'parcelado' || $sale->parcelas <= 1) {
+            // Se existirem parcelas antigas, excluir
+            VendaParcela::where('sale_id', $sale->id)->delete();
+            return;
+        }
+
+        // Buscar parcelas existentes
+        $parcelasExistentes = VendaParcela::where('sale_id', $sale->id)
+            ->orderBy('numero_parcela')
+            ->get();
+
+        $totalVenda = $sale->total_price;
+        $numeroParcelas = $sale->parcelas;
+        $valorParcela = round($totalVenda / $numeroParcelas, 2);
+        $dataPrimeira = $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date) : now();
+
+        // Se o número de parcelas mudou
+        if ($parcelasExistentes->count() !== $numeroParcelas) {
+            // Excluir todas as parcelas antigas
+            VendaParcela::where('sale_id', $sale->id)->delete();
+
+            // Criar novas parcelas
+            for ($i = 1; $i <= $numeroParcelas; $i++) {
+                $dataVencimento = $dataPrimeira->copy()->addMonths($i - 1);
+                VendaParcela::create([
+                    'sale_id' => $sale->id,
+                    'numero_parcela' => $i,
+                    'valor' => $valorParcela,
+                    'data_vencimento' => $dataVencimento->format('Y-m-d'),
+                    'status' => 'pendente',
+                ]);
+            }
+        } else {
+            // Atualizar apenas os valores das parcelas existentes (manter datas e status)
+            foreach ($parcelasExistentes as $index => $parcela) {
+                // Não atualizar parcelas já pagas
+                if ($parcela->status !== 'paga') {
+                    $parcela->update([
+                        'valor' => $valorParcela
+                    ]);
+                }
+            }
+        }
     }
 
     public function getFilteredProducts()
