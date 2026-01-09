@@ -15,9 +15,9 @@
 <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 
-<div class="w-full h-[75vh] flex">
+<div class="w-full h-[81vh] flex">
     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-    <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col">
+    <div class="w-3/4 flex flex-col">
         <!-- Header com Controles -->
         <div class="p-4 border-b border-gray-200 dark:border-zinc-700">
             <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
