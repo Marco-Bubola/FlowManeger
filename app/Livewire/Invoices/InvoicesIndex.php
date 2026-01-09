@@ -63,6 +63,12 @@ class InvoicesIndex extends Component
     // Modal de exclusão
     public ?Invoice $deletingInvoice = null;
     public bool $showDeleteModal = false;
+    public bool $showTipsModal = false;
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
+    }
 
     public function mount($bankId = null)
     {
