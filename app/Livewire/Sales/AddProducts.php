@@ -6,6 +6,7 @@ use Livewire\Component;
 use App\Models\Sale;
 use App\Models\Product;
 use App\Models\SaleItem;
+use App\Models\VendaParcela;
 use Illuminate\Support\Facades\DB;
 
 class AddProducts extends Component
@@ -200,10 +201,55 @@ class AddProducts extends Component
                 return $item->quantity * $item->price_sale;
             });
             $this->sale->update(['total_price' => $totalPrice]);
+
+            // Recalcular parcelas se a venda for parcelada
+            $this->recalcularParcelas();
         });
 
         session()->flash('success', 'Produtos adicionados com sucesso!');
         return redirect()->route('sales.show', $this->sale->id);
+    }
+
+    /**
+     * Recalcula e atualiza as parcelas da venda
+     * Protegido contra divisão por zero
+     */
+    private function recalcularParcelas()
+    {
+        // Se a venda não for parcelada, não há parcelas para atualizar
+        if ($this->sale->tipo_pagamento !== 'parcelado' || $this->sale->parcelas <= 1) {
+            return;
+        }
+
+        // Buscar parcelas existentes
+        $parcelasExistentes = VendaParcela::where('sale_id', $this->sale->id)
+            ->orderBy('numero_parcela')
+            ->get();
+
+        // Se não há parcelas, não há nada para atualizar
+        if ($parcelasExistentes->isEmpty()) {
+            return;
+        }
+
+        $numeroParcelas = $parcelasExistentes->count();
+
+        // Proteção contra divisão por zero
+        if ($numeroParcelas === 0) {
+            return;
+        }
+
+        $totalVenda = $this->sale->total_price;
+        $valorParcela = round($totalVenda / $numeroParcelas, 2);
+
+        // Atualizar apenas os valores das parcelas existentes (manter datas e status)
+        foreach ($parcelasExistentes as $parcela) {
+            // Não atualizar parcelas já pagas
+            if ($parcela->status !== 'paga') {
+                $parcela->update([
+                    'valor' => $valorParcela
+                ]);
+            }
+        }
     }
 
     public function getFilteredProducts()
