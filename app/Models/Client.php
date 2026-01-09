@@ -23,6 +23,22 @@ class Client extends Model
         'updated_at',
         'caminho_foto', // Caminho para a foto do cliente
     ];
+
+    /**
+     * Boot method to ensure UTF-8 encoding
+     */
+    protected static function booted()
+    {
+        static::retrieved(function ($client) {
+            // Limpa caracteres UTF-8 inválidos
+            foreach (['name', 'email', 'phone', 'address'] as $field) {
+                if ($client->$field) {
+                    $client->$field = mb_convert_encoding($client->$field, 'UTF-8', 'UTF-8');
+                }
+            }
+        });
+    }
+
     // No modelo Client
     public function sales()
     {
