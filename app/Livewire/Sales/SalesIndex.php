@@ -299,7 +299,7 @@ class SalesIndex extends Component
     public function exportSales()
     {
         // Implementar exportação de vendas
-        session()->flash('message', 'Exportação iniciada!');
+        session()->flash('info', 'Exportação iniciada!');
     }
 
     public function confirmDelete($saleId)
@@ -333,7 +333,7 @@ class SalesIndex extends Component
             $this->deletingSale->parcelasVenda()->delete();
             $this->deletingSale->delete();
 
-            session()->flash('message', 'Venda excluída com sucesso!');
+            session()->flash('success', 'Venda excluída com sucesso!');
             $this->cancelDelete();
         }
     }
@@ -375,7 +375,7 @@ class SalesIndex extends Component
 
         // Notificar e atualizar interface
         $this->dispatch('sale-updated', ['saleId' => $sale->id]);
-        session()->flash('message', 'Pagamento integral registrado com sucesso!');
+        session()->flash('success', 'Pagamento integral registrado com sucesso!');
     }
 
     #[On('sale-updated')]
