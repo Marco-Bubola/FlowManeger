@@ -4,53 +4,89 @@ namespace App\Livewire\Consortiums;
 
 use Livewire\Component;
 use App\Models\Consortium;
+use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Computed;
 
 class DeleteConsortium extends Component
 {
-    public Consortium $consortium;
-    public $showModal = false;
+    public $consortiumId;
+    public $showToggleModal = false;
+    public $showDeleteModal = false;
+
+    protected $listeners = [
+        'openToggleConsortiumModal' => 'confirmToggle',
+        'openDeleteConsortiumModal' => 'confirmDelete'
+    ];
 
     public function mount(Consortium $consortium)
     {
-        $this->consortium = $consortium;
+        $this->consortiumId = $consortium->id;
     }
 
-    public function openModal()
+    public function confirmToggle()
     {
-        $this->showModal = true;
+        $this->showToggleModal = true;
     }
 
-    public function closeModal()
+    public function confirmDelete()
     {
-        $this->showModal = false;
+        $this->showDeleteModal = true;
+    }
+
+    #[Computed]
+    public function consortium()
+    {
+        return Consortium::findOrFail($this->consortiumId);
+    }
+
+    public function toggleStatus()
+    {
+        $consortium = Consortium::find($this->consortiumId);
+
+        if ($consortium->status === 'active') {
+            $consortium->update(['status' => 'cancelled']);
+            session()->flash('success', 'Consórcio desativado com sucesso.');
+        } else {
+            $consortium->update(['status' => 'active']);
+            session()->flash('success', 'Consórcio ativado com sucesso.');
+        }
+
+        $this->showToggleModal = false;
+        $this->dispatch('$refresh');
     }
 
     public function deleteConsortium()
     {
+        $consortium = Consortium::find($this->consortiumId);
+
         // Verificar se pode excluir
-        $hasParticipants = $this->consortium->participants()->count() > 0;
-        $hasDraws = $this->consortium->draws()->count() > 0;
+        $hasParticipants = $consortium->participants()->count() > 0;
+        $hasDraws = $consortium->draws()->count() > 0;
 
         if ($hasParticipants || $hasDraws) {
-            session()->flash('error', 'Não é possível excluir consórcio com participantes ou sorteios. Use a opção "Desativar" ao invés disso.');
-            $this->closeModal();
+            session()->flash('error', 'Não é possível excluir consórcio com participantes ou sorteios. Desative o consórcio ao invés disso.');
+            $this->showDeleteModal = false;
             return;
         }
 
-        // Pode excluir
-        $this->consortium->delete();
-        session()->flash('success', 'Consórcio excluído com sucesso.');
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('consortiums.index');
-    }
+            // Excluir em cascata (embora não deveria haver nada)
+            $consortium->participants()->delete();
+            $consortium->draws()->delete();
+            $consortium->delete();
 
-    public function deactivate()
-    {
-        $this->consortium->update(['status' => 'cancelled']);
-        session()->flash('success', 'Consórcio desativado com sucesso.');
-        $this->closeModal();
+            DB::commit();
 
-        return redirect()->route('consortiums.index');
+            session()->flash('success', 'Consórcio excluído com sucesso.');
+            $this->showDeleteModal = false;
+            return redirect()->route('consortiums.index');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            session()->flash('error', 'Erro ao excluir consórcio: ' . $e->getMessage());
+            $this->showDeleteModal = false;
+        }
     }
 
     public function render()
