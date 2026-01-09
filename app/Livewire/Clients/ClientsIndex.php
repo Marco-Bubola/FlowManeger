@@ -25,8 +25,9 @@ class ClientsIndex extends Component
     public string $statusFilter = '';
     public string $periodFilter = '';
     public string $dateFilter = '';
-    public string $sortBy = 'name';
-    public string $sortDirection = 'asc';
+    // Ordenação padrão: mais recentes adicionados primeiro
+    public string $sortBy = 'created_at';
+    public string $sortDirection = 'desc';
     public string $minValue = '';
     public string $maxValue = '';
     public string $minSales = '';
@@ -212,7 +213,7 @@ class ClientsIndex extends Component
             if ($this->deletingClient->user_id === Auth::id()) {
                 $this->deletingClient->delete();
 
-                session()->flash('message', 'Cliente deletado com sucesso!');
+                session()->flash('success', 'Cliente deletado com sucesso!');
             } else {
                 session()->flash('error', 'Você não tem permissão para deletar este cliente.');
             }
@@ -241,7 +242,7 @@ class ClientsIndex extends Component
     public function exportClients(): void
     {
         // Aqui você pode implementar a lógica de exportação
-        session()->flash('message', 'Exportação iniciada! O arquivo será enviado por email.');
+        session()->flash('info', 'Exportação iniciada! O arquivo será enviado por email.');
     }
 
     // Métodos para seleção em massa - primeira definição
@@ -283,7 +284,7 @@ class ClientsIndex extends Component
             $this->selectedClients = [];
             $this->selectAll = false;
 
-            session()->flash('message', $deletedCount . ' clientes deletados com sucesso!');
+            session()->flash('success', $deletedCount . ' clientes deletados com sucesso!');
             $this->resetPage();
         }
     }
@@ -292,7 +293,7 @@ class ClientsIndex extends Component
     {
         if (!empty($this->selectedClients)) {
             // Lógica para exportar clientes selecionados
-            session()->flash('message', count($this->selectedClients) . ' clientes exportados com sucesso!');
+            session()->flash('success', count($this->selectedClients) . ' clientes exportados com sucesso!');
         }
     }
 
