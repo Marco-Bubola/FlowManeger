@@ -177,6 +177,36 @@ class ProductsIndex extends Component
         $this->resetPage();
     }
 
+    public function toggleSort($field)
+    {
+        $currentOrder = $this->ordem;
+
+        // Se clicar no mesmo campo, inverte a direção
+        if (str_contains($currentOrder, $field)) {
+            // Se termina com _asc, muda para _desc
+            if (str_ends_with($currentOrder, '_asc')) {
+                $this->ordem = $field . '_desc';
+            }
+            // Se termina com _desc ou é "recentes"/"az", muda para _asc
+            else {
+                $this->ordem = $field . '_asc';
+            }
+        } else {
+            // Primeira vez clicando nesse campo, começa com descendente (mais recente)
+            if ($field === 'data') {
+                $this->ordem = 'recentes'; // ou 'data_desc'
+            } elseif ($field === 'updated') {
+                $this->ordem = 'atualizados'; // ou 'updated_desc'
+            } elseif ($field === 'nome') {
+                $this->ordem = 'az'; // ou 'nome_asc'
+            } else {
+                $this->ordem = $field . '_desc';
+            }
+        }
+
+        $this->resetPage();
+    }
+
     public function setQuickFilter($filter)
     {
         // Limpar filtros anteriores
@@ -427,16 +457,39 @@ class ProductsIndex extends Component
         if (!empty($this->ordem)) {
             switch ($this->ordem) {
                 case 'recentes':
+                case 'data_desc':
                     $query->orderBy('created_at', 'desc');
                     break;
                 case 'antigas':
+                case 'data_asc':
                     $query->orderBy('created_at', 'asc');
                     break;
+                case 'atualizados':
+                case 'updated_desc':
+                    $query->orderBy('updated_at', 'desc');
+                    break;
+                case 'updated_asc':
+                    $query->orderBy('updated_at', 'asc');
+                    break;
                 case 'az':
+                case 'nome_asc':
                     $query->orderBy('name', 'asc');
                     break;
                 case 'za':
+                case 'nome_desc':
                     $query->orderBy('name', 'desc');
+                    break;
+                case 'preco_asc':
+                    $query->orderBy('price', 'asc');
+                    break;
+                case 'preco_desc':
+                    $query->orderBy('price', 'desc');
+                    break;
+                case 'estoque_asc':
+                    $query->orderBy('stock_quantity', 'asc');
+                    break;
+                case 'estoque_desc':
+                    $query->orderBy('stock_quantity', 'desc');
                     break;
             }
         } else {
