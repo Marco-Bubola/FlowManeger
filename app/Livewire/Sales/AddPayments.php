@@ -115,11 +115,11 @@ class AddPayments extends Component
                 $this->sale->update($updateData);
             });
 
-            $this->dispatch('success', 'Pagamentos adicionados com sucesso!');
+            session()->flash('success', 'Pagamentos adicionados com sucesso!');
             return redirect()->route('sales.show', $this->sale->id);
 
         } catch (\Exception $e) {
-            $this->dispatch('error', 'Erro ao adicionar pagamentos: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao adicionar pagamentos: ' . $e->getMessage());
         }
     }
 
