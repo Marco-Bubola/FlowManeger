@@ -18,6 +18,7 @@ class CreateSale extends Component
     public int $currentStep = 1;
     public $client_id = '';
     public string $clientSearch = '';
+    public bool $showTipsModal = false;
     public $sale_date;
     public $tipo_pagamento = 'a_vista';
     public $parcelas = 1;
@@ -50,6 +51,11 @@ class CreateSale extends Component
         'products.*.unit_price.min' => 'Preço unitário deve ser maior que 0.',
     ];
 
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
+    }
+
     public function mount()
     {
         $this->clients = Client::where('user_id', Auth::id())
@@ -66,6 +72,19 @@ class CreateSale extends Component
                                         })
                                         ->get();
         $this->sale_date = now()->format('Y-m-d');
+
+        // Se vier client_id via query parameter, pré-seleciona o cliente
+        if (request()->has('client_id')) {
+            $clientId = request()->get('client_id');
+            // Verifica se o cliente existe e pertence ao usuário
+            $client = Client::where('id', $clientId)
+                ->where('user_id', Auth::id())
+                ->first();
+
+            if ($client) {
+                $this->client_id = $client->id;
+            }
+        }
     }
 
     public function updatedProducts($value, $key)
@@ -265,7 +284,7 @@ class CreateSale extends Component
             }
         });
 
-        session()->flash('message', 'Venda criada com sucesso!');
+        session()->flash('success', 'Venda criada com sucesso!');
         return redirect()->route('sales.index');
 
         } catch (\Exception $e) {
