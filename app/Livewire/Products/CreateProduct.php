@@ -26,6 +26,9 @@ class CreateProduct extends Component
     // Propriedade para controlar os steppers
     public int $currentStep = 1;
 
+    // Modal de dicas
+    public bool $showTipsModal = false;
+
     public function rules(): array
     {
         return [
@@ -162,6 +165,11 @@ class CreateProduct extends Component
 
         // Redireciona para a lista
         return redirect()->route('products.index');
+    }
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
     }
 
     public function getCategoriesProperty()
