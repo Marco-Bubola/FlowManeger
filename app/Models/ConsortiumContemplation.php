@@ -13,7 +13,9 @@ class ConsortiumContemplation extends Model
 
     protected $fillable = [
         'consortium_participant_id',
+        'draw_id',
         'contemplation_type',
+        'contemplation_date',
         'redemption_type',
         'redemption_value',
         'redemption_date',
@@ -23,6 +25,7 @@ class ConsortiumContemplation extends Model
     ];
 
     protected $casts = [
+        'contemplation_date' => 'datetime',
         'redemption_date' => 'date',
         'redemption_value' => 'decimal:2',
         'products' => 'array',
@@ -32,6 +35,11 @@ class ConsortiumContemplation extends Model
     public function participant(): BelongsTo
     {
         return $this->belongsTo(ConsortiumParticipant::class, 'consortium_participant_id');
+    }
+
+    public function draw(): BelongsTo
+    {
+        return $this->belongsTo(ConsortiumDraw::class, 'draw_id');
     }
 
     // Accessors
@@ -70,6 +78,7 @@ class ConsortiumContemplation extends Model
         return match($this->contemplation_type) {
             'draw' => 'Sorteio',
             'bid' => 'Lance',
+            'payoff' => 'Quitação',
             default => 'Desconhecido',
         };
     }
