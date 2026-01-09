@@ -22,6 +22,10 @@ class AddParticipant extends Component
 
     public $notes = '';
 
+    public $search = '';
+
+    protected $listeners = ['openAddParticipantModal' => 'openModal'];
+
     public function mount(Consortium $consortium)
     {
         $this->consortium = $consortium;
@@ -116,7 +120,9 @@ class AddParticipant extends Component
     public function render()
     {
         $clients = Client::where('user_id', Auth::id())
+            ->when($this->search, fn($q) => $q->where('name', 'like', "%{$this->search}%"))
             ->orderBy('name')
+            ->limit(50)
             ->get();
 
         return view('livewire.consortiums.add-participant', [
