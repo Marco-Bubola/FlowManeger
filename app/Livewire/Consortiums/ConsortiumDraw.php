@@ -67,68 +67,120 @@ class ConsortiumDraw extends Component
 
     public function confirmDraw()
     {
+        // Verificar elegibilidade dos participantes primeiro
+        if ($this->eligibleParticipants->isEmpty()) {
+            session()->flash('error', 'Não há participantes elegíveis para o sorteio. Participantes devem estar ativos, não contemplados, ter pelo menos 1 pagamento realizado e não ter atrasos maiores que 30 dias.');
+            return;
+        }
+
         // Verificar se pode realizar sorteio
-        if (!$this->consortium->canPerformDraw()) {
+        $canPerformResult = $this->consortium->canPerformDraw();
+        if (!$canPerformResult) {
+            // Fornecer mensagem mais específica
+            if ($this->consortium->status !== 'active') {
+                session()->flash('error', 'O consórcio não está ativo. Status atual: ' . $this->consortium->status_label);
+                return;
+            }
+
+            if ($this->consortium->active_participants_count === 0) {
+                session()->flash('error', 'Não há participantes ativos no consórcio.');
+                return;
+            }
+
+            if (now()->lt($this->consortium->start_date)) {
+                session()->flash('error', 'O consórcio ainda não iniciou. Data de início: ' . \Carbon\Carbon::parse($this->consortium->start_date)->format('d/m/Y'));
+                return;
+            }
+
+            // Verificar frequência
+            $lastDraw = $this->consortium->draws()->orderBy('draw_date', 'desc')->first();
+            if ($lastDraw) {
+                $daysSinceLastDraw = now()->diffInDays($lastDraw->draw_date);
+                $frequencyDays = match($this->consortium->draw_frequency) {
+                    'weekly' => 7,
+                    'biweekly' => 14,
+                    'monthly' => 30,
+                    'quarterly' => 90,
+                    default => 30
+                };
+
+                if ($daysSinceLastDraw < ($frequencyDays * 0.8)) {
+                    session()->flash('error', 'Aguarde mais tempo entre sorteios. Último sorteio foi há ' . $daysSinceLastDraw . ' dias. Frequência: ' . $this->consortium->draw_frequency_label);
+                    return;
+                }
+            }
+
             session()->flash('error', 'Não é possível realizar sorteio neste momento.');
             return;
         }
 
-        if ($this->eligibleParticipants->isEmpty()) {
-            session()->flash('error', 'Não há participantes elegíveis para o sorteio.');
-            return;
-        }
-
+        // Abrir modal de confirmação
         $this->showDrawModal = true;
     }
 
     public function performDraw()
     {
-        try {
-            $this->isDrawing = true;
+        // Fechar modal de confirmação e iniciar animação
+        $this->showDrawModal = false;
+        $this->isDrawing = true;
+    }
 
-            // Validar se há participantes elegíveis
-            if ($this->eligibleParticipants->isEmpty()) {
-                session()->flash('error', 'Não há participantes elegíveis para o sorteio.');
-                $this->isDrawing = false;
+    public function executeDraw()
+    {
+        // Apenas seleciona o vencedor, NÃO salva no banco ainda
+        if ($this->eligibleParticipants->isEmpty()) {
+            session()->flash('error', 'Não há participantes elegíveis para o sorteio.');
+            $this->isDrawing = false;
+            return;
+        }
+
+        // Selecionar participante vencedor aleatoriamente
+        $winner = $this->eligibleParticipants->random();
+        $this->selectedWinner = $winner;
+        $this->isDrawing = false;
+    }
+
+    public function confirmWinner()
+    {
+        // Agora sim, salvar no banco de dados
+        try {
+            if (!$this->selectedWinner) {
+                session()->flash('error', 'Nenhum vencedor selecionado.');
                 return;
             }
 
             DB::beginTransaction();
-
-            // Selecionar participante vencedor aleatoriamente
-            $winner = $this->eligibleParticipants->random();
-            $this->selectedWinner = $winner;
 
             // Criar registro do sorteio
             $draw = ConsortiumDrawModel::create([
                 'consortium_id' => $this->consortium->id,
                 'draw_date' => $this->drawDate,
                 'draw_number' => $this->drawNumber,
-                'winner_participant_id' => $winner->id,
+                'winner_participant_id' => $this->selectedWinner->id,
                 'status' => 'completed',
             ]);
 
             // Atualizar participante como contemplado
-            $winner->update([
+            $this->selectedWinner->update([
                 'is_contemplated' => true,
                 'status' => 'contemplated',
             ]);
 
             // Criar registro de contemplação
-            ConsortiumContemplation::create([
-                'consortium_participant_id' => $winner->id,
+            $contemplation = ConsortiumContemplation::create([
+                'consortium_participant_id' => $this->selectedWinner->id,
                 'draw_id' => $draw->id,
                 'contemplation_type' => 'draw',
                 'contemplation_date' => now(),
-                'redemption_type' => 'pending',
-                'status' => 'pending',
+                'redemption_type' => $this->redemptionType ?? 'pending',
+                'status' => 'pending', // Sempre pending até que o resgate seja efetivado
             ]);
 
             DB::commit();
 
-            $this->showDrawModal = false;
-            $this->showWinnerModal = true;
-            $this->isDrawing = false;
+            // Fechar modal de resgate
+            $this->showRedemptionModal = false;
+            $this->selectedWinner = null;
 
             // Atualizar lista de elegíveis
             $this->loadEligibleParticipants();
@@ -136,11 +188,13 @@ class ConsortiumDraw extends Component
             // Incrementar número do próximo sorteio
             $this->drawNumber = $this->consortium->draws()->count() + 1;
 
-            session()->flash('success', 'Sorteio realizado com sucesso!');
+            session()->flash('success', 'Sorteio confirmado e salvo com sucesso!');
+
+            // Redirecionar para a página de detalhes do consórcio
+            return redirect()->route('consortiums.show', $this->consortium);
         } catch (\Exception $e) {
             DB::rollBack();
-            $this->isDrawing = false;
-            session()->flash('error', 'Erro ao realizar sorteio: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao confirmar sorteio: ' . $e->getMessage());
         }
     }
 
@@ -156,21 +210,8 @@ class ConsortiumDraw extends Component
             'redemptionType' => 'required|in:cash,products,pending',
         ]);
 
-        try {
-            $contemplation = $this->selectedWinner->contemplation;
-
-            $contemplation->update([
-                'redemption_type' => $this->redemptionType,
-                'status' => $this->redemptionType === 'pending' ? 'pending' : 'redeemed',
-            ]);
-
-            $this->showRedemptionModal = false;
-            $this->selectedWinner = null;
-
-            session()->flash('success', 'Tipo de resgate definido com sucesso!');
-        } catch (\Exception $e) {
-            session()->flash('error', 'Erro ao salvar tipo de resgate: ' . $e->getMessage());
-        }
+        // Confirmar o sorteio com o tipo de resgate escolhido
+        $this->confirmWinner();
     }
 
     public function cancelDraw()
@@ -182,6 +223,15 @@ class ConsortiumDraw extends Component
     {
         $this->showWinnerModal = false;
         $this->selectedWinner = null;
+    }
+
+    public function resetDraw()
+    {
+        // Resetar o sorteio para permitir um novo
+        $this->selectedWinner = null;
+        $this->isDrawing = false;
+        $this->showWinnerModal = false;
+        $this->loadEligibleParticipants();
     }
 
     public function closeRedemptionModal()
