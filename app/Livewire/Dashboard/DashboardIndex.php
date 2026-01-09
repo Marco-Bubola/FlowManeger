@@ -122,11 +122,15 @@ class DashboardIndex extends Component
             ->orderByDesc('stock_quantity')
             ->first();
 
-        // Produto mais vendido (nome)
-        $this->produtoMaisVendido = SaleItem::select('products.name', DB::raw('SUM(quantity) as total_vendido'))
+        // Produto mais vendido (nome) - Otimizado com groupBy correto
+        $this->produtoMaisVendido = SaleItem::select(
+                'products.id',
+                'products.name',
+                DB::raw('SUM(sale_items.quantity) as total_vendido')
+            )
             ->join('products', 'sale_items.product_id', '=', 'products.id')
             ->where('products.user_id', $userId)
-            ->groupBy('products.name')
+            ->groupBy('products.id', 'products.name')
             ->orderByDesc('total_vendido')
             ->first();
 
