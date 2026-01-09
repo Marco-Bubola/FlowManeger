@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class Consortium extends Model
 {
@@ -23,6 +24,7 @@ class Consortium extends Model
         'max_participants',
         'start_date',
         'status',
+        'mode',
         'draw_frequency',
         'user_id',
     ];
@@ -34,6 +36,21 @@ class Consortium extends Model
         'duration_months' => 'integer',
         'max_participants' => 'integer',
     ];
+
+    // Accessors para valores totais
+    protected function totalValuePossible(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->monthly_value * $this->duration_months * $this->max_participants
+        );
+    }
+
+    protected function totalValueReal(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => $this->monthly_value * $this->duration_months * $this->active_participants_count
+        );
+    }
 
     // Removido $appends para evitar problemas de serialização no Livewire
     // Use os getters diretamente quando necessário: $consortium->active_participants_count
@@ -50,6 +67,23 @@ class Consortium extends Model
                     $consortium->$field = mb_convert_encoding($consortium->$field, 'UTF-8', 'UTF-8');
                 }
             }
+        });
+
+        // Cascata de exclusão
+        static::deleting(function ($consortium) {
+            // Excluir contemplações dos participantes
+            foreach ($consortium->participants as $participant) {
+                $participant->contemplation()?->delete();
+            }
+
+            // Excluir pagamentos
+            \App\Models\ConsortiumPayment::whereIn('participant_id', $consortium->participants->pluck('id'))->delete();
+
+            // Excluir participantes
+            $consortium->participants()->delete();
+
+            // Excluir sorteios
+            $consortium->draws()->delete();
         });
     }
 
@@ -127,6 +161,10 @@ class Consortium extends Model
 
     public function canPerformDraw(): bool
     {
+        if ($this->mode === 'payoff') {
+            return false;
+        }
+
         // Consórcio deve estar ativo
         if ($this->status !== 'active') {
             return false;
@@ -179,5 +217,187 @@ class Consortium extends Model
     public function getRemainingSlots(): int
     {
         return max(0, $this->max_participants - $this->active_participants_count);
+    }
+
+    // Accessor para label de frequência
+    protected function drawFrequencyLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => match ($this->draw_frequency) {
+                'weekly' => 'Semanal',
+                'biweekly' => 'Quinzenal',
+                'monthly' => 'Mensal',
+                'quarterly' => 'Trimestral',
+                default => 'Mensal'
+            }
+        );
+    }
+
+    protected function modeLabel(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => match ($this->mode) {
+                'payoff' => 'Resgate por quitação',
+                default => 'Sorteio'
+            }
+        );
+    }
+
+    // ========== MÉTODOS AUXILIARES FINANCEIROS ==========
+
+    /**
+     * Retorna o valor esperado de arrecadação até o momento
+     */
+    public function getExpectedCollectionUntilNow(): float
+    {
+        if (!$this->start_date || now()->lt($this->start_date)) {
+            return 0;
+        }
+
+        $monthsSinceStart = now()->diffInMonths($this->start_date);
+        $monthsSinceStart = min($monthsSinceStart + 1, $this->duration_months);
+
+        return $this->monthly_value * $this->active_participants_count * $monthsSinceStart;
+    }
+
+    /**
+     * Retorna o total de pagamentos vencidos
+     */
+    public function getOverdueAmount(): float
+    {
+        return (float) \App\Models\ConsortiumPayment::query()
+            ->whereIn('consortium_participant_id', $this->participants->pluck('id'))
+            ->where('status', 'pending')
+            ->where('due_date', '<', now())
+            ->sum('amount');
+    }
+
+    /**
+     * Retorna número de pagamentos em atraso
+     */
+    public function getOverduePaymentsCount(): int
+    {
+        return \App\Models\ConsortiumPayment::query()
+            ->whereIn('consortium_participant_id', $this->participants->pluck('id'))
+            ->where('status', 'pending')
+            ->where('due_date', '<', now())
+            ->count();
+    }
+
+    /**
+     * Verifica se o consórcio está saudável financeiramente
+     */
+    public function isFinanciallyHealthy(): bool
+    {
+        $expected = $this->getExpectedCollectionUntilNow();
+        if ($expected <= 0) {
+            return true;
+        }
+
+        $collectionRate = ($this->total_collected / $expected) * 100;
+        return $collectionRate >= 80; // 80% ou mais é considerado saudável
+    }
+
+    /**
+     * Retorna a taxa de pagamentos realizados
+     */
+    public function getPaymentRate(): float
+    {
+        $totalPayments = \App\Models\ConsortiumPayment::query()
+            ->whereIn('consortium_participant_id', $this->participants->pluck('id'))
+            ->count();
+
+        if ($totalPayments === 0) {
+            return 0;
+        }
+
+        $paidPayments = \App\Models\ConsortiumPayment::query()
+            ->whereIn('consortium_participant_id', $this->participants->pluck('id'))
+            ->where('status', 'paid')
+            ->count();
+
+        return ($paidPayments / $totalPayments) * 100;
+    }
+
+    /**
+     * Retorna estatísticas completas do consórcio
+     */
+    public function getStatistics(): array
+    {
+        $allPayments = \App\Models\ConsortiumPayment::query()
+            ->whereIn('consortium_participant_id', $this->participants->pluck('id'))
+            ->get();
+
+        return [
+            'total_participants' => $this->participants()->count(),
+            'active_participants' => $this->active_participants_count,
+            'contemplated_participants' => $this->contemplated_count,
+            'total_draws' => $this->draws()->count(),
+            'total_collected' => $this->total_collected,
+            'expected_collection' => $this->getExpectedCollectionUntilNow(),
+            'overdue_amount' => $this->getOverdueAmount(),
+            'overdue_payments_count' => $this->getOverduePaymentsCount(),
+            'payment_rate' => $this->getPaymentRate(),
+            'is_healthy' => $this->isFinanciallyHealthy(),
+            'total_payments' => $allPayments->count(),
+            'paid_payments' => $allPayments->where('status', 'paid')->count(),
+            'pending_payments' => $allPayments->where('status', 'pending')->count(),
+            'completion_percentage' => $this->completion_percentage,
+        ];
+    }
+
+    /**
+     * Retorna os próximos sorteios previstos
+     */
+    public function getUpcomingDrawDates(int $count = 5): array
+    {
+        if ($this->mode === 'payoff') {
+            return [];
+        }
+
+        $lastDraw = $this->draws()->orderBy('draw_date', 'desc')->first();
+        $startDate = $lastDraw ? $lastDraw->draw_date : $this->start_date;
+
+        if (!$startDate) {
+            return [];
+        }
+
+        $frequencyDays = match($this->draw_frequency) {
+            'weekly' => 7,
+            'biweekly' => 14,
+            'monthly' => 30,
+            'quarterly' => 90,
+            default => 30
+        };
+
+        $upcomingDates = [];
+        $currentDate = \Carbon\Carbon::parse($startDate);
+
+        for ($i = 1; $i <= $count; $i++) {
+            $currentDate = $currentDate->copy()->addDays($frequencyDays);
+            if ($currentDate->lte(now()->addYear())) {
+                $upcomingDates[] = [
+                    'date' => $currentDate,
+                    'draw_number' => ($lastDraw ? $lastDraw->draw_number : 0) + $i,
+                    'days_until' => now()->diffInDays($currentDate, false),
+                ];
+            }
+        }
+
+        return $upcomingDates;
+    }
+
+    /**
+     * Verifica se pode encerrar o consórcio
+     */
+    public function canComplete(): bool
+    {
+        // Todos devem estar contemplados ou sem participantes ativos
+        $activeNonContemplated = $this->participants()
+            ->where('status', 'active')
+            ->where('is_contemplated', false)
+            ->count();
+
+        return $activeNonContemplated === 0;
     }
 }
