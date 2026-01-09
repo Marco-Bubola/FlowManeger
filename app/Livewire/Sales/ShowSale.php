@@ -61,7 +61,7 @@ class ShowSale extends Component
         });
         $this->sale->update(['total_price' => $totalPrice]);
 
-        session()->flash('message', 'Produto removido com sucesso!');
+        session()->flash('success', 'Produto removido com sucesso!');
     }
 
     public function toggleAddPaymentForm()
@@ -130,7 +130,7 @@ class ShowSale extends Component
         }
 
         $this->toggleAddPaymentForm();
-        session()->flash('message', 'Pagamentos adicionados com sucesso!');
+        session()->flash('success', 'Pagamentos adicionados com sucesso!');
     }
 
     public function pagarParcela($parcelaId, $valorPago, $dataPagamento)
@@ -166,7 +166,7 @@ class ShowSale extends Component
             ->orderBy('numero_parcela')
             ->get();
 
-        session()->flash('message', 'Parcela registrada como paga!');
+        session()->flash('success', 'Parcela registrada como paga!');
     }
 
     public function openPaymentModal($parcelaId)
@@ -190,7 +190,7 @@ class ShowSale extends Component
     {
         // Não abrir modal se não houver valor restante
         if ($this->sale->remaining_amount <= 0) {
-            session()->flash('message', 'Não há valor restante para zerar.');
+            session()->flash('warning', 'Não há valor restante para zerar.');
             return;
         }
 
@@ -208,7 +208,7 @@ class ShowSale extends Component
         $remaining = $this->sale->remaining_amount; // usa accessor
 
         if ($remaining <= 0) {
-            session()->flash('message', 'Não há valor restante para zerar.');
+            session()->flash('warning', 'Não há valor restante para zerar.');
             $this->showDiscountModal = false;
             return;
         }
@@ -239,7 +239,7 @@ class ShowSale extends Component
             $this->sale->save();
 
             $this->showDiscountModal = false;
-            session()->flash('message', 'Desconto aplicado. Valor restante zerado.');
+            session()->flash('success', 'Desconto aplicado. Valor restante zerado.');
 
         } catch (\Exception $e) {
             Log::error('Erro ao aplicar desconto: ' . $e->getMessage());
@@ -280,7 +280,7 @@ class ShowSale extends Component
             // Atualizar parcelas e relacionamentos
             $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)->orderBy('numero_parcela')->get();
 
-            session()->flash('message', 'Pagamento integral registrado com sucesso!');
+            session()->flash('success', 'Pagamento integral registrado com sucesso!');
 
         } catch (\Exception $e) {
             Log::error('Erro ao registrar pagamento integral: ' . $e->getMessage());
@@ -337,7 +337,7 @@ class ShowSale extends Component
         // Fechar modal
         $this->closePaymentModal();
 
-        session()->flash('message', 'Parcela paga com sucesso!');
+        session()->flash('success', 'Parcela paga com sucesso!');
     }
 
     public function exportPdf()
