@@ -99,7 +99,7 @@ class RecordPayment extends Component
                 'contemplation_date' => now(),
                 'redemption_type' => 'pending',
                 'status' => 'pending',
-                'products' => [],
+                'products' => null,
             ]);
         }
     }
