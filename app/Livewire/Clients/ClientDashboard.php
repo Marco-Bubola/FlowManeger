@@ -111,8 +111,6 @@ class ClientDashboard extends Component
             $this->produtosPage++;
             $this->loadChartData();
             Log::info('Página incrementada', ['new_page' => $this->produtosPage]);
-            // Adicionar feedback visual
-            session()->flash('message', 'Próxima página carregada: ' . $this->produtosPage);
         }
     }
 
@@ -123,8 +121,6 @@ class ClientDashboard extends Component
             $this->produtosPage--;
             $this->loadChartData();
             Log::info('Página decrementada', ['new_page' => $this->produtosPage]);
-            // Adicionar feedback visual
-            session()->flash('message', 'Página anterior carregada: ' . $this->produtosPage);
         }
     }
 
@@ -134,7 +130,6 @@ class ClientDashboard extends Component
         if ($this->parcelasPage < $maxPage) {
             $this->parcelasPage++;
             $this->loadParcelasData();
-            session()->flash('message', 'Próxima página de parcelas: ' . $this->parcelasPage);
         }
     }
 
@@ -143,7 +138,6 @@ class ClientDashboard extends Component
         if ($this->parcelasPage > 1) {
             $this->parcelasPage--;
             $this->loadParcelasData();
-            session()->flash('message', 'Página anterior de parcelas: ' . $this->parcelasPage);
         }
     }
 
@@ -153,7 +147,6 @@ class ClientDashboard extends Component
         if ($this->pagamentosPage < $maxPage) {
             $this->pagamentosPage++;
             $this->loadPaymentsData();
-            session()->flash('message', 'Próxima página de pagamentos: ' . $this->pagamentosPage);
         }
     }
 
@@ -162,7 +155,6 @@ class ClientDashboard extends Component
         if ($this->pagamentosPage > 1) {
             $this->pagamentosPage--;
             $this->loadPaymentsData();
-            session()->flash('message', 'Página anterior de pagamentos: ' . $this->pagamentosPage);
         }
     }
 
@@ -503,7 +495,7 @@ class ClientDashboard extends Component
     {
         $this->reset(['dateStart', 'dateEnd', 'status', 'tipo_pagamento']);
         $this->loadData();
-        session()->flash('message', 'Filtros limpos com sucesso!');
+        session()->flash('success', 'Filtros limpos com sucesso!');
     }
 
 
