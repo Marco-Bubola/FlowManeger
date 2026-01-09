@@ -11,6 +11,17 @@
             <div class="absolute bottom-0 left-0 w-72 h-72 bg-white/5 rounded-full translate-y-36 -translate-x-36"></div>
 
             <div class="relative z-10">
+                <!-- Breadcrumb dentro do header -->
+                <div class="flex items-center gap-2 text-sm text-white/70 mb-4">
+                    <a href="{{ route('dashboard') }}" class="hover:text-white transition-colors">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right text-xs"></i>
+                    <span class="text-white font-medium">
+                        <i class="fas fa-credit-card mr-1"></i>Bancos e Cartões
+                    </span>
+                </div>
+
                 <!-- Header com título e estatísticas em uma linha -->
                 <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                     <!-- Título -->
