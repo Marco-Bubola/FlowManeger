@@ -34,6 +34,7 @@ class CreateKit extends Component
     // Propriedades para preços calculados
     public float $calculated_cost_price = 0;
     public float $calculated_sale_price = 0;
+    public float $calculated_profit = 0;
     public string $real_sale_price = '';
 
     // Propriedades para filtros e busca
@@ -56,20 +57,21 @@ class CreateKit extends Component
     {
         // Validação específica por etapa
         if ($this->currentStep == 1) {
-            $this->validate([
-                'name' => 'required|max:255',
-                'category_id' => 'required|exists:category,id_category',
-                'product_code' => 'required',
-            ]);
-        } elseif ($this->currentStep == 2) {
             // Valida se pelo menos um produto foi selecionado
             if (empty($this->selectedProducts)) {
                 $this->addError('selectedProducts', 'Selecione pelo menos um produto para o kit.');
                 return;
             }
+        } elseif ($this->currentStep == 2) {
+            // Validação dos campos de informação do kit
+            $this->validate([
+                'name' => 'required|max:255',
+                'category_id' => 'required|exists:category,id_category',
+                'product_code' => 'required',
+            ]);
         }
 
-        $this->currentStep = min($this->currentStep + 1, 3);
+        $this->currentStep = min($this->currentStep + 1, 2);
     }    /**
      * Atualiza os totais quando custos adicionais mudam
      */
@@ -95,6 +97,9 @@ class CreateKit extends Component
 
         $this->calculated_cost_price = $productsTotal + $additionalCosts;
         $this->calculated_sale_price = $productsSaleTotal + $additionalCosts;
+
+        // Lucro real = preço de venda total - custo total (usa preço de compra como custo)
+        $this->calculated_profit = $this->calculated_sale_price - $this->calculated_cost_price;
 
         // Atualizar os campos de preço para usar os valores calculados
         $this->price = number_format($this->calculated_cost_price, 2, ',', '.');
@@ -240,6 +245,29 @@ class CreateKit extends Component
                 $this->addError('selectedProducts', 'Selecione pelo menos um produto para o kit.');
                 $this->currentStep = 2; // Volta para o step de seleção de produtos
                 return;
+            }
+
+            // Validar estoque dos componentes ANTES de criar o kit
+            foreach ($this->selectedProducts as $productData) {
+                if (isset($productData['id']) && isset($productData['quantity']) && $productData['quantity'] > 0) {
+                    $component = Product::find($productData['id']);
+
+                    if (!$component) {
+                        $this->notifyError('Produto componente não encontrado.');
+                        $this->currentStep = 2;
+                        return;
+                    }
+
+                    if ($component->stock_quantity < $productData['quantity']) {
+                        $this->notifyError(
+                            "Estoque insuficiente para '{$component->name}'. " .
+                            "Disponível: {$component->stock_quantity}, " .
+                            "Necessário: {$productData['quantity']}"
+                        );
+                        $this->currentStep = 2;
+                        return;
+                    }
+                }
             }
 
             // Upload da imagem se fornecida
@@ -398,6 +426,7 @@ class CreateKit extends Component
         return Product::where('user_id', Auth::id())
             ->where('tipo', 'simples')
             ->where('status', 'ativo')
+            ->where('stock_quantity', '>', 0)
             ->get();
     }
 
@@ -405,7 +434,8 @@ class CreateKit extends Component
     {
         $query = Product::where('user_id', Auth::id())
             ->where('tipo', 'simples')
-            ->where('status', 'ativo');
+            ->where('status', 'ativo')
+            ->where('stock_quantity', '>', 0);
 
         // Filtro por categoria
         if (!empty($this->selectedCategory)) {
