@@ -727,9 +727,15 @@
                                             <p class="text-sm text-slate-600 dark:text-slate-400">Participação #{{ $participant->participation_number }}</p>
                                         </div>
                                     </div>
-                                    @if($participant->contemplation)
-                                        @livewire('consortiums.register-contemplation-products', ['contemplation' => $participant->contemplation], key('register-products-'.$participant->contemplation->id))
-                                    @endif
+                                    <div class="flex gap-2">
+                                        @if($participant->contemplation && ($participant->contemplation->status === 'pending' || ($participant->contemplation->status === 'redeemed' && $participant->contemplation->redemption_type === 'products')) && in_array($participant->contemplation->redemption_type, ['pending', 'products']))
+                                            <a href="{{ route('consortiums.contemplation.products', $participant->contemplation) }}"
+                                               class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50 transition-colors">
+                                                <i class="bi bi-{{ $participant->contemplation->products ? 'pencil-square' : 'box-seam' }} text-base"></i>
+                                                <span>{{ $participant->contemplation->products ? 'Editar Produtos' : 'Registrar Produtos' }}</span>
+                                            </a>
+                                        @endif
+                                    </div>
                                 </div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between text-sm">
@@ -738,7 +744,7 @@
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-600 dark:text-slate-400">Tipo:</span>
-                                        <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $participant->contemplation_type_label ?? 'N/A' }}</span>
+                                        <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $participant->contemplation->contemplation_type_label ?? 'N/A' }}</span>
                                     </div>
                                     @if ($participant->contemplation)
                                         <div class="flex justify-between text-sm">
@@ -752,16 +758,57 @@
                                             </div>
                                         @endif
                                         @if($participant->contemplation->products)
-                                            <div class="mt-3 pt-3 border-t border-yellow-200 dark:border-yellow-700">
-                                                <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-2">Produtos:</p>
-                                                <ul class="space-y-1">
-                                                    @foreach(json_decode($participant->contemplation->products, true) ?? [] as $product)
-                                                        <li class="text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
-                                                            <i class="bi bi-check-circle-fill text-emerald-600"></i>
-                                                            {{ $product['name'] ?? 'N/A' }}
-                                                        </li>
+                                            <div class="mt-4 pt-4 border-t-2 border-yellow-300 dark:border-yellow-600">
+                                                <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+                                                    <i class="bi bi-box-seam-fill text-purple-600"></i>
+                                                    Produtos Resgatados
+                                                </p>
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    @foreach($participant->contemplation->products ?? [] as $product)
+                                                        @php
+                                                            $productData = \App\Models\Product::find($product['product_id'] ?? 0);
+                                                        @endphp
+                                                        <div class="bg-gradient-to-br from-white to-purple-50/50 dark:from-zinc-800 dark:to-purple-900/20 rounded-xl shadow-md border-2 border-purple-200 dark:border-purple-700/50 overflow-hidden hover:shadow-xl transition-all">
+                                                            <div class="flex gap-3 p-3">
+                                                                <!-- Imagem do Produto -->
+                                                                <div class="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg overflow-hidden shadow-md">
+                                                                    @if($productData && $productData->image)
+                                                                        <img src="{{ asset('storage/products/' . $productData->image) }}"
+                                                                             alt="{{ $product['product_name'] ?? 'Produto' }}"
+                                                                             class="w-full h-full object-cover">
+                                                                    @else
+                                                                        <div class="w-full h-full flex items-center justify-center">
+                                                                            <i class="bi bi-box-seam text-3xl text-purple-400 dark:text-purple-500"></i>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+
+                                                                <!-- Informações -->
+                                                                <div class="flex-1 min-w-0">
+                                                                    <h5 class="font-black text-sm text-slate-900 dark:text-white line-clamp-2 mb-1">
+                                                                        {{ $product['product_name'] ?? 'N/A' }}
+                                                                    </h5>
+                                                                    <div class="flex items-center gap-2 mb-2">
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-md text-xs font-bold">
+                                                                            <i class="bi bi-hash"></i>
+                                                                            {{ $product['quantity'] ?? 0 }}x
+                                                                        </span>
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-md text-xs font-bold">
+                                                                            <i class="bi bi-currency-dollar"></i>
+                                                                            {{ number_format($product['price'] ?? 0, 2, ',', '.') }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="flex items-center justify-between">
+                                                                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">Subtotal:</span>
+                                                                        <span class="text-sm font-black text-purple-600 dark:text-purple-400">
+                                                                            R$ {{ number_format(($product['price'] ?? 0) * ($product['quantity'] ?? 0), 2, ',', '.') }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     @endforeach
-                                                </ul>
+                                                </div>
                                             </div>
                                         @endif
                                     @endif
