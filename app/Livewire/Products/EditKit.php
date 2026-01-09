@@ -274,6 +274,27 @@ class EditKit extends Component
                 return;
             }
 
+            // Validar estoque dos componentes ANTES de atualizar o kit
+            foreach ($this->selectedProducts as $productData) {
+                if (isset($productData['id']) && isset($productData['quantity']) && $productData['quantity'] > 0) {
+                    $component = Product::find($productData['id']);
+
+                    if (!$component) {
+                        $this->notifyError('Produto componente não encontrado.');
+                        return;
+                    }
+
+                    if ($component->stock_quantity < $productData['quantity']) {
+                        $this->notifyError(
+                            "Estoque insuficiente para '{$component->name}'. " .
+                            "Disponível: {$component->stock_quantity}, " .
+                            "Necessário: {$productData['quantity']}"
+                        );
+                        return;
+                    }
+                }
+            }
+
             // Upload da imagem se fornecida
             $imageName = $this->kit->image; // Mantém a imagem atual por padrão
             if ($this->image) {
