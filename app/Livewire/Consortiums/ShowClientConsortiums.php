@@ -12,7 +12,11 @@ class ShowClientConsortiums extends Component
     public $clientId;
     public $showExportModal = false;
 
-    protected $listeners = ['payment-recorded' => '$refresh'];
+    protected $listeners = [
+        'payment-recorded' => '$refresh',
+        'payment-cancelled' => '$refresh',
+        'contemplation-updated' => '$refresh',
+    ];
 
     public function mount(Client $client)
     {
