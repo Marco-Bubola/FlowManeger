@@ -50,6 +50,18 @@ class CreateConsortium extends Component
         $this->start_date = now()->addMonth()->startOfMonth()->format('Y-m-d');
     }
 
+    public function previousMonth()
+    {
+        $date = \Carbon\Carbon::parse($this->start_date);
+        $this->start_date = $date->subMonth()->format('Y-m-d');
+    }
+
+    public function nextMonth()
+    {
+        $date = \Carbon\Carbon::parse($this->start_date);
+        $this->start_date = $date->addMonth()->format('Y-m-d');
+    }
+
     public function updatedMonthlyValue()
     {
         $this->calculateTotalValue();
