@@ -108,18 +108,18 @@ class EditPayments extends Component
                 $this->sale->save();
             });
 
-            $this->dispatch('success', 'Pagamentos atualizados com sucesso!');
+            session()->flash('success', 'Pagamentos atualizados com sucesso!');
             return redirect()->route('sales.show', $this->sale->id);
 
         } catch (\Exception $e) {
-            $this->dispatch('error', 'Erro ao atualizar pagamentos: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao atualizar pagamentos: ' . $e->getMessage());
         }
     }
 
     public function removePayment($index)
     {
         if (count($this->payments) <= 1) {
-            $this->dispatch('error', 'Não é possível remover o último pagamento da venda.');
+            session()->flash('error', 'Não é possível remover o último pagamento da venda.');
             return;
         }
 
@@ -156,10 +156,10 @@ class EditPayments extends Component
                 $this->sale->save();
             });
 
-            $this->dispatch('success', 'Pagamento removido com sucesso!');
+            session()->flash('success', 'Pagamento removido com sucesso!');
 
         } catch (\Exception $e) {
-            $this->dispatch('error', 'Erro ao remover pagamento: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao remover pagamento: ' . $e->getMessage());
         }
     }
 
