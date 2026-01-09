@@ -5,6 +5,7 @@ namespace App\Livewire\Sales;
 use Livewire\Component;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\VendaParcela;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -26,7 +27,7 @@ class EditPrices extends Component
     public function loadSaleItems()
     {
         $this->saleItems = [];
-        
+
         foreach ($this->sale->saleItems as $item) {
             $this->saleItems[] = [
                 'id' => $item->id,
@@ -72,14 +73,14 @@ class EditPrices extends Component
         }
 
         $itemId = $this->saleItems[$index]['id'];
-        
+
         DB::transaction(function () use ($itemId, $index) {
             SaleItem::where('id', $itemId)->delete();
             unset($this->saleItems[$index]);
             $this->saleItems = array_values($this->saleItems);
         });
 
-        $this->dispatch('success', 'Produto removido da venda com sucesso!');
+        session()->flash('success', 'Produto removido da venda com sucesso!');
     }
 
     public function savePrices()
@@ -107,13 +108,67 @@ class EditPrices extends Component
 
                 // Recalcular o total da venda
                 $this->sale->calculateTotal();
+                $this->sale->refresh();
+
+                // Recalcular parcelas se a venda for parcelada
+                $this->recalcularParcelas();
             });
 
-            $this->dispatch('success', 'Preços atualizados com sucesso!');
+            session()->flash('success', 'Preços atualizados com sucesso!');
             return redirect()->route('sales.show', $this->sale->id);
 
         } catch (\Exception $e) {
-            $this->dispatch('error', 'Erro ao atualizar preços: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao atualizar preços: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Recalcula e atualiza as parcelas da venda
+     * Protegido contra divisão por zero e modificação de parcelas pagas
+     */
+    private function recalcularParcelas()
+    {
+        // Se a venda não for parcelada, não há parcelas para atualizar
+        if ($this->sale->tipo_pagamento !== 'parcelado' || $this->sale->parcelas <= 1) {
+            return;
+        }
+
+        // Buscar parcelas existentes
+        $parcelasExistentes = VendaParcela::where('sale_id', $this->sale->id)
+            ->orderBy('numero_parcela')
+            ->get();
+
+        // Se não há parcelas, não há nada para atualizar
+        if ($parcelasExistentes->isEmpty()) {
+            return;
+        }
+
+        // Contar apenas parcelas pendentes para recalcular
+        $parcelasPendentes = $parcelasExistentes->where('status', '!=', 'paga');
+        $numeroParcelas = $parcelasPendentes->count();
+
+        // Proteção contra divisão por zero
+        if ($numeroParcelas === 0) {
+            return; // Todas as parcelas já foram pagas
+        }
+
+        $totalVenda = $this->sale->total_price;
+
+        // Calcular quanto já foi pago
+        $totalPago = $parcelasExistentes->where('status', 'paga')->sum('valor');
+
+        // Valor restante a ser dividido entre parcelas pendentes
+        $valorRestante = $totalVenda - $totalPago;
+        $valorParcela = round($valorRestante / $numeroParcelas, 2);
+
+        // Atualizar apenas as parcelas pendentes
+        foreach ($parcelasExistentes as $parcela) {
+            // IMPORTANTE: Não modificar parcelas pagas
+            if ($parcela->status !== 'paga') {
+                $parcela->update([
+                    'valor' => $valorParcela
+                ]);
+            }
         }
     }
 
