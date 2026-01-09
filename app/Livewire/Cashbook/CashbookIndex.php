@@ -73,6 +73,13 @@ class CashbookIndex extends Component
         'page' => ['except' => 1],
     ];
 
+    public bool $showTipsModal = false;
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
+    }
+
     public function mount(): void
     {
         // Verificar se há parâmetros de retorno na URL
