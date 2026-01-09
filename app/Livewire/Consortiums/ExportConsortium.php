@@ -20,6 +20,7 @@ class ExportConsortium extends Component
     public $consortium = null;
     public $client = null;
     public $participants = [];
+    public $availableConsortiums = [];
 
     protected $listeners = [
         'openExportModal' => 'openModal'
@@ -30,23 +31,24 @@ class ExportConsortium extends Component
         $this->consortiumId = $consortiumId;
         $this->clientId = $clientId;
 
-        if ($consortiumId) {
-            $this->consortium = Consortium::findOrFail($consortiumId);
-            $this->participants = $this->consortium->participants()
-                ->with('client')
+        // Se não foi passado um consórcio, carregar lista de consórcios disponíveis
+        if (!$consortiumId) {
+            $this->availableConsortiums = Consortium::where('user_id', auth()->id())
+                ->orderBy('name')
                 ->get()
-                ->filter(fn ($participant) => $participant->client)
-                ->map(fn ($participant) => [
-                    'client_id' => $participant->client_id,
-                    'label' => $participant->client->name,
+                ->map(fn ($c) => [
+                    'id' => $c->id,
+                    'name' => $c->name,
                 ])
-                ->unique('client_id')
-                ->values()
                 ->toArray();
 
-            if (!$this->clientId && count($this->participants) > 0) {
-                $this->clientId = $this->participants[0]['client_id'];
+            if (count($this->availableConsortiums) > 0) {
+                $this->consortiumId = $this->availableConsortiums[0]['id'];
             }
+        }
+
+        if ($this->consortiumId) {
+            $this->loadConsortiumData();
         }
 
         if ($clientId) {
@@ -60,14 +62,41 @@ class ExportConsortium extends Component
         } elseif ($clientId) {
             $this->exportType = 'pdf_client';
         } else {
-            $this->exportType = 'excel_all';
+            $this->exportType = 'pdf_full';
+        }
+    }
+
+    public function updatedConsortiumId($value)
+    {
+        if ($value) {
+            $this->loadConsortiumData();
+        }
+    }
+
+    protected function loadConsortiumData()
+    {
+        $this->consortium = Consortium::findOrFail($this->consortiumId);
+        $this->participants = $this->consortium->participants()
+            ->with('client')
+            ->get()
+            ->filter(fn ($participant) => $participant->client)
+            ->map(fn ($participant) => [
+                'client_id' => $participant->client_id,
+                'label' => $participant->client->name,
+            ])
+            ->unique('client_id')
+            ->values()
+            ->toArray();
+
+        if (!$this->clientId && count($this->participants) > 0) {
+            $this->clientId = $this->participants[0]['client_id'];
         }
     }
 
     public function closeModal()
     {
         $this->showModal = false;
-        $this->reset(['consortiumId', 'clientId', 'consortium', 'client', 'exportType', 'participants']);
+        $this->reset(['consortiumId', 'clientId', 'consortium', 'client', 'exportType', 'participants', 'availableConsortiums']);
     }
 
     public function export()
@@ -193,8 +222,8 @@ class ExportConsortium extends Component
     protected function exportPdfClientsZip()
     {
         if (!class_exists(\ZipArchive::class)) {
-            // Fallback: gerar um único PDF com todos os clientes
-            return $this->exportPdfClientsSingle();
+            session()->flash('error', 'Exportação ZIP requer a extensão PHP ZipArchive instalada e habilitada.');
+            return;
         }
 
         if (!$this->consortiumId || !$this->consortium) {
@@ -202,7 +231,9 @@ class ExportConsortium extends Component
             return;
         }
 
-        $participants = $this->consortium->participants()->with('client')->get();
+        $participants = $this->consortium->participants()
+            ->with(['client', 'payments', 'contemplation.draw', 'contemplation.products'])
+            ->get();
 
         if ($participants->isEmpty()) {
             session()->flash('error', 'Nenhum participante encontrado para exportar.');
@@ -219,13 +250,28 @@ class ExportConsortium extends Component
                 continue;
             }
 
-            $export = new ConsortiumExport($this->consortiumId, $participant->client_id, 'by_client_consortium');
-            $data = $export->getPdfData();
+            $allPayments = $participant->payments;
+
+            $data = [
+                'client' => $participant->client,
+                'participations' => collect([$participant]),
+                'statistics' => [
+                    'total_consortiums' => 1,
+                    'active_consortiums' => $participant->status === 'active' ? 1 : 0,
+                    'contemplated' => $participant->is_contemplated ? 1 : 0,
+                    'total_paid' => $participant->total_paid,
+                    'total_payments' => $allPayments->count(),
+                    'paid_payments' => $allPayments->where('status', 'paid')->count(),
+                    'pending_payments' => $allPayments->where('status', 'pending')->count(),
+                    'overdue_payments' => $allPayments->where('status', 'overdue')->count(),
+                ],
+            ];
 
             $pdf = Pdf::loadView('exports.consortium-client-pdf', $data);
 
-            $safeName = Str::slug($participant->client->name ?? 'cliente_' . $participant->participation_number, '_');
-            file_put_contents($tempDir . '/cliente_' . $safeName . '.pdf', $pdf->output());
+            $safeName = Str::slug($participant->client->name ?? 'cliente_' . $participant->id, '_');
+            $participationLabel = $participant->participation_number ? '_n' . $participant->participation_number : '';
+            file_put_contents($tempDir . '/cliente_' . $safeName . $participationLabel . '.pdf', $pdf->output());
         }
 
         $pdfFiles = glob($tempDir . '/*.pdf');
