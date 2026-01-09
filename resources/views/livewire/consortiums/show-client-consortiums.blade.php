@@ -203,7 +203,13 @@
                                         <i class="bi bi-trophy text-yellow-600"></i>
                                         Contemplação
                                     </h4>
-                                    @livewire('consortiums.register-contemplation-products', ['contemplation' => $participation->contemplation], key('client-register-products-'.$participation->contemplation->id))
+                                    @if(($participation->contemplation->status === 'pending' || ($participation->contemplation->status === 'redeemed' && $participation->contemplation->redemption_type === 'products')) && in_array($participation->contemplation->redemption_type, ['pending', 'products']))
+                                        <a href="{{ route('consortiums.contemplation.products', $participation->contemplation) }}"
+                                           class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50 transition-colors">
+                                            <i class="bi bi-{{ $participation->contemplation->products ? 'pencil-square' : 'box-seam' }} text-base"></i>
+                                            <span>{{ $participation->contemplation->products ? 'Editar Produtos' : 'Registrar Produtos' }}</span>
+                                        </a>
+                                    @endif
                                 </div>
                                 <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-yellow-200 dark:border-yellow-700">
                                     <div class="space-y-2">
@@ -226,16 +232,57 @@
                                             </span>
                                         </div>
                                         @if($participation->contemplation->redemption_type === 'products' && $participation->contemplation->products)
-                                            <div class="mt-3 pt-3 border-t border-yellow-300 dark:border-yellow-700">
-                                                <p class="text-sm font-semibold text-yellow-900 dark:text-yellow-100 mb-2">Produtos Escolhidos:</p>
-                                                <ul class="space-y-1">
-                                                    @foreach(json_decode($participation->contemplation->products, true) ?? [] as $product)
-                                                        <li class="text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
-                                                            <i class="bi bi-check-circle-fill"></i>
-                                                            {{ $product['name'] ?? 'N/A' }} - R$ {{ number_format($product['value'] ?? 0, 2, ',', '.') }}
-                                                        </li>
+                                            <div class="mt-4 pt-4 border-t-2 border-yellow-400 dark:border-yellow-600">
+                                                <p class="text-sm font-bold text-yellow-900 dark:text-yellow-100 mb-3 flex items-center gap-2">
+                                                    <i class="bi bi-box-seam-fill text-yellow-600"></i>
+                                                    Produtos Escolhidos
+                                                </p>
+                                                <div class="grid grid-cols-1 gap-3">
+                                                    @foreach($participation->contemplation->products ?? [] as $product)
+                                                        @php
+                                                            $productData = \App\Models\Product::find($product['product_id'] ?? 0);
+                                                        @endphp
+                                                        <div class="bg-gradient-to-br from-white to-yellow-50/50 dark:from-yellow-900/20 dark:to-orange-900/10 rounded-xl shadow-md border-2 border-yellow-300 dark:border-yellow-600/50 overflow-hidden hover:shadow-xl transition-all">
+                                                            <div class="flex gap-3 p-3">
+                                                                <!-- Imagem do Produto -->
+                                                                <div class="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 rounded-lg overflow-hidden shadow-md">
+                                                                    @if($productData && $productData->image)
+                                                                        <img src="{{ asset('storage/products/' . $productData->image) }}"
+                                                                             alt="{{ $product['product_name'] ?? 'Produto' }}"
+                                                                             class="w-full h-full object-cover">
+                                                                    @else
+                                                                        <div class="w-full h-full flex items-center justify-center">
+                                                                            <i class="bi bi-box-seam text-3xl text-yellow-400 dark:text-yellow-500"></i>
+                                                                        </div>
+                                                                    @endif
+                                                                </div>
+
+                                                                <!-- Informações -->
+                                                                <div class="flex-1 min-w-0">
+                                                                    <h5 class="font-black text-sm text-yellow-900 dark:text-yellow-100 line-clamp-2 mb-1">
+                                                                        {{ $product['product_name'] ?? 'N/A' }}
+                                                                    </h5>
+                                                                    <div class="flex items-center gap-2 mb-2">
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-200 dark:bg-yellow-900/60 text-yellow-800 dark:text-yellow-200 rounded-md text-xs font-bold">
+                                                                            <i class="bi bi-hash"></i>
+                                                                            {{ $product['quantity'] ?? 0 }}x
+                                                                        </span>
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-green-200 dark:bg-green-900/60 text-green-800 dark:text-green-200 rounded-md text-xs font-bold">
+                                                                            <i class="bi bi-currency-dollar"></i>
+                                                                            {{ number_format($product['price'] ?? 0, 2, ',', '.') }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div class="flex items-center justify-between">
+                                                                        <span class="text-xs font-semibold text-yellow-700 dark:text-yellow-300">Subtotal:</span>
+                                                                        <span class="text-sm font-black text-yellow-800 dark:text-yellow-200">
+                                                                            R$ {{ number_format(($product['price'] ?? 0) * ($product['quantity'] ?? 0), 2, ',', '.') }}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     @endforeach
-                                                </ul>
+                                                </div>
                                             </div>
                                         @endif
                                         @if($participation->contemplation->redemption_type === 'cash')
