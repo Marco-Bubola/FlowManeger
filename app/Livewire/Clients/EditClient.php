@@ -20,6 +20,14 @@ class EditClient extends Component
     // Lista de avatares predefinidos
     public $avatarOptions;
 
+    /**
+     * Formata o nome automaticamente com primeira letra maiúscula
+     */
+    public function updatedName($value)
+    {
+        $this->name = mb_convert_case($value, MB_CASE_TITLE, 'UTF-8');
+    }
+
     public function mount(Client $client): void
     {
         // Verificar se o cliente pertence ao usuário autenticado
