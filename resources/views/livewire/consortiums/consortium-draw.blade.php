@@ -220,7 +220,7 @@
                                                     setTimeout(() => {
                                                         if (!this.drawExecuted) {
                                                             this.drawExecuted = true;
-                                                            $wire.performDraw();
+                                                            $wire.executeDraw();
                                                         }
                                                     }, 3000);
                                                 }
