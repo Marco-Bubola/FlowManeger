@@ -10,8 +10,16 @@ class ShowConsortium extends Component
 {
     public $consortiumId;
     public $activeTab = 'overview';
+    public $showToggleParticipantModal = false;
+    public $showDeleteParticipantModal = false;
+    public $selectedParticipantId = null;
+    public $showExportModal = false;
 
-    protected $listeners = ['payment-recorded' => '$refresh'];
+    protected $listeners = [
+        'payment-recorded' => '$refresh',
+        'payment-cancelled' => '$refresh',
+        'contemplation-updated' => '$refresh',
+    ];
 
     public function mount(Consortium $consortium)
     {
@@ -61,18 +69,34 @@ class ShowConsortium extends Component
         $this->activeTab = $tab;
     }
 
+    public function confirmToggleParticipant($participantId)
+    {
+        $this->selectedParticipantId = $participantId;
+        $this->showToggleParticipantModal = true;
+    }
+
+    public function confirmDeleteParticipant($participantId)
+    {
+        $this->selectedParticipantId = $participantId;
+        $this->showDeleteParticipantModal = true;
+    }
+
     public function removeParticipant($participantId)
     {
         $participant = \App\Models\ConsortiumParticipant::find($participantId);
 
         if (!$participant) {
             session()->flash('error', 'Participante não encontrado.');
+            $this->showDeleteParticipantModal = false;
+            $this->selectedParticipantId = null;
             return;
         }
 
         // Verificar se pode remover (não contemplado, sem muitos pagamentos)
         if ($participant->is_contemplated) {
             session()->flash('error', 'Não é possível remover participante contemplado.');
+            $this->showDeleteParticipantModal = false;
+            $this->selectedParticipantId = null;
             return;
         }
 
@@ -88,6 +112,36 @@ class ShowConsortium extends Component
             session()->flash('success', 'Participante removido com sucesso.');
         }
 
+        $this->showDeleteParticipantModal = false;
+        $this->selectedParticipantId = null;
+        $this->dispatch('$refresh');
+    }
+
+    public function toggleParticipantStatus($participantId = null)
+    {
+        $id = $participantId ?? $this->selectedParticipantId;
+        $participant = \App\Models\ConsortiumParticipant::find($id);
+
+        if (!$participant) {
+            session()->flash('error', 'Participante não encontrado.');
+            return;
+        }
+
+        if ($participant->is_contemplated) {
+            session()->flash('error', 'Não é possível alterar status de participante contemplado.');
+            return;
+        }
+
+        if ($participant->status === 'active') {
+            $participant->update(['status' => 'quit']);
+            session()->flash('success', 'Participante desativado.');
+        } elseif ($participant->status === 'quit') {
+            $participant->update(['status' => 'active']);
+            session()->flash('success', 'Participante reativado.');
+        }
+
+        $this->showToggleParticipantModal = false;
+        $this->selectedParticipantId = null;
         $this->dispatch('$refresh');
     }
 
@@ -140,18 +194,24 @@ class ShowConsortium extends Component
 
         $participants = Consortium::find($this->consortiumId)
             ->participants()
-            ->with('payments', 'client')
+            ->with([
+                'payments' => function ($query) {
+                    $query->orderBy('due_date');
+                },
+                'client'
+            ])
+            ->orderBy('participation_number')
             ->get();
 
-        return $participants->flatMap(function ($participant) {
-            // Limpar dados do cliente
+        // Retorna participantes apenas se houver parcelas para exibir, já agrupadas por cliente
+        return $participants->map(function ($participant) {
             if ($participant->client) {
                 $participant->client->name = $this->cleanUtf8($participant->client->name ?? '');
                 $participant->client->email = $this->cleanUtf8($participant->client->email ?? '');
             }
 
-            return $participant->payments;
-        })->sortByDesc('created_at');
+            return $participant;
+        })->filter(fn ($participant) => $participant->payments->isNotEmpty());
     }
 
     #[Computed(persist: false)]
