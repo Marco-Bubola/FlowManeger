@@ -3,6 +3,20 @@
     <x-sales-header title="Novo Consórcio" subtitle="Configure todos os detalhes do consórcio" icon="bi-plus-circle-fill"
         :backRoute="route('consortiums.index')">
 
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{{ route('consortiums.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-handshake mr-1"></i>Consórcios
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">Novo Consórcio</span>
+            </div>
+        </x-slot>
+
         <x-slot name="actions">
             <div class="flex items-center gap-4">
                 <!-- Cards de Resumo -->
