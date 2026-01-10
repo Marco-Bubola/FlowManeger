@@ -77,7 +77,7 @@ class Consortium extends Model
             }
 
             // Excluir pagamentos
-            \App\Models\ConsortiumPayment::whereIn('participant_id', $consortium->participants->pluck('id'))->delete();
+            \App\Models\ConsortiumPayment::whereIn('consortium_participant_id', $consortium->participants->pluck('id'))->delete();
 
             // Excluir participantes
             $consortium->participants()->delete();
