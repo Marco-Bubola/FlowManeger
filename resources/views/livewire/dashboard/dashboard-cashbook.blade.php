@@ -20,10 +20,17 @@
                     </div>
 
                     <div class="space-y-1">
-                        <div class="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-200 mb-1">
-                            <i class="fas fa-chart-line mr-1"></i>
-                            <span class="text-white font-medium">Dashboard Financeiro</span>
+                        <!-- Breadcrumb dentro do header -->
+                        <div class="flex items-center gap-2 text-sm text-white/70 mb-1">
+                            <a href="{{ route('dashboard') }}" class="hover:text-white transition-colors">
+                                <i class="fas fa-chart-line mr-1"></i>Dashboard
+                            </a>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                            <span class="text-white font-medium">
+                                <i class="fas fa-book mr-1"></i>Livro Caixa
+                            </span>
                         </div>
+
                         <h1 class="text-2xl lg:text-3xl font-bold text-white">
                             Fluxo de Caixa
                         </h1>
