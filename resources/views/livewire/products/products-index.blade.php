@@ -47,6 +47,19 @@
     <x-products-header title="Catálogo de Produtos" description="" :total-products="$products->total() ?? 0" :total-categories="$categories->count()"
         :show-quick-actions="false">
 
+        <!-- Breadcrumb dentro do header -->
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">
+                    <i class="fas fa-box mr-1"></i>Produtos
+                </span>
+            </div>
+        </x-slot>
+
         <!-- Barra de Controle integrada ao header (slot) -->
         <div class="space-y-4 w-full">
             <!-- Linha 1: Campo de Pesquisa + Botões de Ação -->
@@ -187,7 +200,7 @@
     <!-- Filtros Modernizados -->
     <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
         :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
-        :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" />
+        :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
 
     <!-- Barra de Controle removida daqui (integrada ao header via slot) -->
 
@@ -274,72 +287,95 @@
                 x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
                 @foreach ($products as $product)
                     @if ($product->tipo === 'kit')
-                        <!-- Kit Card com informações extras -->
-                        <div
-                            class="bg-white dark:bg-neutral-800 rounded-xl border-2 border-blue-200 dark:border-blue-700 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                            <div class="relative p-4">
-                                <div class="absolute top-2 right-2 flex gap-2">
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                        <!-- Kit Card no estilo produto simples -->
+                        <div class="product-card-modern">
+                            <!-- Botões flutuantes -->
+                            <div class="btn-action-group">
+                                <a href="{{ route('products.show', $product->product_code) }}"
+                                    class="btn btn-secondary" title="Ver Detalhes">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('products.kit.edit', $product) }}" class="btn btn-primary"
+                                    title="Editar Kit">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button type="button"
+                                    wire:click="$dispatch('openExportModal', { productId: {{ $product->id }} })"
+                                    class="btn btn-success" title="Exportar Card">
+                                    <i class="bi bi-file-earmark-image"></i>
+                                </button>
+                                <button type="button" wire:click="confirmDelete({{ $product->id }})"
+                                    class="btn btn-danger" title="Excluir">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </div>
+
+                            <!-- Área da imagem com badges -->
+                            <div class="product-img-area">
+                                <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
+                                    class="product-img"
+                                    alt="{{ $product->name }}">
+
+                                <!-- Badge KIT -->
+                                <div class="absolute top-2 left-2 z-10">
+                                    <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg border border-blue-400">
                                         <i class="bi bi-boxes mr-1"></i>KIT
                                     </span>
-                                    <!-- Badge de status -->
-                                    <span
-                                        class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-100 text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-800"
-                                        title="Status">
+                                </div>
+
+                                <!-- Kits não têm estoque próprio - apenas os componentes têm -->
+
+                                <!-- Código do produto -->
+                                <span class="badge-product-code" title="Código do Produto">
+                                    <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
+                                </span>
+
+                                <!-- Quantidade de componentes do kit -->
+                                @php
+                                    $componentesCount = $product->componentes()->count();
+                                @endphp
+                                <span class="badge-quantity" title="Quantidade de Produtos no Kit" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);">
+                                    <i class="bi bi-grid-3x3-gap"></i> {{ $componentesCount }} {{ $componentesCount === 1 ? 'item' : 'itens' }}
+                                </span>
+
+                                <!-- Ícone da categoria -->
+                                <div class="category-icon-wrapper">
+                                    <i class="{{ $product->category->icone ?? 'bi bi-box-seam' }} category-icon"></i>
+                                </div>
+                            </div>
+
+                            <!-- Conteúdo -->
+                            <div class="card-body">
+                                <div class="product-title" title="{{ $product->name }}">
+                                    {{ ucwords($product->name) }}
+                                </div>
+
+                                <!-- Badge de status -->
+                                <div class="mt-2 mb-3 flex items-center gap-2 flex-wrap">
+                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-100 text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-800 dark:bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-900 dark:text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-200">
                                         <i class="bi bi-circle-fill mr-1"></i> {{ ucfirst($product->status) }}
                                     </span>
+
                                     <!-- Badge de novo -->
                                     @if (\Carbon\Carbon::parse($product->created_at)->diffInDays(now()) <= 7)
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
-                                            title="Novo Produto">
+                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
                                             <i class="bi bi-stars mr-1"></i> Novo
                                         </span>
                                     @endif
                                 </div>
 
-                                <div class="text-center">
-
-                                    <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
-                                        alt="{{ $product->name }}"
-                                        class="w-24 h-24 mx-auto rounded-lg object-cover bg-neutral-100 dark:bg-neutral-700 mb-3">
-
-                                    <!-- Categoria com ícone -->
-                                    <div class="mb-1">
-                                        <span
-                                            class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} mr-1"></i>
-                                            {{ $product->category->name ?? '-' }}
+                                <!-- Área de preços dentro do card-body -->
+                                <div class="price-area mt-3">
+                                    <div class="flex flex-col gap-2">
+                                        <span class="badge-price" title="Preço de Custo Total">
+                                            <i class="bi bi-tag"></i>
+                                            R$ {{ number_format($product->price, 2, ',', '.') }}
                                         </span>
-                                    </div>
 
-                                    <h3 class="font-bold text-neutral-800 dark:text-neutral-100 text-sm mb-1"
-                                        title="{{ $product->name }}">
-                                        {{ $product->name }}
-                                    </h3>
-                                    <p class="text-xs text-neutral-500 dark:text-neutral-400 mb-2"
-                                        title="Código do produto">#{{ $product->product_code }}</p>
-
-                                    <div class="space-y-1 text-xs">
-                                        <div class="text-green-600 dark:text-green-400 font-semibold"
-                                            title="Preço de venda">
-                                            <i class="bi bi-currency-dollar"></i> R$
-                                            {{ number_format($product->price_sale, 2, ',', '.') }}
-                                        </div>
-                                    </div>
-
-                                    <div class="mt-3 flex gap-2 justify-center">
-                                        <a href="{{ route('products.show', $product->product_code) }}"
-                                            class="inline-flex items-center px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs font-medium rounded-lg transition-colors duration-200"
-                                            title="Ver Detalhes">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a href="{{ route('products.kit.edit', $product) }}"
-                                            class="inline-flex items-center px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors duration-200"
-                                            title="Editar">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </a>
+                                        <span class="badge-price-sale" title="Preço de Venda do Kit">
+                                            <i class="bi bi-currency-dollar"></i>
+                                            R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
