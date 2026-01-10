@@ -9,7 +9,12 @@ trait HasNotifications
      */
     public function notifySuccess($message, $duration = 5000)
     {
-        // Notifications temporariamente desabilitadas
+        // Remove session()->flash() para evitar duplicação de notificações
+        $this->dispatch('notify', [
+            'type' => 'success',
+            'message' => $message,
+            'duration' => $duration
+        ]);
     }
 
     /**
@@ -17,7 +22,12 @@ trait HasNotifications
      */
     public function notifyError($message, $duration = 7000)
     {
-        // Notifications temporariamente desabilitadas
+        // Remove session()->flash() para evitar duplicação de notificações
+        $this->dispatch('notify', [
+            'type' => 'error',
+            'message' => $message,
+            'duration' => $duration
+        ]);
     }
 
     /**
@@ -25,7 +35,12 @@ trait HasNotifications
      */
     public function notifyWarning($message, $duration = 6000)
     {
-        // Notifications temporariamente desabilitadas
+        // Remove session()->flash() para evitar duplicação de notificações
+        $this->dispatch('notify', [
+            'type' => 'warning',
+            'message' => $message,
+            'duration' => $duration
+        ]);
     }
 
     /**
@@ -33,7 +48,12 @@ trait HasNotifications
      */
     public function notifyInfo($message, $duration = 5000)
     {
-        // Notifications temporariamente desabilitadas
+        // Remove session()->flash() para evitar duplicação de notificações
+        $this->dispatch('notify', [
+            'type' => 'info',
+            'message' => $message,
+            'duration' => $duration
+        ]);
     }
 
     /**
@@ -41,7 +61,17 @@ trait HasNotifications
      */
     public function redirectWithNotification($route, $message, $type = 'success', $delay = 1500)
     {
-        // Notifications temporariamente desabilitadas
+        if ($type === 'success') {
+            $this->notifySuccess($message);
+        } elseif ($type === 'error') {
+            $this->notifyError($message);
+        } elseif ($type === 'warning') {
+            $this->notifyWarning($message);
+        } else {
+            $this->notifyInfo($message);
+        }
+
+        return redirect()->route($route);
     }
 
 }
