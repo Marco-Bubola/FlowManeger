@@ -20,6 +20,18 @@
 
                     <!-- Ícone do Consórcio -->
                     <div class="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 flex items-center justify-center group">
+                        <!-- Breadcrumb dentro do header -->
+                        <div class="absolute top-2 left-2 flex items-center gap-2 text-xs text-white/70">
+                            <a href="{{ route('dashboard') }}" class="hover:text-white transition-colors">
+                                <i class="fas fa-home mr-1"></i>Dashboard
+                            </a>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                            <a href="{{ route('consortiums.index') }}" class="hover:text-white transition-colors">
+                                <i class="fas fa-handshake mr-1"></i>Consórcios
+                            </a>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                            <span class="text-white font-medium">Detalhes do Consórcio</span>
+                        </div>
                         <i class="bi bi-people-fill text-4xl text-white group-hover:scale-110 transition-transform duration-300"></i>
                     </div>
 
@@ -64,11 +76,11 @@
                     <!-- Linha 1: Ações Principais -->
                     <div class="flex flex-wrap items-center gap-3">
                         @if ($this->consortium->canAddParticipants())
-                            <button wire:click="$dispatch('openAddParticipantModal', { consortiumId: {{ $this->consortium->id }} })"
+                            <a href="{{ route('consortiums.add-participants', $this->consortium) }}"
                                 class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                                 <i class="bi bi-person-plus-fill text-lg"></i>
-                                <span>Adicionar Participante</span>
-                            </button>
+                                <span>Adicionar Participantes</span>
+                            </a>
                         @endif
 
                         @if ($this->consortium->mode !== 'draw')
