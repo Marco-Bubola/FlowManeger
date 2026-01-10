@@ -1,6 +1,19 @@
 <div class="w-full">
     <!-- Header -->
     <x-sales-header title="Criar Novo Cofrinho" subtitle="Defina sua meta e comece a economizar">
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{{ route('cofrinhos.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-piggy-bank mr-1"></i>Cofrinhos
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">Novo Cofrinho</span>
+            </div>
+        </x-slot>
         <x-slot name="actions">
             <div class="hidden sm:flex items-center gap-3">
                 <span class="text-sm text-gray-400">Salvar: <kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">Ctrl</kbd>+<kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">S</kbd></span>
