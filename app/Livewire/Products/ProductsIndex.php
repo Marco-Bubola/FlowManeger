@@ -29,6 +29,7 @@ class ProductsIndex extends Component
     public string $data_fim = '';
     public string $ordem = '';
     public bool $sem_imagem = false;
+    public bool $semEstoque = false;
     public bool $fullHdLayout = false;
     public bool $ultraLayout = false;
     public int $perPage = 18;
@@ -96,6 +97,8 @@ class ProductsIndex extends Component
         'preco_max' => ['except' => ''],
         'estoque' => ['except' => ''],
         'estoque_valor' => ['except' => ''],
+        'sem_imagem' => ['except' => false],
+        'semEstoque' => ['except' => false],
         'data_inicio' => ['except' => ''],
         'data_fim' => ['except' => ''],
         'ordem' => ['except' => ''],
@@ -160,6 +163,11 @@ class ProductsIndex extends Component
         $this->resetPage();
     }
 
+    public function updatingSemEstoque()
+    {
+        $this->resetPage();
+    }
+
     public function clearFilters()
     {
         $this->search = '';
@@ -174,6 +182,7 @@ class ProductsIndex extends Component
         $this->data_fim = '';
         $this->ordem = '';
         $this->sem_imagem = false;
+        $this->semEstoque = false;
         $this->resetPage();
     }
 
@@ -451,6 +460,11 @@ class ProductsIndex extends Component
                   ->orWhere('image', '')
                   ->orWhere('image', 'product-placeholder.png');
             });
+        }
+
+        // Filtro de sem estoque (apenas produtos simples)
+        if ($this->semEstoque) {
+            $query->where('tipo', 'simples')->where('stock_quantity', '<=', 0);
         }
 
         // Ordenação
