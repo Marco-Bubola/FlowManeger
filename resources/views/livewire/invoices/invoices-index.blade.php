@@ -275,7 +275,21 @@
                     :selected-date="$selectedDate"
                     :view-mode="$viewMode"
                     :invoices-count="count($invoices)"
-                    :show-quick-actions="true" />
+                    :show-quick-actions="true">
+
+                    <!-- Breadcrumb -->
+                    <x-slot name="breadcrumb">
+                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                <i class="fas fa-home mr-1"></i>Dashboard
+                            </a>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                            <span class="text-slate-800 dark:text-slate-200 font-medium">
+                                <i class="fas fa-file-invoice mr-1"></i>Faturas
+                            </span>
+                        </div>
+                    </x-slot>
+                </x-invoice-header>
 
                 <!-- Transactions List -->
                 <div class="space-y-3">
