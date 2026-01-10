@@ -61,6 +61,17 @@
                         </div>
 
                         <div class="space-y-2">
+                            <!-- Breadcrumb -->
+                            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                    <i class="fas fa-home mr-1"></i>Dashboard
+                                </a>
+                                <i class="fas fa-chevron-right text-xs"></i>
+                                <span class="text-slate-800 dark:text-slate-200 font-medium">
+                                    <i class="fas fa-handshake mr-1"></i>Consórcios
+                                </span>
+                            </div>
+
                             <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-emerald-700 to-teal-700 dark:from-slate-100 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent">
                                 Consórcios
                             </h1>
