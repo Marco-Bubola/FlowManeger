@@ -11,6 +11,19 @@
             description="Cadastre um novo cliente no sistema com todas as informações necessárias"
             :back-route="route('clients.index')"
             :show-steps="false">
+            <x-slot name="breadcrumb">
+                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right text-xs"></i>
+                    <a href="{{ route('clients.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-users mr-1"></i>Clientes
+                    </a>
+                    <i class="fas fa-chevron-right text-xs"></i>
+                    <span class="text-slate-800 dark:text-slate-200 font-medium">Novo Cliente</span>
+                </div>
+            </x-slot>
             <x-slot name="actions">
                 <a href="{{ route('clients.index') }}"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-200 border-2 border-slate-600 hover:border-slate-500 shadow-lg hover:shadow-xl">
