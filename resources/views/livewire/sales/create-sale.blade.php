@@ -31,6 +31,19 @@
                 'gradient' => 'from-green-500 to-emerald-500'
             ]
         ]">
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{{ route('sales.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-shopping-cart mr-1"></i>Vendas
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">Nova Venda</span>
+            </div>
+        </x-slot>
         <x-slot name="actions">
             <button wire:click="toggleTips" type="button"
                 class="p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
