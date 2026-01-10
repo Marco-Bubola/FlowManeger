@@ -29,7 +29,8 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('category_id')->references('id_category')->on('category')->onDelete('cascade');
+            // $table->foreign('category_id')->references('id_category')->on('category')->onDelete('cascade');
+            // Comentado temporariamente - tabela category precisa ser criada primeiro
 
             // Garantir que cada padrão seja único por usuário
             $table->unique(['user_id', 'product_name_pattern', 'category_id'], 'unique_user_pattern_category');
