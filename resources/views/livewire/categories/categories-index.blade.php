@@ -11,7 +11,19 @@
         :transaction-categories="$transactionCategories->count()"
         :active-tab="$activeTab"
         :show-quick-actions="true"
-    />
+    >
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">
+                    <i class="fas fa-tags mr-1"></i>Categorias
+                </span>
+            </div>
+        </x-slot>
+    </x-category-header>
 
     <!-- Dashboard de Estatísticas -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
