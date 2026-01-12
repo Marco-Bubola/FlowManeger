@@ -219,6 +219,17 @@ class Consortium extends Model
         return max(0, $this->max_participants - $this->active_participants_count);
     }
 
+    /**
+     * Obter contagem de participantes elegíveis para sorteio
+     */
+    public function eligibleParticipantsCount(): int
+    {
+        return $this->participants()
+            ->where('status', 'active')
+            ->where('is_contemplated', false)
+            ->count();
+    }
+
     // Accessor para label de frequência
     protected function drawFrequencyLabel(): Attribute
     {
