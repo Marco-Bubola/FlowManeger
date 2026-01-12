@@ -34,6 +34,9 @@
                 </div>
 
                 <div class="space-y-1">
+                    @isset($breadcrumb)
+                        {{ $breadcrumb }}
+                    @endisset
                     <h1 class="text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">
                         {{ $title }}
                     </h1>
