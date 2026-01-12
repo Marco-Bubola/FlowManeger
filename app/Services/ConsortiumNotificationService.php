@@ -51,7 +51,7 @@ class ConsortiumNotificationService
     protected function checkDrawsAvailable(): int
     {
         $count = 0;
-        
+
         // Buscar consórcios ativos com modo de sorteio
         $consortiums = Consortium::where('status', 'active')
             ->where('mode', 'draw')
@@ -60,7 +60,7 @@ class ConsortiumNotificationService
 
         foreach ($consortiums as $consortium) {
             // Verificar se está pronto para sorteio
-            if (!$consortium->canDraw()) {
+            if (!$consortium->canPerformDraw()) {
                 continue;
             }
 
@@ -107,7 +107,7 @@ class ConsortiumNotificationService
 
             // Notificar a cada 7 dias, 15 dias, 30 dias e depois a cada 30 dias
             $shouldNotify = false;
-            
+
             if ($daysSince >= 7 && $daysSince < 8) {
                 $shouldNotify = true; // 7 dias
             } elseif ($daysSince >= 15 && $daysSince < 16) {
@@ -209,7 +209,7 @@ class ConsortiumNotificationService
         $count = 0;
 
         // Verificar sorteio disponível
-        if ($consortium->canDraw()) {
+        if ($consortium->canPerformDraw()) {
             ConsortiumNotification::createDrawAvailable($consortium);
             $count++;
         }
