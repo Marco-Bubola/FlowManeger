@@ -2,6 +2,19 @@
     <!-- Header Modernizado com botões de ação -->
     <x-sales-header title="Editar Transação" description="Altere os dados da transação" :back-route="route('cashbook.index')"
         :current-step="1" :steps="[]">
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-home mr-1"></i>Dashboard
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <a href="{{ route('cashbook.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="fas fa-book mr-1"></i>Livro Caixa
+                </a>
+                <i class="fas fa-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">Editar Transação</span>
+            </div>
+        </x-slot>
         <x-slot name="actions">
             <a href="{{ route('cashbook.index') }}"
                 class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-700 dark:text-slate-200 font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 border border-slate-200 dark:border-slate-600">
