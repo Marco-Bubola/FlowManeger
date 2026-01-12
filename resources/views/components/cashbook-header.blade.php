@@ -3,71 +3,156 @@
     'description' => 'Controle financeiro inteligente',
     'totalTransactions' => 0,
     'totalBalance' => 0,
+    'totalIncome' => 0,
+    'totalExpense' => 0,
     'showQuickActions' => true
 ])
 
-<!-- Header Moderno para Livro Caixa (estilo consistente com produtos/vendas) -->
+<!-- Header Moderno para Livro Caixa (estilo consistente com invoice) -->
 <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-4">
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
     <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
     <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
 
     <div class="relative px-6 py-4">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+        <!-- Breadcrumb -->
+        @if(isset($breadcrumb))
+            {{ $breadcrumb }}
+        @endif
+
+        <!-- Top Section: Title + Logo + Métricas + Actions -->
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
             <div class="flex items-center gap-4">
-                <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-md shadow-purple-400/20">
-                    <i class="fas fa-chart-line text-white text-2xl"></i>
-                    <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 to-transparent opacity-40"></div>
+                <!-- Logo/Ícone -->
+                <div class="relative flex items-center justify-center w-24 h-24 min-w-24 min-h-24 max-w-24 max-h-24 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-xl shadow-purple-400/20">
+                    <i class="fas fa-book-open text-white text-3xl"></i>
+                    <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/15 to-transparent opacity-40"></div>
                 </div>
 
-                <div class="space-y-1">
-                    <h1 class="text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-100">
+                <div class="space-y-1 ml-2">
+                    <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight tracking-tight drop-shadow-sm">
                         {{ $title }}
                     </h1>
-                    <p class="text-sm text-slate-600 dark:text-slate-400">{{ $description }}</p>
-
-                    <div class="flex items-center gap-3 mt-2">
-                        <div class="flex items-center gap-2 px-2 py-1 bg-gradient-to-r from-emerald-500/15 to-green-500/15 rounded-lg border border-emerald-200 dark:border-emerald-700">
-                            <i class="fas fa-receipt text-emerald-600 dark:text-emerald-400 text-sm"></i>
-                            <span class="text-sm font-medium text-emerald-700 dark:text-emerald-300">{{ $totalTransactions }} lançamentos</span>
-                        </div>
-
-                        <div class="flex items-center gap-2 px-2 py-1 bg-gradient-to-r from-blue-500/15 to-indigo-500/15 rounded-lg border border-blue-200 dark:border-blue-700">
-                            <i class="fas fa-wallet text-blue-600 dark:text-blue-400 text-sm"></i>
-                            <span class="text-sm font-medium text-blue-700 dark:text-blue-300">R$ {{ number_format($totalBalance, 2, ',', '.') }}</span>
-                        </div>
+                    <div class="flex items-center gap-2 flex-wrap mt-0.5">
+                        <p class="text-base font-medium text-slate-600 dark:text-slate-400">{{ $description }}</p>
                     </div>
                 </div>
             </div>
 
-            @if($showQuickActions)
-            <div class="flex flex-wrap gap-2 items-center">
-                <button wire:click="toggleTips"
-                    class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    <i class="bi bi-lightbulb mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="text-sm hidden sm:inline">Dicas</span>
-                </button>
+            <div class="flex items-center gap-3 lg:gap-6 flex-wrap">
+                <!-- Lado Direito: Métricas Financeiras -->
+                <div class="flex items-center gap-4">
+                    <!-- Receitas -->
+                    <div class="flex flex-col items-end">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Receitas</span>
+                        <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-emerald-600">
+                            R$ {{ number_format($totalIncome, 2, ',', '.') }}
+                        </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Entradas</span>
+                    </div>
 
-                <a href="{{ route('cashbook.create') }}"
-                   class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="text-sm">Nova</span>
-                </a>
+                    <!-- Divider -->
+                    <div class="h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
 
-                <a href="{{ route('cashbook.upload2') }}"
-                   class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    <i class="fas fa-upload mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="text-sm">Upload</span>
-                </a>
+                    <!-- Despesas -->
+                    <div class="flex flex-col items-end">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Despesas</span>
+                        <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600">
+                            R$ {{ number_format($totalExpense, 2, ',', '.') }}
+                        </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">Saídas</span>
+                    </div>
 
-                <button @click="showFilters = !showFilters"
-                        class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg"
-                        :class="{'from-slate-700 to-slate-800': showFilters}">
-                    <i class="bi bi-funnel-fill mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="hidden sm:inline text-sm">Filtros</span>
-                </button>
+                    <!-- Divider -->
+                    <div class="h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+
+                    <!-- Saldo -->
+                    <div class="flex flex-col items-end">
+                        <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Saldo</span>
+                        <span class="text-2xl font-black {{ $totalBalance >= 0 ? 'text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600' : 'text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-red-600' }}">
+                            R$ {{ number_format($totalBalance, 2, ',', '.') }}
+                        </span>
+                        <span class="text-xs text-slate-500 dark:text-slate-400">{{ $totalTransactions }} lançamentos</span>
+                    </div>
+                </div>
+
+                <!-- Divider vertical entre métricas e actions -->
+                <div class="hidden lg:block h-16 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+
+                <!-- Quick Actions Container -->
+                @if($showQuickActions)
+                    <div class="flex flex-col gap-3">
+                        <!-- Botões Nova e Upload -->
+                        <div class="flex items-center gap-3">
+                            <!-- Botão Nova -->
+                            <a href="{{ route('cashbook.create') }}"
+                                class="group relative inline-flex items-center justify-center gap-2.5 px-5 py-3 overflow-hidden rounded-2xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-400/50">
+                                <!-- Fundo gradiente animado -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-emerald-400 via-teal-500 to-green-600"></div>
+                                <div class="absolute inset-0 bg-gradient-to-tr from-emerald-600/0 via-teal-400/40 to-green-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                <!-- Brilho superior -->
+                                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent"></div>
+
+                                <!-- Shadow glow -->
+                                <div class="absolute -inset-1 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
+
+                                <!-- Conteúdo -->
+                                <div class="relative flex items-center gap-2.5 z-10">
+                                    <div class="relative">
+                                        <div class="absolute inset-0 bg-white/30 rounded-full blur-md group-hover:bg-white/50 transition-all duration-300"></div>
+                                        <i class="fas fa-plus-circle text-xl text-white relative group-hover:rotate-90 transition-transform duration-500"></i>
+                                    </div>
+                                    <span class="font-black text-sm text-white tracking-wider uppercase drop-shadow-lg">Criar</span>
+                                </div>
+                            </a>
+
+                            <!-- Botão Upload -->
+                            <a href="{{ route('cashbook.upload2') }}"
+                                class="group relative inline-flex items-center justify-center gap-2.5 px-5 py-3 overflow-hidden rounded-2xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-400/50">
+                                <!-- Fundo gradiente animado -->
+                                <div class="absolute inset-0 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600"></div>
+                                <div class="absolute inset-0 bg-gradient-to-tr from-blue-600/0 via-indigo-400/40 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                                <!-- Brilho superior -->
+                                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent"></div>
+
+                                <!-- Shadow glow -->
+                                <div class="absolute -inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl blur-lg opacity-50 group-hover:opacity-100 transition-opacity duration-500 -z-10"></div>
+
+                                <!-- Conteúdo -->
+                                <div class="relative flex items-center gap-2.5 z-10">
+                                    <div class="relative">
+                                        <div class="absolute inset-0 bg-white/30 rounded-full blur-md group-hover:bg-white/50 transition-all duration-300"></div>
+                                        <i class="fas fa-cloud-upload-alt text-xl text-white relative group-hover:-translate-y-1 transition-transform duration-500"></i>
+                                    </div>
+                                    <span class="font-black text-sm text-white tracking-wider uppercase drop-shadow-lg">Upload</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Botões Dicas e Filtros -->
+                        <div class="flex items-center gap-3">
+                            <!-- Botão Dicas -->
+                            <button wire:click="toggleTips"
+                                class="group relative inline-flex items-center justify-center gap-2 px-4 py-2 overflow-hidden rounded-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 shadow-md hover:shadow-lg">
+                                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+                                <i class="bi bi-lightbulb text-white relative group-hover:rotate-12 transition-transform duration-300"></i>
+                                <span class="text-sm font-bold text-white hidden sm:inline">Dicas</span>
+                            </button>
+
+                            <!-- Botão Filtros -->
+                            <button @click="showFilters = !showFilters"
+                                class="group relative inline-flex items-center justify-center gap-2 px-4 py-2 overflow-hidden rounded-xl transition-all duration-300 transform hover:scale-105 bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 shadow-md hover:shadow-lg"
+                                :class="{'from-slate-700 to-slate-800': showFilters}">
+                                <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent"></div>
+                                <i class="bi bi-funnel-fill text-white relative group-hover:scale-110 transition-transform duration-300"></i>
+                                <span class="text-sm font-bold text-white hidden sm:inline">Filtros</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
             </div>
-            @endif
         </div>
     </div>
 </div>
