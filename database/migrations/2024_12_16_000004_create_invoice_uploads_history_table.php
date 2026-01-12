@@ -37,7 +37,8 @@ return new class extends Migration
 
             // Foreign keys
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('bank_id')->references('id_bank')->on('banks')->onDelete('cascade');
+            // $table->foreign('bank_id')->references('id_bank')->on('banks')->onDelete('cascade');
+            // Comentado temporariamente - tabela banks precisa ser criada primeiro
         });
     }
 
