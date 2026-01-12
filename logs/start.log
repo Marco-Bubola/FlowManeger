@@ -344,3 +344,6 @@ Aguardando servidor estar pronto em http://127.0.0.1:8000...
   2026-01-12 09:31:23 /assets/css/icon-overrides.css ....................................................... ~ 0.69ms
 [2026-01-12 12:31:24] [Laravel Server]   2026-01-12 09:31:24[2026-01-12 12:31:24] [Laravel Server]  /favicon.svg .........................................................................[2026-01-12 12:31:24] [Laravel Server]  ~ 0.09ms
   2026-01-12 09:31:24 /favicon.ico ......................................................................... ~ 0.09ms
+[2026-01-12 12:38:37] [Vite] [2m09:38:37[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Dashboard\DashboardIndex.php[22m
+[2026-01-12 12:38:37] [Vite] [2m09:38:37[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Dashboard/DashboardIndex.php[22m
+[2026-01-12 12:38:42] [Laravel Server]   2026-01-12 09:38:42[2026-01-12 12:38:42] [Laravel Server]  /dashboard/main .................................................................... ~ 528.77ms
