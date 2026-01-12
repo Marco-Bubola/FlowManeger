@@ -69,7 +69,7 @@
                             <!-- Valor -->
                             <div class="space-y-2">
                                 <x-currency-input name="value" id="value" wireModel="value" label="Valor"
-                                    icon="bi-currency-dollar" icon-color="green" :required="true" width="w-full" />
+                                    icon="bi-currency-dollar" icon-color="green" :required="true" width="w-full" :value="$value" />
                             </div>
 
                             <!-- Cliente -->
