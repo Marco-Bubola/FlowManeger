@@ -9,8 +9,16 @@ use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Invoice;
 use App\Models\Bank;
+use App\Models\Cofrinho;
+use App\Models\Consortium;
+use App\Models\VendaParcela;
+use App\Models\LancamentoRecorrente;
+use App\Models\Orcamento;
+use App\Models\Category;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
 class DashboardIndex extends Component
@@ -57,9 +65,82 @@ class DashboardIndex extends Component
     public float $taxaCrescimento = 0;
     public int $produtosAtivos = 0;
 
+    // Controle de seções expandidas/colapsadas
+    public bool $vendasExpanded = true;
+    public bool $produtosExpanded = true;
+    public bool $clientesExpanded = true;
+    public bool $faturasExpanded = false;
+    public bool $bancosExpanded = false;
+    public bool $consorciosExpanded = false;
+
+    // Novos dados para seções adicionais
+    public int $totalBancos = 0;
+    public int $totalCofrinhos = 0;
+    public float $totalEconomizado = 0;
+    public int $totalConsorciosAtivos = 0;
+    public int $proximosSorteios = 0;
+    public array $alertas = [];
+    public array $atividades = [];
+    public float $lucroLiquido = 0;
+    public float $receitasPeriodo = 0;
+    public float $despesasPeriodo = 0;
+
+    // Contas reais (pendências)
+    public float $contasReceberPendentes = 0;
+    public float $contasPagarPendentes = 0;
+    public int $parcelasVencidasCount = 0;
+    public float $parcelasVencidasValor = 0;
+
+    // Orçamentos
+    public float $orcamentoMesTotal = 0;
+    public float $orcamentoMesUsado = 0;
+    public array $orcamentosTopEstouro = [];
+
+    // Recorrências
+    public int $recorrentesAtivas = 0;
+    public float $recorrentesProx30Total = 0;
+
+    // Invoices (resumo)
+    public float $invoicesProxVenc30Total = 0;
+
+    // Gráficos adicionais
+    public array $cashflowMonthly = [];
+    public array $expensesByCategory = [];
+
     public function mount()
     {
         $this->loadDashboardData();
+    }
+
+    public function toggleSection($section)
+    {
+        switch ($section) {
+            case 'vendas':
+                $this->vendasExpanded = !$this->vendasExpanded;
+                break;
+            case 'produtos':
+                $this->produtosExpanded = !$this->produtosExpanded;
+                break;
+            case 'clientes':
+                $this->clientesExpanded = !$this->clientesExpanded;
+                break;
+            case 'faturas':
+                $this->faturasExpanded = !$this->faturasExpanded;
+                break;
+            case 'bancos':
+                $this->bancosExpanded = !$this->bancosExpanded;
+                break;
+            case 'consorcios':
+                $this->consorciosExpanded = !$this->consorciosExpanded;
+                break;
+        }
+    }
+
+    public function refreshData()
+    {
+        Cache::forget('dashboard_data_' . Auth::id());
+        $this->loadDashboardData();
+        $this->dispatch('notify', ['message' => 'Dashboard atualizado!', 'type' => 'success']);
     }
 
     public function loadDashboardData()
@@ -163,10 +244,50 @@ class DashboardIndex extends Component
             ->where('stock_quantity', '<=', 5)
             ->count();
 
-        // Contas a pagar (exemplo: cashbook type_id = 2)
+        // Contas a pagar/receber (HISTÓRICO) - manter como totais gerais
         $this->contasPagar = Cashbook::where('user_id', $userId)->where('type_id', 2)->sum('value');
-        // Contas a receber (cashbook type_id = 1)
         $this->contasReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->sum('value');
+
+        // Recorrências (precisa vir antes do cálculo de contas a pagar pendentes)
+        $this->recorrentesAtivas = (int) LancamentoRecorrente::where('user_id', $userId)
+            ->where('ativo', 1)
+            ->count();
+
+        $this->recorrentesProx30Total = (float) LancamentoRecorrente::where('user_id', $userId)
+            ->where('ativo', 1)
+            ->whereNotNull('proximo_vencimento')
+            ->where('proximo_vencimento', '>=', now())
+            ->where('proximo_vencimento', '<=', now()->addDays(30))
+            ->sum('valor');
+
+        // Contas reais (pendências)
+        // A receber: parcelas pendentes
+        $this->contasReceberPendentes = (float) VendaParcela::join('sales', 'venda_parcelas.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->where('venda_parcelas.status', 'pendente')
+            ->sum('venda_parcelas.valor');
+
+        // Parcelas vencidas
+        $this->parcelasVencidasCount = (int) VendaParcela::join('sales', 'venda_parcelas.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->where('venda_parcelas.status', 'pendente')
+            ->where('venda_parcelas.data_vencimento', '<', now())
+            ->count();
+
+        $this->parcelasVencidasValor = (float) VendaParcela::join('sales', 'venda_parcelas.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->where('venda_parcelas.status', 'pendente')
+            ->where('venda_parcelas.data_vencimento', '<', now())
+            ->sum('venda_parcelas.valor');
+
+        // A pagar: aproximar via invoices nos próximos 30 dias (se a coluna de vencimento existir)
+        $invoiceDateColumn = Schema::hasColumn('invoice', 'due_date') ? 'due_date' : 'invoice_date';
+        $this->invoicesProxVenc30Total = (float) Invoice::where('user_id', $userId)
+            ->where($invoiceDateColumn, '>=', now())
+            ->where($invoiceDateColumn, '<=', now()->addDays(30))
+            ->sum('value');
+
+        $this->contasPagarPendentes = $this->invoicesProxVenc30Total + $this->recorrentesProx30Total;
 
         // Fornecedores a pagar (exemplo: cashbook category_id = 2)
         $this->fornecedoresPagar = Cashbook::where('user_id', $userId)->where('type_id', 2)->where('category_id', 2)->sum('value');
@@ -272,13 +393,272 @@ class DashboardIndex extends Component
         $this->produtosAtivos = Product::where('user_id', $userId)
             ->where('stock_quantity', '>', 0)
             ->count();
+
+        // Dados de Bancos e Cofrinhos
+        $this->totalBancos = Bank::where('user_id', $userId)->count();
+        $this->totalCofrinhos = Cofrinho::where('user_id', $userId)->where('status', 'ativo')->count();
+
+        // Total economizado nos cofrinhos
+        $cofrinhos = Cofrinho::where('user_id', $userId)->where('status', 'ativo')->get();
+        $this->totalEconomizado = 0;
+        foreach ($cofrinhos as $cofrinho) {
+            // Soma os lançamentos do cofrinho (assumindo que existe uma relação)
+            $saldo = Cashbook::where('user_id', $userId)
+                ->where('description', 'LIKE', '%' . $cofrinho->nome . '%')
+                ->where('type_id', 1)
+                ->sum('value');
+            $this->totalEconomizado += $saldo;
+        }
+
+        // Dados de Consórcios
+        $this->totalConsorciosAtivos = Consortium::where('user_id', $userId)->where('status', 'active')->count();
+
+        // Calcular próximos sorteios baseado em consortium_draws
+        $this->proximosSorteios = DB::table('consortium_draws')
+            ->join('consortiums', 'consortium_draws.consortium_id', '=', 'consortiums.id')
+            ->where('consortiums.user_id', $userId)
+            ->where('consortiums.status', 'active')
+            ->where('consortium_draws.draw_date', '>=', now())
+            ->where('consortium_draws.draw_date', '<=', now()->addDays(30))
+            ->whereNull('consortiums.deleted_at')
+            ->count();
+
+        // Calcular lucro líquido (receitas - despesas do período)
+        $this->receitasPeriodo = Cashbook::where('user_id', $userId)
+            ->where('type_id', 1)
+            ->whereMonth('date', now()->month)
+            ->whereYear('date', now()->year)
+            ->sum('value');
+
+        $this->despesasPeriodo = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereMonth('date', now()->month)
+            ->whereYear('date', now()->year)
+            ->sum('value');
+
+        $this->lucroLiquido = $this->receitasPeriodo - $this->despesasPeriodo;
+
+        // Orçamentos do mês
+        $this->orcamentoMesTotal = (float) Orcamento::where('user_id', $userId)
+            ->where('mes', now()->month)
+            ->where('ano', now()->year)
+            ->sum('valor');
+
+        // Orçamento usado (despesas do mês)
+        $this->orcamentoMesUsado = $this->despesasPeriodo;
+
+        // Top categorias que mais estouraram orçamento (até 5)
+        $orcamentosMes = Orcamento::where('user_id', $userId)
+            ->where('mes', now()->month)
+            ->where('ano', now()->year)
+            ->with('category:id_category,desc_category')
+            ->get();
+
+        $gastosPorCategoriaMes = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereMonth('date', now()->month)
+            ->whereYear('date', now()->year)
+            ->selectRaw('category_id, SUM(value) as total')
+            ->groupBy('category_id')
+            ->get()
+            ->keyBy('category_id');
+
+        $estouros = [];
+        foreach ($orcamentosMes as $orc) {
+            $gasto = (float) ($gastosPorCategoriaMes[$orc->category_id]->total ?? 0);
+            $orcado = (float) $orc->valor;
+            $diff = $gasto - $orcado;
+            if ($diff > 0) {
+                $estouros[] = [
+                    'category' => $orc->category?->desc_category ?? ('Cat ' . $orc->category_id),
+                    'orcado' => $orcado,
+                    'gasto' => $gasto,
+                    'estouro' => $diff,
+                ];
+            }
+        }
+        usort($estouros, fn($a, $b) => $b['estouro'] <=> $a['estouro']);
+        $this->orcamentosTopEstouro = array_slice($estouros, 0, 5);
+
+        // Gráfico fluxo de caixa (últimos 12 meses)
+        $monthExprCash = $this->monthExpression('date');
+        $yearExprCash = DB::getDriverName() === 'sqlite' ? "CAST(strftime('%Y', date) AS INTEGER)" : 'YEAR(date)';
+
+        $cashAgg = Cashbook::where('user_id', $userId)
+            ->where('date', '>=', now()->subMonths(12))
+            ->selectRaw("{$yearExprCash} as ano, {$monthExprCash} as mes, SUM(CASE WHEN type_id=1 THEN value ELSE 0 END) as receitas, SUM(CASE WHEN type_id=2 THEN value ELSE 0 END) as despesas")
+            ->groupBy('ano', 'mes')
+            ->orderBy('ano')
+            ->orderBy('mes')
+            ->get();
+
+        $this->cashflowMonthly = [];
+        for ($i = 11; $i >= 0; $i--) {
+            $dt = now()->subMonths($i);
+            $mes = (int) $dt->month;
+            $ano = (int) $dt->year;
+            $row = $cashAgg->firstWhere(function($item) use ($mes, $ano) {
+                return (int)$item->mes === $mes && (int)$item->ano === $ano;
+            });
+
+            $this->cashflowMonthly[] = [
+                'label' => $dt->format('M/y'),
+                'receitas' => (float) ($row->receitas ?? 0),
+                'despesas' => (float) ($row->despesas ?? 0),
+            ];
+        }
+
+        // Gráfico: despesas por categoria (top 10 no mês)
+        $despesasTop = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereMonth('date', now()->month)
+            ->whereYear('date', now()->year)
+            ->selectRaw('category_id, SUM(value) as total')
+            ->groupBy('category_id')
+            ->orderByDesc('total')
+            ->take(10)
+            ->get();
+
+        $categoryNames = Category::whereIn('id_category', $despesasTop->pluck('category_id')->filter()->values())
+            ->pluck('desc_category', 'id_category');
+
+        $this->expensesByCategory = $despesasTop->map(fn($row) => [
+            'label' => $categoryNames[$row->category_id] ?? ('Cat ' . $row->category_id),
+            'total' => (float) $row->total,
+        ])->values()->all();
+
+        // Carregar alertas críticos
+        $this->carregarAlertas($userId);
+
+        // Carregar atividades recentes
+        $this->carregarAtividades($userId);
+    }
+
+    protected function carregarAlertas($userId)
+    {
+        $this->alertas = [];
+
+        // Contas vencidas (parcelas atrasadas)
+        $parcelasVencidas = VendaParcela::join('sales', 'venda_parcelas.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->where('venda_parcelas.status', 'pendente')
+            ->where('venda_parcelas.data_vencimento', '<', now())
+            ->count();
+
+        if ($parcelasVencidas > 0) {
+            $this->alertas[] = [
+                'type' => 'danger',
+                'icon' => 'fas fa-exclamation-triangle',
+                'message' => "{$parcelasVencidas} parcela(s) vencida(s)",
+                'link' => route('sales.index'),
+            ];
+        }
+
+        // Produtos com estoque baixo
+        if ($this->produtosEstoqueBaixo > 0) {
+            $this->alertas[] = [
+                'type' => 'warning',
+                'icon' => 'fas fa-box',
+                'message' => "{$this->produtosEstoqueBaixo} produto(s) com estoque baixo",
+                'link' => route('products.index'),
+            ];
+        }
+
+        // Clientes inadimplentes
+        if ($this->clientesInadimplentes > 0) {
+            $this->alertas[] = [
+                'type' => 'warning',
+                'icon' => 'fas fa-user-clock',
+                'message' => "{$this->clientesInadimplentes} cliente(s) com pendências",
+                'link' => route('clients.index'),
+            ];
+        }
+
+        // Próximos sorteios de consórcios
+        if ($this->proximosSorteios > 0) {
+            $this->alertas[] = [
+                'type' => 'info',
+                'icon' => 'fas fa-calendar-alt',
+                'message' => "{$this->proximosSorteios} sorteio(s) nos próximos 30 dias",
+                'link' => route('consortiums.index'),
+            ];
+        }
+    }
+
+    protected function carregarAtividades($userId)
+    {
+        $this->atividades = [];
+
+        // Últimas vendas
+        $vendasRecentes = Sale::where('user_id', $userId)
+            ->with('client:id,name')
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get();
+
+        foreach ($vendasRecentes as $venda) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-shopping-cart',
+                'color' => 'text-purple-500',
+                'title' => 'Nova venda #' . $venda->id,
+                'description' => $venda->client ? 'Cliente: ' . $venda->client->name : 'Sem cliente',
+                'time' => $venda->created_at->diffForHumans(),
+                'link' => route('sales.show', $venda->id),
+            ];
+        }
+
+        // Últimos clientes cadastrados
+        $clientesRecentes = Client::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($clientesRecentes as $cliente) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-user-plus',
+                'color' => 'text-green-500',
+                'title' => 'Novo cliente',
+                'description' => $cliente->name,
+                'time' => $cliente->created_at->diffForHumans(),
+                'link' => route('clients.edit', $cliente->id),
+            ];
+        }
+
+        // Últimas movimentações de caixa
+        $movimentacoes = Cashbook::where('user_id', $userId)
+            ->with('type:id_type,desc_type')
+            ->orderByDesc('date')
+            ->take(5)
+            ->get();
+
+        foreach ($movimentacoes as $mov) {
+            $this->atividades[] = [
+                'icon' => $mov->type_id == 1 ? 'fas fa-arrow-up' : 'fas fa-arrow-down',
+                'color' => $mov->type_id == 1 ? 'text-green-500' : 'text-red-500',
+                'title' => $mov->type?->desc_type ?? 'Lançamento',
+                'description' => $mov->description . ' - R$ ' . number_format($mov->value, 2, ',', '.'),
+                'time' => \Carbon\Carbon::parse($mov->date)->diffForHumans(),
+                'link' => route('cashbook.index'),
+            ];
+        }
+
+        // Ordenar por data mais recente
+        usort($this->atividades, function($a, $b) {
+            return strtotime($b['time']) - strtotime($a['time']);
+        });
+
+        // Limitar a 20 atividades
+        $this->atividades = array_slice($this->atividades, 0, 20);
     }
 
     public function render()
     {
         $totalSales = Sale::where('user_id', Auth::id())->count();
+        $banks = Bank::where('user_id', Auth::id())->get();
+
         return view('livewire.dashboard.dashboard-index', [
             'totalSales' => $totalSales,
+            'banks' => $banks,
             'produtoMaisVendido' => $this->produtoMaisVendido,
             'totalProdutosEstoque' => $this->totalProdutosEstoque,
             'totalCashbook' => $this->totalCashbook,
@@ -309,6 +689,39 @@ class DashboardIndex extends Component
             'margemLucro' => $this->margemLucro ?? 0,
             'taxaCrescimento' => $this->taxaCrescimento ?? 0,
             'produtosAtivos' => $this->produtosAtivos ?? 0,
+            // Novos dados
+            'totalBancos' => $this->totalBancos ?? 0,
+            'totalCofrinhos' => $this->totalCofrinhos ?? 0,
+            'totalEconomizado' => $this->totalEconomizado ?? 0,
+            'totalConsorciosAtivos' => $this->totalConsorciosAtivos ?? 0,
+            'proximosSorteios' => $this->proximosSorteios ?? 0,
+            'alertas' => $this->alertas ?? [],
+            'atividades' => $this->atividades ?? [],
+            'lucroLiquido' => $this->lucroLiquido ?? 0,
+            'receitasPeriodo' => $this->receitasPeriodo ?? 0,
+            'despesasPeriodo' => $this->despesasPeriodo ?? 0,
+
+            // Contas reais
+            'contasReceberPendentes' => $this->contasReceberPendentes ?? 0,
+            'contasPagarPendentes' => $this->contasPagarPendentes ?? 0,
+            'parcelasVencidasCount' => $this->parcelasVencidasCount ?? 0,
+            'parcelasVencidasValor' => $this->parcelasVencidasValor ?? 0,
+
+            // Orçamentos
+            'orcamentoMesTotal' => $this->orcamentoMesTotal ?? 0,
+            'orcamentoMesUsado' => $this->orcamentoMesUsado ?? 0,
+            'orcamentosTopEstouro' => $this->orcamentosTopEstouro ?? [],
+
+            // Recorrências
+            'recorrentesAtivas' => $this->recorrentesAtivas ?? 0,
+            'recorrentesProx30Total' => $this->recorrentesProx30Total ?? 0,
+
+            // Invoices resumo
+            'invoicesProxVenc30Total' => $this->invoicesProxVenc30Total ?? 0,
+
+            // Gráficos
+            'cashflowMonthly' => $this->cashflowMonthly ?? [],
+            'expensesByCategory' => $this->expensesByCategory ?? [],
         ]);
     }
 
