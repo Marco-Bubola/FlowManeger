@@ -23,6 +23,9 @@
                 </div>
 
                 <div class="space-y-1">
+                    @isset($breadcrumb)
+                        {{ $breadcrumb }}
+                    @endisset
                     <h1 class="text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-100">
                         {{ $title }}
                     </h1>
