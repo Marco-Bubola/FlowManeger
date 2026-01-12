@@ -1,479 +1,605 @@
 <div x-data="{ showFilters: false }" class="w-full">
-    <!-- Header moderno consistente -->
-    <x-cashbook-header :total-transactions="$transactionsCount ?? 0" :total-balance="$totalBalance ?? 0" :show-quick-actions="true" />
 
     <!-- Main Content Layout -->
-    <div class="w-full ">
+    <div class="w-full">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
 
+            <!-- Left Column - Calendar & Chart (25% - 1 col) -->
             <div class="lg:col-span-1 space-y-3">
-                <!-- Calendar -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-3 rounded-xl border border-white/20 dark:border-gray-700/30 shadow-lg">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
-                            <div class="w-6 h-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center mr-2">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                                </svg>
+                <!-- Calendar - Modernizado -->
+                <div class="relative rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                    style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%); border: 2px solid rgba(59, 130, 246, 0.2);">
+
+                    <!-- Efeito de brilho decorativo -->
+                    <div class="absolute top-0 right-0 w-48 h-48 rounded-full blur-3xl opacity-10"
+                        style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);"></div>
+
+                    <!-- Header estilizado -->
+                    <div class="relative px-5 py-4 backdrop-blur-sm">
+                        <div class="flex items-center gap-3 mb-4">
+                            <!-- Ícone -->
+                            <div class="relative group">
+                                <div class="absolute inset-0 rounded-2xl blur-2xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                    style="background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);"></div>
+                                <div class="relative w-12 h-12 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                    style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);">
+                                    <svg class="w-6 h-6 text-gray-900 dark:text-white" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                        </path>
+                                    </svg>
+                                </div>
                             </div>
-                            📅 Calendário
-                        </h3>
-                    </div>
 
-                    <!-- Navegação do Calendário com selects e botões -->
-                    <div class="flex items-center justify-between mb-3">
-                        <button wire:click="changeMonth('previous')"
-                            class="p-1.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-                            </svg>
+                            <!-- Título -->
+                            <div class="flex-1">
+                                <h3 class="text-xl font-black text-gray-900 dark:text-white">
+                                    Calendário
+                                </h3>
+                                <p class="text-xs text-gray-600 dark:text-gray-400">
+                                    {{ $monthName ?? 'Carregando...' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Navegação -->
+                        <div class="flex items-center justify-between gap-2">
+                            <button wire:click="changeMonth('previous')"
+                                class="p-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-md hover:shadow-lg text-gray-700 dark:text-gray-300 transition-all duration-200 transform hover:scale-105 border border-white/20 dark:border-gray-700/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                            </button>
+                            <div class="flex items-center gap-2 flex-1">
+                                <select wire:model.live="month"
+                                    class="flex-1 rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
+                                    @foreach (range(1, 12) as $m)
+                                        <option value="{{ $m }}">
+                                            {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMM') }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <select wire:model.live="year"
+                                    class="rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
+                                    @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                        <option value="{{ $y }}">{{ $y }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button wire:click="changeMonth('next')"
+                                class="p-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-md hover:shadow-lg text-gray-700 dark:text-gray-300 transition-all duration-200 transform hover:scale-105 border border-white/20 dark:border-gray-700/30">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                        d="M9 5l7 7-7 7">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+
+                        <!-- Botão de Dicas -->
+                        <button wire:click="toggleTips"
+                            class="p-2 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105">
+                            <i class="bi bi-lightbulb text-sm"></i>
                         </button>
-                        <div class="flex items-center space-x-2">
-                            <select wire:model.live="month"
-                                class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
-                                @foreach (range(1, 12) as $m)
-                                    <option value="{{ $m }}">
-                                        {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMMM') }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            <select wire:model.live="year"
-                                class="rounded-xl border-0 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 dark:text-white text-sm font-medium shadow-inner focus:ring-2 focus:ring-purple-500">
-                                @foreach (range(now()->year - 5, now()->year + 2) as $y)
-                                    <option value="{{ $y }}">{{ $y }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <button wire:click="changeMonth('next')"
-                            class="p-1.5 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600 transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                            </svg>
-                        </button>
                     </div>
 
-                    <!-- Exibir mês/ano atual -->
-                    <div class="mb-2 text-center">
-                        <span class="text-xs font-medium text-gray-600 dark:text-gray-400">
-                            {{ $monthName ?? 'Carregando...' }}
-                        </span>
-                    </div>
-
-                    <!-- Feedback temporário -->
-                    @if(session('message'))
-                        <div class="mb-2 p-1.5 bg-green-100 border border-green-300 rounded text-xs text-green-800">
-                            {{ session('message') }}
+                    <!-- Conteúdo do calendário -->
+                    <div class="px-5 pb-5">
+                        <!-- Dias da Semana -->
+                        <div class="grid grid-cols-7 gap-1 mb-2">
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                D</div>
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                S</div>
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                T</div>
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                Q</div>
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                Q</div>
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                S</div>
+                            <div
+                                class="text-center text-xs font-bold text-gray-700 dark:text-gray-300 py-2 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl">
+                                S</div>
                         </div>
-                    @endif
 
-                    @if(session('debug_info'))
-                        <div class="mb-2 p-1.5 bg-blue-100 border border-blue-300 rounded text-xs text-blue-800">
-                            <strong>Debug:</strong> {{ session('debug_info') }}
-                        </div>
-                    @endif
-
-                    @if(session('calendar_debug'))
-                        <div class="mb-2 p-1.5 bg-yellow-100 border border-yellow-300 rounded text-xs text-yellow-800">
-                            <strong>Calendar:</strong> {{ session('calendar_debug') }}
-                        </div>
-                    @endif                    <!-- Cabeçalho do calendário -->
-                 <div class="grid grid-cols-7 gap-1 mb-2">
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">D</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">T</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">Q</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
-                        <div class="text-center text-xs font-bold text-gray-600 dark:text-gray-300 py-1.5 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">S</div>
-                    </div>
-
-                    <!-- Dias do calendário -->
-                    <div class="grid grid-cols-7 gap-1">
-                        @if(isset($calendarData) && is_array($calendarData))
-                            @foreach ($calendarData as $week)
-                                @foreach ($week as $day)
-                                    <div wire:click="selectDay('{{ $day['date'] }}')"
-                                        class="relative min-h-[40px] p-2 border-2 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 {{ $day['is_current_month'] ? 'bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 hover:from-blue-50 hover:to-purple-50 dark:hover:from-gray-700 dark:hover:to-gray-600 border-gray-200 dark:border-gray-600' : 'bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 border-gray-300 dark:border-gray-500' }} {{ $day['is_today'] ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/25' : '' }} {{ isset($selectedDate) && $selectedDate === $day['date'] ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 shadow-lg shadow-green-500/25' : '' }}">
-                                        <div class="text-sm font-bold {{ $day['is_current_month'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }} {{ $day['is_today'] ? 'text-blue-600 dark:text-blue-400' : '' }} {{ isset($selectedDate) && $selectedDate === $day['date'] ? 'text-green-600 dark:text-green-400' : '' }}">
+                        <!-- Dias do Calendário -->
+                        <div class="grid grid-cols-7">
+                            @foreach ($this->calendarDays as $day)
+                                @if ($day['day'])
+                                    <div wire:click="selectDate('{{ $day['date'] }}')"
+                                        class="relative min-h-[42px] p-2 rounded-xl cursor-pointer transition-all duration-300 transform hover:scale-105 shadow-sm hover:shadow-md {{ $day['isCurrentMonth'] ? 'bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg border-2 border-white/40 dark:border-gray-700/40 hover:border-blue-300 dark:hover:border-blue-600' : 'bg-gray-100/60 dark:bg-gray-700/60 backdrop-blur-sm border-2 border-gray-200/40 dark:border-gray-600/40' }} {{ $day['isToday'] ? 'ring-2 ring-blue-500 shadow-lg shadow-blue-500/30 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/30 dark:to-indigo-900/30' : '' }} {{ $selectedDate === $day['date'] ? 'ring-2 ring-green-500 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/30 dark:to-emerald-900/30 shadow-lg shadow-green-500/30' : '' }}">
+                                        <div
+                                            class="text-sm font-bold {{ $day['isCurrentMonth'] ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500' }} {{ $day['isToday'] ? 'text-blue-700 dark:text-blue-400' : '' }} {{ $selectedDate === $day['date'] ? 'text-green-700 dark:text-green-400' : '' }}">
                                             {{ $day['day'] }}
                                         </div>
-                                        @if ($day['transaction_count'] > 0)
+                                        @if ($day['hasTransactions'])
                                             <div class="absolute bottom-1 right-1">
-                                                <div class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg">
+                                                <div
+                                                    class="w-2 h-2 bg-gradient-to-r from-red-500 to-pink-500 rounded-full shadow-lg animate-pulse">
                                                 </div>
                                             </div>
                                         @endif
                                     </div>
-                                @endforeach
+                                @else
+                                    <div class="relative min-h-[42px] p-2"></div>
+                                @endif
                             @endforeach
-                        @else
-                            <!-- Placeholder enquanto carrega -->
-                            @for($i = 0; $i < 42; $i++)
-                                <div class="relative min-h-[40px] p-2 border-2 rounded-xl bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-500">
-                                    <div class="text-sm font-bold text-gray-400 dark:text-gray-500">-</div>
-                                </div>
-                            @endfor
+                        </div>
+
+                        @if (isset($selectedDate) && $selectedDate)
+                            <div class="mt-4">
+                                <button wire:click="clearDateFilter"
+                                    class="w-full text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl py-2.5 px-4 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                    Limpar Filtro
+                                </button>
+                            </div>
                         @endif
                     </div>
-
-                    @if (isset($selectedDate) && $selectedDate)
-                        <div class="mt-4">
-                            <button wire:click="clearDateFilter"
-                                class="w-full text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 rounded-xl p-3 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Limpar Filtro
-                            </button>
-                        </div>
-                    @endif
                 </div>
 
-                <!-- Chart Section -->
-                <div class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl p-4 rounded-xl border border-white/20 dark:border-gray-700/30 shadow-lg">
-                    <div class="flex items-center justify-between mb-3">
-                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
-                            <div class="w-6 h-6 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center mr-2">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                </svg>
+                <!-- Chart Section - Modernizado -->
+                <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                    style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.2);">
+
+                    <!-- Efeito de brilho decorativo -->
+                    <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-10"
+                        style="background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);"></div>
+
+                    <!-- Header estilizado -->
+                    <div class="relative px-6 py-5 backdrop-blur-sm">
+                        <div class="flex items-center gap-4">
+                            <!-- Ícone com animação -->
+                            <div class="relative group">
+                                <div class="absolute inset-0 rounded-2xl blur-2xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                    style="background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);"></div>
+                                <div class="relative w-14 h-14 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                    style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(59, 130, 246, 0.15) 100%);">
+                                    <svg class="w-7 h-7 text-gray-900 dark:text-white" fill="none"
+                                        stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                        </path>
+                                    </svg>
+                                </div>
                             </div>
-                             Por Categoria
-                        </h3>
+
+                            <!-- Título -->
+                            <div class="flex-1">
+                                <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-1">
+                                    Por Categoria
+                                </h3>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Visualização das transações por
+                                    categoria</p>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Categories Chart -->
-                    <div class="space-y-2">
-                        @foreach($categories as $category)
-                            @php
-                                $categoryTransactions = collect($transactionsByCategory)->filter(function($group) use ($category) {
-                                    return $group['category_id'] == $category->id_category;
-                                });
-                                $categoryTotal = $categoryTransactions->sum(function($group) {
-                                    return collect($group['transactions'])->sum(function($transaction) {
-                                        return abs($transaction['value'] ?? 0);
-                                    });
-                                });
-                                $totalExpenses = collect($transactionsByCategory)->sum(function($group) {
-                                    return collect($group['transactions'])->sum(function($transaction) {
-                                        return abs($transaction['value'] ?? 0);
-                                    });
-                                });
-                                $percentage = $totalExpenses > 0 ? ($categoryTotal / $totalExpenses) * 100 : 0;
-                            @endphp
-                            @if($categoryTotal > 0)
-                                <div class="space-y-2">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-2">
-                                            @if($category->icone)
-                                                <i class="{{ $category->icone }} text-lg text-gray-700 dark:text-gray-300"></i>
-                                            @else
-                                                <div class="w-5 h-5 bg-gray-300 dark:bg-gray-600 rounded"></div>
-                                            @endif
-                                            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ $category->name }}</span>
-                                        </div>
-                                        <span class="text-sm font-bold text-gray-900 dark:text-white">
-                                            R$ {{ number_format($categoryTotal, 2, ',', '.') }}
-                                        </span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                                        <div class="bg-gradient-to-r from-red-500 to-pink-600 h-2 rounded-full transition-all duration-300"
-                                             style="width: {{ $percentage }}%"></div>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
-                                        <span>{{ number_format($percentage, 1) }}% do total</span>
-                                        <span>{{ $categoryTransactions->sum(function($group) { return count($group['transactions']); }) }} transações</span>
-                                    </div>
-                                </div>
-                            @endif
-                        @endforeach
+                    <div class="">
+                        @php
+                            $categoriesChartData = collect($transactionsByCategory)
+                                ->map(function ($categoryGroup) {
+                                    return [
+                                        'label' => $categoryGroup['name'] ?? 'Sem categoria',
+                                        'value' => (float) ($categoryGroup['total'] ?? 0),
+                                        'color' => $categoryGroup['color'] ?? '#667eea',
+                                    ];
+                                })
+                                ->values()
+                                ->toArray();
+                        @endphp
 
-                        @if(collect($categories)->isEmpty())
-                            <div class="text-center py-8">
-                                <div class="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        @if (count($categoriesChartData) > 0)
+                            <div>
+                                <div id="apex-pie-cashbook" class="w-full" style="height: 240px;"></div>
+                                <script type="application/json" id="cashbook-categories-data">@json($categoriesChartData)</script>
+                            </div>
+                        @else
+                            <div
+                                class="bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl p-8 text-center shadow-lg border border-white/20 dark:border-gray-700/30">
+                                <div
+                                    class="w-20 h-20 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                    <svg class="w-10 h-10 text-gray-400" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z">
+                                        </path>
                                     </svg>
                                 </div>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">Nenhuma transação por categoria</p>
+                                <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-2">Nenhuma transação</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Não há transações por categoria
+                                    neste período</p>
                             </div>
                         @endif
                     </div>
                 </div>
-
-
             </div>
 
-            <!-- Right Column - Transactions (75% - 3 cols) -->
+            <!-- Transactions Section -->
             <div class="lg:col-span-3 space-y-3">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <!-- Income Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="p-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-green-400 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-                                        <i class="fas fa-arrow-up text-white text-lg"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Receitas</p>
-                                        <p class="text-xl font-bold text-green-600 dark:text-green-400">
-                                            R$ {{ number_format($totals['income'] ?? 0, 2, ',', '.') }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900 dark:to-emerald-900 px-4 py-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-green-700 dark:text-green-300">Total do mês</span>
-                                <i class="fas fa-arrow-up text-green-600 dark:text-green-400"></i>
-                            </div>
-                        </div>
-                    </div>
+                <!-- Header moderno consistente -->
+                <x-cashbook-header :total-transactions="$transactionsCount ?? 0" :total-balance="$totals['balance'] ?? 0" :total-income="$totals['income'] ?? 0" :total-expense="abs($totals['expense'] ?? 0)"
+                    :show-quick-actions="true">
 
-                    <!-- Expense Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="p-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-red-400 to-rose-500 rounded-xl flex items-center justify-center shadow-lg">
-                                        <i class="fas fa-arrow-down text-white text-lg"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Despesas</p>
-                                        <p class="text-xl font-bold text-red-600 dark:text-red-400">
-                                            R$ {{ number_format($totals['expense'] ?? 0, 2, ',', '.') }}
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
+                    <!-- Breadcrumb -->
+                    <x-slot name="breadcrumb">
+                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                            <a href="{{ route('dashboard') }}"
+                                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                                <i class="fas fa-home mr-1"></i>Dashboard
+                            </a>
+                            <i class="fas fa-chevron-right text-xs"></i>
+                            <span class="text-slate-800 dark:text-slate-200 font-medium">
+                                <i class="fas fa-book mr-1"></i>Livro Caixa
+                            </span>
                         </div>
-                        <div class="bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900 dark:to-rose-900 px-4 py-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs text-red-700 dark:text-red-300">Total do mês</span>
-                                <i class="fas fa-arrow-down text-red-600 dark:text-red-400"></i>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Balance Card -->
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-                        <div class="p-4">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br {{ ($totals['balance'] ?? 0) >= 0 ? 'from-blue-400 to-indigo-500' : 'from-orange-400 to-amber-500' }} rounded-xl flex items-center justify-center shadow-lg">
-                                        <i class="fas fa-balance-scale text-white text-lg"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Saldo</p>
-                                        <p class="text-xl font-bold {{ ($totals['balance'] ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}">
-                                            @php $bal = $totals['balance'] ?? 0; @endphp
-                                            @if($bal >= 0)
-                                                R$ {{ number_format($bal, 2, ',', '.') }}
-                                            @else
-                                                -R$ {{ number_format(abs($bal), 2, ',', '.') }}
-                                            @endif
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="bg-gradient-to-r {{ ($totals['balance'] ?? 0) >= 0 ? 'from-blue-50 to-indigo-50 dark:from-blue-900 dark:to-indigo-900' : 'from-orange-50 to-amber-50 dark:from-orange-900 dark:to-amber-900' }} px-4 py-2">
-                            <div class="flex items-center justify-between">
-                                <span class="text-xs {{ ($totals['balance'] ?? 0) >= 0 ? 'text-blue-700 dark:text-blue-300' : 'text-orange-700 dark:text-orange-300' }}">Resultado</span>
-                                <i class="fas fa-calculator {{ ($totals['balance'] ?? 0) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                    </x-slot>
+                </x-cashbook-header>
 
                 <!-- Transactions List -->
                 <div class="space-y-3">
                     <!-- Controls -->
-                    <div class="flex items-center justify-between mb-2">
-                         <div class="flex items-center">
-                            <div class="flex items-center space-x-3">
-                                <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-md">
-                                    <i class="fas fa-layer-group text-lg"></i>
-                                </div>
-                                <div class="leading-tight">
-                                    <h2 class="text-base md:text-lg font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-indigo-600 dark:from-slate-100 dark:to-indigo-300">
-                                        Transações por Categoria
-                                    </h2>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Visão agrupada — {{ count($transactionsByCategory) }} categorias</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <button @click="$dispatch('expand-all')"
-                                class="inline-flex items-center px-2 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-expand-arrows-alt mr-1 text-xs"></i>
-                                Expandir
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <button onclick="expandAllCategories()"
+                                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <i class="fas fa-expand-alt mr-2"></i>Expandir Todas
                             </button>
-                            <button @click="$dispatch('collapse-all')"
-                                class="inline-flex items-center px-2 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors duration-200">
-                                <i class="fas fa-compress-arrows-alt mr-1 text-xs"></i>
-                                Recolher
+                            <button onclick="collapseAllCategories()"
+                                class="px-4 py-2 bg-gradient-to-r from-slate-500 to-slate-600 text-white text-sm font-bold rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
+                                <i class="fas fa-compress-alt mr-2"></i>Recolher Todas
                             </button>
                         </div>
                     </div>
 
-                    <!-- Categories List -->
-                    <div class="space-y-3 max-h-[calc(100vh-100px)] overflow-y-auto pr-2">
-                    @forelse($transactionsByCategory as $index => $categoryGroup)
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-100 dark:border-gray-700 overflow-hidden hover:shadow-lg transition-all duration-300"
-                        x-data="{ expanded: false }"
-                        x-on:expand-all.window="expanded = true"
-                        x-on:collapse-all.window="expanded = false">
-                            <!-- Category Header -->
-                            <div class="cursor-pointer select-none" @click="expanded = !expanded">
-                                <div class="px-4 py-3 border-l-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-                                     style="border-left-color: {{ $categoryGroup['category_hexcolor_category'] }}">
-                                    <div class="flex items-center justify-between">
-                                        <div class="flex items-center space-x-3">
-                                            <div class="w-10 h-10 rounded-xl flex items-center justify-center shadow-md"
-                                                 style="background: linear-gradient(135deg, {{ $categoryGroup['category_hexcolor_category'] }}20, {{ $categoryGroup['category_hexcolor_category'] }}40)">
-                                                <i class="{{ $categoryGroup['category_icone'] }} text-xl"
-                                                   style="color: {{ $categoryGroup['category_hexcolor_category'] }}"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <h4 class="text-lg font-bold text-gray-900 dark:text-white truncate">
-                                                    {{ $categoryGroup['category_name'] }}
-                                                </h4>
-                                                <p class="text-sm text-gray-500 dark:text-gray-400 flex items-center">
-                                                    <i class="fas fa-coins mr-1"></i>
-                                                    {{ count($categoryGroup['transactions']) }} transação(ões)
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center space-x-3">
-                                            <div class="text-right space-y-1">
-                                                @if($categoryGroup['total_receita'] > 0)
-                                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
-                                                        <i class="fas fa-arrow-up mr-1"></i>
-                                                        R$ {{ number_format($categoryGroup['total_receita'], 2, ',', '.') }}
+                    <!-- Transactions Content -->
+                    <div class="space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto cards-scroll">
+                        @forelse($transactionsByCategory as $index => $categoryGroup)
+                            @php
+                                $catColor = $categoryGroup['color'] ?? '#667eea';
+                                $catName = $categoryGroup['name'] ?? 'Sem Categoria';
+                                $catIcon = 'fas fa-tag';
+                                $catTotal = $categoryGroup['total'] ?? 0;
+                                $catCount = $categoryGroup['count'] ?? 0;
+
+                                // Calcular receitas e despesas da categoria
+                                $catIncome = 0;
+                                $catExpense = 0;
+                                foreach ($categoryGroup['transactions'] as $trans) {
+                                    if ($trans['type_id'] == 1) {
+                                        $catIncome += $trans['value'];
+                                    } else {
+                                        $catExpense += abs($trans['value']);
+                                    }
+                                }
+                                $catBalance = $catIncome - $catExpense;
+                            @endphp
+
+                            <div class="category-group mb-8 transform transition-all duration-500 expanded"
+                                data-category-id="{{ $index }}">
+                                <!-- Card moderno com glassmorphism e cores da categoria -->
+                                <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                                    style="background: linear-gradient(135deg, {{ $catColor }}15 0%, {{ $catColor }}08 100%); border: 2px solid {{ $catColor }}40;">
+
+                                    <!-- Efeito de brilho decorativo -->
+                                    <div class="absolute top-0 right-0 w-64 h-64 rounded-full blur-3xl opacity-20"
+                                        style="background: {{ $catColor }};"></div>
+
+                                    <!-- Header super estilizado -->
+                                    <div class="relative px-6 py-5 backdrop-blur-sm">
+                                        <div class="flex items-center justify-between gap-6">
+                                            <!-- Esquerda: Ícone + Nome da Categoria -->
+                                            <div class="flex items-center gap-4">
+                                                <!-- Ícone com animação e fundo translúcido -->
+                                                <div class="relative group">
+                                                    <div class="absolute inset-0 rounded-2xl blur-3xl opacity-30 group-hover:opacity-45 transition-opacity duration-300"
+                                                        style="background: {{ $catColor }}33;"></div>
+                                                    <div class="relative w-16 h-16 rounded-2xl flex items-center justify-center transform transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 shadow-xl"
+                                                        style="background: linear-gradient(135deg, {{ $catColor }}33 0%, {{ $catColor }}22 100%);">
+                                                        <i class="{{ $catIcon }} text-gray-900 text-2xl"></i>
                                                     </div>
-                                                @endif
-                                                @if($categoryGroup['total_despesa'] > 0)
-                                                    <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200">
-                                                        <i class="fas fa-arrow-down mr-1"></i>
-                                                        R$ {{ number_format($categoryGroup['total_despesa'], 2, ',', '.') }}
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <div class="flex items-center space-x-2">
-                                                <div class="w-10 h-10 bg-gray-100 dark:bg-gray-600 rounded-full flex items-center justify-center">
-                                                    <i class="fas fa-chevron-down text-gray-400 dark:text-gray-300 transition-transform duration-200"
-                                                       :class="{ 'rotate-180': expanded }"></i>
+                                                </div>
+
+                                                <!-- Nome e contador -->
+                                                <div>
+                                                    <h3 class="text-2xl font-black mb-1 text-gray-900 dark:text-white">
+                                                        {{ $catName }}
+                                                    </h3>
+                                                    <span
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full font-semibold text-gray-900 dark:text-white shadow-lg"
+                                                        style="background: linear-gradient(135deg, {{ $catColor }}22 0%, {{ $catColor }}11 100%);">
+                                                        <svg class="w-4 h-4 text-gray-900" fill="none"
+                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                                            </path>
+                                                        </svg>
+                                                        <span class="text-sm font-medium">{{ $catCount }}
+                                                            {{ $catCount === 1 ? 'transação' : 'transações' }}</span>
+                                                    </span>
                                                 </div>
                                             </div>
+
+                                            <!-- Divider -->
+                                            <div
+                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
+                                            </div>
+
+                                            <!-- Receitas -->
+                                            <div class="flex items-center gap-3">
+                                                <div class="relative group">
+                                                    <div class="absolute inset-0 rounded-xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
+                                                        style="background: linear-gradient(135deg, #22c55e 0%, #10b981 100%);">
+                                                    </div>
+                                                    <div class="relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                                                        style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);">
+                                                        <svg class="w-5 h-5 text-green-600 dark:text-green-400"
+                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2.5" d="M7 11l5-5m0 0l5 5m-5-5v12">
+                                                            </path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p
+                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
+                                                        Receitas</p>
+                                                    <p class="text-lg font-black text-green-600 dark:text-green-400">
+                                                        R$ {{ number_format($catIncome, 2, ',', '.') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Divider -->
+                                            <div
+                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
+                                            </div>
+
+                                            <!-- Despesas -->
+                                            <div class="flex items-center gap-3">
+                                                <div class="relative group">
+                                                    <div class="absolute inset-0 rounded-xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
+                                                        style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                                    </div>
+                                                    <div class="relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                                                        style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%);">
+                                                        <svg class="w-5 h-5 text-red-600 dark:text-red-400"
+                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2.5" d="M17 13l-5 5m0 0l-5-5m5 5V6">
+                                                            </path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p
+                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
+                                                        Despesas</p>
+                                                    <p class="text-lg font-black text-red-600 dark:text-red-400">
+                                                        R$ {{ number_format($catExpense, 2, ',', '.') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Divider -->
+                                            <div
+                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
+                                            </div>
+
+                                            <!-- Saldo -->
+                                            <div class="flex items-center gap-3">
+                                                <div class="relative group">
+                                                    <div class="absolute inset-0 rounded-xl blur-2xl opacity-40 group-hover:opacity-60 transition-opacity"
+                                                        style="background: linear-gradient(135deg, {{ $catBalance >= 0 ? '#3b82f6 0%, #6366f1' : '#f97316 0%, #ea580c' }} 100%);">
+                                                    </div>
+                                                    <div class="relative w-12 h-12 rounded-xl flex items-center justify-center shadow-lg"
+                                                        style="background: linear-gradient(135deg, {{ $catBalance >= 0 ? 'rgba(59, 130, 246, 0.2) 0%, rgba(99, 102, 241, 0.15)' : 'rgba(249, 115, 22, 0.2) 0%, rgba(234, 88, 12, 0.15)' }} 100%);">
+                                                        <svg class="w-5 h-5 {{ $catBalance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}"
+                                                            fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path stroke-linecap="round" stroke-linejoin="round"
+                                                                stroke-width="2"
+                                                                d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3">
+                                                            </path>
+                                                        </svg>
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <p
+                                                        class="text-xs font-semibold text-gray-600 dark:text-gray-400 uppercase">
+                                                        Saldo</p>
+                                                    <p
+                                                        class="text-lg font-black {{ $catBalance >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-orange-600 dark:text-orange-400' }}">
+                                                        R$ {{ number_format($catBalance, 2, ',', '.') }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Divider -->
+                                            <div
+                                                class="h-16 w-px bg-gradient-to-b from-transparent via-gray-300 dark:via-gray-600 to-transparent">
+                                            </div>
+
+                                            <!-- Direita: Botão Toggle -->
+                                            <button type="button"
+                                                class="category-toggle-btn flex items-center gap-3 px-4 py-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent"
+                                                data-category-id="{{ $index }}" data-expanded="true"
+                                                style="--cat-color: {{ $catColor }};"
+                                                aria-label="Alternar visibilidade da categoria {{ $catName }}">
+
+                                                <span
+                                                    class="text-xs font-semibold text-gray-700 dark:text-gray-300 toggle-label">Ocultar</span>
+
+                                                <!-- Toggle Switch -->
+                                                <div class="relative w-11 h-6 rounded-full transition-colors duration-300 toggle-switch"
+                                                    style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%); --cat-color: {{ $catColor }};">
+                                                    <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb"
+                                                        style="transform: translateX(20px);"></div>
+                                                </div>
+                                            </button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
 
-                            <!-- Transactions List -->
-                            <div x-show="expanded" x-collapse class="border-t border-gray-100 dark:border-gray-700">
-                                <div class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700 dark:to-gray-600 px-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                                    <div class="flex items-center justify-between text-sm">
-                                        <span class="font-semibold text-gray-700 dark:text-gray-200 flex items-center">
-                                            <i class="fas fa-list mr-2"></i>
-                                            Detalhes das Transações
-                                        </span>
-                                        <div class="flex items-center space-x-4">
-                                            <span class="text-gray-600 dark:text-gray-300 flex items-center">
-                                                <i class="fas fa-calculator mr-1"></i>
-                                                {{ count($categoryGroup['transactions']) }} item(s)
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                    <!-- Conteúdo (Grid de transações) -->
+                                    <div
+                                        class="group-transactions-wrapper overflow-hidden transition-all duration-500">
+                                        <div class="px-6 pb-6">
+                                            <div
+                                                class="group-transactions grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ultrawind:grid-cols-6 gap-5">
+                                                @foreach ($categoryGroup['transactions'] as $transaction)
+                                                    @php
+                                                        $value = abs($transaction['value'] ?? 0);
+                                                        $desc = $transaction['description'] ?? '';
+                                                        $transactionDate = isset($transaction['time'])
+                                                            ? $transaction['time']
+                                                            : '';
+                                                        $typeId = $transaction['type_id'] ?? 0;
+                                                        $clientName = $transaction['client_name'] ?? null;
+                                                    @endphp
 
-                                <!-- Grid com 2 colunas para as transações -->
-                                <div class="p-3">
-                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                        @foreach($categoryGroup['transactions'] as $transaction)
-                                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
-                                                <div class="flex items-center justify-between mb-3">
-                                                    <div class="flex items-center space-x-3">
-                                                        <div class="w-10 h-10 rounded-full flex items-center justify-center shadow-md {{ $transaction['type_id'] == 1 ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900' }}">
-                                                            <i class="fas fa-{{ $transaction['type_id'] == 1 ? 'plus' : 'minus' }} text-sm {{ $transaction['type_id'] == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}"></i>
+                                                    <div
+                                                        class="transaction-card group relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 overflow-hidden">
+                                                        <!-- Borda superior colorida com gradiente -->
+                                                        <div class="absolute top-0 left-0 right-0 h-1.5 transition-all duration-300 group-hover:h-2"
+                                                            style="background: linear-gradient(90deg, {{ $catColor }} 0%, {{ $catColor }}aa 100%);">
                                                         </div>
-                                                        <div class="flex-1 min-w-0">
-                                                            <p class="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                                                                {{ $transaction['description'] }}
-                                                            </p>
-                                                            <div class="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                                                                <i class="fas fa-calendar-alt"></i>
-                                                                <span>{{ $transaction['time'] }}</span>
-                                                                @if($transaction['is_pending'])
-                                                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200">
-                                                                        <i class="fas fa-clock mr-1"></i>
-                                                                        Pendente
-                                                                    </span>
-                                                                @endif
+
+                                                        <!-- Conteúdo do card -->
+                                                        <div class="p-4 pt-5 pb-3">
+                                                            <div class="flex items-start justify-between gap-3 mb-3">
+                                                                <!-- Descrição -->
+                                                                <div class="flex-1 min-w-0">
+                                                                    <h4
+                                                                        class="text-base font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 transition-all duration-300">
+                                                                        {{ $desc }}
+                                                                    </h4>
+                                                                    <div
+                                                                        class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                                                                        <svg class="w-3.5 h-3.5" fill="none"
+                                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="2"
+                                                                                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z">
+                                                                            </path>
+                                                                        </svg>
+                                                                        {{ $transactionDate }}
+                                                                    </div>
+                                                                </div>
+
+                                                                <!-- Badge de tipo (receita/despesa) -->
+                                                                <span
+                                                                    class="px-2.5 py-1 text-xs font-bold rounded-lg shadow-md {{ $typeId == 1 ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white' : 'bg-gradient-to-br from-red-500 to-rose-600 text-white' }}">
+                                                                    <i
+                                                                        class="fas {{ $typeId == 1 ? 'fa-arrow-up' : 'fa-arrow-down' }} mr-1"></i>
+                                                                    {{ $typeId == 1 ? 'Receita' : 'Despesa' }}
+                                                                </span>
+                                                            </div>
+
+                                                            <!-- Valor principal -->
+                                                            <div
+                                                                class="mb-3 pb-3 border-b border-gray-200 dark:border-gray-700">
+                                                                <p
+                                                                    class="text-2xl font-black {{ $typeId == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
+                                                                    {{ $typeId == 1 ? '+' : '-' }} R$
+                                                                    {{ number_format($value, 2, ',', '.') }}
+                                                                </p>
+                                                            </div>
+
+                                                            <!-- Cliente (se houver) -->
+                                                            @if ($clientName)
+                                                                <div
+                                                                    class="mb-3 flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
+                                                                    <svg class="w-3.5 h-3.5" fill="none"
+                                                                        stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round"
+                                                                            stroke-linejoin="round" stroke-width="2"
+                                                                            d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                                                        </path>
+                                                                    </svg>
+                                                                    <span
+                                                                        class="font-medium">{{ $clientName }}</span>
+                                                                </div>
+                                                            @endif
+
+                                                            <!-- Actions -->
+                                                            <div class="card-actions">
+                                                                <div
+                                                                    class="flex items-center justify-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+                                                                    <a href="{{ route('cashbook.edit', $transaction['id']) }}"
+                                                                        class="inline-flex items-center gap-2 px-3 py-2 bg-white shadow-md hover:shadow-lg rounded-full border border-gray-100 dark:bg-gray-800/80 dark:border-gray-700 text-blue-600 hover:text-blue-800 transition text-xs font-semibold">
+                                                                        <svg class="w-4 h-4" fill="none"
+                                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="2"
+                                                                                d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z">
+                                                                            </path>
+                                                                        </svg>
+                                                                        <span class="hidden sm:inline">Editar</span>
+                                                                    </a>
+                                                                    <button
+                                                                        wire:click="confirmDelete({{ $transaction['id'] }})"
+                                                                        class="inline-flex items-center gap-2 px-3 py-2 bg-white shadow-md hover:shadow-lg rounded-full border border-gray-100 dark:bg-gray-800/80 dark:border-gray-700 text-red-600 hover:text-red-800 transition text-xs font-semibold">
+                                                                        <svg class="w-4 h-4" fill="none"
+                                                                            stroke="currentColor" viewBox="0 0 24 24">
+                                                                            <path stroke-linecap="round"
+                                                                                stroke-linejoin="round"
+                                                                                stroke-width="2"
+                                                                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
+                                                                            </path>
+                                                                        </svg>
+                                                                        <span class="hidden sm:inline">Excluir</span>
+                                                                    </button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-
-                                                <div class="flex items-center justify-between">
-                                                    <div class="text-right">
-                                                        <span class="text-lg font-bold {{ $transaction['type_id'] == 1 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                                            {{ $transaction['type_id'] == 1 ? '+' : '-' }}R$ {{ number_format($transaction['value'], 2, ',', '.') }}
-                                                        </span>
-                                                    </div>
-                                                    <div class="flex items-center space-x-2">
-                                                        <a href="{{ route('cashbook.edit', ['cashbook' => $transaction['id'], 'return_month' => $month, 'return_year' => $year]) }}"
-                                                           class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900 hover:bg-blue-200 dark:hover:bg-blue-800 flex items-center justify-center text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors duration-200 shadow-md hover:shadow-lg">
-                                                            <i class="fas fa-edit text-xs"></i>
-                                                        </a>
-                                                        <button wire:click="confirmDelete({{ $transaction['id'] }})"
-                                                                class="w-8 h-8 rounded-full bg-red-100 dark:bg-red-900 hover:bg-red-200 dark:hover:bg-red-800 flex items-center justify-center text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 transition-colors duration-200 shadow-md hover:shadow-lg">
-                                                            <i class="fas fa-trash text-xs"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                @if($transaction['note'] || $transaction['client_name'])
-                                                    <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
-                                                        <div class="flex items-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
-                                                            @if($transaction['note'])
-                                                                <div class="flex items-center">
-                                                                    <i class="fas fa-sticky-note mr-1"></i>
-                                                                    <span class="truncate">{{ $transaction['note'] }}</span>
-                                                                </div>
-                                                            @endif
-                                                            @if($transaction['client_name'])
-                                                                <div class="flex items-center">
-                                                                    <i class="fas fa-user mr-1"></i>
-                                                                    <span>{{ $transaction['client_name'] }}</span>
-                                                                </div>
-                                                            @endif
-                                                        </div>
-                                                    </div>
-                                                @endif
+                                                @endforeach
                                             </div>
-                                        @endforeach
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            </div>
                         @empty
-                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-8 text-center">
-                                <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center">
-                                    <i class="fas fa-inbox text-gray-400 dark:text-gray-500 text-2xl"></i>
+                            <!-- Empty State -->
+                            <div
+                                class="relative overflow-hidden bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-gray-100 dark:border-gray-700 p-16 text-center">
+                                <div
+                                    class="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-blue-500/5 to-purple-500/5 rounded-full blur-3xl">
                                 </div>
-                                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Nenhuma transação encontrada</h3>
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">Comece criando uma nova transação ou ajuste os filtros para ver seus dados.</p>
-                                <a href="{{ route('cashbook.create') }}"
-                                   class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-md hover:shadow-lg">
-                                    <i class="fas fa-plus mr-2"></i>
-                                    Criar Primeira Transação
-                                </a>
+                                <div class="relative">
+                                    <div
+                                        class="inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-3xl mb-6 floating-animation">
+                                        <i class="fas fa-book text-6xl text-blue-500 dark:text-blue-400"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-3">
+                                        📖 Nenhuma Transação Encontrada
+                                    </h3>
+                                    <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
+                                        Não há transações registradas para o período selecionado. Comece adicionando uma
+                                        nova transação!
+                                    </p>
+                                    <a href="{{ route('cashbook.create') }}"
+                                        class="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-xl hover:shadow-2xl transform hover:scale-105">
+                                        <i class="fas fa-plus"></i>
+                                        Nova Transação
+                                    </a>
+                                </div>
                             </div>
                         @endforelse
                     </div>
@@ -482,332 +608,317 @@
         </div>
     </div>
 
-    <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
-    @if($showDeleteModal)
-    <div x-data="{ modalOpen: true }"
-         x-show="modalOpen"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-200"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[99999] overflow-y-auto">
-        <!-- Backdrop com blur e gradiente -->
-        <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md"></div>
+    <!-- Delete Confirmation Modal -->
+    @if ($showDeleteModal)
+        <div x-data="{ modalOpen: true }" x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
+            x-transition:leave-end="opacity-0" class="fixed inset-0 z-[99999] overflow-y-auto">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md">
+            </div>
 
-        <!-- Container do Modal -->
-        <div class="flex min-h-full items-center justify-center p-4">
-            <!-- Modal -->
-            <div x-show="modalOpen"
-                 x-transition:enter="transition ease-out duration-300"
-                 x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
-                 x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
-                 x-transition:leave="transition ease-in duration-200"
-                 x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
-                 x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
-                 class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
+            <!-- Modal Container -->
+            <div class="flex min-h-full items-center justify-center p-4">
+                <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
+                    x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
+                    class="relative w-full max-w-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
 
-                <!-- Efeitos visuais de fundo -->
-                <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
-                <div class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl"></div>
-                <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl"></div>
-
-                <!-- Conteúdo do Modal -->
-                <div class="relative z-10">
-                    <!-- Header com ícone animado -->
-                    <div class="text-center pt-8 pb-4">
-                        <div class="relative inline-flex items-center justify-center">
-                            <!-- Círculos de fundo animados -->
-                            <div class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse"></div>
-                            <div class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping"></div>
-
-                            <!-- Ícone principal -->
-                            <div class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                                <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
-                            </div>
-                        </div>
-
-                        <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">Excluir Transação?</h3>
-                        <p class="mt-2 text-sm text-gray-600 dark:text-gray-400">Tem certeza que deseja excluir a transação selecionada? Esta ação é permanente e não pode ser desfeita.</p>
-                        @if($deletingTransaction)
-                            <p class="mt-3 text-sm text-gray-700 dark:text-gray-300"><strong>#{{ $deletingTransaction->id }}</strong> — {{ $deletingTransaction->description ?? 'Sem descrição' }}</p>
-                        @endif
+                    <!-- Efeitos visuais -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
+                    <div
+                        class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl">
                     </div>
 
-                    <!-- Botões de ação -->
-                    <div class="px-6 pb-8 sm:px-10 sm:pb-10 flex items-center justify-center gap-4">
-                        <button wire:click="deleteTransaction" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-2xl shadow-md">
-                            <i class="fas fa-trash"></i>
-                            Confirmar Exclusão
-                        </button>
-                        <button x-on:click="modalOpen = false; $wire.call('cancelDelete')" type="button" class="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-800 dark:text-gray-200 rounded-2xl shadow-sm">
-                            <i class="fas fa-times"></i>
-                            Cancelar
-                        </button>
+                    <!-- Content -->
+                    <div class="relative z-10 p-8">
+                        <div class="text-center">
+                            <div
+                                class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl mb-4 shadow-2xl">
+                                <i class="fas fa-trash-alt text-white text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-2">Excluir Transação?</h3>
+                            <p class="text-gray-600 dark:text-gray-400 mb-6">
+                                Esta ação é permanente e não pode ser desfeita.
+                            </p>
+                            @if ($deletingTransaction)
+                                <p
+                                    class="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/50 rounded-xl p-3 mb-6">
+                                    <strong>#{{ $deletingTransaction->id }}</strong> —
+                                    {{ $deletingTransaction->description ?? 'Sem descrição' }}
+                                </p>
+                            @endif
+                        </div>
+
+                        <div class="flex gap-3">
+                            <button wire:click="$set('showDeleteModal', false)"
+                                class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+                                Cancelar
+                            </button>
+                            <button wire:click="deleteTransaction"
+                                class="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                Excluir
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
     @endif
+
+    <!-- Custom Styles -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .calendar-day {
+            @apply w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer transition-all duration-200 text-sm font-medium;
+        }
+
+        .calendar-day:hover {
+            @apply bg-gray-100 dark:bg-gray-700 transform scale-105;
+        }
+
+        .calendar-day.today {
+            @apply bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg;
+        }
+
+        .calendar-day.selected {
+            @apply bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg transform scale-105;
+        }
+
+        .calendar-day.has-transactions {
+            position: relative;
+        }
+
+        .calendar-day.has-transactions::after {
+            content: '';
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            @apply bg-red-500 shadow-lg;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.7;
+                transform: scale(1.1);
+            }
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .animate-shimmer {
+            animation: shimmer 2s infinite linear;
+            background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+            background-size: 1000px 100%;
+        }
+
+        .shadow-3xl {
+            box-shadow: 0 35px 60px -15px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Estilos dos botões de ação dos cards */
+        .card-actions {
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: opacity 0.3s ease-out, max-height 0.3s ease-out;
+        }
+
+        .transaction-card:hover .card-actions {
+            opacity: 1;
+            max-height: 100px;
+        }
+
+        .cards-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(100, 100, 100, 0.22) transparent;
+        }
+
+        .cards-scroll::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        .cards-scroll::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .cards-scroll::-webkit-scrollbar-thumb {
+            background: rgba(100, 100, 100, 0.18);
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+        }
+
+        /* Estilos para expandir/retrair categorias */
+        .group-transactions-wrapper {
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+        }
+
+        .category-group.expanded .group-transactions-wrapper {
+            max-height: 10000px;
+            opacity: 1;
+        }
+    </style>
 </div>
 
-@push('styles')
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
-    body {
-        font-family: 'Inter', sans-serif;
-    }
-
-    .line-clamp-2 {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }
-
-    .calendar-day {
-        @apply w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer transition-all duration-200 text-xs font-medium;
-    }
-
-    .calendar-day:hover {
-        @apply bg-gray-100 dark:bg-gray-700 transform scale-105;
-    }
-
-    .calendar-day.today {
-        @apply bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg;
-    }
-
-    .calendar-day.selected {
-        @apply bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg transform scale-105;
-    }
-
-    .calendar-day.has-transactions {
-        position: relative;
-    }
-
-    .calendar-day.has-transactions::after {
-        content: '';
-        position: absolute;
-        bottom: 2px;
-        right: 2px;
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        @apply bg-red-500 shadow-lg;
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0%, 100% { opacity: 1; transform: scale(1); }
-        50% { opacity: 0.7; transform: scale(1.1); }
-    }
-
-    .floating-animation {
-        animation: float 6s ease-in-out infinite;
-    }
-
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-    }
-
-    .pulse-glow {
-        animation: pulse-glow 2s infinite;
-    }
-
-    @keyframes pulse-glow {
-        0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-        50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
-    }
-
-    .gradient-border {
-        position: relative;
-        background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
-        border-radius: 1rem;
-        padding: 2px;
-    }
-
-    .gradient-border > div {
-        border-radius: calc(1rem - 2px);
-    }
-
-    /* Transaction Card Interactions */
-    .transaction-card:hover .card-actions {
-        opacity: 1 !important;
-        transform: translateY(0) !important;
-        max-height: 80px !important;
-    }
-
-    .card-actions {
-        max-height: 0 !important;
-        overflow: hidden;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.3s ease-out;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-
-    .transaction-card:hover .card-actions {
-        margin-top: 0.75rem !important;
-        padding-top: 0.75rem !important;
-    }
-
-    .transaction-card.expanded .expand-icon {
-        transform: rotate(180deg);
-    }
-
-    .card-details {
-        max-height: 0;
-        overflow: hidden;
-        margin-top: 0 !important;
-        padding-top: 0 !important;
-        border: none;
-        transition: all 0.3s ease-out;
-    }
-
-    .transaction-card.expanded .card-details {
-        max-height: 200px;
-        margin-top: 1rem !important;
-        padding-top: 1rem !important;
-        border-top: 1px solid rgba(209, 213, 219, 0.5);
-    }
-
-    .dark .transaction-card.expanded .card-details {
-        border-top-color: rgba(75, 85, 99, 0.5);
-    }
-</style>
-@endpush
-
 @push('scripts')
-<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-<script defer src="https://unpkg.com/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
-<script>
-    // Disponibilizar categoryManager no escopo global para Alpine
-    window.categoryManager = function() {
-        return {
-            expandAll() {
-                document.querySelectorAll('[x-data]').forEach(el => {
-                    if (el.__x && el.__x.$data && typeof el.__x.$data.expanded !== 'undefined') {
-                        el.__x.$data.expanded = true;
-                    }
-                });
-            },
-            collapseAll() {
-                document.querySelectorAll('[x-data]').forEach(el => {
-                    if (el.__x && el.__x.$data && typeof el.__x.$data.expanded !== 'undefined') {
-                        el.__x.$data.expanded = false;
-                    }
-                });
-            }
-        }
-    }
-
-    // Enhanced calendar functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        // Add keyboard navigation for calendar
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.key === 'n') {
-                e.preventDefault();
-                window.location.href = '{{ route("cashbook.create") }}';
-            }
-
-            // ESC para limpar filtro
-            if (e.key === 'Escape' && typeof @this !== 'undefined' && @this.selectedDate) {
-                @this.clearDateFilter();
-            }
-
-            // Ctrl+R para recarregar dados
-            if (e.ctrlKey && e.key === 'r') {
-                e.preventDefault();
-                if (typeof @this !== 'undefined' && @this.loadData) {
-                    @this.loadData();
-                    showNotification('🔄 Dados atualizados!', 'success');
-                }
-            }
-        });
-
-        // Add tooltips to calendar days
-        const calendarDays = document.querySelectorAll('.calendar-day');
-        calendarDays.forEach(day => {
-            if (day.classList.contains('has-transactions')) {
-                day.setAttribute('title', 'Clique para filtrar por este dia');
-            }
-        });
-
-        // Initialize dark mode from localStorage
-        if (localStorage.getItem('dark-mode') === 'true') {
-            document.documentElement.classList.add('dark');
-        }
-    });
-
-    // Enhanced UX for date filtering
-    document.addEventListener('livewire:init', function () {
-        if (typeof Livewire !== 'undefined') {
-            Livewire.on('date-filtered', () => {
-                showNotification('📅 Filtro aplicado!', 'info');
-            });
-        }
-    });
-
-    // Auto-refresh data every 5 minutes
-    setInterval(() => {
-        if (document.visibilityState === 'visible' && typeof @this !== 'undefined' && @this.loadData) {
-            @this.loadData();
-        }
-    }, 300000);
-
-    // Dark mode toggle
-    function toggleDarkMode() {
-        document.documentElement.classList.toggle('dark');
-        const isDark = document.documentElement.classList.contains('dark');
-        localStorage.setItem('dark-mode', isDark);
-        showNotification(isDark ? '🌙 Modo escuro ativado' : '☀️ Modo claro ativado', 'info');
-    }
-
-    // Notification system
-    function showNotification(message, type = 'info') {
-        const notification = document.createElement('div');
-        notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 ${
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script>
+        // Notification system
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-[100000] px-6 py-3 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 ${
             type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' :
             type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-600' :
             'bg-gradient-to-r from-blue-500 to-indigo-600'
         }`;
-        notification.innerHTML = message;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.style.opacity = '0';
-            notification.style.transform = 'translateX(400px)';
-            setTimeout(() => notification.remove(), 300);
-        }, 3000);
-    }
-
-    // Add subtle animations on hover
-    document.addEventListener('mouseover', function(e) {
-        if (e.target.classList.contains('calendar-day') && e.target.classList.contains('has-transactions')) {
-            e.target.style.transform = 'scale(1.1)';
+            notification.innerHTML = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateX(400px)';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
         }
-    });
 
-    document.addEventListener('mouseout', function(e) {
-        if (e.target.classList.contains('calendar-day')) {
-            e.target.style.transform = 'scale(1)';
-        }
-    });
+        // Funções globais para expandir/recolher todas (DEVE estar no escopo global)
+        function expandAllCategories() {
+            document.querySelectorAll('.category-group').forEach(group => {
+                const btn = group.querySelector('.category-toggle-btn');
+                if (!btn) return;
 
-    // Adicionar loading states para melhor UX
-    document.addEventListener('livewire:init', () => {
-        if (typeof Livewire !== 'undefined') {
-            Livewire.on('transaction-deleted', () => {
-                // Mostrar notificação de sucesso
-                showNotification('✅ Transação excluída com sucesso!', 'success');
+                const wrapper = group.querySelector('.group-transactions-wrapper');
+                const toggleSwitch = btn.querySelector('.toggle-switch');
+                const toggleThumb = btn.querySelector('.toggle-thumb');
+                const toggleLabel = btn.querySelector('.toggle-label');
+                const catColor = btn.style.getPropertyValue('--cat-color');
+
+                group.classList.add('expanded');
+                setTimeout(() => {
+                    if (wrapper) wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+                }, 50);
+
+                if (toggleThumb) toggleThumb.style.transform = 'translateX(20px)';
+                if (toggleSwitch) toggleSwitch.style.background =
+                    `linear-gradient(135deg, ${catColor} 0%, ${catColor}CC 100%)`;
+                if (toggleLabel) toggleLabel.textContent = 'Ocultar';
+                btn.dataset.expanded = 'true';
             });
         }
-    });
-</script>
+
+        function collapseAllCategories() {
+            document.querySelectorAll('.category-group').forEach(group => {
+                const btn = group.querySelector('.category-toggle-btn');
+                if (!btn) return;
+
+                const toggleSwitch = btn.querySelector('.toggle-switch');
+                const toggleThumb = btn.querySelector('.toggle-thumb');
+                const toggleLabel = btn.querySelector('.toggle-label');
+
+                group.classList.remove('expanded');
+                if (toggleThumb) toggleThumb.style.transform = 'translateX(0)';
+                if (toggleSwitch) toggleSwitch.style.background = '#cbd5e0';
+                if (toggleLabel) toggleLabel.textContent = 'Mostrar';
+                btn.dataset.expanded = 'false';
+            });
+        }
+
+        // Category toggle functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar categorias expandidas
+            setTimeout(() => {
+                document.querySelectorAll('.category-group.expanded').forEach(group => {
+                    const wrapper = group.querySelector('.group-transactions-wrapper');
+                    if (wrapper) {
+                        wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+                        wrapper.style.opacity = '1';
+                    }
+                });
+            }, 100);
+
+            // Toggle de categorias
+            document.querySelectorAll('.category-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const categoryGroup = this.closest('.category-group');
+                    const wrapper = categoryGroup.querySelector('.group-transactions-wrapper');
+                    const isExpanded = this.dataset.expanded === 'true';
+                    const toggleSwitch = this.querySelector('.toggle-switch');
+                    const toggleThumb = this.querySelector('.toggle-thumb');
+                    const toggleLabel = this.querySelector('.toggle-label');
+                    const catColor = this.style.getPropertyValue('--cat-color');
+
+                    if (isExpanded) {
+                        // Colapsar
+                        categoryGroup.classList.remove('expanded');
+                        toggleThumb.style.transform = 'translateX(0)';
+                        toggleSwitch.style.background = '#cbd5e0';
+                        toggleLabel.textContent = 'Mostrar';
+                        this.dataset.expanded = 'false';
+                    } else {
+                        // Expandir
+                        categoryGroup.classList.add('expanded');
+                        setTimeout(() => {
+                            wrapper.style.maxHeight = wrapper.scrollHeight + 'px';
+                        }, 50);
+                        toggleThumb.style.transform = 'translateX(20px)';
+                        toggleSwitch.style.background =
+                            `linear-gradient(135deg, ${catColor} 0%, ${catColor}CC 100%)`;
+                        toggleLabel.textContent = 'Ocultar';
+                        this.dataset.expanded = 'true';
+                    }
+                });
+            });
+        });
+
+        document.addEventListener('livewire:init', () => {
+            Livewire.on('transaction-deleted', () => {
+                showNotification('✅ Transação excluída com sucesso!', 'success');
+            });
+        });
+    </script>
 @endpush
