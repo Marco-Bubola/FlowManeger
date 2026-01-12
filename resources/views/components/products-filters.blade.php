@@ -11,7 +11,8 @@
     'ordem' => '',
     'estoque_filtro' => '',
     'data_filtro' => '',
-    'totalProducts' => 0
+    'totalProducts' => 0,
+    'semEstoque' => false
 ])
 
 <!-- Painel de Filtros Moderno - Estilo Sales Index -->
@@ -115,6 +116,27 @@
                         class="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-slate-700 rounded-xl border-2 transition-all duration-200 {{ $tipo === 'kit' ? 'border-green-500 bg-green-50 dark:bg-green-900/30' : 'border-slate-200 dark:border-slate-600 hover:border-green-300 dark:hover:border-green-500' }}">
                     <i class="bi bi-boxes text-green-500 text-xl"></i>
                     <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Kit</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Coluna 3: Estoque -->
+        <div class="space-y-3">
+            <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center">
+                <i class="bi bi-stack mr-2 text-red-500"></i>
+                Estoque
+            </h4>
+            <div class="grid grid-cols-2 gap-2">
+                <button wire:click="$set('semEstoque', false)"
+                        class="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-slate-700 rounded-xl border-2 transition-all duration-200 {{ !$semEstoque ? 'border-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : 'border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500' }}">
+                    <i class="bi bi-check-circle text-indigo-500 text-xl"></i>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Todos</span>
+                </button>
+
+                <button wire:click="$set('semEstoque', true)"
+                        class="flex flex-col items-center justify-center gap-2 p-3 bg-white dark:bg-slate-700 rounded-xl border-2 transition-all duration-200 {{ $semEstoque ? 'border-red-500 bg-red-50 dark:bg-red-900/30' : 'border-slate-200 dark:border-slate-600 hover:border-red-300 dark:hover:border-red-500' }}">
+                    <i class="bi bi-exclamation-triangle text-red-500 text-xl"></i>
+                    <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Sem Estoque</span>
                 </button>
             </div>
         </div>
