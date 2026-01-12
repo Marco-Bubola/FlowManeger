@@ -318,6 +318,11 @@
                     </div>
                     <!-- Footer Section -->
                     <div class="border-t border-slate-200/50 dark:border-slate-700/50 p-3">
+                        <!-- Notificações -->
+                        <div class="mb-3">
+                            @livewire('components.consortium-notifications')
+                        </div>
+
                         <!-- User Profile -->
                         <div class="mb-3">
                             <button onclick="document.getElementById('userMenu').classList.toggle('hidden')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700 hover:from-slate-200 hover:to-slate-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-200 group">
