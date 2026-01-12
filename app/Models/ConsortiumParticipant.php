@@ -113,7 +113,146 @@ class ConsortiumParticipant extends Model
         return match($this->contemplation_type) {
             'draw' => 'Sorteio',
             'bid' => 'Lance',
+            'payoff' => 'Quitação',
             default => 'N/A',
         };
+    }
+
+    // ========== MÉTODOS AUXILIARES ==========
+
+    /**
+     * Retorna próximas parcelas a vencer (próximos 30 dias)
+     */
+    public function getUpcomingPayments(int $days = 30)
+    {
+        return $this->payments()
+            ->where('status', 'pending')
+            ->where('due_date', '>=', now())
+            ->where('due_date', '<=', now()->addDays($days))
+            ->orderBy('due_date')
+            ->get();
+    }
+
+    /**
+     * Retorna parcelas vencidas
+     */
+    public function getOverduePayments()
+    {
+        return $this->payments()
+            ->where('status', 'pending')
+            ->where('due_date', '<', now())
+            ->orderBy('due_date')
+            ->get();
+    }
+
+    /**
+     * Retorna total em atraso (com juros e multa)
+     */
+    public function getTotalOverdueWithFees(): float
+    {
+        $overduePayments = $this->getOverduePayments();
+
+        return $overduePayments->sum(function ($payment) {
+            return $payment->getTotalAmountWithFees();
+        });
+    }
+
+    /**
+     * Verifica se participante está em dia
+     */
+    public function isUpToDate(): bool
+    {
+        return $this->getOverduePayments()->isEmpty();
+    }
+
+    /**
+     * Retorna estatísticas do participante
+     */
+    public function getStatistics(): array
+    {
+        $allPayments = $this->payments;
+        $overduePayments = $this->getOverduePayments();
+
+        return [
+            'total_payments' => $allPayments->count(),
+            'paid_payments' => $allPayments->where('status', 'paid')->count(),
+            'pending_payments' => $allPayments->where('status', 'pending')->count(),
+            'overdue_payments' => $overduePayments->count(),
+            'total_paid' => $this->total_paid,
+            'total_expected' => $this->consortium->monthly_value * $this->consortium->duration_months,
+            'payment_percentage' => $this->payment_percentage,
+            'total_overdue' => $overduePayments->sum('amount'),
+            'total_overdue_with_fees' => $this->getTotalOverdueWithFees(),
+            'is_up_to_date' => $this->isUpToDate(),
+            'next_payment_date' => $this->payments()
+                ->where('status', 'pending')
+                ->orderBy('due_date')
+                ->first()?->due_date,
+        ];
+    }
+
+    /**
+     * Calcula quantas parcelas faltam pagar
+     */
+    public function getRemainingPayments(): int
+    {
+        return $this->payments()
+            ->whereIn('status', ['pending', 'overdue'])
+            ->count();
+    }
+
+    /**
+     * Calcula valor total que ainda falta pagar
+     */
+    public function getRemainingAmount(): float
+    {
+        return (float) $this->payments()
+            ->whereIn('status', ['pending', 'overdue'])
+            ->sum('amount');
+    }
+
+    /**
+     * Verifica se o participante pode ser contemplado por quitação
+     */
+    public function canBeContemplatedByPayoff(): bool
+    {
+        if ($this->is_contemplated) {
+            return false;
+        }
+
+        // Deve estar ativo
+        if ($this->status !== 'active') {
+            return false;
+        }
+
+        // Deve estar com pagamentos em dia
+        if (!$this->isUpToDate()) {
+            return false;
+        }
+
+        // Deve ter pago pelo menos 50% do valor total
+        $totalExpected = $this->consortium->monthly_value * $this->consortium->duration_months;
+        return $this->payment_percentage >= 50;
+    }
+
+    /**
+     * Retorna o mês/ano da última parcela paga
+     */
+    public function getLastPaymentInfo(): ?array
+    {
+        $lastPayment = $this->payments()
+            ->where('status', 'paid')
+            ->orderBy('payment_date', 'desc')
+            ->first();
+
+        if (!$lastPayment) {
+            return null;
+        }
+
+        return [
+            'date' => $lastPayment->payment_date,
+            'amount' => $lastPayment->amount,
+            'reference' => $lastPayment->reference_month_name . '/' . $lastPayment->reference_year,
+        ];
     }
 }
