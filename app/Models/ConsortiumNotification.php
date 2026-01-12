@@ -13,6 +13,9 @@ class ConsortiumNotification extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
+        'module',
+        'entity_type',
+        'entity_id',
         'consortium_id',
         'user_id',
         'related_participant_id',
@@ -33,7 +36,7 @@ class ConsortiumNotification extends Model
     ];
 
     // ==================== RELATIONSHIPS ====================
-    
+
     public function consortium(): BelongsTo
     {
         return $this->belongsTo(Consortium::class);
@@ -50,7 +53,7 @@ class ConsortiumNotification extends Model
     }
 
     // ==================== SCOPES ====================
-    
+
     /**
      * Scope para notificações não lidas
      */
@@ -99,8 +102,24 @@ class ConsortiumNotification extends Model
         return $query->where('user_id', $userId);
     }
 
+    /**
+     * Scope para notificações de um módulo específico
+     */
+    public function scopeOfModule(Builder $query, string $module): Builder
+    {
+        return $query->where('module', $module);
+    }
+
+    /**
+     * Scope para notificações de uma entidade específica
+     */
+    public function scopeForEntity(Builder $query, string $entityType, int $entityId): Builder
+    {
+        return $query->where('entity_type', $entityType)->where('entity_id', $entityId);
+    }
+
     // ==================== METHODS ====================
-    
+
     /**
      * Marcar notificação como lida
      */
@@ -124,21 +143,28 @@ class ConsortiumNotification extends Model
     }
 
     // ==================== ACCESSORS ====================
-    
+
     /**
-     * Ícone da notificação baseado no tipo
+     * Ícone da notificação baseado no tipo e módulo
      */
     public function getIconAttribute(): string
     {
+        // Ícones específicos por tipo de notificação
         return match($this->type) {
             'draw_available' => 'bi-trophy-fill',
             'redemption_pending' => 'bi-exclamation-triangle-fill',
+            'sale_pending' => 'bi-cart-fill',
+            'sale_completed' => 'bi-check-circle-fill',
+            'payment_overdue' => 'bi-exclamation-circle-fill',
+            'payment_received' => 'bi-cash-coin',
+            'client_new' => 'bi-person-plus-fill',
+            'client_birthday' => 'bi-cake-fill',
             default => 'bi-bell-fill',
         };
     }
 
     /**
-     * Cor da notificação baseado no tipo/prioridade
+     * Cor da notificação baseado no tipo/prioridade/módulo
      */
     public function getColorAttribute(): string
     {
@@ -149,6 +175,12 @@ class ConsortiumNotification extends Model
         return match($this->type) {
             'draw_available' => 'purple',
             'redemption_pending' => 'amber',
+            'sale_pending' => 'orange',
+            'sale_completed' => 'green',
+            'payment_overdue' => 'red',
+            'payment_received' => 'green',
+            'client_new' => 'blue',
+            'client_birthday' => 'pink',
             default => 'blue',
         };
     }
@@ -161,6 +193,12 @@ class ConsortiumNotification extends Model
         return match($this->type) {
             'draw_available' => 'Sorteio Disponível',
             'redemption_pending' => 'Resgate Pendente',
+            'sale_pending' => 'Venda Pendente',
+            'sale_completed' => 'Venda Concluída',
+            'payment_overdue' => 'Pagamento Atrasado',
+            'payment_received' => 'Pagamento Recebido',
+            'client_new' => 'Novo Cliente',
+            'client_birthday' => 'Aniversário de Cliente',
             default => 'Notificação',
         };
     }
@@ -174,13 +212,16 @@ class ConsortiumNotification extends Model
     }
 
     // ==================== STATIC METHODS ====================
-    
+
     /**
      * Criar notificação de sorteio disponível
      */
     public static function createDrawAvailable(Consortium $consortium): self
     {
         return self::create([
+            'module' => 'consortium',
+            'entity_type' => 'Consortium',
+            'entity_id' => $consortium->id,
             'consortium_id' => $consortium->id,
             'user_id' => $consortium->user_id,
             'type' => 'draw_available',
@@ -201,8 +242,11 @@ class ConsortiumNotification extends Model
     public static function createRedemptionPending(ConsortiumParticipant $participant): self
     {
         $daysSinceContemplation = $participant->contemplation->contemplation_date->diffInDays(now());
-        
+
         return self::create([
+            'module' => 'consortium',
+            'entity_type' => 'ConsortiumParticipant',
+            'entity_id' => $participant->id,
             'consortium_id' => $participant->consortium_id,
             'user_id' => $participant->consortium->user_id,
             'related_participant_id' => $participant->id,
@@ -235,6 +279,41 @@ class ConsortiumNotification extends Model
         return self::unread()->forUser($userId)->update([
             'is_read' => true,
             'read_at' => now(),
+        ]);
+    }
+
+    /**
+     * Criar notificação genérica para qualquer módulo
+     *
+     * @param string $module Módulo (consortium, sale, payment, client, etc)
+     * @param string $type Tipo específico (draw_available, payment_overdue, etc)
+     * @param int $userId ID do usuário que receberá a notificação
+     * @param string $title Título da notificação
+     * @param string $message Mensagem detalhada
+     * @param array $options Opções adicionais: priority, action_url, data, entity_type, entity_id
+     * @return self
+     */
+    public static function createGeneric(
+        string $module,
+        string $type,
+        int $userId,
+        string $title,
+        string $message,
+        array $options = []
+    ): self {
+        return self::create([
+            'module' => $module,
+            'entity_type' => $options['entity_type'] ?? null,
+            'entity_id' => $options['entity_id'] ?? null,
+            'consortium_id' => $options['consortium_id'] ?? null,
+            'user_id' => $userId,
+            'related_participant_id' => $options['related_participant_id'] ?? null,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'priority' => $options['priority'] ?? 'medium',
+            'action_url' => $options['action_url'] ?? null,
+            'data' => $options['data'] ?? [],
         ]);
     }
 }
