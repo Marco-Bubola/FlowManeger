@@ -11,6 +11,19 @@
         <x-clients-index-header title="Clientes" :total-clients="$clients->total() ?? 0" :active-clients="$clients->where('status', 'ativo')->count() ?? 0" :premium-clients="$clients->where('type', 'premium')->count() ?? 0" :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
             :show-quick-actions="true">
 
+            <!-- Breadcrumb -->
+            <x-slot name="breadcrumb">
+                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                        <i class="fas fa-home mr-1"></i>Dashboard
+                    </a>
+                    <i class="fas fa-chevron-right text-xs"></i>
+                    <span class="text-slate-800 dark:text-slate-200 font-medium">
+                        <i class="fas fa-users mr-1"></i>Clientes
+                    </span>
+                </div>
+            </x-slot>
+
             <!-- Bloco de Controles Central -->
             <div class="w-full">
                 <div class="flex flex-col gap-4">
@@ -373,264 +386,188 @@
             </div>
         </div>
     @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
             @foreach ($clients as $client)
                 <div x-data="{ expanded: false }"
-                    class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden hover:shadow-xl hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 group relative transform hover:-translate-y-1">
+                    class="bg-slate-800/90 backdrop-blur-sm border border-slate-700 hover:border-purple-500 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group relative">
                     <!-- Checkbox de seleção -->
-                    <div class="absolute top-3 left-3 z-10">
+                    <div class="absolute top-2 left-2 z-10">
                         <input type="checkbox" wire:model.live="selectedClients" value="{{ $client->id }}"
-                            class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-400 bg-white dark:bg-gray-700">
+                            class="rounded border-gray-600 text-purple-600 focus:ring-purple-500 bg-slate-700">
                     </div>
-                    <!-- Header do card com gradiente -->
+                    <!-- Header do card com gradiente - REDUZIDO -->
                     <div
-                        class="h-20 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 relative overflow-hidden">
+                        class="h-16 bg-gradient-to-br from-blue-500 via-purple-500 to-indigo-600 relative overflow-hidden">
                         <div class="absolute inset-0 bg-black opacity-10"></div>
-                        <div class="absolute top-3 right-3">
+                        <div class="absolute top-2 right-2">
                             @if ($client->sales->count() >= 10)
                                 <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow-lg">
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-yellow-400 to-orange-500 text-white shadow">
                                     <i class="bi bi-crown mr-1"></i>VIP
                                 </span>
                             @elseif($client->sales->count() >= 5)
                                 <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg">
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow">
                                     <i class="bi bi-star mr-1"></i>Premium
                                 </span>
                             @else
                                 <span
-                                    class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg">
+                                    class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow">
                                     <i class="bi bi-person mr-1"></i>Padrão
                                 </span>
                             @endif
                         </div>
-                        <!-- Pattern decorativo -->
-                        <div class="absolute -top-4 -right-4 w-16 h-16 bg-white opacity-10 rounded-full"></div>
-                        <div class="absolute -bottom-2 -left-2 w-12 h-12 bg-white opacity-10 rounded-full"></div>
-
-                        <!-- ID do Cliente -->
-                        <div class="absolute top-3 left-3">
-                            <span
-                                class="inline-flex items-center px-2 py-1 rounded-md text-xs font-mono bg-white/20 text-white border border-white/30">
-                                ID: {{ $client->id }}
-                            </span>
-                        </div>
                     </div>
 
-                    <!-- Avatar centralizado -->
-                    <div class="flex justify-center -mt-10 mb-4 relative z-10">
+                    <!-- Avatar centralizado - REDUZIDO -->
+                    <div class="flex justify-center -mt-8 mb-2 relative z-10">
                         <div class="relative">
                             <img src="{{ $client->caminho_foto }}" alt="Avatar de {{ $client->name }}"
-                                class="w-20 h-20 rounded-full border-4 border-white dark:border-gray-800 shadow-xl group-hover:scale-110 transition-transform duration-300">
+                                class="w-16 h-16 rounded-full border-4 border-slate-800 shadow-xl group-hover:scale-105 transition-transform duration-200">
                             <div
-                                class="absolute -bottom-1 -right-1 w-6 h-6 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-2 border-white dark:border-gray-800 shadow-lg">
+                                class="absolute -bottom-1 -right-1 w-5 h-5 bg-gradient-to-r from-green-400 to-green-600 rounded-full border-2 border-slate-800 shadow">
                             </div>
                         </div>
                     </div>
 
-                    <!-- Informações do cliente -->
-                    <div class="px-6 pb-6">
-                        <!-- Nome e data -->
-                        <div class="text-center mb-4">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1">{{ $client->name }}</h3>
-                            <div
-                                class="flex items-center justify-center space-x-4 text-xs text-gray-500 dark:text-gray-400">
+                    <!-- Informações do cliente - COMPACTO -->
+                    <div class="px-4 pb-4">
+                        <!-- Nome - REDUZIDO -->
+                        <div class="text-center mb-2">
+                            <h3 class="text-base font-bold text-white truncate">{{ $client->name }}</h3>
+                            <div class="flex items-center justify-center gap-2 text-xs text-gray-400">
                                 <span class="flex items-center">
-                                    <i class="bi bi-calendar-plus mr-1"></i>
-                                    {{ $client->created_at->format('d/m/Y') }}
+                                    <i class="bi bi-envelope text-xs mr-1"></i>
+                                    <span class="truncate max-w-[120px]">{{ $client->email ?: 'N/A' }}</span>
                                 </span>
-                                <span class="flex items-center">
-                                    <i class="bi bi-clock mr-1"></i>
-                                    {{ $client->created_at->diffForHumans() }}
-                                </span>
+                            </div>
+                            <div class="flex items-center justify-center text-xs text-gray-400 mt-1">
+                                <i class="bi bi-telephone text-xs mr-1"></i>
+                                {{ $client->phone ?: 'N/A' }}
                             </div>
                         </div>
 
-                        <!-- Informações de contato expandidas -->
-                        <div class="space-y-2 mb-4">
-                            <div class="text-center">
-                                <button @click="expanded = !expanded" class="text-xs text-blue-500 hover:underline">
-                                    <span x-show="!expanded">Mostrar detalhes</span>
-                                    <span x-show="expanded">Ocultar detalhes</span>
-                                </button>
+                        <!-- Estatísticas COMPACTAS - NOVO DESIGN MELHORADO -->
+                        <div class="grid grid-cols-2 gap-3 py-3 mb-3">
+                            <!-- Vendas -->
+                            <div class="relative bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20 rounded-xl p-3 hover:border-blue-400 transition-all duration-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
+                                        <i class="bi bi-cart3 text-white text-sm"></i>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-blue-400 uppercase tracking-wide">Vendas</span>
+                                </div>
+                                <p class="text-xl font-bold text-white mb-0.5">
+                                    {{ $client->sales->count() }}
+                                </p>
+                                <p class="text-[10px] text-gray-400 font-medium">
+                                    R$ {{ number_format($client->sales->sum('total_price'), 0, ',', '.') }}
+                                </p>
                             </div>
 
-                            <div x-show="expanded" x-collapse>
-                                <div
-                                    class="flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2">
-                                    <div
-                                        class="w-8 h-8 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                                        <i class="bi bi-envelope text-blue-600 dark:text-blue-400 text-xs"></i>
+                            <!-- Consórcios -->
+                            <div class="relative bg-gradient-to-br from-green-500/10 to-teal-500/10 border border-green-500/20 rounded-xl p-3 hover:border-green-400 transition-all duration-200">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shadow-lg">
+                                        <i class="bi bi-building text-white text-sm"></i>
                                     </div>
-                                    <span class="truncate">{{ $client->email ?: 'Não informado' }}</span>
-                                    @if ($client->email)
-                                        <button
-                                            class="ml-auto p-1 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
-                                            title="Copiar email">
-                                            <i class="bi bi-copy text-xs"></i>
-                                        </button>
-                                    @endif
+                                    <span class="text-[10px] font-semibold text-green-400 uppercase tracking-wide">Consórcios</span>
                                 </div>
-                                <div
-                                    class="flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 mt-2">
-                                    <div
-                                        class="w-8 h-8 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                                        <i class="bi bi-telephone text-green-600 dark:text-green-400 text-xs"></i>
-                                    </div>
-                                    <span>{{ $client->phone ?: 'Não informado' }}</span>
-                                    @if ($client->phone)
-                                        <a href="tel:{{ $client->phone }}"
-                                            class="ml-auto p-1 text-gray-400 hover:text-green-600 dark:hover:text-green-400"
-                                            title="Ligar">
-                                            <i class="bi bi-telephone-fill text-xs"></i>
-                                        </a>
-                                    @endif
-                                </div>
-                                <div
-                                    class="flex items-center text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-2 mt-2">
-                                    <div
-                                        class="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-3 flex-shrink-0">
-                                        <i class="bi bi-geo-alt text-purple-600 dark:text-purple-400 text-xs"></i>
-                                    </div>
-                                    <span class="truncate">{{ $client->address ?: 'Não informado' }}</span>
-                                    @if ($client->address)
-                                        <button
-                                            class="ml-auto p-1 text-gray-400 hover:text-purple-600 dark:hover:text-purple-400"
-                                            title="Ver no mapa">
-                                            <i class="bi bi-map text-xs"></i>
-                                        </button>
-                                    @endif
-                                </div>
+                                <p class="text-xl font-bold text-white mb-0.5">
+                                    {{ $client->consortiumParticipants ? $client->consortiumParticipants->count() : 0 }}
+                                </p>
+                                <p class="text-[10px] text-gray-400 font-medium">
+                                    {{ $client->consortiumParticipants ? $client->consortiumParticipants->where('status', 'active')->count() : 0 }} ativos
+                                </p>
                             </div>
                         </div>
 
-                        <!-- Estatísticas melhoradas -->
-                        <div
-                            class="bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-700/50 dark:to-blue-900/20 rounded-xl p-4 mb-5 border border-gray-100 dark:border-gray-600">
-                            <div class="grid grid-cols-2 gap-4 mb-3">
-                                <div class="text-center">
-                                    <div
-                                        class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
-                                        <i class="bi bi-cart text-white"></i>
-                                    </div>
-                                    <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                        {{ $client->sales->count() }}</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">
-                                        {{ $client->sales->count() === 1 ? 'Compra' : 'Compras' }}
-                                    </p>
-                                </div>
-                                <div class="text-center">
-                                    <div
-                                        class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center mx-auto mb-2 shadow-lg">
-                                        <i class="bi bi-currency-dollar text-white"></i>
-                                    </div>
-                                    <p class="text-lg font-bold text-green-600 dark:text-green-400">R$
-                                        {{ number_format($client->sales->sum('total_price'), 0, ',', '.') }}</p>
-                                    <p class="text-xs text-gray-600 dark:text-gray-400 font-medium">Total Gasto</p>
-                                </div>
-                            </div>
-
-                            <!-- Métricas adicionais -->
-                            <div class="grid grid-cols-2 gap-2 text-xs">
-                                <div class="bg-white dark:bg-gray-800/50 rounded-lg p-2 text-center">
-                                    <p class="font-semibold text-orange-600 dark:text-orange-400">
-                                        R$
-                                        {{ $client->sales->count() > 0 ? number_format($client->sales->sum('total_price') / $client->sales->count(), 0, ',', '.') : '0' }}
-                                    </p>
-                                    <p class="text-gray-500 dark:text-gray-400">Ticket Médio</p>
-                                </div>
-                                <div class="bg-white dark:bg-gray-800/50 rounded-lg p-2 text-center">
-                                    <p class="font-semibold text-purple-600 dark:text-purple-400">
-                                        {{ $client->created_at->diffInDays(now()) }}d
-                                    </p>
-                                    <p class="text-gray-500 dark:text-gray-400">Como Cliente</p>
-                                </div>
-                            </div>
-
-                            @if ($client->sales->count() > 0)
-                                <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-600">
-                                    <div class="flex items-center justify-between text-xs">
-                                        <span class="flex items-center text-gray-500 dark:text-gray-400">
-                                            <i class="bi bi-clock mr-1"></i>
-                                            Última compra:
-                                        </span>
-                                        <span
-                                            class="font-semibold text-gray-700 dark:text-gray-300">{{ $client->sales->sortByDesc('created_at')->first()?->created_at?->diffForHumans() ?? 'N/A' }}</span>
-                                    </div>
-                                    <div class="flex items-center justify-between text-xs mt-1">
-                                        <span class="flex items-center text-gray-500 dark:text-gray-400">
-                                            <i class="bi bi-activity mr-1"></i>
-                                            Status:
-                                        </span>
-                                        <span
-                                            class="font-semibold {{ $client->sales->where('created_at', '>=', now()->subDays(30))->count() > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' }}">
-                                            {{ $client->sales->where('created_at', '>=', now()->subDays(30))->count() > 0 ? 'Ativo' : 'Inativo' }}
-                                        </span>
-                                    </div>
-                                </div>
+                        <!-- 3 BOTÕES DE DASHBOARD NA MESMA LINHA - NOVO -->
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <a href="{{ route('clients.dashboard', $client->id) }}"
+                                class="flex flex-col items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-white bg-gradient-to-br from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                <i class="bi bi-speedometer2 mb-1"></i>
+                                <span class="text-[10px]">Dashboard</span>
+                            </a>
+                            <a href="{{ route('clients.resumo', $client->id) }}"
+                                class="flex flex-col items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-white bg-gradient-to-br from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                <i class="bi bi-graph-up mb-1"></i>
+                                <span class="text-[10px]">Resumo</span>
+                            </a>
+                            @if($client->consortiumParticipants && $client->consortiumParticipants->count() > 0)
+                            <a href="{{ route('clients.consortiums', $client->id) }}"
+                                class="flex flex-col items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-white bg-gradient-to-br from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                <i class="bi bi-building mb-1"></i>
+                                <span class="text-[10px]">Consórcio</span>
+                            </a>
+                            @else
+                            <button disabled
+                                class="flex flex-col items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-gray-500 bg-slate-700/50 cursor-not-allowed opacity-60">
+                                <i class="bi bi-building mb-1"></i>
+                                <span class="text-[10px]">Consórcio</span>
+                            </button>
                             @endif
                         </div>
 
-                        <!-- Ações redesenhadas -->
-                        <div class="space-y-3">
-                            <a href="{{ route('clients.dashboard', $client->id) }}"
-                                class="w-full flex items-center justify-center px-4 py-2.5 text-sm font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 relative">
-                                <i class="bi bi-speedometer2 mr-2"></i>
-                                Ver Dashboard Completo
-                                <span
-                                    class="absolute -top-1 -right-1 bg-gradient-to-r from-orange-400 to-red-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full shadow-lg animate-bounce">
-                                    NOVO
-                                </span>
+                        <!-- Ações Secundárias - COMPACTO -->
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                            <a href="{{ route('clients.edit', $client->id) }}"
+                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-gray-300 bg-slate-700 hover:bg-slate-600 border border-slate-600 transition-all duration-200"
+                                title="Editar">
+                                <i class="bi bi-pencil"></i>
                             </a>
+                            <a href="mailto:{{ $client->email }}"
+                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-blue-400 bg-blue-900/20 hover:bg-blue-900/30 border border-blue-700 transition-all duration-200"
+                                title="Email">
+                                <i class="bi bi-envelope"></i>
+                            </a>
+                            @if ($client->sales->count() == 0)
+                            <button wire:click="confirmDelete({{ $client->id }})"
+                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-red-400 bg-red-900/20 hover:bg-red-900/30 border border-red-700 transition-all duration-200"
+                                title="Excluir">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            @else
+                            <button disabled
+                                class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-gray-500 bg-slate-700/50 cursor-not-allowed opacity-50"
+                                title="Cliente com vendas não pode ser excluído">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            @endif
+                        </div>
 
-                            <div class="grid grid-cols-4 gap-2">
-                                <a href="{{ route('clients.resumo', $client->id) }}"
-                                    class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-indigo-700 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 border border-indigo-200 dark:border-indigo-700 transition-all duration-200"
-                                    title="Ver Resumo Detalhado">
-                                    <i class="bi bi-graph-up"></i>
-                                </a>
-                                <a href="{{ route('clients.edit', $client->id) }}"
-                                    class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 transition-all duration-200"
-                                    title="Editar Informações">
-                                    <i class="bi bi-pencil"></i>
-                                </a>
-                                <a href="mailto:{{ $client->email }}"
-                                    class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 border border-blue-200 dark:border-blue-700 transition-all duration-200"
-                                    title="Enviar E-mail">
-                                    <i class="bi bi-envelope"></i>
-                                </a>
-                                @if ($client->sales->count() == 0)
-                                    <button wire:click="confirmDelete({{ $client->id }})"
-                                        class="flex items-center justify-center px-2 py-2 text-xs font-medium rounded-lg text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/30 border border-red-200 dark:border-red-700 transition-all duration-200"
-                                        title="Excluir Cliente">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                @endif
-                            </div>
+                        <!-- Ações Rápidas - LINHA 2 -->
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button wire:click="openExportModal({{ $client->id }})"
+                                class="flex items-center justify-center px-3 py-2 text-purple-400 bg-purple-900/20 hover:bg-purple-900/30 rounded-lg border border-purple-700 transition-all duration-200">
+                                <i class="bi bi-download mr-1.5"></i>
+                                Export
+                            </button>
+                            @if($client->phone)
+                            <a href="https://wa.me/55{{ preg_replace('/[^0-9]/', '', $client->phone) }}?text={{ urlencode('Olá ' . $client->name . ', tudo bem?') }}"
+                                target="_blank"
+                                class="flex items-center justify-center px-3 py-2 text-green-400 bg-green-900/20 hover:bg-green-900/30 rounded-lg border border-green-700 transition-all duration-200">
+                                <i class="bi bi-whatsapp mr-1.5"></i>
+                                WhatsApp
+                            </a>
+                            @else
+                            <button disabled
+                                class="flex items-center justify-center px-3 py-2 text-gray-500 bg-slate-700/50 rounded-lg cursor-not-allowed opacity-50">
+                                <i class="bi bi-whatsapp mr-1.5"></i>
+                                WhatsApp
+                            </button>
+                            @endif
+                        </div>
 
-                            <!-- Ações rápidas -->
-                            <div class="pt-2 border-t border-gray-200 dark:border-gray-600">
-                                <div class="grid grid-cols-2 gap-2 text-xs">
-                                    <button
-                                        class="flex items-center justify-center px-3 py-1.5 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200">
-                                        <i class="bi bi-whatsapp mr-1 text-green-600"></i>
-                                        WhatsApp
-                                    </button>
-                                    <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
-                                        class="flex items-center justify-center px-3 py-1.5 text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50 rounded-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors duration-200"
-                                        title="Nova Venda para {{ $client->name }}">
-                                        <i class="bi bi-plus-circle mr-1 text-blue-600"></i>
-                                        Nova Venda
-                                    </a>
- </div>
-                                </div>
-                            </div>
                         </div>
                     </div>
             @endforeach
         </div>
     @endif
 </div>
+
+{{-- Incluir Modais de Export (um para cada cliente) --}}
+@include('livewire.clients._export-modal')
 
 <!-- Modal de Confirmação de Exclusão -->
 <div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
