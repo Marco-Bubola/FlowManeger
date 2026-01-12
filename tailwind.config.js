@@ -10,10 +10,11 @@ module.exports = {
   theme: {
     extend: {
       screens: {
-        // Breakpoint personalizado para telas ultra-wide
-        // Ajuste o valor se quiser outra largura mínima
-        // Definido para 2498px conforme preferência do cliente
-        ultrawind: '2498px',
+        // Breakpoints personalizados para diferentes larguras
+        '3xl': '1920px',  // Full HD
+        '4xl': '2560px',  // 2K/QHD
+        '5xl': '3440px',  // Ultrawide
+        ultrawind: '2498px', // Breakpoint customizado original
       },
     },
   },
