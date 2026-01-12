@@ -4,11 +4,17 @@ namespace App\Livewire\Clients;
 
 use App\Models\Client;
 use App\Models\Sale;
+use App\Models\ConsortiumParticipant;
+use App\Exports\VendaDetalhadaExport;
+use App\Exports\ConsortiumParticipantExport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
+use Maatwebsite\Excel\Facades\Excel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ClientsIndex extends Component
 {
@@ -42,6 +48,10 @@ class ClientsIndex extends Component
     public bool $showDeleteModal = false;
     public $deletingClient = null;
     public $clientToDelete = null;
+
+    // Modal de export
+    public bool $showExportModal = false;
+    public $selectedClientForExport = null;
 
     // Estatísticas financeiras
     public $totalClients = 0;
@@ -237,6 +247,19 @@ class ClientsIndex extends Component
     {
         $this->reset(['search', 'filter', 'statusFilter', 'periodFilter', 'minValue', 'maxValue', 'minSales', 'maxSales']);
         $this->resetPage();
+    }
+
+    // Métodos para controle do modal de export
+    public function openExportModal($clientId): void
+    {
+        $this->selectedClientForExport = Client::with(['sales', 'consortiumParticipants.consortium'])->find($clientId);
+        $this->showExportModal = true;
+    }
+
+    public function closeExportModal(): void
+    {
+        $this->showExportModal = false;
+        $this->selectedClientForExport = null;
     }
 
     public function exportClients(): void
@@ -457,7 +480,7 @@ class ClientsIndex extends Component
                 break;
         }
 
-        $clients = $query->with('sales')->paginate($this->perPage);
+        $clients = $query->with(['sales', 'consortiumParticipants'])->paginate($this->perPage);
 
         return view('livewire.clients.clients-index', [
             'clients' => $clients
@@ -554,5 +577,134 @@ class ClientsIndex extends Component
         return Client::where('user_id', Auth::id())
                     ->where('created_at', '>=', now()->startOfMonth())
                     ->count();
+    }
+
+    /**
+     * Export venda específica em PDF
+     */
+    public function exportSalePDF($saleId)
+    {
+        try {
+            $sale = Sale::with([
+                'client',
+                'saleItems.product',
+                'payments',
+                'parcelasVenda'
+            ])->findOrFail($saleId);
+
+            // Verificar se a venda pertence a um cliente do usuário autenticado
+            if ($sale->client->user_id !== Auth::id()) {
+                session()->flash('error', 'Você não tem permissão para exportar esta venda.');
+                return;
+            }
+
+            $pdf = Pdf::loadView('pdfs.sale', compact('sale'));
+
+            $clientName = preg_replace('/[^A-Za-z0-9_\-]/', '_', $sale->client->name);
+            $filename = $clientName . '_' . now()->format('Y-m-d_H-i-s') . '.pdf';
+            return response()->streamDownload(function() use ($pdf) {
+                echo $pdf->output();
+            }, $filename);
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar venda PDF: ' . $e->getMessage(), [
+                'sale_id' => $saleId,
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            session()->flash('error', 'Erro ao gerar PDF da venda. Tente novamente.');
+        }
+    }
+
+    /**
+     * Export venda específica em Excel
+     */
+    public function exportSaleExcel($saleId)
+    {
+        try {
+            $sale = Sale::with('client')->findOrFail($saleId);
+
+            // Verificar permissão
+            if ($sale->client->user_id !== Auth::id()) {
+                session()->flash('error', 'Você não tem permissão para exportar esta venda.');
+                return;
+            }
+
+            return Excel::download(
+                new VendaDetalhadaExport($saleId),
+                "venda-{$saleId}-" . now()->format('Y-m-d') . ".xlsx"
+            );
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar venda Excel: ' . $e->getMessage(), [
+                'sale_id' => $saleId,
+                'user_id' => Auth::id()
+            ]);
+            session()->flash('error', 'Erro ao gerar Excel da venda. Tente novamente.');
+        }
+    }
+
+    /**
+     * Export consórcio do participante em PDF
+     */
+    public function exportConsortiumPDF($participantId)
+    {
+        try {
+            $participant = ConsortiumParticipant::with([
+                'consortium',
+                'client',
+                'payments'
+            ])->findOrFail($participantId);
+
+            // Verificar permissão
+            if ($participant->client->user_id !== Auth::id()) {
+                session()->flash('error', 'Você não tem permissão para exportar este consórcio.');
+                return;
+            }
+
+            $pdf = Pdf::loadView('exports.consortium-participant-pdf', [
+                'participant' => $participant
+            ])->setPaper('a4', 'portrait');
+
+            return response()->streamDownload(function() use ($pdf) {
+                echo $pdf->output();
+            }, "consorcio-participante-{$participantId}-" . now()->format('Y-m-d') . ".pdf");
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar consórcio PDF: ' . $e->getMessage(), [
+                'participant_id' => $participantId,
+                'user_id' => Auth::id(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            session()->flash('error', 'Erro ao gerar PDF do consórcio. Tente novamente.');
+        }
+    }
+
+    /**
+     * Export consórcio do participante em Excel
+     */
+    public function exportConsortiumExcel($participantId)
+    {
+        try {
+            $participant = ConsortiumParticipant::with('client')->findOrFail($participantId);
+
+            // Verificar permissão
+            if ($participant->client->user_id !== Auth::id()) {
+                session()->flash('error', 'Você não tem permissão para exportar este consórcio.');
+                return;
+            }
+
+            return Excel::download(
+                new ConsortiumParticipantExport($participantId),
+                "consorcio-participante-{$participantId}-" . now()->format('Y-m-d') . ".xlsx"
+            );
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao exportar consórcio Excel: ' . $e->getMessage(), [
+                'participant_id' => $participantId,
+                'user_id' => Auth::id()
+            ]);
+            session()->flash('error', 'Erro ao gerar Excel do consórcio. Tente novamente.');
+        }
     }
 }
