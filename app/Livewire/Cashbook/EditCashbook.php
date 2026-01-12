@@ -101,22 +101,67 @@ class EditCashbook extends Component
 
     public function loadData()
     {
-        $this->categories = Category::where('user_id', Auth::id())
-            ->where('type', 'transaction')
-            ->orderBy('name')
-            ->get();
+        $userId = Auth::id();
+
+        // Get recent category IDs from user's cashbook, ordered by most recent transaction
+        $recentCategoryIds = Cashbook::where('user_id', $userId)
+            ->whereNotNull('category_id')
+            ->select('category_id')
+            ->groupBy('category_id')
+            ->orderByRaw('MAX(created_at) DESC')
+            ->pluck('category_id')
+            ->toArray();
+
+        if (!empty($recentCategoryIds)) {
+            $categoryOrderBy = 'CASE ';
+            foreach ($recentCategoryIds as $index => $id) {
+                $categoryOrderBy .= "WHEN id_category = {$id} THEN {$index} ";
+            }
+            $categoryOrderBy .= 'ELSE ' . (count($recentCategoryIds) + 1) . ' END, name ASC';
+            
+            $this->categories = Category::where('user_id', $userId)
+                ->where('type', 'transaction')
+                ->orderByRaw($categoryOrderBy)
+                ->get();
+        } else {
+            $this->categories = Category::where('user_id', $userId)
+                ->where('type', 'transaction')
+                ->orderBy('name')
+                ->get();
+        }
 
         $this->types = Type::orderBy('desc_type')->get();
 
-        $this->segments = Segment::where('user_id', Auth::id())
+        $this->segments = Segment::where('user_id', $userId)
             ->orderBy('name')
             ->get();
 
-        $this->clients = Client::where('user_id', Auth::id())
-            ->orderBy('name')
-            ->get();
+        // Get recent client IDs from user's cashbook, ordered by most recent transaction
+        $recentClientIds = Cashbook::where('user_id', $userId)
+            ->whereNotNull('client_id')
+            ->select('client_id')
+            ->groupBy('client_id')
+            ->orderByRaw('MAX(created_at) DESC')
+            ->pluck('client_id')
+            ->toArray();
+        
+        if (!empty($recentClientIds)) {
+            $clientOrderBy = 'CASE ';
+            foreach ($recentClientIds as $index => $id) {
+                $clientOrderBy .= "WHEN id = {$id} THEN {$index} ";
+            }
+            $clientOrderBy .= 'ELSE ' . (count($recentClientIds) + 1) . ' END, name ASC';
 
-        $this->cofrinhos = Cofrinho::where('user_id', Auth::id())
+            $this->clients = Client::where('user_id', $userId)
+                ->orderByRaw($clientOrderBy)
+                ->get();
+        } else {
+            $this->clients = Client::where('user_id', $userId)
+                ->orderBy('name')
+                ->get();
+        }
+
+        $this->cofrinhos = Cofrinho::where('user_id', $userId)
             ->orderBy('nome')
             ->get();
     }
