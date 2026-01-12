@@ -83,6 +83,15 @@ use App\Livewire\Cofrinhos\CreateCofrinho;
 use App\Livewire\Cofrinhos\EditCofrinho;
 use App\Livewire\Cofrinhos\ShowCofrinho;
 
+// Importar componentes Livewire de consórcios
+use App\Livewire\Consortiums\ConsortiumsIndex;
+use App\Livewire\Consortiums\CreateConsortium;
+use App\Livewire\Consortiums\EditConsortium;
+use App\Livewire\Consortiums\ShowConsortium;
+use App\Livewire\Consortiums\ConsortiumDraw;
+use App\Livewire\Consortiums\AddContemplationProducts;
+use App\Livewire\Consortiums\AddParticipants;
+
 use App\Http\Controllers\UploadCashbookController;
 use App\Http\Controllers\ClienteResumoController;
 
@@ -185,6 +194,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cofrinhos/create', CreateCofrinho::class)->name('cofrinhos.create');
     Route::get('/cofrinhos/{cofrinho}/edit', EditCofrinho::class)->name('cofrinhos.edit');
     Route::get('/cofrinhos/{cofrinho}', ShowCofrinho::class)->name('cofrinhos.show');
+
+    // --- Rotas de Consórcios (Livewire) ---
+    Route::get('/consortiums', ConsortiumsIndex::class)->name('consortiums.index');
+    Route::get('/consortiums/create', CreateConsortium::class)->name('consortiums.create');
+    Route::get('/consortiums/{consortium}/edit', EditConsortium::class)->name('consortiums.edit');
+    Route::get('/consortiums/{consortium}', ShowConsortium::class)->name('consortiums.show');
+    Route::get('/consortiums/{consortium}/draw', ConsortiumDraw::class)->name('consortiums.draw');
+    Route::get('/consortiums/{consortium}/add-participants', AddParticipants::class)->name('consortiums.add-participants');
+    Route::get('/consortiums/contemplation/{contemplation}/products', AddContemplationProducts::class)->name('consortiums.contemplation.products');
+    Route::get('/clients/{client}/consortiums', \App\Livewire\Consortiums\ShowClientConsortiums::class)->name('clients.consortiums');
 
     // --- Rotas de Settings (Livewire Volt) ---
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
