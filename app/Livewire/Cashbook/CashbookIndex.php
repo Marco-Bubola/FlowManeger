@@ -51,6 +51,9 @@ class CashbookIndex extends Component
     public string $dateEnd = '';
     public int $perPage = 15;
 
+    // Propriedade para data selecionada no calendário
+    public ?string $selectedDate = null;
+
     // Resumos para exibição no header
     public int $transactionsCount = 0;
     public float $totalBalance = 0.0;
@@ -125,7 +128,7 @@ class CashbookIndex extends Component
 
         // Agrupar transações por dia
         $transactionsByDay = $transactions->groupBy(function($transaction) {
-            return Carbon::parse($transaction->date)->format('j');
+            return Carbon::parse($transaction->date)->format('Y-m-d');
         });
 
         // Preparar dados do calendário
@@ -148,10 +151,11 @@ class CashbookIndex extends Component
         for ($day = $startOfWeek->copy(); $day <= $endOfWeek; $day->addDay()) {
             $dayNumber = $day->format('j');
             $isCurrentMonth = $day->month === $date->month;
+            $dateString = $day->format('Y-m-d');
 
             $dayData = [
                 'day' => $dayNumber,
-                'date' => $day->format('Y-m-d'),
+                'date' => $dateString,
                 'is_current_month' => $isCurrentMonth,
                 'is_today' => $day->isToday(),
                 'is_weekend' => $day->isWeekend(),
@@ -162,8 +166,8 @@ class CashbookIndex extends Component
                 'transaction_count' => 0
             ];
 
-            if ($isCurrentMonth && isset($transactionsByDay[$dayNumber])) {
-                $dayTransactions = $transactionsByDay[$dayNumber];
+            if ($isCurrentMonth && isset($transactionsByDay[$dateString])) {
+                $dayTransactions = $transactionsByDay[$dateString];
                 $dayData['transaction_count'] = $dayTransactions->count();
                 $dayData['has_income'] = $dayTransactions->where('type_id', 1)->count() > 0;
                 $dayData['has_expense'] = $dayTransactions->where('type_id', 2)->count() > 0;
@@ -180,6 +184,49 @@ class CashbookIndex extends Component
         }
 
         $this->calendarData = $weeks;
+    }
+
+    /**
+     * Gera os dados do calendário no formato esperado pela view
+     */
+    public function getCalendarDaysProperty()
+    {
+        $date = Carbon::create($this->year, $this->month, 1);
+        $firstDay = $date->copy()->startOfMonth();
+        $lastDay = $date->copy()->endOfMonth();
+        $startOfWeek = $firstDay->copy()->startOfWeek(Carbon::SUNDAY);
+        $endOfWeek = $lastDay->copy()->endOfWeek(Carbon::SATURDAY);
+
+        // Obter todas as transações do mês
+        $transactions = Cashbook::where('user_id', Auth::id())
+            ->whereYear('date', $date->year)
+            ->whereMonth('date', $date->month)
+            ->get();
+
+        // Agrupar por data
+        $transactionsByDate = $transactions->groupBy(function($transaction) {
+            return Carbon::parse($transaction->date)->format('Y-m-d');
+        });
+
+        $calendarDays = [];
+
+        for ($day = $startOfWeek->copy(); $day <= $endOfWeek; $day->addDay()) {
+            $dateString = $day->format('Y-m-d');
+            $isCurrentMonth = $day->month === $date->month;
+            $hasTransactions = isset($transactionsByDate[$dateString]);
+
+            $calendarDays[] = [
+                'day' => $isCurrentMonth ? $day->day : null,
+                'date' => $dateString,
+                'isToday' => $day->isToday(),
+                'isSelected' => $this->dateStart === $dateString,
+                'hasTransactions' => $hasTransactions && $isCurrentMonth,
+                'transactionsCount' => $hasTransactions ? $transactionsByDate[$dateString]->count() : 0,
+                'isCurrentMonth' => $isCurrentMonth,
+            ];
+        }
+
+        return $calendarDays;
     }
 
     public function loadCategories(): void
@@ -313,21 +360,31 @@ class CashbookIndex extends Component
             'balance' => $transactions->where('type_id', 1)->sum('value') - $transactions->where('type_id', 2)->sum('value'),
         ];
 
-        // Agrupar transações por categoria
-        $this->transactionsByCategory = $transactions->groupBy(function ($transaction) {
+        // Agrupar transações por categoria no formato esperado pelo blade
+        $totalGeral = $transactions->sum(function($t) { return abs($t->value); });
+        $grouped = $transactions->groupBy(function ($transaction) {
             return $transaction->category_id ?: 'sem_categoria';
-        })->map(function ($group, $catId) {
-            $category = $group->first()->category;
-            $total_receita = $group->where('type_id', 1)->sum('value');
-            $total_despesa = $group->where('type_id', 2)->sum('value');
-            return [
+        });
+
+        $transactionsByCategory = [];
+        foreach ($grouped as $catId => $group) {
+            $first = $group->first();
+            $category = $first->category;
+
+            // Calcular total da categoria
+            $categoryTotal = $group->sum(function($t) { return abs($t->value); });
+            $percentage = $totalGeral > 0 ? ($categoryTotal / $totalGeral) * 100 : 0;
+
+            $transactionsByCategory[] = [
                 'category_id' => $catId,
-                'category_name' => $category->name ?? 'Sem Categoria',
-                'category_hexcolor_category' => $category->hexcolor_category ?? '#cccccc',
-                'category_icone' => $category->icone ?? 'fas fa-question',
-                'total_receita' => $total_receita,
-                'total_despesa' => $total_despesa,
-                'transactions' => $group->map(function ($transaction) use ($category) {
+                'name' => $category->name ?? 'Sem Categoria',
+                'color' => $category->hexcolor_category ?? '#667eea',
+                'icon' => $category->icone ?? 'fas fa-tag',
+                'count' => $group->count(),
+                'total' => $categoryTotal,
+                'percentage' => $percentage,
+                'transactions' => $group->map(function ($transaction) {
+                    $category = $transaction->category;
                     return [
                         'id' => $transaction->id,
                         'description' => $transaction->description,
@@ -346,9 +403,11 @@ class CashbookIndex extends Component
                         'cofrinho_name' => $transaction->cofrinho->name ?? null,
                         'is_pending' => $transaction->is_pending,
                     ];
-                })->values(),
+                })->values()->toArray(),
             ];
-        })->values();
+        }
+
+        $this->transactionsByCategory = $transactionsByCategory;
 
         // Atualizar propriedades
         $this->currentMonth = $date->format('Y-m');
@@ -416,8 +475,18 @@ class CashbookIndex extends Component
         $this->loadData();
     }
 
+    public function selectDate($date): void
+    {
+        // Aplicar filtro de data específica e atualizar selectedDate
+        $this->selectedDate = $date;
+        $this->dateStart = $date;
+        $this->dateEnd = $date;
+        $this->loadData();
+    }
+
     public function clearDateFilter(): void
     {
+        $this->selectedDate = null;
         $this->dateStart = '';
         $this->dateEnd = '';
         $this->loadData();
