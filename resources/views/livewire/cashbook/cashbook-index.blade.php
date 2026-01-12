@@ -540,7 +540,7 @@
                                                             <div class="card-actions">
                                                                 <div
                                                                     class="flex items-center justify-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
-                                                                    <a href="{{ route('cashbook.edit', $transaction['id']) }}"
+                                                                    <a href="{{ route('cashbook.edit', ['id' => $transaction['id'], 'return_month' => $month, 'return_year' => $year]) }}"
                                                                         class="inline-flex items-center gap-2 px-3 py-2 bg-white shadow-md hover:shadow-lg rounded-full border border-gray-100 dark:bg-gray-800/80 dark:border-gray-700 text-blue-600 hover:text-blue-800 transition text-xs font-semibold">
                                                                         <svg class="w-4 h-4" fill="none"
                                                                             stroke="currentColor" viewBox="0 0 24 24">
