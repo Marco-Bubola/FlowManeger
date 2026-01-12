@@ -51,5 +51,18 @@ class Client extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
+    // Relacionamento com participações em consórcios
+    public function consortiumParticipants()
+    {
+        return $this->hasMany(ConsortiumParticipant::class, 'client_id');
+    }
+
+    // Relacionamento com participações ativas em consórcios
+    public function activeConsortiumParticipants()
+    {
+        return $this->hasMany(ConsortiumParticipant::class, 'client_id')
+            ->where('status', 'active');
+    }
+
 
 }
