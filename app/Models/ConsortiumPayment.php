@@ -82,4 +82,89 @@ class ConsortiumPayment extends Model
         ];
         return $months[$this->reference_month] ?? '';
     }
+
+    // ========== MÉTODOS AUXILIARES ==========
+
+    /**
+     * Calcula juros de atraso (1% ao mês)
+     */
+    public function calculateInterest(): float
+    {
+        if (!$this->is_late) {
+            return 0;
+        }
+
+        $monthsLate = ceil($this->days_late / 30);
+        $interestRate = 0.01; // 1% ao mês
+
+        return $this->amount * $interestRate * $monthsLate;
+    }
+
+    /**
+     * Calcula multa de atraso (2% fixo)
+     */
+    public function calculateFine(): float
+    {
+        if (!$this->is_late) {
+            return 0;
+        }
+
+        $fineRate = 0.02; // 2% de multa
+        return $this->amount * $fineRate;
+    }
+
+    /**
+     * Calcula valor total com juros e multa
+     */
+    public function getTotalAmountWithFees(): float
+    {
+        return $this->amount + $this->calculateInterest() + $this->calculateFine();
+    }
+
+    /**
+     * Retorna informações formatadas sobre o atraso
+     */
+    public function getLateInfo(): ?array
+    {
+        if (!$this->is_late) {
+            return null;
+        }
+
+        return [
+            'days_late' => $this->days_late,
+            'interest' => $this->calculateInterest(),
+            'fine' => $this->calculateFine(),
+            'total_with_fees' => $this->getTotalAmountWithFees(),
+            'formatted_interest' => 'R$ ' . number_format($this->calculateInterest(), 2, ',', '.'),
+            'formatted_fine' => 'R$ ' . number_format($this->calculateFine(), 2, ',', '.'),
+            'formatted_total' => 'R$ ' . number_format($this->getTotalAmountWithFees(), 2, ',', '.'),
+        ];
+    }
+
+    /**
+     * Atualiza status automaticamente baseado na data de vencimento
+     */
+    public function updateStatusAutomatically(): void
+    {
+        if ($this->status === 'paid' || $this->status === 'cancelled') {
+            return;
+        }
+
+        if (now()->greaterThan($this->due_date)) {
+            $this->update(['status' => 'overdue']);
+        }
+    }
+
+    /**
+     * Retorna descrição completa do pagamento
+     */
+    public function getDescription(): string
+    {
+        return sprintf(
+            'Parcela %s/%s - %s',
+            $this->reference_month_name,
+            $this->reference_year,
+            $this->participant->client->name ?? 'Cliente'
+        );
+    }
 }
