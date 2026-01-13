@@ -77,6 +77,7 @@ class CashbookIndex extends Component
     ];
 
     public bool $showTipsModal = false;
+    public $categoriesChartData = [];
 
     public function toggleTips()
     {
@@ -114,6 +115,24 @@ class CashbookIndex extends Component
         $this->loadCofrinhos();
         $this->loadAdjacentMonths();
         $this->loadCalendarData();
+        
+        // Prepare chart data and dispatch event
+        $this->prepareChartData();
+        $this->dispatch('cashbook-chart-updated', data: $this->categoriesChartData);
+    }
+
+    public function prepareChartData(): void
+    {
+        $this->categoriesChartData = collect($this->transactionsByCategory)
+            ->map(function ($categoryGroup) {
+                return [
+                    'label' => $categoryGroup['name'] ?? 'Sem categoria',
+                    'value' => (float) ($categoryGroup['total'] ?? 0),
+                    'color' => $categoryGroup['color'] ?? '#667eea',
+                ];
+            })
+            ->values()
+            ->toArray();
     }
 
     public function loadCalendarData(): void
