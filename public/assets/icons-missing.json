@@ -162,5 +162,9 @@
     {
         "category": "Lazer e Entretenimento",
         "icon": "fas fa-gamepad"
+    },
+    {
+        "category": "cofrinho",
+        "icon": "fas fa-dollar-sign"
     }
 ]
