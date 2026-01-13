@@ -189,23 +189,9 @@
 
                     <!-- Categories Chart -->
                     <div class="">
-                        @php
-                            $categoriesChartData = collect($transactionsByCategory)
-                                ->map(function ($categoryGroup) {
-                                    return [
-                                        'label' => $categoryGroup['name'] ?? 'Sem categoria',
-                                        'value' => (float) ($categoryGroup['total'] ?? 0),
-                                        'color' => $categoryGroup['color'] ?? '#667eea',
-                                    ];
-                                })
-                                ->values()
-                                ->toArray();
-                        @endphp
-
                         @if (count($categoriesChartData) > 0)
                             <div>
                                 <div id="apex-pie-cashbook" class="w-full" style="height: 240px;"></div>
-                                <script type="application/json" id="cashbook-categories-data">@json($categoriesChartData)</script>
                             </div>
                         @else
                             <div
@@ -538,9 +524,10 @@
 
                                                             <!-- Actions -->
                                                             <div class="card-actions">
+                                                                @if (isset($transaction['id']))
                                                                 <div
                                                                     class="flex items-center justify-center gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
-                                                                    <a href="{{ route('cashbook.edit', ['id' => $transaction['id'], 'return_month' => $month, 'return_year' => $year]) }}"
+                                                                    <a href="{{ route('cashbook.edit', ['cashbook' => $transaction['id'], 'return_month' => $month, 'return_year' => $year]) }}"
                                                                         class="inline-flex items-center gap-2 px-3 py-2 bg-white shadow-md hover:shadow-lg rounded-full border border-gray-100 dark:bg-gray-800/80 dark:border-gray-700 text-blue-600 hover:text-blue-800 transition text-xs font-semibold">
                                                                         <svg class="w-4 h-4" fill="none"
                                                                             stroke="currentColor" viewBox="0 0 24 24">
@@ -566,6 +553,7 @@
                                                                         <span class="hidden sm:inline">Excluir</span>
                                                                     </button>
                                                                 </div>
+                                                                @endif
                                                             </div>
                                                         </div>
                                                     </div>
@@ -808,22 +796,109 @@
 @push('scripts')
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script>
-        // Notification system
-        function showNotification(message, type = 'info') {
-            const notification = document.createElement('div');
-            notification.className = `fixed top-4 right-4 z-[100000] px-6 py-3 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 ${
-            type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' :
-            type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-600' :
-            'bg-gradient-to-r from-blue-500 to-indigo-600'
-        }`;
-            notification.innerHTML = message;
-            document.body.appendChild(notification);
-            setTimeout(() => {
-                notification.style.opacity = '0';
-                notification.style.transform = 'translateX(400px)';
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
+        document.addEventListener('livewire:init', () => {
+            let cashbookPieChart = null; // Variável para manter a instância do gráfico
+
+            const initOrUpdateCashbookPieChart = (data) => {
+                const chartEl = document.querySelector("#apex-pie-cashbook");
+                if (!chartEl) return;
+
+                // Se uma instância do gráfico existir, destrua-a antes de criar uma nova
+                if (cashbookPieChart) {
+                    cashbookPieChart.destroy();
+                    cashbookPieChart = null;
+                }
+
+                // Se não houver dados, limpe a área do gráfico e não renderize um novo
+                if (!data || data.length === 0) {
+                    chartEl.innerHTML = `<div class="flex items-center justify-center h-full text-slate-500 p-4">Sem dados para o gráfico.</div>`;
+                    return;
+                }
+
+                const series = data.map(item => item.value);
+                const labels = data.map(item => item.label);
+                const colors = data.map(item => item.color);
+
+                const options = {
+                    series: series,
+                    labels: labels,
+                    colors: colors,
+                    chart: {
+                        type: 'donut',
+                        height: 240,
+                        sparkline: {
+                            enabled: true
+                        }
+                    },
+                    plotOptions: {
+                        pie: {
+                            donut: {
+                                size: '70%',
+                                labels: {
+                                    show: true,
+                                    total: {
+                                        show: true,
+                                        label: 'Total',
+                                        formatter: function (w) {
+                                            const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0);
+                                            return 'R$ ' + total.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    legend: {
+                        show: false
+                    },
+                    responsive: [{
+                        breakpoint: 480,
+                        options: {
+                            chart: {
+                                width: 200
+                            },
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }]
+                };
+
+                // Crie uma nova instância do gráfico e renderize-a
+                cashbookPieChart = new ApexCharts(chartEl, options);
+                cashbookPieChart.render();
+            };
+
+            // Inicialize o gráfico com o primeiro lote de dados passados do servidor
+            initOrUpdateCashbookPieChart(@json($categoriesChartData));
+
+            // Ouça o evento de atualização do componente Livewire
+            Livewire.on('cashbook-chart-updated', event => {
+                const eventData = Array.isArray(event) ? event[0].data : event.data;
+                initOrUpdateCashbookPieChart(eventData);
+            });
+
+            // Sistema de notificação
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = `fixed top-4 right-4 z-[100000] px-6 py-3 rounded-xl text-white font-bold shadow-2xl transform transition-all duration-300 ${
+                type === 'success' ? 'bg-gradient-to-r from-emerald-500 to-teal-600' :
+                type === 'error' ? 'bg-gradient-to-r from-red-500 to-pink-600' :
+                'bg-gradient-to-r from-blue-500 to-indigo-600'
+            }`;
+                notification.innerHTML = message;
+                document.body.appendChild(notification);
+                setTimeout(() => {
+                    notification.style.opacity = '0';
+                    notification.style.transform = 'translateX(400px)';
+                    setTimeout(() => notification.remove(), 300);
+                }, 3000);
+            }
+
+            Livewire.on('transaction-deleted', () => {
+                showNotification('✅ Transação excluída com sucesso!', 'success');
+            });
+        });
 
         // Funções globais para expandir/recolher todas (DEVE estar no escopo global)
         function expandAllCategories() {
@@ -912,12 +987,6 @@
                         this.dataset.expanded = 'true';
                     }
                 });
-            });
-        });
-
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('transaction-deleted', () => {
-                showNotification('✅ Transação excluída com sucesso!', 'success');
             });
         });
     </script>
