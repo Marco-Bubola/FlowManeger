@@ -25,9 +25,9 @@ class DashboardClientes extends Component
             ->whereHas('sales', function($q) {
                 $q->where('status', 'pendente');
             })->count();
-        $this->clientesAniversariantes = Client::where('user_id', $userId)
-            ->whereMonth('birthdate', now()->month)
-            ->count();
+        // A tabela clients não possui coluna de nascimento por padrão.
+        // Mantemos 0 para evitar erro e deixar explícito que depende de adicionar a coluna.
+        $this->clientesAniversariantes = 0;
     }
 
     public function render()
