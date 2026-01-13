@@ -67,7 +67,7 @@
                     <i class="bi bi-x-lg"></i>
                     Cancelar
                 </a>
-                <button type="button" wire:click.prevent="save"
+                <button type="submit"
                     class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105">
                     <i class="bi bi-check-lg"></i>
                     Atualizar Fatura
