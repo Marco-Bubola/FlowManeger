@@ -103,7 +103,7 @@ class EditCashbook extends Component
     {
         $userId = Auth::id();
 
-        // Get recent category IDs from user's cashbook, ordered by most recent transaction
+        // Obter IDs de categorias recentes do cashbook do usuário, ordenados pela transação mais recente
         $recentCategoryIds = Cashbook::where('user_id', $userId)
             ->whereNotNull('category_id')
             ->select('category_id')
@@ -118,7 +118,7 @@ class EditCashbook extends Component
                 $categoryOrderBy .= "WHEN id_category = {$id} THEN {$index} ";
             }
             $categoryOrderBy .= 'ELSE ' . (count($recentCategoryIds) + 1) . ' END, name ASC';
-            
+
             $this->categories = Category::where('user_id', $userId)
                 ->where('type', 'transaction')
                 ->orderByRaw($categoryOrderBy)
@@ -126,7 +126,7 @@ class EditCashbook extends Component
         } else {
             $this->categories = Category::where('user_id', $userId)
                 ->where('type', 'transaction')
-                ->orderBy('name')
+                ->orderBy('name', 'asc')
                 ->get();
         }
 
