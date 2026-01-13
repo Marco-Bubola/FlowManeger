@@ -102,8 +102,15 @@ class EditInvoice extends Component
 
     public function save()
     {
-        // Mensagem de depuração para confirmar que o método foi chamado
-        session()->flash('info', 'O método save() foi acionado.');
+        // Log a ser verificado em storage/logs/laravel.log
+        \Illuminate\Support\Facades\Log::info('EditInvoice save method called.', [
+            'description' => $this->description,
+            'value' => $this->value,
+            'installments' => $this->installments,
+            'category_id' => $this->category_id,
+            'client_id' => $this->client_id,
+            'invoice_date' => $this->invoice_date,
+        ]);
 
         // A propriedade 'value' já está no formato 'xxxx.xx' vinda do componente de moeda.
         $validatedData = $this->validate([
