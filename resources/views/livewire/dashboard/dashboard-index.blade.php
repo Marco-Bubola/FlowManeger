@@ -1,627 +1,396 @@
-<div class="w-full">
+<div class="min-h-screen w-full bg-slate-50 dark:bg-slate-950">
 
-    {{-- Novo Header Modernizado --}}
-    @include('livewire.dashboard.partials.header-new')
+    {{-- Top Header --}}
+    <div class="sticky top-0 z-40">
+        @include('livewire.dashboard.partials.header-new')
+    </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="px-4 sm:px-6 lg:px-8 py-6">
+        <div class="grid grid-cols-1 xl:grid-cols-12 gap-6">
 
-        {{-- Grid de 6 KPIs Principais --}}
-        @include('livewire.dashboard.partials.kpis-grid')
+            {{-- KPIs --}}
+            <div class="xl:col-span-12">
+                @include('livewire.dashboard.partials.kpis-grid')
+            </div>
 
-        {{-- Sistema de Alertas --}}
-        @include('livewire.dashboard.partials.alertas')
+            {{-- Charts: Financeiro (4 charts) --}}
+            <div class="xl:col-span-12">
+                <div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4">
 
-        <!-- KPIs Principais em Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <!-- Saldo em Caixa -->
-            <div
-                class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-20 h-20 bg-green-400/10 rounded-full transform translate-x-8 -translate-y-8">
-                </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-wallet text-white text-xl"></i>
+                    {{-- Fluxo de caixa 12 meses --}}
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow">
+                                    <i class="fas fa-wave-square text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Fluxo de Caixa</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">12 meses</div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-green-800 dark:text-green-300 font-medium">Saldo em Caixa</p>
-                            <p class="text-2xl font-bold text-green-700 dark:text-green-400">R$
-                                {{ number_format($saldoCaixa, 2, ',', '.') }}</p>
+                        <div class="px-4 pb-4">
+                            <div id="cashflowMonthlyChart" class="h-56"></div>
                         </div>
                     </div>
+
+                    {{-- Despesas por categoria (donut) --}}
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 flex items-center justify-center shadow">
+                                    <i class="fas fa-chart-pie text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Despesas</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Top 10 mês</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <div id="expensesByCategoryChart" class="h-56"></div>
+                        </div>
+                    </div>
+
+                    {{-- Invoices por banco (linha) --}}
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow">
+                                    <i class="fas fa-credit-card text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Invoices</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Por banco (6m)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <div id="invoicesByBankChart" class="h-56"></div>
+                        </div>
+                    </div>
+
+                    {{-- Vendas vs custos (bar) --}}
+                    <div class="relative overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow">
+                                    <i class="fas fa-chart-bar text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Vendas x Custos</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Visão geral</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4">
+                            <div id="salesVsCostsChart" class="h-56"></div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
-            <!-- Contas a Pagar -->
-            <div
-                class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-20 h-20 bg-red-400/10 rounded-full transform translate-x-8 -translate-y-8">
+            {{-- Sidebar --}}
+            <div class="xl:col-span-4 grid grid-cols-1 gap-4">
+
+                {{-- Notificações (na sidebar) --}}
+                <div>
+                    @include('livewire.dashboard.partials.alertas')
                 </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-12 h-12 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-file-invoice-dollar text-white text-xl"></i>
+
+                {{-- Pendências 30 dias (compacto) --}}
+                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl overflow-hidden">
+                    <div class="p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow">
+                                <i class="fas fa-file-invoice-dollar text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Pendências</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Janela de 30 dias</div>
+                            </div>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-red-800 dark:text-red-300 font-medium">Contas a Pagar</p>
-                            <p class="text-2xl font-bold text-red-700 dark:text-red-400">R$
-                                {{ number_format($contasPagar, 2, ',', '.') }}</p>
+                        <a href="{{ route('invoices.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Invoices</a>
+                    </div>
+                    <div class="px-4 pb-4 space-y-2">
+                        <div class="flex items-center justify-between rounded-xl bg-emerald-50/60 dark:bg-emerald-900/15 p-3">
+                            <span class="text-xs text-emerald-800 dark:text-emerald-200">A receber (parcelas)</span>
+                            <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">R$ {{ number_format($contasReceberPendentes, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-xl bg-orange-50/60 dark:bg-orange-900/15 p-3">
+                            <span class="text-xs text-orange-800 dark:text-orange-200">Invoices (30d)</span>
+                            <span class="text-sm font-bold text-orange-700 dark:text-orange-300">R$ {{ number_format($invoicesProxVenc30Total, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-xl bg-red-50/60 dark:bg-red-900/15 p-3">
+                            <span class="text-xs text-red-800 dark:text-red-200">A pagar (aprox.)</span>
+                            <span class="text-sm font-bold text-red-700 dark:text-red-300">R$ {{ number_format($contasPagarPendentes, 2, ',', '.') }}</span>
                         </div>
                     </div>
                 </div>
+
+                {{-- Consórcios (resumo) --}}
+                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl overflow-hidden">
+                    <div class="p-4 flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow">
+                                <i class="fas fa-layer-group text-white"></i>
+                            </div>
+                            <div>
+                                <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Consórcios</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">Resumo do módulo</div>
+                            </div>
+                        </div>
+                        <a href="{{ route('consortiums.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Abrir</a>
+                    </div>
+                    <div class="px-4 pb-4 space-y-2">
+                        <div class="flex items-center justify-between rounded-xl bg-teal-50/60 dark:bg-teal-900/15 p-3">
+                            <span class="text-xs text-teal-800 dark:text-teal-200">Ativos</span>
+                            <span class="text-sm font-bold text-teal-700 dark:text-teal-300">{{ $totalConsorciosAtivos }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-xl bg-blue-50/60 dark:bg-blue-900/15 p-3">
+                            <span class="text-xs text-blue-800 dark:text-blue-200">Participantes ativos</span>
+                            <span class="text-sm font-bold text-blue-700 dark:text-blue-300">{{ $consorcioParticipantesAtivos }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-xl bg-amber-50/60 dark:bg-amber-900/15 p-3">
+                            <span class="text-xs text-amber-800 dark:text-amber-200">Pagamentos pendentes</span>
+                            <span class="text-sm font-bold text-amber-700 dark:text-amber-300">R$ {{ number_format($consorcioPagamentosPendentesTotal, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-xl bg-indigo-50/60 dark:bg-indigo-900/15 p-3">
+                            <span class="text-xs text-indigo-800 dark:text-indigo-200">Sorteios (30d)</span>
+                            <span class="text-sm font-bold text-indigo-700 dark:text-indigo-300">{{ $proximosSorteios }}</span>
+                        </div>
+                        <div class="flex items-center justify-between rounded-xl bg-purple-50/60 dark:bg-purple-900/15 p-3">
+                            <span class="text-xs text-purple-800 dark:text-purple-200">Contemplações</span>
+                            <span class="text-sm font-bold text-purple-700 dark:text-purple-300">{{ $consorcioContemplacoesTotal }}</span>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Contas a Receber -->
-            <div
-                class="group relative bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/30 rounded-xl shadow-lg border border-blue-200 dark:border-blue-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-20 h-20 bg-blue-400/10 rounded-full transform translate-x-8 -translate-y-8">
-                </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-hand-holding-usd text-white text-xl"></i>
+            {{-- Detalhes + Atividades --}}
+            <div class="xl:col-span-8">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                    {{-- Comercial --}}
+                    <div class="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl overflow-hidden">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-fuchsia-600 flex items-center justify-center shadow">
+                                    <i class="fas fa-shopping-cart text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Comercial</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Vendas e cobranças</div>
+                                </div>
+                            </div>
+                            <a href="{{ route('sales.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Ver</a>
                         </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-blue-800 dark:text-blue-300 font-medium">Contas a Receber</p>
-                            <p class="text-2xl font-bold text-blue-700 dark:text-blue-400">R$
-                                {{ number_format($contasReceber, 2, ',', '.') }}</p>
+                        <div class="px-4 pb-4 space-y-2">
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/40 p-3">
+                                <span class="text-xs text-slate-600 dark:text-slate-300">Vendas (mês)</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ $salesMonth }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/40 p-3">
+                                <span class="text-xs text-slate-600 dark:text-slate-300">Ticket médio</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-slate-100">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-emerald-50/60 dark:bg-emerald-900/15 p-3">
+                                <span class="text-xs text-emerald-800 dark:text-emerald-200">A receber (parcelas)</span>
+                                <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300">R$ {{ number_format($contasReceberPendentes, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-red-50/60 dark:bg-red-900/15 p-3">
+                                <span class="text-xs text-red-800 dark:text-red-200">Vencidas</span>
+                                <span class="text-sm font-bold text-red-700 dark:text-red-300">{{ $parcelasVencidasCount }} (R$ {{ number_format($parcelasVencidasValor, 2, ',', '.') }})</span>
+                            </div>
                         </div>
                     </div>
+
+                    {{-- Clientes & Estoque --}}
+                    <div class="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl overflow-hidden">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 flex items-center justify-center shadow">
+                                    <i class="fas fa-users text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Clientes & Estoque</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Base e alertas</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{{ route('clients.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Clientes</a>
+                                <span class="text-slate-300 dark:text-slate-700">|</span>
+                                <a href="{{ route('products.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Produtos</a>
+                            </div>
+                        </div>
+                        <div class="px-4 pb-4 space-y-2">
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/40 p-3">
+                                <span class="text-xs text-slate-600 dark:text-slate-300">Clientes</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ $totalClientes }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/40 p-3">
+                                <span class="text-xs text-slate-600 dark:text-slate-300">Novos no mês</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ $clientesNovosMes }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-slate-50 dark:bg-slate-950/40 p-3">
+                                <span class="text-xs text-slate-600 dark:text-slate-300">Produtos cadastrados</span>
+                                <span class="text-sm font-bold text-slate-900 dark:text-slate-100">{{ $produtosCadastrados }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-yellow-50/60 dark:bg-yellow-900/15 p-3">
+                                <span class="text-xs text-yellow-800 dark:text-yellow-200">Estoque baixo</span>
+                                <span class="text-sm font-bold text-yellow-700 dark:text-yellow-300">{{ $produtosEstoqueBaixo }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Planejamento --}}
+                    <div class="rounded-2xl border border-slate-200/70 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl overflow-hidden">
+                        <div class="p-4 flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 flex items-center justify-center shadow">
+                                    <i class="fas fa-bullseye text-white"></i>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-semibold text-slate-900 dark:text-slate-100">Planejamento</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">Orçamento e recorrências</div>
+                                </div>
+                            </div>
+                            <a href="{{ route('cashbook.index') }}" class="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">Abrir</a>
+                        </div>
+
+                        <div class="px-4 pb-4 space-y-2">
+                            <div class="flex items-center justify-between rounded-xl bg-teal-50/60 dark:bg-teal-900/15 p-3">
+                                <span class="text-xs text-teal-800 dark:text-teal-200">Orçado (mês)</span>
+                                <span class="text-sm font-bold text-teal-700 dark:text-teal-300">R$ {{ number_format($orcamentoMesTotal, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-rose-50/60 dark:bg-rose-900/15 p-3">
+                                <span class="text-xs text-rose-800 dark:text-rose-200">Gasto (mês)</span>
+                                <span class="text-sm font-bold text-rose-700 dark:text-rose-300">R$ {{ number_format($orcamentoMesUsado, 2, ',', '.') }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-orange-50/60 dark:bg-orange-900/15 p-3">
+                                <span class="text-xs text-orange-800 dark:text-orange-200">Recorrências ativas</span>
+                                <span class="text-sm font-bold text-orange-700 dark:text-orange-300">{{ $recorrentesAtivas }}</span>
+                            </div>
+                            <div class="flex items-center justify-between rounded-xl bg-amber-50/60 dark:bg-amber-900/15 p-3">
+                                <span class="text-xs text-amber-800 dark:text-amber-200">Recorrências (30d)</span>
+                                <span class="text-sm font-bold text-amber-700 dark:text-amber-300">R$ {{ number_format($recorrentesProx30Total, 2, ',', '.') }}</span>
+                            </div>
+
+                            {{-- Saúde do sistema (uploads) --}}
+                            <div class="mt-3 pt-3 border-t border-slate-200/70 dark:border-slate-800">
+                                <div class="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
+                                    <i class="fas fa-heartbeat text-emerald-500"></i>
+                                    Saúde do Sistema (uploads)
+                                </div>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="rounded-xl bg-slate-50 dark:bg-slate-950/40 p-2">
+                                        <div class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Cashbook</div>
+                                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-100">{{ $lastUploads['cashbook']->status ?? '—' }}</div>
+                                    </div>
+                                    <div class="rounded-xl bg-slate-50 dark:bg-slate-950/40 p-2">
+                                        <div class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Produtos</div>
+                                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-100">{{ $lastUploads['products']->status ?? '—' }}</div>
+                                    </div>
+                                    <div class="rounded-xl bg-slate-50 dark:bg-slate-950/40 p-2">
+                                        <div class="text-[10px] uppercase tracking-wide text-slate-500 dark:text-slate-400">Invoices</div>
+                                        <div class="text-xs font-semibold text-slate-800 dark:text-slate-100">{{ $lastUploads['invoices']->status ?? '—' }}</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {{-- Top estouros --}}
+                            @if(!empty($orcamentosTopEstouro))
+                                <div class="mt-3 pt-3 border-t border-slate-200/70 dark:border-slate-800">
+                                    <div class="text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2 flex items-center gap-2">
+                                        <i class="fas fa-exclamation-triangle text-red-500"></i>
+                                        Top estouros (mês)
+                                    </div>
+                                    <div class="max-h-24 overflow-auto space-y-2">
+                                        @foreach($orcamentosTopEstouro as $row)
+                                            <div class="flex items-center justify-between rounded-xl bg-red-50/60 dark:bg-red-900/15 p-2">
+                                                <span class="text-xs text-slate-700 dark:text-slate-200 truncate max-w-[70%]">{{ $row['category'] }}</span>
+                                                <span class="text-xs font-bold text-red-700 dark:text-red-300">+R$ {{ number_format($row['estouro'], 2, ',', '.') }}</span>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
                 </div>
+
+                {{-- Atividades (últimas 5) --}}
+                <div class="mt-6">
+                    @include('livewire.dashboard.partials.atividades')
+                </div>
+
             </div>
 
-            <!-- Faturamento Total -->
-            <div
-                class="group relative bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 rounded-xl shadow-lg border border-purple-200 dark:border-purple-800 p-4 hover:shadow-xl transition-all duration-200 overflow-hidden">
-                <div
-                    class="absolute top-0 right-0 w-20 h-20 bg-purple-400/10 rounded-full transform translate-x-8 -translate-y-8">
-                </div>
-                <div class="relative">
-                    <div class="flex items-center gap-3 mb-2">
-                        <div
-                            class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200">
-                            <i class="fas fa-chart-line text-white text-xl"></i>
-                        </div>
-                        <div class="flex-1">
-                            <p class="text-xs text-purple-800 dark:text-purple-300 font-medium">Faturamento Total</p>
-                            <p class="text-2xl font-bold text-purple-700 dark:text-purple-400">R$
-                                {{ number_format($totalFaturamento, 2, ',', '.') }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
+
+        {{-- FAB --}}
+        @include('livewire.dashboard.partials.fab-menu')
 
     </div>
 
-    <!-- Gráficos Principais -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <!-- Gráfico de Receitas vs Despesas -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
-                    <i class="fas fa-chart-area text-indigo-500 mr-2"></i>
-                    Receitas vs Despesas
-                </h3>
-            </div>
-            <div id="revenueExpenseChart" class="h-80"></div>
-        </div>
 
-        <!-- Gráfico de Valor de Vendas vs Custo dos Produtos -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center">
-                    <i class="fas fa-chart-bar text-purple-500 mr-2"></i>
-                    Valor de Vendas vs Custo dos Produtos
-                </h3>
-            </div>
-            <div id="salesCostChart" class="h-80"></div>
-            <div class="mt-4 pt-3 border-t border-slate-700/40">
-                <div class="flex items-center justify-between text-sm">
-                    <div class="text-slate-300">Total Valor de Vendas</div>
-                    <div class="font-semibold text-white">R$ {{ number_format($valorVendas, 2, ',', '.') }}</div>
-                </div>
-                <div class="flex items-center justify-between text-sm mt-2">
-                    <div class="text-slate-300">Total Custos (Estoque + Vendidos)</div>
-                    <div class="font-semibold text-white">R$
-                        {{ number_format($custoEstoque + $custoProdutosVendidos, 2, ',', '.') }}</div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Seção de Informações Detalhadas -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <!-- Clientes -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-users text-pink-500 mr-2"></i>
-                Clientes
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-user-friends text-pink-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Total</span>
-                    </div>
-                    <span class="text-lg font-bold text-pink-600">{{ $totalClientes }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-user-plus text-green-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Novos no Mês</span>
-                    </div>
-                    <span class="text-lg font-bold text-green-600">{{ $clientesNovosMes }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-exclamation-circle text-orange-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Com Pendências</span>
-                    </div>
-                    <span class="text-lg font-bold text-orange-600">{{ $clientesComSalesPendentes }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-exclamation-triangle text-red-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Inadimplentes</span>
-                    </div>
-                    <span class="text-lg font-bold text-red-600">{{ $clientesInadimplentes }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Produtos -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-box text-indigo-500 mr-2"></i>
-                Produtos
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-boxes text-indigo-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Cadastrados</span>
-                    </div>
-                    <span class="text-lg font-bold text-indigo-600">{{ $produtosCadastrados }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-exclamation-triangle text-yellow-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Estoque Baixo</span>
-                    </div>
-                    <span class="text-lg font-bold text-yellow-600">{{ $produtosEstoqueBaixo }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-shopping-bag text-green-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Vendidos no Mês</span>
-                    </div>
-                    <span class="text-lg font-bold text-green-600">{{ $produtosVendidosMes }}</span>
-                </div>
-                <div class="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fas fa-star text-purple-600"></i>
-                        <span class="text-xs text-slate-600 dark:text-slate-400">Mais Vendido</span>
-                    </div>
-                    <span
-                        class="text-sm font-bold text-purple-600 truncate block">{{ $produtoMaisVendido ? $produtoMaisVendido->name : '-' }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Vendas -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-shopping-cart text-purple-500 mr-2"></i>
-                Vendas
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-calendar-alt text-purple-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Vendas no Mês</span>
-                    </div>
-                    <span class="text-lg font-bold text-purple-600">{{ $salesMonth }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-ticket-alt text-blue-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Ticket Médio</span>
-                    </div>
-                    <span class="text-lg font-bold text-blue-600">R$
-                        {{ number_format($ticketMedio, 2, ',', '.') }}</span>
-                </div>
-                <div class="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fas fa-clock text-emerald-600"></i>
-                        <span class="text-xs text-slate-600 dark:text-slate-400">Última Venda</span>
-                    </div>
-                    <span class="text-sm font-bold text-emerald-600">
-                        {{ $ultimaVenda ? $ultimaVenda->created_at->format('d/m/Y H:i') : '-' }}
-                    </span>
-                </div>
-                <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="flex items-center gap-2 mb-1">
-                        <i class="fas fa-money-bill-wave text-green-600"></i>
-                        <span class="text-xs text-slate-600 dark:text-slate-400">Valor Última Venda</span>
-                    </div>
-                    <span class="text-sm font-bold text-green-600">
-                        {{ $ultimaVenda ? 'R$ ' . number_format($ultimaVenda->total_price, 2, ',', '.') : '-' }}
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Seção de Consórcios, Cofrinhos e Faturas -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <!-- Consórcios -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-layer-group text-teal-500 mr-2"></i>
-                Consórcios
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-teal-50 dark:bg-teal-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-check-circle text-teal-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Consórcios Ativos</span>
-                    </div>
-                    <span class="text-lg font-bold text-teal-600">{{ $totalConsorciosAtivos }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-calendar-check text-blue-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Sorteios (30 dias)</span>
-                    </div>
-                    <span class="text-lg font-bold text-blue-600">{{ $proximosSorteios }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Cofrinhos -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-piggy-bank text-pink-500 mr-2"></i>
-                Cofrinhos
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-pink-50 dark:bg-pink-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-bullseye text-pink-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Metas Ativas</span>
-                    </div>
-                    <span class="text-lg font-bold text-pink-600">{{ $totalCofrinhos }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-coins text-green-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Total Economizado</span>
-                    </div>
-                    <span class="text-lg font-bold text-green-600">R$ {{ number_format($totalEconomizado, 2, ',', '.') }}</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Faturas -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-file-invoice-dollar text-blue-500 mr-2"></i>
-                Faturas
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-calendar-day text-blue-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Gasto no Mês</span>
-                    </div>
-                    <span class="text-lg font-bold text-blue-600">R$ {{ number_format(end($gastosInvoiceMensal), 2, ',', '.') }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-university text-indigo-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Bancos Vinculados</span>
-                    </div>
-                    <span class="text-lg font-bold text-indigo-600">{{ $totalBancos }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Gráfico de Pizza - Distribuição de Produtos -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-chart-line text-green-500 mr-2"></i>
-                Gastos Mensais de Invoices
-            </h3>
-            <div id="invoiceExpensesChart" class="h-80"></div>
-        </div>
-
-        <!-- Indicadores de Performance -->
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-6">
-            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4 flex items-center">
-                <i class="fas fa-chart-pie text-blue-500 mr-2"></i>
-                Indicadores de Performance
-            </h3>
-            <div class="space-y-3">
-                <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-percentage text-green-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Margem de Lucro</span>
-                    </div>
-                    <span class="text-lg font-bold text-green-600">{{ number_format($margemLucro, 1) }}%</span>
-                </div>
-                <div
-                    class="flex items-center justify-between p-3 {{ $taxaCrescimento >= 0 ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-red-50 dark:bg-red-900/20' }} rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i
-                            class="fas fa-arrow-{{ $taxaCrescimento >= 0 ? 'up' : 'down' }} text-{{ $taxaCrescimento >= 0 ? 'blue' : 'red' }}-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Taxa de Crescimento</span>
-                    </div>
-                    <span
-                        class="text-lg font-bold text-{{ $taxaCrescimento >= 0 ? 'blue' : 'red' }}-600">{{ number_format($taxaCrescimento, 1) }}%</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-box-open text-indigo-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Produtos Ativos</span>
-                    </div>
-                    <span class="text-lg font-bold text-indigo-600">{{ $produtosAtivos }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-dollar-sign text-purple-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Valor em Estoque</span>
-                    </div>
-                    <span class="text-lg font-bold text-purple-600">R$
-                        {{ number_format($custoEstoque, 2, ',', '.') }}</span>
-                </div>
-                <div class="flex items-center justify-between p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-shopping-cart text-orange-600"></i>
-                        <span class="text-sm text-slate-300 dark:text-slate-200">Custo Prod. Vendidos</span>
-                    </div>
-                    <span class="text-lg font-bold text-orange-600">R$
-                        {{ number_format($custoProdutosVendidos, 2, ',', '.') }}</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ApexCharts CDN -->
+    {{-- ApexCharts --}}
     <style>
-        /* Força cores legíveis nas legendas do ApexCharts em light/dark mode */
-        .apexcharts-legend-text {
-            color: #0f172a !important;
-        }
-
+        .apexcharts-legend-text { color: #0f172a !important; }
         .dark .apexcharts-legend-text,
-        .apexcharts-theme-dark .apexcharts-legend-text {
-            color: #E5E7EB !important;
-        }
+        .apexcharts-theme-dark .apexcharts-legend-text { color: #E5E7EB !important; }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Gráfico de Receitas vs Despesas (Área)
-            const revenueExpenseOptions = {
-                series: [{
-                    name: 'Receitas',
-                    data: [{{ $contasReceber }}, {{ $totalFaturamento }}, {{ $clientesReceber }}]
-                }, {
-                    name: 'Despesas',
-                    data: [{{ $contasPagar }}, {{ $fornecedoresPagar }}, {{ $despesasFixas }}]
-                }],
-                chart: {
-                    type: 'area',
-                    height: 320,
-                    toolbar: {
-                        show: false
-                    },
-                    animations: {
-                        enabled: true,
-                        speed: 800
-                    }
-                },
+            const cashflowMonthly = @json($cashflowMonthly);
+            const expensesByCategory = @json($expensesByCategory);
+            const gastosInvoicePorBanco = @json($gastosInvoicePorBanco);
+
+            // 1) Fluxo de caixa (12 meses)
+            const cashflowMonthlyOptions = {
+                series: [
+                    { name: 'Receitas', data: (cashflowMonthly || []).map(x => Number(x.receitas || 0)) },
+                    { name: 'Despesas', data: (cashflowMonthly || []).map(x => Number(x.despesas || 0)) }
+                ],
+                chart: { type: 'area', height: 240, toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
                 colors: ['#10b981', '#ef4444'],
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 2
-                },
-                fill: {
-                    type: 'gradient',
-                    gradient: {
-                        shadeIntensity: 1,
-                        opacityFrom: 0.7,
-                        opacityTo: 0.2,
-                    }
-                },
-                xaxis: {
-                    categories: ['A Receber', 'Faturamento', 'Clientes'],
-                    labels: {
-                        style: {
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return 'R$ ' + value.toLocaleString('pt-BR');
-                        },
-                        style: {
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                // Legend color adapts to dark/light mode
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'right',
-                    labels: {
-                        colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia(
-                            '(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a']
-                    }
-                },
-                grid: {
-                    borderColor: '#e2e8f0'
-                },
-                tooltip: {
-                    theme: 'dark',
-                    style: {
-                        fontSize: '13px',
-                        colors: ['#ffffff']
-                    },
-                    y: {
-                        formatter: function(value) {
-                            return 'R$ ' + value.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 2
-                            });
-                        }
-                    }
-                }
+                dataLabels: { enabled: false },
+                stroke: { curve: 'smooth', width: 2 },
+                fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.55, opacityTo: 0.12 } },
+                xaxis: { categories: (cashflowMonthly || []).map(x => x.label), labels: { style: { colors: '#64748b' } } },
+                yaxis: { labels: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }), style: { colors: '#64748b' } } },
+                grid: { borderColor: '#e2e8f0' },
+                tooltip: { theme: 'dark', y: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+                legend: { position: 'top', horizontalAlign: 'right' }
             };
+            const cashflowEl = document.querySelector('#cashflowMonthlyChart');
+            if (cashflowEl) new ApexCharts(cashflowEl, cashflowMonthlyOptions).render();
 
-            const revenueExpenseChart = new ApexCharts(document.querySelector("#revenueExpenseChart"),
-                revenueExpenseOptions);
-            revenueExpenseChart.render();
-
-            // Gráfico de Valor de Vendas vs Custo dos Produtos (Barra)
-            const salesCostOptions = {
-                series: [{
-                    name: 'Valor de Vendas',
-                    data: [{{ $valorVendas }}, null]
-                }, {
-                    name: 'Custo Estoque',
-                    data: [null, {{ $custoEstoque }}]
-                }, {
-                    name: 'Custo Vendidos',
-                    data: [null, {{ $custoProdutosVendidos }}]
-                }],
-                chart: {
-                    type: 'bar',
-                    height: 320,
-                    stacked: true,
-                    toolbar: {
-                        show: false
-                    }
-                },
-                colors: ['#8b5cf6', '#3b82f6', '#f59e0b'],
-                plotOptions: {
-                    bar: {
-                        borderRadius: 10,
-                        columnWidth: '60%',
-                        distributed: false,
-                        dataLabels: {
-                            position: 'top'
-                        }
-                    }
-                },
-                dataLabels: {
-                    enabled: true,
-                    offsetY: -20,
-                    style: {
-                        fontSize: '12px',
-                        colors: ['#64748b']
-                    },
-                    formatter: function(value) {
-                        if (value === null || typeof value === 'undefined') return '';
-                        return 'R$ ' + Number(value).toLocaleString('pt-BR', {
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 0
-                        });
-                    }
-                },
-                xaxis: {
-                    categories: ['Valor', 'Custo'],
-                    labels: {
-                        style: {
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return 'R$ ' + value.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                            });
-                        },
-                        style: {
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'right'
-                },
-                grid: {
-                    borderColor: '#e2e8f0'
-                },
-                tooltip: {
-                    theme: 'dark',
-                    style: {
-                        fontSize: '13px',
-                        colors: ['#ffffff']
-                    },
-                    y: {
-                        formatter: function(value) {
-                            if (value === null || typeof value === 'undefined') return '';
-                            return 'R$ ' + Number(value).toLocaleString('pt-BR', {
-                                minimumFractionDigits: 2
-                            });
-                        }
-                    }
-                }
+            // 2) Despesas por categoria (donut)
+            const expensesOptions = {
+                series: (expensesByCategory || []).map(x => Number(x.total || 0)),
+                labels: (expensesByCategory || []).map(x => x.label),
+                chart: { type: 'donut', height: 240, toolbar: { show: false } },
+                legend: { position: 'bottom' },
+                tooltip: { theme: 'dark', y: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+                dataLabels: { formatter: (val) => Number(val).toFixed(0) + '%' }
             };
+            const expensesEl = document.querySelector('#expensesByCategoryChart');
+            if (expensesEl) new ApexCharts(expensesEl, expensesOptions).render();
 
-            const salesCostChart = new ApexCharts(document.querySelector("#salesCostChart"),
-                salesCostOptions);
-            salesCostChart.render();
-
-            // Gráfico de Gastos Mensais de Invoices (Linha) por banco
-            const invoiceExpensesOptions = {
-                series: @json($gastosInvoicePorBanco),
-                chart: {
-                    type: 'line',
-                    height: 320,
-                    toolbar: {
-                        show: false
-                    },
-                    animations: {
-                        enabled: true,
-                        speed: 800
-                    }
-                },
-                dataLabels: {
-                    enabled: false
-                },
-                stroke: {
-                    curve: 'smooth',
-                    width: 3
-                },
-                markers: {
-                    size: 5,
-                    strokeColors: '#fff',
-                    strokeWidth: 2,
-                    hover: {
-                        size: 7
-                    }
-                },
+            // 3) Invoices por banco (linha) - usando series do backend
+            const invoicesByBankOptions = {
+                series: gastosInvoicePorBanco || [],
+                chart: { type: 'line', height: 240, toolbar: { show: false }, animations: { enabled: true, speed: 800 } },
+                stroke: { curve: 'smooth', width: 3 },
+                dataLabels: { enabled: false },
+                markers: { size: 3 },
                 xaxis: {
                     categories: [
                         '{{ now()->subMonths(5)->format('M') }}',
@@ -631,65 +400,36 @@
                         '{{ now()->subMonths(1)->format('M') }}',
                         '{{ now()->format('M') }}'
                     ],
-                    labels: {
-                        style: {
-                            colors: '#64748b'
-                        }
-                    }
+                    labels: { style: { colors: '#64748b' } }
                 },
-                yaxis: {
-                    labels: {
-                        formatter: function(value) {
-                            return 'R$ ' + value.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0
-                            });
-                        },
-                        style: {
-                            colors: '#64748b'
-                        }
-                    }
-                },
-                grid: {
-                    borderColor: '#e2e8f0'
-                },
-                // Legend color adapts to dark/light mode
-                legend: {
-                    position: 'top',
-                    horizontalAlign: 'right',
-                    labels: {
-                        colors: [typeof window !== 'undefined' && window.matchMedia && window.matchMedia(
-                            '(prefers-color-scheme: dark)').matches ? '#ffffff' : '#0f172a']
-                    }
-                },
-                tooltip: {
-                    theme: 'dark',
-                    style: {
-                        fontSize: '13px',
-                        colors: ['#ffffff']
-                    },
-                    y: {
-                        formatter: function(value) {
-                            return 'R$ ' + value.toLocaleString('pt-BR', {
-                                minimumFractionDigits: 2
-                            });
-                        }
-                    }
-                }
+                yaxis: { labels: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }), style: { colors: '#64748b' } } },
+                grid: { borderColor: '#e2e8f0' },
+                tooltip: { theme: 'dark', y: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+                legend: { position: 'top', horizontalAlign: 'right' }
             };
+            const invoicesByBankEl = document.querySelector('#invoicesByBankChart');
+            if (invoicesByBankEl) new ApexCharts(invoicesByBankEl, invoicesByBankOptions).render();
 
-            const invoiceExpensesChart = new ApexCharts(document.querySelector("#invoiceExpensesChart"),
-                invoiceExpensesOptions);
-            invoiceExpensesChart.render();
+            // 4) Vendas vs custos (bar)
+            const salesVsCostsOptions = {
+                series: [
+                    { name: 'Vendas', data: [Number(@json($valorVendas))] },
+                    { name: 'Custo Estoque', data: [Number(@json($custoEstoque))] },
+                    { name: 'Custo Vendidos', data: [Number(@json($custoProdutosVendidos))] }
+                ],
+                chart: { type: 'bar', height: 240, stacked: true, toolbar: { show: false } },
+                colors: ['#8b5cf6', '#3b82f6', '#f59e0b'],
+                plotOptions: { bar: { borderRadius: 10, columnWidth: '55%' } },
+                dataLabels: { enabled: false },
+                xaxis: { categories: ['Total'], labels: { style: { colors: '#64748b' } } },
+                yaxis: { labels: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 0 }), style: { colors: '#64748b' } } },
+                grid: { borderColor: '#e2e8f0' },
+                tooltip: { theme: 'dark', y: { formatter: (v) => 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 2 }) } },
+                legend: { position: 'top', horizontalAlign: 'right' }
+            };
+            const salesVsCostsEl = document.querySelector('#salesVsCostsChart');
+            if (salesVsCostsEl) new ApexCharts(salesVsCostsEl, salesVsCostsOptions).render();
         });
     </script>
-
-    {{-- Timeline de Atividades Recentes --}}
-    <div class="mb-6">
-        @include('livewire.dashboard.partials.atividades')
-    </div>
-
-    {{-- FAB Menu - Floating Action Button --}}
-    @include('livewire.dashboard.partials.fab-menu')
 
 </div>
