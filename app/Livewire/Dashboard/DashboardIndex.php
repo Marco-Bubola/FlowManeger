@@ -11,10 +11,16 @@ use App\Models\Invoice;
 use App\Models\Bank;
 use App\Models\Cofrinho;
 use App\Models\Consortium;
+use App\Models\ConsortiumParticipant;
+use App\Models\ConsortiumPayment;
+use App\Models\ConsortiumContemplation;
 use App\Models\VendaParcela;
 use App\Models\LancamentoRecorrente;
 use App\Models\Orcamento;
 use App\Models\Category;
+use App\Models\CashbookUploadHistory;
+use App\Models\InvoiceUploadHistory;
+use App\Models\ProductUploadHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
@@ -79,6 +85,10 @@ class DashboardIndex extends Component
     public float $totalEconomizado = 0;
     public int $totalConsorciosAtivos = 0;
     public int $proximosSorteios = 0;
+    public int $consorcioParticipantesAtivos = 0;
+    public float $consorcioPagamentosPendentesTotal = 0;
+    public int $consorcioContemplacoesTotal = 0;
+
     public array $alertas = [];
     public array $atividades = [];
     public float $lucroLiquido = 0;
@@ -106,6 +116,9 @@ class DashboardIndex extends Component
     // Gráficos adicionais
     public array $cashflowMonthly = [];
     public array $expensesByCategory = [];
+
+    // Saúde do sistema (últimos uploads)
+    public ?array $lastUploads = null;
 
     public function mount()
     {
@@ -413,6 +426,27 @@ class DashboardIndex extends Component
         // Dados de Consórcios
         $this->totalConsorciosAtivos = Consortium::where('user_id', $userId)->where('status', 'active')->count();
 
+        $this->consorcioParticipantesAtivos = (int) ConsortiumParticipant::join('consortiums', 'consortium_participants.consortium_id', '=', 'consortiums.id')
+            ->where('consortiums.user_id', $userId)
+            ->where('consortiums.status', 'active')
+            ->where('consortium_participants.status', 'active')
+            ->count();
+
+        // Pagamentos pendentes (schema real: consortium_payments -> consortium_participant_id)
+        // consortium_participants possui consortium_id, então fazemos join payments -> participants -> consortiums
+        $this->consorcioPagamentosPendentesTotal = (float) ConsortiumPayment::join('consortium_participants', 'consortium_payments.consortium_participant_id', '=', 'consortium_participants.id')
+            ->join('consortiums', 'consortium_participants.consortium_id', '=', 'consortiums.id')
+            ->where('consortiums.user_id', $userId)
+            ->where('consortiums.status', 'active')
+            ->where('consortium_payments.status', 'pending')
+            ->sum('consortium_payments.amount');
+
+        // Contemplações (schema real: consortium_contemplations -> consortium_participant_id)
+        $this->consorcioContemplacoesTotal = (int) ConsortiumContemplation::join('consortium_participants', 'consortium_contemplations.consortium_participant_id', '=', 'consortium_participants.id')
+            ->join('consortiums', 'consortium_participants.consortium_id', '=', 'consortiums.id')
+            ->where('consortiums.user_id', $userId)
+            ->count();
+
         // Calcular próximos sorteios baseado em consortium_draws
         $this->proximosSorteios = DB::table('consortium_draws')
             ->join('consortiums', 'consortium_draws.consortium_id', '=', 'consortiums.id')
@@ -526,6 +560,13 @@ class DashboardIndex extends Component
             'label' => $categoryNames[$row->category_id] ?? ('Cat ' . $row->category_id),
             'total' => (float) $row->total,
         ])->values()->all();
+
+        // Saúde do sistema: últimos uploads (cashbook / products / invoices)
+        $this->lastUploads = [
+            'cashbook' => CashbookUploadHistory::where('user_id', $userId)->orderByDesc('created_at')->first(),
+            'products' => ProductUploadHistory::where('user_id', $userId)->orderByDesc('created_at')->first(),
+            'invoices' => InvoiceUploadHistory::where('user_id', $userId)->orderByDesc('created_at')->first(),
+        ];
 
         // Carregar alertas críticos
         $this->carregarAlertas($userId);
@@ -647,8 +688,8 @@ class DashboardIndex extends Component
             return strtotime($b['time']) - strtotime($a['time']);
         });
 
-        // Limitar a 20 atividades
-        $this->atividades = array_slice($this->atividades, 0, 20);
+        // Limitar a 5 atividades (pedido para sidebar e foco no essencial)
+        $this->atividades = array_slice($this->atividades, 0, 5);
     }
 
     public function render()
@@ -695,6 +736,9 @@ class DashboardIndex extends Component
             'totalEconomizado' => $this->totalEconomizado ?? 0,
             'totalConsorciosAtivos' => $this->totalConsorciosAtivos ?? 0,
             'proximosSorteios' => $this->proximosSorteios ?? 0,
+            'consorcioParticipantesAtivos' => $this->consorcioParticipantesAtivos ?? 0,
+            'consorcioPagamentosPendentesTotal' => $this->consorcioPagamentosPendentesTotal ?? 0,
+            'consorcioContemplacoesTotal' => $this->consorcioContemplacoesTotal ?? 0,
             'alertas' => $this->alertas ?? [],
             'atividades' => $this->atividades ?? [],
             'lucroLiquido' => $this->lucroLiquido ?? 0,
@@ -722,6 +766,9 @@ class DashboardIndex extends Component
             // Gráficos
             'cashflowMonthly' => $this->cashflowMonthly ?? [],
             'expensesByCategory' => $this->expensesByCategory ?? [],
+
+            // Saúde do sistema
+            'lastUploads' => $this->lastUploads,
         ]);
     }
 
