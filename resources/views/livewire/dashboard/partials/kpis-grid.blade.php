@@ -71,25 +71,25 @@
         </div>
     </div>
 
-    {{-- 4. Lucro Líquido --}}
-    <div class="group relative bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/30 rounded-2xl shadow-lg border border-purple-200 dark:border-purple-800 p-5 hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
-        <div class="absolute top-0 right-0 w-24 h-24 bg-purple-400/10 rounded-full transform translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform duration-500"></div>
+    {{-- 4. Crescimento --}}
+    <div class="group relative bg-gradient-to-br from-cyan-50 to-sky-100 dark:from-cyan-900/20 dark:to-sky-900/30 rounded-2xl shadow-lg border border-cyan-200 dark:border-cyan-800 p-5 hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-cyan-400/10 rounded-full transform translate-x-12 -translate-y-12 group-hover:scale-150 transition-transform duration-500"></div>
 
         <div class="relative">
             <div class="flex items-center justify-between mb-3">
-                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
-                    <i class="fas fa-chart-line text-white text-xl"></i>
+                <div class="w-12 h-12 bg-gradient-to-br from-cyan-500 to-sky-600 rounded-xl flex items-center justify-center shadow-md group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                    <i class="fas fa-rocket text-white text-xl"></i>
                 </div>
                 <div class="text-right">
-                    <p class="text-xs font-semibold text-purple-800 dark:text-purple-300 uppercase tracking-wide">Lucro Líquido</p>
+                    <p class="text-xs font-semibold text-cyan-800 dark:text-cyan-300 uppercase tracking-wide">Crescimento</p>
                 </div>
             </div>
-            <p class="text-3xl font-bold {{ $lucroLiquido >= 0 ? 'text-purple-700 dark:text-purple-400' : 'text-red-700 dark:text-red-400' }} mb-1">
-                R$ {{ number_format(abs($lucroLiquido), 2, ',', '.') }}
+            <p class="text-3xl font-bold {{ $taxaCrescimento >= 0 ? 'text-cyan-700 dark:text-cyan-400' : 'text-red-700 dark:text-red-400' }} mb-1">
+                {{ number_format(abs($taxaCrescimento), 2, ',', '.') }}%
             </p>
-            <div class="flex items-center gap-2 text-xs {{ $lucroLiquido >= 0 ? 'text-purple-600 dark:text-purple-400' : 'text-red-600 dark:text-red-400' }}">
-                <i class="fas fa-{{ $lucroLiquido >= 0 ? 'smile' : 'frown' }}"></i>
-                <span>{{ number_format($margemLucro, 1) }}% margem</span>
+            <div class="flex items-center gap-2 text-xs {{ $taxaCrescimento >= 0 ? 'text-cyan-600 dark:text-cyan-400' : 'text-red-600 dark:text-red-400' }}">
+                <i class="fas fa-{{ $taxaCrescimento >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
+                <span>vs. Mês Anterior</span>
             </div>
         </div>
     </div>
@@ -108,7 +108,7 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-orange-700 dark:text-orange-400 mb-1">
-                R$ {{ number_format($contasPagar, 2, ',', '.') }}
+                R$ {{ number_format($contasPagarPendentes, 2, ',', '.') }}
             </p>
             <div class="flex items-center gap-2 text-xs text-orange-600 dark:text-orange-400">
                 <i class="fas fa-calendar-alt"></i>
@@ -131,7 +131,7 @@
                 </div>
             </div>
             <p class="text-3xl font-bold text-teal-700 dark:text-teal-400 mb-1">
-                R$ {{ number_format($contasReceber, 2, ',', '.') }}
+                R$ {{ number_format($contasReceberPendentes, 2, ',', '.') }}
             </p>
             <div class="flex items-center gap-2 text-xs text-teal-600 dark:text-teal-400">
                 <i class="fas fa-clock"></i>
