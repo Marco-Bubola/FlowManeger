@@ -40,12 +40,15 @@ class CofrinhoIndex extends Component
             ->get();
 
         // Calcular valor acumulado considerando receitas e despesas
+        // LÓGICA CORRIGIDA:
+        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
+        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
         foreach ($cofrinhos as $cofrinho) {
             $valor = 0;
             foreach ($cofrinho->cashbooks as $cb) {
-                if ($cb->type_id == 1) { // Receita
+                if ($cb->type_id == 1) { // Receita = guardando no cofrinho
                     $valor += $cb->value;
-                } elseif ($cb->type_id == 2) { // Despesa
+                } elseif ($cb->type_id == 2) { // Despesa = retirando do cofrinho
                     $valor -= $cb->value;
                 }
             }
@@ -62,6 +65,8 @@ class CofrinhoIndex extends Component
         $cofrinhos = collect($this->cofrinhos);
 
         $this->ranking = $cofrinhos->map(function($c) {
+            // LÓGICA CORRIGIDA:
+            // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando)
             $crescimento = collect($c['cashbooks'])
                 ->where('type_id', 1)
                 ->filter(function($cb) {
