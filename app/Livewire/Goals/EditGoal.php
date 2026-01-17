@@ -7,6 +7,8 @@ use App\Models\GoalBoard;
 use App\Models\GoalList;
 use App\Models\Category;
 use App\Models\Cofrinho;
+use App\Services\GoalService;
+use App\Services\AchievementService;
 use Livewire\Component;
 
 class EditGoal extends Component
@@ -44,6 +46,15 @@ class EditGoal extends Component
         '#84CC16' => 'Lima',
     ];
 
+    protected $goalService;
+    protected $achievementService;
+
+    public function boot(GoalService $goalService, AchievementService $achievementService)
+    {
+        $this->goalService = $goalService;
+        $this->achievementService = $achievementService;
+    }
+
     public function mount($goalId)
     {
         $goal = Goal::where('id', $goalId)
@@ -66,18 +77,23 @@ class EditGoal extends Component
         $this->recorrencia_dia = $goal->recorrencia_dia;
         $this->cor = $goal->cor;
 
-        $board = GoalBoard::find($this->boardId);
-        $this->board_name = $board->name;
 
-        $this->lists = GoalList::where('board_id', $this->boardId)->get();
+        $board = GoalBoard::find($this->boardId);
+        if (!$board) {
+            // Opcional: redirecionar ou exibir mensagem de erro amigável
+            session()->flash('message', 'Quadro não encontrado para esta meta.');
+            $this->board_name = 'Quadro não encontrado';
+            $this->lists = collect();
+        } else {
+            $this->board_name = $board->name;
+            $this->lists = GoalList::where('board_id', $this->boardId)->get();
+        }
 
         $this->categories = Category::where('user_id', auth()->id())
             ->orWhereNull('user_id')
             ->get();
 
-        $this->cofrinhos = Cofrinho::where('user_id', auth()->id())
-            ->where('is_active', true)
-            ->get();
+        $this->cofrinhos = Cofrinho::where('user_id', auth()->id())->get();
     }
 
     public function updateGoal()
@@ -108,10 +124,19 @@ class EditGoal extends Component
                 ->where('user_id', auth()->id())
                 ->firstOrFail();
 
+            // Verificar se mudou de lista
+            $oldListId = $goal->list_id;
+            $newListId = $this->list_id;
+
+            if ($oldListId != $newListId) {
+                // Usar service para mover de lista (gerencia order automaticamente)
+                $this->goalService->moveToList($goal, $newListId);
+            }
+
+            // Atualizar os outros campos
             $goal->update([
                 'name' => $this->name,
                 'description' => $this->description,
-                'list_id' => $this->list_id,
                 'priority' => $this->priority,
                 'status' => $this->status,
                 'data_vencimento' => $this->data_vencimento ?: null,
@@ -124,6 +149,33 @@ class EditGoal extends Component
                 'cor' => $this->cor,
             ]);
 
+            // Recalcular progresso se necessário
+            $this->goalService->calculateProgress($goal);
+            $this->goalService->updateProgress($goal);
+
+            // Verificar achievements se meta foi concluída
+            if ($this->status === 'concluido') {
+                $unlockedAchievements = $this->achievementService->checkAndUnlock(
+                    auth()->id(),
+                    'goal_completed',
+                    ['goal_id' => $goal->id]
+                );
+
+                // Emitir evento de achievement
+                if (!empty($unlockedAchievements)) {
+                    foreach ($unlockedAchievements as $achievement) {
+                        $this->dispatch('achievement-unlocked', [
+                            'name' => $achievement->name,
+                            'description' => $achievement->description,
+                            'icon' => $achievement->icon,
+                            'rarity' => $achievement->rarity,
+                            'rarity_color' => $achievement->rarity_color,
+                            'points' => $achievement->points,
+                        ]);
+                    }
+                }
+            }
+
             \Log::info('[EditGoal] Meta atualizada', ['goal_id' => $goal->id]);
 
             session()->flash('message', '✅ Meta atualizada com sucesso!');
@@ -132,7 +184,6 @@ class EditGoal extends Component
         } catch (\Exception $e) {
             \Log::error('[EditGoal] Erro ao atualizar', [
                 'message' => $e->getMessage(),
-                'goal_id' => $this->goalId,
             ]);
             session()->flash('error', '❌ Erro ao atualizar meta: ' . $e->getMessage());
         }
