@@ -3,20 +3,23 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\Cashbook;
-use App\Models\Bank;
 use App\Models\Invoice;
 use App\Models\Category;
 use App\Models\Cofrinho;
+use App\Models\Orcamento;
+use App\Exports\CashbookExport;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Maatwebsite\Excel\Facades\Excel;
+use Dompdf\Dompdf;
 
 class DashboardCashbook extends Component
 {
     // Filtros
     public int $ano;
-    public int $mesInvoices;
-    public int $anoInvoices;
+    public int $mes;
+    public ?int $cofrinhoFiltro = null;
 
     // Dados principais
     public float $totalReceitas = 0;
@@ -29,18 +32,6 @@ class DashboardCashbook extends Component
     public string $nomeUltimoMes = '-';
     public float $receitaUltimoMes = 0;
     public float $despesaUltimoMes = 0;
-
-    // Dados dos bancos
-    public $bancos = [];
-    public $bancosInfo = [];
-    public int $totalBancos = 0;
-    public float $totalInvoicesBancos = 0;
-    public float $saldoTotalBancos = 0;
-    public float $totalSaidasBancos = 0;
-    public array $gastosMensaisMeses = [];
-    public array $gastosMensaisPorCategoria = [];
-    public array $gastosMensaisPorBanco = [];
-    public array $gastosMensaisPorCategoriaBanco = [];
 
     // Gráfico diário de invoices
     public array $diasInvoices = [];
@@ -56,6 +47,22 @@ class DashboardCashbook extends Component
 
     // Cofrinhos
     public array $cofrinhos = [];
+    public float $totalCofrinhos = 0;
+    public float $totalMetasCofrinhos = 0;
+    public array $cofrinhosTopMeta = [];
+    public float $economiadoMesAtual = 0;
+    public float $economiadoMesAnterior = 0;
+    public array $evolucaoCofrinhos = [];
+
+    // Orçamentos
+    public float $orcamentoMesTotal = 0;
+    public float $orcamentoMesUsado = 0;
+    public array $orcamentosTopEstouro = [];
+
+    // Previsões
+    public float $previsao30dias = 0;
+    public float $previsao60dias = 0;
+    public float $previsao90dias = 0;
 
     // Detalhes do dia e transações recentes
     public ?string $selectedDate = null;
@@ -66,8 +73,7 @@ class DashboardCashbook extends Component
     public function mount()
     {
         $this->ano = date('Y');
-        $this->mesInvoices = now()->month;
-        $this->anoInvoices = now()->year;
+        $this->mes = date('n');
         $this->loadData();
     }
 
@@ -76,30 +82,39 @@ class DashboardCashbook extends Component
         $this->filterType = $this->filterType === $type ? null : $type;
         $this->loadRecentTransactions();
     }
-    
+
     public function updatedAno()
     {
-        $this->loadCashbookData();
+        $this->loadData();
     }
 
-    public function updatedMesInvoices()
+    public function updatedMes()
     {
-        $this->loadInvoicesData();
+        $this->loadData();
     }
 
-    public function updatedAnoInvoices()
+    public function updatedCofrinhoFiltro()
     {
-        $this->loadInvoicesData();
+        $this->loadData();
+    }
+
+    public function clearCofrinhoFilter()
+    {
+        $this->cofrinhoFiltro = null;
+        $this->loadData();
     }
 
     public function loadData()
     {
         $this->loadCashbookData();
-        $this->loadBanksData();
         $this->loadInvoicesData();
         $this->loadCategoriasData();
         $this->loadCalendarData();
         $this->loadCofrinhosData();
+        $this->loadCofrinhosStats();
+        $this->loadEvolucaoCofrinhos();
+        $this->loadOrcamentoData();
+        $this->loadPrevisoesData();
         $this->loadRecentTransactions();
     }
 
@@ -107,6 +122,29 @@ class DashboardCashbook extends Component
     {
         $this->selectedDate = $date;
         $this->dayDetails = $this->getDayDetails($date);
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new CashbookExport($this->ano), 'fluxo-de-caixa-'.$this->ano.'.xlsx');
+    }
+
+    public function exportPdf()
+    {
+        $cashbooks = Cashbook::where('user_id', auth()->id())
+            ->whereYear('date', $this->ano)
+            ->get();
+
+        $html = view('livewire.exports.cashbook-pdf', ['cashbooks' => $cashbooks, 'ano' => $this->ano])->render();
+
+        $dompdf = new Dompdf();
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'landscape');
+        $dompdf->render();
+
+        return response()->streamDownload(function () use ($dompdf) {
+            echo $dompdf->output();
+        }, "fluxo-de-caixa-{$this->ano}.pdf");
     }
 
     private function loadRecentTransactions()
@@ -120,6 +158,11 @@ class DashboardCashbook extends Component
             $query->where('type_id', 2);
         }
 
+        // Filtro por cofrinho
+        if ($this->cofrinhoFiltro) {
+            $query->where('cofrinho_id', $this->cofrinhoFiltro);
+        }
+
         $cashbook = $query->latest()->limit(10)->get();
 
         if ($this->filterType === 'invoices') {
@@ -131,42 +174,198 @@ class DashboardCashbook extends Component
             $this->recentTransactions = $cashbook->toArray();
         }
     }
-    
-        private function loadCofrinhosData()
-        {
-            $userId = Auth::id();
-            $cofrinhos = Cofrinho::where('user_id', $userId)->with('cashbooks')->get();
-    
-            $this->cofrinhos = $cofrinhos->map(function ($cofrinho) {
-                $valorGuardado = $cofrinho->cashbooks->sum('value');
-                $progresso = ($cofrinho->meta_valor > 0) ? ($valorGuardado / $cofrinho->meta_valor) * 100 : 0;
-    
-                return [
-                    'id' => $cofrinho->id,
-                    'nome' => $cofrinho->nome,
-                    'meta_valor' => $cofrinho->meta_valor,
-                    'valor_guardado' => $valorGuardado,
-                    'progresso' => round($progresso, 2),
-                    'status' => $cofrinho->status,
-                    'icone' => $cofrinho->icone,
-                ];
-            })->toArray();
+
+    private function loadCofrinhosData()
+    {
+        $userId = Auth::id();
+        $cofrinhos = Cofrinho::where('user_id', $userId)->get();
+
+        $this->cofrinhos = $cofrinhos->map(function ($cofrinho) {
+            // LÓGICA CORRIGIDA:
+            // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando dinheiro) - ADICIONA
+            // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando dinheiro) - SUBTRAI
+            $entradas = Cashbook::where('user_id', auth()->id())
+                ->where('cofrinho_id', $cofrinho->id)
+                ->where('type_id', 1)
+                ->sum('value');
+            $saidas = Cashbook::where('user_id', auth()->id())
+                ->where('cofrinho_id', $cofrinho->id)
+                ->where('type_id', 2)
+                ->sum('value');
+
+            $valorGuardado = $entradas - $saidas;
+            $progresso = ($cofrinho->meta_valor > 0) ? ($valorGuardado / $cofrinho->meta_valor) * 100 : 0;
+
+            return [
+                'id' => $cofrinho->id,
+                'nome' => $cofrinho->nome,
+                'meta_valor' => $cofrinho->meta_valor,
+                'valor_guardado' => $valorGuardado,
+                'progresso' => round($progresso, 2),
+                'status' => $cofrinho->status,
+                'icone' => $cofrinho->icone,
+                'link' => route('cofrinhos.show', $cofrinho->id),
+            ];
+        })->toArray();
+    }
+
+    private function loadCofrinhosStats()
+    {
+        $userId = Auth::id();
+
+        // Total acumulado em todos os cofrinhos
+        $this->totalCofrinhos = collect($this->cofrinhos)->sum('valor_guardado');
+
+        // Total de todas as metas
+        $this->totalMetasCofrinhos = collect($this->cofrinhos)->sum('meta_valor');
+
+        // Top 3 cofrinhos mais próximos da meta
+        $this->cofrinhosTopMeta = collect($this->cofrinhos)
+            ->filter(fn($c) => $c['progresso'] < 100)
+            ->sortByDesc('progresso')
+            ->take(3)
+            ->values()
+            ->toArray();
+
+        // Economizado neste mês (entradas em cofrinhos)
+        $this->economiadoMesAtual = Cashbook::where('user_id', $userId)
+            ->whereNotNull('cofrinho_id')
+            ->where('type_id', 1)
+            ->whereMonth('date', $this->mes)
+            ->whereYear('date', $this->ano)
+            ->sum('value');
+
+        // Economizado no mês anterior
+        $mesAnterior = $this->mes == 1 ? 12 : $this->mes - 1;
+        $anoAnterior = $this->mes == 1 ? $this->ano - 1 : $this->ano;
+        $this->economiadoMesAnterior = Cashbook::where('user_id', $userId)
+            ->whereNotNull('cofrinho_id')
+            ->where('type_id', 1)
+            ->whereMonth('date', $mesAnterior)
+            ->whereYear('date', $anoAnterior)
+            ->sum('value');
+    }
+
+    private function loadEvolucaoCofrinhos()
+    {
+        $userId = Auth::id();
+        $this->evolucaoCofrinhos = array_fill(0, 12, 0);
+
+        // Para cada mês, calcular o valor ACUMULADO total até aquele mês
+        for ($m = 1; $m <= 12; $m++) {
+            $entradas = Cashbook::where('user_id', $userId)
+                ->whereNotNull('cofrinho_id')
+                ->where('type_id', 1)
+                ->whereYear('date', $this->ano)
+                ->whereMonth('date', '<=', $m)
+                ->sum('value');
+
+            $saidas = Cashbook::where('user_id', $userId)
+                ->whereNotNull('cofrinho_id')
+                ->where('type_id', 2)
+                ->whereYear('date', $this->ano)
+                ->whereMonth('date', '<=', $m)
+                ->sum('value');
+
+            $this->evolucaoCofrinhos[$m - 1] = (float)($entradas - $saidas);
         }
-    
+    }
+
+    private function loadOrcamentoData()
+    {
+        $userId = Auth::id();
+        // Orçamentos do mês
+        $this->orcamentoMesTotal = (float) Orcamento::where('user_id', $userId)
+            ->where('mes', $this->mes)
+            ->where('ano', $this->ano)
+            ->sum('valor');
+
+        // Orçamento usado (despesas do mês)
+        $this->orcamentoMesUsado = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereMonth('date', $this->mes)
+            ->whereYear('date', $this->ano)
+            ->sum('value');
+
+        // Top categorias que mais estouraram orçamento (até 5)
+        $orcamentosMes = Orcamento::where('user_id', $userId)
+            ->where('mes', $this->mes)
+            ->where('ano', $this->ano)
+            ->with('category:id_category,name')
+            ->get();
+
+        $gastosPorCategoriaMes = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereMonth('date', $this->mes)
+            ->whereYear('date', $this->ano)
+            ->selectRaw('category_id, SUM(value) as total')
+            ->groupBy('category_id')
+            ->get()
+            ->keyBy('category_id');
+
+        $estouros = [];
+        foreach ($orcamentosMes as $orc) {
+            $gasto = (float) ($gastosPorCategoriaMes[$orc->category_id]->total ?? 0);
+            $orcado = (float) $orc->valor;
+            $diff = $gasto - $orcado;
+            if ($diff > 0) {
+                $estouros[] = [
+                    'category' => $orc->category?->name ?? ('Cat ' . $orc->category_id),
+                    'orcado' => $orcado,
+                    'gasto' => $gasto,
+                    'estouro' => $diff,
+                ];
+            }
+        }
+        usort($estouros, fn($a, $b) => $b['estouro'] <=> $a['estouro']);
+        $this->orcamentosTopEstouro = array_slice($estouros, 0, 5);
+    }
+
+    private function loadPrevisoesData()
+    {
+        $userId = Auth::id();
+        $hoje = now();
+        $inicio = $hoje->copy()->subDays(90);
+
+        $transacoes = Cashbook::where('user_id', $userId)
+            ->whereBetween('date', [$inicio, $hoje])
+            ->selectRaw('type_id, SUM(value) as total')
+            ->groupBy('type_id')
+            ->get()
+            ->keyBy('type_id');
+
+        $receitas90dias = $transacoes[1]->total ?? 0;
+        $despesas90dias = $transacoes[2]->total ?? 0;
+
+        $mediaDiariaReceitas = $receitas90dias / 90;
+        $mediaDiariaDespesas = $despesas90dias / 90;
+
+        $saldoAtual = $this->saldoTotal;
+
+        $this->previsao30dias = $saldoAtual + (($mediaDiariaReceitas - $mediaDiariaDespesas) * 30);
+        $this->previsao60dias = $saldoAtual + (($mediaDiariaReceitas - $mediaDiariaDespesas) * 60);
+        $this->previsao90dias = $saldoAtual + (($mediaDiariaReceitas - $mediaDiariaDespesas) * 90);
+    }
 
     private function loadCashbookData()
     {
         $userId = Auth::id();
 
-        // Totais gerais com consulta única
+        // Totais gerais com consulta única (EXCLUINDO transações de cofrinho - movimentações internas)
         $totals = Cashbook::where('user_id', $userId)
+            ->whereYear('date', $this->ano)
+            ->whereNull('cofrinho_id')
             ->selectRaw('SUM(CASE WHEN type_id = 1 THEN value ELSE 0 END) as total_receitas')
             ->selectRaw('SUM(CASE WHEN type_id = 2 THEN value ELSE 0 END) as total_despesas')
             ->first();
 
         $this->totalReceitas = $totals->total_receitas ?? 0;
         $this->totalDespesas = $totals->total_despesas ?? 0;
-        $this->saldoTotal = $this->totalReceitas - $this->totalDespesas;
+        $this->saldoTotal = Cashbook::where('user_id', $userId)
+            ->whereNull('cofrinho_id')
+            ->where('type_id', 1)->sum('value') - Cashbook::where('user_id', $userId)
+            ->whereNull('cofrinho_id')
+            ->where('type_id', 2)->sum('value');
 
 
         // Dados mensais com consulta única
@@ -180,6 +379,7 @@ class DashboardCashbook extends Component
 
         $cashbookData = Cashbook::where('user_id', $userId)
             ->whereYear('date', $this->ano)
+            ->whereNull('cofrinho_id')
             ->selectRaw('MONTH(date) as mes, type_id, SUM(value) as total')
             ->groupBy('mes', 'type_id')
             ->get();
@@ -219,145 +419,21 @@ class DashboardCashbook extends Component
         }
     }
 
-
-    private function loadBanksData()
-    {
-        $userId = Auth::id();
-        $this->bancos = Bank::where('user_id', $userId)->get();
-        $bankIds = $this->bancos->pluck('id_bank');
-
-        // Busca todos os invoices de uma vez
-        $allInvoices = Invoice::where('user_id', $userId)
-            ->whereIn('id_bank', $bankIds)
-            ->get()
-            ->groupBy('id_bank');
-
-        // Informações detalhadas de bancos e invoices
-        $this->bancosInfo = $this->bancos->map(function ($bank) use ($allInvoices) {
-            $invoices = $allInvoices->get($bank->id_bank, collect());
-            $totalInvoices = $invoices->sum('value');
-            $qtdInvoices = $invoices->count();
-            $mediaInvoices = $qtdInvoices > 0 ? $totalInvoices / $qtdInvoices : 0;
-            $maiorInvoice = $qtdInvoices > 0 ? $invoices->sortByDesc('value')->first() : null;
-            $menorInvoice = $qtdInvoices > 0 ? $invoices->sortBy('value')->first() : null;
-
-            return [
-                'id_bank' => $bank->id_bank,
-                'nome' => $bank->name,
-                'descricao' => $bank->description,
-                'total_invoices' => $totalInvoices,
-                'qtd_invoices' => $qtdInvoices,
-                'media_invoices' => $mediaInvoices,
-                'maior_invoice' => $maiorInvoice,
-                'menor_invoice' => $menorInvoice,
-                'saldo' => -$totalInvoices,
-                'saidas' => $totalInvoices,
-            ];
-        })->toArray();
-
-
-        // Totais gerais de bancos
-        $this->totalBancos = $this->bancos->count();
-        $this->totalInvoicesBancos = collect($this->bancosInfo)->sum('total_invoices');
-        $this->saldoTotalBancos = collect($this->bancosInfo)->sum('saldo');
-        $this->totalSaidasBancos = collect($this->bancosInfo)->sum('saidas');
-
-        // Gastos mensais de invoices agrupados por categoria e banco (últimos 12 meses)
-        $this->gastosMensaisMeses = [];
-        $categoriasPorMes = [];
-        $bancosPorMes = [];
-        $categoriasPorBanco = [];
-
-        $invoiceTable = (new Invoice)->getTable();
-        $categoryTable = (new Category)->getTable();
-        $bankTable = (new Bank)->getTable();
-
-        $mesRef = now()->copy()->subMonths(11)->startOfMonth();
-        for ($i = 0; $i < 12; $i++) {
-            $mesLabel = $mesRef->locale('pt_BR')->format('M/y');
-            $this->gastosMensaisMeses[] = $mesLabel;
-            $range = [$mesRef->copy()->startOfMonth(), $mesRef->copy()->endOfMonth()];
-
-            $monthlyInvoices = Invoice::where("{$invoiceTable}.user_id", $userId)
-                ->whereBetween("{$invoiceTable}.invoice_date", $range)
-                ->join($categoryTable, "{$invoiceTable}.category_id", '=', "{$categoryTable}.id_category")
-                ->join($bankTable, "{$invoiceTable}.id_bank", '=', "{$bankTable}.id_bank")
-                ->selectRaw("
-                    {$categoryTable}.name as categoria,
-                    {$bankTable}.name as banco,
-                    SUM({$invoiceTable}.value) as total
-                ")
-                ->groupBy("{$categoryTable}.id_category", "{$bankTable}.id_bank", "{$categoryTable}.name", "{$bankTable}.name")
-                ->get();
-
-            foreach ($monthlyInvoices as $row) {
-                // Preenche gastos por categoria
-                if (!isset($categoriasPorMes[$row->categoria])) {
-                    $categoriasPorMes[$row->categoria] = array_fill(0, 12, 0);
-                }
-                $categoriasPorMes[$row->categoria][$i] += (float)$row->total;
-
-                // Preenche gastos por banco
-                if (!isset($bancosPorMes[$row->banco])) {
-                    $bancosPorMes[$row->banco] = array_fill(0, 12, 0);
-                }
-                $bancosPorMes[$row->banco][$i] += (float)$row->total;
-
-                // Preenche gastos por categoria+banco
-                $compoundKey = $row->categoria . '||' . $row->banco;
-                if (!isset($categoriasPorBanco[$compoundKey])) {
-                    $categoriasPorBanco[$compoundKey] = array_fill(0, 12, 0);
-                }
-                $categoriasPorBanco[$compoundKey][$i] += (float)$row->total;
-            }
-
-            $mesRef->addMonth();
-        }
-
-
-        // Pega top 5 categorias e top 3 bancos
-        $topCategorias = collect($categoriasPorMes)
-            ->sortByDesc(fn($valores) => array_sum($valores))
-            ->take(5);
-
-        $topBancos = collect($bancosPorMes)
-            ->sortByDesc(fn($valores) => array_sum($valores))
-            ->take(3);
-
-        $this->gastosMensaisPorCategoria = $topCategorias->toArray();
-        $this->gastosMensaisPorBanco = $topBancos->toArray();
-
-        // Filtra combinações categoria+banco para incluir apenas top categorias e top bancos
-        $topCategoriaKeys = array_keys($this->gastosMensaisPorCategoria);
-        $topBancoKeys = array_keys($this->gastosMensaisPorBanco);
-
-        $filteredCatBanco = [];
-        foreach ($categoriasPorBanco as $compound => $values) {
-            [$catName, $bankName] = explode('||', $compound);
-            if (in_array($catName, $topCategoriaKeys) && in_array($bankName, $topBancoKeys)) {
-                $label = $catName . ' — ' . $bankName;
-                $filteredCatBanco[$label] = $values;
-            }
-        }
-
-        $this->gastosMensaisPorCategoriaBanco = $filteredCatBanco;
-    }
-
     private function loadInvoicesData()
     {
         $userId = Auth::id();
-        $diasNoMes = \Carbon\Carbon::create($this->anoInvoices, $this->mesInvoices, 1)->daysInMonth;
+        $diasNoMes = \Carbon\Carbon::create($this->ano, $this->mes, 1)->daysInMonth;
 
         $this->diasInvoices = [];
         $valoresInvoicesTemp = array_fill(1, $diasNoMes, 0);
 
         for ($i = 1; $i <= $diasNoMes; $i++) {
-            $this->diasInvoices[] = \Carbon\Carbon::create($this->anoInvoices, $this->mesInvoices, $i)->format('d/m');
+            $this->diasInvoices[] = \Carbon\Carbon::create($this->ano, $this->mes, $i)->format('d/m');
         }
 
         $invoicesData = Invoice::where('user_id', $userId)
-            ->whereYear('invoice_date', $this->anoInvoices)
-            ->whereMonth('invoice_date', $this->mesInvoices)
+            ->whereYear('invoice_date', $this->ano)
+            ->whereMonth('invoice_date', $this->mes)
             ->selectRaw('DAY(invoice_date) as dia, SUM(value) as total')
             ->groupBy('dia')
             ->get();
@@ -392,8 +468,8 @@ class DashboardCashbook extends Component
     private function loadCalendarData()
     {
         $userId = Auth::id();
-        $mesAtual = now()->month;
-        $anoAtual = now()->year;
+        $mesAtual = $this->mes;
+        $anoAtual = $this->ano;
 
         $this->cashbookDays = Cashbook::where('user_id', $userId)
             ->whereYear('date', $anoAtual)
@@ -416,16 +492,18 @@ class DashboardCashbook extends Component
     {
         $userId = Auth::id();
 
-        // Receitas
+        // Receitas (exceto cofrinhos)
         $receitas = Cashbook::where('user_id', $userId)
             ->where('type_id', 1)
+            ->whereNull('cofrinho_id')
             ->whereDate('date', $date)
             ->with('category')
             ->get();
 
-        // Despesas
+        // Despesas (exceto cofrinhos)
         $despesas = Cashbook::where('user_id', $userId)
             ->where('type_id', 2)
+            ->whereNull('cofrinho_id')
             ->whereDate('date', $date)
             ->with('category')
             ->get();
@@ -436,10 +514,18 @@ class DashboardCashbook extends Component
             ->with('category')
             ->get();
 
+        // Movimentações de cofrinhos
+        $cofrinhos = Cashbook::where('user_id', $userId)
+            ->whereNotNull('cofrinho_id')
+            ->whereDate('date', $date)
+            ->with(['cofrinho', 'type'])
+            ->get();
+
         return [
             'receitas' => $receitas,
             'despesas' => $despesas,
-            'invoices' => $invoices
+            'invoices' => $invoices,
+            'cofrinhos' => $cofrinhos
         ];
     }
 
