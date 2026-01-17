@@ -160,9 +160,15 @@ class DashboardIndex extends Component
     {
         $userId = Auth::id();
 
-        // Saldo total do cashbook
-        $totalReceitas = Cashbook::where('user_id', $userId)->where('type_id', 1)->sum('value');
-        $totalDespesas = Cashbook::where('user_id', $userId)->where('type_id', 2)->sum('value');
+        // Saldo total do cashbook (EXCLUINDO transações de cofrinho - movimentações internas)
+        $totalReceitas = Cashbook::where('user_id', $userId)
+            ->where('type_id', 1)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
+        $totalDespesas = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
         $this->totalCashbook = $totalReceitas - $totalDespesas;
         $this->saldoCaixa = $this->totalCashbook;
 
@@ -257,9 +263,15 @@ class DashboardIndex extends Component
             ->where('stock_quantity', '<=', 5)
             ->count();
 
-        // Contas a pagar/receber (HISTÓRICO) - manter como totais gerais
-        $this->contasPagar = Cashbook::where('user_id', $userId)->where('type_id', 2)->sum('value');
-        $this->contasReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->sum('value');
+        // Contas a pagar/receber (HISTÓRICO) - manter como totais gerais, EXCLUINDO cofrinhos
+        $this->contasPagar = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
+        $this->contasReceber = Cashbook::where('user_id', $userId)
+            ->where('type_id', 1)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
 
         // Recorrências (precisa vir antes do cálculo de contas a pagar pendentes)
         $this->recorrentesAtivas = (int) LancamentoRecorrente::where('user_id', $userId)
@@ -302,15 +314,31 @@ class DashboardIndex extends Component
 
         $this->contasPagarPendentes = $this->invoicesProxVenc30Total + $this->recorrentesProx30Total;
 
-        // Fornecedores a pagar (exemplo: cashbook category_id = 2)
-        $this->fornecedoresPagar = Cashbook::where('user_id', $userId)->where('type_id', 2)->where('category_id', 2)->sum('value');
-        // Despesas fixas (exemplo: cashbook category_id = 1)
-        $this->despesasFixas = Cashbook::where('user_id', $userId)->where('type_id', 2)->where('category_id', 1)->sum('value');
+        // Fornecedores a pagar (exemplo: cashbook category_id = 2), EXCLUINDO cofrinhos
+        $this->fornecedoresPagar = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->where('category_id', 2)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
+        // Despesas fixas (exemplo: cashbook category_id = 1), EXCLUINDO cofrinhos
+        $this->despesasFixas = Cashbook::where('user_id', $userId)
+            ->where('type_id', 2)
+            ->where('category_id', 1)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
 
-        // Clientes a receber (exemplo: cashbook type_id = 1, category_id = 3)
-        $this->clientesReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->where('category_id', 3)->sum('value');
-        // Outros a receber (exemplo: cashbook type_id = 1, category_id != 3)
-        $this->outrosReceber = Cashbook::where('user_id', $userId)->where('type_id', 1)->where('category_id', '!=', 3)->sum('value');
+        // Clientes a receber (exemplo: cashbook type_id = 1, category_id = 3), EXCLUINDO cofrinhos
+        $this->clientesReceber = Cashbook::where('user_id', $userId)
+            ->where('type_id', 1)
+            ->where('category_id', 3)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
+        // Outros a receber (exemplo: cashbook type_id = 1, category_id != 3), EXCLUINDO cofrinhos
+        $this->outrosReceber = Cashbook::where('user_id', $userId)
+            ->where('type_id', 1)
+            ->where('category_id', '!=', 3)
+            ->whereNull('cofrinho_id')
+            ->sum('value');
 
         // Guardar para uso na view
         $this->salesMonth = $salesMonth;
@@ -412,15 +440,21 @@ class DashboardIndex extends Component
         $this->totalCofrinhos = Cofrinho::where('user_id', $userId)->where('status', 'ativo')->count();
 
         // Total economizado nos cofrinhos
+        // LÓGICA CORRIGIDA:
+        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
+        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
         $cofrinhos = Cofrinho::where('user_id', $userId)->where('status', 'ativo')->get();
         $this->totalEconomizado = 0;
         foreach ($cofrinhos as $cofrinho) {
-            // Soma os lançamentos do cofrinho (assumindo que existe uma relação)
-            $saldo = Cashbook::where('user_id', $userId)
-                ->where('description', 'LIKE', '%' . $cofrinho->nome . '%')
+            $entradas = Cashbook::where('user_id', $userId)
+                ->where('cofrinho_id', $cofrinho->id)
                 ->where('type_id', 1)
                 ->sum('value');
-            $this->totalEconomizado += $saldo;
+            $saidas = Cashbook::where('user_id', $userId)
+                ->where('cofrinho_id', $cofrinho->id)
+                ->where('type_id', 2)
+                ->sum('value');
+            $this->totalEconomizado += ($entradas - $saidas);
         }
 
         // Dados de Consórcios
@@ -514,12 +548,13 @@ class DashboardIndex extends Component
         usort($estouros, fn($a, $b) => $b['estouro'] <=> $a['estouro']);
         $this->orcamentosTopEstouro = array_slice($estouros, 0, 5);
 
-        // Gráfico fluxo de caixa (últimos 12 meses)
+        // Gráfico fluxo de caixa (últimos 12 meses) - EXCLUINDO transações de cofrinho
         $monthExprCash = $this->monthExpression('date');
         $yearExprCash = DB::getDriverName() === 'sqlite' ? "CAST(strftime('%Y', date) AS INTEGER)" : 'YEAR(date)';
 
         $cashAgg = Cashbook::where('user_id', $userId)
             ->where('date', '>=', now()->subMonths(12))
+            ->whereNull('cofrinho_id')
             ->selectRaw("{$yearExprCash} as ano, {$monthExprCash} as mes, SUM(CASE WHEN type_id=1 THEN value ELSE 0 END) as receitas, SUM(CASE WHEN type_id=2 THEN value ELSE 0 END) as despesas")
             ->groupBy('ano', 'mes')
             ->orderBy('ano')
@@ -542,9 +577,10 @@ class DashboardIndex extends Component
             ];
         }
 
-        // Gráfico: despesas por categoria (top 10 no mês)
+        // Gráfico: despesas por categoria (top 10 no mês) - EXCLUINDO transações de cofrinho
         $despesasTop = Cashbook::where('user_id', $userId)
             ->where('type_id', 2)
+            ->whereNull('cofrinho_id')
             ->whereMonth('date', now()->month)
             ->whereYear('date', now()->year)
             ->selectRaw('category_id, SUM(value) as total')
@@ -644,6 +680,7 @@ class DashboardIndex extends Component
                 'title' => 'Nova venda #' . $venda->id,
                 'description' => $venda->client ? 'Cliente: ' . $venda->client->name : 'Sem cliente',
                 'time' => $venda->created_at->diffForHumans(),
+                'timestamp' => $venda->created_at->timestamp,
                 'link' => route('sales.show', $venda->id),
             ];
         }
@@ -661,6 +698,7 @@ class DashboardIndex extends Component
                 'title' => 'Novo cliente',
                 'description' => $cliente->name,
                 'time' => $cliente->created_at->diffForHumans(),
+                'timestamp' => $cliente->created_at->timestamp,
                 'link' => route('clients.edit', $cliente->id),
             ];
         }
@@ -679,16 +717,107 @@ class DashboardIndex extends Component
                 'title' => $mov->type?->desc_type ?? 'Lançamento',
                 'description' => $mov->description . ' - R$ ' . number_format($mov->value, 2, ',', '.'),
                 'time' => \Carbon\Carbon::parse($mov->date)->diffForHumans(),
+                'timestamp' => \Carbon\Carbon::parse($mov->date)->timestamp,
                 'link' => route('cashbook.index'),
+            ];
+        }
+
+        // Últimos produtos cadastrados
+        $produtosRecentes = Product::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($produtosRecentes as $produto) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-box',
+                'color' => 'text-blue-500',
+                'title' => 'Novo produto',
+                'description' => $produto->name,
+                'time' => $produto->created_at->diffForHumans(),
+                'timestamp' => $produto->created_at->timestamp,
+                'link' => route('products.edit', $produto->id),
+            ];
+        }
+
+        // Últimos consórcios cadastrados
+        $consorciosRecentes = Consortium::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($consorciosRecentes as $consorcio) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-users',
+                'color' => 'text-yellow-500',
+                'title' => 'Novo consórcio',
+                'description' => $consorcio->name,
+                'time' => $consorcio->created_at->diffForHumans(),
+                'timestamp' => $consorcio->created_at->timestamp,
+                'link' => route('consortiums.show', $consorcio->id),
+            ];
+        }
+
+        // Últimas faturas cadastradas
+        $faturasRecentes = Invoice::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($faturasRecentes as $fatura) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-file-invoice-dollar',
+                'color' => 'text-indigo-500',
+                'title' => 'Nova fatura',
+                'description' => $fatura->description,
+                'time' => $fatura->created_at->diffForHumans(),
+                'timestamp' => $fatura->created_at->timestamp,
+                'link' => route('invoices.index'),
+            ];
+        }
+
+        // Últimos bancos cadastrados
+        $bancosRecentes = Bank::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($bancosRecentes as $banco) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-university',
+                'color' => 'text-gray-500',
+                'title' => 'Novo banco',
+                'description' => $banco->name,
+                'time' => $banco->created_at->diffForHumans(),
+                'timestamp' => $banco->created_at->timestamp,
+                'link' => route('banks.index'),
+            ];
+        }
+
+        // Últimos cofrinhos cadastrados
+        $cofrinhosRecentes = Cofrinho::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->take(3)
+            ->get();
+
+        foreach ($cofrinhosRecentes as $cofrinho) {
+            $this->atividades[] = [
+                'icon' => 'fas fa-piggy-bank',
+                'color' => 'text-pink-500',
+                'title' => 'Novo cofrinho',
+                'description' => $cofrinho->nome,
+                'time' => $cofrinho->created_at->diffForHumans(),
+                'timestamp' => $cofrinho->created_at->timestamp,
+                'link' => route('cofrinhos.index'),
             ];
         }
 
         // Ordenar por data mais recente
         usort($this->atividades, function($a, $b) {
-            return strtotime($b['time']) - strtotime($a['time']);
+            return $b['timestamp'] - $a['timestamp'];
         });
 
-        // Limitar a 5 atividades (pedido para sidebar e foco no essencial)
+        // Limitar a 5 atividades
         $this->atividades = array_slice($this->atividades, 0, 5);
     }
 
