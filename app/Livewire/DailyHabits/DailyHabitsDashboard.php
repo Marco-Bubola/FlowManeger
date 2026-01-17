@@ -5,6 +5,8 @@ namespace App\Livewire\DailyHabits;
 use App\Models\DailyHabit;
 use App\Models\DailyHabitCompletion;
 use App\Models\DailyHabitStreak;
+use App\Services\HabitService;
+use App\Services\AchievementService;
 use Carbon\Carbon;
 use Livewire\Component;
 
@@ -12,6 +14,8 @@ class DailyHabitsDashboard extends Component
 {
     public $habits = [];
     public $stats = [];
+    public $achievementStats = [];
+    public $recentAchievements = [];
     public $showCreateModal = false;
     public $showEditModal = false;
     public $selectedHabit = null;
@@ -51,6 +55,15 @@ class DailyHabitsDashboard extends Component
         '#06B6D4' => 'Ciano',
         '#84CC16' => 'Lima',
     ];
+
+    protected $habitService;
+    protected $achievementService;
+
+    public function boot(HabitService $habitService, AchievementService $achievementService)
+    {
+        $this->habitService = $habitService;
+        $this->achievementService = $achievementService;
+    }
 
     public function mount()
     {
@@ -94,32 +107,27 @@ class DailyHabitsDashboard extends Component
     public function loadStats()
     {
         $userId = auth()->id();
-        $today = Carbon::today();
 
-        $totalHabits = DailyHabit::where('user_id', $userId)->active()->count();
-
-        $completedToday = DailyHabitCompletion::where('user_id', $userId)
-            ->whereDate('completion_date', $today)
-            ->distinct('habit_id')
-            ->count('habit_id');
-
-        $totalCompletionsThisWeek = DailyHabitCompletion::where('user_id', $userId)
-            ->whereBetween('completion_date', [
-                $today->copy()->startOfWeek(),
-                $today->copy()->endOfWeek()
-            ])
-            ->count();
-
-        $bestStreak = DailyHabitStreak::where('user_id', $userId)
-            ->max('longest_streak') ?? 0;
+        // Usar HabitService para KPIs
+        $kpis = $this->habitService->getUserKPIs($userId);
 
         $this->stats = [
-            'total_habits' => $totalHabits,
-            'completed_today' => $completedToday,
-            'completion_percentage' => $totalHabits > 0 ? round(($completedToday / $totalHabits) * 100) : 0,
-            'week_completions' => $totalCompletionsThisWeek,
-            'best_streak' => $bestStreak,
+            'total_habits' => $kpis['total_habits'],
+            'completed_today' => $kpis['completed_today'],
+            'pending_today' => $kpis['pending_today'],
+            'completion_percentage' => $kpis['completion_rate_today'],
+            'total_goal_today' => $kpis['total_goal_today'],
         ];
+
+        // Stats de achievements
+        $this->achievementStats = $this->achievementService->getUserStats($userId);
+
+        // Achievements recentes relacionados a hábitos
+        $allAchievements = $this->achievementService->getUserAchievements($userId);
+        $this->recentAchievements = $allAchievements
+            ->filter(fn($ua) => in_array($ua->achievement->category, ['habits', 'streak']))
+            ->sortByDesc('unlocked_at')
+            ->take(3);
     }
 
     public function toggleHabit($habitId)
@@ -149,20 +157,35 @@ class DailyHabitsDashboard extends Component
 
             if ($completion) {
                 \Log::info('[DailyHabits] Desmarcando hábito', ['completion_id' => $completion->id]);
-                // Desmarcar
-                $completion->delete();
-                $this->updateStreak($habit, false);
+                // Usar HabitService para desmarcar
+                $this->habitService->uncomplete($habit, auth()->id(), $today);
                 $message = '⭕ Hábito desmarcado!';
             } else {
                 \Log::info('[DailyHabits] Marcando hábito como concluído');
-                // Marcar como concluído
-                DailyHabitCompletion::create([
-                    'habit_id' => $habitId,
-                    'user_id' => auth()->id(),
-                    'completion_date' => $today,
-                    'times_completed' => 1,
-                ]);
-                $this->updateStreak($habit, true);
+                // Usar HabitService para completar
+                $this->habitService->complete($habit, auth()->id(), $today);
+
+                // Verificar achievements
+                $unlockedAchievements = $this->achievementService->checkAndUnlock(
+                    auth()->id(),
+                    'habit_completed',
+                    ['habit_id' => $habitId]
+                );
+
+                // Emitir evento de achievement se algum foi desbloqueado
+                if (!empty($unlockedAchievements)) {
+                    foreach ($unlockedAchievements as $achievement) {
+                        $this->dispatch('achievement-unlocked', [
+                            'name' => $achievement->name,
+                            'description' => $achievement->description,
+                            'icon' => $achievement->icon,
+                            'rarity' => $achievement->rarity,
+                            'rarity_color' => $achievement->rarity_color,
+                            'points' => $achievement->points,
+                        ]);
+                    }
+                }
+
                 $message = '🎉 Hábito concluído!';
             }
 
@@ -183,21 +206,7 @@ class DailyHabitsDashboard extends Component
             session()->flash('message', '❌ Erro ao atualizar hábito: ' . $e->getMessage());
             session()->flash('message_type', 'error');
         }
-    }
 
-    private function updateStreak(DailyHabit $habit, bool $completed)
-    {
-        $streak = DailyHabitStreak::firstOrCreate(
-            [
-                'habit_id' => $habit->id,
-                'user_id' => auth()->id(),
-            ],
-            [
-                'current_streak' => 0,
-                'longest_streak' => 0,
-                'total_completions' => 0,
-            ]
-        );
 
         $today = Carbon::today();
         $lastCompletion = $streak->last_completion_date ? Carbon::parse($streak->last_completion_date) : null;
