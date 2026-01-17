@@ -106,6 +106,28 @@ class CreateGoal extends Component
                 'cor' => $this->cor,
             ], auth()->id());
 
+            // Verificar achievements
+            $achievementService = app(\App\Services\AchievementService::class);
+            $unlockedAchievements = $achievementService->checkAndUnlock(
+                auth()->id(),
+                'goal_created',
+                ['goal_id' => $goal->id]
+            );
+
+            // Emitir evento de achievement se algum foi desbloqueado
+            if (!empty($unlockedAchievements)) {
+                foreach ($unlockedAchievements as $achievement) {
+                    $this->dispatch('achievement-unlocked', [
+                        'name' => $achievement->name,
+                        'description' => $achievement->description,
+                        'icon' => $achievement->icon,
+                        'rarity' => $achievement->rarity,
+                        'rarity_color' => $achievement->rarity_color,
+                        'points' => $achievement->points,
+                    ]);
+                }
+            }
+
             \Log::info('[CreateGoal] Meta criada', ['goal_id' => $goal->id]);
 
             session()->flash('message', '✅ Meta criada com sucesso!');
