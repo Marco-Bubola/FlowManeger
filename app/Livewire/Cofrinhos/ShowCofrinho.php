@@ -36,18 +36,21 @@ class ShowCofrinho extends Component
             ->toArray();
 
         // Calcular valor acumulado
+        // LÓGICA CORRIGIDA:
+        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
+        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
         $this->valor_acumulado = 0;
         foreach ($this->transacoes as $transacao) {
-            if ($transacao['type_id'] == 1) { // Receita
+            if ($transacao['type_id'] == 1) { // Receita = guardando no cofrinho
                 $this->valor_acumulado += $transacao['value'];
-            } elseif ($transacao['type_id'] == 2) { // Despesa
+            } elseif ($transacao['type_id'] == 2) { // Despesa = retirando do cofrinho
                 $this->valor_acumulado -= $transacao['value'];
             }
         }
 
         // Calcular porcentagem da meta
-        $this->porcentagem = $this->cofrinho->meta_valor > 0 
-            ? ($this->valor_acumulado / $this->cofrinho->meta_valor) * 100 
+        $this->porcentagem = $this->cofrinho->meta_valor > 0
+            ? ($this->valor_acumulado / $this->cofrinho->meta_valor) * 100
             : 0;
 
         // Estatísticas
