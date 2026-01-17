@@ -4,7 +4,16 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-white dark:bg-zinc-800">
-        <flux:header container class="border-b border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+        <flux:header container class="border-b border-zinc-200 dark:border-zinc-700 backdrop-blur-xl bg-white/80 dark:bg-zinc-900/80 shadow-xl animate-fade-slide-in" style="box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 1.5px 8px 0 rgba(80, 80, 200, 0.10); border-radius: 1.5rem 1.5rem 0 0;">
+                    <style>
+                    @keyframes fade-slide-in {
+                        0% { opacity: 0; transform: translateY(-24px); }
+                        100% { opacity: 1; transform: translateY(0); }
+                    }
+                    .animate-fade-slide-in {
+                        animation: fade-slide-in 0.7s cubic-bezier(.4,1.7,.6,1) 0s 1 both;
+                    }
+                    </style>
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <a href="{{ route('dashboard.index') }}" class="ms-2 me-5 flex items-center space-x-2 rtl:space-x-reverse lg:ms-0" wire:navigate>
