@@ -98,7 +98,7 @@ class Goal extends Model
     // Helper: obter todos os checklistItems
     public function checklistItems()
     {
-        return GoalChecklistItem::whereIn('checklist_id', 
+        return GoalChecklistItem::whereIn('checklist_id',
             $this->checklists()->pluck('id')
         );
     }
