@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('daily_habit_id')->constrained('daily_habits')->onDelete('cascade');
             $table->decimal('peso', 5, 2)->default(1.00)->comment('Peso do hábito no cálculo de progresso da meta');
             $table->timestamps();
-            
+
             $table->unique(['goal_id', 'daily_habit_id']);
         });
     }
