@@ -17,12 +17,15 @@ class CofrinhoController extends Controller
             ->withCount('cashbooks')
             ->get();
         // Calcular valor acumulado considerando receitas e despesas
+        // LÓGICA CORRIGIDA:
+        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
+        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
         foreach ($cofrinhos as $cofrinho) {
             $valor = 0;
             foreach ($cofrinho->cashbooks as $cb) {
-                if ($cb->type_id == 1) { // Receita
+                if ($cb->type_id == 1) { // Receita = guardando no cofrinho
                     $valor += $cb->value;
-                } elseif ($cb->type_id == 2) { // Despesa
+                } elseif ($cb->type_id == 2) { // Despesa = retirando do cofrinho
                     $valor -= $cb->value;
                 }
             }
@@ -56,11 +59,14 @@ class CofrinhoController extends Controller
     {
         $cofrinho = Cofrinho::withCount('cashbooks')->findOrFail($id);
         // Calcular valor acumulado
+        // LÓGICA CORRIGIDA:
+        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
+        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
         $valor = 0;
         foreach ($cofrinho->cashbooks as $cb) {
-            if ($cb->type_id == 1) {
+            if ($cb->type_id == 1) { // Receita = guardando no cofrinho
                 $valor += $cb->value;
-            } elseif ($cb->type_id == 2) {
+            } elseif ($cb->type_id == 2) { // Despesa = retirando do cofrinho
                 $valor -= $cb->value;
             }
         }
@@ -88,4 +94,4 @@ class CofrinhoController extends Controller
         $cofrinho->delete();
         return response()->json(['success' => true]);
     }
-} 
+}
