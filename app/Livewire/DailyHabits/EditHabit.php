@@ -3,6 +3,7 @@
 namespace App\Livewire\DailyHabits;
 
 use App\Models\DailyHabit;
+use App\Services\HabitService;
 use Livewire\Component;
 
 class EditHabit extends Component
@@ -41,6 +42,13 @@ class EditHabit extends Component
         '#06B6D4' => 'Ciano',
         '#84CC16' => 'Lima',
     ];
+
+    protected $habitService;
+
+    public function boot(HabitService $habitService)
+    {
+        $this->habitService = $habitService;
+    }
 
     public function mount($habitId)
     {
