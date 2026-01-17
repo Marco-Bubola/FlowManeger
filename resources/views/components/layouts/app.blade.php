@@ -39,6 +39,9 @@
     <!-- Sistema de Notificações Global -->
     @livewire('components.notifications')
 
+    <!-- Sistema de Notificações de Achievements -->
+    @livewire('components.achievement-notifier')
+
     @livewireScripts
 
     <!-- Sistema de Notificações Global -->
