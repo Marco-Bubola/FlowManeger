@@ -115,7 +115,7 @@ class CashbookIndex extends Component
         $this->loadCofrinhos();
         $this->loadAdjacentMonths();
         $this->loadCalendarData();
-        
+
         // Prepare chart data and dispatch event
         $this->prepareChartData();
         $this->dispatch('cashbook-chart-updated', data: $this->categoriesChartData);
@@ -292,6 +292,7 @@ class CashbookIndex extends Component
         $prevTransactions = Cashbook::where('user_id', Auth::id())
             ->whereYear('date', $prevDate->year)
             ->whereMonth('date', $prevDate->month)
+            ->whereNull('cofrinho_id')
             ->get();
         $this->prevMonth = [
             'name' => $prevMonthName,
@@ -304,6 +305,7 @@ class CashbookIndex extends Component
         $nextTransactions = Cashbook::where('user_id', Auth::id())
             ->whereYear('date', $nextDate->year)
             ->whereMonth('date', $nextDate->month)
+            ->whereNull('cofrinho_id')
             ->get();
         $this->nextMonth = [
             'name' => $nextMonthName,
@@ -372,11 +374,12 @@ class CashbookIndex extends Component
 
         $transactions = $transactionsQuery->orderBy('date', 'desc')->get();
 
-        // Calcular totais do mês selecionado
+        // Calcular totais do mês selecionado (EXCLUINDO transações de cofrinho - movimentações internas)
+        $transactionsSemCofrinho = $transactions->whereNull('cofrinho_id');
         $this->totals = [
-            'income' => $transactions->where('type_id', 1)->sum('value'),
-            'expense' => $transactions->where('type_id', 2)->sum('value'),
-            'balance' => $transactions->where('type_id', 1)->sum('value') - $transactions->where('type_id', 2)->sum('value'),
+            'income' => $transactionsSemCofrinho->where('type_id', 1)->sum('value'),
+            'expense' => $transactionsSemCofrinho->where('type_id', 2)->sum('value'),
+            'balance' => $transactionsSemCofrinho->where('type_id', 1)->sum('value') - $transactionsSemCofrinho->where('type_id', 2)->sum('value'),
         ];
 
         // Agrupar transações por categoria no formato esperado pelo blade
