@@ -3,6 +3,8 @@
 namespace App\Livewire\DailyHabits;
 
 use App\Models\DailyHabit;
+use App\Services\HabitService;
+use App\Services\AchievementService;
 use Livewire\Component;
 
 class CreateHabit extends Component
@@ -40,6 +42,15 @@ class CreateHabit extends Component
         '#84CC16' => 'Lima',
     ];
 
+    protected $habitService;
+    protected $achievementService;
+
+    public function boot(HabitService $habitService, AchievementService $achievementService)
+    {
+        $this->habitService = $habitService;
+        $this->achievementService = $achievementService;
+    }
+
     public function createHabit()
     {
         try {
@@ -66,18 +77,36 @@ class CreateHabit extends Component
                 'goal_frequency.max' => 'A meta não pode ser maior que 10',
             ]);
 
-            $maxOrder = DailyHabit::where('user_id', auth()->id())->max('order') ?? 0;
-
-            $habit = DailyHabit::create([
-                'user_id' => auth()->id(),
+            // Usar HabitService para criar
+            $habit = $this->habitService->create([
                 'name' => $this->name,
                 'description' => $this->description,
                 'icon' => $this->icon,
                 'color' => $this->color,
                 'goal_frequency' => $this->goal_frequency,
                 'reminder_time' => $this->reminder_time ?: null,
-                'order' => $maxOrder + 1,
-            ]);
+            ], auth()->id());
+
+            // Verificar achievements
+            $unlockedAchievements = $this->achievementService->checkAndUnlock(
+                auth()->id(),
+                'habit_created',
+                ['habit_id' => $habit->id]
+            );
+
+            // Emitir evento de achievement se algum foi desbloqueado
+            if (!empty($unlockedAchievements)) {
+                foreach ($unlockedAchievements as $achievement) {
+                    $this->dispatch('achievement-unlocked', [
+                        'name' => $achievement->name,
+                        'description' => $achievement->description,
+                        'icon' => $achievement->icon,
+                        'rarity' => $achievement->rarity,
+                        'rarity_color' => $achievement->rarity_color,
+                        'points' => $achievement->points,
+                    ]);
+                }
+            }
 
             \Log::info('[CreateHabit] Hábito criado', ['id' => $habit->id]);
 
