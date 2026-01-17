@@ -5,7 +5,16 @@
     </head>
     <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <!-- Modern Sidebar with Toggle -->
-        <div id="modernSidebar" class="modern-sidebar fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out" style="width: 280px;">
+        <div id="modernSidebar" class="modern-sidebar fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out animate-fade-slide-in" style="width: 280px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 1.5px 8px 0 rgba(80, 80, 200, 0.10); border-radius: 0 1.5rem 1.5rem 0;">
+                    <style>
+                    @keyframes fade-slide-in {
+                        0% { opacity: 0; transform: translateX(-24px); }
+                        100% { opacity: 1; transform: translateX(0); }
+                    }
+                    .animate-fade-slide-in {
+                        animation: fade-slide-in 0.7s cubic-bezier(.4,1.7,.6,1) 0s 1 both;
+                    }
+                    </style>
             <!-- Sidebar Container with Glassmorphism -->
             <div class="h-full relative overflow-hidden">
                 <!-- Background Blur Layer -->
@@ -221,6 +230,32 @@
                                         </svg>
                                     </button>
                                     <div class="{{ Request::is('cofrinhos*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ route('goals.dashboard') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('goals*') ? 'bg-gradient-to-r from-purple-500/10 to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('goals*') ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                        <i class="bi bi-bullseye text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Metas e Objetivos</span>
+                                    <div class="{{ Request::is('goals*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-full"></div>
+                                </a>
+
+
+                                <a href="{{ route('daily-habits.dashboard') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('daily-habits*') ? 'bg-gradient-to-r from-indigo-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:to-pink-500/20 text-indigo-600 dark:text-indigo-400 font-semibold' : '' }}" wire:navigate>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('daily-habits*') ? 'bg-gradient-to-br from-indigo-500 to-pink-600 text-white shadow-lg shadow-indigo-500/30' : '' }}">
+                                        <i class="bi bi-calendar-check text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Hábitos Diários</span>
+                                    <div class="{{ Request::is('daily-habits*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
+                                <!-- Achievements/Conquistas -->
+                                <a href="{{ route('achievements.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-900 dark:hover:text-yellow-200 hover:translate-x-1 group {{ Request::is('achievements*') ? 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20 dark:from-yellow-600/30 dark:to-orange-600/30 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-yellow-100 dark:bg-yellow-900 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800 transition-all duration-200 flex-shrink-0 {{ Request::is('achievements*') ? 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white shadow-lg shadow-yellow-400/30' : '' }}">
+                                        <i class="bi bi-trophy-fill text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Conquistas</span>
+                                    <div class="{{ Request::is('achievements*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-l-full"></div>
                                 </a>
 
                                 <a href="{{ route('consortiums.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('consortiums*') ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 text-emerald-600 dark:text-emerald-400 font-semibold' : '' }}" wire:navigate>
