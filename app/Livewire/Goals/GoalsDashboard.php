@@ -5,6 +5,8 @@ namespace App\Livewire\Goals;
 use App\Models\Goal;
 use App\Models\GoalBoard;
 use App\Models\GoalList;
+use App\Services\GoalService;
+use App\Services\AchievementService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -17,6 +19,21 @@ class GoalsDashboard extends Component
     public $goalsByPeriodo = [];
     public $goalsByPrioridade = [];
     public $progressStats = [];
+    public $achievementStats = [];
+    public $recentAchievements = [];
+    protected $habitService;
+    public $habitStats = [];
+    public $habits = [];
+
+    protected $goalService;
+    protected $achievementService;
+
+    public function boot(GoalService $goalService, AchievementService $achievementService, \App\Services\HabitService $habitService)
+    {
+        $this->goalService = $goalService;
+        $this->achievementService = $achievementService;
+        $this->habitService = $habitService;
+    }
 
     public function mount()
     {
@@ -76,42 +93,45 @@ class GoalsDashboard extends Component
         }
     }
 
+    public function loadHabitsData()
+    {
+        $userId = Auth::id();
+        $kpis = $this->habitService->getUserKPIs($userId) ?? [];
+        $this->habitStats = array_merge([
+            'total_habits' => 0,
+            'completed_today' => 0,
+            'pending_today' => 0,
+            'completion_rate_today' => 0,
+            'total_goal_today' => 0,
+        ], $kpis);
+        $this->habits = \App\Models\DailyHabit::where('user_id', $userId)->active()->ordered()->get();
+    }
+
     public function loadDashboardData()
     {
         $userId = Auth::id();
 
-        // Estatísticas gerais
-        $totalGoals = Goal::where('user_id', $userId)->count();
-        $activeGoals = Goal::where('user_id', $userId)->active()->count();
-        $completedGoals = Goal::where('user_id', $userId)->whereNotNull('completed_at')->count();
-        $archivedGoals = Goal::where('user_id', $userId)->archived()->count();
-
-        // Calcular progresso médio
-        $avgProgress = Goal::where('user_id', $userId)
-            ->active()
-            ->avg('progresso') ?? 0;
-
-        // Metas atrasadas
-        $delayedGoals = Goal::where('user_id', $userId)
-            ->active()
-            ->atrasadas()
-            ->count();
-
-        // Metas vencendo em 7 dias
-        $upcomingGoals = Goal::where('user_id', $userId)
-            ->active()
-            ->vencendoEm(7)
-            ->count();
+        // Usar GoalService para KPIs
+        $kpis = $this->goalService->getUserKPIs($userId);
 
         $this->stats = [
-            'total' => $totalGoals,
-            'active' => $activeGoals,
-            'completed' => $completedGoals,
-            'archived' => $archivedGoals,
-            'avgProgress' => round($avgProgress, 2),
-            'delayed' => $delayedGoals,
-            'upcoming' => $upcomingGoals,
+            'total' => $kpis['total'],
+            'active' => $kpis['in_progress'],
+            'completed' => $kpis['completed'],
+            'archived' => 0, // Pode adicionar no service se necessário
+            'avgProgress' => $kpis['completion_rate'],
+            'delayed' => $kpis['overdue'],
+            'upcoming' => $kpis['upcoming'],
+            'pending' => $kpis['pending'],
         ];
+
+        // Stats de achievements
+        $this->achievementStats = $this->achievementService->getUserStats($userId);
+
+        // Achievements recentes (últimas 3)
+        $this->recentAchievements = $this->achievementService->getUserAchievements($userId)
+            ->sortByDesc('unlocked_at')
+            ->take(3);
 
         // Boards do usuário
         $this->boards = GoalBoard::where('user_id', $userId)
@@ -136,17 +156,14 @@ class GoalsDashboard extends Component
                 ];
             });
 
-        // Metas urgentes (atrasadas ou vencendo em 3 dias)
-        $this->urgentGoals = Goal::where('user_id', $userId)
-            ->with(['list.board', 'cofrinho', 'category'])
-            ->active()
-            ->where(function($query) {
-                $query->whereDate('data_vencimento', '<=', now()->addDays(3))
-                      ->orWhereRaw('DATE(data_vencimento) < CURDATE()');
-            })
-            ->orderBy('data_vencimento')
-            ->limit(10)
-            ->get()
+        // Metas urgentes usando GoalService
+        $overdueGoals = $this->goalService->getOverdueGoals($userId);
+        $upcomingGoals = $this->goalService->getUpcomingGoals($userId, 3);
+
+        $this->urgentGoals = $overdueGoals->merge($upcomingGoals)
+            ->unique('id')
+            ->sortBy('data_vencimento')
+            ->take(10)
             ->map(function($goal) {
                 return [
                     'id' => $goal->id,
