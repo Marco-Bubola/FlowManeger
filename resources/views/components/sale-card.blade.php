@@ -149,61 +149,68 @@
         </div>
     </div>
 
-    <div class="sale-card-actions">
-        <a href="{{ route('sales.show', $sale->id) }}" class="sale-card-button sale-card-button-view">
-            <i class="bi bi-eye"></i>
-            Ver
-        </a>
-        <a href="{{ route('sales.edit', $sale->id) }}" class="sale-card-button sale-card-button-edit">
-            <i class="bi bi-pencil"></i>
-            Editar
-        </a>
-        <button type="button" wire:click="openExportSaleModalFromCard({{ $sale->id }})" class="sale-card-button sale-card-button-view bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white border-red-500 dark:border-red-600" title="Exportar">
-            <i class="bi bi-file-earmark-pdf"></i>
-            PDF
-        </button>
+    <div class="sale-card-actions p-3 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-2 bg-transparent">
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <a href="{{ route('sales.show', $sale->id) }}" @focus="open=true" @blur="open=false" aria-label="Ver detalhes da venda" :aria-expanded="open ? 'true' : 'false'" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <i class="bi bi-eye"></i>
+            </a>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip" aria-hidden="true">Ver</span>
+        </div>
 
-        <div x-data="{ open: false }" class="sale-card-menu">
-            <button @click="open = !open" @click.away="open = false" class="sale-card-button sale-card-button-more">
-                <i class="bi bi-three-dots-vertical"></i>
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <a href="{{ route('sales.edit', $sale->id) }}" @focus="open=true" @blur="open=false" aria-label="Editar venda" :aria-expanded="open ? 'true' : 'false'" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <i class="bi bi-pencil"></i>
+            </a>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Editar</span>
+        </div>
+
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <button type="button" wire:click="openExportSaleModalFromCard({{ $sale->id }})" @focus="open=true" @blur="open=false" aria-label="Exportar venda para PDF" :aria-expanded="open ? 'true' : 'false'" class="w-10 h-10 flex items-center justify-center rounded-xl bg-gradient-to-r from-red-500 to-pink-600 text-white hover:from-red-600 hover:to-pink-700 shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-400">
+                <i class="bi bi-file-earmark-pdf"></i>
             </button>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Exportar PDF</span>
+        </div>
 
-            <div x-show="open"
-                 x-transition:enter="transition ease-out duration-200"
-                 x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
-                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave="transition ease-in duration-150"
-                 x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                 x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
-                 class="sale-card-dropdown bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl"
-                 style="display: none;">
-                <a href="{{ route('sales.add-products', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                    <i class="bi bi-plus-circle text-blue-600 dark:text-blue-400"></i>
-                    Adicionar Produtos
-                </a>
-                <a href="{{ route('sales.edit-prices', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-900/20">
-                    <i class="bi bi-currency-dollar text-purple-600 dark:text-purple-400"></i>
-                    Editar Preços
-                </a>
-                <a href="{{ route('sales.add-payments', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-green-50 dark:hover:bg-green-900/20">
-                    <i class="bi bi-credit-card text-green-600 dark:text-green-400"></i>
-                    Adicionar Pagamento
-                </a>
-                <a href="{{ route('sales.edit-payments', $sale->id) }}" class="text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-indigo-900/20">
-                    <i class="bi bi-pencil-square text-indigo-600 dark:text-indigo-400"></i>
-                    Editar Pagamentos
-                </a>
-                <div class="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-                <button type="button" wire:click="payFull({{ $sale->id }})" class="sale-card-dropdown-action text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20">
-                    <i class="bi bi-cash-stack"></i>
-                    Pagar Tudo
-                </button>
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <a href="{{ route('sales.add-products', $sale->id) }}" @focus="open=true" @blur="open=false" aria-label="Adicionar produtos" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-200 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <i class="bi bi-plus-circle text-blue-600"></i>
+            </a>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Adicionar</span>
+        </div>
 
-                <button type="button" wire:click="confirmDelete({{ $sale->id }})" class="sale-card-dropdown-danger text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
-                    <i class="bi bi-trash"></i>
-                    Excluir Venda
-                </button>
-            </div>
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <a href="{{ route('sales.edit-prices', $sale->id) }}" @focus="open=true" @blur="open=false" aria-label="Editar preços" class="w-10 h-10 flex items-center justify-center rounded-xl bg-purple-50 dark:bg-purple-900/10 text-purple-700 dark:text-purple-300 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-purple-400">
+                <i class="bi bi-currency-dollar"></i>
+            </a>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Preços</span>
+        </div>
+
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <a href="{{ route('sales.add-payments', $sale->id) }}" @focus="open=true" @blur="open=false" aria-label="Adicionar pagamento" class="w-10 h-10 flex items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/10 text-green-700 dark:text-green-300 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                <i class="bi bi-credit-card"></i>
+            </a>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Pagamento</span>
+        </div>
+
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <a href="{{ route('sales.edit-payments', $sale->id) }}" @focus="open=true" @blur="open=false" aria-label="Editar pagamentos" class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/10 text-indigo-700 dark:text-indigo-300 hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <i class="bi bi-pencil-square"></i>
+            </a>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Editar Pag.</span>
+        </div>
+
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <button type="button" wire:click="payFull({{ $sale->id }})" @focus="open=true" @blur="open=false" aria-label="Pagar tudo" class="w-10 h-10 flex items-center justify-center rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-300">
+                <i class="bi bi-cash-stack"></i>
+            </button>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Pagar Tudo</span>
+        </div>
+
+        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
+            <button type="button" wire:click="confirmDelete({{ $sale->id }})" @focus="open=true" @blur="open=false" aria-label="Excluir venda" class="w-10 h-10 flex items-center justify-center rounded-xl bg-red-600 text-white hover:bg-red-700 shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
+                <i class="bi bi-trash"></i>
+            </button>
+            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 transform -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-white text-slate-900 dark:bg-slate-900 dark:text-white shadow-lg pointer-events-none" role="tooltip">Excluir</span>
         </div>
     </div>
 </div>
