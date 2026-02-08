@@ -377,6 +377,11 @@
                     @endforeach
                 </div>
             </div>
+            <!-- Help text explicativo -->
+            <p class="text-xs text-slate-400 flex items-start gap-1.5 mt-2">
+                <i class="bi bi-info-circle text-amber-400 mt-0.5"></i>
+                <span><strong class="text-amber-400">Dica:</strong> Ao selecionar um cofrinho, se for <strong class="text-green-400">Receita</strong> = dinheiro saiu do cofrinho para a conta. Se for <strong class="text-red-400">Despesa</strong> = dinheiro saiu da conta para o cofrinho.</span>
+            </p>
             @error('cofrinho_id')
                 <p class="text-red-400 text-xs flex items-center gap-1">
                     <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
