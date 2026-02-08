@@ -89,8 +89,8 @@
     document.addEventListener('alpine:init', () => {
         const inputMasked = document.getElementById('{{ $id }}');
         const inputHidden = document.getElementById('{{ $id }}_hidden');
-        // Pega o valor inicial passado, tratando como uma string para manipulação
-        const initialValue = '{{ $attributes->get('value', '0') }}';
+        // Obtém o valor inicial preferencialmente a partir do input oculto ligado ao Livewire
+        const initialAttr = '{{ $attributes->get('value', '') }}';
 
         // Converte um valor numérico (ex: 123.45) para uma string formatada (ex: '123,45')
         const formatNumber = (numStr) => {
@@ -119,20 +119,44 @@
         };
 
 
-        // --- INICIALIZAÇÃO ---
-        // 1. Define o valor inicial formatado no campo visível
-        inputMasked.value = formatNumber(initialValue);
-        // 2. Define o valor numérico correspondente no campo oculto
-        inputHidden.value = unformat(inputMasked.value);
-        // 3. Notifica o Livewire sobre o valor inicial para evitar que ele seja limpo
-        inputHidden.dispatchEvent(new Event('input'));
+        // --- FUNÇÕES AUXILIARES ---
+        // Normaliza strings como '1.234,56' ou '1234,56' para '1234.56'
+        const normalizeForParse = (v) => {
+            if (!v) return '';
+            return v.toString().replace(/\./g, '').replace(',', '.');
+        };
 
+        // Inicializa o campo visível a partir do input oculto (valor do Livewire)
+        const initializeFromHidden = (val) => {
+            const source = (val && val !== '') ? val : (initialAttr && initialAttr !== '' ? initialAttr : '');
+            if (!source) return;
+            const normalized = normalizeForParse(source);
+            if (!isNaN(parseFloat(normalized))) {
+                inputMasked.value = formatNumber(normalized);
+                inputHidden.value = normalized;
+            }
+        };
+
+        // Se o Livewire já colocou um valor no input oculto, inicializa imediatamente
+        if (inputHidden.value && inputHidden.value !== '') {
+            initializeFromHidden(inputHidden.value);
+        } else if (initialAttr && initialAttr !== '') {
+            initializeFromHidden(initialAttr);
+        }
+
+        // Escuta alterações no input oculto (Livewire pode hidratar/depois atualizar o valor)
+        inputHidden.addEventListener('input', () => {
+            if (inputHidden.value && inputHidden.value !== '') {
+                initializeFromHidden(inputHidden.value);
+            }
+        });
 
         // --- ATUALIZAÇÃO NO INPUT DO USUÁRIO ---
         inputMasked.addEventListener('input', (e) => {
             const formattedValue = formatInput(e.target.value);
             e.target.value = formattedValue;
-            inputHidden.value = unformat(formattedValue);
+            // Se o campo visível foi limpo, repassa string vazia para o Livewire
+            inputHidden.value = formattedValue ? unformat(formattedValue) : '';
             inputHidden.dispatchEvent(new Event('input')); // Notifica o Livewire a cada mudança
         });
     });
