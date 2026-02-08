@@ -28,6 +28,13 @@ class EditProduct extends Component
     public string $product_code = '';
     public $image;
     public string $status = 'ativo';
+    
+    // Campos Mercado Livre
+    public string $barcode = '';
+    public string $brand = '';
+    public string $model = '';
+    public string $warranty_months = '3';
+    public string $condition = 'new';
 
     public function mount(Product $product)
     {
@@ -52,6 +59,13 @@ class EditProduct extends Component
         $this->category_id = (string)$product->category_id;
         $this->product_code = $product->product_code ?? '';
         $this->status = $product->status ?? 'ativo';
+        
+        // Campos Mercado Livre
+        $this->barcode = $product->barcode ?? '';
+        $this->brand = $product->brand ?? '';
+        $this->model = $product->model ?? '';
+        $this->warranty_months = $product->warranty_months ? (string)$product->warranty_months : '3';
+        $this->condition = $product->condition ?? 'new';
 
         // Debug para verificar se está carregando
         Log::info('EditProduct mount - product ID: ' . $product->id);
@@ -89,6 +103,11 @@ class EditProduct extends Component
             'category_id' => 'required|exists:category,id_category',
             'product_code' => 'required',
             'image' => 'nullable|image|mimes:jpg,png,jpeg,gif,webp|max:2048',
+            'barcode' => 'nullable|max:15',
+            'brand' => 'nullable|max:100',
+            'model' => 'nullable|max:100',
+            'warranty_months' => 'nullable|integer|min:0|max:120',
+            'condition' => 'nullable|in:new,used,refurbished',
             // Removido o status obrigatório pois ele é definido automaticamente
         ];
     }
@@ -166,6 +185,12 @@ class EditProduct extends Component
                 'status' => 'ativo',
                 'tipo' => 'simples',
                 'custos_adicionais' => 0,
+                // Campos Mercado Livre
+                'barcode' => $this->barcode ?: null,
+                'brand' => $this->brand ?: null,
+                'model' => $this->model ?: null,
+                'warranty_months' => $this->warranty_months ?: 3,
+                'condition' => $this->condition ?: 'new',
             ]);
 
             if (!$updateResult) {
