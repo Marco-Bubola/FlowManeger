@@ -80,3 +80,34 @@ select:focus[data-flux-control] {
 /* \[:where(&)\]:size-4 {
     @apply size-4;
 } */
+
+@layer base {
+    html {
+        scrollbar-gutter: stable;
+    }
+    
+    /* For Webkit-based browsers (Chrome, Safari, Edge) */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: #d1d5db; /* slate-300 */
+        border-radius: 99px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #9ca3af; /* slate-400 */
+    }
+
+    /* For Firefox */
+    html {
+        scrollbar-width: thin;
+        scrollbar-color: #d1d5db transparent; /* thumb and track */
+    }
+}
