@@ -23,7 +23,15 @@ class Product extends Model
         'tipo', // simples, kit
         'custos_adicionais', // decimal(10,2)
         'descricao_custos_adicionais', // texto opcional
+        'barcode', // EAN/GTIN para integração Mercado Livre
+        'brand', // Marca do produto
+        'model', // Modelo do produto
+        'warranty_months', // Meses de garantia
+        'condition', // new, used
     ];
+
+    protected $appends = ['image_url'];
+
     /**
      * status: ativo, inativo, descontinuado
      * tipo: simples, kit
@@ -47,5 +55,25 @@ class Product extends Model
     public function componentes()
     {
         return $this->hasMany(\App\Models\ProdutoComponente::class, 'kit_produto_id');
+    }
+
+    /**
+     * Relacionamento com anúncio do Mercado Livre
+     */
+    public function mercadoLivreProduct()
+    {
+        return $this->hasOne(\App\Models\MercadoLivreProduct::class, 'product_id');
+    }
+
+    /**
+     * Retorna a URL completa da imagem do produto
+     */
+    public function getImageUrlAttribute()
+    {
+        if (!$this->image || $this->image === 'product-placeholder.png') {
+            return asset('storage/products/product-placeholder.png');
+        }
+        
+        return asset('storage/products/' . $this->image);
     }
 }
