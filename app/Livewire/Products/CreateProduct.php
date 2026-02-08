@@ -22,6 +22,13 @@ class CreateProduct extends Component
     public string $category_id = '';
     public string $product_code = '';
     public $image;
+    
+    // Campos Mercado Livre
+    public string $barcode = '';
+    public string $brand = '';
+    public string $model = '';
+    public string $warranty_months = '3';
+    public string $condition = 'new';
 
     // Propriedade para controlar os steppers
     public int $currentStep = 1;
@@ -40,6 +47,11 @@ class CreateProduct extends Component
             'category_id' => 'required|exists:category,id_category',
             'product_code' => 'required',
             'image' => 'nullable|image|mimes:jpg,png,jpeg,gif,webp|max:2048',
+            'barcode' => 'nullable|max:15',
+            'brand' => 'nullable|max:100',
+            'model' => 'nullable|max:100',
+            'warranty_months' => 'nullable|integer|min:0|max:120',
+            'condition' => 'nullable|in:new,used,refurbished',
         ];
     }
 
@@ -152,6 +164,12 @@ class CreateProduct extends Component
                 'status' => 'ativo', // Padrão sempre ativo
                 'tipo' => 'simples',
                 'custos_adicionais' => 0,
+                // Campos Mercado Livre
+                'barcode' => $this->barcode ?: null,
+                'brand' => $this->brand ?: null,
+                'model' => $this->model ?: null,
+                'warranty_months' => $this->warranty_months ?: 3,
+                'condition' => $this->condition ?: 'new',
             ]);
 
             session()->flash('success', 'Produto adicionado com sucesso!');
