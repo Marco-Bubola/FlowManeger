@@ -108,6 +108,16 @@
                     </div>
                 </div>
 
+                    <!-- Linha de Filtros Rápidos abaixo do campo de pesquisa -->
+                    <div class="ml-3 mt-2 sm:mt-0 sm:ml-4">
+                        <div class="flex items-center gap-2">
+                            <button wire:click="$set('statusFilter', '')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all" title="Mostrar todos">Todos</button>
+                            <button wire:click="$set('statusFilter', 'pendente')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-800 transition-all" title="Somente Pendentes">Pendentes</button>
+                            <button wire:click="$set('statusFilter', 'pago')" class="px-3 py-1 rounded-lg text-xs font-semibold bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800 transition-all" title="Somente Pagos">Pagos</button>
+                            <button wire:click="$set('perPage', 64)" class="px-3 py-1 rounded-lg text-xs font-semibold bg-indigo-100 dark:bg-indigo-900 text-indigo-800 dark:text-indigo-200 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-200 dark:hover:bg-indigo-800 transition-all" title="Exibir 64 por página">64 por página</button>
+                        </div>
+                    </div>
+
                 <!-- Paginação Compacta -->
                 @if ($sales->hasPages())
                 <div class="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl p-1 shadow-md">
