@@ -506,7 +506,9 @@ class SalesIndex extends Component
             $query->where('user_id', $this->sellerFilter);
         }
 
-        // Sistema de Ordenação Avançado
+        // Sempre pendentes primeiro, pagos por último, independente do sortBy
+        $query->orderByRaw("CASE WHEN sales.status = 'pendente' THEN 0 WHEN sales.status IN ('pago','concluida','finalizada','confirmada') THEN 2 ELSE 1 END");
+
         switch ($this->sortBy) {
             case 'id':
                 $query->orderBy('sales.id', $this->sortDirection);
@@ -518,9 +520,6 @@ class SalesIndex extends Component
                 break;
             case 'total_price':
                 $query->orderBy('sales.total_price', $this->sortDirection);
-                break;
-            case 'status':
-                $query->orderBy('sales.status', $this->sortDirection);
                 break;
             case 'updated_at':
                 $query->orderBy('sales.updated_at', $this->sortDirection);
