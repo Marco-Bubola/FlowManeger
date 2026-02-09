@@ -1,27 +1,16 @@
 <div class="w-full bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" style="min-height: 100vh;">
-    <x-sales-header
-        title="🎯 Criar Nova Meta - {{ $board_name }}"
-        description="Adicione uma nova meta ao seu quadro">
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('goals.dashboard') }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                    <i class="bi bi-bullseye mr-1"></i>Metas
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('goals.board', ['boardId' => $boardId]) }}" class="hover:text-purple-600 dark:hover:text-purple-400 transition-colors">
-                    <i class="bi bi-kanban mr-1"></i>{{ $board_name }}
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                    Criar Meta
-                </span>
-            </div>
-        </x-slot>
-    </x-sales-header>
+
+    <x-modern-header
+        :icon="'bi bi-bullseye'"
+        :title="'🎯 Criar Nova Meta - ' . $board_name"
+        :subtitle="'Adicione uma nova meta ao seu quadro'"
+        :breadcrumb="[
+            ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'url' => route('dashboard')],
+            ['icon' => 'bi bi-bullseye', 'label' => 'Metas', 'url' => route('goals.dashboard')],
+            ['icon' => 'bi bi-kanban', 'label' => $board_name, 'url' => route('goals.board', ['boardId' => $boardId])],
+            ['label' => 'Criar Meta']
+        ]"
+    />
 
     <div class="max-w-5xl mx-auto px-6 py-8">
         <!-- Mensagens -->
