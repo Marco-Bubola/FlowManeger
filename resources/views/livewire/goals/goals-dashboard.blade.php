@@ -27,54 +27,105 @@
 
         <!-- KPIs Principais -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Total de Metas -->
-            <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 shadow-xl">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl">
-                        <i class="bi bi-bullseye text-white text-2xl"></i>
-                    </div>
-                    <span class="text-white/80 text-sm font-medium">Total</span>
-                </div>
-                <p class="text-3xl font-bold text-white">{{ $stats['total'] }}</p>
-                <p class="text-white/70 text-sm mt-1">Metas cadastradas</p>
-            </div>
+            <x-stat-card
+                title="Total de Metas"
+                :value="$stats['total']"
+                icon="bi bi-bullseye"
+                color="blue"
+                :subtitle="$stats['pending'] . ' pendentes'"
+            />
 
-            <!-- Metas Ativas -->
-            <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl p-6 shadow-xl">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl">
-                        <i class="bi bi-play-circle text-white text-2xl"></i>
-                    </div>
-                    <span class="text-white/80 text-sm font-medium">Ativas</span>
-                </div>
-                <p class="text-3xl font-bold text-white">{{ $stats['active'] }}</p>
-                <p class="text-white/70 text-sm mt-1">Em andamento</p>
-            </div>
+            <x-stat-card
+                title="Em Andamento"
+                :value="$stats['active']"
+                icon="bi bi-play-circle"
+                color="green"
+                :subtitle="'Meta: ' . $stats['total']"
+            />
 
-            <!-- Metas Concluídas -->
-            <div class="bg-gradient-to-br from-purple-500 to-purple-600 rounded-2xl p-6 shadow-xl">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl">
-                        <i class="bi bi-check-circle text-white text-2xl"></i>
-                    </div>
-                    <span class="text-white/80 text-sm font-medium">Concluídas</span>
-                </div>
-                <p class="text-3xl font-bold text-white">{{ $stats['completed'] }}</p>
-                <p class="text-white/70 text-sm mt-1">🎉 Parabéns!</p>
-            </div>
+            <x-stat-card
+                title="Concluídas"
+                :value="$stats['completed']"
+                icon="bi bi-check-circle"
+                color="purple"
+                :subtitle="'🎉 Parabéns!'"
+            />
 
-            <!-- Progresso Médio -->
-            <div class="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 shadow-xl">
-                <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center justify-center w-12 h-12 bg-white/20 rounded-xl">
-                        <i class="bi bi-graph-up-arrow text-white text-2xl"></i>
-                    </div>
-                    <span class="text-white/80 text-sm font-medium">Progresso</span>
-                </div>
-                <p class="text-3xl font-bold text-white">{{ number_format($stats['avgProgress'], 1) }}%</p>
-                <p class="text-white/70 text-sm mt-1">Média geral</p>
-            </div>
+            <x-stat-card
+                title="Taxa de Conclusão"
+                :value="number_format($stats['avgProgress'], 1) . '%'"
+                icon="bi bi-graph-up-arrow"
+                color="orange"
+            >
+                <x-progress-ring
+                    :percentage="$stats['avgProgress']"
+                    size="sm"
+                    color="orange"
+                    label=""
+                />
+            </x-stat-card>
         </div>
+
+        <!-- Achievements Section -->
+        @if($achievementStats['unlocked'] > 0)
+        <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 shadow-xl text-white">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold flex items-center gap-2">
+                    <i class="bi bi-trophy-fill text-yellow-300"></i>
+                    Conquistas de Metas
+                </h3>
+                <a href="{{ route('achievements.index') }}" class="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
+                    Ver Todas
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <x-trophy-badge rarity="bronze" size="md" :count="$achievementStats['by_rarity']['bronze'] ?? 0" />
+                        <div>
+                            <p class="text-2xl font-bold">{{ $achievementStats['by_rarity']['bronze'] ?? 0 }}</p>
+                            <p class="text-sm text-purple-200">Bronze</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <x-trophy-badge rarity="silver" size="md" :count="$achievementStats['by_rarity']['silver'] ?? 0" />
+                        <div>
+                            <p class="text-2xl font-bold">{{ $achievementStats['by_rarity']['silver'] ?? 0 }}</p>
+                            <p class="text-sm text-purple-200">Prata</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
+                    <div class="flex items-center gap-3">
+                        <x-trophy-badge rarity="gold" size="md" :count="$achievementStats['by_rarity']['gold'] ?? 0" />
+                        <div>
+                            <p class="text-2xl font-bold">{{ $achievementStats['by_rarity']['gold'] ?? 0 }}</p>
+                            <p class="text-sm text-purple-200">Ouro</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if($recentAchievements->count() > 0)
+            <div class="mt-4 pt-4 border-t border-white/20">
+                <p class="text-sm text-purple-200 mb-3">Últimas Conquistas:</p>
+                <div class="flex gap-2">
+                    @foreach($recentAchievements as $achievement)
+                        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-2 flex items-center gap-2">
+                            <i class="{{ $achievement->achievement->icon }} text-xl"></i>
+                            <span class="text-sm">{{ $achievement->achievement->name }}</span>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+        </div>
+        @endif
 
         <!-- Alertas e Boards -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -298,6 +349,59 @@
                         @endforelse
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- KPIs de Hábitos Diários -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <x-stat-card
+                title="Hábitos Ativos"
+                :value="$habitStats['total_habits'] ?? 0"
+                icon="bi bi-list-check"
+                color="purple"
+            />
+            <x-stat-card
+                title="Concluídos Hoje"
+                :value="($habitStats['completed_today'] ?? 0) . '/' . ($habitStats['total_habits'] ?? 0)"
+                icon="bi bi-check-circle"
+                color="green"
+            />
+            <x-stat-card
+                title="Pendentes Hoje"
+                :value="$habitStats['pending_today'] ?? 0"
+                icon="bi bi-hourglass-split"
+                color="amber"
+            />
+            <x-stat-card
+                title="Taxa de Conclusão"
+                :value="($habitStats['completion_rate_today'] ?? 0) . '%'"
+                icon="bi bi-graph-up"
+                color="blue"
+            />
+        </div>
+        <!-- Lista de Hábitos -->
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg p-6 mb-8">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2">
+                <i class="bi bi-calendar-check text-purple-500"></i>
+                Hábitos Diários
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                @forelse($habits as $habit)
+                <div class="bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900 dark:to-indigo-900 rounded-xl p-4 flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                        <i class="{{ $habit->icon }} text-2xl" style="color: {{ $habit->color }}"></i>
+                        <span class="font-bold text-lg">{{ $habit->name }}</span>
+                    </div>
+                    <p class="text-sm text-slate-600 dark:text-slate-400">{{ $habit->description }}</p>
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 px-2 py-1 rounded-full">Frequência: {{ $habit->goal_frequency }}</span>
+                        <span class="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">Streak: {{ $habit->streak->current_streak ?? 0 }}</span>
+                        <span class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">Taxa: {{ $habit->completion_rate ?? 0 }}%</span>
+                    </div>
+                </div>
+                @empty
+                <p class="text-xs text-slate-500 dark:text-slate-400 text-center py-2">Nenhum hábito cadastrado</p>
+                @endforelse
             </div>
         </div>
     </div>
