@@ -447,10 +447,10 @@
             @include('livewire.dashboard.partials.fab-menu')
 
         </div>
+    </div>
 
-
-        {{-- ApexCharts --}}
-        <style>
+    {{-- ApexCharts --}}
+    <style>
             .apexcharts-legend-text {
                 color: #0f172a !important;
             }
@@ -711,5 +711,4 @@
                 if (salesVsCostsEl) new ApexCharts(salesVsCostsEl, salesVsCostsOptions).render();
             });
         </script>
-
-    </div>
+</div>
