@@ -24,6 +24,8 @@ class PublishProduct extends Component
     public bool $localPickup = true;
     public ?string $catalogProductId = null;
     public array $catalogResults = [];
+    public string $warranty = ''; // Garantia do produto
+    public string $productCondition = 'new'; // Condição: new ou used
     
     // Dados do produto do catálogo selecionado
     public array $catalogProductData = [];
@@ -39,6 +41,20 @@ class PublishProduct extends Component
     // Imagens selecionadas para publicação
     public array $selectedPictures = [];
     public bool $useCatalogPictures = true;
+    
+    // Controle de vinculação ao catálogo
+    public bool $linkToCatalog = true; // TRUE = vincula ao catálogo | FALSE = apenas copia dados
+    
+    // Múltiplos produtos (kit ou publicação composta)
+    public array $selectedProducts = [];
+    public bool $showProductSelector = false;
+    public string $publicationType = 'simple';
+    
+    // Listeners do Livewire
+    protected $listeners = [
+        'product-added' => 'addProductToList',
+        'product-removed' => 'onProductRemoved',
+    ];
 
     public function mount(Product $product)
     {
@@ -49,14 +65,32 @@ class PublishProduct extends Component
 
         $this->product = $product->load('category');
         
-        // Inicializar preço e quantidade com dados do produto
-        $this->publishPrice = number_format((float)($product->price_sale ?? $product->price), 2, '.', '');
+        // Inicializar condição e garantia
+        $this->productCondition = $product->condition ?? 'new';
+        $this->warranty = ''; // Pode adicionar campo no produto depois
+        
+        // Inicializar quantidade com dados do produto
         $this->publishQuantity = max(1, (int)($product->stock_quantity ?? 1));
         
         // Adicionar imagem do produto como selecionada por padrão
         if ($product->image && $product->image !== 'product-placeholder.png') {
             $this->selectedPictures = [$product->image_url];
         }
+        
+        // Inicializar produto principal na lista
+        $this->selectedProducts = [[
+            'id' => $product->id,
+            'name' => $product->name,
+            'product_code' => $product->product_code,
+            'price_sale' => (float)($product->price_sale ?? $product->price),
+            'stock_quantity' => (int)$product->stock_quantity,
+            'image_url' => $product->image_url,
+            'quantity' => 1,
+            'unit_cost' => (float)($product->price_sale ?? $product->price),
+        ]];
+        
+        // Atualizar preço baseado nos produtos
+        $this->updatePublishPrice();
         
         // Buscar sugestão automática de categorias ao carregar
         $this->predictCategory();
@@ -360,7 +394,135 @@ class PublishProduct extends Component
     }
 
     /**
-     * Publica o produto no Mercado Livre
+     * Toggle seletor de produtos
+     */
+    public function toggleProductSelector()
+    {
+        $this->showProductSelector = !$this->showProductSelector;
+    }
+    
+    /**
+     * Listener: produto adicionado pelo ProductSelector
+     */
+    public function addProductToList($productId)
+    {
+        // Busca o produto
+        $product = Product::find($productId);
+        
+        if (!$product) {
+            $this->notifyError('Produto não encontrado.');
+            return;
+        }
+        
+        // Verifica se já está na lista
+        foreach ($this->selectedProducts as $selected) {
+            if ($selected['id'] == $productId) {
+                $this->notifyWarning('Produto já está na lista.');
+                return;
+            }
+        }
+        
+        // Adiciona à lista
+        $this->selectedProducts[] = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'product_code' => $product->product_code,
+            'price_sale' => (float)($product->price_sale ?? $product->price),
+            'stock_quantity' => (int)$product->stock_quantity,
+            'image_url' => $product->image_url,
+            'quantity' => 1,
+            'unit_cost' => (float)($product->price_sale ?? $product->price),
+        ];
+        
+        // Atualizar preço do anúscio
+        $this->updatePublishPrice();
+        
+        $this->notifySuccess('Produto adicionado com sucesso.');
+    }
+    
+    /**
+     * Remove um produto da lista de selecionados
+     */
+    public function removeProduct($index)
+    {
+        // Não permite remover se só tiver 1 produto (o principal)
+        if (count($this->selectedProducts) <= 1) {
+            $this->notifyWarning('É necessário manter ao menos um produto na publicação.');
+            return;
+        }
+        
+        // Remove o produto pelo índice
+        array_splice($this->selectedProducts, $index, 1);
+        
+        // Reindexar array
+        $this->selectedProducts = array_values($this->selectedProducts);
+        
+        // Atualizar preço do anúscio
+        $this->updatePublishPrice();
+        
+        $this->notifySuccess('Produto removido com sucesso.');
+    }
+    
+    /**
+     * Listener: produto removido pelo ProductSelector
+     */
+    public function onProductRemoved($productId)
+    {
+        // Remove da lista pelo ID
+        $this->selectedProducts = array_values(array_filter($this->selectedProducts, function($p) use ($productId) {
+            return $p['id'] != $productId;
+        }));
+    }
+    
+    /**
+     * Calcula preço total dos produtos selecionados
+     */
+    public function getTotalProductsPrice()
+    {
+        if (empty($this->selectedProducts)) {
+            return 0;
+        }
+        
+        $total = 0;
+        foreach ($this->selectedProducts as $product) {
+            $total += ($product['price_sale'] ?? $product['unit_cost']) * $product['quantity'];
+        }
+        
+        return $total;
+    }
+    
+    /**
+     * Calcula quantidade disponível baseado nos produtos selecionados
+     */
+    public function getAvailableQuantity()
+    {
+        if (empty($this->selectedProducts)) {
+            return 0;
+        }
+        
+        $minQuantity = PHP_INT_MAX;
+        
+        foreach ($this->selectedProducts as $product) {
+            $available = floor($product['stock_quantity'] / $product['quantity']);
+            $minQuantity = min($minQuantity, $available);
+        }
+        
+        return $minQuantity == PHP_INT_MAX ? 0 : (int)$minQuantity;
+    }
+    
+    /**
+     * Atualiza o preço do anúscio baseado nos produtos
+     */
+    public function updatePublishPrice()
+    {
+        $totalPrice = $this->getTotalProductsPrice();
+        if ($totalPrice > 0) {
+            $this->publishPrice = number_format($totalPrice, 2, '.', '');
+        }
+    }
+    
+    /**
+     * Publica o produto no Mercado Livre (agora com suporte a múltiplos produtos)
      */
     public function publishProduct()
     {
@@ -382,10 +544,19 @@ class PublishProduct extends Component
             return;
         }
         
-        // Validar quantidade
-        if ($this->publishQuantity < 1) {
-            $this->notifyError('A quantidade deve ser pelo menos 1.');
-            return;
+        // Quando há múltiplos produtos, usar available_quantity calculado
+        if (count($this->selectedProducts) > 1) {
+            $this->publishQuantity = $this->getAvailableQuantity();
+            if ($this->publishQuantity < 1) {
+                $this->notifyError('Estoque insuficiente para criar publicação com múltiplos produtos.');
+                return;
+            }
+        } else {
+            // Validar quantidade para produto único
+            if ($this->publishQuantity < 1) {
+                $this->notifyError('A quantidade deve ser pelo menos 1.');
+                return;
+            }
         }
 
         // Validar atributos obrigatórios apenas se NÃO estiver usando product_id do catálogo
@@ -399,29 +570,98 @@ class PublishProduct extends Component
         }
 
         try {
+            // Definir descrição: priorizar catálogo se disponível
+            $description = $this->product->description ?? '';
+            if ($this->catalogProductId && !empty($this->catalogDescription)) {
+                $description = $this->catalogDescription;
+            }
+            
+            Log::info('PublishProduct: Preparando descrição', [
+                'has_catalog_description' => !empty($this->catalogDescription),
+                'description_length' => mb_strlen($description),
+                'description_preview' => mb_substr($description, 0, 100)
+            ]);
+            
+            // Criar publicação no novo sistema
+            $publication = \App\Models\MlPublication::create([
+                'ml_item_id' => 'MLB' . rand(100000000, 999999999), // Temporário até chamar API ML
+                'ml_category_id' => $this->mlCategoryId,
+                'title' => mb_substr($this->product->name, 0, 60),
+                'description' => $description,
+                'price' => $price,
+                'publication_type' => count($this->selectedProducts) > 1 ? 'kit' : 'simple',
+                'listing_type' => $this->listingType,
+                'free_shipping' => $this->freeShipping,
+                'local_pickup' => $this->localPickup,
+                'condition' => $this->productCondition,
+                'warranty' => $this->warranty,
+                'status' => 'active',
+                'user_id' => Auth::id(),
+            ]);
+            
+            // Adicionar produtos à publicação
+            foreach ($this->selectedProducts as $prod) {
+                $publication->addProduct(
+                    $prod['id'],
+                    $prod['quantity'],
+                    $prod['unit_cost']
+                );
+            }
+            
+            // Atualizar available_quantity
+            $publication->syncQuantityToMl();
+            
+            // Publicar no ML via API (legacy ProductService)
             $productService = new ProductService();
             
-            // Preparar dados de publicação
             $publishData = [
                 'listing_type' => $this->listingType,
                 'free_shipping' => $this->freeShipping,
                 'local_pickup' => $this->localPickup,
                 'family_name' => mb_substr($this->product->name, 0, 60),
                 'price' => $price,
-                'quantity' => $this->publishQuantity,
+                'quantity' => $publication->calculateAvailableQuantity(),
+                'category_id' => $this->mlCategoryId,
+                'description' => $description, // Incluir descrição (catálogo ou produto)
             ];
             
-            // category_id é SEMPRE obrigatório pela API do ML
-            $publishData['category_id'] = $this->mlCategoryId;
-            
-            // Se selecionou produto do catálogo, incluir catalog_product_id
-            if ($this->catalogProductId) {
+            // Verificar se deve vincular ao catálogo ou apenas copiar dados
+            if ($this->catalogProductId && $this->linkToCatalog) {
+                // MODO 1: Vincular ao catálogo (envia catalog_product_id)
                 $publishData['catalog_product_id'] = $this->catalogProductId;
-            } else {
+                
+                Log::info('Publicação VINCULADA ao catálogo', [
+                    'catalog_product_id' => $this->catalogProductId,
+                    'link_mode' => 'catalog_linked'
+                ]);
+            } elseif ($this->catalogProductId && !$this->linkToCatalog) {
+                // MODO 2: Copiar dados do catálogo mas criar publicação independente
+                Log::info('Publicação INDEPENDENTE (dados copiados do catálogo)', [
+                    'catalog_product_id' => $this->catalogProductId,
+                    'link_mode' => 'catalog_copied'
+                ]);
+            }
+            
+            // Enviar atributos: do catálogo ou preenchidos manualmente
+            if (!empty($this->catalogAttributes)) {
+                // Tem atributos do catálogo - usar eles
+                $attributes = [];
+                foreach ($this->catalogAttributes as $attr) {
+                    if (!empty($attr['id']) && !empty($attr['value_name'])) {
+                        $attributes[$attr['id']] = $attr['value_name'];
+                    }
+                }
+                $publishData['attributes'] = $attributes;
+                
+                Log::info('Enviando atributos do catálogo', [
+                    'attributes_count' => count($attributes),
+                    'link_to_catalog' => $this->linkToCatalog
+                ]);
+            } elseif (!empty($this->selectedAttributes)) {
+                // Atributos preenchidos manualmente
                 $publishData['attributes'] = $this->selectedAttributes;
             }
             
-            // Usar fotos do catálogo se selecionado (URLs do mlstatic.com)
             if ($this->useCatalogPictures && !empty($this->selectedPictures)) {
                 $publishData['pictures'] = array_map(fn($url) => ['source' => $url], $this->selectedPictures);
             }
@@ -433,9 +673,16 @@ class PublishProduct extends Component
             );
 
             if ($result['success']) {
-                $this->notifySuccess('Produto publicado no Mercado Livre com sucesso!');
-                return redirect()->route('mercadolivre.products');
+                // Atualizar ml_item_id real da API
+                if (!empty($result['ml_item_id'])) {
+                    $publication->update(['ml_item_id' => $result['ml_item_id']]);
+                }
+                
+                $this->notifySuccess('Publicação criada com ' . count($this->selectedProducts) . ' produto(s)!');
+                return redirect()->route('mercadolivre.publications');
             } else {
+                // Deletar publicação se API falhar
+                $publication->delete();
                 $this->notifyError($result['error'] ?? 'Erro ao publicar produto');
             }
         } catch (\Exception $e) {
@@ -486,7 +733,6 @@ class PublishProduct extends Component
 
     public function render()
     {
-        return view('livewire.mercadolivre.publish-product')
-            ->layout('components.layouts.app');
+        return view('livewire.mercadolivre.publish-product');
     }
 }
