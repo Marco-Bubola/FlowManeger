@@ -48,15 +48,17 @@ class EditProduct extends Component
         $this->name = $product->name ?? '';
         $this->description = $product->description ?? '';
 
-        // Formata os preços para o formato brasileiro (0,00)
-        $price = (float)$product->price;
-        $price_sale = (float)$product->price_sale;
+        // Os preços já vêm formatados como decimal(2) graças ao cast do Model
+        // Convertemos para float e depois para string no formato americano
+        $price = (float)($product->price ?? 0);
+        $price_sale = (float)($product->price_sale ?? 0);
 
-        $this->price = number_format($price, 2, ',', '');
-        $this->price_sale = number_format($price_sale, 2, ',', '');
+        // Formato americano para o componente currency-input
+        $this->price = number_format($price, 2, '.', '');
+        $this->price_sale = number_format($price_sale, 2, '.', '');
 
-        $this->stock_quantity = (string)$product->stock_quantity;
-        $this->category_id = (string)$product->category_id;
+        $this->stock_quantity = (string)($product->stock_quantity ?? 0);
+        $this->category_id = (string)($product->category_id ?? '');
         $this->product_code = $product->product_code ?? '';
         $this->status = $product->status ?? 'ativo';
         
@@ -66,11 +68,6 @@ class EditProduct extends Component
         $this->model = $product->model ?? '';
         $this->warranty_months = $product->warranty_months ? (string)$product->warranty_months : '3';
         $this->condition = $product->condition ?? 'new';
-
-        // Debug para verificar se está carregando
-        Log::info('EditProduct mount - product ID: ' . $product->id);
-        Log::info('EditProduct mount - category_id from product: ' . $product->category_id);
-        Log::info('EditProduct mount - category_id property: ' . $this->category_id);
 
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
