@@ -1,28 +1,165 @@
-<div class="min-h-screen w-full bg-slate-50 dark:bg-slate-950">
-    <div class="px-4 sm:px-6 lg:px-8 py-6">
-        {{-- Page Header --}}
-        <div class="mb-6">
-            <div class="flex items-center justify-between gap-4 mb-2">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 flex items-center justify-center shadow-lg">
-                        <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z"/>
-                        </svg>
+<div class="min-h-screen flex flex-col ">
+
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    @endpush
+
+    {{-- Modal de Publicações do Produto --}}
+    @livewire('mercado-livre.product-publications-modal')
+
+    {{-- ═══════════════════════════════════════════════════════════
+         HEADER ESTILO SALES-INDEX (search, filtros, paginação)
+    ═══════════════════════════════════════════════════════════════ --}}
+    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
+        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-yellow-400/20 via-amber-400/20 to-orange-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
+        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
+
+        <div class="relative px-4 py-3">
+            {{-- Primeira Linha: Título + Badges + Controles --}}
+            <div class="flex items-center justify-between gap-6">
+                {{-- Esquerda: Ícone + Título + Stats --}}
+                <div class="flex items-center gap-5">
+                    <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-yellow-500/25">
+                        <i class="bi bi-shop text-white text-2xl"></i>
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
                     </div>
-                    <div>
-                        <h1 class="text-2xl font-bold text-slate-900 dark:text-slate-100">Integração com Mercado Livre</h1>
-                        <p class="text-sm text-slate-500 dark:text-slate-400">Publique e gerencie seus produtos no marketplace</p>
+
+                    <div class="space-y-1.5">
+                        <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                            <a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition-colors">Dashboard</a>
+                            <i class="bi bi-chevron-right text-[10px]"></i>
+                            <span class="text-slate-700 dark:text-slate-300 font-semibold">Mercado Livre</span>
+                        </nav>
+                        <h1 class="text-3xl font-bold bg-gradient-to-r from-yellow-600 via-amber-600 to-orange-600 dark:from-yellow-300 dark:via-amber-300 dark:to-orange-300 bg-clip-text text-transparent">
+                            Integração ML
+                        </h1>
+
+                        <div class="flex items-center gap-3">
+                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
+                                <i class="bi bi-box-seam text-emerald-600 dark:text-emerald-400 text-xs"></i>
+                                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{{ $this->totalProducts ?? 0 }} produtos</span>
+                            </div>
+                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                                <i class="bi bi-check-circle text-blue-600 dark:text-blue-400 text-xs"></i>
+                                <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">{{ $this->publishedCount ?? 0 }} publicados</span>
+                            </div>
+                            @if(($this->pendingCount ?? 0) > 0)
+                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-yellow-500/20 to-orange-500/20 rounded-lg border border-yellow-200 dark:border-yellow-700">
+                                <i class="bi bi-clock text-yellow-600 dark:text-yellow-400 text-xs"></i>
+                                <span class="text-xs font-semibold text-yellow-700 dark:text-yellow-300">{{ $this->pendingCount }} pendentes</span>
+                            </div>
+                            @endif
+                            @if($isConnected)
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                                    Conectado
+                                </span>
+                            @else
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-semibold">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-red-500"></div>
+                                    Desconectado
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
-                
-                {{-- Botão Configurações --}}
-                <a href="{{ route('mercadolivre.settings') }}" 
-                   class="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-medium rounded-xl transition-all shadow-lg hover:shadow-xl">
-                    <i class="bi bi-gear"></i>
-                    Configurações
-                </a>
+
+                {{-- Direita: Pesquisa + Filtros + Paginação + Ações --}}
+                <div class="flex items-center gap-3 flex-wrap justify-end">
+                    {{-- Campo de Pesquisa --}}
+                    <div class="relative group">
+                        <input type="text" wire:model.live.debounce.300ms="search"
+                            placeholder="Buscar produtos..."
+                            class="w-56 pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 transition-all duration-200 shadow-md text-sm">
+                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                            <i class="bi bi-search text-slate-400 group-focus-within:text-yellow-500 transition-colors text-sm"></i>
+                        </div>
+                        @if($search)
+                        <button wire:click="$set('search', '')"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-md transition-all duration-200">
+                            <i class="bi bi-x text-xs"></i>
+                        </button>
+                        @endif
+                    </div>
+
+                    {{-- Contador --}}
+                    <div class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl shadow-md">
+                        <div class="w-7 h-7 bg-gradient-to-br from-yellow-400 to-amber-600 rounded-lg flex items-center justify-center">
+                            <i class="bi bi-box-seam text-white text-xs"></i>
+                        </div>
+                        <div class="text-sm">
+                            <span class="font-bold text-slate-800 dark:text-slate-200">{{ $products->total() }}</span>
+                            <span class="text-slate-600 dark:text-slate-400 ml-1">{{ $products->total() === 1 ? 'produto' : 'produtos' }}</span>
+                        </div>
+                    </div>
+
+                    {{-- Filtros Rápidos --}}
+                    <div class="flex items-center gap-1.5">
+                        <button wire:click="$set('statusFilter', 'all')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'all' ? 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600' }}">
+                            Todos
+                        </button>
+                        <button wire:click="$set('statusFilter', 'published')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'published' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800' }}">
+                            Publicados
+                        </button>
+                        <button wire:click="$set('statusFilter', 'unpublished')"
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'unpublished' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-800' }}">
+                            Pendentes
+                        </button>
+                    </div>
+
+                    {{-- Filtro Categoria --}}
+                    <select wire:model.live="categoryFilter"
+                            class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-yellow-500/50 focus:border-yellow-500 shadow-md">
+                        <option value="all">📂 Categorias</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id_category }}">{{ $category->name }}</option>
+                        @endforeach
+                    </select>
+
+                    {{-- Paginação Compacta --}}
+                    @if($products->hasPages())
+                    <div class="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl p-1 shadow-md">
+                        @if($products->currentPage() > 1)
+                        <button wire:click.prevent="previousPage" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
+                            <i class="bi bi-chevron-left text-sm text-slate-600 dark:text-slate-300"></i>
+                        </button>
+                        @endif
+                        <span class="px-2 text-xs font-medium text-slate-700 dark:text-slate-300">
+                            {{ $products->currentPage() }} / {{ $products->lastPage() }}
+                        </span>
+                        @if($products->hasMorePages())
+                        <button wire:click.prevent="nextPage" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
+                            <i class="bi bi-chevron-right text-sm text-slate-600 dark:text-slate-300"></i>
+                        </button>
+                        @endif
+                    </div>
+                    @endif
+
+                    {{-- Botão Publicações --}}
+                    <a href="{{ route('mercadolivre.publications') }}"
+                       class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm">
+                        <i class="bi bi-list-check"></i>
+                        <span>Publicações</span>
+                    </a>
+
+                    {{-- Botão Configurações --}}
+                    <a href="{{ route('mercadolivre.settings') }}"
+                       class="p-2 bg-white/80 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl transition-all duration-200 shadow-md">
+                        <i class="bi bi-gear text-slate-600 dark:text-slate-400"></i>
+                    </a>
+                </div>
             </div>
         </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════
+         CONTEÚDO PRINCIPAL
+    ═══════════════════════════════════════════════ --}}
+    <div class="flex-1   pb-6">
 
         {{-- Alerta se não conectado --}}
         @if(!$isConnected)
@@ -33,17 +170,13 @@
                             <i class="bi bi-exclamation-triangle text-white text-2xl"></i>
                         </div>
                         <div class="flex-1">
-                            <h3 class="text-lg font-bold text-amber-900 dark:text-amber-100 mb-2">
-                                Conexão Necessária
-                            </h3>
+                            <h3 class="text-lg font-bold text-amber-900 dark:text-amber-100 mb-2">Conexão Necessária</h3>
                             <p class="text-sm text-amber-800 dark:text-amber-200 mb-4">
-                                Você precisa conectar sua conta do Mercado Livre antes de poder publicar produtos. 
-                                Configure suas credenciais na página de configurações.
+                                Conecte sua conta do Mercado Livre para publicar e gerenciar produtos.
                             </p>
-                            <a href="{{ route('mercadolivre.settings') }}" 
-                               class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                                <i class="bi bi-link-45deg text-lg"></i>
-                                Conectar Agora
+                            <a href="{{ route('mercadolivre.settings') }}"
+                               class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                                <i class="bi bi-link-45deg text-lg"></i> Conectar Agora
                             </a>
                         </div>
                     </div>
@@ -51,342 +184,228 @@
             </div>
         @endif
 
-        {{-- Filtros --}}
-        <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            {{-- Busca --}}
-            <div class="relative">
-                <input type="text" 
-                       wire:model.live.debounce.300ms="search"
-                       placeholder="Buscar por nome, código ou barcode..."
-                       class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all">
-                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            </div>
-            
-            {{-- Filtro Status --}}
-            <select wire:model.live="statusFilter" 
-                    class="px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all">
-                <option value="all">📦 Todos os Produtos</option>
-                <option value="published">✅ Publicados no ML</option>
-                <option value="unpublished">❌ Não Publicados</option>
-            </select>
-            
-            {{-- Filtro Categoria --}}
-            <select wire:model.live="categoryFilter" 
-                    class="px-4 py-3 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-500/20 transition-all">
-                <option value="all">📂 Todas as Categorias</option>
-                @foreach($categories as $category)
-                    <option value="{{ $category->id_category }}">
-                        {{ $category->name }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
-        {{-- Grid de Produtos --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {{-- ═══════════════════════════════════════
+             GRID DE PRODUTOS - Estilo Product-Index
+        ═══════════════════════════════════════ --}}
+        <div class="products-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-5 gap-6">
             @forelse($products as $product)
-                <div class="relative rounded-2xl border-2 border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/60 backdrop-blur shadow-xl overflow-hidden transition-all duration-200 hover:shadow-2xl hover:scale-[1.02]">
-                    
-                    {{-- Badge Status --}}
-                    <div class="absolute top-3 right-3 z-10">
-                        @if($product->mercadoLivreProduct)
-                            @if($product->mercadoLivreProduct->status === 'active')
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500 text-white shadow-lg">
-                                    ✅ Ativo
-                                </span>
-                            @elseif($product->mercadoLivreProduct->status === 'paused')
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-500 text-white shadow-lg">
-                                    ⏸️ Pausado
-                                </span>
-                            @elseif($product->mercadoLivreProduct->status === 'closed')
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-red-500 text-white shadow-lg">
-                                    🚫 Encerrado
-                                </span>
-                            @elseif($product->mercadoLivreProduct->status === 'under_review')
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-purple-500 text-white shadow-lg">
-                                    🔍 Em Revisão
-                                </span>
-                            @elseif($product->mercadoLivreProduct->status === 'inactive')
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-gray-500 text-white shadow-lg">
-                                    💤 Inativo
-                                </span>
-                            @else
-                                <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-500 text-white shadow-lg">
-                                    {{ $product->mercadoLivreProduct->status }}
-                                </span>
-                            @endif
+                @php
+                    $mlProduct = $product->mercadoLivreProduct;
+                    $mlValidation = $product->isReadyForMercadoLivre();
+                    $custo = (float)($product->price ?? 0);
+                    $venda = (float)($product->price_sale ?? 0);
+                    $margem = $custo > 0 ? (($venda - $custo) / $custo) * 100 : 0;
+                    $firstPublication = $product->mlPublications->first();
+                @endphp
+                <div class="product-card-modern">
+                    {{-- Área da imagem com badges e botões --}}
+                    <div class="product-img-area" style="height: 330px; position: relative; overflow: visible !important;">
+                        <img src="{{ $product->image_url }}" class="product-img" alt="{{ $product->name }}">
+
+                        {{-- Código do produto - TOPO ESQUERDO --}}
+                        <span class="badge-product-code" title="Código do Produto" style="top: 10px; left: 10px;">
+                            <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
+                        </span>
+
+                        {{-- Código de barras - ABAIXO DO PRODUCT CODE --}}
+                        @if($product->barcode)
+                            <span class="badge-product-code" title="Código de Barras (EAN)" style="top: 40px; left: 10px; padding: 4px 8px; font-size: 10px; background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                                <i class="bi bi-upc"></i> {{ $product->barcode }}
+                            </span>
                         @else
-                            <span class="px-3 py-1 rounded-full text-xs font-bold bg-slate-500 text-white shadow-lg">
-                                ❌ Não Publicado
+                            <span class="badge-product-code" title="Sem código de barras" style="top: 40px; left: 10px; padding: 4px 8px; font-size: 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);">
+                                <i class="bi bi-exclamation-triangle"></i> Sem EAN
                             </span>
                         @endif
-                    </div>
-                    
-                    {{-- Imagem --}}
-                    <div class="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900">
-                        @if($product->image_url)
-                            <img src="{{ $product->image_url }}" 
-                                 alt="{{ $product->name }}"
-                                 class="w-full h-full object-cover">
-                        @else
-                            <div class="w-full h-full flex items-center justify-center">
-                                <i class="bi bi-image text-6xl text-slate-400"></i>
-                            </div>
+
+                        {{-- Botão Publicações - ACIMA DO STATUS (só se tiver publicações) --}}
+                        @if($product->mlPublications && $product->mlPublications->count() > 0)
+                            <button 
+                                wire:click="$dispatch('openPublicationsModal', { productId: {{ $product->id }} })" 
+                                title="Ver Todas as Publicações ({{ $product->mlPublications->count() }})"
+                                style="position: absolute; bottom: 55px; left: 10px; z-index: 20; width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(to right, #6366f1, #8b5cf6); color: white; border-radius: 50%; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); transition: all 0.2s; border: none; cursor: pointer;"
+                                onmouseover="this.style.background='linear-gradient(to right, #4f46e5, #7c3aed)'"
+                                onmouseout="this.style.background='linear-gradient(to right, #6366f1, #8b5cf6)'">
+                                <i class="bi bi-list-ul" style="font-size: 14px;"></i>
+                            </button>
                         @endif
-                    </div>
-                    
-                    {{-- Conteúdo --}}
-                    <div class="p-5">
-                        {{-- Título --}}
-                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2 line-clamp-2 min-h-[3.5rem]">
-                            {{ $product->name }}
-                        </h3>
-                        
-                        {{-- Código --}}
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
-                            <i class="bi bi-upc-scan"></i>
-                            {{ $product->product_code }}
-                        </p>
-                        
-                        {{-- Info Grid --}}
-                        <div class="grid grid-cols-2 gap-3 mb-4">
-                            {{-- Preço --}}
-                            <div class="rounded-xl bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-950/50 dark:to-green-950/50 border border-emerald-200 dark:border-emerald-800 p-3">
-                                <p class="text-xs text-emerald-700 dark:text-emerald-300 mb-1">
-                                    Preço
-                                </p>
-                                <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                                    R$ {{ number_format($product->price_sale, 2, ',', '.') }}
-                                </p>
-                            </div>
-                            
-                            {{-- Estoque --}}
-                            <div class="rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border border-blue-200 dark:border-blue-800 p-3">
-                                <p class="text-xs text-blue-700 dark:text-blue-300 mb-1">
-                                    Estoque
-                                </p>
-                                <p class="text-lg font-bold text-blue-600 dark:text-blue-400">
-                                    {{ $product->stock_quantity }} un
-                                </p>
-                            </div>
-                        </div>
-                        
-                        {{-- Validação para ML --}}
-                        @php
-                            $mlValidation = $product->isReadyForMercadoLivre();
-                        @endphp
-                        
-                        @if(!$mlValidation['ready'])
-                            <div class="mb-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 p-3">
-                                <div class="flex items-start gap-2 mb-2">
-                                    <i class="bi bi-exclamation-triangle text-amber-600 dark:text-amber-400 text-lg flex-shrink-0 mt-0.5"></i>
-                                    <div class="flex-1">
-                                        <p class="text-xs font-bold text-amber-800 dark:text-amber-300 mb-1">
-                                            Atenção: Produto com pendências
-                                        </p>
-                                        <ul class="text-xs text-amber-700 dark:text-amber-400 space-y-0.5">
-                                            @foreach($mlValidation['errors'] as $error)
-                                                <li class="flex items-start gap-1">
-                                                    <span class="text-amber-600 dark:text-amber-500 flex-shrink-0">•</span>
-                                                    <span>{{ $error }}</span>
-                                                </li>
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                </div>
+
+                        {{-- Badge Status ML - INFERIOR ESQUERDO COM TEXTO --}}
+                        @if($mlProduct)
+                            @php
+                                $statusConfig = match($mlProduct->status) {
+                                    'active' => ['color' => 'from-green-500 to-green-600', 'icon' => 'check-circle-fill', 'text' => 'Ativo'],
+                                    'paused' => ['color' => 'from-amber-500 to-amber-600', 'icon' => 'pause-circle-fill', 'text' => 'Pausado'],
+                                    'closed' => ['color' => 'from-red-500 to-red-600', 'icon' => 'x-circle-fill', 'text' => 'Fechado'],
+                                    'under_review' => ['color' => 'from-purple-500 to-purple-600', 'icon' => 'search', 'text' => 'Em Revisão'],
+                                    'inactive' => ['color' => 'from-gray-500 to-gray-600', 'icon' => 'dash-circle', 'text' => 'Inativo'],
+                                    default => ['color' => 'from-slate-500 to-slate-600', 'icon' => 'question-circle', 'text' => 'Desconhecido'],
+                                };
+                            @endphp
+                            <div class="absolute bottom-3 left-3 z-10">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r {{ $statusConfig['color'] }} text-white shadow-lg border-2 border-white text-xs font-bold">
+                                    <i class="bi bi-{{ $statusConfig['icon'] }}"></i>
+                                    {{ $statusConfig['text'] }}
+                                </span>
                             </div>
                         @else
-                            <div class="mb-3 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 p-2.5 flex items-center gap-2">
-                                <i class="bi bi-check-circle-fill text-emerald-600 dark:text-emerald-400"></i>
-                                <p class="text-xs font-semibold text-emerald-800 dark:text-emerald-300">
-                                    Pronto para publicar no ML
-                                </p>
-                            </div>
-                        @endif
-                        
-                        {{-- Link ML --}}
-                        @if($product->mercadoLivreProduct && $product->mercadoLivreProduct->ml_permalink)
-                            <a href="{{ $product->mercadoLivreProduct->ml_permalink }}" 
-                               target="_blank"
-                               class="block mb-3 text-sm text-blue-600 dark:text-blue-400 hover:underline truncate">
-                                <i class="bi bi-box-arrow-up-right"></i>
-                                Ver no Mercado Livre
-                            </a>
-                        @elseif($product->mercadoLivreProduct && $product->mercadoLivreProduct->ml_item_id)
-                            <p class="mb-3 text-xs text-slate-500 dark:text-slate-400 font-mono">
-                                <i class="bi bi-tag"></i> {{ $product->mercadoLivreProduct->ml_item_id }}
-                                @if($product->mercadoLivreProduct->error_message)
-                                    <span class="block text-red-500 text-[10px] mt-0.5 font-sans" title="{{ $product->mercadoLivreProduct->error_message }}">
-                                        <i class="bi bi-exclamation-triangle"></i> {{ \Illuminate\Support\Str::limit($product->mercadoLivreProduct->error_message, 50) }}
+                            @if($mlValidation['ready'])
+                                <div class="absolute bottom-3 left-3 z-10">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg border-2 border-green-400 text-xs font-bold animate-pulse">
+                                        <i class="bi bi-check-circle-fill"></i>
+                                        Pronto
                                     </span>
-                                @endif
-                            </p>
+                                </div>
+                            @else
+                                <div class="absolute bottom-3 left-3 z-10">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg border-2 border-amber-400 text-xs font-bold">
+                                        <i class="bi bi-clock"></i>
+                                        Pendente
+                                    </span>
+                                </div>
+                            @endif
                         @endif
-                        
-                        {{-- Botões de Ação --}}
-                        <div class="space-y-2">
-                            @if($product->mercadoLivreProduct)
-                                {{-- Produto publicado --}}
-                                @if($product->mercadoLivreProduct->status === 'active')
-                                    {{-- Ativo: Sincronizar + Pausar + Encerrar --}}
-                                    <div class="flex gap-2">
-                                        <button wire:click="syncProduct({{ $product->id }})"
-                                                wire:loading.attr="disabled"
-                                                wire:target="syncProduct({{ $product->id }})"
-                                                class="flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50">
-                                            <span wire:loading.remove wire:target="syncProduct({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat"></i> Sincronizar
-                                            </span>
-                                            <span wire:loading wire:target="syncProduct({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            </span>
-                                        </button>
-                                        <button wire:click="pauseProduct({{ $product->id }})"
-                                                wire:confirm="Tem certeza que deseja PAUSAR este anúncio?"
-                                                wire:loading.attr="disabled"
-                                                class="px-3 py-2 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50"
-                                                title="Pausar anúncio">
-                                            <i class="bi bi-pause-circle"></i>
-                                        </button>
-                                        <button wire:click="closeProduct({{ $product->id }})"
-                                                wire:confirm="Tem certeza que deseja ENCERRAR este anúncio? Essa ação é permanente no ML."
-                                                wire:loading.attr="disabled"
-                                                class="px-3 py-2 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50"
-                                                title="Encerrar anúncio">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    </div>
-                                @elseif($product->mercadoLivreProduct->status === 'paused')
-                                    {{-- Pausado: Reativar + Verificar Status + Encerrar --}}
-                                    <div class="flex gap-2">
-                                        <button wire:click="activateProduct({{ $product->id }})"
-                                                wire:loading.attr="disabled"
-                                                wire:target="activateProduct({{ $product->id }})"
-                                                class="flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50">
-                                            <span wire:loading.remove wire:target="activateProduct({{ $product->id }})">
-                                                <i class="bi bi-play-circle"></i> Reativar
-                                            </span>
-                                            <span wire:loading wire:target="activateProduct({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            </span>
-                                        </button>
-                                        <button wire:click="checkMLStatus({{ $product->id }})"
-                                                wire:loading.attr="disabled"
-                                                wire:target="checkMLStatus({{ $product->id }})"
-                                                class="px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50"
-                                                title="Verificar status no ML">
-                                            <span wire:loading.remove wire:target="checkMLStatus({{ $product->id }})">
-                                                <i class="bi bi-search"></i>
-                                            </span>
-                                            <span wire:loading wire:target="checkMLStatus({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            </span>
-                                        </button>
-                                        <button wire:click="closeProduct({{ $product->id }})"
-                                                wire:confirm="Tem certeza que deseja ENCERRAR este anúncio? Essa ação é permanente no ML."
-                                                wire:loading.attr="disabled"
-                                                class="px-3 py-2 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50"
-                                                title="Encerrar anúncio">
-                                            <i class="bi bi-x-circle"></i>
-                                        </button>
-                                    </div>
-                                @elseif(in_array($product->mercadoLivreProduct->status, ['closed', 'inactive']))
-                                    {{-- Encerrado/Inativo: Verificar + Excluir registro + Republicar --}}
-                                    <div class="rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2.5 mb-2">
-                                        <p class="text-xs text-red-700 dark:text-red-300 flex items-center gap-1.5">
-                                            <i class="bi bi-info-circle"></i>
-                                            Anúncio encerrado no ML. Exclua o registro para republicar.
-                                        </p>
-                                    </div>
-                                    <div class="flex gap-2">
-                                        <button wire:click="checkMLStatus({{ $product->id }})"
-                                                wire:loading.attr="disabled"
-                                                wire:target="checkMLStatus({{ $product->id }})"
-                                                class="flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50">
-                                            <span wire:loading.remove wire:target="checkMLStatus({{ $product->id }})">
-                                                <i class="bi bi-search"></i> Verificar
-                                            </span>
-                                            <span wire:loading wire:target="checkMLStatus({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            </span>
-                                        </button>
-                                        <button wire:click="deleteLocalRecord({{ $product->id }})"
-                                                wire:confirm="Excluir o registro de publicação? Isso permitirá republicar o produto."
-                                                wire:loading.attr="disabled"
-                                                wire:target="deleteLocalRecord({{ $product->id }})"
-                                                class="flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50">
-                                            <span wire:loading.remove wire:target="deleteLocalRecord({{ $product->id }})">
-                                                <i class="bi bi-trash"></i> Excluir Registro
-                                            </span>
-                                            <span wire:loading wire:target="deleteLocalRecord({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            </span>
-                                        </button>
-                                    </div>
+
+                        {{-- Quantidade (inferior direito) --}}
+                        <span class="badge-quantity" title="Quantidade em Estoque">
+                            <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
+                        </span>
+
+                        {{-- Ícone da categoria --}}
+                        <div class="category-icon-wrapper">
+                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
+                        </div>
+
+                        {{-- Botões de Ação ML - LATERAL DIREITA --}}
+                        <div class="absolute top-3 right-3 z-20 flex flex-col gap-2">
+                            {{-- Botões Visualizar e Editar (sempre visíveis) --}}
+                            <a href="{{ route('products.show', $product->product_code) }}" title="Ver Detalhes"
+                               class="inline-flex items-center justify-center w-10 h-10 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-all">
+                                <i class="bi bi-eye text-lg"></i>
+                            </a>
+                            <a href="{{ route('products.edit', $product->id) }}" title="Editar Produto"
+                               class="inline-flex items-center justify-center w-10 h-10 bg-pink-500 hover:bg-pink-600 text-white rounded-full shadow-lg transition-all">
+                                <i class="bi bi-pencil-square text-lg"></i>
+                            </a>
+
+                            @if($mlProduct)
+                                {{-- PRODUTO PUBLICADO --}}
+                                @if($mlProduct->status === 'active')
+                                    <a href="{{ route('mercadolivre.products.publish', $product->id) }}" title="Nova Publicação"
+                                       class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all">
+                                        <i class="bi bi-plus-circle text-lg"></i>
+                                    </a>
+                                    <button wire:click="syncProduct({{ $product->id }})" wire:loading.attr="disabled" title="Sincronizar"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-arrow-repeat text-lg"></i>
+                                    </button>
+                                    <button wire:click="pauseProduct({{ $product->id }})" wire:confirm="Pausar?" title="Pausar"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-pause-circle text-lg"></i>
+                                    </button>
+                                @elseif($mlProduct->status === 'paused')
+                                    <button wire:click="activateProduct({{ $product->id }})" wire:loading.attr="disabled" title="Reativar"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all">
+                                        <i class="bi bi-play-circle text-lg"></i>
+                                    </button>
+                                    <a href="{{ route('mercadolivre.products.publish', $product->id) }}" title="Nova Publicação"
+                                       class="inline-flex items-center justify-center w-10 h-10 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-plus-circle text-lg"></i>
+                                    </a>
+                                    <button wire:click="checkMLStatus({{ $product->id }})" title="Verificar Status"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-search text-lg"></i>
+                                    </button>
+                                @elseif(in_array($mlProduct->status, ['closed', 'inactive']))
+                                    <button wire:click="deleteLocalRecord({{ $product->id }})" wire:confirm="Excluir?" title="Excluir Registro"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-trash text-lg"></i>
+                                    </button>
+                                    <a href="{{ route('mercadolivre.products.publish', $product->id) }}" title="Publicar Novamente"
+                                       class="inline-flex items-center justify-center w-10 h-10 bg-yellow-500 hover:bg-yellow-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-plus-circle text-lg"></i>
+                                    </a>
                                 @else
-                                    {{-- Outros status: Verificar + Excluir registro --}}
-                                    <div class="flex gap-2">
-                                        <button wire:click="checkMLStatus({{ $product->id }})"
-                                                wire:loading.attr="disabled"
-                                                wire:target="checkMLStatus({{ $product->id }})"
-                                                class="flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50">
-                                            <span wire:loading.remove wire:target="checkMLStatus({{ $product->id }})">
-                                                <i class="bi bi-search"></i> Verificar Status
-                                            </span>
-                                            <span wire:loading wire:target="checkMLStatus({{ $product->id }})">
-                                                <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            </span>
-                                        </button>
-                                        <button wire:click="deleteLocalRecord({{ $product->id }})"
-                                                wire:confirm="Excluir o registro de publicação? Isso permitirá republicar o produto."
-                                                wire:loading.attr="disabled"
-                                                class="flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 text-white font-semibold text-sm hover:scale-105 transition-all shadow-lg disabled:opacity-50">
-                                            <i class="bi bi-trash"></i> Excluir Registro
-                                        </button>
-                                    </div>
+                                    <button wire:click="checkMLStatus({{ $product->id }})" title="Verificar Status"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-search text-lg"></i>
+                                    </button>
+                                    <button wire:click="deleteLocalRecord({{ $product->id }})" wire:confirm="Excluir?" title="Excluir Registro"
+                                            class="inline-flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all">
+                                        <i class="bi bi-trash text-lg"></i>
+                                    </button>
+                                @endif
+
+                                @if($firstPublication)
+                                    <a href="{{ route('mercadolivre.publications.edit', $firstPublication->id) }}" title="Editar Publicação"
+                                       class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all">
+                                        <i class="bi bi-box-seam text-lg"></i>
+                                    </a>
                                 @endif
                             @else
-                                {{-- Produto não publicado --}}
-                                @php
-                                    $canPublish = $product->isReadyForMercadoLivre()['ready'];
-                                @endphp
-                                
-                                <a href="{{ $canPublish ? route('mercadolivre.products.publish', $product->id) : '#' }}"
-                                   @if(!$canPublish) onclick="event.preventDefault();" title="Corrija as pendências antes de publicar" @endif
-                                   class="block w-full px-4 py-3 rounded-xl font-bold text-sm text-center transition-all {{ $canPublish ? 'bg-gradient-to-br from-yellow-400 via-yellow-500 to-amber-600 text-white shadow-lg shadow-yellow-500/30 hover:shadow-xl hover:shadow-yellow-500/50 hover:scale-105' : 'bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed' }}">
-                                    <i class="bi bi-upload"></i>
-                                    {{ $canPublish ? 'Publicar no ML' : 'Corrigir Pendências' }}
+                                {{-- PRODUTO NÃO PUBLICADO --}}
+                                <a href="{{ $mlValidation['ready'] ? route('mercadolivre.products.publish', $product->id) : '#' }}"
+                                   @if(!$mlValidation['ready']) onclick="event.preventDefault();" @endif
+                                   title="{{ $mlValidation['ready'] ? 'Publicar no ML' : 'Corrija as pendências' }}"
+                                   class="inline-flex items-center justify-center w-10 h-10 rounded-full shadow-lg hover:shadow-xl transition-all {{ $mlValidation['ready'] ? 'bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white animate-pulse' : 'bg-slate-400/90 dark:bg-slate-700/90 text-slate-600 dark:text-slate-400 cursor-not-allowed backdrop-blur-sm' }}">
+                                    <i class="bi bi-{{ $mlValidation['ready'] ? 'upload' : 'exclamation-circle' }} text-xl"></i>
                                 </a>
                             @endif
                         </div>
                     </div>
+
+                    {{-- Conteúdo --}}
+                    <div class="card-body">
+                        <div class="product-title" title="{{ $product->name }}">
+                            {{ ucwords($product->name) }}
+                        </div>
+
+                        {{-- Área de preços --}}
+                        <div class="price-area mt-3">
+                            <div class="flex flex-col gap-2">
+                                <span class="badge-price" title="Preço de Custo">
+                                    <i class="bi bi-tag"></i>
+                                    R$ {{ number_format($custo, 2, ',', '.') }}
+                                </span>
+
+                                <span class="badge-price-sale" title="Preço de Venda">
+                                    <i class="bi bi-currency-dollar"></i>
+                                    R$ {{ number_format($venda, 2, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+
+                        @if($mlProduct && $mlProduct->error_message)
+                            <div class="mt-3 p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
+                                <p class="text-[10px] text-red-600 dark:text-red-400 truncate" title="{{ $mlProduct->error_message }}">
+                                    <i class="bi bi-exclamation-triangle"></i> {{ \Illuminate\Support\Str::limit($mlProduct->error_message, 60) }}
+                                </p>
+                            </div>
+                        @endif
+                    </div>
                 </div>
             @empty
-                {{-- Estado vazio --}}
                 <div class="col-span-full">
                     <div class="rounded-2xl bg-slate-100 dark:bg-slate-900/50 border-2 border-dashed border-slate-300 dark:border-slate-700 p-12 text-center">
                         <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
                             <i class="bi bi-inbox text-4xl text-slate-400"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">
-                            Nenhum produto encontrado
-                        </h3>
-                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">
-                            Tente ajustar os filtros ou adicione novos produtos
-                        </p>
-                        <a href="{{ route('products.create') }}" 
+                        <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Nenhum produto encontrado</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Ajuste os filtros ou adicione novos produtos</p>
+                        <a href="{{ route('products.create') }}"
                            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
-                            <i class="bi bi-plus-lg"></i>
-                            Adicionar Produto
+                            <i class="bi bi-plus-lg"></i> Adicionar Produto
                         </a>
                     </div>
                 </div>
             @endforelse
         </div>
 
-        {{-- Paginação --}}
+        {{-- Paginação Inferior --}}
+        @if($products->hasPages())
         <div class="mt-6">
             {{ $products->links() }}
         </div>
+        @endif
     </div>
 </div>
