@@ -48,22 +48,33 @@ class Notifications extends Component
         }
     }
 
-    public function addNotification($data)
+    public function addNotification($typeOrData, $message = null, $duration = 5000)
     {
-        // Se recebeu um array com os dados da notificação
-        if (is_array($data) && isset($data['type'], $data['message'])) {
+        // Caso 1: recebeu um array com os dados da notificação
+        if (is_array($typeOrData) && isset($typeOrData['type'], $typeOrData['message'])) {
             $notification = [
                 'id' => uniqid(),
-                'type' => $data['type'],
-                'message' => $data['message'],
-                'duration' => $data['duration'] ?? 5000,
+                'type' => $typeOrData['type'],
+                'message' => $typeOrData['message'],
+                'duration' => $typeOrData['duration'] ?? 5000,
                 'timestamp' => now()->toISOString()
             ];
-        } else {
-            // Fallback para compatibilidade
+        }
+        // Caso 2: recebeu tipo e mensagem como argumentos separados
+        elseif ($message !== null) {
             $notification = [
                 'id' => uniqid(),
-                'type' => $data ?? 'info',
+                'type' => $typeOrData,
+                'message' => $message,
+                'duration' => $duration,
+                'timestamp' => now()->toISOString()
+            ];
+        }
+        // Fallback para compatibilidade
+        else {
+            $notification = [
+                'id' => uniqid(),
+                'type' => $typeOrData ?? 'info',
                 'message' => 'Notificação sem mensagem',
                 'duration' => 5000,
                 'timestamp' => now()->toISOString()
