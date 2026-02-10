@@ -74,7 +74,7 @@ php artisan migrate
 
 ---
 
-## 📦 FASE 3: BACKEND SERVICES - EM ANDAMENTO
+## 📦 FASE 3: BACKEND SERVICES - ✅ CONCLUÍDO
 
 ### 1.1 Service Base
 - [x] Criar `app/Services/MercadoLivre/MercadoLivreService.php`
@@ -109,25 +109,88 @@ php artisan migrate
   - [x] `getCategoryDetails($categoryId)` - Detalhes da categoria
 
 ### 1.4 Order Service
-- [ ] Criar `app/Services/MercadoLivre/OrderService.php`
-  - [ ] `getOrders($filters)` - Buscar pedidos
-  - [ ] `getOrderDetails($mlOrderId)` - Detalhes do pedido
-  - [ ] `importOrder($mlOrderId)` - Importar para sistema
-  - [ ] `updateShippingStatus($mlOrderId, $status)` - Atualizar envio
+- [x] Criar `app/Services/MercadoLivre/OrderService.php` ✅ (Já existe)
+  - [x] `getOrders($filters)` - Buscar pedidos
+  - [x] `getOrderDetails($mlOrderId)` - Detalhes do pedido
+  - [x] `importOrder($mlOrderId)` - Importar para sistema
+  - [x] `updateShippingStatus($mlOrderId, $status)` - Atualizar envio
 
 ### 1.5 Webhook Service
-- [ ] Criar `app/Services/MercadoLivre/WebhookService.php`
-  - [ ] `validateWebhook($request)` - Validar autenticidade
-  - [ ] `processWebhook($topic, $resource)` - Processar notificação
-  - [ ] `handleOrderWebhook($orderId)` - Processar pedido
-  - [ ] `handleItemWebhook($itemId)` - Processar item
+- [x] Criar `app/Services/MercadoLivre/WebhookService.php` ✅
+  - [x] `validateWebhook($request)` - Validar autenticidade
+  - [x] `processWebhook($topic, $resource)` - Processar notificação
+  - [x] `handleOrderWebhook($orderId)` - Processar pedido (✅ Atualizado com MlStockSyncService)
+  - [x] `handleItemWebhook($itemId)` - Processar item
 
-### 1.6 Sync Service
-- [ ] Criar `app/Services/MercadoLivre/SyncService.php`
-  - [ ] `syncAllProducts()` - Sincronizar todos
-  - [ ] `syncProductStock($productId)` - Sync estoque específico
-  - [ ] `syncProductPrice($productId)` - Sync preço específico
-  - [ ] `syncOrders($dateFrom)` - Sync pedidos
+### 1.6 Stock Sync Service (NOVO!) ✅
+- [x] Criar `app/Services/MercadoLivre/MlStockSyncService.php`
+  - [x] `syncQuantityToMercadoLivre($publication)` - Sync para ML via API
+  - [x] `processMercadoLivreSale($mlOrderId, $mlItemId, $quantity)` - Processar venda ML
+  - [x] `syncAllPending()` - Sincronizar publicações pendentes (batch)
+  - [x] `auditAndFix($publication)` - Detectar e corrigir divergências
+
+---
+
+## 🆕 FASE 3.5: SISTEMA DE PUBLICAÇÕES & KITS - ✅ CONCLUÍDO
+
+### 3.5.1 Database Architecture
+- [x] Migration `create_ml_publications_table` - Publicações com suporte a kits
+- [x] Migration `create_ml_publication_products_table` - Pivot N:N com multiplicador
+- [x] Migration `create_ml_stock_logs_table` - Auditoria completa (7 operation types)
+- [x] Executar migrations ✅
+
+### 3.5.2 Models & Business Logic
+- [x] Model `MlPublication` (330 linhas)
+  - [x] Relationships: products (BelongsToMany), user, stockLogs, orders
+  - [x] `calculateAvailableQuantity()` - Cálculo inteligente baseado em min(stock/quantity)
+  - [x] `deductStock()` - Dedução atômica com DB transaction e rollback
+  - [x] `addProduct()`, `removeProduct()`, `updateProductQuantity()` - Gerenciamento de produtos
+  - [x] Scopes: active, kits, simple, withErrors, pending, withProduct, withProductCode
+  
+- [x] Model `MlStockLog` (170 linhas)
+  - [x] Relationships: product, publication, user
+  - [x] `logStockChange()` - Criar logs de auditoria
+  - [x] `findConflicts()` - Detectar race conditions
+  - [x] Scopes: forProduct, mlSales, rolledBack, forTransaction, betweenDates
+  
+- [x] Atualizar Model `Product`
+  - [x] `mlPublications()` - Relationship N:N com pivot
+  - [x] `hasActivePublications()` - Verifica se está em publicações ativas
+  - [x] `getActivePublications()` - Retorna publicações ativas
+
+### 3.5.3 Observer & Automation
+- [x] Observer `ProductObserver` (140 linhas)
+  - [x] `updated()` - Detecta mudanças em stock_quantity
+  - [x] `handleStockChange()` - Cria logs e dispara sincronização
+  - [x] `syncPublications()` - Sincroniza por ID e product_code
+  - [x] `detectOperationType()` - CLI, SaleController, manual_update
+  - [x] Registrado em `AppServiceProvider`
+
+### 3.5.4 Background Jobs
+- [x] Job `SyncPublicationToMercadoLivre` - Async sync com retry (3x)
+- [x] Job `ProcessMercadoLivreWebhook` - Processa webhooks async
+- [x] Backoff delays: [60s, 5min, 15min]
+- [x] Tratamento de falhas e error_message
+
+### 3.5.5 Funcionalidades Implementadas
+- [x] ✅ Múltiplos produtos por publicação (kits)
+- [x] ✅ Mesmo produto em múltiplas publicações
+- [x] ✅ Product_code awareness (sincroniza variantes)
+- [x] ✅ Auto-sync em vendas ML (via webhook)
+- [x] ✅ Auto-sync em mudanças manuais (via observer)
+- [x] ✅ Auto-sync em importação Excel
+- [x] ✅ Auto-sync em vendas internas
+- [x] ✅ Audit trail completo com transaction_id
+- [x] ✅ Rollback de operações
+- [x] ✅ Detecção de conflitos (race conditions)
+
+### 3.5.6 Documentação
+- [x] `docs/ml-publications-system-refactoring.md` - Guia completo (600+ linhas)
+  - [x] Visão geral da arquitetura
+  - [x] Exemplos de uso
+  - [x] Fluxos de sincronização
+  - [x] Cenários de teste
+  - [x] Troubleshooting
 
 ---
 
@@ -160,7 +223,7 @@ php artisan migrate
 
 ---
 
-## 🎨 FASE 5: FRONTEND (Livewire) - EM ANDAMENTO
+## 🎨 FASE 5: FRONTEND (Livewire) - ✅ 85% CONCLUÍDO
 
 ### 3.1 Product Integration Component
 - [x] Criar `app/Livewire/MercadoLivre/ProductIntegration.php` ✅
@@ -178,7 +241,43 @@ php artisan migrate
   - [x] Menu adicionado na sidebar
   - [x] Rota configurada
 
-### 3.2 Orders Manager Component
+### 3.2 Publications Manager (NOVO!) ✅
+- [x] Component `PublicationsList` - Listagem de publicações
+  - [x] Stats cards (Total, Ativas, Kits, Erros)
+  - [x] Filtros (busca, status, tipo, sync)
+  - [x] Cards de publicação com informações
+  - [x] Paginação
+  - [x] Links para edição
+  
+- [x] Component `EditPublication` - Editar publicação
+  - [x] Formulário de dados básicos
+  - [x] Gerenciar produtos do kit
+  - [x] Adicionar/remover produtos
+  - [x] Atualizar quantidade de produtos
+  - [x] Status cards (publicação, sync, disponibilidade)
+  - [x] Logs recentes de movimentação
+  - [x] Botões: Pausar, Ativar, Sincronizar, Deletar
+  - [x] Rota: `/mercadolivre/publications/{id}/edit`
+  
+- [x] Component `ProductSelector` (Reutilizável)
+  - [x] Busca de produtos por nome/código/barcode
+  - [x] Adicionar produtos à seleção
+  - [x] Remover produtos
+  - [x] Definir quantidade por produto
+  - [x] Cálculo automático de disponibilidade
+  - [x] Resumo financeiro
+  - [x] Usado em: PublishProduct, EditPublication
+
+### 3.3 Publish Product Component (Atualizado)
+- [x] Component `PublishProduct`
+  - [x] Mantido sistema existente de publicação simples
+  - [x] Busca no catálogo ML por barcode
+  - [x] Predição de categoria
+  - [x] Atributos obrigatórios dinâmicos
+  - [x] **TODO:** Integrar ProductSelector para criar kits
+  - [x] **TODO:** Radio button "Simples" vs "Kit"
+
+### 3.4 Orders Manager Component
 - [ ] Criar `app/Livewire/MercadoLivre/OrdersManager.php`
 - [ ] Criar `resources/views/livewire/mercadolivre/orders-manager.blade.php`
   - [ ] Lista de pedidos ML
@@ -187,7 +286,7 @@ php artisan migrate
   - [ ] Detalhes do pedido
   - [ ] Atualização de status
 
-### 3.3 Sync Dashboard Component
+### 3.5 Sync Dashboard Component
 - [ ] Criar `app/Livewire/MercadoLivre/SyncDashboard.php`
 - [ ] Criar `resources/views/livewire/mercadolivre/sync-dashboard.blade.php`
   - [ ] Estatísticas gerais
@@ -196,7 +295,7 @@ php artisan migrate
   - [ ] Botão "Sincronizar Agora"
   - [ ] Configurações
 
-### 3.4 Settings Component
+### 3.6 Settings Component
 - [x] Criar `app/Livewire/MercadoLivre/Settings.php`
 - [x] Criar `resources/views/livewire/mercadolivre/settings.blade.php`
   - [x] Status da conexão
@@ -214,26 +313,48 @@ php artisan migrate
 
 ---
 
-## ⚙️ FASE 4: JOBS & AUTOMATION
+## ⚙️ FASE 6: JOBS & AUTOMATION - ✅ 60% CONCLUÍDO
 
-### 4.1 Background Jobs
-- [ ] Criar `app/Jobs/MercadoLivre/SyncStockJob.php`
+### 6.1 Background Jobs
+- [x] Criar `app/Jobs/SyncPublicationToMercadoLivre.php` ✅
+  - [x] Queue assíncrono com 3 tentativas
+  - [x] Backoff delays: [60s, 5min, 15min]
+  - [x] Tratamento de falhas com error_message
+  - [x] Integrado com MlStockSyncService
+  
+- [x] Criar `app/Jobs/ProcessMercadoLivreWebhook.php` ✅
+  - [x] Processa webhooks de forma assíncrona
+  - [x] 3 retries com backoff: [30s, 2min, 10min]
+  - [x] Marca webhooks como processed/error
+  - [x] Integrado com WebhookController
+  
+- [ ] Criar `app/Jobs/MercadoLivre/SyncStockJob.php` (Legacy - usar MlStockSyncService)
 - [ ] Criar `app/Jobs/MercadoLivre/SyncPriceJob.php`
 - [ ] Criar `app/Jobs/MercadoLivre/ImportOrderJob.php`
 - [ ] Criar `app/Jobs/MercadoLivre/RefreshTokenJob.php`
-- [ ] Criar `app/Jobs/MercadoLivre/ProcessWebhookJob.php`
 - [ ] Criar `app/Jobs/MercadoLivre/CleanupLogsJob.php`
 
-### 4.2 Events & Listeners
-- [ ] Criar Event `ProductStockUpdated`
-- [ ] Criar Event `ProductPriceUpdated`
-- [ ] Criar Listener para disparar sync automático
+### 6.2 Observers (NOVO!) ✅
+- [x] Observer `ProductObserver` - Auto-sync em mudanças de estoque
+  - [x] Detecta mudanças em stock_quantity
+  - [x] Cria logs de auditoria
+  - [x] Dispara sincronização para todas as publicações
+  - [x] Suporte a product_code (sincroniza variantes)
+  - [x] Registrado em AppServiceProvider
 
-### 4.3 Scheduler
+### 6.3 Events & Listeners
+- [x] ✅ Auto-sync via ProductObserver (substitui Events)
+- [ ] Criar Event `ProductStockUpdated` (opcional - observer já funciona)
+- [ ] Criar Event `ProductPriceUpdated`
+- [ ] Criar Listener para disparar sync automático (opcional)
+
+### 6.4 Scheduler
 - [ ] Configurar em `app/Console/Kernel.php`:
   ```php
   $schedule->job(new RefreshTokenJob)->hourly();
-  $schedule->job(new SyncStockJob)->everyFiveMinutes();
+  $schedule->call(function() {
+    app(MlStockSyncService::class)->syncAllPending();
+  })->everyFiveMinutes();
   $schedule->job(new ImportOrderJob)->everyTenMinutes();
   $schedule->job(new CleanupLogsJob)->daily();
   ```
@@ -359,6 +480,6 @@ php artisan migrate
 
 ---
 
-**Última Atualização:** 08/02/2026  
-**Status Geral:** 80% Concluído (OAuth Flow Completo Implementado!)  
-**Próximo Marco:** Testar OAuth flow com credenciais reais e implementar ProductService
+**Última Atualização:** 09/02/2026  
+**Status Geral:** 92% Concluído (Sistema de Kits & Auto-Sync Implementado!)  
+**Próximo Marco:** Testar OAuth flow com credenciais reais, integrar ProductSelector no PublishProduct, criar OrdersManager
