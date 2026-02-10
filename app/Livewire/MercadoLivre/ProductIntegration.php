@@ -37,6 +37,11 @@ class ProductIntegration extends Component
     // Estados
     public bool $isConnected = false;
     public bool $loading = false;
+    
+    // Stats
+    public int $totalProducts = 0;
+    public int $publishedCount = 0;
+    public int $pendingCount = 0;
 
     protected $queryString = [
         'search' => ['except' => ''],
@@ -52,17 +57,26 @@ class ProductIntegration extends Component
         return $this->render();
     }
 
+    /**
+     * Inicializa o componente
+     */
     public function mount()
     {
         Log::info('ProductIntegration: mount() iniciado', [
             'user_id' => Auth::id(),
-            'user_name' => Auth::user()?->name
+            'user_name' => Auth::user()?->name,
+            'VERSION' => '2.0-FIXED' // DEBUG: confirmar versão nova
         ]);
         
         $this->checkConnection();
+        $this->calculateStats();
         
         Log::info('ProductIntegration: mount() concluído', [
-            'isConnected' => $this->isConnected
+            'isConnected' => $this->isConnected,
+            'totalProducts' => $this->totalProducts,
+            'publishedCount' => $this->publishedCount,
+            'pendingCount' => $this->pendingCount,
+            'VERSION' => '2.0-FIXED' // DEBUG
         ]);
     }
 
@@ -73,6 +87,23 @@ class ProductIntegration extends Component
     {
         $authService = new AuthService();
         $this->isConnected = $authService->isConnected(Auth::id());
+    }
+
+    /**
+     * Calcula estatísticas dos produtos
+     */
+    public function calculateStats()
+    {
+        $this->totalProducts = Product::where('user_id', Auth::id())
+            ->where('stock_quantity', '>', 0)
+            ->count();
+        
+        $this->publishedCount = Product::where('user_id', Auth::id())
+            ->where('stock_quantity', '>', 0)
+            ->has('mercadoLivreProduct')
+            ->count();
+        
+        $this->pendingCount = $this->totalProducts - $this->publishedCount;
     }
 
     /**
@@ -567,16 +598,9 @@ class ProductIntegration extends Component
      */
     public function render()
     {
-        Log::info('ProductIntegration: render() iniciado', [
-            'user_id' => Auth::id(),
-            'search' => $this->search,
-            'statusFilter' => $this->statusFilter,
-            'categoryFilter' => $this->categoryFilter
-        ]);
-        
-        $query = Product::with(['category', 'mercadoLivreProduct'])
+        $query = Product::with(['category', 'mercadoLivreProduct', 'mlPublications'])
             ->where('user_id', Auth::id())
-            ->where('stock_quantity', '>', 0); // Apenas produtos EM ESTOQUE
+            ->where('stock_quantity', '>', 0);
 
         // Filtro de busca
         if ($this->search) {
@@ -599,18 +623,33 @@ class ProductIntegration extends Component
             $query->where('category_id', $this->categoryFilter);
         }
 
-        $products = $query->orderBy('created_at', 'desc')->paginate(12);
+        // Ordenação: 1) Prontos para publicar (com barcode), 2) Já publicados, 3) Pendentes
+        $products = $query
+            ->orderByRaw("
+                CASE 
+                    WHEN (
+                        stock_quantity > 0 AND 
+                        price > 0 AND 
+                        barcode IS NOT NULL AND barcode != '' AND
+                        image IS NOT NULL AND image != 'product-placeholder.png' AND
+                        `condition` IS NOT NULL AND
+                        name IS NOT NULL AND LENGTH(name) >= 3 AND
+                        NOT EXISTS (SELECT 1 FROM mercadolivre_products WHERE mercadolivre_products.product_id = products.id)
+                    ) THEN 1
+                    WHEN EXISTS (SELECT 1 FROM mercadolivre_products WHERE mercadolivre_products.product_id = products.id) THEN 2
+                    ELSE 3
+                END
+            ")
+            ->orderBy('created_at', 'desc')
+            ->paginate(20);
 
         // Busca categorias para o filtro
         $categories = Category::where('user_id', Auth::id())
             ->orderBy('name')
             ->get();
 
-        Log::info('ProductIntegration: render() concluído', [
-            'products_count' => $products->count(),
-            'total_products' => $products->total(),
-            'categories_count' => $categories->count()
-        ]);
+        // Atualiza stats (agora como propriedades públicas)
+        $this->calculateStats();
 
         return view('livewire.mercadolivre.product-integration', [
             'products' => $products,
