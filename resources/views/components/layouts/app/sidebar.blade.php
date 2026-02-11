@@ -385,6 +385,22 @@
                                             <div class="{{ Request::is('mercadolivre/products') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                         </a>
 
+                                        <a href="{{ route('mercadolivre.orders') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/orders') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate>
+                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/orders') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
+                                                <i class="bi bi-receipt text-sm"></i>
+                                            </div>
+                                            <span class="sidebar-text flex-1 font-medium truncate text-sm">Pedidos</span>
+                                            <div class="{{ Request::is('mercadolivre/orders') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                        </a>
+
+                                        <a href="{{ route('mercadolivre.publications') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/publications') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate>
+                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/publications') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
+                                                <i class="bi bi-list-check text-sm"></i>
+                                            </div>
+                                            <span class="sidebar-text flex-1 font-medium truncate text-sm">Publicações</span>
+                                            <div class="{{ Request::is('mercadolivre/publications') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                        </a>
+
                                         <a href="{{ route('mercadolivre.settings') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/settings') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate>
                                             <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/settings') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
                                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
