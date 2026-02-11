@@ -36,6 +36,8 @@ class EditProduct extends Component
     public string $warranty_months = '3';
     public string $condition = 'new';
 
+    public bool $showTipsModal = false;
+
     public function mount(Product $product)
     {
         if ($product->user_id !== Auth::id()) {
@@ -87,6 +89,11 @@ class EditProduct extends Component
     public function previousStep()
     {
         $this->currentStep = max($this->currentStep - 1, 1);
+    }
+
+    public function toggleTips()
+    {
+        $this->showTipsModal = !$this->showTipsModal;
     }
 
     public function rules(): array
