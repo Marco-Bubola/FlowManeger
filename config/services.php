@@ -40,5 +40,13 @@ return [
         'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
     ],
 
+    'mercadolivre' => [
+        'app_id' => env('ML_CLIENT_ID'),
+        'secret_key' => env('ML_CLIENT_SECRET'),
+        'redirect_uri' => env('ML_REDIRECT_URI', env('APP_URL') . '/mercadolivre/auth/callback'),
+        'webhook_secret' => env('ML_WEBHOOK_SECRET'),
+        'environment' => env('ML_ENVIRONMENT', 'sandbox'), // sandbox ou production
+    ],
+
 ];
 
