@@ -4,7 +4,7 @@
         title="Pedidos do Mercado Livre"
         icon="bi-cart-check-fill"
         icon-color="text-blue-500"
-        :back-route="route('mercadolivre.index')" />
+        :back-route="route('mercadolivre.products')" />
 
     {{-- Filtros --}}
     <div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
