@@ -350,6 +350,11 @@ class ShowSale extends Component
 
             // Pré-processar imagens WebP se necessário
             $this->preprocessImages();
+            
+            // NÃO recarregar! Vai perder as modificações do preprocessImages
+            // $this->sale->load(['saleItems.product', 'client', 'payments']);
+            
+            Log::info('Generating PDF with products: ' . $this->sale->saleItems->pluck('product.image')->implode(', '));
 
             $pdf = Pdf::loadView('pdfs.sale', ['sale' => $this->sale]);
 
@@ -367,17 +372,23 @@ class ShowSale extends Component
             }, $filename);
 
         } catch (\Exception $e) {
+            // Restaurar em caso de erro
+            $this->restoreOriginalImages();
+            
             // Disparar evento de erro
             $this->dispatch('download-error', [
                 'message' => 'Erro ao gerar o PDF: ' . $e->getMessage()
             ]);
 
             Log::error('Erro ao exportar PDF da venda: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
         }
     }
 
     private function preprocessImages()
     {
+        Log::info('=== Starting preprocessImages ===');
+        
         // Obter lista de imagens disponíveis no diretório
         $availableImages = glob(public_path('storage/products/*'));
         $availableImageMap = [];
@@ -392,80 +403,88 @@ class ShowSale extends Component
         foreach ($this->sale->saleItems as $item) {
             if ($item->product->image && $item->product->image !== 'product-placeholder.png') {
                 $imagePath = public_path('storage/products/' . $item->product->image);
+                
+                Log::info("Processing product {$item->product->id}: {$item->product->image}");
 
                 // Verificar se a imagem existe
                 if (!file_exists($imagePath)) {
+                    Log::warning("Image not found: {$imagePath}");
                     // Tentar encontrar uma imagem disponível no diretório
                     if (!empty($availableImageMap)) {
                         $randomImage = array_rand($availableImageMap);
                         $imagePath = $availableImageMap[$randomImage];
                         $item->product->image = basename($imagePath);
+                        Log::info("Using random image: {$item->product->image}");
                     }
                 }
 
                 if (file_exists($imagePath)) {
                     $extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
+                    Log::info("Image extension: {$extension}");
 
                     // Convert WebP images to JPEG for PDF compatibility
                     if ($extension === 'webp') {
+                        Log::info("Detected WebP image: {$item->product->image}");
                         try {
                             if (function_exists('imagecreatefromwebp')) {
-                                $convertedPath = $this->convertWebpToJpeg($imagePath);
-                                if ($convertedPath && file_exists($convertedPath)) {
-                                    // Move the converted file to the products directory
-                                    $newFilename = pathinfo($item->product->image, PATHINFO_FILENAME) . '_pdf.jpg';
-                                    $newPath = public_path('storage/products/' . $newFilename);
+                                Log::info("imagecreatefromwebp is available");
+                                $newFilename = pathinfo($item->product->image, PATHINFO_FILENAME) . '_pdf.jpg';
+                                $newPath = public_path('storage/products/' . $newFilename);
 
-                                    if (copy($convertedPath, $newPath)) {
-                                        // Store original image name and update for PDF
+                                // Verificar se já existe conversão anterior
+                                if (file_exists($newPath)) {
+                                    Log::info("Using existing converted image: {$newFilename}");
+                                    $item->product->original_image = $item->product->image;
+                                    $item->product->image = $newFilename;
+                                } else {
+                                    // Converter WebP para JPEG
+                                    Log::info("Converting: {$imagePath} -> {$newPath}");
+                                    $webpImage = @imagecreatefromwebp($imagePath);
+                                    if ($webpImage !== false) {
+                                        // Salvar como JPEG com qualidade 90
+                                        if (imagejpeg($webpImage, $newPath, 90)) {
+                                            Log::info("✓ Successfully converted: {$newFilename}");
+                                            $item->product->original_image = $item->product->image;
+                                            $item->product->image = $newFilename;
+                                        } else {
+                                            Log::error("✗ Failed to save JPEG: {$newPath}");
+                                            $item->product->original_image = $item->product->image;
+                                            $item->product->image = null;
+                                        }
+                                        imagedestroy($webpImage);
+                                    } else {
+                                        Log::error("✗ Failed to load WebP: {$imagePath}");
                                         $item->product->original_image = $item->product->image;
-                                        $item->product->image = $newFilename;
-
-                                        // Clean up temporary file
-                                        @unlink($convertedPath);
+                                        $item->product->image = null;
                                     }
                                 }
+                            } else {
+                                Log::error("✗ imagecreatefromwebp NOT available!");
+                                $item->product->original_image = $item->product->image;
+                                $item->product->image = null;
                             }
                         } catch (\Exception $e) {
-                            Log::warning("Failed to convert WebP image for PDF: " . $e->getMessage());
+                            Log::error("✗ Exception: " . $e->getMessage());
+                            $item->product->original_image = $item->product->image;
+                            $item->product->image = null;
                         }
                     }
                 }
             }
         }
-    }    private function convertWebpToJpeg($webpPath)
-    {
-        try {
-            $webpImage = imagecreatefromwebp($webpPath);
-            if ($webpImage === false) {
-                return false;
-            }
-
-            $pathInfo = pathinfo($webpPath);
-            $jpegPath = $pathInfo['dirname'] . '/' . $pathInfo['filename'] . '_converted.jpg';
-
-            $success = imagejpeg($webpImage, $jpegPath, 90);
-            imagedestroy($webpImage);
-
-            return $success ? $jpegPath : false;
-
-        } catch (\Exception $e) {
-            Log::error("Error converting WebP to JPEG: " . $e->getMessage());
-            return false;
-        }
+        
+        Log::info('=== Finished preprocessImages ===');
     }
 
     private function restoreOriginalImages()
     {
         foreach ($this->sale->saleItems as $item) {
             if (isset($item->product->original_image)) {
-                // Remove temporary converted file
-                $tempFile = public_path('storage/products/' . $item->product->image);
-                if (file_exists($tempFile) && strpos($item->product->image, '_pdf.jpg') !== false) {
-                    @unlink($tempFile);
-                }
-
-                // Restore original image name
+                // NÃO deletar o arquivo convertido - pode ser usado novamente
+                // Apenas restaurar a referência original do produto
+                
+                Log::info("Restoring original image for product {$item->product->id}: {$item->product->image} -> {$item->product->original_image}");
+                
                 $item->product->image = $item->product->original_image;
                 unset($item->product->original_image);
             }
