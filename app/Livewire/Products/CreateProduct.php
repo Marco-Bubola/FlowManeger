@@ -5,6 +5,7 @@ namespace App\Livewire\Products;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -75,14 +76,47 @@ class CreateProduct extends Component
 
     private function convertCurrencyValues()
     {
-        // Converte valores da máscara de moeda (0,00) para formato numérico (0.00)
-        if ($this->price) {
-            $this->price = str_replace(',', '.', $this->price);
-        }
+        // Converte valores: aceita tanto formato BR (1.234,56) quanto já numérico (22.49) do currency-input
+        $normalize = function ($value) {
+            if ($value === '' || $value === null) {
+                return $value;
+            }
+            $value = trim((string) $value);
+            if ($value === '') {
+                return '';
+            }
+            // Se já está no formato numérico (ex: 22.49 ou 22) não tem vírgula como decimal
+            if (str_contains($value, ',') && !str_contains($value, '.')) {
+                $value = str_replace(',', '.', $value);
+            } elseif (str_contains($value, ',') && str_contains($value, '.')) {
+                // Formato BR: 1.234,56 -> remover pontos (milhar) e trocar vírgula por ponto
+                $value = str_replace('.', '', $value);
+                $value = str_replace(',', '.', $value);
+            } elseif (preg_match('/^\d+\.\d+$/', $value)) {
+                // Já é "22.49" - não alterar
+                return $value;
+            } elseif (str_contains($value, '.') && !str_contains($value, ',')) {
+                // Pode ser 1.234 (milhar) ou 22.49 (decimal). Se só um ponto e 2 decimais após, é decimal
+                if (preg_match('/\.\d{1,2}$/', $value)) {
+                    return $value;
+                }
+                $value = str_replace('.', '', $value);
+            }
+            return $value;
+        };
 
-        if ($this->price_sale) {
-            $this->price_sale = str_replace(',', '.', $this->price_sale);
-        }
+        $beforePrice = $this->price;
+        $beforePriceSale = $this->price_sale;
+
+        $this->price = $normalize($this->price);
+        $this->price_sale = $normalize($this->price_sale);
+
+        Log::channel('single')->info('CreateProduct convertCurrencyValues', [
+            'price_before' => $beforePrice,
+            'price_after' => $this->price,
+            'price_sale_before' => $beforePriceSale,
+            'price_sale_after' => $this->price_sale,
+        ]);
     }
 
     public function previousStep()
@@ -92,11 +126,32 @@ class CreateProduct extends Component
 
     public function store()
     {
+        Log::channel('single')->info('CreateProduct store() INÍCIO', [
+            'price_raw' => $this->price,
+            'price_sale_raw' => $this->price_sale,
+            'price_type' => gettype($this->price),
+            'price_sale_type' => gettype($this->price_sale),
+        ]);
+
         // Conversão dos valores monetários antes da validação
         $this->convertCurrencyValues();
 
-        // Validação completa do formulário na etapa final
-        $validated = $this->validate();
+        Log::channel('single')->info('CreateProduct store() APÓS convertCurrencyValues', [
+            'price' => $this->price,
+            'price_sale' => $this->price_sale,
+        ]);
+
+        try {
+            // Validação completa do formulário na etapa final
+            $validated = $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::channel('single')->warning('CreateProduct store() VALIDAÇÃO FALHOU', [
+                'errors' => $e->errors(),
+                'price_at_fail' => $this->price,
+                'price_sale_at_fail' => $this->price_sale,
+            ]);
+            throw $e;
+        }
 
         // Tratamento da imagem
         $imageName = null;
