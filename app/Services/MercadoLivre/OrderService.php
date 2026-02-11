@@ -23,6 +23,21 @@ use Carbon\Carbon;
 class OrderService extends MercadoLivreService
 {
     /**
+     * Obtém o token ativo do usuário logado (para chamadas à API ML).
+     *
+     * @return \App\Models\MercadoLivreToken|null
+     */
+    protected function getToken(): ?\App\Models\MercadoLivreToken
+    {
+        $userId = Auth::id();
+        if (!$userId) {
+            return null;
+        }
+        $authService = new AuthService();
+        return $authService->getActiveToken($userId);
+    }
+
+    /**
      * Buscar pedidos do Mercado Livre
      * 
      * @param array $filters Filtros (status, date_from, date_to, limit)
@@ -31,10 +46,19 @@ class OrderService extends MercadoLivreService
     public function getOrders(array $filters = []): array
     {
         try {
+            $token = $this->getToken();
+            if (!$token || !$token->ml_user_id) {
+                return [
+                    'success' => false,
+                    'message' => 'Você precisa conectar sua conta do Mercado Livre para listar pedidos.',
+                    'orders' => [],
+                ];
+            }
+
             $params = [];
             
-            // Filtro de vendedor (seller)
-            $params['seller'] = $this->getUserId();
+            // Filtro de vendedor (seller) = ID do usuário no ML
+            $params['seller'] = $token->ml_user_id;
             
             // Filtro de status
             if (!empty($filters['status'])) {
@@ -58,7 +82,7 @@ class OrderService extends MercadoLivreService
             // Ordenação
             $params['sort'] = 'date_desc';
             
-            $response = $this->makeRequest('GET', '/orders/search', $params);
+            $response = $this->makeRequest('GET', '/orders/search', $params, $token->access_token, Auth::id());
             
             return [
                 'success' => true,
@@ -89,7 +113,11 @@ class OrderService extends MercadoLivreService
     public function getOrderDetails(string $mlOrderId): ?array
     {
         try {
-            $response = $this->makeRequest('GET', "/orders/{$mlOrderId}");
+            $token = $this->getToken();
+            if (!$token) {
+                return null;
+            }
+            $response = $this->makeRequest('GET', "/orders/{$mlOrderId}", [], $token->access_token, Auth::id());
             
             return $response;
             
@@ -356,6 +384,14 @@ class OrderService extends MercadoLivreService
     public function updateShippingStatus(string $mlOrderId, string $status, array $trackingData = []): array
     {
         try {
+            $token = $this->getToken();
+            if (!$token) {
+                return [
+                    'success' => false,
+                    'message' => 'Você precisa conectar sua conta do Mercado Livre.',
+                ];
+            }
+
             $data = [
                 'status' => $status,
             ];
@@ -365,7 +401,7 @@ class OrderService extends MercadoLivreService
                 $data['tracking_method'] = $trackingData['tracking_method'] ?? null;
             }
             
-            $response = $this->makeRequest('PUT', "/orders/{$mlOrderId}/shipments", $data);
+            $response = $this->makeRequest('PUT', "/orders/{$mlOrderId}/shipments", $data, $token->access_token, Auth::id());
             
             // Atualizar no banco de dados
             $mlOrder = MercadoLivreOrder::where('ml_order_id', $mlOrderId)
