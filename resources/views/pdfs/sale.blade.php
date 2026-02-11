@@ -682,6 +682,7 @@
                             @php
                             $imagePath = public_path('storage/products/' . $item->product->image);
                             $imageExists = file_exists($imagePath);
+                            $extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
                             @endphp
                             @if($imageExists)
                             @php
@@ -689,7 +690,6 @@
                                 $imageData = file_get_contents($imagePath);
                                 if ($imageData !== false) {
                                     $imageData = base64_encode($imageData);
-                                    $extension = strtolower(pathinfo($imagePath, PATHINFO_EXTENSION));
                                     $mimeType = 'image/' . ($extension === 'jpg' ? 'jpeg' : $extension);
                                     $hasValidImage = true;
                                 } else {
