@@ -780,8 +780,10 @@ class ProductService extends MercadoLivreService
                 $mlData['product_id'] = $publishData['product_id'];
             }
             
-            // Adicionar descrição se existir
-            if (!empty($product->description)) {
+            // Adicionar descrição - priorizar a enviada em publishData (pode ser do catálogo)
+            if (!empty($publishData['description'])) {
+                $mlData['description'] = $publishData['description'];
+            } elseif (!empty($product->description)) {
                 $mlData['description'] = $product->description;
             }
             
@@ -799,7 +801,12 @@ class ProductService extends MercadoLivreService
             // Coletar atributos preenchidos pelo usuário
             if (!empty($publishData['attributes'])) {
                 foreach ($publishData['attributes'] as $attrId => $attrValue) {
-                    if (!empty($attrValue)) {
+                    // Se já vem como array estruturado (do catálogo), usar direto
+                    if (is_array($attrValue) && isset($attrValue['id'])) {
+                        $attributes[$attrId] = $attrValue;
+                    }
+                    // Se é valor simples (string/number), converter para formato ML
+                    elseif (!empty($attrValue)) {
                         $attributes[$attrId] = [
                             'id' => $attrId,
                             'value_name' => (string) $attrValue,
@@ -1006,6 +1013,8 @@ class ProductService extends MercadoLivreService
                 'success' => true,
                 'ml_product' => $mlProduct->fresh(),
                 'ml_response' => $response,
+                'ml_item_id' => $response['id'], // ID real do Mercado Livre
+                'ml_permalink' => $response['permalink'] ?? null,
             ];
             
         } catch (\Exception $e) {
@@ -1428,10 +1437,20 @@ class ProductService extends MercadoLivreService
             $payload['description'] = [
                 'plain_text' => $mlData['description'],
             ];
+            Log::info('ProductService: Descrição adicionada ao payload', [
+                'description_length' => mb_strlen($mlData['description']),
+                'description_preview' => mb_substr($mlData['description'], 0, 100)
+            ]);
         } elseif (!empty($product->description)) {
             $payload['description'] = [
                 'plain_text' => $product->description,
             ];
+            Log::info('ProductService: Descrição do produto adicionada ao payload', [
+                'description_length' => mb_strlen($product->description),
+                'description_preview' => mb_substr($product->description, 0, 100)
+            ]);
+        } else {
+            Log::warning('ProductService: Nenhuma descrição disponível');
         }
         
         // Imagens
