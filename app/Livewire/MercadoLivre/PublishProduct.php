@@ -14,6 +14,7 @@ class PublishProduct extends Component
     use HasNotifications;
 
     public ?Product $product = null;
+    public int $currentStep = 1;
     public string $mlCategoryId = '';
     public array $mlCategories = [];
     public array $mlCategoryAttributes = [];
@@ -24,76 +25,196 @@ class PublishProduct extends Component
     public bool $localPickup = true;
     public ?string $catalogProductId = null;
     public array $catalogResults = [];
-    public string $warranty = ''; // Garantia do produto
-    public string $productCondition = 'new'; // Condição: new ou used
+    public string $warranty = '';
+    public string $productCondition = 'new';
     
-    // Dados do produto do catálogo selecionado
     public array $catalogProductData = [];
     public array $catalogPictures = [];
     public array $catalogAttributes = [];
     public string $catalogProductName = '';
     public string $catalogDescription = '';
+    public ?float $catalogPrice = null;
     
-    // Preço e quantidade editáveis
     public string $publishPrice = '';
     public int $publishQuantity = 1;
-    
-    // Imagens selecionadas para publicação
     public array $selectedPictures = [];
     public bool $useCatalogPictures = true;
+    public bool $linkToCatalog = true;
     
-    // Controle de vinculação ao catálogo
-    public bool $linkToCatalog = true; // TRUE = vincula ao catálogo | FALSE = apenas copia dados
-    
-    // Múltiplos produtos (kit ou publicação composta)
     public array $selectedProducts = [];
     public bool $showProductSelector = false;
     public string $publicationType = 'simple';
     
-    // Listeners do Livewire
+    // Step 1: filtros de produtos
+    public string $searchTerm = '';
+    public string $selectedCategory = '';
+    
     protected $listeners = [
         'product-added' => 'addProductToList',
         'product-removed' => 'onProductRemoved',
     ];
 
-    public function mount(Product $product)
+    public function updatedSelectedProducts($value, $key)
     {
-        // Verificar se o produto pertence ao usuário
-        if ($product->user_id !== Auth::id()) {
-            abort(403, 'Você não tem permissão para publicar este produto.');
+        $keyStr = (string) $key;
+        if (str_contains($keyStr, 'price_sale')) {
+            $parts = explode('.', $keyStr);
+            if (isset($parts[0]) && is_numeric($parts[0]) && isset($this->selectedProducts[(int)$parts[0]])) {
+                $this->selectedProducts[(int)$parts[0]]['unit_cost'] = (float) ($value ?? 0);
+            }
+        }
+        if (str_contains($keyStr, 'price_sale') || str_contains($keyStr, 'unit_cost') || str_contains($keyStr, 'quantity')) {
+            $this->updatePublishPrice();
+        }
+    }
+
+    public function mount(?Product $product = null)
+    {
+        if ($product) {
+            if ($product->user_id !== Auth::id()) {
+                abort(403, 'Você não tem permissão para publicar este produto.');
+            }
+            $this->product = $product->load('category');
+            $this->productCondition = $product->condition ?? 'new';
+            $this->publishQuantity = max(1, (int)($product->stock_quantity ?? 1));
+            
+            if ($product->image && $product->image !== 'product-placeholder.png') {
+                $this->selectedPictures = [$product->image_url];
+            }
+            
+            $this->selectedProducts = [[
+                'id' => $product->id,
+                'name' => $product->name,
+                'product_code' => $product->product_code,
+                'barcode' => $product->barcode ?? '',
+                'price_sale' => (float)($product->price_sale ?? $product->price),
+                'stock_quantity' => (int)$product->stock_quantity,
+                'image_url' => $product->image_url,
+                'quantity' => 1,
+                'unit_cost' => (float)($product->price_sale ?? $product->price),
+            ]];
+            
+            $this->updatePublishPrice();
+            $this->currentStep = 1;
+        } else {
+            $this->selectedProducts = [];
+            $this->currentStep = 1;
+        }
+    }
+
+    public function goToStep(int $step)
+    {
+        if ($step >= 1 && $step <= 3) {
+            $this->currentStep = $step;
+            if ($step >= 2 && !empty($this->selectedProducts) && !$this->product) {
+                $this->product = Product::find($this->selectedProducts[0]['id']);
+                $this->predictCategory();
+                if ($step === 2) {
+                    $this->searchCatalog();
+                }
+            }
+        }
+    }
+
+    public function nextStep()
+    {
+        if ($this->currentStep === 1 && $this->hasSelectedProducts()) {
+            $this->currentStep = 2;
+            $this->product = Product::find($this->selectedProducts[0]['id']);
+            $this->predictCategory();
+            $this->searchCatalog();
+        } elseif ($this->currentStep === 2) {
+            $this->currentStep = 3;
+        }
+    }
+
+    public function previousStep()
+    {
+        if ($this->currentStep > 1) {
+            $this->currentStep--;
+        }
+    }
+
+    public function hasSelectedProducts(): bool
+    {
+        return !empty($this->selectedProducts);
+    }
+
+    public function getFilteredProductsProperty()
+    {
+        $query = Product::where('user_id', Auth::id())
+            ->with('category')
+            ->when($this->searchTerm, fn($q) => $q->where(function ($q) {
+                $q->where('name', 'like', "%{$this->searchTerm}%")
+                    ->orWhere('product_code', 'like', "%{$this->searchTerm}%")
+                    ->orWhere('barcode', 'like', "%{$this->searchTerm}%");
+            }))
+            ->when($this->selectedCategory, fn($q) => $q->where('category_id', $this->selectedCategory));
+
+        $products = $query->get();
+        return $products->filter(fn($p) => $p->isReadyForMercadoLivre()['ready']);
+    }
+
+    public function toggleProduct(int $productId)
+    {
+        $product = Product::find($productId);
+        if (!$product || $product->user_id !== Auth::id()) {
+            return;
+        }
+        $validation = $product->isReadyForMercadoLivre();
+        if (!$validation['ready']) {
+            $this->notifyWarning('Produto não está pronto para publicação: ' . implode(', ', $validation['errors']));
+            return;
         }
 
-        $this->product = $product->load('category');
-        
-        // Inicializar condição e garantia
-        $this->productCondition = $product->condition ?? 'new';
-        $this->warranty = ''; // Pode adicionar campo no produto depois
-        
-        // Inicializar quantidade com dados do produto
-        $this->publishQuantity = max(1, (int)($product->stock_quantity ?? 1));
-        
-        // Adicionar imagem do produto como selecionada por padrão
-        if ($product->image && $product->image !== 'product-placeholder.png') {
-            $this->selectedPictures = [$product->image_url];
+        $idx = null;
+        foreach ($this->selectedProducts as $i => $p) {
+            if ($p['id'] == $productId) {
+                $idx = $i;
+                break;
+            }
         }
-        
-        // Inicializar produto principal na lista
-        $this->selectedProducts = [[
-            'id' => $product->id,
-            'name' => $product->name,
-            'product_code' => $product->product_code,
-            'price_sale' => (float)($product->price_sale ?? $product->price),
-            'stock_quantity' => (int)$product->stock_quantity,
-            'image_url' => $product->image_url,
-            'quantity' => 1,
-            'unit_cost' => (float)($product->price_sale ?? $product->price),
-        ]];
-        
-        // Atualizar preço baseado nos produtos
+
+        if ($idx !== null) {
+            array_splice($this->selectedProducts, $idx, 1);
+            $this->selectedProducts = array_values($this->selectedProducts);
+            $this->product = $this->selectedProducts[0] ? Product::find($this->selectedProducts[0]['id']) : null;
+        } else {
+            $this->selectedProducts[] = [
+                'id' => $product->id,
+                'name' => $product->name,
+                'product_code' => $product->product_code,
+                'barcode' => $product->barcode ?? '',
+                'price_sale' => (float)($product->price_sale ?? $product->price),
+                'stock_quantity' => (int)$product->stock_quantity,
+                'image_url' => $product->image_url,
+                'quantity' => 1,
+                'unit_cost' => (float)($product->price_sale ?? $product->price),
+            ];
+            $this->product = $product;
+        }
+
         $this->updatePublishPrice();
-        
-        // Buscar sugestão automática de categorias ao carregar
-        $this->predictCategory();
+        if (!empty($this->selectedProducts)) {
+            $this->publishQuantity = count($this->selectedProducts) > 1
+                ? $this->getAvailableQuantity()
+                : max(1, (int)($this->product->stock_quantity ?? 1));
+        }
+    }
+
+    public function isProductSelected(int $productId): bool
+    {
+        foreach ($this->selectedProducts as $p) {
+            if ($p['id'] == $productId) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function getCategoriesProperty()
+    {
+        return \App\Models\Category::all();
     }
 
     /**
@@ -197,18 +318,20 @@ class PublishProduct extends Component
     }
 
     /**
-     * Buscar produto no catálogo do ML pelo código de barras
+     * Buscar produto no catálogo do ML pelo código de barras dos produtos selecionados
      */
     public function searchCatalog()
     {
-        if (empty($this->product->barcode)) {
-            $this->notifyWarning('Produto não possui código de barras cadastrado');
+        $barcode = $this->getFirstSelectedProductBarcode();
+        if (empty($barcode)) {
+            $this->catalogResults = [];
+            $this->notifyWarning('Nenhum produto selecionado com código de barras');
             return;
         }
 
         try {
             $productService = new ProductService();
-            $result = $productService->searchCatalogByBarcode($this->product->barcode, Auth::id());
+            $result = $productService->searchCatalogByBarcode($barcode, Auth::id());
 
             if ($result['success'] && !empty($result['results'])) {
                 $this->catalogResults = $result['results'];
@@ -220,10 +343,21 @@ class PublishProduct extends Component
         } catch (\Exception $e) {
             Log::error('Erro ao buscar no catálogo ML', [
                 'error' => $e->getMessage(),
-                'barcode' => $this->product->barcode
+                'barcode' => $barcode
             ]);
             $this->notifyError('Erro ao buscar no catálogo: ' . $e->getMessage());
         }
+    }
+
+    private function getFirstSelectedProductBarcode(): ?string
+    {
+        foreach ($this->selectedProducts as $p) {
+            $prod = Product::find($p['id'] ?? 0);
+            if ($prod && !empty($prod->barcode)) {
+                return $prod->barcode;
+            }
+        }
+        return null;
     }
 
     /**
@@ -254,8 +388,12 @@ class PublishProduct extends Component
             if ($result['success'] && !empty($result['product_info'])) {
                 $info = $result['product_info'];
                 $this->catalogProductData = $info;
-                $this->catalogProductName = $info['name'] ?? '';
-                $this->catalogDescription = $info['short_description']['content'] ?? ($info['short_description'] ?? '');
+                $this->catalogProductName = $info['name'] ?? $info['title'] ?? '';
+                
+                $shortDesc = $info['short_description'] ?? null;
+                $this->catalogDescription = $this->extractCatalogDescription($shortDesc);
+                
+                $this->catalogPrice = $this->extractCatalogPrice($info);
                 
                 // Extrair fotos do catálogo
                 $this->catalogPictures = [];
@@ -274,11 +412,37 @@ class PublishProduct extends Component
                 $this->catalogAttributes = [];
                 if (!empty($info['attributes'])) {
                     foreach ($info['attributes'] as $attr) {
+                        // Extrair value_id e value_name
+                        $valueId = $attr['value_id'] ?? ($attr['values'][0]['id'] ?? null);
+                        $valueName = $attr['value_name'] ?? ($attr['values'][0]['name'] ?? '');
+                        
+                        // Se temos value_id mas não temos value_name, buscar na lista de values
+                        if (!empty($valueId) && empty($valueName) && !empty($attr['values'])) {
+                            foreach ($attr['values'] as $value) {
+                                if ($value['id'] === $valueId) {
+                                    $valueName = $value['name'];
+                                    break;
+                                }
+                            }
+                        }
+                        
                         $this->catalogAttributes[] = [
                             'id' => $attr['id'] ?? '',
                             'name' => $attr['name'] ?? $attr['id'] ?? '',
-                            'value_name' => $attr['value_name'] ?? ($attr['values'][0]['name'] ?? ''),
+                            'value_id' => $valueId,
+                            'value_name' => $valueName,
+                            'values' => $attr['values'] ?? [], // Lista de valores possíveis para edição
+                            'value_type' => $attr['value_type'] ?? 'string',
                         ];
+                        
+                        // Log detalhado para debug
+                        Log::info('Atributo extraído do catálogo', [
+                            'id' => $attr['id'] ?? '',
+                            'name' => $attr['name'] ?? '',
+                            'value_id' => $valueId,
+                            'value_name' => $valueName,
+                            'values_count' => !empty($attr['values']) ? count($attr['values']) : 0,
+                        ]);
                     }
                 }
                 
@@ -311,6 +475,39 @@ class PublishProduct extends Component
         // Limpar campos de atributos já que serão preenchidos automaticamente pelo catálogo
         $this->mlCategoryAttributes = [];
         $this->selectedAttributes = [];
+        
+        if ($this->catalogPrice !== null && $this->catalogPrice > 0) {
+            $this->publishPrice = number_format($this->catalogPrice, 2, '.', '');
+        }
+    }
+
+    private function extractCatalogDescription($shortDesc): string
+    {
+        if (empty($shortDesc)) {
+            return '';
+        }
+        if (is_string($shortDesc)) {
+            return $shortDesc;
+        }
+        if (is_array($shortDesc)) {
+            return $shortDesc['content'] ?? $shortDesc['plain_text'] ?? $shortDesc['text'] ?? '';
+        }
+        return '';
+    }
+
+    private function extractCatalogPrice(array $info): ?float
+    {
+        if (isset($info['price']) && is_numeric($info['price']) && $info['price'] > 0) {
+            return (float) $info['price'];
+        }
+        $buyBox = $info['buy_box'] ?? null;
+        if (is_array($buyBox) && isset($buyBox['price']) && is_numeric($buyBox['price']) && $buyBox['price'] > 0) {
+            return (float) $buyBox['price'];
+        }
+        if (!empty($buyBox['price_info']['amount']) && is_numeric($buyBox['price_info']['amount'])) {
+            return (float) $buyBox['price_info']['amount'];
+        }
+        return null;
     }
 
     /**
@@ -353,14 +550,14 @@ class PublishProduct extends Component
                     'sample' => array_slice($this->mlCategoryAttributes, 0, 2)
                 ]);
                 
-                // Auto-preencher atributos obrigatórios com dados do produto
+                $mainProd = $this->product ?? (!empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null);
                 foreach ($this->mlCategoryAttributes as $attr) {
                     $attrId = $attr['id'];
-                    if (empty($this->selectedAttributes[$attrId])) {
-                        if ($attrId === 'BRAND' && !empty($this->product->brand)) {
-                            $this->selectedAttributes[$attrId] = $this->product->brand;
+                    if (empty($this->selectedAttributes[$attrId]) && $mainProd) {
+                        if ($attrId === 'BRAND' && !empty($mainProd->brand)) {
+                            $this->selectedAttributes[$attrId] = $mainProd->brand;
                         } elseif ($attrId === 'MODEL') {
-                            $this->selectedAttributes[$attrId] = $this->product->name;
+                            $this->selectedAttributes[$attrId] = $mainProd->name;
                         }
                     }
                 }
@@ -390,6 +587,37 @@ class PublishProduct extends Component
             $this->searchMLCategories($this->categorySearch);
         } elseif (empty(trim($this->categorySearch))) {
             $this->mlCategories = [];
+        }
+    }
+
+    /**
+     * Sincroniza value_name quando value_id muda
+     */
+    public function updatedCatalogAttributes($value, $key)
+    {
+        // Formato do $key: "0.value_id" onde 0 é o índice
+        if (str_ends_with($key, '.value_id')) {
+            $index = (int) explode('.', $key)[0];
+            
+            if (isset($this->catalogAttributes[$index])) {
+                $attr = &$this->catalogAttributes[$index];
+                $newValueId = $attr['value_id'];
+                
+                // Buscar o value_name correspondente na lista de values
+                if (!empty($newValueId) && !empty($attr['values'])) {
+                    foreach ($attr['values'] as $value) {
+                        if ($value['id'] === $newValueId) {
+                            $attr['value_name'] = $value['name'];
+                            Log::info('Atributo sincronizado', [
+                                'attr_id' => $attr['id'],
+                                'value_id' => $newValueId,
+                                'value_name' => $value['name'],
+                            ]);
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -520,14 +748,66 @@ class PublishProduct extends Component
             $this->publishPrice = number_format($totalPrice, 2, '.', '');
         }
     }
+
+    public function applySuggestedPrice()
+    {
+        $suggested = $this->getSuggestedPrice();
+        if ($suggested > 0) {
+            $this->publishPrice = number_format($suggested, 2, '.', '');
+            $this->notifySuccess('Preço sugerido aplicado!');
+        }
+    }
+
+    public function getSuggestedPrice(): float
+    {
+        $totalPrice = $this->getTotalProductsPrice();
+        if ($totalPrice <= 0) {
+            return 0;
+        }
+        $mlFee = match($this->listingType) {
+            'gold_special' => 0.16,
+            'gold_pro' => 0.17,
+            'gold' => 0.13,
+            default => 0.11,
+        };
+        return round($totalPrice / (1 - $mlFee - 0.05), 2);
+    }
+
+    public function getCatalogResultPrice(array $item): ?float
+    {
+        if (isset($item['price']) && is_numeric($item['price']) && $item['price'] > 0) {
+            return (float) $item['price'];
+        }
+        $buyBox = $item['buy_box'] ?? null;
+        if (is_array($buyBox) && isset($buyBox['price']) && is_numeric($buyBox['price'])) {
+            return (float) $buyBox['price'];
+        }
+        return null;
+    }
+
+    public function getCatalogResultImage(array $item): ?string
+    {
+        if (!empty($item['thumbnail'])) return $item['thumbnail'];
+        if (!empty($item['picture'])) return $item['picture'];
+        if (!empty($item['pictures'][0])) {
+            $p = $item['pictures'][0];
+            return $p['secure_url'] ?? $p['url'] ?? null;
+        }
+        return null;
+    }
     
     /**
      * Publica o produto no Mercado Livre (agora com suporte a múltiplos produtos)
      */
     public function publishProduct()
     {
-        if (!$this->product) {
-            $this->notifyError('Produto não selecionado');
+        if (empty($this->selectedProducts)) {
+            $this->notifyError('Selecione ao menos um produto');
+            return;
+        }
+        $mainProduct = $this->product ?? Product::find($this->selectedProducts[0]['id']);
+        if (!$mainProduct) {
+            $this->notifyError('Produto não encontrado');
             return;
         }
 
@@ -570,23 +850,26 @@ class PublishProduct extends Component
         }
 
         try {
-            // Definir descrição: priorizar catálogo se disponível
-            $description = $this->product->description ?? '';
+            $title = mb_substr($mainProduct->name, 0, 60);
+            if ($this->catalogProductId && !empty($this->catalogProductName)) {
+                $title = mb_substr($this->catalogProductName, 0, 60);
+            }
+            
+            $description = $mainProduct->description ?? '';
             if ($this->catalogProductId && !empty($this->catalogDescription)) {
                 $description = $this->catalogDescription;
             }
             
-            Log::info('PublishProduct: Preparando descrição', [
+            Log::info('PublishProduct: Preparando título e descrição', [
+                'title' => $title,
                 'has_catalog_description' => !empty($this->catalogDescription),
                 'description_length' => mb_strlen($description),
-                'description_preview' => mb_substr($description, 0, 100)
             ]);
             
-            // Criar publicação no novo sistema
             $publication = \App\Models\MlPublication::create([
-                'ml_item_id' => 'MLB' . rand(100000000, 999999999), // Temporário até chamar API ML
+                'ml_item_id' => 'TEMP_' . uniqid(), // Temporário, será atualizado com o ID real do ML
                 'ml_category_id' => $this->mlCategoryId,
-                'title' => mb_substr($this->product->name, 0, 60),
+                'title' => $title,
                 'description' => $description,
                 'price' => $price,
                 'publication_type' => count($this->selectedProducts) > 1 ? 'kit' : 'simple',
@@ -595,7 +878,7 @@ class PublishProduct extends Component
                 'local_pickup' => $this->localPickup,
                 'condition' => $this->productCondition,
                 'warranty' => $this->warranty,
-                'status' => 'active',
+                'status' => 'pending', // Pendente até confirmar criação no ML
                 'user_id' => Auth::id(),
             ]);
             
@@ -618,7 +901,7 @@ class PublishProduct extends Component
                 'listing_type' => $this->listingType,
                 'free_shipping' => $this->freeShipping,
                 'local_pickup' => $this->localPickup,
-                'family_name' => mb_substr($this->product->name, 0, 60),
+                'family_name' => $title,
                 'price' => $price,
                 'quantity' => $publication->calculateAvailableQuantity(),
                 'category_id' => $this->mlCategoryId,
@@ -646,15 +929,92 @@ class PublishProduct extends Component
             if (!empty($this->catalogAttributes)) {
                 // Tem atributos do catálogo - usar eles
                 $attributes = [];
+                // Atributos problemáticos que causam erro de validação no ML API
+                $ignoredAttrs = [
+                    'MANUAL_TITLE',
+                    'HAIR_TYPES',           // Causa erro: valores múltiplos
+                    'HAIR_CARE_TYPES',      // Causa erro: validação de value_id
+                ];
+                
                 foreach ($this->catalogAttributes as $attr) {
-                    if (!empty($attr['id']) && !empty($attr['value_name'])) {
-                        $attributes[$attr['id']] = $attr['value_name'];
+                    // Pular atributos que devem ser ignorados
+                    if (empty($attr['id']) || in_array($attr['id'], $ignoredAttrs)) {
+                        continue;
+                    }
+                    
+                    // Pular atributos com valores inválidos/nulos
+                    if (empty($attr['value_id']) && empty($attr['value_name'])) {
+                        continue;
+                    }
+                    
+                    // Se tem value_id, DEVE ter value_name também
+                    if (!empty($attr['value_id'])) {
+                        $valueName = $attr['value_name'];
+                        
+                        // Se value_name está vazio/null, buscar na lista de values
+                        if (empty($valueName) && !empty($attr['values'])) {
+                            foreach ($attr['values'] as $value) {
+                                if ($value['id'] === $attr['value_id']) {
+                                    $valueName = $value['name'];
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        // CORREÇÃO: Filtrar atributos com value_name contendo vírgula (múltiplos valores)
+                        // Esses causam erro "invalid.item.attribute.values" no ML API
+                        if (!empty($valueName) && str_contains($valueName, ',')) {
+                            Log::warning('Atributo ignorado - value_name contém vírgula (múltiplos valores)', [
+                                'attr_id' => $attr['id'],
+                                'attr_name' => $attr['name'],
+                                'value_id' => $attr['value_id'],
+                                'value_name' => $valueName,
+                            ]);
+                            continue;
+                        }
+                        
+                        // Só adicionar se conseguiu o value_name
+                        if (!empty($valueName)) {
+                            $attributes[$attr['id']] = [
+                                'id' => $attr['id'],
+                                'value_id' => $attr['value_id'],
+                                'value_name' => $valueName,
+                            ];
+                            
+                            Log::info('Atributo preparado para envio', [
+                                'attr_id' => $attr['id'],
+                                'value_id' => $attr['value_id'],
+                                'value_name' => $valueName,
+                            ]);
+                        } else {
+                            Log::warning('Atributo ignorado - value_name não encontrado', [
+                                'attr_id' => $attr['id'],
+                                'attr_name' => $attr['name'],
+                                'value_id' => $attr['value_id'],
+                                'values_count' => !empty($attr['values']) ? count($attr['values']) : 0,
+                            ]);
+                        }
+                    } elseif (!empty($attr['value_name'])) {
+                        // Atributos do tipo texto (sem value_id)
+                        // CORREÇÃO: Também filtrar atributos texto com vírgula
+                        if (str_contains($attr['value_name'], ',')) {
+                            Log::warning('Atributo texto ignorado - contém vírgula', [
+                                'attr_id' => $attr['id'],
+                                'value_name' => $attr['value_name'],
+                            ]);
+                            continue;
+                        }
+                        $attributes[$attr['id']] = [
+                            'id' => $attr['id'],
+                            'value_name' => $attr['value_name'],
+                        ];
                     }
                 }
-                $publishData['attributes'] = $attributes;
+                $publishData['attributes'] = array_values($attributes);
                 
                 Log::info('Enviando atributos do catálogo', [
                     'attributes_count' => count($attributes),
+                    'attributes' => $attributes,
                     'link_to_catalog' => $this->linkToCatalog
                 ]);
             } elseif (!empty($this->selectedAttributes)) {
@@ -667,15 +1027,71 @@ class PublishProduct extends Component
             }
             
             $result = $productService->publishProduct(
-                $this->product,
+                $mainProduct,
                 $publishData,
                 Auth::id()
             );
 
             if ($result['success']) {
-                // Atualizar ml_item_id real da API
-                if (!empty($result['ml_item_id'])) {
-                    $publication->update(['ml_item_id' => $result['ml_item_id']]);
+                // CRÍTICO: Atualizar com o ml_item_id REAL retornado pelo Mercado Livre
+                $mlItemId = $result['ml_item_id'] 
+                    ?? $result['ml_response']['id'] 
+                    ?? $result['ml_product']->ml_item_id 
+                    ?? null;
+                $mlPermalink = $result['ml_permalink'] 
+                    ?? $result['ml_response']['permalink'] 
+                    ?? $result['ml_product']->ml_permalink 
+                    ?? null;
+                
+                if ($mlItemId) {
+                    $publication->update([
+                        'ml_item_id' => $mlItemId,
+                        'ml_permalink' => $mlPermalink,
+                        'status' => 'active',
+                    ]);
+                    
+                    // CORREÇÃO: Vincular TODOS os produtos selecionados em mercadolivre_products
+                    // Quando há múltiplos produtos (kit/combo), o ProductService cria apenas para o primeiro
+                    // Precisamos criar/atualizar para TODOS os produtos do kit
+                    foreach ($this->selectedProducts as $prod) {
+                        $productId = $prod['id'];
+                        
+                        // Verificar se já existe registro para este produto
+                        $mlProduct = \App\Models\MercadoLivreProduct::where('product_id', $productId)
+                            ->where('ml_item_id', $mlItemId)
+                            ->first();
+                        
+                        if (!$mlProduct) {
+                            // Criar novo registro em mercadolivre_products
+                            \App\Models\MercadoLivreProduct::create([
+                                'product_id' => $productId,
+                                'ml_item_id' => $mlItemId,
+                                'ml_permalink' => $mlPermalink,
+                                'ml_category_id' => $this->mlCategoryId,
+                                'listing_type' => $this->listingType,
+                                'status' => 'active',
+                                'ml_price' => $this->publishPrice,
+                                'ml_quantity' => $publication->calculateAvailableQuantity(),
+                                'ml_attributes' => !empty($this->catalogAttributes) ? $this->catalogAttributes : [],
+                                'sync_status' => 'synced',
+                                'last_sync_at' => now(),
+                            ]);
+                            
+                            Log::info('Produto vinculado ao ml_item_id', [
+                                'product_id' => $productId,
+                                'ml_item_id' => $mlItemId,
+                            ]);
+                        }
+                    }
+                    
+                    Log::info('Publicação criada com sucesso no ML', [
+                        'ml_item_id' => $mlItemId,
+                        'publication_id' => $publication->id,
+                        'permalink' => $mlPermalink,
+                        'products_linked' => count($this->selectedProducts),
+                    ]);
+                } else {
+                    Log::error('ML Item ID não retornado pela API', ['result' => $result]);
                 }
                 
                 $this->notifySuccess('Publicação criada com ' . count($this->selectedProducts) . ' produto(s)!');
@@ -687,7 +1103,6 @@ class PublishProduct extends Component
             }
         } catch (\Exception $e) {
             Log::error('Erro ao publicar produto no ML', [
-                'product_id' => $this->product->id,
                 'error' => $e->getMessage()
             ]);
             $this->notifyError('Erro ao publicar: ' . $e->getMessage());
@@ -704,17 +1119,14 @@ class PublishProduct extends Component
         if ($this->useCatalogPictures && !empty($this->catalogPictures)) {
             $this->selectedPictures = array_map(fn($p) => $p['secure_url'] ?: $p['url'], $this->catalogPictures);
         } else {
-            // Usar imagem do produto local
             $this->selectedPictures = [];
-            if ($this->product && $this->product->image && $this->product->image !== 'product-placeholder.png') {
-                $this->selectedPictures = [$this->product->image_url];
+            $firstProduct = !empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null;
+            if ($firstProduct && $firstProduct->image && $firstProduct->image !== 'product-placeholder.png') {
+                $this->selectedPictures = [$firstProduct->image_url];
             }
         }
     }
     
-    /**
-     * Remove o produto do catálogo selecionado
-     */
     public function clearCatalogProduct()
     {
         $this->catalogProductId = '';
@@ -723,16 +1135,34 @@ class PublishProduct extends Component
         $this->catalogAttributes = [];
         $this->catalogProductName = '';
         $this->catalogDescription = '';
+        $this->catalogPrice = null;
         $this->useCatalogPictures = false;
         $this->selectedPictures = [];
         
-        if ($this->product && $this->product->image && $this->product->image !== 'product-placeholder.png') {
-            $this->selectedPictures = [$this->product->image_url];
+        $firstProduct = !empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null;
+        if ($firstProduct && $firstProduct->image && $firstProduct->image !== 'product-placeholder.png') {
+            $this->selectedPictures = [$firstProduct->image_url];
         }
+    }
+
+    public function getFinalTitle(): string
+    {
+        // Se tem produto do catálogo selecionado, usar título do catálogo
+        if (!empty($this->catalogProductName)) {
+            return $this->catalogProductName;
+        }
+        
+        // Caso contrário, usar título do produto original
+        if (!empty($this->selectedProducts)) {
+            return $this->selectedProducts[0]['name'] ?? 'Produto sem título';
+        }
+        
+        return 'Produto sem título';
     }
 
     public function render()
     {
-        return view('livewire.mercadolivre.publish-product');
+        return view('livewire.mercadolivre.publish-product')
+            ->layout('components.layouts.app');
     }
 }
