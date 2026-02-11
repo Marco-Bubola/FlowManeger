@@ -92,6 +92,20 @@ use App\Livewire\Consortiums\ConsortiumDraw;
 use App\Livewire\Consortiums\AddContemplationProducts;
 use App\Livewire\Consortiums\AddParticipants;
 
+// Importar componentes Livewire de metas e objetivos
+use App\Livewire\Goals\GoalsDashboard;
+use App\Livewire\Goals\GoalsBoard;
+use App\Livewire\Goals\CreateGoal;
+use App\Livewire\Goals\EditGoal;
+
+// Importar componentes Livewire de hábitos diários
+use App\Livewire\DailyHabits\DailyHabitsDashboard;
+use App\Livewire\DailyHabits\CreateHabit;
+use App\Livewire\DailyHabits\EditHabit;
+
+// Importar componentes Livewire de conquistas
+use App\Livewire\Achievements\AchievementsPage;
+
 use App\Http\Controllers\UploadCashbookController;
 use App\Http\Controllers\ClienteResumoController;
 
@@ -111,6 +125,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard/cashbook', DashboardCashbook::class)->name('dashboard.cashbook');
     Route::get('/dashboard/products', DashboardProducts::class)->name('dashboard.products');
     Route::get('/dashboard/sales', DashboardSales::class)->name('dashboard.sales');
+    Route::get('/dashboard/banks', \App\Livewire\Dashboard\DashboardBanks::class)->name('dashboard.banks');
     // Dashboard de Clientes
     Route::get('/dashboard/clients', \App\Livewire\Dashboard\DashboardClientes::class)->name('dashboard.clients');
 
@@ -205,6 +220,21 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/consortiums/contemplation/{contemplation}/products', AddContemplationProducts::class)->name('consortiums.contemplation.products');
     Route::get('/clients/{client}/consortiums', \App\Livewire\Consortiums\ShowClientConsortiums::class)->name('clients.consortiums');
 
+    // --- Rotas de Metas e Objetivos (Livewire) ---
+    Route::get('/goals', GoalsDashboard::class)->name('goals.dashboard');
+    Route::get('/goals/board/{boardId}', GoalsBoard::class)->name('goals.board');
+    Route::get('/goals/create/{boardId}', CreateGoal::class)->name('goals.create');
+    Route::get('/goals/edit/{goalId}', EditGoal::class)->name('goals.edit');
+
+    // --- Rotas de Hábitos Diários (Livewire) ---
+    Route::get('/daily-habits', DailyHabitsDashboard::class)->name('daily-habits.dashboard');
+    Route::get('/daily-habits/create', CreateHabit::class)->name('daily-habits.create');
+    Route::get('/daily-habits/edit/{habitId}', EditHabit::class)->name('daily-habits.edit');
+    // --- Rotas de Achievements/Conquistas (Livewire) ---
+    Route::get('/achievements', AchievementsPage::class)->name('achievements.index');
+    // --- Rotas de Conquistas (Livewire) ---
+    Route::get('/achievements', AchievementsPage::class)->name('achievements.index');
+
     // --- Rotas de Settings (Livewire Volt) ---
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
@@ -225,6 +255,148 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/login', function () {
     return view('session/login-session');
 })->name('login');
+
+// ==================== MERCADO LIVRE ROUTES ====================
+use App\Http\Controllers\MercadoLivre\AuthController as MercadoLivreAuthController;
+use App\Http\Controllers\MercadoLivre\WebhookController;
+use App\Http\Controllers\MercadoLivre\ProductController as MercadoLivreProductController;
+use App\Livewire\MercadoLivre\Settings;
+use App\Livewire\MercadoLivre\ProductIntegration;
+use App\Livewire\MercadoLivre\PublishProduct;
+use App\Livewire\MercadoLivre\EditPublication;
+
+Route::prefix('mercadolivre')->middleware(['auth'])->name('mercadolivre.')->group(function () {
+    // Rota de DEBUG
+    Route::get('/debug', function () {
+        Log::info('DEBUG: Testando componente ProductIntegration');
+        
+        try {
+            $component = new \App\Livewire\MercadoLivre\ProductIntegration();
+            $component->mount();
+            $result = $component->render();
+            $data = $result->getData();
+            
+            return response()->json([
+                'success' => true,
+                'user_id' => Auth::id(),
+                'user_name' => Auth::user()->name,
+                'products_count' => $data['products']->count(),
+                'total_products' => $data['products']->total(),
+                'categories_count' => $data['categories']->count(),
+                'isConnected' => $component->isConnected,
+                'products' => $data['products']->map(function($p) {
+                    return [
+                        'id' => $p->id,
+                        'name' => $p->name,
+                        'stock' => $p->stock_quantity,
+                        'ready' => $p->isReadyForMercadoLivre()['ready']
+                    ];
+                })
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('DEBUG: Erro ao testar componente', [
+                'error' => $e->getMessage(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'error' => $e->getMessage(),
+                'file' => $e->getFile() . ':' . $e->getLine()
+            ], 500);
+        }
+    })->name('debug');
+    
+    // Settings Page (Livewire Component)
+    Route::get('/settings', function () {
+        return view('layouts.settings-wrapper');
+    })->name('settings');
+    
+    // Product Integration Page (Livewire Component)
+    Route::get('/products', function () {
+        Log::info('ROTA ACESSADA: /mercadolivre/products', [
+            'user_id' => Auth::id(),
+            'user_name' => Auth::user()?->name,
+            'timestamp' => now()->toDateTimeString()
+        ]);
+        return view('layouts.product-integration-wrapper');
+    })->name('products');
+    
+    // Publish Product Page - Nova publicação (sem produto pré-selecionado)
+    Route::get('/products/publish/create', PublishProduct::class)
+        ->name('products.publish.create');
+    
+    // Publish Product Page - Com produto pré-selecionado (do card)
+    Route::get('/products/{product}/publish', PublishProduct::class)
+        ->name('products.publish');
+    
+    // Publications Management
+    Route::get('/publications', \App\Livewire\MercadoLivre\PublicationsList::class)
+        ->name('publications');
+    
+    Route::get('/publications/{publication}', \App\Livewire\MercadoLivre\ShowPublication::class)
+        ->name('publications.show');
+    
+    Route::get('/publications/{publication}/edit', EditPublication::class)
+        ->name('publications.edit');
+    
+    // Orders Management
+    Route::get('/orders', \App\Livewire\MercadoLivre\OrdersManager::class)
+        ->name('orders');
+    
+    // OAuth 2.0 Authentication
+    Route::get('/auth/redirect', [MercadoLivreAuthController::class, 'redirect'])
+        ->name('auth.redirect');
+    
+    Route::get('/auth/callback', [MercadoLivreAuthController::class, 'callback'])
+        ->name('auth.callback')
+        ->withoutMiddleware(['auth']); // Callback pode vir sem sessão ativa
+    
+    Route::post('/auth/disconnect', [MercadoLivreAuthController::class, 'disconnect'])
+        ->name('auth.disconnect');
+    
+    // AJAX endpoints
+    Route::get('/auth/status', [MercadoLivreAuthController::class, 'status'])
+        ->name('auth.status');
+    
+    Route::post('/auth/test', [MercadoLivreAuthController::class, 'testConnection'])
+        ->name('auth.test');
+    
+    // Product REST API endpoints
+    Route::get('/api/products', [MercadoLivreProductController::class, 'index'])
+        ->name('api.products.index');
+    
+    Route::post('/api/products/{id}/publish', [MercadoLivreProductController::class, 'publish'])
+        ->name('api.products.publish');
+    
+    Route::post('/api/products/{id}/sync', [MercadoLivreProductController::class, 'sync'])
+        ->name('api.products.sync');
+    
+    Route::post('/api/products/{id}/pause', [MercadoLivreProductController::class, 'pause'])
+        ->name('api.products.pause');
+    
+    Route::post('/api/products/{id}/activate', [MercadoLivreProductController::class, 'activate'])
+        ->name('api.products.activate');
+    
+    Route::delete('/api/products/{id}', [MercadoLivreProductController::class, 'delete'])
+        ->name('api.products.delete');
+    
+    Route::post('/api/products/{id}/update-stock', [MercadoLivreProductController::class, 'updateStock'])
+        ->name('api.products.update-stock');
+    
+    Route::post('/api/products/{id}/update-price', [MercadoLivreProductController::class, 'updatePrice'])
+        ->name('api.products.update-price');
+});
+
+// Webhook endpoint (sem middleware auth - ML precisa acessar externamente)
+Route::post('/mercadolivre/webhooks', [WebhookController::class, 'handle'])
+    ->name('mercadolivre.webhooks.handle')
+    ->withoutMiddleware(['auth', 'web']);
+
+Route::get('/mercadolivre/webhooks/test', [WebhookController::class, 'test'])
+    ->name('mercadolivre.webhooks.test');
+// ==================== END MERCADO LIVRE ROUTES ====================
 
 
 require __DIR__.'/auth.php';
