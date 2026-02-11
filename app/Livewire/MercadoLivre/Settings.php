@@ -97,27 +97,30 @@ class Settings extends Component
     }
 
     /**
-     * Verifica o status de conexão
+     * Verifica o status de conexão.
+     * Usa autoRefresh=true para que, ao abrir a página, um token expirado seja renovado automaticamente quando possível.
      */
     public function checkConnection(): void
     {
         try {
             $authService = app(AuthService::class);
-            $this->isConnected = $authService->isConnected(Auth::id());
+            $userId = Auth::id();
+            // Tenta obter token ativo e, se expirado ou próximo de expirar, já tenta renovar
+            $this->token = $authService->getActiveToken($userId, true);
+            $this->isConnected = $this->token !== null;
 
-            if ($this->isConnected) {
-                $this->token = $authService->getActiveToken(Auth::id(), false);
-                
-                if ($this->token) {
-                    $this->userInfo = $this->token->user_info ?? [];
-                    $this->expiresAt = $this->token->expires_at?->format('d/m/Y H:i');
-                    $this->expiresInHours = $this->token->expires_at?->diffInHours(now());
-                    $this->needsRefresh = $this->token->needsRefresh();
-                }
+            if ($this->token) {
+                $this->userInfo = $this->token->user_info ?? [];
+                $this->expiresAt = $this->token->expires_at?->format('d/m/Y H:i');
+                $this->expiresInHours = $this->token->expires_at->isPast() ? 0 : (int) $this->token->expires_at->diffInHours(now());
+                $this->needsRefresh = $this->token->needsRefresh();
             } else {
                 $this->reset(['token', 'userInfo', 'expiresAt', 'expiresInHours', 'needsRefresh']);
             }
         } catch (\Exception $e) {
+            $this->isConnected = false;
+            $this->token = null;
+            $this->reset(['userInfo', 'expiresAt', 'expiresInHours', 'needsRefresh']);
             $this->dispatch('notify', [
                 'type' => 'error',
                 'message' => 'Erro ao verificar status: ' . $e->getMessage(),
