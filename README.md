@@ -32,6 +32,8 @@ npm run dev
 php artisan serve
 ```
 
+**Acesso local e via ngrok:** Se você usa ngrok e também quer acessar por `http://127.0.0.1:8000`, inicie o servidor com `php artisan serve --host=0.0.0.0 --port=8000` (ou use `.\start-servidor.bat`). Sempre inicie o Laravel primeiro; depois, em outro terminal, rode `ngrok http 8000`. Veja [docs/ACESSO-LOCAL-E-NGROK.md](docs/ACESSO-LOCAL-E-NGROK.md).
+
 ## Executável automático
 
 Um executável foi gerado a partir do script `start.js`: `FlowManager.exe`.
@@ -216,6 +218,89 @@ npm install -g pkg
 Observações:
 - O `.exe` embute o runtime Node.js, porém requer PHP/Composer instalados para executar comandos Laravel.
 - Se o PowerShell bloquear execução de scripts, use os wrappers `*.cmd` do npm (ex.: `pkg.cmd`).
+
+---
+
+## 🛒 Integração Mercado Livre
+
+O FlowManager possui integração completa com Mercado Livre para:
+- ✅ Publicar produtos automaticamente
+- ✅ Sincronizar estoque e preços
+- ✅ Importar pedidos em tempo real
+- ✅ Gerenciar vendas de forma centralizada
+
+### 📚 Documentação Completa
+
+Toda documentação está em **`docs/`**:
+
+| Guia | Descrição | Tempo |
+|------|-----------|-------|
+| **[GUIA-RAPIDO-CONFIGURACAO-ML.md](docs/GUIA-RAPIDO-CONFIGURACAO-ML.md)** | 🎯 Guia visual de 7 passos | 30 min |
+| **[CHECKLIST-CONFIGURACAO-ML.md](docs/CHECKLIST-CONFIGURACAO-ML.md)** | ✅ Checklist interativo | 40 min |
+| **[GUIA-CONFIGURACAO-MERCADO-LIVRE-DEV.md](docs/GUIA-CONFIGURACAO-MERCADO-LIVRE-DEV.md)** | 📖 Manual completo | 1h |
+
+### 🚀 Quick Start
+
+1. **Instalar ngrok** (para desenvolvimento):
+```powershell
+# Via Chocolatey:
+choco install ngrok
+
+# Ou baixar de: https://ngrok.com/download
+```
+
+2. **Iniciar túnel HTTPS**:
+```powershell
+# Use o script pronto:
+.\setup-ngrok.bat
+
+# Ou manual:
+ngrok http 8000
+```
+
+3. **Configurar no Mercado Livre**:
+   - Acesse: https://developers.mercadolivre.com.br/
+   - Crie aplicação "FlowManager"
+   - Configure Redirect URI: `https://SEU_NGROK.ngrok.io/mercadolivre/auth/callback`
+   - Copie App ID e Secret Key
+
+4. **Adicionar credenciais no `.env`**:
+```env
+# Mercado Livre Integration
+MERCADOLIVRE_APP_ID=seu_app_id_aqui
+MERCADOLIVRE_SECRET_KEY=sua_secret_key_aqui
+MERCADOLIVRE_REDIRECT_URI=https://SEU_NGROK.ngrok.io/mercadolivre/auth/callback
+MERCADOLIVRE_ENVIRONMENT=production
+```
+
+5. **Limpar cache**:
+```powershell
+php artisan config:clear
+php artisan config:cache
+```
+
+6. **Testar integração**:
+   - Acesse: http://localhost:8000/mercadolivre/settings
+   - Clique em "Conectar com Mercado Livre"
+   - Autorize no ML
+   - Pronto! 🎉
+
+### 📊 Status Atual
+
+```
+✅ Database & Models (100%)
+✅ OAuth 2.0 Flow (100%)
+✅ Settings Component (100%)
+⏳ ProductService (próximo)
+⏳ OrderService
+⏳ Webhooks
+```
+
+**Progresso total:** 80% completo
+
+Para mais detalhes, consulte: **[TODO-MERCADOLIVRE.md](TODO-MERCADOLIVRE.md)**
+
+---
 
 ## Exportação CSV / XLSX
 O projeto tem integração (ou suporte) para `maatwebsite/excel`.
