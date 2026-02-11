@@ -139,6 +139,13 @@
                     </div>
                     @endif
 
+                    {{-- Botão Criar Publicação --}}
+                    <a href="{{ route('mercadolivre.products.publish.create') }}"
+                       class="flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-yellow-500 via-amber-500 to-orange-500 hover:from-yellow-600 hover:via-amber-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm">
+                        <i class="bi bi-plus-circle-fill"></i>
+                        <span>Criar Publicação</span>
+                    </a>
+
                     {{-- Botão Publicações --}}
                     <a href="{{ route('mercadolivre.publications') }}"
                        class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm">
