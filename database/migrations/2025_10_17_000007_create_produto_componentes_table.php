@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Verificar se a tabela já existe
+        if (Schema::hasTable('produto_componentes')) {
+            return;
+        }
+
         Schema::create('produto_componentes', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('kit_produto_id');
