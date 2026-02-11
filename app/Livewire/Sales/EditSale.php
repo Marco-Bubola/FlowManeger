@@ -12,10 +12,12 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 class EditSale extends Component
 {
     public Sale $sale;
+    public int $currentStep = 1;
     public $client_id = '';
     public $sale_date = '';
     public $tipo_pagamento = 'a_vista';
@@ -25,6 +27,7 @@ class EditSale extends Component
     public $products = [];
     public $showOnlySelected = false;
     public $searchTerm = '';
+    public string $clientSearch = '';
 
     // Propriedades reativas específicas para o Livewire
     protected $rules = [
@@ -193,6 +196,46 @@ class EditSale extends Component
             }
         }
         return $total;
+    }
+
+    public function getTotalAmount()
+    {
+        return $this->getTotalPrice();
+    }
+
+    public function getFilteredClientsProperty()
+    {
+        $clients = collect($this->clients)->sortBy(function ($client) {
+            return mb_strtolower($client->name);
+        })->values();
+
+        if (empty($this->clientSearch)) {
+            return $clients;
+        }
+
+        $needle = mb_strtolower($this->clientSearch);
+        $needleDigits = preg_replace('/\D+/', '', $needle);
+
+        return $clients->filter(function ($client) use ($needle, $needleDigits) {
+            $nameMatch = str_contains(mb_strtolower($client->name), $needle);
+            $phoneDigits = preg_replace('/\D+/', '', $client->phone ?? '');
+            $phoneMatch = $needleDigits !== '' && str_contains($phoneDigits, $needleDigits);
+
+            return $nameMatch || $phoneMatch;
+        })->values();
+    }
+
+    public function getSelectedClientProperty()
+    {
+        if (empty($this->client_id)) {
+            return null;
+        }
+
+        $clients = $this->clients instanceof Collection
+            ? $this->clients
+            : collect($this->clients ?? []);
+
+        return $clients->firstWhere('id', (int) $this->client_id);
     }
 
     public function getSafeParcelas()
