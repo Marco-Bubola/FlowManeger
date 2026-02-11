@@ -2,6 +2,7 @@
 
 namespace App\Livewire\MercadoLivre;
 
+use App\Jobs\SyncPublicationToMercadoLivre;
 use App\Models\MlPublication;
 use App\Models\Product;
 use App\Services\MercadoLivre\MlStockSyncService;
@@ -24,6 +25,7 @@ class EditPublication extends Component
     public bool $localPickup = true;
     public string $condition = 'new';
     public string $publicationType = 'simple';
+    public string $warranty = '';
     
     // Produtos do kit
     public array $products = [];
@@ -38,19 +40,35 @@ class EditPublication extends Component
         
         $this->publication = $publication->load('products', 'stockLogs');
         
-        // Carregar dados da publicação
-        $this->title = $publication->title;
-        $this->description = $publication->description ?? '';
-        $this->price = (float)$publication->price;
-        $this->mlCategoryId = $publication->ml_category_id ?? '';
-        $this->listingType = $publication->listing_type ?? 'gold_special';
-        $this->freeShipping = (bool)$publication->free_shipping;
-        $this->localPickup = (bool)$publication->local_pickup;
-        $this->condition = $publication->condition ?? 'new';
-        $this->publicationType = $publication->publication_type;
+        // Atualizar do ML ao abrir a página (título, preço, etc. alterados no ML passam a aparecer aqui)
+        if ($this->publication->ml_item_id) {
+            $syncService = app(MlStockSyncService::class);
+            $result = $syncService->fetchPublicationFromMercadoLivre($this->publication);
+            if ($result['success'] && $result['publication']) {
+                $this->publication = $result['publication']->load('products', 'stockLogs');
+            }
+        }
         
-        // Carregar produtos
+        $this->applyPublicationToForm();
         $this->loadProducts();
+    }
+    
+    /**
+     * Aplica os dados da publicação aos campos do formulário.
+     */
+    protected function applyPublicationToForm(): void
+    {
+        $p = $this->publication;
+        $this->title = $p->title;
+        $this->description = $p->description ?? '';
+        $this->price = (float) $p->price;
+        $this->mlCategoryId = $p->ml_category_id ?? '';
+        $this->listingType = $p->listing_type ?? 'gold_special';
+        $this->freeShipping = (bool) $p->free_shipping;
+        $this->localPickup = (bool) $p->local_pickup;
+        $this->condition = $p->condition ?? 'new';
+        $this->publicationType = $p->publication_type;
+        $this->warranty = (string) ($p->warranty ?? '');
     }
     
     /**
@@ -94,8 +112,8 @@ class EditPublication extends Component
             $this->loadProducts();
             $this->notifySuccess('Produto adicionado à publicação');
             
-            // Forçar sync após adicionar produto
-            $this->syncPublication();
+            // Sincronização automática com ML (em fila, evita conflitos)
+            SyncPublicationToMercadoLivre::dispatch($this->publication->fresh())->delay(now()->addSeconds(3));
             
         } catch (\Exception $e) {
             Log::error('Erro ao adicionar produto à publicação', [
@@ -118,8 +136,7 @@ class EditPublication extends Component
             $this->loadProducts();
             $this->notifySuccess('Produto removido da publicação');
             
-            // Forçar sync após remover produto
-            $this->syncPublication();
+            SyncPublicationToMercadoLivre::dispatch($this->publication->fresh())->delay(now()->addSeconds(3));
             
         } catch (\Exception $e) {
             Log::error('Erro ao remover produto da publicação', [
@@ -144,8 +161,7 @@ class EditPublication extends Component
             $this->loadProducts();
             $this->notifySuccess('Quantidade atualizada');
             
-            // Forçar sync após atualizar quantidade
-            $this->syncPublication();
+            SyncPublicationToMercadoLivre::dispatch($this->publication->fresh())->delay(now()->addSeconds(3));
             
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar quantidade do produto', [
@@ -165,7 +181,7 @@ class EditPublication extends Component
         $this->validate([
             'title' => 'required|min:3|max:255',
             'price' => 'required|numeric|min:0.01',
-            'mlCategoryId' => 'required',
+            'mlCategoryId' => 'nullable|string',
         ]);
         
         try {
@@ -173,17 +189,25 @@ class EditPublication extends Component
                 'title' => $this->title,
                 'description' => $this->description,
                 'price' => $this->price,
-                'ml_category_id' => $this->mlCategoryId,
+                'ml_category_id' => $this->mlCategoryId ?: $this->publication->ml_category_id,
                 'listing_type' => $this->listingType,
                 'free_shipping' => $this->freeShipping,
                 'local_pickup' => $this->localPickup,
                 'condition' => $this->condition,
+                'warranty' => $this->warranty,
             ]);
             
-            $this->notifySuccess('Publicação atualizada com sucesso');
+            $this->publication->refresh();
             
-            // Forçar sync após atualizar
-            $this->syncPublication();
+            // Envia alterações para o Mercado Livre (título, preço, descrição, quantidade)
+            $syncService = app(MlStockSyncService::class);
+            $result = $syncService->updatePublicationToMercadoLivre($this->publication);
+            
+            if ($result['success']) {
+                $this->notifySuccess('Publicação atualizada e sincronizada com o Mercado Livre');
+            } else {
+                $this->notifyWarning('Salvo localmente, mas falha ao atualizar no ML: ' . $result['message']);
+            }
             
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar publicação', [
@@ -279,6 +303,27 @@ class EditPublication extends Component
     public function toggleProductSelector()
     {
         $this->showProductSelector = !$this->showProductSelector;
+    }
+    
+    /**
+     * Atualiza os dados da publicação a partir do Mercado Livre (o que mudou no ML aparece aqui).
+     */
+    public function refreshFromMl(): void
+    {
+        if (!$this->publication->ml_item_id) {
+            $this->notifyError('Esta publicação ainda não tem ID do ML.');
+            return;
+        }
+        $syncService = app(MlStockSyncService::class);
+        $result = $syncService->fetchPublicationFromMercadoLivre($this->publication);
+        if ($result['success'] && $result['publication']) {
+            $this->publication = $result['publication']->load('products', 'stockLogs');
+            $this->applyPublicationToForm();
+            $this->loadProducts();
+            $this->notifySuccess('Dados atualizados do Mercado Livre.');
+        } else {
+            $this->notifyError($result['message'] ?? 'Erro ao atualizar do ML.');
+        }
     }
     
     public function render()
