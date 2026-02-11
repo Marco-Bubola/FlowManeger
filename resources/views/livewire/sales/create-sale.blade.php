@@ -1,4 +1,4 @@
-<div x-data="{ currentStep: 1, completedSteps: [] }" class="">
+<div x-data="{ currentStep: 1, completedSteps: [], init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; }); } }" x-init="init()" class="">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -11,22 +11,15 @@
         :current-step="$currentStep ?? 1"
         :steps="[
             [
-                'title' => 'Cliente',
-                'description' => 'Selecione o cliente',
-                'icon' => 'bi-person',
-                'gradient' => 'from-indigo-500 to-purple-500',
-                'connector_gradient' => 'from-indigo-500 to-purple-500'
-            ],
-            [
                 'title' => 'Produtos',
-                'description' => 'Adicione produtos',
+                'description' => 'Selecione itens e quantidades',
                 'icon' => 'bi-box',
                 'gradient' => 'from-purple-500 to-pink-500',
                 'connector_gradient' => 'from-purple-500 to-pink-500'
             ],
             [
-                'title' => 'Resumo',
-                'description' => 'Conferir e finalizar',
+                'title' => 'Finalizar',
+                'description' => 'Revisar e concluir venda',
                 'icon' => 'bi-check-circle',
                 'gradient' => 'from-green-500 to-emerald-500'
             ]
@@ -49,6 +42,44 @@
                 class="p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
                 <i class="bi bi-lightbulb"></i>
             </button>
+
+            @php
+                $canProceed = count($selectedProducts) > 0 && $client_id;
+                $tooltip = 'Ir para o resumo da venda';
+                if (!$canProceed) {
+                    if (empty($client_id) && count($selectedProducts) === 0) {
+                        $tooltip = 'Selecione um cliente e adicione produtos para poder continuar.';
+                    } elseif (empty($client_id)) {
+                        $tooltip = 'Selecione um cliente para poder continuar.';
+                    } elseif (count($selectedProducts) === 0) {
+                        $tooltip = 'Adicione ao menos um produto para poder continuar.';
+                    }
+                }
+            @endphp
+
+            <button
+                type="button"
+                @if($canProceed)
+                    @click="window.dispatchEvent(new CustomEvent('gotoStep', { detail: 2 }))"
+                @endif
+                title="{{ $tooltip }}"
+                @if(!$canProceed) disabled @endif
+                class="
+                    group relative inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold tracking-wide text-white transition-all duration-300
+                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900
+                    {{ $canProceed
+                        ? 'bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/20 shadow-lg shadow-indigo-500/20 hover:bg-gradient-to-r from-indigo-500 to-purple-600'
+                        : 'bg-slate-400/50 dark:bg-slate-700/50 cursor-not-allowed opacity-60'
+                    }}
+                "
+            >
+                <span class="flex items-center gap-2">
+                    <span class="hidden sm:inline">Ir para Resumo</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                    </svg>
+                </span>
+            </button>
         </x-slot>
     </x-sales-header>
 
@@ -57,209 +88,23 @@
         <form wire:submit.prevent="save" class="">
             <div class="">
 
-                <!-- Step 1: Seleção do Cliente - Full Width -->
+                <!-- NOTE: Step 1 (Cliente) foi removido. A seleção de cliente, data e parcelas foi integrada ao painel lateral do Step Produtos (abaixo). -->
+
+                <!-- Step 1: Produtos - Layout Split 3/4 e 1/4 (antiga Step 2) -->
                 <div x-show="currentStep === 1"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="">
-
-                    <div class="px-8 py-8">
-                        <!-- Informações do Cliente - Full Width, sem card -->
-                        <div class=" p-8">
-                            <h2 class="text-3xl font-bold text-gray-900 dark:text-white mb-8">
-                                <i class="bi bi-person-circle text-indigo-600 dark:text-indigo-400 mr-3"></i>
-                                Informações do Cliente
-                            </h2>
-
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <!-- Cliente -->
-                                <div class="md:col-span-2">
-
-                                    <label for="client_id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                        <i class="bi bi-person text-gray-400 mr-2"></i>Cliente *
-                                    </label>
-                                    <!-- Dropdown customizado sem Alpine, apenas Blade + Livewire -->
-                                    <div class="relative" x-data="{ open: false }">
-                                        <button type="button" class="w-full px-4 py-4 border border-gray-300 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg flex items-center justify-between" @click="open = !open; $nextTick(() => { if (open) $refs.clientSearch.focus() })">
-                                            <div class="flex items-center space-x-3">
-                                                @php
-                                                    $selectedClient = $this->selectedClient;
-                                                @endphp
-                                                @if($selectedClient)
-                                                    <div class="flex items-center space-x-3">
-                                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                                                            <span>{{ strtoupper(substr($selectedClient->name, 0, 1) . (strpos($selectedClient->name, ' ') !== false ? substr($selectedClient->name, strpos($selectedClient->name, ' ') + 1, 1) : '')) }}</span>
-                                                        </div>
-                                                        <div class="flex flex-col items-start">
-                                                            <span class="font-medium">{{ $selectedClient->name }}</span>
-                                                            <span class="text-sm text-gray-500 dark:text-gray-400">{{ $selectedClient->phone }}</span>
-                                                        </div>
-                                                    </div>
-                                                @else
-                                                    <div class="flex items-center space-x-3">
-                                                        <div class="w-10 h-10 rounded-full bg-gray-200 dark:bg-zinc-600 flex items-center justify-center">
-                                                            <i class="bi bi-person text-gray-400"></i>
-                                                        </div>
-                                                        <span class="text-gray-500">Selecione um cliente...</span>
-                                                    </div>
-                                                @endif
-                                            </div>
-                                            <i class="bi bi-chevron-down transition-transform duration-200" :class="open ? 'transform rotate-180' : ''"></i>
-                                        </button>
-                                        <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl shadow-lg max-h-72 overflow-hidden">
-                                            <div class="p-3 border-b border-gray-200 dark:border-zinc-600 bg-gray-50 dark:bg-zinc-800">
-                                                <div class="relative">
-                                                    <span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
-                                                        <i class="bi bi-search"></i>
-                                                    </span>
-                                                       <input x-ref="clientSearch" type="text"
-                                                           wire:model.live.debounce.250ms="clientSearch"
-                                                           placeholder="Buscar cliente por nome ou telefone..."
-                                                           class="w-full pl-9 pr-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                                                </div>
-                                            </div>
-                                            <div class="max-h-52 overflow-y-auto">
-                                                @php
-                                                    $filteredClients = $this->filteredClients;
-                                                @endphp
-                                                @if($filteredClients->isEmpty())
-                                                    <div class="px-4 py-6 text-center text-sm text-gray-500 dark:text-gray-300">
-                                                        <i class="bi bi-emoji-frown mr-2"></i>
-                                                        Nenhum cliente encontrado.
-                                                    </div>
-                                                @else
-                                                    @foreach($filteredClients as $client)
-                                                        <button type="button"
-                                                                wire:click="$set('client_id', {{ $client->id }})"
-                                                                @click="open = false; $wire.set('clientSearch', '')"
-                                                                class="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-zinc-600 flex items-center space-x-3 transition-colors duration-150">
-                                                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                                                                <span>{{ strtoupper(substr($client->name, 0, 1) . (strpos($client->name, ' ') !== false ? substr($client->name, strpos($client->name, ' ') + 1, 1) : '')) }}</span>
-                                                            </div>
-                                                            <div class="flex flex-col items-start">
-                                                                <span class="font-medium text-gray-900 dark:text-white">{{ $client->name }}</span>
-                                                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ $client->phone }}</span>
-                                                            </div>
-                                                        </button>
-                                                    @endforeach
-                                                @endif
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    @error('client_id')
-                                    <p class="mt-2 text-sm text-red-600 flex items-center">
-                                        <i class="bi bi-exclamation-triangle mr-1"></i>
-                                        {{ $message }}
-                                    </p>
-                                    @enderror
-                                </div>
-
-                                <!-- Grid de 3 colunas: Data / Tipo de Pagamento / Parcelamento -->
-                                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <!-- Data da Venda -->
-                                    <div>
-                                        <label for="sale_date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                            <i class="bi bi-calendar text-gray-400 mr-2"></i>Data da Venda *
-                                        </label>
-                                            <input type="date"
-                                                wire:model="sale_date"
-                                                id="sale_date"
-                                                class="w-full px-4 py-4 border rounded-xl transition-colors duração-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg focus:outline-none {{ $errors->has('sale_date') ? 'border-red-300 dark:border-red-400 focus:ring-2 focus:ring-red-200 focus:border-red-400' : 'border-gray-300 dark:border-zinc-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500' }}">
-                                        @error('sale_date')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center">
-                                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                                            {{ $message }}
-                                        </p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Tipo de Pagamento -->
-                                    <div>
-                                        <label for="tipo_pagamento" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                            <i class="bi bi-credit-card text-gray-400 mr-2"></i>Tipo de Pagamento *
-                                        </label>
-                                            <select wire:model.live="tipo_pagamento"
-                                                id="tipo_pagamento"
-                                                class="w-full px-4 py-4 border rounded-xl transition-colors duração-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-lg focus:outline-none {{ $errors->has('tipo_pagamento') ? 'border-red-300 dark:border-red-400 focus:ring-2 focus:ring-red-200 focus:border-red-400' : 'border-gray-300 dark:border-zinc-600 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500' }}">
-                                            <option value="a_vista">À Vista</option>
-                                            <option value="parcelado">Parcelado</option>
-                                        </select>
-                                        @error('tipo_pagamento')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center">
-                                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                                            {{ $message }}
-                                        </p>
-                                        @enderror
-                                    </div>
-
-                                    <!-- Número de Parcelas (condicional) -->
-                                    <div>
-                                        @if($tipo_pagamento == 'parcelado')
-                                        <label for="parcelas" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                                            <i class="bi bi-calendar-range text-indigo-500 mr-2"></i>Número de Parcelas *
-                                        </label>
-                                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                                            @for($i = 1; $i <= 12; $i++)
-                                            <button type="button"
-                                                    wire:click="$set('parcelas', {{ $i }})"
-                                                    class="p-2 text-center border rounded-lg transition-all duration-200 text-sm {{ $parcelas == $i ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white dark:bg-zinc-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-zinc-600 hover:border-indigo-300' }}">
-                                                {{ $i }}x
-                                            </button>
-                                            @endfor
-                                        </div>
-                                        @error('parcelas')
-                                        <p class="mt-2 text-sm text-red-600 flex items-center">
-                                            <i class="bi bi-exclamation-circle mr-1"></i>
-                                            {{ $message }}
-                                        </p>
-                                        @enderror
-                                        @else
-                                        <div class="h-20 flex items-center justify-center text-gray-400 text-sm">
-                                            <i class="bi bi-info-circle mr-2"></i>
-                                            Selecione "Parcelado" para escolher parcelas
-                                        </div>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Botão Próximo Moderno -->
-                            <div class="w-full flex justify-end mt-8 pt-6 border-t border-gray-200 dark:border-zinc-600">
-                                <button type="button"
-                                    @click="currentStep = 2"
-                                    @if(!$client_id) disabled @endif
-                                    class="group relative inline-flex items-center justify-center px-8 py-4 rounded-2xl text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm {{ $client_id ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-600 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-700 border border-indigo-300' : 'bg-gray-400 cursor-not-allowed border border-gray-300' }}">
-                                    <span class="flex items-center">
-                                        Próximo: Produtos
-                                        <i class="bi bi-arrow-right ml-2 group-hover:scale-110 transition-transform duration-200"></i>
-                                    </span>
-                                    @if($client_id)
-                                    <!-- Efeito hover ring -->
-                                    <div class="absolute inset-0 rounded-2xl bg-indigo-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                    @endif
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 2: Produtos - Layout Split 3/4 e 1/4 -->
-                <div x-show="currentStep === 2"
-                    x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform translate-x-4"
-                    x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full h-[82vh] flex">
+                    class="w-full h-[80vh] flex">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
                     <div class="w-3/4  flex flex-col h-full">
                         <!-- Header com Controles -->
-                        <div class="p-2 border-b ">
+                        <div class="p-2  ">
 
 
                             <!-- Controles de pesquisa e filtro -->
-                            <div class="mt-6 flex flex-col md:flex-row gap-4">
+                            <div class=" flex flex-col md:flex-row gap-4">
                                 <!-- Campo de pesquisa -->
                                 <div class="flex-1">
                                     <div class="relative">
@@ -283,8 +128,7 @@
                                             <span class="toggle-filter-thumb"></span>
                                         </span>
                                         <span class="toggle-filter-text text-gray-700 dark:text-gray-300 font-medium">
-                                            <i class="bi bi-funnel mr-1"></i>
-                                            Apenas selecionados
+                                            Selecionados
                                         </span>
                                     </label>
                                 </div>
@@ -402,15 +246,167 @@
                     </div>
                 </div>
 
-                <!-- Lado Direito: Produtos Selecionados (1/4 da tela) -->
+                <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) -->
                 <div class="w-1/4 flex flex-col h-[80vh]">
-                    <!-- Header do painel direito -->
-                    <div class="p-3 border-b">
-                        <h3 class="text-sm font-bold text-gray-900 dark:text-white flex items-center">
-                            <i class="bi bi-cart text-green-600 dark:text-green-400 mr-2 text-sm"></i>
-                            Produtos ({{ count($selectedProducts) }})
-                        </h3>
+                    <!-- Painel de Resumo da Venda Modernizado -->
+                    <div class="p-4 ">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                <i class="bi bi-receipt text-indigo-500"></i>
+                                <span>Resumo da Venda</span>
+                            </h3>
+                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full dark:bg-blue-900 dark:text-blue-300 transition-all duration-300">Orçamento</span>
+                        </div>
+
+                        <!-- Grid de Informações 2x2 -->
+                        <div class="grid grid-cols-2 gap-3">
+
+                            <!-- Bloco Cliente -->
+                            <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
+                                <div class="relative">
+                                    <button type="button" class="w-full text-left" @click="open = !open; $nextTick(() => { if (open) $refs.clientSearchSidebar.focus() })">
+                                        <div class="flex items-center gap-2">
+                                            <i class="bi bi-person-fill text-blue-500 text-lg"></i>
+                                            <div>
+                                                <label class="text-[10px] font-medium text-blue-800 dark:text-blue-200">Cliente</label>
+                                                <div class="text-sm font-bold text-slate-800 dark:text-slate-100 -mt-1 truncate">
+                                                    {{ $this->selectedClient->name ?? 'Selecionar...' }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <!-- Dropdown -->
+                                    <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                        <div class="p-2 border-b border-slate-100 dark:border-zinc-700">
+                                            <div class="relative">
+                                                <span class="absolute inset-y-0 left-3 flex items-center text-slate-400"><i class="bi bi-search"></i></span>
+                                                <input x-ref="clientSearchSidebar" type="text" wire:model.live.debounce.250ms="clientSearch" placeholder="Buscar cliente..." class="w-full pl-10 pr-4 py-2 rounded-md border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-sm focus:ring-2 focus:ring-indigo-400">
+                                            </div>
+                                        </div>
+                                        <div class="py-1">
+                                            @php $filteredClients = $this->filteredClients; @endphp
+                                            @if($filteredClients->isEmpty())
+                                                <div class="px-4 py-2 text-sm text-slate-500">Nenhum cliente encontrado</div>
+                                            @else
+                                                @foreach($filteredClients as $client)
+                                                    <button type="button" @click="open=false; $wire.set('client_id', {{ $client->id }}).then(() => $wire.set('clientSearch',''))" class="w-full text-left px-4 py-2 hover:bg-slate-50 dark:hover:bg-zinc-700 flex items-center gap-3 text-sm transition-colors">
+                                                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-white text-sm">{{ strtoupper(substr($client->name,0,1)) }}</div>
+                                                        <div class="text-slate-700 dark:text-slate-300">{{ $client->name }}</div>
+                                                    </button>
+                                                @endforeach
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                                @error('client_id') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Bloco Data -->
+                            <div class="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl shadow-sm">
+                                <div class="flex items-center gap-2">
+                                    <i class="bi bi-calendar-fill text-purple-500 text-lg"></i>
+                                    <div>
+                                        <label class="text-[10px] font-medium text-purple-800 dark:text-purple-200">Data</label>
+                                        <input type="date" wire:model="sale_date" class="p-0 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent border-0 focus:ring-0">
+                                    </div>
+                                </div>
+                                @error('sale_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Bloco Pagamento -->
+                            <div class="p-3 bg-green-50 dark:bg-green-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
+                                <div class="relative h-full">
+                                    <button type="button" @click="open = !open" class="w-full h-full text-left">
+                                        <div class="flex items-center gap-2">
+                                            <i class="bi bi-credit-card-fill text-green-500 text-lg"></i>
+                                            <div>
+                                                <label class="text-[10px] font-medium text-green-800 dark:text-green-200">Pagamento</label>
+                                                <div class="text-sm font-bold text-slate-700 dark:text-slate-200 -mt-1">
+                                                    <span>{{ $tipo_pagamento === 'a_vista' ? 'À Vista' : 'Parcelado' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <div x-show="open"
+                                         x-transition:enter="transition ease-out duration-100"
+                                         x-transition:enter-start="opacity-0 scale-95"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-75"
+                                         x-transition:leave-start="opacity-100 scale-100"
+                                         x-transition:leave-end="opacity-0 scale-95"
+                                         @click.away="open = false"
+                                         class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1">
+                                        <button @click="$wire.set('tipo_pagamento', 'a_vista'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'a_vista' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
+                                            @if($tipo_pagamento === 'a_vista') <i class="bi bi-check-circle-fill text-green-500"></i> @endif
+                                            <span>À Vista</span>
+                                        </button>
+                                        <button @click="$wire.set('tipo_pagamento', 'parcelado'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'parcelado' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
+                                            @if($tipo_pagamento === 'parcelado') <i class="bi bi-check-circle-fill text-green-500"></i> @endif
+                                            <span>Parcelado</span>
+                                        </button>
+                                    </div>
+                                </div>
+                                @error('tipo_pagamento') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                            </div>
+
+                            <!-- Bloco Parcelas -->
+                            <div class="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-xl shadow-sm">
+                                @if($tipo_pagamento == 'parcelado')
+                                <div x-data="{ open: false }" x-transition class="h-full">
+                                    <div class="relative h-full">
+                                        <button type="button" @click="open = !open" class="w-full h-full text-left">
+                                            <div class="flex items-center gap-2">
+                                                <i class="bi bi-hash text-amber-500 text-lg"></i>
+                                                <div>
+                                                    <label class="text-[10px] font-medium text-amber-800 dark:text-amber-200">Parcelas</label>
+                                                    <div class="text-sm font-bold text-slate-700 dark:text-slate-200 -mt-1">
+                                                        <span>{{ $parcelas }}x</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </button>
+                                        <div x-show="open"
+                                             x-transition:enter="transition ease-out duration-100"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-75"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             @click.away="open = false"
+                                             class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1 max-h-40 overflow-y-auto">
+                                            @for($i = 1; $i <= 12; $i++)
+                                                <button @click="$wire.set('parcelas', {{ $i }}); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/20 {{ $parcelas == $i ? 'bg-amber-100 dark:bg-amber-900/50' : '' }}">
+                                                    @if($parcelas == $i) <i class="bi bi-check-circle-fill text-amber-500"></i> @endif
+                                                    <span>{{ $i }}x</span>
+                                                </button>
+                                            @endfor
+                                        </div>
+                                    </div>
+                                    @error('parcelas') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                @else
+                                <div class="flex items-center gap-2 text-slate-400 h-full">
+                                    <i class="bi bi-calendar-range-fill"></i>
+                                    <span class="text-xs">Sem parcelas</span>
+                                </div>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Total Geral -->
+                        @if(!empty($selectedProducts))
+                        <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/50">
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><i class="bi bi-currency-dollar"></i>Valor Total</span>
+                                <span class="text-2xl font-bold text-green-500">
+                                    R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
+                                </span>
+                            </div>
+                        </div>
+                        @endif
                     </div>
+
+
 
                     <!-- Lista de produtos selecionados com scroll -->
                     <div class="flex-1 overflow-y-auto">
@@ -424,136 +420,94 @@
                             </p>
                         </div>
                         @else
-                        <div class="p-2 space-y-3">
+                        <div class="p-4 ">
                             @foreach($products as $index => $productItem)
-                            @php
-                            $selectedProduct = $availableProducts->find($productItem['product_id']);
-                            @endphp
+                                @php
+                                    $selectedProduct = $availableProducts->find($productItem['product_id']);
+                                @endphp
 
-                            @if($selectedProduct)
-                            <!-- Card de produto selecionado modernizado -->
-                            <div class="bg-gradient-to-r from-white to-gray-50 dark:from-zinc-800 dark:to-zinc-900 rounded-lg p-3 shadow-sm border border-gray-200 dark:border-zinc-700 hover:shadow-md transition-all duration-200">
-                                <!-- Header do produto com imagem -->
-                                <div class="flex items-center mb-3">
-                                    <div class="flex-shrink-0 mr-3">
-                                        <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
-                                             alt="{{ $selectedProduct->name }}"
-                                             class="w-10 h-10 rounded-lg object-cover ring-2 ring-purple-200 dark:ring-purple-700">
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <h4 class="text-xs font-bold text-gray-900 dark:text-white truncate" title="{{ $selectedProduct->name }}">
-                                            {{ $selectedProduct->name }}
-                                        </h4>
-                                        <div class="flex items-center justify-between mt-1">
-                                            <p class="text-xs text-purple-600 dark:text-purple-400 font-medium">
-                                                #{{ $selectedProduct->product_code }}
-                                            </p>
-                                            <button type="button"
-                                                    wire:click="toggleProduct({{ $selectedProduct->id }})"
-                                                    class="text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 rounded transition-colors">
-                                                <i class="bi bi-trash text-xs"></i>
-                                            </button>
+                                @if($selectedProduct)
+                                {{-- Card de produto selecionado com UI/UX moderno --}}
+                                <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group">
+                                    <div class="flex items-center gap-4">
+                                        {{-- Imagem --}}
+                                        <div class="flex-shrink-0">
+                                            <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
+                                                 alt="{{ $selectedProduct->name }}"
+                                                 class="w-12 h-12 rounded-lg object-cover border border-slate-200 dark:border-slate-600">
                                         </div>
-                                        <div class="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
-                                            Est: {{ $selectedProduct->stock_quantity }}
-                                        </div>
-                                    </div>
-                                </div>
 
-                                <!-- Controles em grid -->
-                                <div class="grid grid-cols-2 gap-3">
-                                    <!-- Quantidade -->
-                                    <div>
-                                        <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Quantidade</label>
-                                             <input type="number"
+                                        {{-- Informações do Produto --}}
+                                        <div class="flex-1 min-w-0">
+                                            <div class="flex justify-between items-start">
+                                                <h4 class="font-bold text-slate-800 dark:text-white truncate" title="{{ $selectedProduct->name }}">
+                                                    {{ $selectedProduct->name }}
+                                                </h4>
+                                                <button type="button"
+                                                        wire:click="toggleProduct({{ $selectedProduct->id }})"
+                                                        class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors -mt-1 -mr-1">
+                                                    <i class="bi bi-trash-fill"></i>
+                                                </button>
+                                            </div>
+
+                                            {{-- Preço de Custo --}}
+                                            <div class="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                                <i class="bi bi-tag mr-1.5"></i>
+                                                <span>Custo: R$ {{ number_format($selectedProduct->price, 2, ',', '.') }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Controles e Preços --}}
+                                    <div class="mt-4 flex items-end justify-between">
+                                        {{-- Controle de Quantidade --}}
+                                        <div class="flex items-center gap-2">
+                                             <label for="quantity-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Qtd:</label>
+                                             <input type="number" id="quantity-{{ $selectedProduct->id }}"
                                                  wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
                                                  value="{{ $productItem['quantity'] }}"
                                                  min="1"
                                                  @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
-                                                  max="{{ $selectedProduct->stock_quantity }}"
+                                                    max="{{ $selectedProduct->stock_quantity }}"
                                                  @endif
-                                                 class="w-full h-7 text-center text-xs border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
-                                    </div>
+                                                 class="w-20 h-8 text-center text-sm border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                                        </div>
 
-                                    <!-- Preço Unitário -->
-                                    <div>
-                                        <label class="text-xs text-gray-600 dark:text-gray-400 font-medium mb-1 block">Preço Unit.</label>
-                                        <div class="relative">
-                                            <span class="absolute left-2 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">R$</span>
-                                            <input type="number"
+                                        {{-- Preço de venda (editável) --}}
+                                        <div>
+                                            <label for="price-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Preço Venda</label>
+                                            <div class="relative">
+                                                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-slate-400">R$</span>
+                                                <input type="number" id="price-{{ $selectedProduct->id }}"
                                                    wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
-                                                   value="{{ $productItem['unit_price'] }}"
-                                                   step="0.01"
-                                                   min="0"
-                                                   class="w-full h-7 text-xs border border-gray-300 dark:border-zinc-600 rounded-lg pl-7 pr-2 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500">
+                                                   value="{{ number_format($productItem['unit_price'], 2, '.', '') }}"
+                                                   step="0.01" min="0"
+                                                   class="w-28 h-8 font-semibold text-green-600 dark:text-green-400 border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 pl-7 pr-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                                            </div>
+                                        </div>
+
+                                        {{-- Subtotal --}}
+                                        <div class="text-right">
+                                            <span class="text-xs text-slate-500 dark:text-slate-400">Subtotal</span>
+                                            <p class="font-bold text-slate-800 dark:text-white">
+                                                R$ {{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
-
-                                <!-- Total do item destacado -->
-                                <div class="mt-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg p-2 border border-green-200 dark:border-green-700">
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs text-green-700 dark:text-green-300 font-medium flex items-center">
-                                            <i class="bi bi-calculator mr-1"></i>
-                                            Subtotal:
-                                        </span>
-                                        <span class="text-sm font-bold text-green-600 dark:text-green-400">
-                                            R$ {{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
+                                @endif
                             @endforeach
                         </div>
                         @endif
                     </div>
 
-                    <!-- Footer: Total Geral e Navegação -->
-                    <div class="p-3 bg-white dark:bg-zinc-800 border-t border-gray-200 dark:border-zinc-700">
-                        <!-- Total Geral -->
-                        @if(!empty($selectedProducts))
-                        <div class="mb-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200 dark:border-green-700">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm font-bold text-green-800 dark:text-green-200">Total:</span>
-                                <span class="text-lg font-bold text-green-600 dark:text-green-400">
-                                    R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
-                                </span>
-                            </div>
-                        </div>
-                        @endif
 
-                        <!-- Navegação Modernizada -->
-                        <div class="flex gap-2">
-                            <button type="button"
-                                @click="currentStep = 1"
-                                class="group relative inline-flex items-center justify-center flex-1 px-3 py-2 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white text-xs font-medium transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
-                                <i class="bi bi-arrow-left mr-1 group-hover:scale-110 transition-transform duration-200"></i>
-                                Cliente
-                                <!-- Efeito hover ring -->
-                                <div class="absolute inset-0 rounded-xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            </button>
-
-                            <button type="button"
-                                @click="if({{ count($selectedProducts) }} > 0) currentStep = 3"
-                                @if(count($selectedProducts) === 0) disabled @endif
-                                class="group relative inline-flex items-center justify-center flex-1 px-3 py-2 rounded-xl text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl backdrop-blur-sm {{ count($selectedProducts) > 0 ? 'bg-gradient-to-br from-purple-500 via-pink-500 to-rose-600 hover:from-purple-600 hover:via-pink-600 hover:to-rose-700 border border-purple-300' : 'bg-gray-400 cursor-not-allowed border border-gray-300' }}">
-                                <span class="flex items-center">
-                                    Resumo
-                                    <i class="bi bi-arrow-right ml-1 group-hover:scale-110 transition-transform duration-200"></i>
-                                </span>
-                                @if(count($selectedProducts) > 0)
-                                <!-- Efeito hover ring -->
-                                <div class="absolute inset-0 rounded-xl bg-purple-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                                @endif
-                            </button>
-                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Step 3: Resumo e Finalização - Layout em duas colunas -->
-            <div x-show="currentStep === 3"
+            <div x-show="currentStep === 2"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
@@ -657,11 +611,10 @@
                     <!-- Navegação Final Modernizada -->
                     <div class="mt-auto space-y-3">
                         <button type="button"
-                            @click="currentStep = 2"
+                            @click="currentStep = 1"
                             class="group relative w-full inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
                             <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                             Voltar: Produtos
-                            <!-- Efeito hover ring -->
                             <div class="absolute inset-0 rounded-2xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
 
@@ -679,7 +632,6 @@
                                 </svg>
                                 Criando Venda...
                             </span>
-                            <!-- Efeito hover ring -->
                             <div class="absolute inset-0 rounded-2xl bg-green-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
                     </div>
