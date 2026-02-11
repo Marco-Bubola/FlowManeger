@@ -166,7 +166,7 @@ class OrdersManager extends Component
     {
         try {
             $orderService = new OrderService();
-            $result = $orderService->importOrder($mlOrderId, Auth::id());
+            $result = $orderService->importOrder($mlOrderId);
             
             if ($result['success']) {
                 $this->notifySuccess('Pedido importado com sucesso!');
