@@ -9,8 +9,8 @@
     'currency' => 'R$',
     'required' => false,
     'disabled' => false,
-    'maxlength' => 12
-    ,'initial' => null
+    'maxlength' => 12,
+    'value' => null
 ])
 
 @php
@@ -45,8 +45,12 @@
             <span class="text-base font-bold bg-gradient-to-r from-{{ $iconColor }}-600 to-{{ $iconColor }}-500 bg-clip-text text-transparent transition-transform duration-150">{{ $currency }}</span>
         </div>
 
-     <!-- Campo de entrada oculto (valor numérico para Livewire) -->
-     <input type="hidden" wire:model="{{ $wireModel }}" id="{{ $id }}_hidden" name="{{ $name }}">
+     <!-- Campo de entrada oculto (valor numérico para Livewire) - sincroniza apenas no submit -->
+     <input type="hidden" 
+            wire:model.blur="{{ $wireModel }}" 
+            id="{{ $id }}_hidden" 
+            name="{{ $name }}"
+            value="{{ $value ?? '' }}">
 
      <!-- Campo de entrada modernizado (visível apenas com máscara) -->
      <input type="text"
@@ -86,23 +90,30 @@
 </div>
 
 <script>
-    document.addEventListener('alpine:init', () => {
+    document.addEventListener('DOMContentLoaded', () => {
         const inputMasked = document.getElementById('{{ $id }}');
         const inputHidden = document.getElementById('{{ $id }}_hidden');
-        // Obtém o valor inicial preferencialmente a partir do input oculto ligado ao Livewire
-        const initialAttr = '{{ $attributes->get('value', '') }}';
+        
+        if (!inputMasked || !inputHidden) return;
+        
+        // Previne múltiplas inicializações
+        if (inputMasked.dataset.currencyInitialized === 'true') return;
+        inputMasked.dataset.currencyInitialized = 'true';
+        
+        const initialValue = '{{ $value ?? '' }}';
+        let isUpdating = false;
 
-        // Converte um valor numérico (ex: 123.45) para uma string formatada (ex: '123,45')
+        // Formata número para exibição (ex: 123.45 → "123,45")
         const formatNumber = (numStr) => {
             const num = parseFloat(numStr);
-            if (isNaN(num)) return '0,00';
+            if (isNaN(num) || num === 0) return '0,00';
             return num.toLocaleString('pt-BR', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
             });
         };
 
-        // Converte o valor de input do usuário para o formato de moeda
+        // Formata valor digitado (ex: "212" → "2,12")
         const formatInput = (value) => {
             if (!value) return '';
             const digits = value.replace(/\D/g, '');
@@ -112,53 +123,85 @@
             return formatNumber(numberValue.toFixed(2));
         };
 
-        // Converte uma string formatada (ex: '1.234,56') para um formato numérico para o backend (ex: '1234.56')
+        // Desformata para enviar ao backend (ex: "1.234,56" → "1234.56")
         const unformat = (value) => {
-            if (!value) return '0.00';
+            if (!value) return '';
             return value.replace(/\./g, '').replace(',', '.');
         };
 
-
-        // --- FUNÇÕES AUXILIARES ---
-        // Normaliza strings como '1.234,56' ou '1234,56' para '1234.56'
+        // Normaliza valor inicial
         const normalizeForParse = (v) => {
             if (!v) return '';
             return v.toString().replace(/\./g, '').replace(',', '.');
         };
 
-        // Inicializa o campo visível a partir do input oculto (valor do Livewire)
-        const initializeFromHidden = (val) => {
-            const source = (val && val !== '') ? val : (initialAttr && initialAttr !== '' ? initialAttr : '');
-            if (!source) return;
-            const normalized = normalizeForParse(source);
-            if (!isNaN(parseFloat(normalized))) {
+        // Inicializa campo visível (usado apenas no carregamento da página)
+        const initializeValue = (val) => {
+            if (!val || val === '' || val === '0' || val === '0.00') {
+                inputMasked.value = '';
+                return;
+            }
+            
+            const normalized = normalizeForParse(val);
+            const numValue = parseFloat(normalized);
+            
+            if (!isNaN(numValue) && numValue > 0) {
                 inputMasked.value = formatNumber(normalized);
-                inputHidden.value = normalized;
             }
         };
 
-        // Se o Livewire já colocou um valor no input oculto, inicializa imediatamente
-        if (inputHidden.value && inputHidden.value !== '') {
-            initializeFromHidden(inputHidden.value);
-        } else if (initialAttr && initialAttr !== '') {
-            initializeFromHidden(initialAttr);
+        // Inicializa com valor inicial (se houver)
+        if (initialValue && initialValue !== '' && initialValue !== '0' && initialValue !== '0.00') {
+            initializeValue(initialValue);
         }
 
-        // Escuta alterações no input oculto (Livewire pode hidratar/depois atualizar o valor)
-        inputHidden.addEventListener('input', () => {
-            if (inputHidden.value && inputHidden.value !== '') {
-                initializeFromHidden(inputHidden.value);
-            }
-        });
+        // Sincroniza visível → hidden → Livewire
+        const syncToHidden = () => {
+            if (isUpdating) return;
+            isUpdating = true;
+            
+            const formattedValue = formatInput(inputMasked.value);
+            const numericValue = unformat(formattedValue);
+            
+            inputHidden.value = numericValue;
+            inputHidden.dispatchEvent(new Event('input', { bubbles: true }));
+            
+            setTimeout(() => { isUpdating = false; }, 10);
+        };
 
-        // --- ATUALIZAÇÃO NO INPUT DO USUÁRIO ---
+        // Handler para digitação
         inputMasked.addEventListener('input', (e) => {
+            if (isUpdating) return;
+            
+            console.log('{{ $id }} - Input:', {
+                raw: e.target.value,
+                digits: e.target.value.replace(/\D/g, ''),
+            });
+            
             const formattedValue = formatInput(e.target.value);
             e.target.value = formattedValue;
-            // Se o campo visível foi limpo, repassa string vazia para o Livewire
-            inputHidden.value = formattedValue ? unformat(formattedValue) : '';
-            inputHidden.dispatchEvent(new Event('input')); // Notifica o Livewire a cada mudança
+            
+            const numericValue = unformat(formattedValue);
+            console.log('{{ $id }} - Formatted:', {
+                formatted: formattedValue,
+                numeric: numericValue
+            });
+            
+            syncToHidden();
         });
+        
+        inputMasked.addEventListener('blur', () => {
+            syncToHidden();
+        });
+
+        // Sincroniza antes do submit
+        const form = inputMasked.closest('form');
+        if (form) {
+            const submitHandler = (e) => {
+                syncToHidden();
+            };
+            form.addEventListener('submit', submitHandler, { capture: true, once: false });
+        }
     });
 </script>
 
