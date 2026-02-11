@@ -21,12 +21,14 @@ class WebhookService extends MercadoLivreService
 {
     protected OrderService $orderService;
     protected ProductService $productService;
+    protected MlStockSyncService $stockSyncService;
     
     public function __construct()
     {
         parent::__construct();
         $this->orderService = new OrderService();
         $this->productService = new ProductService();
+        $this->stockSyncService = new MlStockSyncService();
     }
     
     /**
@@ -171,6 +173,33 @@ class WebhookService extends MercadoLivreService
                 ];
             }
             
+            // Processar estoque via novo sistema MlPublication (suporte kits)
+            $stockResults = [];
+            if (in_array($orderData['status'], ['paid', 'confirmed'])) {
+                foreach ($orderData['order_items'] ?? [] as $item) {
+                    $mlItemId = $item['item']['id'] ?? null;
+                    $quantity = $item['quantity'] ?? 1;
+                    
+                    if ($mlItemId) {
+                        $stockResult = $this->stockSyncService->processMercadoLivreSale(
+                            $orderId,
+                            $mlItemId,
+                            $quantity
+                        );
+                        
+                        $stockResults[] = $stockResult;
+                        
+                        if (!$stockResult['success']) {
+                            Log::warning('Falha ao processar estoque de item', [
+                                'order_id' => $orderId,
+                                'ml_item_id' => $mlItemId,
+                                'error' => $stockResult['message'] ?? 'Unknown error',
+                            ]);
+                        }
+                    }
+                }
+            }
+            
             // Verificar se já existe no sistema
             $existingOrder = \App\Models\MercadoLivre\MercadoLivreOrder::where('ml_order_id', $orderId)->first();
             
@@ -189,7 +218,7 @@ class WebhookService extends MercadoLivreService
                 if ($existingOrder->sale && $orderData['status'] === 'cancelled') {
                     $existingOrder->sale->update(['status' => 'cancelled']);
                     
-                    // Devolver estoque
+                    // Devolver estoque (sistema legado)
                     foreach ($existingOrder->sale->items as $item) {
                         $item->product->increment('stock_quantity', $item->quantity);
                     }
@@ -200,6 +229,7 @@ class WebhookService extends MercadoLivreService
                     'message' => 'Pedido atualizado com sucesso',
                     'action' => 'updated',
                     'order_id' => $orderId,
+                    'stock_results' => $stockResults,
                 ];
                 
             } else {
@@ -211,6 +241,7 @@ class WebhookService extends MercadoLivreService
                     'message' => $result['message'],
                     'action' => 'imported',
                     'order_id' => $orderId,
+                    'stock_results' => $stockResults,
                 ];
             }
             
