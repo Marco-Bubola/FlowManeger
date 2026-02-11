@@ -30,6 +30,19 @@ class Product extends Model
         'condition', // new, used
     ];
 
+    /**
+     * The attributes that should be cast.
+     */
+    protected $casts = [
+        'price' => 'decimal:2',
+        'price_sale' => 'decimal:2',
+        'custos_adicionais' => 'decimal:2',
+        'stock_quantity' => 'integer',
+        'warranty_months' => 'integer',
+        'category_id' => 'integer',
+        'user_id' => 'integer',
+    ];
+
     protected $appends = ['image_url'];
 
     /**
@@ -58,11 +71,46 @@ class Product extends Model
     }
 
     /**
-     * Relacionamento com anúncio do Mercado Livre
+     * Relacionamento com anúncio do Mercado Livre (sistema legado 1:1)
      */
     public function mercadoLivreProduct()
     {
         return $this->hasOne(\App\Models\MercadoLivreProduct::class, 'product_id');
+    }
+
+    /**
+     * Relacionamento com publicações do Mercado Livre (novo sistema N:N com suporte a kits)
+     */
+    public function mlPublications()
+    {
+        return $this->belongsToMany(
+            \App\Models\MlPublication::class,
+            'ml_publication_products',
+            'product_id',
+            'ml_publication_id'
+        )->withPivot('quantity', 'unit_cost', 'sort_order')
+          ->withTimestamps();
+    }
+
+    /**
+     * Verifica se o produto está em alguma publicação ativa no ML
+     */
+    public function hasActivePublications(): bool
+    {
+        return $this->mlPublications()
+            ->where('status', 'active')
+            ->exists();
+    }
+
+    /**
+     * Retorna todas as publicações ativas que contêm este produto
+     */
+    public function getActivePublications()
+    {
+        return $this->mlPublications()
+            ->where('status', 'active')
+            ->with('products')
+            ->get();
     }
 
     /**
@@ -75,5 +123,49 @@ class Product extends Model
         }
         
         return asset('storage/products/' . $this->image);
+    }
+
+    /**
+     * Verifica se o produto está pronto para ser publicado no Mercado Livre
+     * Retorna array com ['ready' => bool, 'errors' => array]
+     */
+    public function isReadyForMercadoLivre(): array
+    {
+        $errors = [];
+
+        // Validações obrigatórias
+        if (empty($this->name) || strlen($this->name) < 3) {
+            $errors[] = 'Título muito curto (mínimo 3 caracteres)';
+        }
+
+        if ($this->price <= 0) {
+            $errors[] = 'Preço deve ser maior que R$ 0,00';
+        }
+
+        if ($this->stock_quantity <= 0) {
+            $errors[] = 'Produto sem estoque';
+        }
+
+        if (empty($this->image) || $this->image === 'product-placeholder.png') {
+            $errors[] = 'Imagem não cadastrada';
+        }
+
+        if (empty($this->condition)) {
+            $errors[] = 'Condição (novo/usado) não informada';
+        }
+
+        // ⚠️ OBRIGATÓRIO: Código de barras para ML
+        if (empty($this->barcode)) {
+            $errors[] = 'Código de barras (EAN) obrigatório';
+        }
+
+        if (empty($this->category_id)) {
+            $errors[] = 'Categoria não selecionada';
+        }
+
+        return [
+            'ready' => empty($errors),
+            'errors' => $errors
+        ];
     }
 }
