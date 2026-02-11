@@ -181,7 +181,7 @@
                     <!-- Divisor -->
                     <div class="border-t border-slate-700/50 my-6"></div>
 
-                    <!-- Descrição -->
+                    <!-- Descrição e Código de Barras -->
                     <div class="mb-8">
                         <div class="flex items-center gap-3 mb-4">
                             <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -193,19 +193,44 @@
                             </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <textarea wire:model.live="description"
-                                      id="description"
-                                      rows="4"
-                                      class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium resize-none transition-all duration-200
-                                      {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
-                                      focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
-                                      placeholder="Descreva as principais características e benefícios do produto..."></textarea>
-                            @error('description')
-                                <p class="text-red-400 text-xs flex items-center gap-1">
-                                    <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                </p>
-                            @enderror
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <div class="md:col-span-2 space-y-2">
+                                <label for="description" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                    <i class="bi bi-card-text text-indigo-400"></i>
+                                    Descrição
+                                </label>
+                                <textarea wire:model.live="description"
+                                          id="description"
+                                          rows="4"
+                                          class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium resize-none transition-all duration-200
+                                          {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
+                                          focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
+                                          placeholder="Descreva as principais características e benefícios do produto..."></textarea>
+                                @error('description')
+                                    <p class="text-red-400 text-xs flex items-center gap-1">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
+                            <div class="space-y-2">
+                                <label for="barcode" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                    <i class="bi bi-upc text-indigo-400"></i>
+                                    Código de Barras (EAN)
+                                </label>
+                                <input type="text"
+                                       wire:model.live="barcode"
+                                       id="barcode"
+                                       maxlength="15"
+                                       class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
+                                       {{ $errors->has('barcode') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
+                                       focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
+                                       placeholder="Ex: 7891234567890">
+                                @error('barcode')
+                                    <p class="text-red-400 text-xs flex items-center gap-1">
+                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
+                                    </p>
+                                @enderror
+                            </div>
                         </div>
                     </div>
 
@@ -262,127 +287,6 @@
                         </div>
                     </div>
 
-                    <!-- Informações Mercado Livre -->
-                    <div class="mb-8">
-                        <div class="flex items-center gap-3 mb-6">
-                            <div class="w-10 h-10 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl flex items-center justify-center">
-                                <i class="bi bi-shop text-white text-lg"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-lg font-bold text-white">Mercado Livre (Opcional)</h3>
-                                <p class="text-xs text-slate-400">Informações para integração com marketplace</p>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                            <!-- Código de Barras -->
-                            <div class="space-y-2">
-                                <label for="barcode" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
-                                    <i class="bi bi-upc text-yellow-400"></i>
-                                    Código de Barras (EAN)
-                                </label>
-                                <input type="text"
-                                       wire:model.live="barcode"
-                                       id="barcode"
-                                       maxlength="15"
-                                       class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                       focus:border-yellow-500 hover:border-slate-600 focus:ring-4 focus:ring-yellow-500/20 focus:outline-none"
-                                       placeholder="Ex: 7891234567890">
-                                @error('barcode')
-                                    <p class="text-red-400 text-xs flex items-center gap-1">
-                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Marca -->
-                            <div class="space-y-2">
-                                <label for="brand" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
-                                    <i class="bi bi-award text-yellow-400"></i>
-                                    Marca
-                                </label>
-                                <input type="text"
-                                       wire:model.live="brand"
-                                       id="brand"
-                                       maxlength="100"
-                                       class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                       focus:border-yellow-500 hover:border-slate-600 focus:ring-4 focus:ring-yellow-500/20 focus:outline-none"
-                                       placeholder="Ex: Samsung, Apple, Dell">
-                                @error('brand')
-                                    <p class="text-red-400 text-xs flex items-center gap-1">
-                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Modelo -->
-                            <div class="space-y-2">
-                                <label for="model" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
-                                    <i class="bi bi-diagram-3 text-yellow-400"></i>
-                                    Modelo
-                                </label>
-                                <input type="text"
-                                       wire:model.live="model"
-                                       id="model"
-                                       maxlength="100"
-                                       class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                       focus:border-yellow-500 hover:border-slate-600 focus:ring-4 focus:ring-yellow-500/20 focus:outline-none"
-                                       placeholder="Ex: Galaxy S23, iPhone 15">
-                                @error('model')
-                                    <p class="text-red-400 text-xs flex items-center gap-1">
-                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Garantia -->
-                            <div class="space-y-2">
-                                <label for="warranty_months" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
-                                    <i class="bi bi-shield-check text-yellow-400"></i>
-                                    Garantia (meses)
-                                </label>
-                                <input type="number"
-                                       wire:model.live="warranty_months"
-                                       id="warranty_months"
-                                       min="0"
-                                       max="120"
-                                       class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                       focus:border-yellow-500 hover:border-slate-600 focus:ring-4 focus:ring-yellow-500/20 focus:outline-none"
-                                       placeholder="3">
-                                @error('warranty_months')
-                                    <p class="text-red-400 text-xs flex items-center gap-1">
-                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-
-                            <!-- Condição -->
-                            <div class="space-y-2">
-                                <label for="condition" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
-                                    <i class="bi bi-star text-yellow-400"></i>
-                                    Condição
-                                </label>
-                                <select wire:model.live="condition"
-                                        id="condition"
-                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white font-medium transition-all duration-200
-                                        focus:border-yellow-500 hover:border-slate-600 focus:ring-4 focus:ring-yellow-500/20 focus:outline-none">
-                                    <option value="new">Novo</option>
-                                    <option value="used">Usado</option>
-                                    <option value="refurbished">Recondicionado</option>
-                                </select>
-                                @error('condition')
-                                    <p class="text-red-400 text-xs flex items-center gap-1">
-                                        <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
-                                    </p>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="mt-4 flex items-start gap-2 text-xs text-slate-400 bg-yellow-500/10 border border-yellow-500/20 rounded-xl p-3">
-                            <i class="bi bi-info-circle text-yellow-400 mt-0.5"></i>
-                            <p>Estes campos são opcionais agora, mas serão necessários ao publicar no Mercado Livre.</p>
-                        </div>
-                    </div>
                 </div>
             </div>
 
