@@ -79,11 +79,11 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "public/*,index.php"
+          source: "public/.htaccess,public/*"
           target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
           rm: false
           overwrite: true
-          strip_components: 0
+          strip_components: 1
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
