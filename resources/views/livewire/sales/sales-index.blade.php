@@ -3,7 +3,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 @endpush
 
-<div class="w-full" x-data="{
+<div class="w-full sales-index-page" x-data="{
     showFilters: false,
     fullHd: false,
     ultra: false,
@@ -128,13 +128,13 @@
 
         <!-- Paginação Moderna Customizada -->
         @if ($sales->hasPages())
-            <div class="mt-8">
+            <div class="mt-8 sales-pagination-section">
                 <div
-                    class="flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-600/50 p-4 md:p-6 backdrop-blur-xl">
+                    class="sales-pagination-shell flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-600/50 p-4 md:p-6 backdrop-blur-xl">
 
                     <!-- Left: Per page selector & summary -->
-                    <div class="flex items-center gap-4">
-                        <div class="flex items-center gap-2">
+                    <div class="sales-pagination-left flex items-center gap-4">
+                        <div class="sales-per-page flex items-center gap-2">
                             <label class="text-sm text-slate-600 dark:text-slate-300">Exibir</label>
                             <select wire:model.live="perPage"
                                 class="text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1">
@@ -155,7 +155,7 @@
                     </div>
 
                     <!-- Center: Page buttons -->
-                    <div class="flex items-center gap-2">
+                    <div class="sales-pagination-center flex items-center gap-2">
                         <button wire:click.prevent="gotoPage(1)" wire:loading.attr="disabled"
                             class="px-3 py-1 rounded-md text-sm bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600">
                             <i class="bi bi-chevron-double-left"></i>
@@ -193,9 +193,10 @@
                     </div>
 
                     <!-- Right: Jump to page input -->
-                    <div class="flex items-center gap-2" x-data>
+                    <div class="sales-pagination-right flex items-center gap-2" x-data>
                         <label class="text-sm text-slate-600 dark:text-slate-300">Ir para</label>
                         <input x-ref="pageInput" type="number" min="1" max="{{ $sales->lastPage() }}"
+                            inputmode="numeric"
                             class="w-20 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1 text-slate-700 dark:text-slate-200"
                             placeholder="#">
                         <button @click.prevent="$wire.call('gotoPage', $refs.pageInput.value)"
@@ -210,7 +211,7 @@
         @livewire('sales.export-sale-modal')
 
         <!-- Modal de Confirmação de Exclusão -->
-        <div class="fixed inset-0 z-[9999] overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
+        <div class="fixed inset-0 z-[9999] overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md sales-delete-modal-overlay"
             x-show="showDeleteModal"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0"
@@ -220,7 +221,7 @@
             x-transition:leave-end="opacity-0"
             wire:click="cancelDelete"
             aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="relative p-4 w-full max-w-lg max-h-full transform transition-all duration-300 scale-100"
+            <div class="relative p-4 w-full max-w-lg max-h-full transform transition-all duration-300 scale-100 sales-delete-modal-panel"
                 x-transition:enter="transition ease-out duration-300 delay-75"
                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -344,12 +345,12 @@
                 }
             }
         }" x-show="$wire.showTipsModal" x-cloak
-            class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            class="fixed inset-0 z-[9999] flex items-center justify-center p-4 sales-tips-modal-overlay"
             style="background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px);">
 
             <!-- Modal Content -->
             <div @click.away="if(currentStep === totalSteps) $wire.toggleTips()"
-                class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-slate-200/50 dark:border-slate-700/50"
+                class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-slate-200/50 dark:border-slate-700/50 sales-tips-modal-panel"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 scale-95 translate-y-4"
                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
@@ -387,7 +388,7 @@
                 </div>
 
                 <!-- Content Area -->
-                <div class="relative overflow-y-auto max-h-[calc(90vh-280px)] p-8">
+                <div class="relative overflow-y-auto max-h-[calc(90vh-280px)] p-8 sales-tips-modal-content">
                     <!-- Step 1: Visão Geral -->
                     <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="text-center mb-8">
@@ -753,7 +754,7 @@
                 </div>
 
                 <!-- Footer with Navigation -->
-                <div class="bg-slate-50 dark:bg-slate-900/50 px-8 py-6 border-t border-slate-200 dark:border-slate-700">
+                <div class="bg-slate-50 dark:bg-slate-900/50 px-8 py-6 border-t border-slate-200 dark:border-slate-700 sales-tips-modal-footer">
                     <div class="flex items-center justify-between">
                         <!-- Previous Button -->
                         <button @click="prevStep()" x-show="currentStep > 1"
