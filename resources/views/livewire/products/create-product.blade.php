@@ -50,7 +50,7 @@
     </x-sales-header>
 
     <!-- Conteúdo Principal -->
-    <form id="create-product-form" wire:submit.prevent="store" class="px-6 py-6">
+    <form id="create-product-form" wire:submit.prevent="store" class=" py-6">
         <div class="flex flex-col xl:flex-row gap-6">
 
             <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
@@ -291,7 +291,7 @@
             </div>
 
             <!-- ========== COLUNA DIREITA: Upload ========== -->
-            <div class="w-full xl:w-[450px]">
+            <div class="w-full xl:w-[550px]">
                 <div class="bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
