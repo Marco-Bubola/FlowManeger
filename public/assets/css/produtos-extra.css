@@ -752,6 +752,9 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.8rem;
+    --sale-product-card-min-height: 160px;
+    --sale-product-image-height: 210px;
+    --sale-product-image-max-height: 120px;
 }
 
 @media (max-width: 1024px) {
@@ -767,27 +770,56 @@
 }
 
 .sale-card-product {
-    min-height: 180px;
+    min-height: var(--sale-product-card-min-height);
     border: 1px solid rgba(148, 163, 184, 0.18);
     background: linear-gradient(140deg, rgba(248, 250, 255, 0.85), rgba(228, 233, 255, 0.55));
     box-shadow: 0 14px 22px rgba(79, 70, 229, 0.08);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
+    /* Criar contexto de empilhamento isolado para não passar de sidebar/modais */
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+}
+
+/* Neutralizar z-index absurdos do product-card-modern nos cards de venda */
+.sale-card-product.product-card-modern:before {
+    z-index: 1 !important;
+}
+
+.sale-card-product .category-icon-wrapper {
+    z-index: 3 !important;
+}
+
+.sale-card-product .badge-product-code,
+.sale-card-product .badge-quantity {
+    z-index: 2 !important;
 }
 
 .sale-card-product .product-img-area {
     padding: 0.85em;
     background: linear-gradient(140deg, rgba(246, 244, 255, 0.85), rgba(255, 255, 255, 0.55));
-    height: 130px;
+    min-height: var(--sale-product-image-height) !important;
+    height: var(--sale-product-image-height);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+.sale-card-product.product-card-modern .card-body {
+    padding: 0.45em 0.65em 1.45em 0.65em;
+    min-height: 0;
+    gap: 0.2em;
+}
+
+.sale-card-product .price-area {
+    min-height: 1.7em;
+}
+
 .sale-card-product .product-img {
     width: 90%;
-    max-height: 110px;
+    max-height: var(--sale-product-image-max-height);
     padding: 0.4em;
 }
 
@@ -1358,6 +1390,150 @@
 
 /* Responsividade para vendas */
 @media (max-width: 768px) {
+    .sales-grid {
+        gap: 0.9rem;
+    }
+
+    .sale-card {
+        border-radius: 1rem;
+        padding: 0.95rem;
+        gap: 0.75rem;
+    }
+
+    .sale-card-header > .flex {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+    }
+
+    .sale-card-header > .flex > div:last-child {
+        width: 100%;
+        justify-content: flex-start;
+    }
+
+    .sale-card-chip,
+    .sale-card-status,
+    .sale-card-tag {
+        font-size: 0.68rem;
+    }
+
+    .sale-card-client {
+        align-items: flex-start;
+        gap: 0.65rem;
+    }
+
+    .sale-card-payment-pills {
+        margin-left: 0;
+        width: 100%;
+    }
+
+    .sale-card-financial {
+        flex-wrap: wrap !important;
+        gap: 0.55rem !important;
+    }
+
+    .sale-card-financial .sale-card-financial-block,
+    .sale-card-financial .sale-card-total-block {
+        flex: 1 1 calc(50% - 0.3rem) !important;
+    }
+
+    .sale-card-actions {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.25rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sale-card-actions::-webkit-scrollbar {
+        height: 4px;
+    }
+
+    .sale-card-actions .relative {
+        flex: 0 0 auto;
+    }
+
+    .sales-pagination-shell {
+        align-items: stretch;
+        gap: 0.9rem;
+        padding: 0.9rem;
+    }
+
+    .sales-pagination-left,
+    .sales-pagination-center,
+    .sales-pagination-right {
+        width: 100%;
+    }
+
+    .sales-pagination-left {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.55rem;
+    }
+
+    .sales-per-page {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .sales-pagination-center {
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding-bottom: 0.2rem;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .sales-pagination-right {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+    }
+
+    .sales-pagination-right input {
+        width: 100%;
+    }
+
+    .sales-delete-modal-overlay {
+        align-items: flex-end;
+    }
+
+    .sales-delete-modal-panel {
+        padding: 0.65rem;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .sales-delete-modal-panel > div {
+        border-radius: 1rem;
+    }
+
+    .sales-delete-modal-panel .p-6 {
+        padding: 1rem;
+    }
+
+    .sales-tips-modal-overlay {
+        align-items: flex-end;
+        padding: 0.5rem;
+    }
+
+    .sales-tips-modal-panel {
+        max-height: 95vh;
+        border-radius: 1.25rem;
+    }
+
+    .sales-tips-modal-content {
+        padding: 1rem;
+        max-height: calc(95vh - 220px);
+    }
+
+    .sales-tips-modal-footer {
+        padding: 0.9rem 1rem;
+    }
+
+    .sales-tips-modal-footer > div {
+        gap: 0.5rem;
+    }
+
     .sales-btn-primary,
     .sales-btn-secondary {
         padding: 12px 16px;
@@ -1379,6 +1555,13 @@
         width: 32px;
         height: 32px;
         font-size: 12px;
+    }
+}
+
+@media (max-width: 420px) {
+    .sale-card-financial .sale-card-financial-block,
+    .sale-card-financial .sale-card-total-block {
+        flex: 1 1 100% !important;
     }
 }
 
