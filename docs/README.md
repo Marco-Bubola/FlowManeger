@@ -14,6 +14,7 @@
 | **[GUIA-RAPIDO-CONFIGURACAO-ML.md](GUIA-RAPIDO-CONFIGURACAO-ML.md)** | 🎯 Guia visual de 7 passos | 30 min | **Use este primeiro!** Guia resumido com fluxo visual |
 | **[CHECKLIST-CONFIGURACAO-ML.md](CHECKLIST-CONFIGURACAO-ML.md)** | ✅ Checklist interativo completo | 40 min | Para seguir passo a passo marcando cada item |
 | **[GUIA-CONFIGURACAO-MERCADO-LIVRE-DEV.md](GUIA-CONFIGURACAO-MERCADO-LIVRE-DEV.md)** | 📖 Manual completo detalhado | 1h | Referência completa com troubleshooting |
+| **[DEPLOY-HOSTOO.md](DEPLOY-HOSTOO.md)** | 🚀 Guia de deploy em hospedagem compartilhada | 20 min | Publicar em produção na Hostoo |
 
 ---
 
