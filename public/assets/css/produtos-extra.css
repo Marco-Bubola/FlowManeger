@@ -1582,6 +1582,177 @@
     }
 }
 
+/* ===== Sales Index - ajuste mobile completo ===== */
+@media (max-width: 768px) {
+    .sales-index-page {
+        overflow-x: hidden;
+    }
+
+    .sales-index-header {
+        border-radius: 1.1rem;
+        margin-bottom: 0.85rem;
+    }
+
+    .sales-index-header-inner {
+        padding: 0.9rem 0.8rem;
+    }
+
+    .sales-index-header-main {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.85rem;
+        margin-bottom: 0;
+    }
+
+    .sales-index-header-left {
+        width: 100%;
+        align-items: flex-start;
+        gap: 0.7rem;
+    }
+
+    .sales-index-header-icon {
+        width: 2.65rem;
+        height: 2.65rem;
+        border-radius: 0.85rem;
+    }
+
+    .sales-index-header-icon i {
+        font-size: 1.15rem;
+    }
+
+    .sales-index-header-title-wrap {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .sales-index-header-title {
+        font-size: 1.5rem !important;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    .sales-index-header-stats {
+        flex-wrap: wrap;
+        gap: 0.45rem;
+    }
+
+    .sales-index-header-stats > div {
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.45rem 0.6rem;
+    }
+
+    .sales-index-header-controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+
+    .sales-index-header-search,
+    .sales-index-header-counter,
+    .sales-index-header-quick-filters {
+        grid-column: 1 / -1;
+        width: 100%;
+        min-width: 0;
+        margin: 0 !important;
+    }
+
+    .sales-index-header-search input {
+        font-size: 16px;
+        min-height: 44px;
+    }
+
+    .sales-index-header-quick-filters-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.35rem;
+        width: 100%;
+    }
+
+    .sales-index-header-quick-filters-row button {
+        width: 100%;
+        white-space: normal;
+    }
+
+    .sales-index-header-controls > .flex.items-center.gap-1 {
+        grid-column: 1 / -1;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .sales-index-header-btn-tips,
+    .sales-index-header-btn-filters,
+    .sales-index-header-btn-create {
+        min-height: 44px;
+        justify-content: center;
+    }
+
+    .sales-index-header-btn-create {
+        grid-column: 1 / -1;
+        width: 100%;
+    }
+
+    .sale-card-products {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.45rem;
+        --sale-product-card-min-height: 104px;
+        --sale-product-image-height: 72px;
+        --sale-product-image-max-height: 72px;
+    }
+
+    .sale-card-product.product-card-modern .card-body {
+        padding: 0.35rem 0.35rem 0.55rem 0.35rem;
+        gap: 0.12rem;
+    }
+
+    .sale-card-product .product-title,
+    .sale-card-client-info h3 {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        -webkit-line-clamp: unset;
+        line-clamp: unset;
+    }
+
+    .sale-card-product .product-title {
+        font-size: 0.58rem;
+        line-height: 1.15;
+    }
+
+    .sale-card-product .badge-product-code,
+    .sale-card-product .badge-quantity {
+        font-size: 0.56rem;
+        padding: 0.16rem 0.28rem;
+        border-radius: 0.45rem;
+    }
+
+    .sale-card-product .badge-price,
+    .sale-card-product .badge-price-sale {
+        font-size: 0.55rem;
+        padding: 0.15rem 0.26rem;
+    }
+
+    .sale-card-product .price-area {
+        min-height: 1.2rem;
+        gap: 0.18rem;
+        flex-wrap: wrap;
+    }
+}
+
+@media (max-width: 400px) {
+    .sales-index-header-quick-filters-row {
+        grid-template-columns: 1fr;
+    }
+
+    .sale-card-products {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        --sale-product-image-height: 64px;
+        --sale-product-image-max-height: 64px;
+    }
+}
+
 /* Dark mode para vendas */
 @media (prefers-color-scheme: dark) {
     .sales-form-input {
