@@ -43,6 +43,22 @@ jobs:
       - name: Build Assets
         run: npm run build
 
+      - name: Validate required deploy secrets
+        env:
+          HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
+          HOSTOO_USER: ${{ secrets.HOSTOO_USER }}
+          HOSTOO_PASSWORD: ${{ secrets.HOSTOO_PASSWORD }}
+          HOSTOO_PORT: ${{ secrets.HOSTOO_PORT }}
+          HOSTOO_APP_PATH: ${{ secrets.HOSTOO_APP_PATH }}
+          HOSTOO_PUBLIC_PATH: ${{ secrets.HOSTOO_PUBLIC_PATH }}
+        run: |
+          [ -n "$HOSTOO_HOST" ] || (echo "Secret HOSTOO_HOST não definido" && exit 1)
+          [ -n "$HOSTOO_USER" ] || (echo "Secret HOSTOO_USER não definido" && exit 1)
+          [ -n "$HOSTOO_PASSWORD" ] || (echo "Secret HOSTOO_PASSWORD não definido" && exit 1)
+          [ -n "$HOSTOO_PORT" ] || (echo "Secret HOSTOO_PORT não definido" && exit 1)
+          [ -n "$HOSTOO_APP_PATH" ] || (echo "Secret HOSTOO_APP_PATH não definido" && exit 1)
+          [ -n "$HOSTOO_PUBLIC_PATH" ] || (echo "Secret HOSTOO_PUBLIC_PATH não definido" && exit 1)
+
       - name: Upload app to HOSTOO_APP_PATH
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -50,12 +66,11 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "."
+          source: "app,artisan,bootstrap,config,database,resources,routes,scripts,storage,vendor,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,.env.example"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
           strip_components: 0
-          exclude: ".git,.github,node_modules,tests,.vscode,.idea,storage/logs/*,storage/framework/cache/*,storage/framework/sessions/*,storage/framework/views/*"
 
       - name: Upload public files to HOSTOO_PUBLIC_PATH
         uses: appleboy/scp-action@v0.1.7
@@ -64,11 +79,11 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "public/*"
+          source: "public/*,index.php"
           target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
           rm: false
           overwrite: true
-          strip_components: 1
+          strip_components: 0
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
