@@ -1,0 +1,86 @@
+name: deploy-hostoo
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostoo-main
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: Production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer:v2
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Add Flux Credentials Loaded From ENV
+        run: composer config http-basic.composer.fluxui.dev "${{ secrets.FLUX_USERNAME }}" "${{ secrets.FLUX_LICENSE_KEY }}"
+
+      - name: Install PHP Dependencies (Production)
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+
+      - name: Install Node Dependencies
+        run: npm ci
+
+      - name: Build Assets
+        run: npm run build
+
+      - name: Upload app to HOSTOO_APP_PATH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          source: "."
+          target: ${{ secrets.HOSTOO_APP_PATH }}
+          rm: false
+          overwrite: true
+          strip_components: 0
+          exclude: ".git,.github,node_modules,tests,.vscode,.idea,storage/logs/*,storage/framework/cache/*,storage/framework/sessions/*,storage/framework/views/*"
+
+      - name: Upload public files to HOSTOO_PUBLIC_PATH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          source: "public/*"
+          target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
+          rm: false
+          overwrite: true
+          strip_components: 1
+
+      - name: Run remote post-deploy commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          script_stop: true
+          script: |
+            cd "${{ secrets.HOSTOO_APP_PATH }}"
+            php artisan migrate --force
+            php artisan storage:link || true
+            php artisan optimize:clear
+            php artisan optimize
