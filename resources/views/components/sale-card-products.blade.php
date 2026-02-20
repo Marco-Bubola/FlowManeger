@@ -14,7 +14,7 @@
                 $product = $item->product;
             @endphp
             <div class="product-card-modern sale-card-product bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 overflow-hidden rounded-xl">
-                <div class="product-img-area relative" style="padding: 0 !important; margin: 0 !important; height: 130px;">
+                <div class="product-img-area relative" style="padding: 0 !important; margin: 0 !important; height: var(--sale-product-image-height);">
                     <img src="{{ $product && $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
                          alt="{{ $product->name ?? 'Produto' }}"
                          style="width: 100%; height: 100%; object-fit: cover; padding: 0; margin: 0; display: block;"
