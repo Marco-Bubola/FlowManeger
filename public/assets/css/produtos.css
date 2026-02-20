@@ -319,6 +319,9 @@
     justify-content: flex-start;
     position: relative;
     overflow: visible;
+    /* Criar contexto de empilhamento isolado para não passar de sidebar/modais */
+    z-index: 1;
+    isolation: isolate;
 }
 
 .product-card-modern:hover {
@@ -327,7 +330,7 @@
 }
 
 .product-card-modern.dropdown-open {
-    z-index: 9998;
+    z-index: 10;
     pointer-events: none;
 }
 
@@ -345,6 +348,9 @@
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    position: relative;
+    z-index: 5;
+    overflow: visible;
 }
 
 .product-card-modern .product-img {
@@ -388,6 +394,11 @@
     align-items: center;
     justify-content: center;
     border: 2px solid var(--blue-light);
+    position: absolute;
+    left: 50%;
+    bottom: -32px;
+    transform: translateX(-50%);
+    z-index: 20;
 }
 
 .product-card-modern .category-icon {
@@ -396,7 +407,7 @@
 }
 
 .product-card-modern .card-body {
-    padding: 0.6em 0.9em 2.2em 0.9em;
+    padding: 3em 0.9em 2.2em 0.9em;
     min-height: 140px;
     background: transparent;
     display: flex;
@@ -404,6 +415,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 0.35em;
+    position: relative;
+    z-index: 1;
 }
 
 .product-card-modern .product-title {
@@ -426,6 +439,8 @@
     text-shadow: 0 0 18px rgba(255, 255, 255, 0.55);
     margin: 0.2em auto 0;
     max-width: 100%;
+    position: relative;
+    z-index: 1;
 }
 
 .product-card-modern .price-area {
@@ -446,6 +461,9 @@
     border-radius: 1.7em;
     position: relative;
     overflow: visible;
+    /* Criar contexto de empilhamento isolado para não passar de sidebar/modais */
+    z-index: 1;
+    isolation: isolate;
 }
 .product-card-modern:before {
     content: '';
@@ -454,7 +472,7 @@
     border-radius: 1.7em;
     pointer-events: none;
     box-shadow: 0 0 0 3px var(--card-accent) inset;
-    z-index: 99;
+    z-index: 1;
 }
 .product-card-modern .product-img-area {
     background: var(--card-bg);
@@ -463,7 +481,7 @@
     border-bottom: 4px solid var(--card-border);
     box-shadow: 0 2px 16px var(--card-shadow2);
     position: relative;
-    z-index: 2;
+    z-index: 5;
     /* Permitir elementos (como o ícone de categoria) transbordarem sem serem cortados */
     overflow: visible;
 }
@@ -492,8 +510,8 @@
     left: 50%;
     bottom: -32px;
     transform: translateX(-50%);
-    /* Trazer o ícone acima do pseudo-elemento ::before (z-index:99) e outros elementos */
-    z-index: 120;
+    /* Ícone acima do pseudo-elemento e outros elementos internos do card */
+    z-index: 20;
 }
 .product-card-modern .category-icon {
     font-size: 2.5em;
@@ -510,7 +528,7 @@
     font-weight: 700;
     padding: 0.18em 0.9em;
     border-radius: 1.2em 0 1.2em 0;
-    z-index: 4;
+    z-index: 2;
     box-shadow: 0 2px 8px var(--card-accent2)33, 0 1px 4px var(--card-border)11;
     display: flex;
     align-items: center;
@@ -529,7 +547,7 @@
     font-weight: 700;
     padding: 0.10em 0.55em;
     border-radius: 1.2em 0 1.2em 0;
-    z-index: 4;
+    z-index: 2;
     box-shadow: 0 2px 8px var(--card-danger)33, 0 1px 4px var(--card-accent2)11;
     display: flex;
     align-items: center;
@@ -557,7 +575,7 @@
     left: 50%;
     bottom: -32px;
     transform: translateX(-50%);
-    z-index: 3;
+    z-index: 20;
 }
 .product-card-modern .category-icon-wrapper-body {
     position: static;
@@ -589,7 +607,8 @@
     align-items: center;
     justify-content: flex-start;
     gap: 0.35em;
-    padding: 2.5em 1.1em 2.1em 1.1em;
+    padding: 3em 1.1em 2.1em 1.1em;
+    z-index: 1;
 }
 
 /* ... existing code ... */
@@ -645,6 +664,8 @@
     display: -webkit-box;
     line-clamp: 2;
     -webkit-line-clamp: 2;
+    position: relative;
+    z-index: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
     line-height: 1.25;
@@ -777,6 +798,7 @@
 
 /* Garante que o card contenha a mensagem */
 .product-card-modern .product-img-area {
-    overflow: hidden;
+    overflow: visible;
     position: relative;
+    z-index: 5;
 }
