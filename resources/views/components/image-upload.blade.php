@@ -10,7 +10,7 @@
     'existingImage' => null,
     'newImage' => null,
     'width' => 'w-full',
-    'height' => 'h-96',
+    'height' => 'h-full',
     'showPreview' => true
 ])
 
@@ -35,7 +35,7 @@
             <div class="absolute w-3 h-3 bg-indigo-300/20 rounded-full animate-float" style="bottom: 30%; left: 30%; animation-delay: 1.2s;"></div>
         </div>
 
-        <div class="relative flex flex-col items-center justify-center px-10 py-10 z-10">
+        <div class="relative flex flex-col items-center justify-center px-2 py-10 z-10">
             @if(($newImage && $showPreview) || ($existingImage && $showPreview && !$newImage))
                 <!-- Preview da Imagem com Efeitos -->
                 <div class="relative group/image w-full h-full flex items-center justify-center">
@@ -50,12 +50,7 @@
                         <img src="{{ $existingImage->temporaryUrl() }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @endif
 
-                    <!-- Badge de sucesso animado -->
-                    <div class="absolute top-4 right-4 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 text-white rounded-full p-3 shadow-2xl shadow-green-500/40 animate-bounce">
-                        <i class="bi bi-check-lg text-lg font-bold"></i>
-                        <!-- Ring de sucesso -->
-                        <div class="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30"></div>
-                    </div>
+                    
 
                     <!-- Overlay com ícone de edição -->
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl flex items-center justify-center backdrop-blur-sm">
