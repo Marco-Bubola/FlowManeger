@@ -1,4 +1,4 @@
-<div class=" w-full ">
+<div class=" w-full mobile-393-base ">
     <!-- Header fixo -->
     <div class="w-full px-6 py-4 sticky top-0 z-20 shadow-lg rounded-b-2xl backdrop-blur border-b ">
         <div class="flex items-center justify-between">
