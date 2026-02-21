@@ -1,4 +1,4 @@
-<div class="client-dashboard w-full">
+<div class="client-dashboard w-full mobile-393-base">
     <!-- Header Moderno -->
     <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-6 mx-4 sm:mx-6 lg:mx-8 mt-6">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
