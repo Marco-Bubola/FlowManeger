@@ -3,7 +3,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 @endpush
 
-<div class="w-full sales-index-page" x-data="{
+<div class="w-full sales-index-page mobile-393-base" x-data="{
     showFilters: false,
     fullHd: false,
     ultra: false,
