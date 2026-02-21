@@ -1,12 +1,14 @@
-<div class=" w-full " x-data="{
+<div class="w-full products-index-page mobile-393-base" x-data="{
     showFilters: false,
     showQuickActions: false,
+    isMobile393: false,
     hasActiveFilters: {{ $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim ? 'true' : 'false' }},
     fullHd: false,
     ultra: false,
     initResponsiveWatcher() {
         const mq = window.matchMedia('(min-width: 1920px)');
         const mqUltra = window.matchMedia('(min-width: 2498px)');
+        const mqMobile393 = window.matchMedia('(max-width: 393px)');
 
         const sync = () => {
             this.fullHd = mq.matches;
@@ -22,8 +24,16 @@
             }
         };
 
+        const syncMobile = () => {
+            this.isMobile393 = mqMobile393.matches;
+            if (!this.isMobile393) {
+                this.showFilters = false;
+            }
+        };
+
         sync();
         syncUltra();
+        syncMobile();
 
         if (typeof mq.addEventListener === 'function') {
             mq.addEventListener('change', sync);
@@ -35,6 +45,12 @@
             mqUltra.addEventListener('change', syncUltra);
         } else {
             mqUltra.addListener(syncUltra);
+        }
+
+        if (typeof mqMobile393.addEventListener === 'function') {
+            mqMobile393.addEventListener('change', syncMobile);
+        } else {
+            mqMobile393.addListener(syncMobile);
         }
     }
 }" x-init="initResponsiveWatcher()">
@@ -61,9 +77,9 @@
         </x-slot>
 
         <!-- Barra de Controle integrada ao header (slot) -->
-        <div class="space-y-4 w-full">
+        <div class="space-y-4 w-full products-index-controls">
             <!-- Linha 1: Campo de Pesquisa + Botões de Ação -->
-            <div class="flex items-center gap-4 w-full">
+            <div class="flex items-center gap-4 w-full products-index-controls-row-1">
                 <!-- Campo de Pesquisa (flex-1) -->
                 <div class="flex-1">
                     <div class="relative group">
@@ -98,8 +114,8 @@
                 </div>
 
                 <!-- Botões de Controle -->
-                <div class="flex items-center gap-3">
-                    <button @click="showFilters = !showFilters"
+                <div class="flex items-center gap-3 products-index-aux-actions">
+                    <button @click="isMobile393 ? showFilters = true : showFilters = !showFilters"
                         class="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
                         :class="showFilters ? 'bg-purple-500 hover:bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'"
                         title="Filtros avançados">
@@ -116,7 +132,7 @@
                 </div>
 
                 <!-- Ações Principais -->
-                <div class="flex items-center gap-3 pl-3 border-l-2 border-slate-200 dark:border-slate-600">
+                <div class="flex items-center gap-3 pl-3 border-l-2 border-slate-200 dark:border-slate-600 products-index-main-actions">
                     <a href="{{ route('products.create') }}"
                         class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
                         <i class="bi bi-plus-lg text-lg"></i>
@@ -138,7 +154,7 @@
             </div>
 
             <!-- Linha 2: Informações + Paginação -->
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between products-index-controls-row-2">
                 <div class="flex items-center gap-2">
                     <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
                         <i class="bi bi-box text-base"></i>
@@ -197,10 +213,40 @@
 
 
 
-    <!-- Filtros Modernizados -->
-    <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
-        :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
-        :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
+    <!-- Filtros Modernizados (Desktop/Tablet) -->
+    <div x-show="!isMobile393">
+        <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
+            :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
+            :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
+    </div>
+
+    <!-- Filtros em Modal (Mobile 393) -->
+    <div x-show="isMobile393 && showFilters" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[9999] products-mobile-filter-modal">
+        <div class="absolute inset-0 bg-black/45 backdrop-blur-sm" @click="showFilters = false"></div>
+
+        <div class="absolute inset-x-0 bottom-0 max-h-[88vh] bg-white dark:bg-slate-900 rounded-t-2xl shadow-2xl overflow-hidden">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Filtros</h3>
+                <button type="button" @click="showFilters = false"
+                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto max-h-[calc(88vh-56px)] p-2">
+                <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
+                    :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
+                    :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
+            </div>
+        </div>
+    </div>
 
     <!-- Barra de Controle removida daqui (integrada ao header via slot) -->
 
@@ -461,70 +507,7 @@
 
         <!-- Paginação Aprimorada Inferior -->
         <div class="mt-8 space-y-6">
-            <!-- Estatísticas e Resumo -->
-            @if ($products->total() > 0)
-                <div
-                    class="bg-gradient-to-br from-white/60 to-slate-50/60 dark:from-slate-800/60 dark:to-slate-900/60 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
-                    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                        <!-- Total de Produtos -->
-                        <div class="text-center">
-                            <div
-                                class="p-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl text-white mx-auto w-fit mb-2">
-                                <i class="bi bi-boxes text-2xl"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                                {{ $products->total() }}</div>
-                            <div class="text-sm text-slate-600 dark:text-slate-400">Total de Produtos</div>
-                        </div>
-
-                        <!-- Produtos Ativos -->
-                        <div class="text-center">
-                            <div
-                                class="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl text-white mx-auto w-fit mb-2">
-                                <i class="bi bi-check-circle text-2xl"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                                {{ $products->where('status', 'ativo')->count() }}</div>
-                            <div class="text-sm text-slate-600 dark:text-slate-400">Produtos Ativos</div>
-                        </div>
-
-                        <!-- Estoque Baixo -->
-                        <div class="text-center">
-                            <div
-                                class="p-3 bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl text-white mx-auto w-fit mb-2">
-                                <i class="bi bi-exclamation-triangle text-2xl"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                                {{ $products->where('stock_quantity', '<=', 5)->count() }}</div>
-                            <div class="text-sm text-slate-600 dark:text-slate-400">Estoque Baixo</div>
-                        </div>
-
-                        <!-- Sem Imagem -->
-                        <div class="text-center">
-                            <div
-                                class="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl text-white mx-auto w-fit mb-2">
-                                <i class="bi bi-image text-2xl"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                                {{ $products->whereNull('image')->count() }}</div>
-                            <div class="text-sm text-slate-600 dark:text-slate-400">Sem Imagem</div>
-                        </div>
-
-                        <!-- Valor Total -->
-                        <div class="text-center">
-                            <div
-                                class="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl text-white mx-auto w-fit mb-2">
-                                <i class="bi bi-currency-dollar text-2xl"></i>
-                            </div>
-                            <div class="text-2xl font-bold text-slate-800 dark:text-slate-200">
-                                R$ {{ number_format($products->sum('price_sale'), 0, ',', '.') }}
-                            </div>
-                            <div class="text-sm text-slate-600 dark:text-slate-400">Valor Total</div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-
+          
             <!-- Paginação Principal -->
             @if ($products->hasPages())
                 <div
