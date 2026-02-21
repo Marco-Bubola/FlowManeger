@@ -1,4 +1,4 @@
-<div class="">
+<div class="mobile-393-base">
     <!-- Header Modernizado -->
     <x-sales-header
         title="Editar Kit: {{ $kit->name }}"
