@@ -2877,3 +2877,847 @@
         font-size: 0.68em !important;
     }
 }
+
+/* ═══════════════ PADRÃO MOBILE 393 (iPhone 15) ═══════════════ */
+@media (max-width: 393px) {
+    .mobile-393-base {
+        --mobile-base-width: 393px;
+    }
+
+    .mobile-393-base .sales-index-header {
+        border-radius: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .mobile-393-base .sales-index-header-inner {
+        padding: 0.75rem !important;
+    }
+
+    .mobile-393-base .sales-index-header-row-1 {
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        align-items: flex-start;
+    }
+
+    .mobile-393-base .sales-index-header-left {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .mobile-393-base .sales-index-header-title {
+        font-size: 1.2rem;
+        line-height: 1.1;
+    }
+
+    .mobile-393-base .sales-index-header .sale-badge {
+        font-size: 0.66rem;
+        padding: 0.2rem 0.45rem;
+    }
+
+    .mobile-393-base .sales-index-header-search input {
+        font-size: 0.8rem;
+        padding-top: 0.6rem;
+        padding-bottom: 0.6rem;
+    }
+
+    .mobile-393-base .sales-index-header-btn-create {
+        font-size: 0.78rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 0.65rem;
+    }
+
+    .mobile-393-base .sales-index-header-badges {
+        display: none;
+    }
+
+    .mobile-393-base .sales-index-header-search {
+        width: 100%;
+        min-width: 0;
+        order: 3;
+    }
+
+    .mobile-393-base .sales-index-header-btn-create {
+        width: 100%;
+        justify-content: center;
+        order: 4;
+    }
+
+    .mobile-393-base .sales-index-header-row-2 {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .mobile-393-base .sales-index-header-row-2-left,
+    .mobile-393-base .sales-index-header-row-2-right {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .mobile-393-base .sale-filter-pills {
+        width: 100%;
+        overflow-x: auto;
+        justify-content: flex-start;
+        scrollbar-width: none;
+    }
+
+    .mobile-393-base .sale-filter-pills::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mobile-393-base .sales-grid {
+        gap: 0.75rem;
+    }
+
+    .mobile-393-base .sales-pagination-shell {
+        padding: 0.75rem;
+        gap: 0.65rem;
+    }
+
+    .mobile-393-base .sale-filter-pill {
+        font-size: 0.64rem;
+        padding: 0.34rem 0.58rem;
+    }
+
+    .mobile-393-base .sale-filter-pill i {
+        font-size: 0.7rem;
+    }
+
+    .mobile-393-base .sale-pagination-btn {
+        width: 1.55rem;
+        height: 1.55rem;
+    }
+
+    .mobile-393-base .sale-pagination-indicator {
+        font-size: 0.66rem;
+        padding: 0.18rem 0.45rem;
+    }
+
+    .mobile-393-base .sale-action-btn {
+        width: 1.95rem;
+        height: 1.95rem;
+        font-size: 0.82rem;
+    }
+
+    .mobile-393-base .sales-create-header {
+        border-radius: 1rem;
+    }
+
+    .mobile-393-base .sales-create-header-inner {
+        padding: 0.7rem !important;
+    }
+
+    .mobile-393-base .sales-create-header-main {
+        gap: 0.55rem;
+    }
+
+    .mobile-393-base .sales-create-header-title {
+        font-size: 1.15rem !important;
+    }
+
+    .mobile-393-base .sales-create-header-subtitle {
+        font-size: 0.72rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .mobile-393-base .sales-create-header-actions {
+        gap: 0.4rem !important;
+    }
+
+    .mobile-393-base .create-header-action {
+        padding: 0.42rem !important;
+    }
+
+    .mobile-393-base .create-header-action i {
+        font-size: 0.78rem;
+    }
+
+    .mobile-393-base .create-header-step-badge {
+        font-size: 0.65rem !important;
+        padding: 0.22rem 0.45rem !important;
+    }
+
+    .mobile-393-base .create-header-next-btn {
+        padding: 0.45rem 0.7rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .product-img-area {
+        min-height: 124px !important;
+        height: 124px !important;
+    }
+
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .card-body {
+        padding: 1.05em 0.3em 0.08em 0.3em !important;
+        gap: 0.06em !important;
+    }
+
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .price-area {
+        margin-top: 0.26em !important;
+        gap: 0.14em !important;
+    }
+
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-price,
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-price-sale,
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-product-code,
+    .mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-quantity {
+        font-size: 0.68em !important;
+        padding: 0.18em 0.4em !important;
+    }
+
+    .mobile-393-base .sales-grid {
+        gap: 0.65rem;
+    }
+
+    .mobile-393-base .sale-card {
+        border-radius: 0.95rem;
+        padding: 0.78rem;
+        gap: 0.62rem;
+    }
+
+    .mobile-393-base .sale-card-body {
+        gap: 0.62rem;
+    }
+
+    .mobile-393-base .sale-card-client {
+        gap: 0.55rem;
+    }
+
+    .mobile-393-base .sale-card-avatar {
+        width: 2.45rem;
+        height: 2.45rem;
+        border-radius: 0.88rem;
+        font-size: 0.82rem;
+    }
+
+    .mobile-393-base .sale-card-client-info h3 {
+        font-size: 0.84rem;
+        line-height: 1.1;
+    }
+
+    .mobile-393-base .sale-card-client-info span {
+        font-size: 0.66rem;
+    }
+
+    .mobile-393-base .sale-card-btn-info {
+        width: 1.4rem;
+        height: 1.4rem;
+        font-size: 0.68rem;
+    }
+
+    .mobile-393-base .sale-card-financial-grid {
+        gap: 0.35rem;
+    }
+
+    .mobile-393-base .sale-card-fin-block {
+        padding: 0.42rem 0.45rem;
+        gap: 0.35rem;
+        border-radius: 0.65rem;
+    }
+
+    .mobile-393-base .sale-card-fin-icon {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 0.45rem;
+        font-size: 0.66rem;
+    }
+
+    .mobile-393-base .sale-card-fin-data span {
+        font-size: 0.56rem;
+        letter-spacing: 0.04em;
+    }
+
+    .mobile-393-base .sale-card-fin-data strong {
+        font-size: 0.72rem;
+    }
+
+    .mobile-393-base .sale-card-progress-label {
+        font-size: 0.62rem;
+        padding: 0.2rem 0.45rem;
+        gap: 0.22rem;
+    }
+
+    .mobile-393-base .sale-card-progress-pct {
+        font-size: 0.72rem;
+    }
+
+    .mobile-393-base .sale-card-progress-hint {
+        font-size: 0.62rem;
+    }
+
+    .mobile-393-base .sale-card-progress-track {
+        height: 6px;
+    }
+
+    .mobile-393-base .sale-card-products {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.45rem;
+        --sale-product-card-min-height: 196px;
+        --sale-product-image-height: 112px;
+        --sale-product-image-max-height: 84px;
+    }
+
+    .mobile-393-base .sale-card-product.product-card-modern .card-body {
+        padding: 0.4em 0.48em 0.55em 0.48em;
+        gap: 0.12em;
+    }
+
+    .mobile-393-base .sale-card-product .product-title {
+        font-size: 0.67rem;
+        line-height: 1.08;
+    }
+
+    .mobile-393-base .sale-card-product .badge-product-code,
+    .mobile-393-base .sale-card-product .badge-quantity {
+        font-size: 0.56rem;
+    }
+
+    .mobile-393-base .sale-card-product .badge-price,
+    .mobile-393-base .sale-card-product .badge-price-sale {
+        font-size: 0.6rem;
+    }
+
+    .mobile-393-base .sale-card-actions {
+        gap: 0.35rem;
+        padding: 0.5rem !important;
+    }
+
+    .mobile-393-base .sale-card-actions .w-10.h-10 {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.6rem;
+    }
+
+    .mobile-393-base .sale-card-actions i {
+        font-size: 0.78rem;
+    }
+
+    .mobile-393-base .sales-pagination-left {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
+
+    .mobile-393-base .sales-pagination-center {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .mobile-393-base .sales-pagination-right {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .mobile-393-base .sales-pagination-right input {
+        width: 4.4rem;
+    }
+
+    .mobile-393-base .toggle-filter {
+        gap: 0.5rem;
+    }
+
+    .mobile-393-base .toggle-filter-track {
+        width: 52px;
+        height: 28px;
+    }
+
+    .mobile-393-base .toggle-filter-thumb {
+        width: 20px;
+        height: 20px;
+    }
+
+    .mobile-393-base .toggle-filter-input:checked + .toggle-filter-track .toggle-filter-thumb {
+        transform: translateX(24px);
+    }
+
+    .mobile-393-base .toggle-filter-text {
+        font-size: 0.82rem;
+    }
+
+    .mobile-393-base .clients-index-header,
+    .mobile-393-base .products-index-header {
+        border-radius: 1rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .mobile-393-base .clients-index-header-inner,
+    .mobile-393-base .products-index-header-inner {
+        padding: 0.75rem !important;
+    }
+
+    .mobile-393-base .clients-index-header h1,
+    .mobile-393-base .products-index-header h1 {
+        font-size: 1.2rem !important;
+        line-height: 1.15 !important;
+    }
+
+    .mobile-393-base .clients-index-controls-row-1,
+    .mobile-393-base .clients-index-controls-row-2,
+    .mobile-393-base .products-index-controls-row-1,
+    .mobile-393-base .products-index-controls-row-2 {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+
+    .mobile-393-base .clients-index-controls-actions,
+    .mobile-393-base .products-index-aux-actions,
+    .mobile-393-base .products-index-main-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .mobile-393-base .products-index-main-actions {
+        border-left: 0 !important;
+        padding-left: 0 !important;
+        flex-wrap: wrap;
+    }
+
+    .mobile-393-base .products-index-main-actions > a {
+        flex: 1 1 calc(50% - 0.4rem);
+        justify-content: center;
+        min-width: 0;
+        font-size: 0.74rem;
+        padding: 0.55rem 0.5rem;
+    }
+
+    .mobile-393-base .products-index-aux-actions > button,
+    .mobile-393-base .products-index-aux-actions > a {
+        flex: 1 1 auto;
+        justify-content: center;
+        font-size: 0.74rem;
+        padding: 0.55rem 0.65rem;
+    }
+
+    .mobile-393-base .products-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .product-img-area {
+        min-height: 108px !important;
+        height: 108px !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .card-body {
+        padding: 1.1em 0.3em 0.14em 0.3em !important;
+        min-height: 0 !important;
+        gap: 0.05em !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .product-title {
+        font-size: 0.68em !important;
+        line-height: 1.06 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        -webkit-line-clamp: 1 !important;
+        line-clamp: 1 !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .price-area {
+        min-height: 0 !important;
+        margin-top: 0.2em !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.12em !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-price,
+    .mobile-393-base .products-grid .product-card-modern .badge-price-sale,
+    .mobile-393-base .products-grid .product-card-modern .badge-product-code,
+    .mobile-393-base .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.64em !important;
+        padding: 0.16em 0.36em !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-price,
+    .mobile-393-base .products-grid .product-card-modern .badge-price-sale {
+        position: static !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        border-radius: 0.38rem !important;
+        text-align: center !important;
+        display: inline-flex !important;
+        justify-content: center !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .category-icon-wrapper {
+        width: 36px !important;
+        height: 36px !important;
+        bottom: -17px !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .category-icon {
+        font-size: 1.2em !important;
+    }
+
+    .mobile-393-base .clients-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    .mobile-393-base .client-card-modern {
+        border-radius: 0.85rem;
+    }
+
+    .mobile-393-base .client-card-modern .h-16 {
+        height: 3rem !important;
+    }
+
+    .mobile-393-base .client-card-modern .w-16.h-16 {
+        width: 2.85rem !important;
+        height: 2.85rem !important;
+    }
+
+    .mobile-393-base .client-card-modern h3 {
+        font-size: 0.74rem !important;
+    }
+
+    .mobile-393-base .client-card-modern .text-xs {
+        font-size: 0.62rem !important;
+    }
+
+    .mobile-393-base .client-card-modern .text-xl {
+        font-size: 1rem !important;
+    }
+
+    .mobile-393-base .client-card-modern .grid.grid-cols-3 {
+        gap: 0.3rem !important;
+    }
+
+    .mobile-393-base .client-card-modern .grid.grid-cols-3 a,
+    .mobile-393-base .client-card-modern .grid.grid-cols-3 button {
+        padding: 0.4rem 0.2rem !important;
+    }
+
+    .mobile-393-base .w-full.max-w-none.px-4.sm\:px-6.lg\:px-8,
+    .mobile-393-base .container.mx-auto.px-6.py-8 {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    .mobile-393-base .container.mx-auto.px-6.py-8 {
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+    }
+
+    .mobile-393-base h1.text-3xl {
+        font-size: 1.28rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .mobile-393-base .flex.items-center.justify-between {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .mobile-393-base .w-full.h-\[75vh\].flex {
+        height: auto !important;
+        min-height: 0 !important;
+        flex-direction: column !important;
+    }
+
+    .mobile-393-base .w-full.h-\[75vh\].flex > .w-3\/4,
+    .mobile-393-base .w-full.h-\[75vh\].flex > .w-1\/4 {
+        width: 100% !important;
+    }
+
+    .mobile-393-base .w-full.p-6 {
+        padding: 0.75rem !important;
+    }
+
+    .mobile-393-base .fixed.inset-0.z-\[99999\].overflow-y-auto .max-w-2xl {
+        max-width: calc(100vw - 1rem) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .mobile-393-base .products-index-header-layout {
+        gap: 0.68rem !important;
+    }
+
+    .mobile-393-base .products-index-header-left {
+        width: 100%;
+        align-items: flex-start;
+        gap: 0.5rem !important;
+    }
+
+    .mobile-393-base .products-index-header-icon {
+        width: 2.6rem !important;
+        height: 2.6rem !important;
+        border-radius: 0.72rem !important;
+        flex-shrink: 0;
+    }
+
+    .mobile-393-base .products-index-header-icon i {
+        font-size: 1.22rem !important;
+    }
+
+    .mobile-393-base .products-index-header-content {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .mobile-393-base .products-index-header-content .flex.items-center.gap-2.text-sm.text-slate-600.dark\:text-slate-400.mb-2 {
+        display: none !important;
+    }
+
+    .mobile-393-base .products-index-header-stats {
+        gap: 0.32rem !important;
+        margin-top: 0.22rem;
+    }
+
+    .mobile-393-base .products-index-header-stats > div {
+        padding: 0.26rem 0.52rem !important;
+        border-radius: 0.62rem !important;
+        gap: 0.25rem !important;
+    }
+
+    .mobile-393-base .products-index-header-stats > div .w-8.h-8 {
+        width: 1rem !important;
+        height: 1rem !important;
+        border-radius: 0.32rem !important;
+    }
+
+    .mobile-393-base .products-index-header-stats > div .w-8.h-8 i {
+        font-size: 0.5rem !important;
+    }
+
+    .mobile-393-base .products-index-header-stats > div span {
+        font-size: 0.66rem !important;
+        line-height: 1 !important;
+    }
+
+    .mobile-393-base .products-index-header-slot {
+        width: 100%;
+    }
+
+    .mobile-393-base .products-index-controls {
+        gap: 0.42rem !important;
+    }
+
+    .mobile-393-base .products-index-controls-row-1 {
+        gap: 0.42rem !important;
+    }
+
+    .mobile-393-base .products-index-controls-row-2 {
+        display: none !important;
+    }
+
+    .mobile-393-base .products-index-controls-row-1 .relative.group input {
+        height: 2.4rem;
+        padding-left: 2.05rem !important;
+        padding-right: 2.2rem !important;
+        font-size: 0.78rem !important;
+        border-radius: 0.7rem !important;
+    }
+
+    .mobile-393-base .products-index-controls-row-1 .absolute.left-4 {
+        left: 0.52rem !important;
+    }
+
+    .mobile-393-base .products-index-controls-row-1 .absolute.left-4 i {
+        font-size: 0.72rem !important;
+    }
+
+    .mobile-393-base .products-index-main-actions {
+        gap: 0.34rem !important;
+    }
+
+    .mobile-393-base .products-index-main-actions > a {
+        font-size: 0.68rem !important;
+        padding: 0.46rem 0.4rem !important;
+        border-radius: 0.62rem !important;
+        gap: 0.2rem !important;
+    }
+
+    .mobile-393-base .products-index-main-actions > a:first-child {
+        flex-basis: 100%;
+    }
+
+    .mobile-393-base .products-index-main-actions > a i,
+    .mobile-393-base .products-index-aux-actions > button i,
+    .mobile-393-base .products-index-aux-actions > a i {
+        font-size: 0.72rem !important;
+    }
+
+    .mobile-393-base .products-index-aux-actions > button,
+    .mobile-393-base .products-index-aux-actions > a {
+        font-size: 0.68rem !important;
+        padding: 0.45rem 0.48rem !important;
+        border-radius: 0.62rem !important;
+        gap: 0.2rem !important;
+    }
+
+    .mobile-393-base .products-mobile-filter-modal .bg-white\/70.dark\:bg-slate-800\/70.backdrop-blur-xl.rounded-3xl {
+        margin: 0 !important;
+        border-radius: 0 !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+        padding: 0.5rem !important;
+    }
+
+    .mobile-393-base .products-mobile-filter-modal .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4.gap-6 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.62rem !important;
+    }
+
+    .mobile-393-base .products-mobile-filter-modal h3.text-2xl,
+    .mobile-393-base .products-mobile-filter-modal p.text-slate-600.dark\:text-slate-400 {
+        display: none !important;
+    }
+
+    .mobile-393-base .products-mobile-filter-modal h4 {
+        font-size: 0.74rem !important;
+    }
+
+    .mobile-393-base .products-mobile-filter-modal .p-3 {
+        padding: 0.4rem !important;
+    }
+
+    .mobile-393-base .products-mobile-filter-modal .text-xs {
+        font-size: 0.62rem !important;
+    }
+
+    .mobile-393-base .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern {
+        border-width: 1.8px !important;
+        border-radius: 1.1rem !important;
+        min-height: 0 !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .product-img-area {
+        min-height: 132px !important;
+        height: 162px !important;
+        border-top-left-radius: 1rem !important;
+        border-top-right-radius: 1rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .product-img {
+        border-top-left-radius: 1rem !important;
+        border-top-right-radius: 1rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .card-body {
+        padding: 1.1em 0.34em 0.2em 0.34em !important;
+        gap: 0.08em !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .product-title {
+        font-size: 0.74em !important;
+        line-height: 1.1 !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        white-space: normal !important;
+        min-height: 2.2em !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .price-area {
+        position: relative !important;
+        width: 100% !important;
+        min-height: 2.3em !important;
+        margin: 0.2em auto 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-price,
+    .mobile-393-base .products-grid .product-card-modern .badge-price-sale,
+    .mobile-393-base .products-grid .product-card-modern .badge-product-code,
+    .mobile-393-base .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.66em !important;
+        padding: 0.18em 0.42em !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-price {
+        position: absolute !important;
+        left: 0.24em !important;
+        right: auto !important;
+        bottom: 0.2em !important;
+        width: auto !important;
+        min-width: 58px !important;
+        text-align: left !important;
+        border-radius: 0 0 0 1.2em !important;
+        display: inline-flex !important;
+        justify-content: flex-start !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-price-sale {
+        position: absolute !important;
+        right: 0.24em !important;
+        left: auto !important;
+        bottom: 0.2em !important;
+        width: auto !important;
+        min-width: 58px !important;
+        text-align: right !important;
+        border-radius: 0 0 1.2em 0 !important;
+        display: inline-flex !important;
+        justify-content: flex-end !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-product-code {
+        top: 0.26rem !important;
+        left: 0.26rem !important;
+        max-width: calc(100% - 0.54rem);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .badge-quantity {
+        bottom: 0.26rem !important;
+        right: 0.26rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .btn-action-group {
+        top: 0.26rem !important;
+        right: 0.26rem !important;
+        gap: 0.2rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .btn-action-group .btn {
+        width: 1.55rem !important;
+        height: 1.55rem !important;
+        border-width: 1.5px !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .btn-action-group .btn i {
+        font-size: 0.66rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .btn-action-group input[type="checkbox"],
+    .mobile-393-base .products-grid .product-card-modern .btn-action-group .w-6.h-6.rounded-full {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        min-width: 1.25rem !important;
+        min-height: 1.25rem !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .category-icon-wrapper {
+        width: 32px !important;
+        height: 32px !important;
+        bottom: -15px !important;
+    }
+
+    .mobile-393-base .products-grid .product-card-modern .category-icon {
+        font-size: 1.02em !important;
+    }
+}
