@@ -421,19 +421,43 @@
     border-color: rgba(149, 117, 205, 0.36);
 }
 
-.sale-card-header {
+/* ═══════════════ SALE CARD: HEADER (removido - sem header separado) ═══════════════ */
+
+.sale-card-body {
     display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
+    flex-direction: column;
+    gap: 0.85rem;
 }
-.sale-card-meta {
+
+/* ═══════════════ BOTÃO INFO junto ao nome ═══════════════ */
+.sale-card-btn-info {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12));
+    color: #6366f1;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
 }
+.sale-card-btn-info:hover {
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    transform: scale(1.1);
+}
+.dark .sale-card-btn-info {
+    background: rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.4);
+    color: #a5b4fc;
+}
+
+/* ═══════════════ CHIPS (modal) ═══════════════ */
 .sale-card-chip {
     display: inline-flex;
     align-items: center;
@@ -447,50 +471,24 @@
     color: #57468b;
     box-shadow: 0 12px 24px rgba(87, 70, 139, 0.08);
 }
-.sale-card-chip i {
-    font-size: 0.85rem;
+.sale-card-chip i { font-size: 0.85rem; }
+.dark .sale-card-chip {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: rgba(129, 140, 248, 0.3);
+    color: #e0e7ff;
 }
-
-.sale-card-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.65);
-    border: 1px solid rgba(149, 117, 205, 0.24);
-    color: var(--sale-status-color, #433874);
-    box-shadow: 0 12px 24px rgba(149, 117, 205, 0.18);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.35));
+.dark .sale-card-info-modal-panel {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border-color: rgba(99, 102, 241, 0.3);
 }
-
-.sale-card-status i {
-    font-size: 0.85rem;
-}
-
-.sale-card-id {
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #433874;
-    padding: 0.35rem 0.75rem;
-    border-radius: 999px;
-    background: linear-gradient(135deg, rgba(79, 70, 229, 0.12), rgba(236, 72, 153, 0.12));
-    border: 1px solid rgba(149, 117, 205, 0.18);
-}
-
-.sale-card-body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
+.dark .sale-card-info-modal-header h4 {
+    color: #e0e7ff;
 }
 
 .sale-card-client {
     display: flex;
     align-items: center;
     gap: 0.9rem;
-    flex-wrap: wrap;
 }
 
 .sale-card-avatar {
@@ -506,6 +504,7 @@
     font-size: 1rem;
     color: #433874;
     box-shadow: inset 0 8px 12px rgba(255, 255, 255, 0.6), 0 15px 25px rgba(79, 70, 229, 0.18);
+    flex-shrink: 0;
 }
 
 .sale-card-client-info h3 {
@@ -517,7 +516,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-
 .sale-card-client-info span {
     display: inline-flex;
     align-items: center;
@@ -526,6 +524,184 @@
     color: #6b6a86;
     margin-top: 0.15rem;
 }
+
+/* ═══════════════ BLOCOS FINANCEIROS MODERNOS ═══════════════ */
+.sale-card-financial-grid {
+    display: flex;
+    gap: 0.5rem;
+    width: 100%;
+}
+.sale-card-fin-block {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.6rem 0.7rem;
+    border-radius: 0.85rem;
+    border: 1px solid;
+    transition: all 0.2s;
+}
+.sale-card-fin-icon {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.6rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+}
+.sale-card-fin-data {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.sale-card-fin-data span {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    opacity: 1;
+}
+.sale-card-fin-data strong {
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 1;
+}
+
+/* Pago */
+.sale-card-fin-paid {
+    background: linear-gradient(135deg, #ecfdf5, #d1fae5);
+    border-color: #a7f3d0;
+}
+.sale-card-fin-paid .sale-card-fin-icon {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+}
+.sale-card-fin-paid .sale-card-fin-data span { color: #065f46; font-weight: 800; }
+.sale-card-fin-paid .sale-card-fin-data strong { color: #064e3b; }
+
+.dark .sale-card-fin-paid {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
+    border-color: rgba(16, 185, 129, 0.25);
+}
+.dark .sale-card-fin-paid .sale-card-fin-data span { color: #86efac; font-weight: 800; }
+.dark .sale-card-fin-paid .sale-card-fin-data strong { color: #bbf7d0; }
+
+/* Pendente */
+.sale-card-fin-pending {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+    border-color: #fde68a;
+}
+.sale-card-fin-pending .sale-card-fin-icon {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+}
+.sale-card-fin-pending .sale-card-fin-data span { color: #92400e; font-weight: 800; }
+.sale-card-fin-pending .sale-card-fin-data strong { color: #78350f; }
+
+.dark .sale-card-fin-pending {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.12), rgba(217, 119, 6, 0.08));
+    border-color: rgba(245, 158, 11, 0.25);
+}
+.dark .sale-card-fin-pending .sale-card-fin-data span { color: #fde68a; font-weight: 800; }
+.dark .sale-card-fin-pending .sale-card-fin-data strong { color: #fef3c7; }
+
+/* Total */
+.sale-card-fin-total {
+    background: linear-gradient(135deg, #eef2ff, #e0e7ff);
+    border-color: #c7d2fe;
+}
+.sale-card-fin-total .sale-card-fin-icon {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+}
+.sale-card-fin-total .sale-card-fin-data span { color: #3730a3; font-weight: 800; }
+.sale-card-fin-total .sale-card-fin-data strong { color: #312e81; }
+
+.dark .sale-card-fin-total {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(79, 70, 229, 0.08));
+    border-color: rgba(99, 102, 241, 0.25);
+}
+.dark .sale-card-fin-total .sale-card-fin-data span { color: #c7d2fe; font-weight: 800; }
+.dark .sale-card-fin-total .sale-card-fin-data strong { color: #e0e7ff; }
+
+/* ═══════════════ BARRA DE PROGRESSO MODERNA ═══════════════ */
+.sale-card-progress-modern {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+.sale-card-progress-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sale-card-progress-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+}
+.sale-card-progress-label.is-paid {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #065f46;
+}
+.sale-card-progress-label.is-pending {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #78350f;
+}
+.dark .sale-card-progress-label.is-paid {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+}
+.dark .sale-card-progress-label.is-pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+}
+.sale-card-progress-pct {
+    font-size: 0.86rem;
+    font-weight: 900;
+    color: #334155;
+}
+.dark .sale-card-progress-pct { color: #e2e8f0; }
+
+.sale-card-progress-track {
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.2);
+    overflow: hidden;
+    position: relative;
+}
+.sale-card-progress-fill {
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.4s ease;
+}
+.sale-card-progress-fill.is-paid {
+    background: linear-gradient(90deg, #10b981, #06b6d4);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+}
+.sale-card-progress-fill.is-pending {
+    background: linear-gradient(90deg, #f59e0b, #ef4444);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+}
+.sale-card-progress-hint {
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #78350f;
+    margin-top: 0.1rem;
+}
+.dark .sale-card-progress-hint { color: #fde68a; }
 
 .sale-card-tags {
     display: flex;
@@ -752,28 +928,45 @@
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.8rem;
-    --sale-product-card-min-height: 160px;
-    --sale-product-image-height: 210px;
-    --sale-product-image-max-height: 120px;
+    --sale-product-card-min-height: 210px;
+    --sale-product-image-height: 200px;
+    --sale-product-image-max-height: 96px;
 }
 
-@media (max-width: 1024px) {
+/* Desktop: forçar 3 colunas sempre */
+@media (min-width: 769px) {
     .sale-card-products {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     .sale-card-products {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        --sale-product-card-min-height: 230px;
+        --sale-product-image-height: 210px;
+        --sale-product-image-max-height: 120px;
+    }
+    
+    /* Forçar altura da imagem com maior especificidade para mobile tablet */
+    .sales-grid .sale-card .sale-card-products {
+        --sale-product-card-min-height: 230px !important;
+        --sale-product-image-height: 210px !important;
+    }
+    
+    .sales-grid .sale-card .sale-card-product .product-img-area {
+        min-height: 210px !important;
+        height: 210px !important;
     }
 }
 
 .sale-card-product {
+    --sale-product-card-radius: 0.75rem;
     min-height: var(--sale-product-card-min-height);
     border: 1px solid rgba(148, 163, 184, 0.18);
     background: linear-gradient(140deg, rgba(248, 250, 255, 0.85), rgba(228, 233, 255, 0.55));
     box-shadow: 0 14px 22px rgba(79, 70, 229, 0.08);
+    border-radius: var(--sale-product-card-radius);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -803,16 +996,16 @@
 }
 
 .sale-card-product .product-img-area {
-    padding: 0.85em;
-    background: linear-gradient(140deg, rgba(246, 244, 255, 0.85), rgba(255, 255, 255, 0.55));
+    padding: 0.45em;
+    background: #ffffff;
     min-height: var(--sale-product-image-height) !important;
     height: var(--sale-product-image-height);
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    border-top-left-radius: inherit;
-    border-top-right-radius: inherit;
+    border-top-left-radius: var(--sale-product-card-radius);
+    border-top-right-radius: var(--sale-product-card-radius);
 }
 
 .sale-card-product .product-img-area img {
@@ -820,113 +1013,602 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    border: 0 !important;
+    border: 2px solid rgba(167, 139, 250, 0.8) !important;
+    border-radius: calc(var(--sale-product-card-radius) - 0.2rem);
     box-sizing: border-box;
 }
 
+.sale-card-product .badge-product-code,
+.sale-card-product .badge-quantity,
+.sale-card-product .badge-price,
+.sale-card-product .badge-price-sale,
+.sale-card-fin-data span,
+.sale-card-fin-data strong,
+.sale-card-progress-label,
+.sale-card-progress-pct,
+.sale-card-progress-hint {
+    -webkit-text-stroke: 0 !important;
+    text-shadow: none !important;
+}
+
+/* Texto colorido com fundo totalmente visível e contraste alto */
+.sale-card-fin-paid {
+    background: #16a34a;
+    border-color: #15803d;
+}
+.sale-card-fin-paid .sale-card-fin-data span,
+.sale-card-fin-paid .sale-card-fin-data strong {
+    color: #ffffff;
+}
+
+.sale-card-fin-pending {
+    background: #d97706;
+    border-color: #b45309;
+}
+.sale-card-fin-pending .sale-card-fin-data span,
+.sale-card-fin-pending .sale-card-fin-data strong {
+    color: #ffffff;
+}
+
+.sale-card-fin-total {
+    background: #4338ca;
+    border-color: #3730a3;
+}
+.sale-card-fin-total .sale-card-fin-data span,
+.sale-card-fin-total .sale-card-fin-data strong {
+    color: #ffffff;
+}
+
+.sale-card-progress-label.is-paid {
+    background: #16a34a;
+    color: #ffffff;
+}
+
+.sale-card-progress-label.is-pending {
+    background: #d97706;
+    color: #ffffff;
+}
+
+.sale-card-progress-pct {
+    color: #0f172a;
+    font-weight: 900;
+}
+
+.sale-card-progress-hint {
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.dark .sale-card-progress-pct,
+.dark .sale-card-progress-hint {
+    color: #f8fafc;
+}
+
 .sale-card-product.product-card-modern .card-body {
-    padding: 0.45em 0.65em 1.45em 0.65em;
+    padding: 0.45em 0.65em 0.95em 0.65em;
     min-height: 0;
     gap: 0.2em;
 }
 
 .sale-card-product .price-area {
-    min-height: 1.7em;
-}
-
-.sale-card-product .product-img {
-    width: 90%;
-    max-height: var(--sale-product-image-max-height);
-    padding: 0.4em;
+    min-height: 0.35rem;
+    margin-top: 0;
 }
 
 .sale-card-product .product-title {
-    font-size: 0.82rem;
+    font-size: 0.76rem;
+    line-height: 1.16;
+    letter-spacing: 0.03em;
+}
+
+.sale-card-product .badge-product-code,
+.sale-card-product .badge-quantity {
+    font-size: 0.62rem;
+    line-height: 1.1;
 }
 
 .sale-card-product .badge-price,
 .sale-card-product .badge-price-sale {
+    font-size: 0.69rem;
+    line-height: 1.1;
+}
+
+.sale-card-product .product-title,
+.sale-card-product .badge-product-code,
+.sale-card-product .badge-quantity,
+.sale-card-product .badge-price,
+.sale-card-product .badge-price-sale {
+    -webkit-text-stroke: 0.4px rgba(15, 23, 42, 0.42);
+    text-shadow: 0 0 1.2px rgba(15, 23, 42, 0.32);
+}
+
+.dark .sale-card-product .product-title,
+.dark .sale-card-product .badge-product-code,
+.dark .sale-card-product .badge-quantity,
+.dark .sale-card-product .badge-price,
+.dark .sale-card-product .badge-price-sale {
+    -webkit-text-stroke: 0.4px rgba(255, 255, 255, 0.34);
+    text-shadow: 0 0 1.2px rgba(255, 255, 255, 0.26);
+}
+
+.sale-card-fin-data span,
+.sale-card-fin-data strong,
+.sale-card-progress-label,
+.sale-card-progress-hint,
+.sale-card-progress-pct,
+.dark .sale-card-fin-data span,
+.dark .sale-card-fin-data strong,
+.dark .sale-card-progress-label,
+.dark .sale-card-progress-hint,
+.dark .sale-card-progress-pct {
+    -webkit-text-stroke: 0 !important;
+    text-shadow: none !important;
+}
+
+@media (min-width: 1800px) {
+    .sales-grid[data-ultrawind='true'] .sale-card-product .product-title {
+        font-size: 0.72rem;
+        line-height: 1.14;
+    }
+
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-product-code,
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-quantity {
+        font-size: 0.64rem;
+    }
+
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-price,
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-price-sale {
+        font-size: 0.66rem;
+    }
+}
+
+/* ═══════════════ HEADER: BADGES ═══════════════ */
+.sale-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.7rem;
     font-size: 0.75rem;
+    font-weight: 800;
+    border-radius: 0.65rem;
+    border: 1px solid;
+    white-space: nowrap;
+}
+.sale-badge-success {
+    background: #15803d;
+    border-color: #166534;
+    color: #ffffff;
+}
+.sale-badge-warning {
+    background: #b45309;
+    border-color: #92400e;
+    color: #ffffff;
+}
+.sale-badge-info {
+    background: #1d4ed8;
+    border-color: #1e40af;
+    color: #ffffff;
+}
+.dark .sale-badge-success {
+    background: #16a34a;
+    border-color: #15803d;
+    color: #ffffff;
+}
+.dark .sale-badge-warning {
+    background: #d97706;
+    border-color: #b45309;
+    color: #ffffff;
+}
+.dark .sale-badge-info {
+    background: #2563eb;
+    border-color: #1d4ed8;
+    color: #ffffff;
 }
 
-.sale-card-more {
-    margin-top: 0.35rem;
-    font-size: 0.72rem;
-    text-align: right;
-    color: #5b4bb7;
+/* ═══════════════ HEADER: ROW LAYOUT ═══════════════ */
+.sales-index-header-row-1 {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
 }
-
-.sale-card-financial {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+.sales-index-header-left {
+    display: flex;
+    align-items: center;
     gap: 0.75rem;
+    flex-shrink: 0;
 }
-
-.sale-card-financial-block {
-    padding: 0.75rem 1rem;
-    border-radius: 1rem;
-    background: rgba(149, 117, 205, 0.08);
-    border: 1px solid rgba(149, 117, 205, 0.18);
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}
-
-.sale-card-financial-block span {
-    font-size: 0.72rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #8d84b2;
-}
-
-.sale-card-financial-block strong {
-    font-size: 0.95rem;
-    color: #2f2a4a;
-}
-
-.sale-card-overview-progress {
+.sales-index-header-icon {
     position: relative;
-    height: 8px;
-    border-radius: 999px;
-    background: rgba(79, 70, 229, 0.12);
-    overflow: hidden;
-}
-
-.sale-card-overview-progress::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, rgba(79, 70, 229, 0.18), rgba(236, 72, 153, 0.18));
-    opacity: 0.4;
-}
-
-.sale-card-overview-progress-bar {
-    position: relative;
-    height: 100%;
-    border-radius: inherit;
-    background: linear-gradient(90deg, #22c55e, #14b8a6);
-    box-shadow: 0 10px 24px rgba(20, 184, 166, 0.35);
-    transition: width 0.3s ease;
-}
-
-.sale-card-progress {
+    width: 3rem;
+    height: 3rem;
+    background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+    border-radius: 0.85rem;
     display: flex;
-    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    flex-shrink: 0;
+}
+.sales-index-header-title-wrap {
+    min-width: 0;
+}
+.sales-index-header-title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #1e293b, #4338ca, #7c3aed);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+.dark .sales-index-header-title {
+    background: linear-gradient(90deg, #e2e8f0, #a5b4fc, #c4b5fd);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+.sales-index-header-badges {
+    display: flex;
+    align-items: center;
     gap: 0.4rem;
+    flex-shrink: 0;
+}
+.sales-index-header-search {
+    flex: 1;
+    min-width: 180px;
+    position: relative;
+}
+.sales-index-header-btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: linear-gradient(135deg, #6366f1, #7c3aed, #db2777);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+    transition: all 0.2s;
+    text-decoration: none;
+}
+.sales-index-header-btn-create:hover {
+    box-shadow: 0 8px 24px rgba(99, 102, 241, 0.5);
+    transform: translateY(-1px) scale(1.02);
 }
 
-.sale-card-progress-info {
+/* ═══════════════ HEADER: ROW 2 - FILTROS ═══════════════ */
+.sales-index-header-row-2 {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 0.78rem;
-    color: #6b6a86;
+    gap: 0.75rem;
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(148, 163, 184, 0.15);
+}
+.sales-index-header-row-2-left {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+.sales-index-header-row-2-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.sale-card-progress-info strong {
-    font-size: 0.85rem;
-    color: #2f2a4a;
+/* Filter Pills */
+.sale-filter-pills {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem;
+    border-radius: 0.7rem;
+    background: rgba(241, 245, 249, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    gap: 0.15rem;
 }
+.dark .sale-filter-pills {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(71, 85, 105, 0.4);
+}
+.sale-filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.38rem 0.75rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 0.55rem;
+    border: none;
+    cursor: pointer;
+    color: #64748b;
+    background: transparent;
+    transition: all 0.2s;
+}
+.sale-filter-pill:hover {
+    background: rgba(148, 163, 184, 0.15);
+}
+.sale-filter-pill.active {
+    background: linear-gradient(135deg, #334155, #1e293b);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.25);
+}
+.sale-filter-pill.pill-warning.active {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+}
+.sale-filter-pill.pill-success.active {
+    background: linear-gradient(135deg, #10b981, #059669);
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+}
+.dark .sale-filter-pill { color: #94a3b8; }
+.dark .sale-filter-pill.active {
+    background: linear-gradient(135deg, #475569, #334155);
+}
+
+/* Per-page pills */
+.sale-perpage-pills {
+    gap: 0.1rem;
+}
+.sale-filter-pill.pill-perpage {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.68rem;
+    min-width: 2rem;
+    justify-content: center;
+}
+.sale-filter-pill.pill-perpage.active {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.35);
+}
+
+/* Solo pill (64/pág) */
+.sale-filter-pill-solo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.38rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    background: rgba(255, 255, 255, 0.85);
+    color: #6366f1;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.sale-filter-pill-solo:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+.dark .sale-filter-pill-solo {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(71, 85, 105, 0.4);
+    color: #a5b4fc;
+}
+
+/* Pagination compact */
+.sale-pagination-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.2rem;
+    border-radius: 0.6rem;
+    background: rgba(241, 245, 249, 0.9);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+}
+.dark .sale-pagination-compact {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(71, 85, 105, 0.4);
+}
+.sale-pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 0.45rem;
+    border: none;
+    background: transparent;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.sale-pagination-btn:hover {
+    background: rgba(99, 102, 241, 0.12);
+    color: #6366f1;
+}
+.dark .sale-pagination-btn { color: #94a3b8; }
+.sale-pagination-indicator {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #334155;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 0.4rem;
+}
+.dark .sale-pagination-indicator {
+    background: rgba(51, 65, 85, 0.5);
+    color: #e2e8f0;
+}
+
+/* Action buttons (Tips, Filter) */
+.sale-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 0.6rem;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    background: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+.sale-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.dark .sale-action-btn {
+    background: rgba(30, 41, 59, 0.7);
+    border-color: rgba(71, 85, 105, 0.4);
+}
+.sale-action-tips {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border-color: transparent;
+    color: #fff;
+}
+.sale-action-tips:hover {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+.sale-action-filter {
+    color: #7c3aed;
+}
+.sale-action-filter.active {
+    background: linear-gradient(135deg, #7c3aed, #6366f1);
+    color: #fff;
+    border-color: transparent;
+}
+.dark .sale-action-filter { color: #a78bfa; }
+.dark .sale-action-filter.active {
+    background: linear-gradient(135deg, #6d28d9, #4f46e5);
+    color: #fff;
+}
+
+/* ═══════════════ MODAL DE FILTROS AVANÇADOS ═══════════════ */
+.sales-filter-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+.sales-filter-modal-panel {
+    position: relative;
+    width: 100%;
+    max-width: 52rem;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(145deg, #ffffff, #f1f5f9);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 1.5rem;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2), 0 10px 30px rgba(99, 102, 241, 0.1);
+    overflow: hidden;
+}
+.dark .sales-filter-modal-panel {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border-color: rgba(71, 85, 105, 0.4);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(99, 102, 241, 0.08);
+}
+.sales-filter-modal-header {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.15);
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.04), rgba(168, 85, 247, 0.04));
+}
+.dark .sales-filter-modal-header {
+    border-color: rgba(71, 85, 105, 0.35);
+    background: rgba(99, 102, 241, 0.06);
+}
+.sales-filter-modal-body {
+    position: relative;
+    padding: 1.25rem;
+    overflow-y: auto;
+    flex: 1;
+}
+.sales-filter-modal-body::-webkit-scrollbar {
+    width: 4px;
+}
+.sales-filter-modal-body::-webkit-scrollbar-thumb {
+    background: rgba(99, 102, 241, 0.25);
+    border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+    .sales-filter-modal-panel {
+        max-width: 100%;
+        max-height: 92vh;
+        border-radius: 1.2rem;
+        margin: 0.5rem;
+    }
+    .sales-filter-modal-body {
+        padding: 0.85rem;
+    }
+    .sales-filter-modal-body .grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.sale-card-info-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+}
+
+.sale-card-info-modal-panel {
+    width: min(640px, 100%);
+    border-radius: 1rem;
+    border: 1px solid rgba(129, 140, 248, 0.35);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(241, 245, 255, 0.96));
+    box-shadow: 0 25px 45px rgba(15, 23, 42, 0.25);
+    padding: 0.95rem;
+}
+
+.sale-card-info-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.sale-card-info-modal-header h4 {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #312e81;
+}
+
+.sale-card-info-modal-header button {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.65rem;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    color: #475569;
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.sale-card-info-modal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.45rem;
+}
+
+/* (removido - agora inline no header blade) */
+
+/* progress-info antigo removido */
 
 .sale-card-actions {
     display: flex;
@@ -1449,17 +2131,32 @@
         gap: 0.55rem !important;
     }
 
+    .sale-card-progress-status {
+        padding: 0.45rem 0.5rem;
+        gap: 0.5rem;
+    }
+
+    .sale-card-progress-status-icon {
+        width: 1.65rem;
+        height: 1.65rem;
+        font-size: 0.8rem;
+    }
+
+    .sale-card-progress-status strong {
+        font-size: 0.74rem;
+    }
+
     .sale-card-financial .sale-card-financial-block,
     .sale-card-financial .sale-card-total-block {
         flex: 1 1 calc(50% - 0.3rem) !important;
     }
 
     .sale-card-actions {
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding-bottom: 0.25rem;
-        -webkit-overflow-scrolling: touch;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.45rem;
+        overflow: visible;
+        padding-bottom: 0;
     }
 
     .sale-card-actions::-webkit-scrollbar {
@@ -1467,7 +2164,29 @@
     }
 
     .sale-card-actions .relative {
-        flex: 0 0 auto;
+        width: 100%;
+    }
+
+    .sale-card-actions .relative > a,
+    .sale-card-actions .relative > button {
+        width: 100%;
+        height: 2.25rem;
+        border-radius: 0.75rem;
+    }
+
+    .sale-card-info-modal {
+        align-items: flex-end;
+        padding: 0.5rem;
+    }
+
+    .sale-card-info-modal-panel {
+        width: 100%;
+        border-radius: 1rem;
+        padding: 0.75rem;
+    }
+
+    .sale-card-info-modal-grid {
+        grid-template-columns: 1fr;
     }
 
     .sales-pagination-shell {
@@ -1597,141 +2316,187 @@
         padding: 0.9rem 0.8rem;
     }
 
-    .sales-index-header-main {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.85rem;
-        margin-bottom: 0;
-    }
-
-    .sales-index-header-left {
-        width: 100%;
-        align-items: flex-start;
-        gap: 0.7rem;
-    }
-
     .sales-index-header-icon {
-        width: 2.65rem;
-        height: 2.65rem;
-        border-radius: 0.85rem;
+        width: 2.5rem;
+        height: 2.5rem;
     }
-
-    .sales-index-header-icon i {
-        font-size: 1.15rem;
-    }
-
-    .sales-index-header-title-wrap {
-        width: 100%;
-        min-width: 0;
-    }
+    .sales-index-header-icon i { font-size: 1.1rem; }
 
     .sales-index-header-title {
-        font-size: 1.5rem !important;
-        line-height: 1.2;
-        word-break: break-word;
+        font-size: 1.4rem !important;
     }
 
-    .sales-index-header-stats {
+    .sales-index-header-badges {
         flex-wrap: wrap;
-        gap: 0.45rem;
+        gap: 0.3rem;
+    }
+    .sale-badge {
+        font-size: 0.65rem;
+        padding: 0.25rem 0.55rem;
     }
 
-    .sales-index-header-stats > div {
-        width: 100%;
-        justify-content: flex-start;
-        padding: 0.45rem 0.6rem;
-    }
-
-    .sales-index-header-controls {
-        width: 100%;
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.5rem;
-        align-items: stretch;
-    }
-
-    .sales-index-header-search,
-    .sales-index-header-counter,
-    .sales-index-header-quick-filters {
-        grid-column: 1 / -1;
+    .sales-index-header-search {
         width: 100%;
         min-width: 0;
-        margin: 0 !important;
     }
-
     .sales-index-header-search input {
         font-size: 16px;
         min-height: 44px;
     }
 
-    .sales-index-header-quick-filters-row {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.35rem;
-        width: 100%;
+    /* Mobile: Create button + Action buttons inline */
+    .sales-index-header-row-1 {
+        flex-direction: row;
+        gap: 0.4rem;
+        align-items: center;
+        flex-wrap: wrap;
     }
-
-    .sales-index-header-quick-filters-row button {
+    
+    .sales-index-header-left {
         width: 100%;
-        white-space: normal;
+        gap: 0.6rem;
     }
-
-    .sales-index-header-controls > .flex.items-center.gap-1 {
-        grid-column: 1 / -1;
-        width: 100%;
-        justify-content: center;
-    }
-
-    .sales-index-header-btn-tips,
-    .sales-index-header-btn-filters,
+    
     .sales-index-header-btn-create {
+        flex: 1;
+        justify-content: center;
         min-height: 44px;
+    }
+    
+    /* Mobile: Row 2 actions aparecem ao lado do create */
+    .sales-index-header-row-2 {
+        display: contents;
+    }
+    
+    .sales-index-header-row-2-left {
+        width: 100%;
+        gap: 0.4rem;
+        display: flex;
+        order: 3;
+    }
+    
+    .sales-index-header-row-2-right {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        order: 2;
+    }
+    
+    .sale-action-btn {
+        min-width: 44px !important;
+        min-height: 44px !important;
+        padding: 0.5rem !important;
+    }
+    
+    .sale-pagination-compact {
+        min-height: 44px !important;
+        display: flex !important;
+        align-items: center !important;
+    }
+    .sale-filter-pills {
+        width: 100%;
+    }
+    .sale-filter-pill {
+        flex: 1;
+        justify-content: center;
+        font-size: 0.65rem;
+        padding: 0.4rem 0.3rem;
+    }
+    .sale-perpage-pills {
+        width: 100%;
+    }
+    .sale-filter-pill.pill-perpage {
+        flex: 1;
+        min-width: 0;
+        font-size: 0.62rem;
+        padding: 0.35rem 0.2rem;
+    }
+    .sale-filter-pill-solo {
+        width: 100%;
         justify-content: center;
     }
 
-    .sales-index-header-btn-create {
-        grid-column: 1 / -1;
-        width: 100%;
+    /* Mobile: Financial blocks stack */
+    .sale-card-financial-grid {
+        flex-direction: row;
+        gap: 0.35rem;
     }
+    .sale-card-fin-block {
+        padding: 0.45rem 0.5rem;
+        gap: 0.35rem;
+    }
+    .sale-card-fin-icon {
+        width: 1.6rem;
+        height: 1.6rem;
+        font-size: 0.7rem;
+    }
+    .sale-card-fin-data span { font-size: 0.6rem; }
+    .sale-card-fin-data strong { font-size: 0.86rem; }
 
     .sale-card-products {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 0.45rem;
-        --sale-product-card-min-height: 104px;
-        --sale-product-image-height: 72px;
-        --sale-product-image-max-height: 72px;
+        gap: 0.35rem;
+        --sale-product-card-min-height: 180px;
+        --sale-product-image-height: 155px;
+        --sale-product-image-max-height: 100px;
+    }
+    
+    /* Forçar altura da imagem com maior especificidade */
+    .sales-grid .sale-card .sale-card-products {
+        --sale-product-card-min-height: 180px !important;
+        --sale-product-image-height: 155px !important;
+        --sale-product-image-max-height: 100px !important;
+    }
+    
+    .sales-grid .sale-card .sale-card-product .product-img-area {
+        min-height: 155px !important;
+        height: 155px !important;
     }
 
     .sale-card-product.product-card-modern .card-body {
-        padding: 0.35rem 0.35rem 0.55rem 0.35rem;
-        gap: 0.12rem;
+        padding: 0.3rem 0.3rem 0.45rem 0.3rem;
+        gap: 0.08rem;
     }
 
     .sale-card-product .product-title,
     .sale-card-client-info h3 {
         white-space: normal;
-        overflow: visible;
-        text-overflow: clip;
-        -webkit-line-clamp: unset;
-        line-clamp: unset;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
     }
 
     .sale-card-product .product-title {
-        font-size: 0.58rem;
+        font-size: 0.66rem;
         line-height: 1.15;
     }
 
     .sale-card-product .badge-product-code,
     .sale-card-product .badge-quantity {
-        font-size: 0.56rem;
-        padding: 0.16rem 0.28rem;
-        border-radius: 0.45rem;
+        font-size: 0.86rem;
+        padding: 0.09rem 0.18rem;
+        border-radius: 0.35rem;
     }
 
     .sale-card-product .badge-price,
     .sale-card-product .badge-price-sale {
-        font-size: 0.55rem;
-        padding: 0.15rem 0.26rem;
+        font-size: 0.80rem;
+        padding: 0.07rem 0.16rem;
+    }
+    
+    /* Maior especificidade para sobrescrever regras gerais */
+    .sales-grid .sale-card .sale-card-product .badge-product-code {
+        font-size: 0.86rem !important;
+        padding: 0.09rem 0.18rem !important;
+    }
+    
+    .sales-grid .sale-card .sale-card-product .badge-price,
+    .sales-grid .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.80rem !important;
+        padding: 0.07rem 0.16rem !important;
+        min-width: auto !important;
     }
 
     .sale-card-product .price-area {
@@ -1742,14 +2507,48 @@
 }
 
 @media (max-width: 400px) {
-    .sales-index-header-quick-filters-row {
-        grid-template-columns: 1fr;
-    }
+    .sale-filter-pill span { display: none; }
+    .sale-filter-pill i { font-size: 1rem; }
+    .sale-filter-pill.pill-perpage span { display: inline; }
 
     .sale-card-products {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        --sale-product-image-height: 64px;
-        --sale-product-image-max-height: 64px;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        --sale-product-card-min-height: 165px;
+        --sale-product-image-height: 145px;
+        --sale-product-image-max-height: 90px;
+    }
+    
+    /* Forçar altura da imagem com maior especificidade */
+    .sales-grid .sale-card .sale-card-products {
+        --sale-product-card-min-height: 165px !important;
+        --sale-product-image-height: 145px !important;
+        --sale-product-image-max-height: 90px !important;
+    }
+    
+    .sales-grid .sale-card .sale-card-product .product-img-area {
+        min-height: 145px !important;
+        height: 145px !important;
+    }
+    
+    /* Maior especificidade para sobrescrever regras gerais */
+    .sales-grid .sale-card .sale-card-product .badge-product-code {
+        font-size: 0.52rem !important;
+        padding: 0.08rem 0.17rem !important;
+    }
+    
+    .sales-grid .sale-card .sale-card-product .badge-price,
+    .sales-grid .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.64rem !important;
+        padding: 0.07rem 0.17rem !important;
+        min-width: auto !important;
+    }
+
+    .sale-card-actions {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .sale-card-financial-grid {
+        flex-direction: column;
     }
 }
 
@@ -1769,5 +2568,311 @@
     .sales-table-container {
         background: rgba(0, 0, 0, 0.2);
         border-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
+/* ================= OVERRIDE FINAL (vendas) ================= */
+/* Card de produto dentro de venda: alinhado com produtos-index (cores, bordas, formato Pokémon) */
+.sales-grid .sale-card .sale-card-product.product-card-modern {
+    --sale-product-card-radius: 1.7rem;
+    border: 2.5px solid var(--card-border);
+    background: var(--card-bg);
+    box-shadow: 0 4px 18px 0 var(--card-shadow);
+    border-radius: var(--sale-product-card-radius);
+    overflow: visible !important;
+    position: relative;
+    z-index: 1;
+    isolation: isolate;
+}
+
+.sales-grid .sale-card .sale-card-product.product-card-modern::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--sale-product-card-radius);
+    pointer-events: none;
+    box-shadow: 0 0 0 3px var(--card-accent) inset;
+    z-index: 1;
+}
+
+.sales-grid .sale-card .sale-card-product .product-img-area {
+    background: var(--card-bg);
+    border-top-left-radius: var(--sale-product-card-radius);
+    border-top-right-radius: var(--sale-product-card-radius);
+    border-bottom: 4px solid var(--card-border);
+    box-shadow: 0 2px 16px var(--card-shadow2);
+    position: relative;
+    z-index: 5;
+    overflow: visible;
+}
+
+.sales-grid .sale-card .sale-card-product .product-img-area img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-top-left-radius: var(--sale-product-card-radius);
+    border-top-right-radius: var(--sale-product-card-radius);
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    border: 5px solid var(--card-accent);
+    box-shadow: 0 2px 16px var(--card-shadow2);
+    background: #fff;
+    z-index: 2;
+    position: relative;
+}
+
+.sales-grid .sale-card .sale-card-product .category-icon-wrapper {
+    border: 5px solid var(--gold-semi);
+    background: var(--gold-semi);
+    box-shadow: 0 2px 16px var(--gold-semi);
+    width: 64px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    position: absolute;
+    left: 50%;
+    bottom: -32px;
+    transform: translateX(-50%);
+    z-index: 20;
+}
+
+.sales-grid .sale-card .sale-card-product .category-icon {
+    font-size: 2.5em;
+    color: var(--white);
+    filter: drop-shadow(0 2px 6px var(--gold-semi));
+    display: block;
+}
+
+.sales-grid .sale-card .sale-card-product .badge-product-code {
+    position: absolute;
+    top: 0.5em;
+    left: 0.5em;
+    background: linear-gradient(90deg, var(--card-accent2) 0%, var(--card-border) 100%);
+    color: var(--card-text);
+    font-size: 0.92em;
+    font-weight: 700;
+    padding: 0.18em 0.9em;
+    border-radius: 1.2em 0 1.2em 0;
+    z-index: 2;
+    box-shadow: 0 2px 8px var(--card-accent2)33, 0 1px 4px var(--card-border)11;
+    display: flex;
+    align-items: center;
+    gap: 0.3em;
+    border-bottom: 2px solid var(--card-border);
+    border-right: 2px solid var(--card-border);
+    text-shadow: 1px 1px 2px var(--card-border)99;
+}
+
+.sales-grid .sale-card .sale-card-product .badge-quantity {
+    position: absolute;
+    bottom: 0.5em;
+    right: 0.5em;
+    background: linear-gradient(90deg, var(--card-danger) 0%, var(--card-accent2) 100%);
+    color: var(--card-text);
+    font-size: 0.78em;
+    font-weight: 700;
+    padding: 0.10em 0.55em;
+    border-radius: 1.2em 0 1.2em 0;
+    z-index: 2;
+    box-shadow: 0 2px 8px var(--card-danger)33, 0 1px 4px var(--card-accent2)11;
+    display: flex;
+    align-items: center;
+    gap: 0.2em;
+    border-bottom: 2px solid var(--card-accent2);
+    border-right: 2px solid var(--card-accent2);
+    text-shadow: 1px 1px 2px var(--card-danger)99;
+    min-width: 38px;
+    max-width: 80px;
+    justify-content: flex-end;
+}
+
+.sales-grid .sale-card .sale-card-product .badge-price {
+    position: absolute;
+    left: 0.35em;
+    bottom: 0.25em;
+    background: linear-gradient(90deg, var(--card-accent2) 0%, var(--card-border) 100%);
+    color: var(--card-text);
+    font-weight: 700;
+    font-size: 0.98em;
+    border-radius: 0 0 0 1.7em !important;
+    padding: 0.18em 1.1em 0.18em 1.2em;
+    box-shadow: 0 2px 8px var(--card-accent2)33, 0 1px 4px var(--card-border)11;
+    border: none;
+    z-index: 10;
+    display: block;
+    min-width: 60px;
+    text-align: left;
+}
+
+.sales-grid .sale-card .sale-card-product .card-body {
+    padding-bottom: 0.5rem !important;
+}
+
+.sales-grid .sale-card .sale-card-product .price-area {
+    margin-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
+}
+
+.sales-grid .sale-card .sale-card-product .badge-price-sale {
+    position: absolute;
+    right: 0.35em;
+    bottom: 0.25em;
+    background: linear-gradient(90deg, var(--card-danger) 0%, var(--card-accent2) 100%);
+    color: var(--card-text);
+    font-weight: 700;
+    font-size: 0.98em;
+    border-radius: 0 0 1.7em 0 !important;
+    padding: 0.18em 1.2em 0.18em 1.1em;
+    box-shadow: 0 2px 8px var(--card-danger)33, 0 1px 4px var(--card-accent2)11;
+    border: none;
+    z-index: 10;
+    display: block;
+    min-width: 60px;
+    text-align: right;
+}
+
+/* Texto financeiro/status: máxima legibilidade (não é card de produto) */
+.sales-grid .sale-card .sale-card-fin-block {
+    background: #ffffff !important;
+    opacity: 1 !important;
+}
+
+.sales-grid .sale-card .sale-card-fin-paid {
+    border-color: #16a34a !important;
+}
+
+.sales-grid .sale-card .sale-card-fin-pending {
+    border-color: #d97706 !important;
+}
+
+.sales-grid .sale-card .sale-card-fin-total {
+    border-color: #4338ca !important;
+}
+
+.sales-grid .sale-card .sale-card-fin-paid .sale-card-fin-data span,
+.sales-grid .sale-card .sale-card-fin-paid .sale-card-fin-data strong {
+    color: #14532d !important;
+    opacity: 1 !important;
+}
+
+.sales-grid .sale-card .sale-card-fin-pending .sale-card-fin-data span,
+.sales-grid .sale-card .sale-card-fin-pending .sale-card-fin-data strong {
+    color: #7c2d12 !important;
+    opacity: 1 !important;
+}
+
+.sales-grid .sale-card .sale-card-fin-total .sale-card-fin-data span,
+.sales-grid .sale-card .sale-card-fin-total .sale-card-fin-data strong {
+    color: #312e81 !important;
+    opacity: 1 !important;
+}
+
+.sales-grid .sale-card .sale-card-progress-label.is-paid {
+    background: #16a34a !important;
+    border: 1px solid #15803d !important;
+    color: #ffffff !important;
+}
+
+.sales-grid .sale-card .sale-card-progress-label.is-pending {
+    background: #d97706 !important;
+    border: 1px solid #b45309 !important;
+    color: #ffffff !important;
+}
+
+.sales-grid .sale-card .sale-card-progress-pct {
+    background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%) !important;
+    color: #ffffff !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
+    padding: 0.35rem 0.85rem !important;
+    border-radius: 0.5rem !important;
+    border: 2px solid #5b21b6 !important;
+    box-shadow: 0 2px 8px rgba(124, 58, 237, 0.3) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+    display: inline-block !important;
+    margin-right: 0.5rem !important;
+}
+
+.sales-grid .sale-card .sale-card-progress-hint {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%) !important;
+    color: #78350f !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
+    padding: 0.35rem 0.85rem !important;
+    border-radius: 0.5rem !important;
+    border: 2px solid #b45309 !important;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3) !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3) !important;
+    display: inline-block !important;
+}
+
+.sales-grid .sale-card .sale-card-progress-group {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem !important;
+    flex-wrap: wrap !important;
+}
+
+.dark .sales-grid .sale-card .sale-card-fin-block {
+    background: #0f172a !important;
+}
+
+.dark .sales-grid .sale-card .sale-card-fin-paid .sale-card-fin-data span,
+.dark .sales-grid .sale-card .sale-card-fin-paid .sale-card-fin-data strong,
+.dark .sales-grid .sale-card .sale-card-fin-pending .sale-card-fin-data span,
+.dark .sales-grid .sale-card .sale-card-fin-pending .sale-card-fin-data strong,
+.dark .sales-grid .sale-card .sale-card-fin-total .sale-card-fin-data span,
+.dark .sales-grid .sale-card .sale-card-fin-total .sale-card-fin-data strong {
+    color: #f8fafc !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
+}
+
+.dark .sales-grid .sale-card .sale-card-progress-pct {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important;
+    color: #ffffff !important;
+    border: 2px solid #6d28d9 !important;
+}
+
+.dark .sales-grid .sale-card .sale-card-progress-hint {
+    background: linear-gradient(135deg, #d97706 0%, #ea580c 100%) !important;
+    color: #fef3c7 !important;
+    opacity: 1 !important;
+    font-weight: 800 !important;
+    border: 2px solid #f59e0b !important;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.4) !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Ultra-wide: reduzir valores do card de produto e código */
+.sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-product-code {
+    font-size: 0.68em !important;
+    padding: 0.14em 0.8em !important;
+}
+
+.sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-price,
+.sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-price-sale {
+    font-size: 0.72em !important;
+    padding: 0.12em 0.9em 0.12em 0.95em !important;
+}
+
+.sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .product-name {
+    font-size: 0.70rem !important;
+}
+
+.sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .product-description {
+    font-size: 0.66rem !important;
+}
+
+@media (min-width: 1800px) {
+    .sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-product-code {
+        font-size: 0.64em !important;
+    }
+
+    .sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-price,
+    .sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.68em !important;
     }
 }
