@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="w-full mobile-393-base">
     <!-- Score de Fidelidade -->
     <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl">
         <div class="flex items-center justify-between mb-4">
