@@ -7,7 +7,7 @@
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
+<div class="products-index-header relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
     <!-- Efeito de brilho sutil -->
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
@@ -15,18 +15,18 @@
     <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
     <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
 
-    <div class="relative px-8 py-6">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+    <div class="products-index-header-inner relative px-8 py-6">
+        <div class="products-index-header-layout flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <!-- Título e Estatísticas -->
-            <div class="flex items-center gap-6">
+            <div class="products-index-header-left flex items-center gap-6">
                 <!-- Ícone principal -->
-                <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-xl shadow-purple-500/25">
+                <div class="products-index-header-icon relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-xl shadow-purple-500/25">
                     <i class="bi bi-boxes text-white text-3xl"></i>
                     <!-- Efeito de brilho -->
                     <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
                 </div>
 
-                <div class="space-y-2">
+                <div class="products-index-header-content space-y-2">
                     @isset($breadcrumb)
                         {{ $breadcrumb }}
                     @endisset
@@ -35,7 +35,7 @@
                     </h1>
 
                     <!-- Estatísticas modernas -->
-                    <div class="flex items-center gap-6 text-lg">
+                    <div class="products-index-header-stats flex items-center gap-6 text-lg">
                         <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
                             <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg">
                                 <i class="bi bi-box-seam text-white text-sm"></i>
@@ -66,7 +66,7 @@
             @endphp
 
             @if($hasSlot)
-                <div class="flex-1 flex items-center justify-end gap-4">
+                <div class="products-index-header-slot flex-1 flex items-center justify-end gap-4">
                     {{ $slot }}
                 </div>
             @elseif($showQuickActions)
