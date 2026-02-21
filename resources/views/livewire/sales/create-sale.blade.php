@@ -2,6 +2,84 @@
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <style>
+        @media (max-width: 640px) {
+            .products-mobile-compact-grid .product-card-modern {
+                min-height: 0 !important;
+                height: auto !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .product-img-area {
+                min-height: 200px !important;
+                height: 200px !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .card-body {
+                padding: 1.15em 0.35em 0.12em 0.35em !important;
+                min-height: 0 !important;
+                gap: 0.08em !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .product-title {
+                font-size: 0.74em !important;
+                line-height: 1.06 !important;
+                display: block !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+                letter-spacing: 0.03em !important;
+                margin-top: 0 !important;
+                margin-bottom: 0 !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .price-area {
+                position: static !important;
+                width: 100% !important;
+                min-height: 0 !important;
+                margin-top: 0.34em !important;
+                margin-bottom: 0 !important;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr !important;
+                gap: 0.18em !important;
+                align-items: center !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .badge-price,
+            .products-mobile-compact-grid .product-card-modern .badge-price-sale,
+            .products-mobile-compact-grid .product-card-modern .badge-product-code,
+            .products-mobile-compact-grid .product-card-modern .badge-quantity {
+                font-size: 0.72em !important;
+                padding: 0.2em 0.5em !important;
+                line-height: 1 !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .badge-price,
+            .products-mobile-compact-grid .product-card-modern .badge-price-sale {
+                position: static !important;
+                left: auto !important;
+                right: auto !important;
+                bottom: auto !important;
+                min-width: 0 !important;
+                width: 100% !important;
+                border-radius: 0.45rem !important;
+                text-align: center !important;
+                display: inline-flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                box-sizing: border-box !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .category-icon-wrapper {
+                width: 38px !important;
+                height: 38px !important;
+                bottom: -18px !important;
+            }
+
+            .products-mobile-compact-grid .product-card-modern .category-icon {
+                font-size: 1.25em !important;
+            }
+        }
+    </style>
 
     <!-- Header Modernizado -->
     <x-sales-header
@@ -42,6 +120,11 @@
                 class="p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
                 <i class="bi bi-lightbulb"></i>
             </button>
+
+            <span class="inline-flex sm:hidden items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 whitespace-nowrap">
+                <i class="bi bi-signpost-split mr-1"></i>
+                <span x-text="`Passo ${currentStep}/2`"></span>
+            </span>
 
             @php
                 $canProceed = count($selectedProducts) > 0 && $client_id;
@@ -95,16 +178,16 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full h-[80vh] flex">
+                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[80vh]">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-3/4  flex flex-col h-full">
+                    <div class="w-full lg:w-3/4 flex flex-col lg:h-full min-h-0">
                         <!-- Header com Controles -->
                         <div class="p-2  ">
 
 
                             <!-- Controles de pesquisa e filtro -->
-                            <div class=" flex flex-col md:flex-row gap-4">
+                            <div class="flex flex-row items-center gap-2 md:gap-4">
                                 <!-- Campo de pesquisa -->
                                 <div class="flex-1">
                                     <div class="relative">
@@ -119,7 +202,7 @@
                                 </div>
 
                                 <!-- Toggle para mostrar apenas selecionados -->
-                                <div class="flex items-center">
+                                <div class="flex items-center shrink-0">
                                     <label class="toggle-filter">
                                         <input type="checkbox"
                                                wire:model.live="showOnlySelected"
@@ -136,7 +219,7 @@
                         </div>
 
                         <!-- Grid de Produtos com Scroll -->
-                        <div class="flex-1 p-6 overflow-y-auto min-h-0">
+                        <div class="flex-1 p-3 sm:p-6 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
                             <!-- Estado vazio -->
                             <div class="flex flex-col items-center justify-center h-full">
@@ -166,7 +249,7 @@
                             </div>
                             @else
                             <!-- Grid de Cards de Produtos usando o mesmo estilo da página de produtos -->
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 products-step-grid">
+                            <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 products-step-grid products-mobile-compact-grid">
                                 @foreach($this->getFilteredProducts() as $product)
                                 @php
                                     $isSelected = in_array($product->id, $selectedProducts);
@@ -247,7 +330,7 @@
                 </div>
 
                 <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) -->
-                <div class="w-1/4 flex flex-col h-[80vh]">
+                <div class="w-full lg:w-1/4 flex flex-col lg:h-[80vh]">
                     <!-- Painel de Resumo da Venda Modernizado -->
                     <div class="p-4 ">
                         <div class="flex justify-between items-center mb-4">
@@ -259,12 +342,12 @@
                         </div>
 
                         <!-- Grid de Informações 2x2 -->
-                        <div class="grid grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 
                             <!-- Bloco Cliente -->
                             <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
                                 <div class="relative">
-                                    <button type="button" class="w-full text-left" @click="open = !open; $nextTick(() => { if (open) $refs.clientSearchSidebar.focus() })">
+                                    <button type="button" class="w-full text-left min-h-[44px]" @click="open = !open; $nextTick(() => { if (open) $refs.clientSearchSidebar.focus() })">
                                         <div class="flex items-center gap-2">
                                             <i class="bi bi-person-fill text-blue-500 text-lg"></i>
                                             <div>
@@ -307,7 +390,7 @@
                                     <i class="bi bi-calendar-fill text-purple-500 text-lg"></i>
                                     <div>
                                         <label class="text-[10px] font-medium text-purple-800 dark:text-purple-200">Data</label>
-                                        <input type="date" wire:model="sale_date" class="p-0 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent border-0 focus:ring-0">
+                                        <input type="date" wire:model="sale_date" class="w-full min-h-[44px] p-0 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent border-0 focus:ring-0">
                                     </div>
                                 </div>
                                 @error('sale_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
@@ -316,7 +399,7 @@
                             <!-- Bloco Pagamento -->
                             <div class="p-3 bg-green-50 dark:bg-green-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
                                 <div class="relative h-full">
-                                    <button type="button" @click="open = !open" class="w-full h-full text-left">
+                                    <button type="button" @click="open = !open" class="w-full h-full text-left min-h-[44px]">
                                         <div class="flex items-center gap-2">
                                             <i class="bi bi-credit-card-fill text-green-500 text-lg"></i>
                                             <div>
@@ -336,11 +419,11 @@
                                          x-transition:leave-end="opacity-0 scale-95"
                                          @click.away="open = false"
                                          class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1">
-                                        <button @click="$wire.set('tipo_pagamento', 'a_vista'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'a_vista' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
+                                        <button @click="$wire.set('tipo_pagamento', 'a_vista'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'a_vista' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
                                             @if($tipo_pagamento === 'a_vista') <i class="bi bi-check-circle-fill text-green-500"></i> @endif
                                             <span>À Vista</span>
                                         </button>
-                                        <button @click="$wire.set('tipo_pagamento', 'parcelado'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'parcelado' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
+                                        <button @click="$wire.set('tipo_pagamento', 'parcelado'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'parcelado' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
                                             @if($tipo_pagamento === 'parcelado') <i class="bi bi-check-circle-fill text-green-500"></i> @endif
                                             <span>Parcelado</span>
                                         </button>
@@ -354,7 +437,7 @@
                                 @if($tipo_pagamento == 'parcelado')
                                 <div x-data="{ open: false }" x-transition class="h-full">
                                     <div class="relative h-full">
-                                        <button type="button" @click="open = !open" class="w-full h-full text-left">
+                                        <button type="button" @click="open = !open" class="w-full h-full text-left min-h-[44px]">
                                             <div class="flex items-center gap-2">
                                                 <i class="bi bi-hash text-amber-500 text-lg"></i>
                                                 <div>
@@ -375,7 +458,7 @@
                                              @click.away="open = false"
                                              class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1 max-h-40 overflow-y-auto">
                                             @for($i = 1; $i <= 12; $i++)
-                                                <button @click="$wire.set('parcelas', {{ $i }}); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/20 {{ $parcelas == $i ? 'bg-amber-100 dark:bg-amber-900/50' : '' }}">
+                                                <button @click="$wire.set('parcelas', {{ $i }}); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/20 {{ $parcelas == $i ? 'bg-amber-100 dark:bg-amber-900/50' : '' }}">
                                                     @if($parcelas == $i) <i class="bi bi-check-circle-fill text-amber-500"></i> @endif
                                                     <span>{{ $i }}x</span>
                                                 </button>
@@ -404,6 +487,25 @@
                             </div>
                         </div>
                         @endif
+
+                        @php
+                            $canProceedMobile = count($selectedProducts) > 0 && $client_id;
+                        @endphp
+                        <button
+                            type="button"
+                            @if($canProceedMobile)
+                                @click="window.dispatchEvent(new CustomEvent('gotoStep', { detail: 2 }))"
+                            @endif
+                            @if(!$canProceedMobile) disabled @endif
+                            class="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-all duration-300
+                                {{ $canProceedMobile
+                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md'
+                                    : 'bg-slate-400/60 dark:bg-slate-700/60 cursor-not-allowed opacity-60'
+                                }}"
+                        >
+                            <span>Prosseguir para Resumo</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
                     </div>
 
 
@@ -459,7 +561,7 @@
                                     </div>
 
                                     {{-- Controles e Preços --}}
-                                    <div class="mt-4 flex items-end justify-between">
+                                    <div class="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
                                         {{-- Controle de Quantidade --}}
                                         <div class="flex items-center gap-2">
                                              <label for="quantity-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Qtd:</label>
@@ -474,7 +576,7 @@
                                         </div>
 
                                         {{-- Preço de venda (editável) --}}
-                                        <div>
+                                        <div class="w-full sm:w-auto">
                                             <label for="price-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Preço Venda</label>
                                             <div class="relative">
                                                 <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-slate-400">R$</span>
@@ -482,12 +584,12 @@
                                                    wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
                                                    value="{{ number_format($productItem['unit_price'], 2, '.', '') }}"
                                                    step="0.01" min="0"
-                                                   class="w-28 h-8 font-semibold text-green-600 dark:text-green-400 border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 pl-7 pr-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                                                   class="w-full sm:w-28 h-8 font-semibold text-green-600 dark:text-green-400 border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 pl-7 pr-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
                                             </div>
                                         </div>
 
                                         {{-- Subtotal --}}
-                                        <div class="text-right">
+                                        <div class="text-left sm:text-right">
                                             <span class="text-xs text-slate-500 dark:text-slate-400">Subtotal</span>
                                             <p class="font-bold text-slate-800 dark:text-white">
                                                 R$ {{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}
@@ -511,23 +613,23 @@
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
-                class="w-full max-h-screen flex overflow-hidden">
+                class="w-full flex flex-col lg:flex-row lg:max-h-screen overflow-y-auto lg:overflow-hidden">
 
                 <!-- Coluna Esquerda: Informações do Cliente e Total (2/5 da tela) -->
-                <div class="w-2/5 bg-white dark:bg-zinc-800 p-4 flex flex-col">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-5 flex flex-col gap-3 sm:gap-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center sm:text-left mb-1 sm:mb-4">
                         <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                         Resumo da Venda
                     </h2>
 
                     <!-- Informações do Cliente -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-4 mb-4 rounded-lg border-l-4 border-blue-500">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-blue-500">
                         <h3 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-3">
                             <i class="bi bi-person-circle mr-2"></i>Cliente
                         </h3>
                         @if($client_id && $selectedClient = $clients->find($client_id))
                         <div class="space-y-2">
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                     <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Nome:</p>
                                     <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ $selectedClient->name }}</p>
@@ -537,7 +639,7 @@
                                     <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ $selectedClient->phone }}</p>
                                 </div>
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div>
                                     <p class="text-xs text-blue-600 dark:text-blue-400 font-medium">Data:</p>
                                     <p class="text-blue-800 dark:text-blue-200 font-semibold text-sm">{{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}</p>
@@ -553,7 +655,7 @@
                     </div>
 
                     <!-- Total Geral -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border-l-4 border-indigo-500 mb-4">
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-indigo-500">
                         <h3 class="text-lg font-bold text-indigo-800 dark:text-indigo-200 mb-2">
                             <i class="bi bi-calculator mr-2"></i>Total da Venda
                         </h3>
@@ -602,24 +704,24 @@
                                 {{ $parcelas }}x de R$ {{ number_format($this->getTotalAmount() / $parcelas, 2, ',', '.') }}
                             </p>
                             @endif
-                            <p class="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                            <p class="text-2xl sm:text-3xl font-bold text-indigo-600 dark:text-indigo-400">
                                 R$ {{ number_format($this->getTotalAmount(), 2, ',', '.') }}
                             </p>
                         </div>
                     </div>
 
                     <!-- Navegação Final Modernizada -->
-                    <div class="mt-auto space-y-3">
+                    <div class="mt-2 lg:mt-auto space-y-3">
                         <button type="button"
                             @click="currentStep = 1"
-                            class="group relative w-full inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
+                            class="group relative w-full inline-flex items-center justify-center px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
                             <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                             Voltar: Produtos
                             <div class="absolute inset-0 rounded-2xl bg-gray-400/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
 
                         <button type="submit"
-                            class="group relative w-full inline-flex items-center justify-center px-12 py-4 rounded-2xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
+                            class="group relative w-full inline-flex items-center justify-center px-12 py-3 sm:py-4 rounded-2xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
                             wire:loading.attr="disabled">
                             <span wire:loading.remove class="flex items-center">
                                 <i class="bi bi-check-circle mr-2 text-xl group-hover:scale-110 transition-transform duration-200"></i>
@@ -638,13 +740,13 @@
                 </div>
 
                 <!-- Coluna Direita: Lista de Produtos (3/5 da tela) -->
-                <div class="w-4/5 bg-green-50 dark:bg-green-900/20 border-l border-gray-200 dark:border-zinc-700 p-8">
-                    <h3 class="text-2xl font-bold text-green-800 dark:text-green-200 mb-6">
+                <div class="w-full lg:w-3/5 bg-green-50 dark:bg-green-900/20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 p-4 sm:p-8">
+                    <h3 class="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200 mb-4 sm:mb-6">
                         <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($products) }})
                     </h3>
 
                     <!-- Grid de Cards de Produtos -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto max-h-118">
+                    <div class="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 overflow-y-visible lg:overflow-y-auto max-h-none lg:max-h-118 products-mobile-compact-grid">
                         @foreach($products as $product)
                         @if($product['product_id'])
                         @php
@@ -704,12 +806,12 @@
 
                     <!-- Resumo Total abaixo dos cards -->
                     <div class="mt-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xl font-bold text-green-800 dark:text-green-200">
+                        <div class="flex justify-between items-center gap-3">
+                            <span class="text-lg sm:text-xl font-bold text-green-800 dark:text-green-200">
                                 <i class="bi bi-calculator mr-2"></i>
                                 Total Geral:
                             </span>
-                            <span class="text-3xl font-bold text-green-600 dark:text-green-400">
+                            <span class="text-2xl sm:text-3xl font-bold text-green-600 dark:text-green-400">
                                 R$ {{ number_format($this->getTotalAmount(), 2, ',', '.') }}
                             </span>
                         </div>
@@ -723,7 +825,7 @@
 <!-- Notificações -->
 @if (session()->has('success'))
 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-    class="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg">
+    class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto z-50 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg">
     <div class="flex items-center">
         <i class="bi bi-check-circle-fill mr-2"></i>
         {{ session('success') }}
@@ -736,7 +838,7 @@
 
 @if (session()->has('error'))
 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
-    class="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg">
+    class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto z-50 bg-red-100 border border-red-400 text-red-700 px-6 py-4 rounded-lg shadow-lg">
     <div class="flex items-center">
         <i class="bi bi-exclamation-triangle-fill mr-2"></i>
         {{ session('error') }}
@@ -821,7 +923,7 @@
                     <div class="space-y-4">
                         <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50">
                             <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-plus-square text-purple-500 mr-2"></i>Adicionando Produtos</h4>
-                            <div class="grid grid-cols-2 gap-3 text-sm">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                 <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-purple-600 mb-1">1. Buscar</div><p class="text-slate-600 dark:text-slate-400">Use a busca para filtrar produtos</p></div>
                                 <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-blue-600 mb-1">2. Selecionar</div><p class="text-slate-600 dark:text-slate-400">Marque checkbox dos produtos</p></div>
                                 <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-green-600 mb-1">3. Quantidade</div><p class="text-slate-600 dark:text-slate-400">Defina a quantidade desejada</p></div>
@@ -869,7 +971,7 @@
 
             <!-- Footer -->
             <div class="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
-                <div class="flex items-center justify-between">
+                <div class="flex flex-wrap items-center justify-between gap-3">
                     <button @click="prevStep()" x-show="currentStep > 1" class="flex items-center gap-2 px-5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition-all hover:scale-105"><i class="bi bi-arrow-left"></i>Anterior</button>
                     <div x-show="currentStep === 1"></div>
                     <div class="flex items-center gap-2">
