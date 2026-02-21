@@ -1,4 +1,4 @@
-<div>
+<div class="mobile-393-base">
     @if($showModal)
     <div x-data="{
         modalOpen: true,
