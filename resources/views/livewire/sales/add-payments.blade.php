@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="w-full mobile-393-base">
     <!-- Header modernizado usando o mesmo padrão do sales-header -->
     <x-add-payments-header :sale="$sale" />
 
