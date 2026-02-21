@@ -1,4 +1,4 @@
-<div class="">
+<div class="mobile-393-base">
     <!-- Header Modernizado com botões de ação -->
     <x-sales-header
         title="Criar Novo Produto"
