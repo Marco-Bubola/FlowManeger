@@ -8,7 +8,7 @@
      x-transition:leave="transition ease-in duration-200"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     class="fixed inset-0 z-[99999] overflow-y-auto"
+    class="fixed inset-0 z-[99999] overflow-y-auto mobile-393-base"
      @keydown.escape.window="$wire.closeExportModal()">
 
     <!-- Backdrop com blur e gradiente (estilo produtos) -->
