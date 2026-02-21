@@ -41,36 +41,17 @@
         $productsCount = $sale->saleItems->count();
         $itemsQuantity = $sale->saleItems->sum('quantity');
         $lastUpdateLabel = $sale->updated_at?->diffForHumans() ?? 'Agora mesmo';
+        $isPaid = $remainingAmount <= 0;
+        $progressToneClass = $isPaid ? 'is-paid' : 'is-pending';
+        $progressStatusTitle = $isPaid ? 'Pagamento concluído' : 'Pagamento pendente';
+        $progressStatusText = $isPaid ? 'Venda 100% paga' : 'Falta quitar R$ ' . number_format($remainingAmount, 2, ',', '.');
 @endphp
 
-<div class="sale-card shadow-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-950 dark:to-black border border-slate-200 dark:border-gray-900" style="--sale-card-accent: {{ $status['color'] }};">
-    <div class="sale-card-header">
-        <div class="flex items-center justify-between w-full">
-            <!-- Status à esquerda -->
-            <div class="sale-card-status" style="--sale-status-color: {{ $status['color'] }}">
-                <i class="bi {{ $status['icon'] }}"></i>
-                <span>{{ $status['label'] }}</span>
-            </div>
-
-            <!-- Info à direita -->
-            <div class="flex items-center gap-2 flex-wrap justify-end">
-                <span class="sale-card-chip">
-                    <i class="bi bi-hash"></i>
-                    Pedido #{{ $sale->id }}
-                </span>
-                <span class="sale-card-chip">
-                    <i class="bi bi-box-seam"></i>
-                    {{ $productsCount }} {{ \Illuminate\Support\Str::plural('item', $productsCount) }}
-                </span>
-                <span class="sale-card-chip">
-                    <i class="bi bi-calendar3"></i>
-                    {{ $sale->created_at->format('d/m/Y') }}
-                </span>
-            </div>
-        </div>
-    </div>
+<div class="sale-card shadow-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-950 dark:to-black border border-slate-200 dark:border-gray-900"
+    x-data="{ showInfoModal: false }" style="--sale-card-accent: {{ $status['color'] }};">
 
     <div class="sale-card-body">
+        <!-- Cliente + Botão Info -->
         <div class="sale-card-client">
             <div class="sale-card-avatar">
                 @if($sale->client && $sale->client->caminho_foto)
@@ -81,35 +62,18 @@
                     <span>{{ strtoupper($clientInitials ?: 'CL') }}</span>
                 @endif
             </div>
-            <div class="sale-card-client-info">
-                <h3 class="text-slate-900 dark:text-white" title="{{ $clientName }}">{{ $clientName }}</h3>
+            <div class="sale-card-client-info" style="flex: 1; min-width: 0;">
+                <div class="flex items-center gap-2">
+                    <h3 class="text-slate-900 dark:text-white truncate" title="{{ $clientName }}">{{ $clientName }}</h3>
+                    <button type="button" @click="showInfoModal = true"
+                        class="sale-card-btn-info flex-shrink-0" title="Informações da venda">
+                        <i class="bi bi-info-circle"></i>
+                    </button>
+                </div>
                 <span class="text-slate-600 dark:text-slate-400">
                     <i class="bi bi-geo-alt"></i>
                     {{ $clientCity ?? 'Cidade não informada' }}
                 </span>
-            </div>
-
-            <div class="sale-card-payment-pills">
-                @if($paymentMethodLabel)
-                    <span class="sale-card-tag bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-700">
-                        <i class="bi bi-credit-card"></i>
-                        {{ $paymentMethodLabel }}
-                    </span>
-                @endif
-
-                @if($paymentTypeLabel)
-                    @if($sale->tipo_pagamento === 'parcelado')
-                        <span class="sale-card-tag bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 border-purple-300 dark:border-purple-700">
-                            <i class="bi bi-credit-card-2-front"></i>
-                            {{ $paymentTypeLabel }}
-                        </span>
-                    @else
-                        <span class="sale-card-tag bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700">
-                            <i class="bi bi-cash-stack"></i>
-                            {{ $paymentTypeLabel }}
-                        </span>
-                    @endif
-                @endif
             </div>
         </div>
 
@@ -117,37 +81,87 @@
             <x-sale-card-products :items="$sale->saleItems" :max="3" />
         </div>
 
-        <div class="sale-card-financial !flex !flex-row !flex-nowrap gap-2" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important;">
-            <div class="sale-card-financial-block flex-1 min-w-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3">
-                <span class="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-1">Pago</span>
-                <strong class="text-lg font-black text-slate-900 dark:text-white block truncate">R$ {{ number_format($totalPaid, 2, ',', '.') }}</strong>
+        <!-- Blocos Financeiros Modernos -->
+        <div class="sale-card-financial-grid">
+            <div class="sale-card-fin-block sale-card-fin-paid">
+                <div class="sale-card-fin-icon">
+                    <i class="bi bi-check-circle"></i>
+                </div>
+                <div class="sale-card-fin-data">
+                    <span>Pago</span>
+                    <strong>R$ {{ number_format($totalPaid, 2, ',', '.') }}</strong>
+                </div>
             </div>
 
             @if($remainingAmount > 0)
-            <div class="sale-card-financial-block flex-1 min-w-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl p-3">
-                <span class="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-1">Pendente</span>
-                <strong class="text-lg font-black text-slate-900 dark:text-white block truncate">
-                    R$ {{ number_format($remainingAmount, 2, ',', '.') }}
-                </strong>
+            <div class="sale-card-fin-block sale-card-fin-pending">
+                <div class="sale-card-fin-icon">
+                    <i class="bi bi-clock-history"></i>
+                </div>
+                <div class="sale-card-fin-data">
+                    <span>Pendente</span>
+                    <strong>R$ {{ number_format($remainingAmount, 2, ',', '.') }}</strong>
+                </div>
             </div>
             @endif
 
-            <div class="sale-card-total-block flex-1 min-w-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border border-blue-200 dark:border-blue-900 rounded-xl p-3">
-                <span class="text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-1">Total</span>
-                <strong class="text-lg font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent block truncate">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</strong>
+            <div class="sale-card-fin-block sale-card-fin-total">
+                <div class="sale-card-fin-icon">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="sale-card-fin-data">
+                    <span>Total</span>
+                    <strong>R$ {{ number_format($sale->total_price, 2, ',', '.') }}</strong>
+                </div>
             </div>
         </div>
 
-        <div class="sale-card-progress">
-            <div class="sale-card-progress-info">
-                <span class="text-slate-600 dark:text-slate-400">Status financeiro</span>
-                <strong class="text-slate-900 dark:text-white">{{ number_format($paymentPercentage, 0) }}%</strong>
+        <!-- Barra de Progresso Moderna -->
+        <div class="sale-card-progress-modern">
+            <div class="sale-card-progress-top">
+                <div class="sale-card-progress-label {{ $progressToneClass }}">
+                    <i class="bi {{ $isPaid ? 'bi-patch-check-fill' : 'bi-exclamation-circle' }}"></i>
+                    <span>{{ $isPaid ? 'Pago' : 'Pendente' }}</span>
+                </div>
+                <span class="sale-card-progress-pct">{{ number_format($paymentPercentage, 0) }}%</span>
+                @if(!$isPaid)
+                <span class="sale-card-progress-hint">Falta quitar R$ {{ number_format($remainingAmount, 2, ',', '.') }}</span>
+                @endif
             </div>
-            <div class="sale-card-overview-progress bg-slate-200 dark:bg-slate-700">
-                <div class="sale-card-overview-progress-bar bg-gradient-to-r from-emerald-500 to-green-500" style="width: {{ $paymentPercentage }}%"></div>
+            <div class="sale-card-progress-track">
+                <div class="sale-card-progress-fill {{ $progressToneClass }}" x-data="{ pp: {{ number_format($paymentPercentage, 2, '.', '') }} }" :style="`width: ${pp}%`"></div>
             </div>
         </div>
     </div>
+
+    <template x-teleport="body">
+    <div class="sale-card-info-modal" x-show="showInfoModal" x-cloak x-transition.opacity @click="showInfoModal = false">
+        <div class="sale-card-info-modal-panel" @click.stop>
+            <div class="sale-card-info-modal-header">
+                <h4>
+                    <i class="bi bi-stars"></i>
+                    Informações da Venda
+                </h4>
+                <button type="button" @click="showInfoModal = false" aria-label="Fechar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <div class="sale-card-info-modal-grid">
+                <span class="sale-card-chip"><i class="bi bi-hash"></i> Pedido #{{ $sale->id }}</span>
+                <span class="sale-card-chip"><i class="bi bi-box-seam"></i> {{ $productsCount }} {{ \Illuminate\Support\Str::plural('item', $productsCount) }}</span>
+                <span class="sale-card-chip"><i class="bi bi-stack"></i> {{ $itemsQuantity }} unidades</span>
+                <span class="sale-card-chip"><i class="bi bi-calendar3"></i> {{ $sale->created_at->format('d/m/Y') }}</span>
+                @if($paymentMethodLabel)
+                    <span class="sale-card-chip"><i class="bi bi-credit-card"></i> {{ $paymentMethodLabel }}</span>
+                @endif
+                <span class="sale-card-chip"><i class="bi {{ $sale->tipo_pagamento === 'parcelado' ? 'bi-credit-card-2-front' : 'bi-cash-stack' }}"></i> {{ $paymentTypeLabel }}</span>
+                <span class="sale-card-chip"><i class="bi bi-arrow-repeat"></i> Atualizada {{ $lastUpdateLabel }}</span>
+                <span class="sale-card-chip"><i class="bi {{ $status['icon'] }}"></i> {{ $status['label'] }}</span>
+            </div>
+        </div>
+    </div>
+    </template>
 
     <div class="sale-card-actions p-3 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-2 bg-transparent">
         <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
