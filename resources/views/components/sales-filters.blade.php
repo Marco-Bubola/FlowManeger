@@ -16,49 +16,59 @@
     ,'perPageOptions' => []
 ])
 
-<!-- Filtros Avançados -->
-<div x-show="showFilters"
+<!-- Modal de Filtros Avançados -->
+<template x-teleport="body">
+<div x-show="showFilters" x-cloak
+     class="sales-filter-modal-overlay"
      x-transition:enter="transition ease-out duration-300"
-     x-transition:enter-start="opacity-0 transform -translate-y-2"
-     x-transition:enter-end="opacity-100 transform translate-y-0"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
      x-transition:leave="transition ease-in duration-200"
-     x-transition:leave-start="opacity-100 transform translate-y-0"
-     x-transition:leave-end="opacity-0 transform -translate-y-2"
-     class="mb-6">
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     @click.self="showFilters = false"
+     @keydown.escape.window="showFilters = false">
 
-    <div class="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 rounded-3xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl shadow-blue-500/5 dark:shadow-blue-500/10 backdrop-blur-xl">
-        <!-- Fundo decorativo -->
-        <div class="absolute inset-0 bg-gradient-to-r from-blue-50/50 via-transparent to-purple-50/50 dark:from-blue-900/20 dark:via-transparent dark:to-purple-900/20"></div>
+    <div class="sales-filter-modal-panel"
+         x-show="showFilters"
+         x-transition:enter="transition ease-out duration-300 delay-75"
+         x-transition:enter-start="opacity-0 transform scale-95 translate-y-4"
+         x-transition:enter-end="opacity-100 transform scale-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 transform scale-100 translate-y-0"
+         x-transition:leave-end="opacity-0 transform scale-95 translate-y-4"
+         @click.stop>
 
-        <!-- Header do painel de filtros -->
-        <div class="relative  border-b border-slate-200/50 dark:border-slate-600/50">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg">
-                        <i class="bi bi-funnel text-white text-lg"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Filtros Avançados</h3>
-                        <p class="text-sm text-slate-600 dark:text-slate-400">Refine sua busca com filtros específicos</p>
-                    </div>
+        <!-- Decoração de fundo -->
+        <div class="absolute inset-0 bg-gradient-to-r from-blue-50/30 via-transparent to-purple-50/30 dark:from-blue-900/10 dark:via-transparent dark:to-purple-900/10 rounded-3xl pointer-events-none"></div>
+
+        <!-- Header do modal -->
+        <div class="sales-filter-modal-header">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl shadow-lg shadow-purple-500/30">
+                    <i class="bi bi-funnel text-white text-lg"></i>
                 </div>
-
-                <div class="flex items-center gap-2">
-                    <button wire:click="clearFilters"
-                            class="group px-4 py-2 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-sm font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <i class="bi bi-x-circle mr-1 group-hover:rotate-90 transition-transform duration-200"></i>
-                        Limpar
-                    </button>
-                    <button @click="showFilters = false"
-                            class="group p-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-600 dark:hover:bg-slate-500 text-slate-600 dark:text-slate-300 rounded-xl transition-all duration-200">
-                        <i class="bi bi-x-lg group-hover:rotate-90 transition-transform duration-200"></i>
-                    </button>
+                <div>
+                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">Filtros Avançados</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Refine sua busca</p>
                 </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button wire:click="clearFilters"
+                        class="group px-3 py-1.5 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white text-xs font-bold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-105">
+                    <i class="bi bi-x-circle mr-1"></i>
+                    Limpar
+                </button>
+                <button @click="showFilters = false"
+                        class="group w-8 h-8 flex items-center justify-center bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
+                    <i class="bi bi-x-lg text-sm"></i>
+                </button>
             </div>
         </div>
 
         <!-- Conteúdo dos filtros -->
-        <div class="relative p-6">
+        <div class="sales-filter-modal-body">
             <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
                 <!-- Coluna 1: Status da Venda -->
@@ -265,6 +275,8 @@
                 </div>
 
             </div>
-        </div>
-    </div>
-</div>
+        </div><!-- /modal-body -->
+
+    </div><!-- /modal-panel -->
+</div><!-- /modal-overlay -->
+</template>
