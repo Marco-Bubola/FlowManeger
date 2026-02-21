@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="w-full mobile-393-base">
     <!-- Incluir CSS dos produtos -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
