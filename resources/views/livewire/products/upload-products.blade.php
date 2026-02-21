@@ -1,4 +1,4 @@
-<div class="">
+<div class="mobile-393-base">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
 
