@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class=" w-full ">
+<div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="w-full clients-index-page mobile-393-base">
     <style>
         [x-cloak] {
             display: none !important;
@@ -26,9 +26,9 @@
 
             <!-- Bloco de Controles Central -->
             <div class="w-full">
-                <div class="flex flex-col gap-4">
+                <div class="flex flex-col gap-4 clients-index-controls-wrap">
                     <!-- Linha 1: Pesquisa e Contadores -->
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-4 clients-index-controls-row-1">
                         <!-- Input de Pesquisa -->
                         <div class="relative flex-1 group">
                             <input type="text"
@@ -50,7 +50,7 @@
                         </div>
 
                         <!-- Contadores e Filtros -->
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-2 clients-index-controls-actions">
                             <div
                                 class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm">
                                 <i class="bi bi-people text-purple-600 dark:text-purple-400"></i>
@@ -78,7 +78,7 @@
                     </div>
 
                     <!-- Linha 2: Ordenação e Paginação -->
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between clients-index-controls-row-2">
                         <!-- Paginação Compacta -->
                         @if ($clients->hasPages())
                             <div
@@ -386,10 +386,10 @@
             </div>
         </div>
     @else
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-6 clients-grid">
             @foreach ($clients as $client)
                 <div x-data="{ expanded: false }"
-                    class="bg-slate-800/90 backdrop-blur-sm border border-slate-700 hover:border-purple-500 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group relative">
+                    class="bg-slate-800/90 backdrop-blur-sm border border-slate-700 hover:border-purple-500 rounded-xl overflow-hidden hover:shadow-2xl transition-all duration-300 group relative client-card-modern">
                     <!-- Checkbox de seleção -->
                     <div class="absolute top-2 left-2 z-10">
                         <input type="checkbox" wire:model.live="selectedClients" value="{{ $client->id }}"
