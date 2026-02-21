@@ -1,4 +1,4 @@
-<div x-data="{ currentStep: 1 }" class=" w-full ">
+<div x-data="{ currentStep: 1 }" class=" w-full mobile-393-base ">
     <style>
         [x-cloak] { display: none !important; }
     </style>
