@@ -1,4 +1,4 @@
-<div class="w-full">
+<div class="w-full mobile-393-base">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">
