@@ -1,4 +1,4 @@
-<div x-data="{ currentStep: 1, completedSteps: [], init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; }); } }" x-init="init()" class="">
+<div x-data="{ currentStep: 1, completedSteps: [], init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; }); } }" x-init="init()" class="sales-create-page mobile-393-base">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -79,6 +79,7 @@
                 font-size: 1.25em !important;
             }
         }
+
     </style>
 
     <!-- Header Modernizado -->
@@ -117,11 +118,11 @@
         </x-slot>
         <x-slot name="actions">
             <button wire:click="toggleTips" type="button"
-                class="p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
+                class="create-header-action p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
                 <i class="bi bi-lightbulb"></i>
             </button>
 
-            <span class="inline-flex sm:hidden items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 whitespace-nowrap">
+            <span class="create-header-step-badge inline-flex sm:hidden items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 whitespace-nowrap">
                 <i class="bi bi-signpost-split mr-1"></i>
                 <span x-text="`Passo ${currentStep}/2`"></span>
             </span>
@@ -147,7 +148,7 @@
                 @endif
                 title="{{ $tooltip }}"
                 @if(!$canProceed) disabled @endif
-                class="
+                class="create-header-next-btn
                     group relative inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold tracking-wide text-white transition-all duration-300
                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900
                     {{ $canProceed
