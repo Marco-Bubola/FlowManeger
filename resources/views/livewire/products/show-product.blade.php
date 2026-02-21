@@ -1,7 +1,7 @@
 <div x-data="{
     activeTab: 'overview',
     chartInitialized: false
-}" class="w-full">
+}" class="w-full mobile-393-base">
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
