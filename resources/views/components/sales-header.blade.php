@@ -7,7 +7,7 @@
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg ">
+<div class="sales-create-header relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg ">
     <!-- Efeito de brilho sutil -->
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
@@ -15,8 +15,8 @@
     <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
     <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
 
-    <div class="relative px-3 sm:px-6 py-4">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div class="sales-create-header-inner relative px-3 sm:px-6 py-4">
+        <div class="sales-create-header-main flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                 @if($backRoute)
                 <!-- Botão voltar compacto -->
@@ -37,16 +37,16 @@
                     @isset($breadcrumb)
                         <div class="hidden sm:block">{{ $breadcrumb }}</div>
                     @endisset
-                    <h1 class="text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent truncate">
+                    <h1 class="sales-create-header-title text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent truncate">
                         {{ $title }}
                     </h1>
-                    <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
+                    <p class="sales-create-header-subtitle text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
                         💼 {!! $description !!}
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full lg:w-auto">
+            <div class="sales-create-header-actions flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full lg:w-auto">
                 {{-- Slot de ações (botões) passado pelo componente pai --}}
                 {!! $actions ?? '' !!}
 
