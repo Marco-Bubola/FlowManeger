@@ -2878,8 +2878,8 @@
     }
 }
 
-/* ═══════════════ PADRÃO MOBILE 393 (iPhone 15) ═══════════════ */
-@media (max-width: 393px) {
+/* ═══════════════ PADRÃO MOBILE 450 (iPhone 15) ═══════════════ */
+@media (max-width: 450px) {
     .mobile-393-base {
         --mobile-base-width: 393px;
     }
