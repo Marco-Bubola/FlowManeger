@@ -8,7 +8,7 @@
     initResponsiveWatcher() {
         const mq = window.matchMedia('(min-width: 1920px)');
         const mqUltra = window.matchMedia('(min-width: 2498px)');
-        const mqMobile393 = window.matchMedia('(max-width: 393px)');
+        const mqMobile393 = window.matchMedia('(max-width: 450px)');
 
         const sync = () => {
             this.fullHd = mq.matches;
