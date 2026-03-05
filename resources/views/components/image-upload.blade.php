@@ -14,7 +14,7 @@
     'showPreview' => true
 ])
 
-<div class="flex items-center justify-center {{ $width }}">
+<div class="flex items-center justify-center {{ $width }} min-h-0 overflow-hidden">
     <label for="{{ $id }}" class="group relative flex flex-col items-center justify-center {{ $width }} {{ $height }} border-3 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl cursor-pointer
            bg-gradient-to-br from-white/80 via-blue-50/50 to-indigo-50/30
            dark:from-slate-800/80 dark:via-blue-900/20 dark:to-indigo-900/10
@@ -23,7 +23,7 @@
            backdrop-blur-xl transition-all duration-500 ease-out
            hover:border-blue-400 dark:hover:border-blue-500
            hover:shadow-2xl hover:shadow-blue-500/20
-           transform hover:scale-[1.02]">
+           transform hover:scale-[1.01] overflow-hidden min-h-0">
 
         <!-- Efeito de brilho animado -->
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl animate-pulse"></div>
@@ -35,19 +35,19 @@
             <div class="absolute w-3 h-3 bg-indigo-300/20 rounded-full animate-float" style="bottom: 30%; left: 30%; animation-delay: 1.2s;"></div>
         </div>
 
-        <div class="relative flex flex-col items-center justify-center px-2 py-10 z-10">
+        <div class="relative flex flex-col items-center justify-center w-full h-full p-3 md:p-4 z-10 min-h-0 overflow-hidden">
             @if(($newImage && $showPreview) || ($existingImage && $showPreview && !$newImage))
                 <!-- Preview da Imagem com Efeitos -->
-                <div class="relative group/image w-full h-full flex items-center justify-center">
+                <div class="relative group/image w-full h-full min-h-0 flex items-center justify-center overflow-hidden rounded-2xl">
                     @if($newImage)
                         <!-- Nova imagem selecionada -->
-                        <img src="{{ $newImage->temporaryUrl() }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
+                        <img src="{{ $newImage->temporaryUrl() }}" class="w-full h-full object-contain rounded-2xl shadow-2xl group-hover:scale-[1.01] transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @elseif(is_string($existingImage))
                         <!-- Imagem existente -->
-                        <img src="{{ $existingImage }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
+                        <img src="{{ $existingImage }}" class="w-full h-full object-contain rounded-2xl shadow-2xl group-hover:scale-[1.01] transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @else
                         <!-- Imagem existente (objeto) -->
-                        <img src="{{ $existingImage->temporaryUrl() }}" class="max-w-full max-h-full object-contain rounded-2xl shadow-2xl group-hover:scale-105 transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
+                        <img src="{{ $existingImage->temporaryUrl() }}" class="w-full h-full object-contain rounded-2xl shadow-2xl group-hover:scale-[1.01] transition-all duration-500 border-4 border-white dark:border-slate-700 group-hover:border-blue-300 dark:group-hover:border-blue-600" loading="lazy">
                     @endif
 
                     
@@ -58,7 +58,7 @@
                     </div>
                 </div>
 
-                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-3 rounded-xl shadow-lg">
+                <div class="absolute bottom-3 left-1/2 -translate-x-1/2 text-center bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-4 py-2 rounded-xl shadow-lg max-w-[92%]">
                     <p class="text-sm font-bold bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
                         <i class="bi bi-check-circle-fill text-emerald-500 text-lg animate-pulse"></i>
                         Clique para alterar
