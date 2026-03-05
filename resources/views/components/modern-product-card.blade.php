@@ -162,7 +162,7 @@
     color: var(--white, #fff) !important;
     font-weight: 700 !important;
     font-size: 0.98em !important;
-    border-radius: 1.2em 0 0.8em 0 !important;
+    border-radius: 0 0 0 1.15em !important;
     padding: 0.13em 0.9em !important;
     box-shadow: 0 2px 8px var(--badge-shadow-1, #9575cd33), 0 1px 4px var(--badge-shadow-2, #f8bbd011) !important;
     border-bottom: 2px solid var(--blue-gradient-2, #9575cd) !important;
@@ -181,7 +181,7 @@
     color: var(--white, #fff) !important;
     font-weight: 700 !important;
     font-size: 0.98em !important;
-    border-radius: 0 1.2em 0 0.8em !important;
+    border-radius: 0 0 1.15em 0 !important;
     padding: 0.13em 0.9em !important;
     box-shadow: 0 2px 8px var(--badge-shadow-3, #ba68c833), 0 1px 4px var(--badge-shadow-4, #f8bbd011) !important;
     border-bottom: 2px solid var(--blue-gradient-1, #f8bbd0) !important;
