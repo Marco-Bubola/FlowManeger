@@ -8,23 +8,19 @@
     'emptyMessage' => 'Nenhum produto disponível',
     'showQuantityInput' => true,
     'showPriceInput' => true,
-    'wireModel' => 'selectedProducts'
+    'wireModel' => 'selectedProducts',
+    'compactCards' => false
 ])
 
 <!-- CSS dos produtos necessário para os cards -->
 <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 
-<div class="w-full h-[81vh] flex">
+<div class="w-full h-auto lg:h-[81vh] flex flex-col lg:flex-row {{ $compactCards ? 'compact-cards' : '' }}">
     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-    <div class="w-3/4 flex flex-col">
+    <div class="w-full lg:w-3/4 flex flex-col">
         <!-- Header com Controles -->
         <div class="p-4 border-b border-gray-200 dark:border-zinc-700">
-            <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
-                <i class="bi bi-grid text-indigo-600 dark:text-indigo-400 mr-2"></i>
-                {{ $title }}
-            </h2>
-
             <!-- Controles de pesquisa e filtro -->
             <div class="flex flex-col md:flex-row gap-4">
                 <!-- Campo de pesquisa -->
@@ -56,7 +52,7 @@
         </div>
 
         <!-- Grid de Produtos com Scroll -->
-        <div class="flex-1 p-6 overflow-y-auto">
+        <div class="flex-1 p-3 md:p-6 overflow-y-auto">
             @if(count($products) === 0)
                 <!-- Estado vazio -->
                 <div class="flex flex-col items-center justify-center h-full">
@@ -78,7 +74,7 @@
                 </div>
             @else
                 <!-- Grid de Cards de Produtos -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                <div class="products-mobile-compact-grid grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 md:gap-4">
                     @foreach($products as $product)
                         <x-modern-product-card
                             :product="$product"
@@ -92,12 +88,13 @@
     </div>
 
     <!-- Lado Direito: Produtos Selecionados (1/4 da tela) -->
-    <div class="w-1/4 flex flex-col">
+    <div class="w-full lg:w-1/4 flex flex-col border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 max-h-[46vh] lg:max-h-none">
         <x-selected-products-panel
             :selectedProducts="$selectedProducts"
             :showQuantityInput="$showQuantityInput"
             :showPriceInput="$showPriceInput"
             :wireModel="$wireModel"
+            :modernStyle="true"
             wire:key="selected-products-{{ count($selectedProducts) }}"
         />
     </div>
@@ -122,5 +119,85 @@
 
     .product-card-modern.selected:hover {
         transform: translateY(-2px) scale(1.02);
+    }
+
+    .compact-cards .product-card-modern {
+        min-height: 282px !important;
+        height: auto !important;
+    }
+
+    .compact-cards .product-card-modern .product-img-area {
+        min-height: 178px !important;
+        height: 178px !important;
+    }
+
+    .compact-cards .product-card-modern .card-body {
+        min-height: 0 !important;
+        padding: 2em 0.55em 0 0.55em !important;
+        flex: 1 1 auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        align-items: stretch !important;
+        gap: 0.15em !important;
+        overflow: hidden !important;
+    }
+
+    .compact-cards .product-card-modern .product-title {
+        font-size: 0.9em !important;
+        line-height: 1.2 !important;
+        margin: 0.05em 0 0.1em 0 !important;
+        min-height: 2.2em !important;
+    }
+
+    .compact-cards .product-card-modern .price-area {
+        min-height: 1.65em !important;
+        margin-top: auto !important;
+        margin-bottom: 0 !important;
+        padding-bottom: 0 !important;
+        position: relative !important;
+    }
+
+    .compact-cards .product-card-modern .badge-price,
+    .compact-cards .product-card-modern .badge-price-sale {
+        bottom: 0 !important;
+    }
+
+    @media (max-width: 450px) {
+        .compact-cards .product-card-modern {
+            min-height: 238px !important;
+        }
+
+        .compact-cards .product-card-modern .product-img-area {
+            min-height: 140px !important;
+            height: 140px !important;
+        }
+
+        .compact-cards .product-card-modern .card-body {
+            min-height: 0 !important;
+            padding: 1.55em 0.45em 0 0.45em !important;
+            flex: 1 1 auto !important;
+            justify-content: space-between !important;
+        }
+
+        .compact-cards .product-card-modern .product-title {
+            font-size: 0.78em !important;
+            line-height: 1.15 !important;
+            min-height: 2.05em !important;
+        }
+
+        .compact-cards .product-card-modern .price-area {
+            min-height: 1.45em !important;
+            margin-bottom: 0 !important;
+            padding-bottom: 0 !important;
+        }
+
+        .compact-cards .product-card-modern .badge-price,
+        .compact-cards .product-card-modern .badge-price-sale,
+        .compact-cards .product-card-modern .badge-product-code,
+        .compact-cards .product-card-modern .badge-quantity {
+            font-size: 0.66em !important;
+            padding: 0.14em 0.38em !important;
+        }
     }
 </style>
