@@ -30,6 +30,7 @@ class CreateKit extends Component
     // Propriedades para custos adicionais
     public string $additional_costs = '0';
     public string $additional_costs_description = '';
+    public array $additionalCostItems = [];
 
     // Propriedades para preços calculados
     public float $calculated_cost_price = 0;
@@ -49,8 +50,81 @@ class CreateKit extends Component
         // Inicializa os totais calculados
         $this->calculateTotals();
 
+        // Inicializa lista de custos adicionais (suporta múltiplos itens)
+        $this->initializeAdditionalCostItems();
+
         // Gera valores iniciais
         $this->generateAutoValues();
+    }
+
+    private function initializeAdditionalCostItems(): void
+    {
+        if (!empty($this->additionalCostItems)) {
+            return;
+        }
+
+        $this->additionalCostItems = [[
+            'description' => $this->additional_costs_description ?: '',
+            'value' => $this->additional_costs !== '0' ? $this->additional_costs : '',
+        ]];
+
+        $this->syncAdditionalCostsFromItems();
+    }
+
+    public function addAdditionalCostItem(): void
+    {
+        $this->additionalCostItems[] = [
+            'description' => '',
+            'value' => '',
+        ];
+
+        $this->syncAdditionalCostsFromItems();
+        $this->calculateTotals();
+    }
+
+    public function removeAdditionalCostItem(int $index): void
+    {
+        if (!isset($this->additionalCostItems[$index])) {
+            return;
+        }
+
+        unset($this->additionalCostItems[$index]);
+        $this->additionalCostItems = array_values($this->additionalCostItems);
+
+        if (empty($this->additionalCostItems)) {
+            $this->additionalCostItems[] = [
+                'description' => '',
+                'value' => '',
+            ];
+        }
+
+        $this->syncAdditionalCostsFromItems();
+        $this->calculateTotals();
+    }
+
+    public function updatedAdditionalCostItems(): void
+    {
+        $this->syncAdditionalCostsFromItems();
+        $this->calculateTotals();
+    }
+
+    private function syncAdditionalCostsFromItems(): void
+    {
+        $total = 0.0;
+        $descriptions = [];
+
+        foreach ($this->additionalCostItems as $item) {
+            $value = $this->convertBrazilianToFloat($item['value'] ?? '0');
+            $total += $value;
+
+            $description = trim((string)($item['description'] ?? ''));
+            if ($description !== '' && $value > 0) {
+                $descriptions[] = $description;
+            }
+        }
+
+        $this->additional_costs = number_format($total, 2, ',', '.');
+        $this->additional_costs_description = implode(' | ', $descriptions);
     }
 
     /**
@@ -207,6 +281,9 @@ class CreateKit extends Component
      */
     public function updatedAdditionalCosts()
     {
+        if (isset($this->additionalCostItems[0])) {
+            $this->additionalCostItems[0]['value'] = $this->additional_costs;
+        }
         $this->calculateTotals();
     }
 
@@ -352,7 +429,10 @@ class CreateKit extends Component
             'image' => 'nullable|image|mimes:jpg,png,jpeg,gif,webp|max:2048',
             'selectedProducts' => 'required|array|min:1',
             'additional_costs' => 'nullable|string',
-            'additional_costs_description' => 'nullable|string|max:255',
+            'additional_costs_description' => 'nullable|string|max:1000',
+            'additionalCostItems' => 'nullable|array',
+            'additionalCostItems.*.description' => 'nullable|string|max:120',
+            'additionalCostItems.*.value' => 'nullable|string|max:30',
         ];
     }
 
@@ -440,6 +520,7 @@ class CreateKit extends Component
                         'category_id' => (int)$this->category_id,
                         'image' => $imageName ?: $existingProduct->image,
                         'custos_adicionais' => $this->convertBrazilianToFloat($this->additional_costs),
+                        'descricao_custos_adicionais' => $this->additional_costs_description,
                     ]);
 
                     $kit = $existingProduct;
@@ -463,6 +544,7 @@ class CreateKit extends Component
                         'status' => 'ativo',
                         'tipo' => 'kit',
                         'custos_adicionais' => $this->convertBrazilianToFloat($this->additional_costs),
+                        'descricao_custos_adicionais' => $this->additional_costs_description,
                     ]);
                 }
             } else {
@@ -480,6 +562,7 @@ class CreateKit extends Component
                     'status' => 'ativo',
                     'tipo' => 'kit',
                     'custos_adicionais' => $this->convertBrazilianToFloat($this->additional_costs),
+                    'descricao_custos_adicionais' => $this->additional_costs_description,
                 ]);
             }
 
@@ -661,7 +744,7 @@ class CreateKit extends Component
      */
     public function getSuggestedSalePriceProperty()
     {
-        // Garante que temos um valor calculado antes de aplicar a margem
+        // Preço sugerido = base de venda (price_sale + custos adicionais) + margem de 5%
         $baseSalePrice = $this->calculated_sale_price ?? 0;
         return $baseSalePrice * 1.05;
     }    public function getSelectedCategoryNameProperty()
