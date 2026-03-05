@@ -1,12 +1,12 @@
 <div class="mobile-393-base">
     <!-- Header Compacto no Estilo das Outras Páginas -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
+    <div class="create-kit-header sticky top-0 z-40 relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
-        <div class="relative px-8 py-4">
-            <div class="flex justify-between items-center">
+        <div class="create-kit-header-inner relative px-8 py-4">
+            <div class="create-kit-header-row flex justify-between items-center">
                 <!-- Título e Progress -->
-                <div class="flex items-center gap-6">
+                <div class="create-kit-header-left flex items-center gap-6">
                     <!-- Ícone principal -->
                     <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-xl shadow-purple-500/25">
                         <i class="bi bi-boxes text-white text-2xl"></i>
@@ -40,7 +40,7 @@
                 </div>
 
                 <!-- Botões de Ação -->
-                <div class="flex items-center gap-3">
+                <div class="create-kit-header-actions flex items-center gap-3">
                     <a href="{{ route('products.index') }}" class="px-5 py-2.5 bg-white/60 dark:bg-slate-700/60 hover:bg-white dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200 dark:border-slate-600">
                         <i class="bi bi-x-circle mr-2"></i>Cancelar
                     </a>
@@ -52,270 +52,236 @@
                     @endif
 
                     @if($currentStep < 2)
-                    <button type="button" wire:click="nextStep" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
+                        <button type="button" wire:click="nextStep" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
                         Próximo<i class="bi bi-arrow-right ml-2"></i>
-                    </button>
-                    @endif
+                        </button>
+                        @endif
 
-                    @if($currentStep == 2)
-                    <button type="button" wire:click="store" wire:loading.attr="disabled" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50">
-                        <span wire:loading.remove wire:target="store">
-                            <i class="bi bi-check-circle mr-2"></i>Criar Kit
-                        </span>
-                        <span wire:loading wire:target="store">
-                            <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Criando...
-                        </span>
-                    </button>
-                    @endif
+                        @if($currentStep == 2)
+                        <button type="button" wire:click="store" wire:loading.attr="disabled" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50">
+                            <span wire:loading.remove wire:target="store">
+                                <i class="bi bi-check-circle mr-2"></i>Criar Kit
+                            </span>
+                            <span wire:loading wire:target="store">
+                                <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Criando...
+                            </span>
+                        </button>
+                        @endif
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Conteúdo Principal Moderno -->
-    <div class="relative flex-1 overflow-y-auto">
+    <div class="create-kit-main relative flex-1 overflow-y-auto">
         <div class="">
 
             @if($currentStep == 1)
-                <!-- ETAPA 1: Seleção de Produtos -->
-                <div class="flex-1  animate-fadeIn">
-                    <x-modern-product-selector
-                        :products="$filteredProducts"
-                        :categories="$categories"
-                        :selectedProducts="$selectedProducts"
-                        searchTerm="searchTerm"
-                        selectedCategory="selectedCategory"
-                        title="Produtos do Kit"
-                        emptyMessage="Nenhum produto disponível para o kit"
-                        :showQuantityInput="true"
-                        :showPriceInput="true"
-                        wireModel="selectedProducts"
-                        wire:key="product-selector-step-{{ $currentStep }}"
-                    />
-                </div>
+            <!-- ETAPA 1: Seleção de Produtos -->
+            <div class="flex-1  animate-fadeIn">
+                <x-modern-product-selector
+                    :products="$filteredProducts"
+                    :categories="$categories"
+                    :selectedProducts="$selectedProducts"
+                    searchTerm="searchTerm"
+                    selectedCategory="selectedCategory"
+                    title="Produtos do Kit"
+                    emptyMessage="Nenhum produto disponível para o kit"
+                    :showQuantityInput="true"
+                    :showPriceInput="true"
+                    :compactCards="true"
+                    wireModel="selectedProducts"
+                    wire:key="product-selector-step-{{ $currentStep }}" />
+            </div>
             @endif
 
             @if($currentStep == 2)
-                <!-- ETAPA 2: Configuração Completa do Kit -->
-                <div class="flex-1 animate-fadeIn max-h-[81vh] overflow-hidden">
-                    <div class="flex flex-col xl:flex-row gap-5 h-full">
+            <!-- ETAPA 2: Configuração Completa do Kit -->
+            <div class="flex-1 animate-fadeIn">
+                <div class="create-kit-step2 flex flex-col xl:flex-row gap-5 h-full">
 
-                        <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
-                        <div class="flex-1 overflow-y-auto custom-scrollbar">
-                            <div class="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border border-slate-700/50">
+                    <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
+                    <div class="create-kit-step2-left w-full xl:w-[56%] overflow-y-auto custom-scrollbar">
+                        <div class="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border border-slate-700/50">
 
-                                <!-- Informações Básicas -->
-                                <div class="mb-4">
-                                    <div class="flex items-center gap-2.5 mb-3">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center shrink-0">
-                                            <i class="bi bi-boxes text-white text-sm"></i>
+                            <!-- Informações Básicas -->
+                            <div class="mb-4">
+                               
+
+                                <div class="grid grid-cols-1 gap-3">
+                                    <div class="space-y-1.5">
+                                        <label for="name" class="flex items-center text-sm font-semibold text-slate-300">
+                                            <i class="bi bi-boxes text-purple-400 mr-1.5 text-xs"></i>
+                                            Nome do Kit
+                                            <span class="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full flex items-center gap-1">
+                                                <i class="bi bi-magic"></i> Auto
+                                            </span>
+                                        </label>
+                                        <div class="relative flex gap-2">
+                                            <input type="text"
+                                                wire:model="name"
+                                                id="name"
+                                                class="flex-1 px-3 py-2.5 rounded-lg bg-slate-800/50 border text-slate-100 placeholder-slate-400 text-sm border-slate-700/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                                                placeholder="Nome do kit...">
+                                            <button type="button"
+                                                wire:click="$set('name', '{{ addslashes($this->getAutoGeneratedName()) }}')"
+                                                class="px-3 py-2.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg text-purple-300 transition-all group"
+                                                title="Regenerar nome automaticamente">
+                                                <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
+                                            </button>
                                         </div>
-                                        <div>
-                                            <h3 class="text-sm font-bold text-white leading-tight">Informações Básicas</h3>
-                                            <p class="text-xs text-slate-400 leading-tight">Dados essenciais do kit</p>
-                                        </div>
+                                        <p class="text-xs text-slate-400 flex items-center gap-1">
+                                            <i class="bi bi-info-circle"></i> Baseado nos produtos • Editável
+                                        </p>
                                     </div>
 
-                                    <!-- Tudo em uma linha -->
-                                    <div class="grid grid-cols-12 gap-3">
-                                        <!-- Nome do Kit - 4 colunas (AUTO) -->
-                                        <div class="col-span-4 space-y-1.5">
-                                            <label for="name" class="flex items-center text-sm font-semibold text-slate-300">
-                                                <i class="bi bi-boxes text-purple-400 mr-1.5 text-xs"></i>
-                                                Nome do Kit
-                                                <span class="ml-2 px-2 py-0.5 bg-purple-500/20 text-purple-300 text-xs rounded-full flex items-center gap-1">
-                                                    <i class="bi bi-magic"></i> Auto
-                                                </span>
-                                            </label>
-                                            <div class="relative flex gap-2">
-                                                <input type="text"
-                                                    wire:model="name"
-                                                    id="name"
-                                                    class="flex-1 px-3 py-2.5 rounded-lg bg-slate-800/50 border text-slate-100 placeholder-slate-400 text-sm border-slate-700/50 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all"
-                                                    placeholder="Nome do kit...">
-                                                <button type="button"
-                                                    wire:click="$set('name', '{{ addslashes($this->getAutoGeneratedName()) }}')"
-                                                    class="px-3 py-2.5 bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 rounded-lg text-purple-300 transition-all group"
-                                                    title="Regenerar nome automaticamente">
-                                                    <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                                <i class="bi bi-info-circle"></i> Baseado nos produtos • Editável
-                                            </p>
-                                        </div>
-
-                                        <!-- Código do Kit - 2 colunas (AUTO) -->
-                                        <div class="col-span-2 space-y-1.5">
-                                            <label for="product_code" class="flex items-center text-sm font-semibold text-slate-300">
-                                                <i class="bi bi-upc-scan text-indigo-400 mr-1.5 text-xs"></i>
-                                                Código
-                                                <span class="ml-2 px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-xs rounded-full flex items-center gap-1">
-                                                    <i class="bi bi-magic"></i> Auto
-                                                </span>
-                                            </label>
-                                            <div class="relative flex gap-2">
-                                                <input type="text"
-                                                    wire:model="product_code"
-                                                    id="product_code"
-                                                    class="flex-1 px-3 py-2.5 rounded-lg bg-slate-800/50 border text-slate-100 placeholder-slate-400 text-sm border-slate-700/50 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all"
-                                                    placeholder="Código...">
-                                                <button type="button"
-                                                    wire:click="$set('product_code', '{{ addslashes($this->getAutoGeneratedCode()) }}')"
-                                                    class="px-3 py-2.5 bg-indigo-500/20 hover:bg-indigo-500/30 border border-indigo-500/50 rounded-lg text-indigo-300 transition-all group"
-                                                    title="Regenerar código automaticamente">
-                                                    <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                                <i class="bi bi-info-circle"></i> Hash único • Editável
-                                            </p>
-                                        </div>
-
-                                        <!-- Categoria do Kit - 3 colunas (AUTO: Kit) -->
-                                        <div class="col-span-3 space-y-1.5">
-                                            <label for="category_id" class="flex items-center text-sm font-semibold text-slate-300">
-                                                <i class="bi bi-tags-fill text-purple-400 mr-1.5 text-xs"></i>
-                                                Categoria
-                                                <span class="ml-2 px-2 py-0.5 bg-emerald-500/20 text-emerald-300 text-xs rounded-full flex items-center gap-1">
-                                                    <i class="bi bi-box-seam"></i> Kit
-                                                </span>
-                                            </label>
-                                            <div class="relative">
-                                                <select wire:model="category_id"
-                                                    id="category_id"
-                                                    class="w-full px-3 py-2.5 rounded-lg bg-slate-800/50 border text-slate-100 text-sm border-slate-700/50 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all">
-                                                    <option value="">Selecione...</option>
-                                                    @foreach(App\Models\Category::where('user_id', Auth::id())->where('type', 'produto')->get() as $cat)
-                                                        <option value="{{ $cat->id_category }}">{{ $cat->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-                                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                                <i class="bi bi-info-circle"></i> Padrão "Kit" • Alterável
-                                            </p>
-                                        </div>
-
-                                        <!-- Descrição - 3 colunas (AUTO) -->
-                                        <div class="col-span-3 space-y-1.5">
-                                            <label for="description" class="flex items-center text-sm font-semibold text-slate-300">
-                                                <i class="bi bi-card-text text-indigo-400 mr-1.5 text-xs"></i>
-                                                Descrição
-                                                <span class="ml-2 px-2 py-0.5 bg-blue-500/20 text-blue-300 text-xs rounded-full flex items-center gap-1">
-                                                    <i class="bi bi-magic"></i> Auto
-                                                </span>
-                                            </label>
-                                            <div class="relative flex gap-2">
-                                                <input type="text"
-                                                    wire:model="description"
-                                                    id="description"
-                                                    class="flex-1 px-3 py-2.5 rounded-lg bg-slate-800/50 border text-slate-100 placeholder-slate-400 text-sm border-slate-700/50 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all"
-                                                    placeholder="Descrição...">
-                                                <button type="button"
-                                                    wire:click="$set('description', '{{ addslashes($this->getAutoGeneratedDescription()) }}')"
-                                                    class="px-3 py-2.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 rounded-lg text-blue-300 transition-all group"
-                                                    title="Regenerar descrição automaticamente">
-                                                    <i class="bi bi-arrow-clockwise group-hover:rotate-180 transition-transform duration-300"></i>
-                                                </button>
-                                            </div>
-                                            <p class="text-xs text-slate-400 flex items-center gap-1">
-                                                <i class="bi bi-info-circle"></i> Lista produtos • Editável
-                                            </p>
-                                        </div>
+                                    <div class="flex flex-wrap gap-2 text-xs">
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-300">
+                                            <i class="bi bi-upc-scan"></i>Código automático ativo
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300">
+                                            <i class="bi bi-tags-fill"></i>Categoria automática ativa
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300">
+                                            <i class="bi bi-card-text"></i>Descrição automática ativa
+                                        </span>
                                     </div>
+
+                                    <input type="hidden" wire:model="product_code">
+                                    <input type="hidden" wire:model="category_id">
+                                    <input type="hidden" wire:model="description">
                                 </div>
+                            </div>
 
-                                <!-- Divisor -->
-                                <div class="border-t border-slate-700/50 my-3.5"></div>
+                            <!-- Divisor -->
+                            <div class="border-t border-slate-700/50 my-3.5"></div>
 
-                                <!-- Preços e Custos -->
-                                <div>
-                                    <div class="flex items-center gap-2.5 mb-3">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shrink-0">
-                                            <i class="bi bi-cash-coin text-white text-sm"></i>
+                            <!-- Preços e Custos -->
+                            <div>
+                            
+
+                                @php
+                                $productsCostTotal = collect($selectedProducts)->sum(function($product) {
+                                return ($product['price'] ?? 0) * ($product['quantity'] ?? 1);
+                                });
+                                $productsSaleTotal = collect($selectedProducts)->sum(function($product) {
+                                return ($product['salePrice'] ?? 0) * ($product['quantity'] ?? 1);
+                                });
+                                $additionalCostsRaw = preg_replace('/[^\d,]/', '', (string)($additional_costs ?: '0'));
+                                $additionalCostsTotal = (float) str_replace(',', '.', $additionalCostsRaw ?: '0');
+                                @endphp
+
+                                <div class="space-y-3 bg-slate-900/35 border border-slate-700/50 rounded-xl p-3.5">
+                                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                                        <div class="rounded-lg bg-slate-800/45 border border-slate-700/60 px-3 py-2">
+                                            <p class="text-[11px] text-slate-400">Total custo (price)</p>
+                                            <p class="text-sm font-bold text-slate-100">R$ {{ number_format($productsCostTotal, 2, ',', '.') }}</p>
                                         </div>
-                                        <div>
-                                            <h3 class="text-sm font-bold text-white leading-tight">Preços e Custos</h3>
-                                            <p class="text-xs text-slate-400 leading-tight">Defina os valores do kit</p>
+                                        <div class="rounded-lg bg-slate-800/45 border border-slate-700/60 px-3 py-2">
+                                            <p class="text-[11px] text-slate-400">Total venda (price_sale)</p>
+                                            <p class="text-sm font-bold text-slate-100">R$ {{ number_format($productsSaleTotal, 2, ',', '.') }}</p>
+                                        </div>
+                                        <div class="rounded-lg bg-blue-500/15 border border-blue-700/40 px-3 py-2">
+                                            <p class="text-[11px] text-blue-200">Base final do kit (price_sale + adicionais)</p>
+                                            <p class="text-base font-black text-blue-300">R$ {{ number_format($calculated_sale_price, 2, ',', '.') }}</p>
                                         </div>
                                     </div>
 
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <!-- Custos Adicionais -->
-                                        <div class="space-y-2.5 bg-amber-900/20 p-3.5 rounded-lg border border-amber-700/30">
-                                            <h4 class="text-base font-bold text-white flex items-center">
+                                    <div class="border-t border-slate-700/50"></div>
+
+                                    <div class="space-y-2.5">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-sm font-bold text-white flex items-center">
                                                 <i class="bi bi-plus-circle text-amber-400 mr-1.5"></i>
                                                 Custos Adicionais
                                             </h4>
-                                            <div class="flex items-center gap-2">
-                                                <div class="relative flex-1">
+                                            <button type="button"
+                                                wire:click="addAdditionalCostItem"
+                                                class="px-2.5 py-1.5 rounded-lg bg-amber-500/20 border border-amber-500/40 text-amber-200 hover:bg-amber-500/30 text-xs font-semibold">
+                                                <i class="bi bi-plus-lg mr-1"></i>Adicionar
+                                            </button>
+                                        </div>
+
+                                        <div class="space-y-2">
+                                            @foreach($additionalCostItems as $costIndex => $costItem)
+                                            <div class="grid grid-cols-12 gap-2 items-center">
+                                                <div class="col-span-7">
+                                                    <input type="text"
+                                                        wire:model.live="additionalCostItems.{{ $costIndex }}.description"
+                                                        placeholder="Descrição do custo"
+                                                        class="w-full px-3 py-2 border rounded-lg bg-slate-800/50 text-slate-100 text-sm border-slate-700/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 focus:outline-none placeholder-slate-500" />
+                                                </div>
+                                                <div class="col-span-4 relative">
                                                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-sm font-semibold text-slate-300">R$</span>
                                                     <input type="text"
-                                                        id="additional_costs"
-                                                        wire:model.live="additional_costs"
-                                                        class="w-full pl-10 pr-3 py-2.5 border rounded-lg bg-slate-800/50 text-slate-100 text-base font-semibold border-slate-700/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 focus:outline-none placeholder-slate-500"
+                                                        wire:model.live="additionalCostItems.{{ $costIndex }}.value"
+                                                            oninput="this.value = window.fmMoneyMask ? window.fmMoneyMask(this.value) : this.value"
+                                                        class="w-full pl-10 pr-2 py-2 border rounded-lg bg-slate-800/50 text-slate-100 text-sm font-semibold border-slate-700/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 focus:outline-none placeholder-slate-500"
                                                         placeholder="0,00" />
                                                 </div>
-                                                <input type="text"
-                                                    id="additional_costs_description"
-                                                    wire:model="additional_costs_description"
-                                                    placeholder="Descrição"
-                                                    class="flex-1 px-3 py-2.5 border rounded-lg bg-slate-800/50 text-slate-100 text-sm border-slate-700/50 focus:border-amber-500 focus:ring-1 focus:ring-amber-500/20 focus:outline-none placeholder-slate-500" />
+                                                <div class="col-span-1 text-right">
+                                                    @if(count($additionalCostItems) > 1)
+                                                    <button type="button"
+                                                        wire:click="removeAdditionalCostItem({{ $costIndex }})"
+                                                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg text-red-300 hover:text-red-200 hover:bg-red-500/20">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                    @endif
+                                                </div>
                                             </div>
+                                            @endforeach
                                         </div>
 
-                                        <!-- Resumo de Custos -->
-                                        <div class="space-y-2.5 bg-blue-900/20 p-3.5 rounded-lg border border-blue-700/30">
-                                            <h4 class="text-base font-bold text-white flex items-center">
-                                                <i class="bi bi-calculator text-blue-400 mr-1.5"></i>
-                                                Resumo de Custos
+                                        <div class="hidden">
+                                            <input type="text" id="additional_costs" wire:model.live="additional_costs" />
+                                            <input type="text" id="additional_costs_description" wire:model="additional_costs_description" />
+                                        </div>
+                                    </div>
+
+                                    <div class="border-t border-slate-700/50"></div>
+
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                        <div class="space-y-2.5">
+                                            <h4 class="text-sm font-bold text-white flex items-center">
+                                                <i class="bi bi-calculator text-emerald-400 mr-1.5"></i>
+                                                Composição do Preço Sugerido
                                             </h4>
-                                            <div class="space-y-2 text-sm">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-slate-300 font-medium">Custo produtos:</span>
-                                                    <span class="font-bold text-slate-100 text-base">R$ {{ number_format(collect($selectedProducts)->sum(function($product) { return ($product['price'] ?? 0) * ($product['quantity'] ?? 1); }), 2, ',', '.') }}</span>
+                                            <div class="space-y-1.5 text-sm">
+                                                <div class="flex justify-between items-center rounded-lg bg-slate-800/35 px-2.5 py-2">
+                                                    <span class="text-slate-300">Total custo (price)</span>
+                                                    <span class="font-semibold text-slate-100">R$ {{ number_format($productsCostTotal, 2, ',', '.') }}</span>
                                                 </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-slate-300 font-medium">Custos adicionais:</span>
-                                                    <span class="font-bold text-slate-100 text-base">R$ {{ number_format((float)str_replace(',', '.', $additional_costs ?: '0'), 2, ',', '.') }}</span>
+                                                <div class="flex justify-between items-center rounded-lg bg-slate-800/35 px-2.5 py-2">
+                                                    <span class="text-slate-300">Total venda (price_sale)</span>
+                                                    <span class="font-semibold text-slate-100">R$ {{ number_format($productsSaleTotal, 2, ',', '.') }}</span>
                                                 </div>
-                                                <hr class="border-slate-700/50 my-1.5">
-                                                <div class="flex justify-between items-center pt-1">
-                                                    <span class="font-bold text-white text-base">Total:</span>
-                                                    <span class="font-black text-blue-400 text-lg">R$ {{ number_format($calculated_cost_price, 2, ',', '.') }}</span>
+                                                <div class="flex justify-between items-center rounded-lg bg-slate-800/35 px-2.5 py-2">
+                                                    <span class="text-slate-300">Custos adicionais</span>
+                                                    <span class="font-semibold text-slate-100">R$ {{ number_format($additionalCostsTotal, 2, ',', '.') }}</span>
                                                 </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Preço Sugerido -->
-                                        <div class="space-y-2.5 bg-green-900/20 p-3.5 rounded-lg border border-green-700/30">
-                                            <h4 class="text-base font-bold text-white flex items-center">
-                                                <i class="bi bi-currency-dollar text-green-400 mr-1.5"></i>
-                                                Preço Sugerido
-                                            </h4>
-                                            <div class="space-y-2 text-sm">
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-slate-300 font-medium">Preço venda:</span>
-                                                    <span class="font-bold text-slate-100 text-base">R$ {{ number_format(collect($selectedProducts)->sum(function($product) { return ($product['salePrice'] ?? 0) * ($product['quantity'] ?? 1); }), 2, ',', '.') }}</span>
+                                                <div class="flex justify-between items-center rounded-lg bg-slate-800/35 px-2.5 py-2">
+                                                    <span class="text-slate-300">Base (price_sale + adicionais)</span>
+                                                    <span class="font-semibold text-slate-100">R$ {{ number_format($calculated_sale_price, 2, ',', '.') }}</span>
                                                 </div>
-                                                <div class="flex justify-between items-center">
-                                                    <span class="text-slate-300 font-medium">Margem 5%:</span>
-                                                    <span class="font-bold text-slate-100 text-base">R$ {{ number_format($calculated_sale_price * 0.05, 2, ',', '.') }}</span>
+                                                <div class="flex justify-between items-center rounded-lg bg-slate-800/35 px-2.5 py-2">
+                                                    <span class="text-slate-300">Margem 5%</span>
+                                                    <span class="font-semibold text-slate-100">R$ {{ number_format(($calculated_sale_price ?? 0) * 0.05, 2, ',', '.') }}</span>
                                                 </div>
-                                                <hr class="border-slate-700/50 my-1.5">
-                                                <div class="flex justify-between items-center pt-1">
-                                                    <span class="font-bold text-white text-base">Sugerido:</span>
-                                                    <span class="font-black text-emerald-400 text-lg">R$ {{ number_format($this->suggestedSalePrice ?? 0, 2, ',', '.') }}</span>
+                                                <div class="flex justify-between items-center rounded-lg bg-emerald-500/15 border border-emerald-700/40 px-2.5 py-2.5 mt-1">
+                                                    <span class="font-bold text-white">Preço sugerido</span>
+                                                    <span class="font-black text-emerald-300 text-base">R$ {{ number_format($this->suggestedSalePrice ?? 0, 2, ',', '.') }}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Preço Real -->
-                                        <div class="space-y-2.5 bg-purple-900/20 p-3.5 rounded-lg border border-purple-700/30">
-                                            <h4 class="text-base font-bold text-white flex items-center">
+                                        <div class="space-y-2.5">
+                                            <h4 class="text-sm font-bold text-white flex items-center">
                                                 <i class="bi bi-tag text-purple-400 mr-1.5"></i>
-                                                Preço Real *
+                                                Preço de Venda Final
                                             </h4>
+                                            <p class="text-xs text-slate-300 bg-slate-800/35 border border-slate-700/50 rounded-lg px-2.5 py-2">
+                                                Valor que será salvo no kit. Se quiser, use o sugerido automaticamente.
+                                            </p>
                                             <div class="flex items-center gap-2">
                                                 <div class="relative flex-1">
                                                     <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-sm font-semibold text-slate-300">R$</span>
@@ -327,158 +293,115 @@
                                                 <button type="button"
                                                     wire:click="usesSuggestedPrice"
                                                     class="px-3 py-2.5 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-bold rounded-lg shadow hover:shadow-lg transition-all whitespace-nowrap">
-                                                    Usar
+                                                    <i class="bi bi-magic mr-1"></i>Usar
                                                 </button>
                                             </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Divisor -->
-                                <div class="border-t border-slate-700/50 my-3.5"></div>
-
-                                <!-- Preview do Kit -->
-                                <div>
-                                    <div class="flex items-center gap-2.5 mb-3">
-                                        <div class="w-8 h-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center shrink-0">
-                                            <i class="bi bi-eye-fill text-white text-sm"></i>
-                                        </div>
-                                        <div>
-                                            <h3 class="text-sm font-bold text-white leading-tight">Preview do Kit</h3>
-                                            <p class="text-xs text-slate-400 leading-tight">Visualize antes de salvar</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-cyan-900/20 p-4 rounded-lg border border-cyan-700/30 space-y-3">
-                                        <!-- Nome -->
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-purple-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                <i class="bi bi-boxes text-purple-400"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs text-slate-400 mb-0.5">Nome do Kit:</p>
-                                                <p class="text-sm font-bold text-white break-words">{{ $name ?: 'Não definido' }}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Código -->
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-indigo-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                <i class="bi bi-upc-scan text-indigo-400"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs text-slate-400 mb-0.5">Código:</p>
-                                                <p class="text-sm font-mono font-bold text-white">{{ $product_code ?: 'Não definido' }}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Categoria -->
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-emerald-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                <i class="bi bi-tags-fill text-emerald-400"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs text-slate-400 mb-0.5">Categoria:</p>
-                                                <p class="text-sm font-bold text-white">
-                                                    @if($category_id)
-                                                        {{ App\Models\Category::find($category_id)->name ?? 'Kit' }}
-                                                    @else
-                                                        Kit
-                                                    @endif
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Descrição -->
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-blue-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                <i class="bi bi-card-text text-blue-400"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs text-slate-400 mb-0.5">Descrição:</p>
-                                                <p class="text-sm text-slate-300 break-words">{{ $description ?: 'Nenhuma descrição' }}</p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Preço -->
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-green-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                <i class="bi bi-cash-coin text-green-400"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs text-slate-400 mb-0.5">Preço de Venda:</p>
-                                                <p class="text-base font-black text-green-400">
-                                                    R$ {{ $real_sale_price ?: number_format($this->suggestedSalePrice ?? 0, 2, ',', '.') }}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Produtos -->
-                                        <div class="flex items-start gap-3">
-                                            <div class="w-8 h-8 bg-amber-500/20 rounded-lg flex items-center justify-center shrink-0">
-                                                <i class="bi bi-grid-fill text-amber-400"></i>
-                                            </div>
-                                            <div class="flex-1 min-w-0">
-                                                <p class="text-xs text-slate-400 mb-0.5">Produtos:</p>
-                                                <p class="text-sm font-bold text-amber-400">{{ count($selectedProducts) }} item(ns)</p>
+                                            <div class="rounded-lg bg-purple-500/15 border border-purple-700/40 px-2.5 py-2">
+                                                <p class="text-[11px] text-purple-200">Sugerido atual</p>
+                                                <p class="text-base font-black text-purple-300">R$ {{ number_format($this->suggestedSalePrice ?? 0, 2, ',', '.') }}</p>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- ========== COLUNA DIREITA: Upload ========== -->
-                        <div class="w-full xl:w-[380px]">
-                            <div class="bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border border-slate-700/50 h-full flex flex-col">
-                                <div class="flex items-center gap-2.5 mb-4">
-                                    <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shrink-0">
-                                        <i class="bi bi-image-fill text-white text-sm"></i>
-                                    </div>
-                                    <div>
-                                        <h3 class="text-sm font-bold text-white leading-tight">Imagem do Kit</h3>
-                                        <p class="text-xs text-slate-400 leading-tight">Foto de alta qualidade</p>
-                                    </div>
-                                </div>
-
-                                <div class="flex-1 flex items-center justify-center min-h-0">
-                                    <x-image-upload
-                                        name="image"
-                                        id="image"
-                                        wire-model="image"
-                                        title="Upload da Imagem"
-                                        description="Clique ou arraste aqui"
-                                        :new-image="$image"
-                                        height="h-[calc(81vh-180px)]"
-                                    />
-                                </div>
-
-                                <div class="mt-3 flex items-start gap-1.5 text-xs text-slate-400">
-                                    <i class="bi bi-info-circle text-blue-400 mt-0.5 text-xs"></i>
-                                    <p>JPG, PNG, JPEG • Máx 2MB</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Estilo para scrollbar customizada -->
-                <style>
-                    .custom-scrollbar::-webkit-scrollbar {
-                        width: 6px;
-                    }
-                    .custom-scrollbar::-webkit-scrollbar-track {
-                        background: rgba(15, 23, 42, 0.3);
-                        border-radius: 10px;
-                    }
-                    .custom-scrollbar::-webkit-scrollbar-thumb {
-                        background: rgba(139, 92, 246, 0.5);
-                        border-radius: 10px;
-                    }
-                    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                        background: rgba(139, 92, 246, 0.7);
-                    }
-                </style>
+                    <!-- ========== COLUNA DIREITA: Upload ========== -->
+                    <div class="create-kit-step2-right w-full xl:w-[40%] flex flex-col gap-4">
+                        <div class="create-kit-upload-card bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-2xl p-5 shadow-2xl border border-slate-700/50 flex flex-col overflow-hidden">
+                            <div class="flex items-center gap-2.5 mb-4">
+                                <div class="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center shrink-0">
+                                    <i class="bi bi-image-fill text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white leading-tight">Imagem do Kit</h3>
+                                    <p class="text-xs text-slate-400 leading-tight">Foto de alta qualidade</p>
+                                </div>
+                            </div>
+
+                            <div class="flex-1 flex items-center justify-center min-h-0 w-full overflow-hidden">
+                                <x-image-upload
+                                    name="image"
+                                    id="image"
+                                    wire-model="image"
+                                    title="Upload da Imagem"
+                                    description="Clique ou arraste aqui"
+                                    :new-image="$image"
+                                    height="h-[300px] md:h-[420px]" />
+                            </div>
+
+                            <div class="mt-3 flex items-start gap-1.5 text-xs text-slate-400">
+                                <i class="bi bi-info-circle text-blue-400 mt-0.5 text-xs"></i>
+                                <p>JPG, PNG, JPEG • Máx 2MB</p>
+                            </div>
+                        </div>
+
+                        <div class="create-kit-products-card bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-2xl p-4 shadow-2xl border border-slate-700/50">
+                            <div class="flex items-center gap-2.5 mb-3">
+                                <div class="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center shrink-0">
+                                    <i class="bi bi-grid-fill text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-sm font-bold text-white leading-tight">Produtos Selecionados</h3>
+                                    <p class="text-xs text-slate-400 leading-tight">Itens do kit (abaixo da imagem)</p>
+                                </div>
+                            </div>
+
+                            @if(count($selectedProducts) > 0)
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 max-h-[340px] overflow-y-auto custom-scrollbar pr-1">
+                                @foreach($selectedProducts as $item)
+                                <div class="rounded-xl border border-slate-700/60 bg-slate-900/50 p-2.5">
+                                    <div class="flex items-center gap-2">
+                                        <img src="{{ !empty($item['image']) ? asset('storage/products/' . $item['image']) : asset('storage/products/product-placeholder.png') }}"
+                                            alt="{{ $item['name'] ?? 'Produto' }}"
+                                            class="w-10 h-10 md:w-12 md:h-12 rounded-lg object-cover border border-slate-700" />
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-xs font-semibold text-white truncate">{{ $item['name'] ?? 'Produto' }}</p>
+                                            <p class="text-[11px] text-slate-400">Qtd: {{ $item['quantity'] ?? 1 }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 flex items-center gap-1.5">
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-indigo-500/25 text-indigo-200">
+                                            <i class="bi bi-tag mr-1"></i>R$ {{ number_format($item['price'] ?? 0, 2, ',', '.') }}
+                                        </span>
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/25 text-purple-200">
+                                            <i class="bi bi-currency-dollar mr-1"></i>R$ {{ number_format($item['salePrice'] ?? 0, 2, ',', '.') }}
+                                        </span>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            @else
+                            <div class="rounded-lg border border-slate-700/50 bg-slate-800/40 px-3 py-3 text-sm text-slate-300">
+                                Nenhum produto selecionado até o momento.
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Estilo para scrollbar customizada -->
+            <style>
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: rgba(15, 23, 42, 0.3);
+                    border-radius: 10px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background: rgba(139, 92, 246, 0.5);
+                    border-radius: 10px;
+                }
+
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background: rgba(139, 92, 246, 0.7);
+                }
+            </style>
             @endif
 
             <!-- Botões de Ação já estão integrados no header acima -->
@@ -492,6 +415,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -503,6 +427,7 @@
                 opacity: 0;
                 transform: translateX(50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -514,6 +439,7 @@
                 opacity: 0;
                 transform: translateX(-50px);
             }
+
             to {
                 opacity: 1;
                 transform: translateX(0);
@@ -521,14 +447,29 @@
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            33% { transform: translateY(-10px) rotate(1deg); }
-            66% { transform: translateY(-5px) rotate(-1deg); }
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            33% {
+                transform: translateY(-10px) rotate(1deg);
+            }
+
+            66% {
+                transform: translateY(-5px) rotate(-1deg);
+            }
         }
 
         @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
+            0% {
+                background-position: -1000px 0;
+            }
+
+            100% {
+                background-position: 1000px 0;
+            }
         }
 
         .animate-fadeIn {
@@ -548,7 +489,7 @@
         }
 
         .animate-shimmer {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
             background-size: 200% 100%;
             animation: shimmer 2s infinite;
         }
@@ -578,14 +519,147 @@
         }
 
         @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .mobile-393-base {
+                padding-bottom: env(safe-area-inset-bottom, 0px);
+            }
+
+            .mobile-393-base .create-kit-header {
+                border-radius: 1rem;
+                margin-bottom: 0.75rem;
+                top: 0.35rem;
+            }
+
+            .mobile-393-base .create-kit-header-inner {
+                padding: 0.7rem !important;
+            }
+
+            .mobile-393-base .create-kit-header-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.7rem;
+            }
+
+            .mobile-393-base .create-kit-header-left {
+                gap: 0.55rem;
+                align-items: flex-start;
+            }
+
+            .mobile-393-base .create-kit-header-left h1 {
+                font-size: 1.1rem !important;
+                line-height: 1.2 !important;
+            }
+
+            .mobile-393-base .create-kit-header-left .w-14.h-14 {
+                width: 2.35rem !important;
+                height: 2.35rem !important;
+            }
+
+            .mobile-393-base .create-kit-header-left .w-14.h-14 i {
+                font-size: 1rem !important;
+            }
+
+            .mobile-393-base .create-kit-header-left .gap-3 {
+                gap: 0.35rem !important;
+                flex-wrap: wrap;
+            }
+
+            .mobile-393-base .create-kit-header-left .w-12 {
+                width: 1.4rem !important;
+            }
+
+            .mobile-393-base .create-kit-header-left .text-sm {
+                font-size: 0.69rem !important;
+            }
+
+            .mobile-393-base .create-kit-header-actions {
+                width: 100%;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.45rem;
+            }
+
+            .mobile-393-base .create-kit-header-actions > * {
+                width: 100%;
+                justify-content: center;
+                padding: 0.55rem 0.45rem !important;
+                font-size: 0.72rem !important;
+                border-radius: 0.7rem !important;
+            }
+
+            .mobile-393-base .create-kit-main {
+                overflow-x: hidden;
+            }
+
+            .mobile-393-base .create-kit-step2 {
+                gap: 0.65rem !important;
+            }
+
+            .mobile-393-base .create-kit-step2-left > div,
+            .mobile-393-base .create-kit-upload-card,
+            .mobile-393-base .create-kit-products-card {
+                padding: 0.8rem !important;
+                border-radius: 0.95rem !important;
+            }
+
+            .mobile-393-base .create-kit-step2-left .grid.grid-cols-12 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+                gap: 0.4rem;
+            }
+
+            .mobile-393-base .create-kit-step2-left .col-span-7,
+            .mobile-393-base .create-kit-step2-left .col-span-4,
+            .mobile-393-base .create-kit-step2-left .col-span-1 {
+                grid-column: span 1 / span 1;
+            }
+
+            .mobile-393-base .create-kit-step2-left .col-span-1 {
+                text-align: left;
+            }
+
+            .mobile-393-base .create-kit-step2-left .grid.grid-cols-1.sm\:grid-cols-3,
+            .mobile-393-base .create-kit-step2-left .grid.grid-cols-1.lg\:grid-cols-2 {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+
+            .mobile-393-base .create-kit-upload-card .mt-3 {
+                margin-top: 0.5rem !important;
+            }
+
+            .mobile-393-base .create-kit-products-card .max-h-\[340px\] {
+                max-height: 240px !important;
+            }
         }
     </style>
 
     <!-- Script para sincronizar totais com custos adicionais -->
     <script>
+        window.fmMoneyMask = function (value) {
+            const digitsOnly = String(value || '').replace(/\D/g, '');
+            if (!digitsOnly.length) return '';
+
+            const integerValue = parseInt(digitsOnly, 10);
+            if (Number.isNaN(integerValue)) return '';
+
+            const cents = (integerValue / 100).toFixed(2);
+            const [whole, decimal] = cents.split('.');
+            const withThousands = whole.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            return `${withThousands},${decimal}`;
+        };
+
         document.addEventListener('livewire:init', () => {
             // Listener para mudanças no campo de custos adicionais
             const additionalCostsInput = document.getElementById('additional_costs');
@@ -635,4 +709,3 @@
         });
     </script>
 </div>
-
