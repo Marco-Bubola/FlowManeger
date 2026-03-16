@@ -1,0 +1,214 @@
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — iPAD (768–1366px)
+   iPad portrait (768-1024px) e iPad landscape (1024-1366px)
+   ═══════════════════════════════════════════════════════════ */
+
+/* === CRITICAL: iPad portrait — layout sem sidebar === */
+@media (min-width: 768px) and (max-width: 1024px) {
+    #mainContent {
+        margin-left: 0 !important;
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+    #modernSidebar.mobile-sidebar-closed {
+        transform: translateX(-100%) !important;
+    }
+    #modernSidebar:not(.mobile-sidebar-closed) {
+        transform: translateX(0) !important;
+    }
+}
+
+/* === iPad portrait: layout de página === */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .sales-index-page,
+    .publications-page,
+    .products-index-page,
+    .publication-show-page,
+    .sale-show-page {
+        padding-inline: 0.9rem;
+    }
+
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .publications-page .products-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .sales-index-page .sales-index-header-row-1,
+    .publications-page .publications-header-row-1 {
+        align-items: flex-start;
+    }
+
+    .sale-show-page .container-fluid {
+        padding-inline: 0.75rem !important;
+    }
+}
+
+/* === iPad portrait com orientação: card styling === */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .sales-index-page .sale-card {
+        padding: 0.85rem !important;
+    }
+
+    .sales-index-page .sale-card-client-info h3 {
+        font-size: 0.92rem !important;
+    }
+
+    .sales-index-page .sale-card-client-info span {
+        font-size: 0.72rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data span {
+        font-size: 0.66rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.82rem !important;
+    }
+
+    .sales-index-page .sale-card-actions {
+        gap: 0.4rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left {
+        gap: 0.45rem;
+    }
+
+    .sales-index-page .sale-sort-pills .sale-filter-pill,
+    .sales-index-page .sale-period-pills .sale-filter-pill {
+        font-size: 0.66rem;
+        padding: 0.34rem 0.52rem;
+    }
+
+    .sales-index-page .sale-filter-pill-label {
+        font-size: 0.62rem;
+    }
+}
+
+/* === iPad portrait hotfix: grid, financial text, actions === */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* Force 2 columns */
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    /* Tab bar bottom padding for iPad */
+    .sales-index-page,
+    .products-index-page,
+    .publications-page,
+    .sale-show-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Card layout: slightly larger and readable */
+    .sales-index-page .sale-card {
+        border-radius: 1.1rem;
+    }
+
+    .sales-index-page .sale-card-client-info h3 {
+        font-size: 0.9rem !important;
+        font-weight: 700 !important;
+    }
+
+    .sales-index-page .sale-card-client-info span {
+        font-size: 0.7rem !important;
+    }
+
+    /* Financial blocks: prevent text cutoff */
+    .sales-index-page .sale-card-fin-block {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .sales-index-page .sale-card-fin-data {
+        min-width: 0 !important;
+        overflow: hidden !important;
+    }
+
+    .sales-index-page .sale-card-fin-data span {
+        font-size: 0.58rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        max-width: 100% !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.75rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        display: block !important;
+        max-width: 100% !important;
+        line-height: 1.1 !important;
+    }
+
+    /* Actions: 5-column grid */
+    .sales-index-page .sale-card-actions {
+        display: grid !important;
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 0.3rem !important;
+        padding: 0.5rem !important;
+    }
+
+    .sales-index-page .sale-card-actions a,
+    .sales-index-page .sale-card-actions button {
+        width: 100% !important;
+        height: 2.2rem !important;
+        border-radius: 0.55rem !important;
+        justify-content: center !important;
+    }
+
+    /* Header: compact sort pills on iPad */
+    .sales-index-page .sales-index-header-row-2 {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+    }
+
+    .sales-index-page .sales-index-header-title {
+        font-size: 1.3rem !important;
+    }
+}
+
+/* === iPad landscape: 3-col sales, 4-col products === */
+@media (min-width: 1025px) and (max-width: 1366px) and (orientation: landscape) {
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .publications-page .products-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left {
+        gap: 0.45rem;
+    }
+}
+
+/* === iPad landscape: sale card styling === */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .sales-index-page .sale-card {
+        padding: 0.95rem !important;
+    }
+
+    .sales-index-page .sale-card-client-info h3 {
+        font-size: 0.98rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.88rem !important;
+    }
+
+    .sales-index-page .sale-sort-pills .sale-filter-pill,
+    .sales-index-page .sale-period-pills .sale-filter-pill {
+        font-size: 0.67rem;
+        padding: 0.33rem 0.54rem;
+    }
+}
