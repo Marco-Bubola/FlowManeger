@@ -4,8 +4,26 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+        @php
+            $mobilePendingSales = 0;
+            $mobilePendingMl = 0;
+            try {
+                if (auth()->check()) {
+                    $mobilePendingSales = \App\Models\Sale::where('user_id', auth()->id())
+                        ->where('status', 'pendente')
+                        ->count();
+
+                    $mobilePendingMl = \App\Models\MlPublication::where('user_id', auth()->id())
+                        ->where('sync_status', 'pending')
+                        ->count();
+                }
+            } catch (\Throwable $e) {
+                $mobilePendingSales = 0;
+                $mobilePendingMl = 0;
+            }
+        @endphp
         <!-- Modern Sidebar with Toggle -->
-        <div id="modernSidebar" class="modern-sidebar fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out animate-fade-slide-in" style="width: 280px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 1.5px 8px 0 rgba(80, 80, 200, 0.10); border-radius: 0 1.5rem 1.5rem 0;">
+        <div id="modernSidebar" class="modern-sidebar mobile-sidebar-closed fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out" style="width: 280px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 1.5px 8px 0 rgba(80, 80, 200, 0.10); border-radius: 0 1.5rem 1.5rem 0;">
                     <style>
                     @keyframes fade-slide-in {
                         0% { opacity: 0; transform: translateX(-24px); }
@@ -42,7 +60,7 @@
                         </button>
 
                         <!-- Mobile Close -->
-                        <button class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" onclick="document.getElementById('modernSidebar').classList.add('-translate-x-full')">
+                        <button class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" onclick="closeMobileSidebar()">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
@@ -479,12 +497,263 @@
             </div>
         </div>
 
-        <!-- Mobile Toggle Button -->
-        <button class="lg:hidden fixed bottom-4 right-4 z-50 w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-2xl flex items-center justify-center hover:scale-110 transition-transform duration-200" onclick="document.getElementById('modernSidebar').classList.remove('-translate-x-full')">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
-        </button>
+        <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop lg:hidden" onclick="closeMobileSidebar()" aria-hidden="true"></div>
+
+        <!-- Mobile Bottom Tab Bar (premium) -->
+        <nav class="mobile-bottom-tabbar lg:hidden" role="navigation" aria-label="Navegação principal">
+
+            <!-- Inicio -->
+            <a href="{{ route('dashboard.index') }}" wire:navigate
+               class="mobile-tab-item {{ request()->routeIs('dashboard.*') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"></path>
+                    </svg>
+                </div>
+                <span>Inicio</span>
+            </a>
+
+            <!-- Vendas -->
+            <a href="{{ url('sales') }}" wire:navigate
+               class="mobile-tab-item {{ Request::is('sales*') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <span>Vendas</span>
+                @if($mobilePendingSales > 0)
+                    <span class="mobile-tab-badge">{{ $mobilePendingSales > 99 ? '99+' : $mobilePendingSales }}</span>
+                @endif
+            </a>
+
+            <!-- FAB Central: Ações Rápidas -->
+            <button type="button" class="mobile-tab-item mobile-tab-fab" onclick="openFabSheet()" aria-label="Ações rápidas">
+                <div class="fab-circle">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Produtos (mobile) / ML (iPad extra - hidden on pure mobile) -->
+            <!-- ML tab: visivel somente no iPad (768px+) -->
+            <a href="{{ route('mercadolivre.products') }}" wire:navigate
+               class="mobile-tab-item tab-ipad-only {{ Request::is('mercadolivre*') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path>
+                    </svg>
+                </div>
+                <span>ML</span>
+                @if($mobilePendingMl > 0)
+                    <span class="mobile-tab-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
+                @endif
+            </a>
+
+            <!-- Produtos -->
+            <a href="{{ url('products') }}" wire:navigate
+               class="mobile-tab-item {{ Request::is('products*') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+                <span>Produtos</span>
+            </a>
+
+            <!-- Mais -->
+            <button type="button" class="mobile-tab-item" onclick="openMoreSheet()" aria-label="Mais opções">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8M4 18h6"></path>
+                    </svg>
+                </div>
+                <span>Mais</span>
+            </button>
+        </nav>
+
+        <!-- FAB Sheet: Ações Rápidas -->
+        <div id="mobileFabSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
+            <div class="mobile-sheet-backdrop" onclick="closeFabSheet()"></div>
+            <div class="mobile-sheet-panel">
+                <div class="mobile-sheet-handle"></div>
+                <h3 class="mobile-sheet-title">
+                    <svg class="w-5 h-5 inline-block mr-1.5 -mt-0.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Ações Rápidas
+                </h3>
+                <div class="mobile-sheet-grid">
+                    <a href="{{ route('sales.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background: linear-gradient(135deg,#10b981,#059669)">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <span>Nova Venda</span>
+                    </a>
+                    <a href="{{ route('products.upload') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background: linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                        </div>
+                        <span>Upload</span>
+                    </a>
+                    <a href="{{ route('clients.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                            </svg>
+                        </div>
+                        <span>Novo Cliente</span>
+                    </a>
+                    <a href="{{ route('products.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background: linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                        </div>
+                        <span>Novo Produto</span>
+                    </a>
+                    <a href="{{ route('mercadolivre.products') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background: linear-gradient(135deg,#ef4444,#b91c1c)">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path>
+                            </svg>
+                        </div>
+                        <span>Pub. ML</span>
+                    </a>
+                    <a href="{{ route('clients.index') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background: linear-gradient(135deg,#06b6d4,#0891b2)">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <span>Clientes</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mais Sheet: Navegação Completa -->
+        <div id="mobileMoreSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
+            <div class="mobile-sheet-backdrop" onclick="closeMoreSheet()"></div>
+            <div class="mobile-sheet-panel">
+                <div class="mobile-sheet-handle"></div>
+                <h3 class="mobile-sheet-title">
+                    <svg class="w-5 h-5 inline-block mr-1.5 -mt-0.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                    Menu Completo
+                </h3>
+
+                {{-- NAVEGAÇÃO PRINCIPAL --}}
+                <p class="mobile-sheet-section-label">Navegação</p>
+                <div class="mobile-sheet-list">
+                    <a href="{{ url('products') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Produtos</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('clients.index') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Clientes</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('mercadolivre.products') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Mercado Livre</span>
+                        @if($mobilePendingMl > 0)
+                            <span class="mobile-sheet-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
+                        @endif
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                {{-- DASHBOARDS --}}
+                <p class="mobile-sheet-section-label" style="margin-top:0.9rem">Dashboards</p>
+                <div class="mobile-sheet-list">
+                    <a href="{{ route('dashboard.index') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Dashboard Geral</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('dashboard.cashbook') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Financeiro</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('dashboard.sales') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Dashboard Vendas</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('dashboard.clients') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Dashboard Clientes</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                {{-- CRIAR / UPLOAD --}}
+                <p class="mobile-sheet-section-label" style="margin-top:0.9rem">Criar &amp; Importar</p>
+                <div class="mobile-sheet-list">
+                    <a href="{{ route('sales.create') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Nova Venda</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('products.create') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Novo Produto</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('clients.create') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Novo Cliente</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('products.upload') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Upload Produtos</span>
+                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                <div class="mobile-sheet-divider" style="margin-top:0.9rem"></div>
+                <button class="mobile-sheet-nav-item w-full text-left" onclick="closeMoreSheet(); setTimeout(openMobileSidebar, 220)">
+                    <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#475569,#334155)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </div>
+                    <span class="mobile-sheet-nav-label">Menu Completo (Sidebar)</span>
+                    <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+            </div>
+        </div>
 
         <!-- Main Content Area -->
         <div id="mainContent" class="transition-all duration-300 ease-in-out" style="margin-left: 280px;">
@@ -554,17 +823,391 @@
                 transform: rotate(180deg);
             }
 
-            /* Mobile Responsive */
-            @media (max-width: 1024px) {
+            /* Tablet: compact sidebar on iPad landscape and larger tablets */
+            @media (min-width: 1025px) and (max-width: 1366px) {
                 #modernSidebar {
-                    transform: translateX(-100%);
+                    width: 240px !important;
                 }
+
                 #mainContent {
-                    margin-left: 0 !important;
+                    margin-left: 240px !important;
                 }
             }
 
-            /* Animations */
+            /* Mobile Responsive */
+            @media (max-width: 1024px) {
+                #modernSidebar {
+                    width: min(86vw, 280px) !important;
+                    border-radius: 0 1.1rem 1.1rem 0 !important;
+                }
+                #mainContent {
+                    margin-left: 0 !important;
+                    padding-bottom: calc(76px + env(safe-area-inset-bottom));
+                }
+
+                #modernSidebar.mobile-sidebar-closed {
+                    transform: translateX(-100%);
+                }
+
+                #modernSidebar:not(.mobile-sidebar-closed) {
+                    transform: translateX(0);
+                }
+
+                #modernSidebar.animate-fade-slide-in {
+                    animation: none;
+                }
+
+                .mobile-sidebar-backdrop {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 45;
+                    background: rgba(2, 6, 23, 0.42);
+                    backdrop-filter: blur(3px);
+                    opacity: 0;
+                    pointer-events: none;
+                    transition: opacity 0.2s ease;
+                }
+
+                #modernSidebar:not(.mobile-sidebar-closed) ~ .mobile-sidebar-backdrop {
+                    opacity: 1;
+                    pointer-events: auto;
+                }
+            }
+
+            /* ─── Mobile bottom tab bar (premium) ─── */
+            .mobile-bottom-tabbar {
+                position: fixed;
+                left: 0; right: 0; bottom: 0;
+                z-index: 60;
+                display: grid;
+                grid-template-columns: repeat(5, minmax(0, 1fr));
+                align-items: center;
+                gap: 0;
+                padding: 0.25rem 0.35rem calc(0.3rem + env(safe-area-inset-bottom));
+                background: rgba(255,255,255,0.96);
+                backdrop-filter: blur(20px) saturate(1.8);
+                -webkit-backdrop-filter: blur(20px) saturate(1.8);
+                border-top: 1px solid rgba(148,163,184,0.2);
+                box-shadow: 0 -6px 28px rgba(15,23,42,0.10), 0 -1px 0 rgba(148,163,184,0.15);
+            }
+
+            .dark .mobile-bottom-tabbar {
+                background: rgba(8,12,26,0.95);
+                border-top-color: rgba(51,65,85,0.5);
+                box-shadow: 0 -6px 28px rgba(0,0,0,0.35), 0 -1px 0 rgba(51,65,85,0.35);
+            }
+
+            /* Tab item base */
+            .mobile-tab-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 0.14rem;
+                padding: 0.28rem 0.15rem;
+                min-height: 3rem;
+                border-radius: 0.75rem;
+                color: #64748b;
+                font-size: 0.6rem;
+                font-weight: 700;
+                letter-spacing: 0.015em;
+                line-height: 1;
+                transition: color 0.2s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                position: relative;
+                text-decoration: none;
+                -webkit-tap-highlight-color: transparent;
+                user-select: none;
+            }
+
+            .dark .mobile-tab-item { color: #94a3b8; }
+
+            /* Tab icon wrapper */
+            .mobile-tab-item .tab-icon {
+                width: 1.7rem;
+                height: 1.7rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 0.55rem;
+                transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
+            }
+
+            /* Active state */
+            .mobile-tab-item.is-active { color: #3b82f6; }
+            .dark .mobile-tab-item.is-active { color: #60a5fa; }
+
+            .mobile-tab-item.is-active .tab-icon {
+                background: linear-gradient(135deg,rgba(59,130,246,.14),rgba(99,102,241,.2));
+                transform: translateY(-3px) scale(1.1);
+                box-shadow: 0 5px 14px rgba(59,130,246,.22);
+            }
+            .dark .mobile-tab-item.is-active .tab-icon {
+                background: linear-gradient(135deg,rgba(30,64,175,.4),rgba(79,70,229,.4));
+                box-shadow: 0 5px 14px rgba(59,130,246,.35);
+            }
+
+            /* Active dot */
+            .mobile-tab-item.is-active::after {
+                content:'';
+                position:absolute;
+                bottom:0.12rem;
+                left:50%;
+                transform:translateX(-50%);
+                width:0.3rem;
+                height:0.3rem;
+                border-radius:50%;
+                background:linear-gradient(135deg,#3b82f6,#6366f1);
+                box-shadow: 0 0 4px rgba(99,102,241,.5);
+            }
+
+            /* FAB center button */
+            .mobile-tab-fab { gap: 0 !important; padding: 0 !important; }
+
+            .mobile-tab-fab .fab-circle {
+                width: 3rem;
+                height: 3rem;
+                border-radius: 50%;
+                background: linear-gradient(135deg,#3b82f6 0%,#6366f1 50%,#8b5cf6 100%);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 6px 22px rgba(99,102,241,.45), 0 2px 8px rgba(59,130,246,.3), inset 0 1px 0 rgba(255,255,255,.2);
+                transform: translateY(-5px);
+                transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+                color: white;
+            }
+            .mobile-tab-fab:active .fab-circle,
+            .mobile-tab-fab:focus-visible .fab-circle {
+                transform: translateY(-3px) scale(0.93);
+                box-shadow: 0 3px 12px rgba(99,102,241,.3);
+            }
+
+            /* Badge */
+            .mobile-tab-badge {
+                position: absolute;
+                top: 0.08rem;
+                right: calc(50% - 0.95rem);
+                min-width: 1.05rem;
+                height: 1.05rem;
+                padding: 0 0.2rem;
+                border-radius: 9999px;
+                background: linear-gradient(135deg,#ef4444,#f97316);
+                color: #fff;
+                font-size: 0.55rem;
+                font-weight: 800;
+                line-height: 1.05rem;
+                text-align: center;
+                box-shadow: 0 0 0 2px white;
+                animation: mobile-badge-pulse 1.8s infinite;
+                pointer-events: none;
+            }
+            .dark .mobile-tab-badge { box-shadow: 0 0 0 2px rgba(8,12,26,.95); }
+
+            @keyframes mobile-badge-pulse {
+                0%,100% { transform: scale(1); }
+                50% { transform: scale(1.12); }
+            }
+
+            /* ML-only tab: hidden on mobile, shown on iPad */
+            .tab-ipad-only { display: none !important; }
+
+            /* iPad portrait: 6-column layout with ML tab (override Tailwind lg:hidden at 1024px) */
+            @media (min-width: 768px) and (max-width: 1024px) {
+                .mobile-bottom-tabbar {
+                    display: grid !important;
+                    grid-template-columns: repeat(6, minmax(0, 1fr));
+                    padding: 0.45rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
+                }
+                .tab-ipad-only {
+                    display: flex !important;
+                }
+                .mobile-tab-item {
+                    min-height: 3.6rem;
+                    font-size: 0.65rem;
+                    gap: 0.18rem;
+                }
+                .mobile-tab-item .tab-icon {
+                    width: 1.85rem;
+                    height: 1.85rem;
+                }
+                .mobile-tab-fab .fab-circle {
+                    width: 3rem;
+                    height: 3rem;
+                    transform: translateY(-6px);
+                }
+            }
+
+            /* ─── Action Sheets ─── */
+            .mobile-action-sheet {
+                position: fixed;
+                inset: 0;
+                z-index: 80;
+                pointer-events: none;
+            }
+            .mobile-action-sheet.is-open { pointer-events: auto; }
+
+            .mobile-sheet-backdrop {
+                position: absolute;
+                inset: 0;
+                background: rgba(2,6,23,.55);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                opacity: 0;
+                transition: opacity 0.25s ease;
+            }
+            .mobile-action-sheet.is-open .mobile-sheet-backdrop { opacity: 1; }
+
+            .mobile-sheet-panel {
+                position: absolute;
+                left: 0; right: 0; bottom: 0;
+                background: #ffffff;
+                border-radius: 1.5rem 1.5rem 0 0;
+                padding: 0.4rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
+                transform: translateY(100%);
+                transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+                box-shadow: 0 -10px 50px rgba(15,23,42,.18);
+                max-height: 88dvh;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+            }
+            .dark .mobile-sheet-panel {
+                background: #0d1526;
+                border-top: 1px solid rgba(51,65,85,.4);
+            }
+            .mobile-action-sheet.is-open .mobile-sheet-panel { transform: translateY(0); }
+
+            .mobile-sheet-handle {
+                width: 2.5rem; height: 0.25rem;
+                border-radius: 9999px;
+                background: #e2e8f0;
+                margin: 0.3rem auto 0.85rem;
+            }
+            .dark .mobile-sheet-handle { background: #1e293b; }
+
+            .mobile-sheet-title {
+                font-size: 1rem;
+                font-weight: 800;
+                color: #0f172a;
+                margin-bottom: 0.9rem;
+                display: flex;
+                align-items: center;
+            }
+            .dark .mobile-sheet-title { color: #f1f5f9; }
+
+            /* FAB Sheet: grid 3 cols */
+            .mobile-sheet-grid {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                gap: 0.7rem;
+                padding-bottom: 0.5rem;
+            }
+            .mobile-sheet-action {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.85rem 0.4rem;
+                border-radius: 1.1rem;
+                background: #f8fafc;
+                border: 1.5px solid #e2e8f0;
+                text-decoration: none;
+                color: #0f172a;
+                font-size: 0.7rem;
+                font-weight: 700;
+                transition: all 0.16s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .dark .mobile-sheet-action {
+                background: #1e293b;
+                border-color: rgba(51,65,85,.55);
+                color: #f1f5f9;
+            }
+            .mobile-sheet-action:active { transform: scale(0.94); }
+            .action-icon {
+                width: 2.9rem; height: 2.9rem;
+                border-radius: 0.85rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1.3rem;
+                box-shadow: 0 4px 12px rgba(0,0,0,.15);
+            }
+
+            /* More Sheet: nav list */
+            .mobile-sheet-list {
+                display: flex;
+                flex-direction: column;
+                gap: 0.15rem;
+            }
+            .mobile-sheet-nav-item {
+                display: flex;
+                align-items: center;
+                gap: 0.85rem;
+                padding: 0.8rem 0.6rem;
+                border-radius: 0.85rem;
+                text-decoration: none;
+                color: #0f172a;
+                font-size: 0.88rem;
+                font-weight: 600;
+                background: transparent;
+                border: none;
+                cursor: pointer;
+                transition: background 0.14s ease;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .dark .mobile-sheet-nav-item { color: #e2e8f0; }
+            .mobile-sheet-nav-item:active,
+            .mobile-sheet-nav-item:hover { background: #f1f5f9; }
+            .dark .mobile-sheet-nav-item:active,
+            .dark .mobile-sheet-nav-item:hover { background: #1e293b; }
+
+            .mobile-sheet-nav-icon {
+                width: 2.3rem; height: 2.3rem;
+                border-radius: 0.65rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 1rem;
+                flex-shrink: 0;
+                box-shadow: 0 3px 8px rgba(0,0,0,.12);
+            }
+            .mobile-sheet-nav-label { flex: 1; }
+            .mobile-sheet-badge {
+                min-width: 1.35rem; height: 1.35rem;
+                padding: 0 0.3rem;
+                border-radius: 9999px;
+                background: linear-gradient(135deg,#ef4444,#f97316);
+                color: white;
+                font-size: 0.62rem;
+                font-weight: 800;
+                line-height: 1.35rem;
+                text-align: center;
+            }
+            .mobile-sheet-divider {
+                height: 1px;
+                background: #e2e8f0;
+                margin: 0.4rem 0;
+            }
+            .dark .mobile-sheet-divider { background: #1e293b; }
+
+            /* Section labels inside More sheet */
+            .mobile-sheet-section-label {
+                font-size: 0.62rem;
+                font-weight: 800;
+                letter-spacing: 0.08em;
+                text-transform: uppercase;
+                color: #94a3b8;
+                padding: 0 0.3rem;
+                margin: 0.2rem 0 0.3rem;
+            }
+            .dark .mobile-sheet-section-label { color: #475569; }
+
+            /* ─── Animations ─── */
             @keyframes slideIn {
                 from { opacity: 0; transform: translateX(-10px); }
                 to { opacity: 1; transform: translateX(0); }
@@ -576,20 +1219,78 @@
 
         <!-- Toggle Script -->
         <script>
+            function openMobileSidebar() {
+                const sidebar = document.getElementById('modernSidebar');
+                if (!sidebar) return;
+                sidebar.classList.remove('mobile-sidebar-closed');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeMobileSidebar() {
+                const sidebar = document.getElementById('modernSidebar');
+                if (!sidebar) return;
+                sidebar.classList.add('mobile-sidebar-closed');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            function openFabSheet() {
+                const sheet = document.getElementById('mobileFabSheet');
+                if (!sheet) return;
+                sheet.classList.add('is-open');
+                sheet.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeFabSheet() {
+                const sheet = document.getElementById('mobileFabSheet');
+                if (!sheet) return;
+                sheet.classList.remove('is-open');
+                sheet.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            function openMoreSheet() {
+                const sheet = document.getElementById('mobileMoreSheet');
+                if (!sheet) return;
+                sheet.classList.add('is-open');
+                sheet.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('overflow-hidden');
+            }
+
+            function closeMoreSheet() {
+                const sheet = document.getElementById('mobileMoreSheet');
+                if (!sheet) return;
+                sheet.classList.remove('is-open');
+                sheet.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('overflow-hidden');
+            }
+
             function initSidebar() {
                 const toggle = document.getElementById('sidebarToggle');
                 const sidebar = document.getElementById('modernSidebar');
-                const mainContent = document.getElementById('mainContent');
 
-                // Load saved state
+                // Load saved compact state (desktop only — > 1024px)
                 const isCompact = localStorage.getItem('sidebarCompact') === 'true';
-                if (isCompact) {
+                if (isCompact && window.innerWidth > 1024) {
                     document.body.classList.add('sidebar-compact');
                 } else {
                     document.body.classList.remove('sidebar-compact');
                 }
 
-                // Toggle functionality
+                // Enforce mobile-sidebar-closed on mobile/tablet (including 1024px iPad Pro)
+                if (window.innerWidth <= 1024) {
+                    sidebar?.classList.add('mobile-sidebar-closed');
+                    document.body.classList.remove('overflow-hidden');
+                } else {
+                    sidebar?.classList.remove('mobile-sidebar-closed');
+                    document.body.classList.remove('overflow-hidden');
+                }
+
+                // Close any open sheets on navigation
+                closeFabSheet();
+                closeMoreSheet();
+
+                // Desktop toggle functionality
                 if (toggle && !toggle.hasAttribute('data-sidebar-initialized')) {
                     toggle.setAttribute('data-sidebar-initialized', 'true');
                     toggle.addEventListener('click', function() {
@@ -599,16 +1300,16 @@
                     });
                 }
 
-                // Close mobile menu on navigation
+                // Close mobile sidebar on nav link click
                 document.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', function() {
-                        if (window.innerWidth < 1024) {
-                            sidebar.classList.add('-translate-x-full');
+                        if (window.innerWidth <= 1024) {
+                            closeMobileSidebar();
                         }
                     });
                 });
 
-                // Close user menu on outside click
+                // Close user dropdown on outside click
                 document.addEventListener('click', function(e) {
                     const userMenu = document.getElementById('userMenu');
                     const userButton = userMenu?.previousElementSibling;
@@ -618,10 +1319,7 @@
                 });
             }
 
-            // Inicializar no carregamento
             document.addEventListener('DOMContentLoaded', initSidebar);
-
-            // Reinicializar após navegação Livewire
             document.addEventListener('livewire:navigated', initSidebar);
         </script>
 
