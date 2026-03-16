@@ -26,6 +26,42 @@ new class extends Component {
             <flux:radio value="system" icon="computer-desktop">{{ __('Sistema') }}</flux:radio>
         </flux:radio.group>
 
+        <div class="mt-6 rounded-2xl border border-slate-200 dark:border-zinc-700 p-4 bg-white/70 dark:bg-zinc-900/40">
+            <div class="flex items-start gap-3">
+                <div class="w-9 h-9 rounded-lg flex items-center justify-center bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-300">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M3 12h18M3 17h18"></path></svg>
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">Navegação no iPad deitado</p>
+                    <p class="text-xs text-slate-600 dark:text-slate-400 mt-1">Escolha se no iPad em modo paisagem deseja usar barra lateral fixa ou tab bar inferior.</p>
+                </div>
+            </div>
+
+            <div class="mt-4" x-data="{
+                mode: localStorage.getItem('flowmanager:tablet-nav-mode') === 'tabbar' ? 'tabbar' : 'sidebar',
+                save(next) {
+                    this.mode = next;
+                    localStorage.setItem('flowmanager:tablet-nav-mode', next);
+                    window.dispatchEvent(new CustomEvent('flowmanager:tablet-nav-mode-changed', { detail: { mode: next } }));
+                }
+            }">
+                <div class="inline-flex rounded-xl border border-slate-200 dark:border-zinc-700 p-1 bg-slate-50 dark:bg-zinc-800">
+                    <button type="button"
+                        @click="save('sidebar')"
+                        :class="mode === 'sidebar' ? 'bg-indigo-600 text-white shadow' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700'"
+                        class="px-3 py-2 rounded-lg text-sm font-semibold transition">
+                        Sidebar
+                    </button>
+                    <button type="button"
+                        @click="save('tabbar')"
+                        :class="mode === 'tabbar' ? 'bg-indigo-600 text-white shadow' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-zinc-700'"
+                        class="px-3 py-2 rounded-lg text-sm font-semibold transition">
+                        Tab Bar
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <form wire:submit.prevent="saveAppearance" class="mt-8 space-y-8">
             <!-- Seleção de Fonte -->
             <div>
