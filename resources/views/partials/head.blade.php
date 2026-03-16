@@ -73,6 +73,10 @@
 
 @stack('styles')
 
+<!-- Sidebar & Tab Bar CSS (extraídos do inline) -->
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/sidebar.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/tabbar.css') }}">
+
 <!-- Responsive CSS separado por dispositivo -->
 <link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-mobile.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-iphone.css') }}">
