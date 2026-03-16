@@ -2,7 +2,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
 @endpush
 
-<div class="w-full">
+<div class="w-full h-screen min-h-screen app-viewport-fit publication-show-page mobile-393-base">
     <div class="container mx-auto px-4 py-6 max-w-7xl">
 
         {{-- Header Moderno Estilo Sales-Index --}}
