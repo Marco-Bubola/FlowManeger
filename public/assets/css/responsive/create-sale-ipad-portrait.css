@@ -1,0 +1,235 @@
+/* Create Sale - iPad Portrait (768-1024) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .sales-create-page {
+        padding-inline: 0.85rem;
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    .sales-create-page .sales-create-header-inner {
+        padding: 0.95rem 1rem !important;
+    }
+
+    .sales-create-page .sales-create-header-main {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        align-items: center !important;
+        gap: 0.72rem !important;
+    }
+
+    .sales-create-page .sales-create-header-main > div:first-child {
+        min-width: 0 !important;
+    }
+
+    .sales-create-page .sales-create-header-title {
+        font-size: 1.38rem !important;
+        line-height: 1.06 !important;
+    }
+
+    .sales-create-page .sales-create-header-subtitle {
+        font-size: 0.76rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .sales-create-page .sales-create-header-actions {
+        width: auto !important;
+        justify-content: flex-end !important;
+        gap: 0.4rem !important;
+        max-width: 50vw;
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .sales-create-page .sales-create-header-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sales-create-page .sales-create-header-actions > div:last-child {
+        margin-top: 0 !important;
+        padding-bottom: 0 !important;
+        max-width: 28vw;
+    }
+
+    .sales-create-page .sales-create-header-actions > div:last-child p {
+        font-size: 0.7rem !important;
+    }
+
+    .sales-create-page .create-header-next-btn {
+        font-size: 0.78rem !important;
+        padding: 0.5rem 0.84rem !important;
+        white-space: nowrap;
+    }
+
+    .sales-create-page .create-sale-step-products-shell {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: stretch !important;
+        gap: 0.75rem !important;
+        height: calc(100vh - 235px) !important;
+    }
+
+    .sales-create-page .create-sale-products-pane {
+        width: 64% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .sales-create-page .create-sale-summary-pane {
+        width: 36% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+
+    .sales-create-page .create-sale-products-controls {
+        gap: 0.55rem !important;
+    }
+
+    .sales-create-page .products-step-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.56rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern {
+        min-height: 312px !important;
+        height: auto !important;
+    }
+
+    .sales-create-page .create-sale-summary-card {
+        padding: 0.72rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-info-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-card h3 {
+        font-size: 0.95rem !important;
+    }
+
+    .sales-create-page .products-mobile-compact-grid .product-card-modern .product-img-area {
+        min-height: 148px !important;
+        height: 148px !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-img-area {
+        min-height: 142px !important;
+        height: 142px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .card-body,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .card-body {
+        padding: 2.48em 0.56em 2.08em 0.56em !important;
+        gap: 0.18em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-title,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
+        font-size: 0.8em !important;
+        line-height: 1.12 !important;
+        line-clamp: 2 !important;
+        -webkit-line-clamp: 2 !important;
+        min-height: 2.1em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .price-area,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .price-area {
+        min-height: 1.82em !important;
+        margin-top: 0.22em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .badge-product-code,
+    .sales-create-page .products-step-grid .product-card-modern .badge-quantity,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price-sale,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-product-code,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-quantity,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.74em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon-wrapper,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .category-icon-wrapper {
+        width: 52px !important;
+        height: 52px !important;
+        bottom: -25px !important;
+        border-width: 3px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .category-icon {
+        font-size: 1.58em !important;
+    }
+
+    .sales-create-page .create-sale-selected-list {
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        padding-bottom: 0.4rem;
+    }
+
+    .sales-create-page .create-sale-selected-item {
+        padding: 0.62rem !important;
+    }
+
+    .sales-create-page .create-sale-step-review-shell {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.75rem !important;
+        align-items: stretch !important;
+        max-height: calc(100vh - 232px) !important;
+    }
+
+    .sales-create-page .create-sale-review-info-pane {
+        width: 44% !important;
+        padding: 0.78rem !important;
+        overflow-y: auto;
+    }
+
+    .sales-create-page .create-sale-review-products-pane {
+        width: 56% !important;
+        padding: 0.82rem !important;
+        overflow-y: auto;
+    }
+
+    .sales-create-page .create-sale-review-title {
+        font-size: 1.32rem !important;
+        margin-bottom: 0.6rem !important;
+    }
+
+    .sales-create-page .create-sale-review-client-card,
+    .sales-create-page .create-sale-review-total-card {
+        padding: 0.72rem !important;
+    }
+
+    .sales-create-page .create-sale-review-actions {
+        margin-top: 0.65rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .sales-create-page .create-sale-review-actions button {
+        padding: 0.72rem 0.85rem !important;
+        border-radius: 0.95rem !important;
+        font-size: 0.84rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.68rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.56rem !important;
+    }
+
+    .sales-create-page .create-sale-review-total-footer {
+        margin-top: 0.72rem !important;
+        padding: 0.95rem !important;
+    }
+}
