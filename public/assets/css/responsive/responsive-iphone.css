@@ -126,40 +126,171 @@
         --mobile-base-width: 393px;
     }
 
+    /* ════════════════════════════════════════════
+       HEADER IPHONE 15 — Design Dark Glass Moderno
+       Background: deep purple→indigo gradient + blur orbs
+       Layout:
+         [1] [🛒 Vendas ················] [+ Nova Venda]
+         [2] [🔓 stats badge] [💻 hoje]
+         [3] [🔍 Buscar vendas… ················  ]
+         [4] [Todos][Pend.][Pago]  [◄ 1/4 ►][⚡][≡]
+       ════════════════════════════════════════════ */
+
+    /* ── Container principal ──────────────────────────────────── */
     .mobile-393-base .sales-index-header {
-        border-radius: 1rem;
-        margin-bottom: 0.75rem;
+        border-radius: 1.5rem;
+        margin-bottom: 0.85rem;
+        background: linear-gradient(148deg,
+            #1e1b4b 0%,
+            #2d1b69 28%,
+            #1e3a8a 65%,
+            #0f172a 100%) !important;
+        border: 1px solid rgba(99, 102, 241, 0.22) !important;
+        box-shadow:
+            0 24px 64px rgba(10, 8, 46, 0.7),
+            0 4px 24px rgba(99, 102, 241, 0.25),
+            inset 0 1px 0 rgba(255, 255, 255, 0.07) !important;
+        overflow: hidden;
+        position: relative;
     }
 
+    /* Orb glow superior direito */
+    .mobile-393-base .sales-index-header::before {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -20px;
+        width: 140px;
+        height: 140px;
+        background: radial-gradient(circle, rgba(139, 92, 246, 0.45) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* Orb glow inferior esquerdo */
+    .mobile-393-base .sales-index-header::after {
+        content: '';
+        position: absolute;
+        bottom: -35px;
+        left: 5px;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(59, 130, 246, 0.35) 0%, transparent 70%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* ── Inner ───────────────────────────────────────────── */
     .mobile-393-base .sales-index-header-inner {
-        padding: 0.75rem !important;
+        padding: 1.05rem 0.95rem 0.85rem !important;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
     }
 
-    /* Row-1 iPhone: [🛒 Título (flex-grow)] [+ Nova Venda (compacto)]
-                     [🔍 Buscar — full width abaixo               ] */
+    /* ── Row-1: [Ícone + Título]  [+ Nova Venda] ────────────── */
     .mobile-393-base .sales-index-header-row-1 {
+        display: flex;
+        flex-direction: row;
         flex-wrap: wrap;
-        gap: 0.45rem;
         align-items: center;
+        gap: 0.5rem;
     }
 
-    /* Left: cresce para preencher, NÃO força width: 100% */
     .mobile-393-base .sales-index-header-left {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.65rem;
         flex: 1 1 auto;
         min-width: 0;
     }
 
-    .mobile-393-base .sales-index-header-title {
+    /* Ícone: glow ring + gradiente */
+    .mobile-393-base .sales-index-header-icon {
+        width: 2.9rem;
+        height: 2.9rem;
+        border-radius: 0.9rem;
+        background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
+        box-shadow:
+            0 0 0 2px rgba(139, 92, 246, 0.35),
+            0 6px 18px rgba(99, 102, 241, 0.6);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-393-base .sales-index-header-icon i {
         font-size: 1.2rem;
+        color: #fff;
+    }
+
+    /* Título: branco com gradiente luminoso */
+    .mobile-393-base .sales-index-header-title {
+        font-size: 1.42rem !important;
+        font-weight: 900 !important;
+        letter-spacing: -0.025em;
         line-height: 1.1;
+        background: linear-gradient(90deg, #ffffff 0%, #c4b5fd 70%, #a5f3fc 100%) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        background-clip: text !important;
     }
 
-    .mobile-393-base .sales-index-header .sale-badge {
-        font-size: 0.66rem;
-        padding: 0.2rem 0.45rem;
+    /* Botão Nova Venda: pill full-color com shimmer */
+    .mobile-393-base .sales-index-header-btn-create {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.6rem 1.05rem !important;
+        background: linear-gradient(135deg, #a855f7 0%, #6366f1 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.18) !important;
+        border-radius: 2rem !important;
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        color: #fff !important;
+        white-space: nowrap;
+        box-shadow:
+            0 4px 16px rgba(99, 102, 241, 0.55),
+            inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    }
+    .mobile-393-base .sales-index-header-btn-create i {
+        font-size: 1rem;
     }
 
-    /* Search: empurra para a próxima linha */
+    /* ── Stats badges: mostrar no iPhone em faixa compacta ───── */
+    .mobile-393-base .sales-index-header-badges {
+        display: flex !important;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
+        width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+    .mobile-393-base .sales-index-header-badges::-webkit-scrollbar { display: none; }
+
+    .mobile-393-base .sale-badge {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 0.32rem;
+        font-size: 0.62rem;
+        font-weight: 600;
+        padding: 0.3rem 0.7rem;
+        border-radius: 2rem;
+        background: rgba(255, 255, 255, 0.09);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.82);
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    /* ── Search bar: frosted glass ───────────────────────── */
     .mobile-393-base .sales-index-header-search {
         order: 10;
         flex: 1 1 100%;
@@ -167,76 +298,173 @@
         min-width: 0;
     }
     .mobile-393-base .sales-index-header-search input {
-        font-size: 16px;
-        min-height: 42px;
-        border-radius: 0.8rem;
-        padding-left: 2.7rem;
+        font-size: 16px !important;
+        min-height: 44px;
+        border-radius: 1.1rem !important;
+        padding-left: 2.85rem !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.13) !important;
+        color: rgba(255, 255, 255, 0.9) !important;
+        backdrop-filter: blur(12px);
+        box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+    }
+    .mobile-393-base .sales-index-header-search input::placeholder {
+        color: rgba(255, 255, 255, 0.35) !important;
+    }
+    .mobile-393-base .sales-index-header-search input:focus {
+        background: rgba(255, 255, 255, 0.12) !important;
+        border-color: rgba(139, 92, 246, 0.65) !important;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.22) !important;
+        outline: none !important;
+    }
+    /* Ícone de busca e botão clear */
+    .mobile-393-base .sales-index-header-search > div i {
+        color: rgba(255, 255, 255, 0.45) !important;
+    }
+    .mobile-393-base .sales-index-header-search button {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
     }
 
-    /* Botão Nova Venda: compacto, na mesma linha do título */
-    .mobile-393-base .sales-index-header-btn-create {
-        flex: 0 0 auto;
-        width: auto;
-        justify-content: center;
-        font-size: 0.78rem;
-        padding: 0.55rem 0.85rem;
-        border-radius: 0.65rem;
-        white-space: nowrap;
+    /* ── Row-2: Filtros + Paginação + Ações ───────────────── */
+    .mobile-393-base .sales-index-header-row-2 {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+        padding: 0 !important;
+        margin-top: 0 !important;
+        border-top: none !important;
     }
 
-    .mobile-393-base .sales-index-header-badges {
-        display: none;
-    }
-
-    /* Row-2: mantém layout horizontal do responsive-mobile.css */
-    .mobile-393-base .sales-index-header-row-2-left,
-    .mobile-393-base .sales-index-header-row-2-right {
-        justify-content: flex-start;
-    }
-
-    .mobile-393-base .sale-filter-pills {
-        width: 100%;
+    /* Left: pill group com scroll */
+    .mobile-393-base .sales-index-header-row-2-left {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0 !important;
+        width: auto !important;
         overflow-x: auto;
-        justify-content: flex-start;
+        scrollbar-width: none;
+        justify-content: flex-start !important;
+    }
+    .mobile-393-base .sales-index-header-row-2-left::-webkit-scrollbar { display: none; }
+
+    /* Filter pills: segmented control glass */
+    .mobile-393-base .sale-filter-pills {
+        background: rgba(255, 255, 255, 0.07) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 2rem !important;
+        padding: 0.18rem !important;
+        display: inline-flex !important;
+        width: auto !important;
+        flex: 0 0 auto !important;
+        overflow: visible;
         scrollbar-width: none;
     }
+    .mobile-393-base .sale-filter-pills::-webkit-scrollbar { display: none; }
 
-    .mobile-393-base .sale-filter-pills::-webkit-scrollbar {
-        display: none;
+    /* Pills individuais */
+    .mobile-393-base .sale-filter-pill {
+        color: rgba(255, 255, 255, 0.5) !important;
+        font-size: 0.64rem !important;
+        font-weight: 600 !important;
+        padding: 0.32rem 0.72rem !important;
+        border-radius: 1.5rem !important;
+        background: transparent !important;
+        transition: all 0.18s ease;
+    }
+    .mobile-393-base .sale-filter-pill:hover {
+        color: rgba(255, 255, 255, 0.82) !important;
+        background: rgba(255, 255, 255, 0.12) !important;
+    }
+    .mobile-393-base .sale-filter-pill.active {
+        background: rgba(255, 255, 255, 0.9) !important;
+        color: #1e1b4b !important;
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.38) !important;
+        font-weight: 800 !important;
+    }
+    .mobile-393-base .sale-filter-pill i {
+        font-size: 0.68rem !important;
+    }
+
+    /* Right: paginação + ações glass */
+    .mobile-393-base .sales-index-header-row-2-right {
+        display: flex !important;
+        flex-shrink: 0 !important;
+        gap: 0.3rem !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        width: auto !important;
+    }
+
+    /* Paginação compacta glass */
+    .mobile-393-base .sale-pagination-compact {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.1rem !important;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 2rem;
+        padding: 0.18rem 0.45rem;
+    }
+
+    /* Setas de paginação */
+    .mobile-393-base .sale-pagination-btn {
+        width: 1.55rem !important;
+        height: 1.55rem !important;
+        color: rgba(255, 255, 255, 0.72) !important;
+        background: transparent !important;
+        border: none !important;
+        border-radius: 50% !important;
+        font-size: 0.65rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-393-base .sale-pagination-btn:hover {
+        background: rgba(255, 255, 255, 0.18) !important;
+        color: #fff !important;
+    }
+
+    /* Indicador de página */
+    .mobile-393-base .sale-pagination-indicator {
+        color: rgba(255, 255, 255, 0.78) !important;
+        font-size: 0.62rem !important;
+        font-weight: 700 !important;
+        padding: 0.1rem 0.35rem !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    /* Botões de ação do header (dicas / filtro) */
+    .mobile-393-base .sale-action-btn {
+        width: 2.05rem !important;
+        height: 2.05rem !important;
+        background: rgba(255, 255, 255, 0.09) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        color: rgba(255, 255, 255, 0.75) !important;
+        border-radius: 0.65rem !important;
+        font-size: 0.82rem !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-393-base .sale-action-btn:hover {
+        background: rgba(255, 255, 255, 0.18) !important;
+        color: #fff !important;
+    }
+    .mobile-393-base .sale-action-btn.active {
+        background: #6366f1 !important;
+        border-color: rgba(129, 140, 248, 0.7) !important;
+        color: #fff !important;
+        box-shadow: 0 0 12px rgba(99, 102, 241, 0.55);
     }
 
     .mobile-393-base .sales-grid {
         gap: 0.75rem;
-    }
-
-    .mobile-393-base .sales-pagination-shell {
-        padding: 0.75rem;
-        gap: 0.65rem;
-    }
-
-    .mobile-393-base .sale-filter-pill {
-        font-size: 0.64rem;
-        padding: 0.34rem 0.58rem;
-    }
-
-    .mobile-393-base .sale-filter-pill i {
-        font-size: 0.7rem;
-    }
-
-    .mobile-393-base .sale-pagination-btn {
-        width: 1.55rem;
-        height: 1.55rem;
-    }
-
-    .mobile-393-base .sale-pagination-indicator {
-        font-size: 0.66rem;
-        padding: 0.18rem 0.45rem;
-    }
-
-    .mobile-393-base .sale-action-btn {
-        width: 1.95rem;
-        height: 1.95rem;
-        font-size: 0.82rem;
     }
 
     .mobile-393-base .sales-create-header {
@@ -418,18 +646,21 @@
     }
 
     .mobile-393-base .sale-card-actions {
-        gap: 0.35rem;
-        padding: 0.5rem !important;
+        gap: 0.3rem;
+        padding: 0.45rem !important;
     }
 
+    /* Os botões agora têm height: auto + label — não forçar altura fixa */
     .mobile-393-base .sale-card-actions .w-10.h-10 {
-        width: 2rem;
-        height: 2rem;
-        border-radius: 0.6rem;
+        width: 100%;
+        height: auto !important;
+        min-height: 2.9rem;
+        border-radius: 0.75rem;
     }
 
     .mobile-393-base .sale-card-actions i {
-        font-size: 0.78rem;
+        font-size: 0.88rem !important;
+        line-height: 1 !important;
     }
 
     .mobile-393-base .sales-pagination-left {
@@ -1020,9 +1251,29 @@
     .sale-card-actions a,
     .sale-card-actions button {
         width: 100% !important;
-        height: 2.2rem !important;
-        border-radius: 0.55rem !important;
+        height: auto !important;
+        min-height: 3rem !important;
+        flex-direction: column !important;
+        padding: 0.4rem 0.2rem 0.45rem !important;
+        border-radius: 0.8rem !important;
         justify-content: center !important;
+        gap: 0.1rem !important;
+    }
+
+    .sales-index-page .sale-card-actions i,
+    .sale-card-actions i {
+        font-size: 0.9rem !important;
+        line-height: 1 !important;
+    }
+
+    .sale-action-label {
+        display: block !important;
+        font-size: 0.44rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.03em !important;
+        line-height: 1 !important;
+        white-space: nowrap !important;
+        opacity: 0.92 !important;
     }
 
     /* Products list: compact */
