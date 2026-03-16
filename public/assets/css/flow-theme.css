@@ -1,0 +1,43 @@
+/* Global responsive foundation shared by app pages */
+/*
+ * Device-specific @media rules were extracted to:
+ *   responsive/responsive-mobile.css
+ *   responsive/responsive-iphone.css
+ *   responsive/responsive-ipad.css
+ *   responsive/responsive-notebook.css
+ *   responsive/responsive-fullhd.css
+ *   responsive/responsive-ultrawide.css
+ */
+
+:root {
+	--app-fluid-padding: clamp(0.65rem, 1.2vw, 1rem);
+	--app-fluid-gap: clamp(0.5rem, 1vw, 0.9rem);
+	--app-density-font: 1;
+}
+
+.app-viewport-fit {
+	width: 100%;
+	min-height: 100dvh;
+	overflow-x: hidden;
+}
+
+.sales-index-page,
+.publications-page,
+.products-index-page,
+.publication-show-page,
+.sale-show-page {
+	width: 100%;
+	min-height: 100dvh;
+	padding-inline: var(--app-fluid-padding);
+}
+
+.sales-index-page *,
+.publications-page *,
+.products-index-page *,
+.publication-show-page *,
+.sale-show-page * {
+	box-sizing: border-box;
+}
+
+/* Device-specific rules → see responsive/ folder */
+
