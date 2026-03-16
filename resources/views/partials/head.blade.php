@@ -54,4 +54,29 @@
 <!-- Theme overrides CSS file (moved from inline to prevent visual rendering) -->
 <link rel="stylesheet" href="{{ asset('assets/css/flow-theme.css') }}">
 
+<!-- Critical CSS: sidebar oculta no mobile ANTES do body renderizar (evita flash no F5) -->
+<style>
+    [x-cloak] { display: none !important; }
+    @media (max-width: 1024px) {
+        #modernSidebar.mobile-sidebar-closed {
+            transform: translateX(-100%) !important;
+            visibility: hidden;
+        }
+        #modernSidebar:not(.mobile-sidebar-closed) {
+            transform: translateX(0) !important;
+            visibility: visible;
+        }
+    }
+    .mobile-action-sheet .mobile-sheet-panel { transform: translateY(100%); }
+    .mobile-action-sheet .mobile-sheet-backdrop { opacity: 0; }
+</style>
+
 @stack('styles')
+
+<!-- Responsive CSS separado por dispositivo -->
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-mobile.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-iphone.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-ipad.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-notebook.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-fullhd.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-ultrawide.css') }}">
