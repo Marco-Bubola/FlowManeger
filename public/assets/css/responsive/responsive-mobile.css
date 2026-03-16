@@ -14,6 +14,16 @@
      9.  Outros Widgets (stat card, action card, floating badge)
    ═══════════════════════════════════════════════════════════ */
 
+/* Label dos botões de ação: oculto no desktop, exibido no mobile via Seção 6 */
+.sale-action-label {
+    display: none;
+    font-size: 0.46rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    white-space: nowrap;
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    SEÇÃO 1: Layout & Grid Base
@@ -381,28 +391,30 @@
         line-height: 1.15;
     }
 
+    /* Badge com código do produto: menor para caber em 3-col */
     .sale-card-product .badge-product-code,
     .sale-card-product .badge-quantity {
-        font-size: 0.86rem;
-        padding: 0.09rem 0.18rem;
+        font-size: 0.58rem;
+        padding: 0.08rem 0.22rem;
         border-radius: 0.35rem;
     }
 
+    /* Preços: reduzidos para 3-col */
     .sale-card-product .badge-price,
     .sale-card-product .badge-price-sale {
-        font-size: 0.80rem;
-        padding: 0.07rem 0.16rem;
+        font-size: 0.62rem;
+        padding: 0.06rem 0.14rem;
     }
 
     .sales-grid .sale-card .sale-card-product .badge-product-code {
-        font-size: 0.86rem !important;
-        padding: 0.09rem 0.18rem !important;
+        font-size: 0.58rem !important;
+        padding: 0.08rem 0.22rem !important;
     }
 
     .sales-grid .sale-card .sale-card-product .badge-price,
     .sales-grid .sale-card .sale-card-product .badge-price-sale {
-        font-size: 0.80rem !important;
-        padding: 0.07rem 0.16rem !important;
+        font-size: 0.62rem !important;
+        padding: 0.06rem 0.14rem !important;
         min-width: auto !important;
     }
 
@@ -458,9 +470,10 @@
     .sale-card-actions {
         display: grid;
         grid-template-columns: repeat(5, minmax(0, 1fr));
-        gap: 0.45rem;
+        gap: 0.4rem;
         overflow: visible;
         padding-bottom: 0;
+        padding: 0.5rem !important;
     }
 
     .sale-card-actions::-webkit-scrollbar { height: 4px; }
@@ -469,11 +482,38 @@
         width: 100%;
     }
 
+    /* Botões: coluna com ícone + label */
     .sale-card-actions .relative > a,
-    .sale-card-actions .relative > button {
-        width: 100%;
-        height: 2.25rem;
-        border-radius: 0.75rem;
+    .sale-card-actions .relative > button,
+    .sale-card-icon-btn {
+        width: 100% !important;
+        height: auto !important;
+        min-height: 3.2rem !important;
+        flex-direction: column !important;
+        padding: 0.45rem 0.25rem 0.5rem !important;
+        border-radius: 0.85rem !important;
+        gap: 0.1rem !important;
+        justify-content: center !important;
+    }
+
+    /* Label abaixo do ícone */
+    .sale-action-label {
+        display: block !important;
+        font-size: 0.46rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        line-height: 1;
+        text-align: center;
+        white-space: nowrap;
+        opacity: 0.92;
+    }
+
+    /* Ícone menor para dar espaço ao label */
+    .sale-card-actions .relative > a i,
+    .sale-card-actions .relative > button i,
+    .sale-card-icon-btn i {
+        font-size: 0.95rem !important;
+        line-height: 1 !important;
     }
 
     /* Formulários de venda */
