@@ -1,14 +1,69 @@
-<div class="w-full products-index-page mobile-393-base" x-data="{
+<div class="w-full h-screen min-h-screen app-viewport-fit products-index-page mobile-393-base" x-data="{
     showFilters: false,
     showQuickActions: false,
-    isMobile393: false,
+    isCompactModal: false,
+    isPhone15: false,
+    isIpad11: false,
     hasActiveFilters: {{ $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque || $data_inicio || $data_fim ? 'true' : 'false' }},
     fullHd: false,
     ultra: false,
+    openFiltersModal() {
+        this.showFilters = true;
+        document.documentElement.style.overflow = 'hidden';
+    },
+    closeFiltersModal() {
+        this.showFilters = false;
+        document.documentElement.style.overflow = '';
+    },
+    applyFiltersModal() {
+        this.syncActiveFilters();
+        this.closeFiltersModal();
+    },
+    async clearFiltersModal() {
+        if ($wire && typeof $wire.clearFilters === 'function') {
+            await $wire.clearFilters();
+        }
+        this.hasActiveFilters = false;
+    },
+    syncActiveFilters() {
+        if (!$wire) {
+            return;
+        }
+
+        const isFilled = (value) => {
+            if (value === null || value === undefined) {
+                return false;
+            }
+
+            if (typeof value === 'boolean') {
+                return value;
+            }
+
+            const text = String(value).trim();
+            return text !== '';
+        };
+
+        this.hasActiveFilters = [
+            $wire.search,
+            $wire.category,
+            $wire.tipo,
+            $wire.status_filtro,
+            $wire.preco_min,
+            $wire.preco_max,
+            $wire.estoque,
+            $wire.estoque_valor,
+            $wire.data_inicio,
+            $wire.data_fim,
+            $wire.sem_imagem,
+            $wire.semEstoque
+        ].some(isFilled);
+    },
     initResponsiveWatcher() {
         const mq = window.matchMedia('(min-width: 1920px)');
         const mqUltra = window.matchMedia('(min-width: 2498px)');
-        const mqMobile393 = window.matchMedia('(max-width: 450px)');
+        const mqCompact = window.matchMedia('(max-width: 1024px)');
+        const mqPhone15 = window.matchMedia('(max-width: 430px)');
+        const mqIpad11 = window.matchMedia('(min-width: 768px) and (max-width: 1194px)');
 
         const sync = () => {
             this.fullHd = mq.matches;
@@ -24,16 +79,15 @@
             }
         };
 
-        const syncMobile = () => {
-            this.isMobile393 = mqMobile393.matches;
-            if (!this.isMobile393) {
-                this.showFilters = false;
-            }
+        const syncDevice = () => {
+            this.isCompactModal = mqCompact.matches;
+            this.isPhone15 = mqPhone15.matches;
+            this.isIpad11 = mqIpad11.matches;
         };
 
         sync();
         syncUltra();
-        syncMobile();
+        syncDevice();
 
         if (typeof mq.addEventListener === 'function') {
             mq.addEventListener('change', sync);
@@ -47,10 +101,22 @@
             mqUltra.addListener(syncUltra);
         }
 
-        if (typeof mqMobile393.addEventListener === 'function') {
-            mqMobile393.addEventListener('change', syncMobile);
+        if (typeof mqCompact.addEventListener === 'function') {
+            mqCompact.addEventListener('change', syncDevice);
         } else {
-            mqMobile393.addListener(syncMobile);
+            mqCompact.addListener(syncDevice);
+        }
+
+        if (typeof mqPhone15.addEventListener === 'function') {
+            mqPhone15.addEventListener('change', syncDevice);
+        } else {
+            mqPhone15.addListener(syncDevice);
+        }
+
+        if (typeof mqIpad11.addEventListener === 'function') {
+            mqIpad11.addEventListener('change', syncDevice);
+        } else {
+            mqIpad11.addListener(syncDevice);
         }
     }
 }" x-init="initResponsiveWatcher()">
@@ -115,7 +181,7 @@
 
                 <!-- Botões de Controle -->
                 <div class="flex items-center gap-3 products-index-aux-actions">
-                    <button @click="isMobile393 ? showFilters = true : showFilters = !showFilters"
+                    <button @click="openFiltersModal()"
                         class="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
                         :class="showFilters ? 'bg-purple-500 hover:bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'"
                         title="Filtros avançados">
@@ -213,37 +279,88 @@
 
 
 
-    <!-- Filtros Modernizados (Desktop/Tablet) -->
-    <div x-show="!isMobile393">
-        <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
-            :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
-            :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
-    </div>
+    <!-- Filtros em Modal (Todas as Telas) -->
+    <div x-show="showFilters" x-cloak
+        x-transition:enter="transition ease-out duration-300"
+        x-transition:enter-start="opacity-0"
+        x-transition:enter-end="opacity-100"
+        x-transition:leave="transition ease-in duration-200"
+        x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0"
+        @keydown.escape.window="closeFiltersModal()"
+        class="fixed inset-0 z-[9999] products-mobile-filter-modal">
+        <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-md" @click="closeFiltersModal()"></div>
 
-    <!-- Filtros em Modal (Mobile 393) -->
-    <div x-show="isMobile393 && showFilters" x-cloak
-         x-transition:enter="transition ease-out duration-200"
-         x-transition:enter-start="opacity-0"
-         x-transition:enter-end="opacity-100"
-         x-transition:leave="transition ease-in duration-150"
-         x-transition:leave-start="opacity-100"
-         x-transition:leave-end="opacity-0"
-         class="fixed inset-0 z-[9999] products-mobile-filter-modal">
-        <div class="absolute inset-0 bg-black/45 backdrop-blur-sm" @click="showFilters = false"></div>
+        <div class="absolute inset-x-0 bottom-0 md:bottom-auto md:inset-0 md:flex md:items-center md:justify-center p-0 md:p-5">
+            <div
+                class="w-full md:max-w-3xl lg:max-w-4xl rounded-t-3xl md:rounded-3xl shadow-2xl border border-white/40 dark:border-slate-700/70 overflow-hidden h-[90dvh] md:h-auto md:max-h-[90vh] bg-white dark:bg-slate-900">
+                <div class="pt-2 pb-1 md:hidden flex justify-center">
+                    <span class="h-1.5 w-14 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                </div>
 
-        <div class="absolute inset-x-0 bottom-0 max-h-[88vh] bg-white dark:bg-slate-900 rounded-t-2xl shadow-2xl overflow-hidden">
-            <div class="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700">
-                <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Filtros</h3>
-                <button type="button" @click="showFilters = false"
-                        class="w-8 h-8 inline-flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
+                <div class="relative px-4 md:px-6 py-4 border-b border-white/25 dark:border-slate-700/70 bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl">
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0 relative z-10">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="inline-flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-lg shadow-indigo-500/25">
+                                    <i class="bi bi-funnel"></i>
+                                </span>
+                                <h3 class="text-base md:text-lg font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">Filtros Avancados</h3>
+                            </div>
+                            <p class="text-xs md:text-sm text-slate-600 dark:text-slate-300">Refine por categoria, tipo, status, preco, estoque e periodo.</p>
+                        </div>
 
-            <div class="overflow-y-auto max-h-[calc(88vh-56px)] p-2">
-                <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
-                    :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
-                    :data_filtro="$data_inicio ?? ''" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
+                        <button type="button" @click="closeFiltersModal()"
+                            class="relative z-10 w-10 h-10 inline-flex items-center justify-center rounded-xl bg-white/80 hover:bg-white dark:bg-slate-800/90 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors shadow-sm">
+                            <i class="bi bi-x-lg"></i>
+                        </button>
+                    </div>
+
+                    <div class="relative z-10 mt-3 flex flex-wrap items-center gap-2">
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                            <i class="bi bi-phone mr-1"></i>Phone 15
+                        </span>
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-cyan-100 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300">
+                            <i class="bi bi-tablet-landscape mr-1"></i>iPad 11 A16
+                        </span>
+                        <span x-show="hasActiveFilters" class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+                            <i class="bi bi-check-circle mr-1"></i>Filtros ativos
+                        </span>
+                    </div>
+                </div>
+
+                <div class="overflow-y-auto px-3 md:px-5 py-3 md:py-4 max-h-[calc(90dvh-214px)] md:max-h-[calc(90vh-226px)] bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-900/40 dark:to-slate-900">
+                    <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-white/90 dark:bg-slate-900/85 backdrop-blur-sm p-2 md:p-3 shadow-sm">
+                        <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
+                            :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
+                            :estoque_valor="$estoque_valor ?? ''" :data_inicio="$data_inicio ?? ''" :data_fim="$data_fim ?? ''"
+                            :sem_imagem="$sem_imagem ?? false" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
+                    </div>
+                </div>
+
+                <div class="px-4 md:px-6 py-3 md:py-4 border-t border-slate-200/80 dark:border-slate-700/80 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl sticky bottom-0">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center sm:justify-between gap-2 md:gap-3">
+                        <button type="button" @click="closeFiltersModal()"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-white hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 transition-colors">
+                            <i class="bi bi-x-circle"></i>
+                            Cancelar
+                        </button>
+
+                        <div class="flex items-center gap-2 md:gap-3 sm:ml-auto">
+                            <button type="button" @click="clearFiltersModal()"
+                                class="inline-flex items-center justify-center gap-2 px-3.5 md:px-4 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition-colors flex-1 sm:flex-none">
+                            <i class="bi bi-eraser"></i>
+                            Limpar
+                            </button>
+                            <button type="button" @click="applyFiltersModal()"
+                                class="inline-flex items-center justify-center gap-2 px-4 md:px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 hover:from-indigo-700 hover:via-purple-700 hover:to-blue-700 text-white shadow-lg shadow-indigo-500/30 transition-all duration-200 flex-1 sm:flex-none">
+                                <i class="bi bi-check2-circle"></i>
+                                Aplicar filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -750,450 +867,196 @@
                     this.currentStep--;
                 }
             }
-        }" x-show="$wire.showTipsModal" x-cloak
-            class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-            style="background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px);">
+        }"
+            x-show="$wire.showTipsModal"
+            x-cloak
+            @keydown.escape.window="$wire.toggleTips()"
+            class="fixed inset-0 z-[9999]">
 
-            <!-- Modal Content -->
-            <div @click.away="if(currentStep === totalSteps) $wire.toggleTips()"
-                class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden border border-slate-200/50 dark:border-slate-700/50"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-95">
+            <div class="absolute inset-0 bg-gradient-to-br from-slate-950/70 via-slate-900/70 to-blue-950/60 backdrop-blur-md" @click="$wire.toggleTips()"></div>
 
-                <!-- Header with Progress Bar -->
-                <div class="relative bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 px-8 py-6 text-white">
-                    <button @click="$wire.toggleTips()" class="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-all duration-200">
-                        <i class="bi bi-x-lg text-xl"></i>
-                    </button>
+            <div class="relative h-full md:p-5 lg:p-8 flex items-end md:items-center justify-center">
+                <div
+                    class="w-full h-[94dvh] md:h-auto md:max-h-[92vh] md:max-w-6xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-t-3xl md:rounded-3xl shadow-2xl border border-white/30 dark:border-slate-700/70 overflow-hidden"
+                    x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 scale-95 translate-y-6"
+                    x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                    x-transition:leave="transition ease-in duration-200"
+                    x-transition:leave-start="opacity-100 scale-100"
+                    x-transition:leave-end="opacity-0 scale-95">
 
-                    <div class="pr-12">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
-                                <i class="bi bi-lightbulb-fill text-2xl"></i>
-                            </div>
-                            <div>
-                                <h2 class="text-3xl font-bold">Dicas de Produtos</h2>
-                                <p class="text-blue-100 text-sm mt-1">Aprenda a gerenciar seus produtos com eficiência</p>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar -->
-                        <div class="flex gap-2 mt-6">
-                            <template x-for="step in totalSteps" :key="step">
-                                <div class="flex-1 h-2 rounded-full overflow-hidden bg-white/20">
-                                    <div class="h-full bg-white rounded-full transition-all duration-500"
-                                         :style="currentStep >= step ? 'width: 100%' : 'width: 0%'"></div>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Content Area -->
-                <div class="relative overflow-y-auto max-h-[calc(90vh-280px)] p-8">
-                    <!-- Step 1: Visão Geral -->
-                    <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-3xl shadow-xl mb-6">
-                                <i class="bi bi-grid-3x3-gap text-5xl text-white"></i>
-                            </div>
-                            <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Visão Geral</h3>
-                            <p class="text-slate-600 dark:text-slate-300 text-lg">Conheça as funcionalidades principais da listagem de produtos</p>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-blue-500 rounded-xl">
-                                        <i class="bi bi-search text-2xl text-white"></i>
-                                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-12 h-full md:max-h-[92vh]">
+                        <aside class="md:col-span-4 lg:col-span-3 bg-gradient-to-b from-cyan-600 via-blue-700 to-indigo-800 text-white p-5 md:p-6">
+                            <div class="flex items-center justify-between mb-5">
+                                <div class="flex items-center gap-3">
+                                    <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/20 backdrop-blur-sm">
+                                        <i class="bi bi-lightbulb-fill text-xl"></i>
+                                    </span>
                                     <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Busca Inteligente</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300">Pesquise por nome, código, categoria ou descrição do produto</p>
+                                        <h3 class="font-bold text-lg">Guia Rapido</h3>
+                                        <p class="text-xs text-blue-100">Produtos em 5 passos</p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div class="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-purple-500 rounded-xl">
-                                        <i class="bi bi-funnel text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Filtros Avançados</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300">Filtre por categoria, tipo, status, preço, estoque e muito mais</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-green-500 rounded-xl">
-                                        <i class="bi bi-grid text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Visualização em Cards</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300">Veja seus produtos em cards visuais com imagens e informações</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-orange-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-orange-500 rounded-xl">
-                                        <i class="bi bi-lightning text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Ações Rápidas</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300">Edite, duplique, exporte ou exclua produtos com um clique</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Busca e Filtros -->
-                    <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-600 rounded-3xl shadow-xl mb-6">
-                                <i class="bi bi-search-heart text-5xl text-white"></i>
-                            </div>
-                            <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Busca e Filtros</h3>
-                            <p class="text-slate-600 dark:text-slate-300 text-lg">Encontre rapidamente o que procura</p>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div class="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="flex items-center justify-center w-8 h-8 bg-blue-500 text-white rounded-lg font-bold">1</span>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Campo de Busca</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-3">Digite no campo de pesquisa para buscar por:</p>
-                                <ul class="space-y-2 ml-6">
-                                    <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-check-circle-fill text-green-500"></i>
-                                        Nome do produto
-                                    </li>
-                                    <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-check-circle-fill text-green-500"></i>
-                                        Código ou SKU
-                                    </li>
-                                    <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-check-circle-fill text-green-500"></i>
-                                        Categoria
-                                    </li>
-                                    <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-check-circle-fill text-green-500"></i>
-                                        Descrição
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="flex items-center justify-center w-8 h-8 bg-purple-500 text-white rounded-lg font-bold">2</span>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Filtros Avançados</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-3">Clique no ícone de funil <i class="bi bi-funnel mx-1"></i> para acessar:</p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-tag-fill text-blue-500"></i>
-                                        Categoria
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-box-seam text-purple-500"></i>
-                                        Tipo (Produto/Kit)
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-toggle-on text-green-500"></i>
-                                        Status (Ativo/Inativo)
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-cash text-emerald-500"></i>
-                                        Faixa de Preço
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-boxes text-orange-500"></i>
-                                        Nível de Estoque
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300">
-                                        <i class="bi bi-calendar text-red-500"></i>
-                                        Período de Criação
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Ações com Produtos -->
-                    <div x-show="currentStep === 3" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl shadow-xl mb-6">
-                                <i class="bi bi-lightning-charge text-5xl text-white"></i>
-                            </div>
-                            <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Ações com Produtos</h3>
-                            <p class="text-slate-600 dark:text-slate-300 text-lg">Gerencie seus produtos de forma eficiente</p>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-green-500 rounded-xl">
-                                        <i class="bi bi-plus-circle text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Criar Produto</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Adicione novos produtos ao catálogo</p>
-                                        <button class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold transition-all">
-                                            <i class="bi bi-plus-lg mr-1"></i> Novo Produto
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-blue-500 rounded-xl">
-                                        <i class="bi bi-boxes text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Criar Kit</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Crie kits combinando vários produtos</p>
-                                        <button class="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-xs font-semibold transition-all">
-                                            <i class="bi bi-boxes mr-1"></i> Novo Kit
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-purple-500 rounded-xl">
-                                        <i class="bi bi-file-earmark-arrow-up text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Upload em Massa</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Importe múltiplos produtos via Excel/CSV</p>
-                                        <button class="px-3 py-1.5 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-xs font-semibold transition-all">
-                                            <i class="bi bi-file-earmark-arrow-up mr-1"></i> Upload
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-br from-orange-50 to-red-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-orange-200/50 dark:border-slate-500/50">
-                                <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-orange-500 rounded-xl">
-                                        <i class="bi bi-pencil text-2xl text-white"></i>
-                                    </div>
-                                    <div>
-                                        <h4 class="font-bold text-slate-800 dark:text-white mb-2">Editar Produto</h4>
-                                        <p class="text-sm text-slate-600 dark:text-slate-300 mb-3">Clique no card para editar informações</p>
-                                        <div class="flex gap-2 mt-2">
-                                            <span class="px-2 py-1 bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300 rounded text-xs">✏️ Editar</span>
-                                            <span class="px-2 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 rounded text-xs">📋 Duplicar</span>
-                                            <span class="px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300 rounded text-xs">🗑️ Excluir</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Seleção e Ações em Massa -->
-                    <div x-show="currentStep === 4" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500 to-blue-600 rounded-3xl shadow-xl mb-6">
-                                <i class="bi bi-check2-square text-5xl text-white"></i>
-                            </div>
-                            <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Seleção e Ações em Massa</h3>
-                            <p class="text-slate-600 dark:text-slate-300 text-lg">Gerencie múltiplos produtos de uma vez</p>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div class="p-6 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-indigo-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="flex items-center justify-center w-8 h-8 bg-indigo-500 text-white rounded-lg font-bold">1</span>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Selecione Produtos</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-4">Cada card de produto tem uma checkbox no canto superior esquerdo:</p>
-                                <div class="flex items-center gap-4 p-4 bg-white dark:bg-slate-800 rounded-xl">
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" checked class="w-5 h-5 text-indigo-600 rounded">
-                                        <span class="text-sm text-slate-600 dark:text-slate-300">Clique para selecionar</span>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        <input type="checkbox" checked class="w-5 h-5 text-indigo-600 rounded">
-                                        <input type="checkbox" checked class="w-5 h-5 text-indigo-600 rounded">
-                                        <input type="checkbox" checked class="w-5 h-5 text-indigo-600 rounded">
-                                        <span class="text-sm text-slate-600 dark:text-slate-300">Selecione múltiplos</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <span class="flex items-center justify-center w-8 h-8 bg-purple-500 text-white rounded-lg font-bold">2</span>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Ações Disponíveis</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-4">Com produtos selecionados, você pode:</p>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div class="p-3 bg-white dark:bg-slate-800 rounded-lg">
-                                        <div class="flex items-center gap-2 text-red-600 dark:text-red-400">
-                                            <i class="bi bi-trash text-lg"></i>
-                                            <span class="font-semibold">Excluir em massa</span>
-                                        </div>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Remove todos selecionados</p>
-                                    </div>
-                                    <div class="p-3 bg-white dark:bg-slate-800 rounded-lg">
-                                        <div class="flex items-center gap-2 text-blue-600 dark:text-blue-400">
-                                            <i class="bi bi-download text-lg"></i>
-                                            <span class="font-semibold">Exportar seleção</span>
-                                        </div>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Baixe em Excel/PDF</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-amber-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <i class="bi bi-lightbulb-fill text-2xl text-amber-500"></i>
-                                    <h4 class="text-lg font-bold text-slate-800 dark:text-white">Dica Especial</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300">Use a checkbox do cabeçalho para <strong>selecionar todos</strong> os produtos da página atual de uma só vez!</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 5: Organização e Paginação -->
-                    <div x-show="currentStep === 5" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
-                        <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-xl mb-6">
-                                <i class="bi bi-layout-three-columns text-5xl text-white"></i>
-                            </div>
-                            <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Organização e Visualização</h3>
-                            <p class="text-slate-600 dark:text-slate-300 text-lg">Personalize a forma como você vê seus produtos</p>
-                        </div>
-
-                        <div class="space-y-6">
-                            <div class="p-6 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <div class="p-2 bg-blue-500 rounded-lg">
-                                        <i class="bi bi-sort-down text-xl text-white"></i>
-                                    </div>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Ordenação</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-3">Ordene seus produtos por:</p>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-arrow-down-up text-blue-500"></i>
-                                        Nome (A-Z ou Z-A)
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-arrow-down-up text-blue-500"></i>
-                                        Preço (Menor/Maior)
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-arrow-down-up text-blue-500"></i>
-                                        Data de criação
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-arrow-down-up text-blue-500"></i>
-                                        Estoque disponível
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <div class="p-2 bg-purple-500 rounded-lg">
-                                        <i class="bi bi-layout-text-window text-xl text-white"></i>
-                                    </div>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Itens por Página</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-3">Ajuste quantos produtos quer ver por página:</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <span class="px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded-lg font-semibold">12</span>
-                                    <span class="px-4 py-2 bg-purple-500 text-white rounded-lg font-semibold">18 ✓</span>
-                                    <span class="px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded-lg font-semibold">24</span>
-                                    <span class="px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded-lg font-semibold">30</span>
-                                    <span class="px-4 py-2 bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300 rounded-lg font-semibold">48</span>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50 dark:border-slate-500/50">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <div class="p-2 bg-green-500 rounded-lg">
-                                        <i class="bi bi-arrows-angle-expand text-xl text-white"></i>
-                                    </div>
-                                    <h4 class="text-xl font-bold text-slate-800 dark:text-white">Layout Responsivo</h4>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300 mb-3">O layout se adapta automaticamente ao tamanho da tela:</p>
-                                <div class="space-y-2">
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-phone text-green-500"></i>
-                                        <strong>Mobile:</strong> 1 card por linha
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-tablet text-green-500"></i>
-                                        <strong>Tablet:</strong> 2-3 cards por linha
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-laptop text-green-500"></i>
-                                        <strong>Desktop:</strong> 4-6 cards por linha
-                                    </div>
-                                    <div class="flex items-center gap-2 text-slate-600 dark:text-slate-300 text-sm">
-                                        <i class="bi bi-display text-green-500"></i>
-                                        <strong>Ultra Wide:</strong> 8+ cards por linha
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="p-6 bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border-2 border-amber-300 dark:border-amber-600">
-                                <div class="flex items-center gap-3 mb-3">
-                                    <i class="bi bi-emoji-smile-fill text-3xl text-amber-500"></i>
-                                    <div>
-                                        <h4 class="text-lg font-bold text-slate-800 dark:text-white">Você está pronto!</h4>
-                                        <p class="text-slate-600 dark:text-slate-300 text-sm">Agora você sabe tudo sobre a gestão de produtos</p>
-                                    </div>
-                                </div>
-                                <p class="text-slate-700 dark:text-slate-300">Continue explorando e se tiver dúvidas, sempre pode voltar aqui clicando no botão <i class="bi bi-lightbulb text-amber-500 mx-1"></i> de Dicas!</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Footer with Navigation -->
-                <div class="bg-slate-50 dark:bg-slate-900/50 px-8 py-6 border-t border-slate-200 dark:border-slate-700">
-                    <div class="flex items-center justify-between">
-                        <!-- Previous Button -->
-                        <button @click="prevStep()" x-show="currentStep > 1"
-                            class="flex items-center gap-2 px-6 py-3 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition-all duration-200 hover:scale-105">
-                            <i class="bi bi-arrow-left"></i>
-                            Anterior
-                        </button>
-                        <div x-show="currentStep === 1"></div>
-
-                        <!-- Step Indicators -->
-                        <div class="flex items-center gap-2">
-                            <template x-for="step in totalSteps" :key="step">
-                                <button @click="currentStep = step"
-                                    class="transition-all duration-300 rounded-full"
-                                    :class="currentStep === step ? 'w-8 h-3 bg-gradient-to-r from-blue-600 to-purple-600' : 'w-3 h-3 bg-slate-300 dark:bg-slate-600 hover:bg-slate-400 dark:hover:bg-slate-500'">
+                                <button @click="$wire.toggleTips()" class="w-9 h-9 inline-flex items-center justify-center rounded-xl bg-white/20 hover:bg-white/30 transition-colors">
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
-                            </template>
-                        </div>
+                            </div>
 
-                        <!-- Next/Finish Button -->
-                        <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
-                            class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105">
-                            <span x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir!'"></span>
-                            <i class="bi" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-circle-fill'"></i>
-                        </button>
+                            <div class="space-y-2">
+                                <template x-for="step in totalSteps" :key="step">
+                                    <button @click="currentStep = step"
+                                        class="w-full text-left px-3 py-2.5 rounded-xl transition-all duration-200"
+                                        :class="currentStep === step ? 'bg-white text-slate-900 shadow-lg font-semibold' : 'bg-white/10 hover:bg-white/20 text-blue-50'">
+                                        <span class="text-sm" x-text="step + '. ' + ['Visao geral', 'Busca e filtros', 'Acoes rapidas', 'Selecao em massa', 'Layout e paginacao'][step - 1]"></span>
+                                    </button>
+                                </template>
+                            </div>
+
+                            <div class="mt-5 bg-white/15 rounded-2xl p-3">
+                                <p class="text-xs uppercase tracking-wide text-blue-100">Progresso</p>
+                                <div class="mt-2 h-2 rounded-full bg-white/25 overflow-hidden">
+                                    <div class="h-full bg-white rounded-full transition-all duration-300" :style="'width:' + ((currentStep / totalSteps) * 100) + '%' "></div>
+                                </div>
+                                <p class="mt-2 text-xs text-blue-100" x-text="'Etapa ' + currentStep + ' de ' + totalSteps"></p>
+                            </div>
+                        </aside>
+
+                        <section class="md:col-span-8 lg:col-span-9 flex flex-col min-h-0">
+                            <div class="p-4 md:p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                                <div>
+                                    <h2 class="text-lg md:text-2xl font-extrabold text-slate-900 dark:text-slate-100" x-text="['Visao Geral do Catalogo','Busca e Filtros Inteligentes','Acoes com Produtos','Selecao e Acoes em Massa','Organizacao e Visualizacao'][currentStep - 1]"></h2>
+                                    <p class="text-xs md:text-sm text-slate-600 dark:text-slate-400 mt-1">Interface otimizada para phone e tablet, com foco em produtividade.</p>
+                                </div>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300" x-text="'Passo ' + currentStep"></span>
+                            </div>
+
+                            <div class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-900/70 dark:to-slate-900">
+                                <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                                        <div class="rounded-2xl border border-cyan-200 dark:border-cyan-900/60 bg-cyan-50/80 dark:bg-cyan-900/20 p-4">
+                                            <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-search mr-1 text-cyan-600"></i> Busca direta</h4>
+                                            <p class="text-sm text-slate-600 dark:text-slate-300">Encontre por nome, codigo, categoria ou descricao em tempo real.</p>
+                                        </div>
+                                        <div class="rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-indigo-50/80 dark:bg-indigo-900/20 p-4">
+                                            <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-funnel mr-1 text-indigo-600"></i> Filtros avancados</h4>
+                                            <p class="text-sm text-slate-600 dark:text-slate-300">Refine por preco, status, estoque, tipo e periodo.</p>
+                                        </div>
+                                        <div class="rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-900/20 p-4">
+                                            <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-grid mr-1 text-emerald-600"></i> Cards visuais</h4>
+                                            <p class="text-sm text-slate-600 dark:text-slate-300">Visual limpo com imagem, estoque, codigo e preco no mesmo bloco.</p>
+                                        </div>
+                                        <div class="rounded-2xl border border-orange-200 dark:border-orange-900/60 bg-orange-50/80 dark:bg-orange-900/20 p-4">
+                                            <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-lightning-charge mr-1 text-orange-600"></i> Fluxo rapido</h4>
+                                            <p class="text-sm text-slate-600 dark:text-slate-300">Edite, exporte e exclua sem sair da tela principal.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 md:p-5">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-2">Como buscar com eficiencia</h4>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                            <p><i class="bi bi-check-circle-fill text-emerald-500 mr-1"></i> Nome do produto</p>
+                                            <p><i class="bi bi-check-circle-fill text-emerald-500 mr-1"></i> Codigo/SKU</p>
+                                            <p><i class="bi bi-check-circle-fill text-emerald-500 mr-1"></i> Categoria</p>
+                                            <p><i class="bi bi-check-circle-fill text-emerald-500 mr-1"></i> Descricao</p>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 md:p-5">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-2">No modal de filtros voce pode combinar</h4>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                            <p><i class="bi bi-tag-fill text-blue-500 mr-1"></i> Categoria</p>
+                                            <p><i class="bi bi-box-seam text-indigo-500 mr-1"></i> Tipo</p>
+                                            <p><i class="bi bi-toggle-on text-emerald-500 mr-1"></i> Status</p>
+                                            <p><i class="bi bi-cash text-cyan-500 mr-1"></i> Faixa de preco</p>
+                                            <p><i class="bi bi-boxes text-orange-500 mr-1"></i> Estoque</p>
+                                            <p><i class="bi bi-calendar-event text-rose-500 mr-1"></i> Periodo</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div x-show="currentStep === 3" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                                    <div class="rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-900/20 p-4">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-plus-circle text-emerald-600 mr-1"></i> Novo produto</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">Cadastre itens unitarios com nome, categoria e precos.</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 dark:bg-blue-900/20 p-4">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-boxes text-blue-600 mr-1"></i> Novo kit</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">Monte kits com varios itens e defina valor final de venda.</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-violet-200 dark:border-violet-900/60 bg-violet-50/80 dark:bg-violet-900/20 p-4">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-file-earmark-arrow-up text-violet-600 mr-1"></i> Upload em massa</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">Importe lotes por planilha para acelerar cadastro inicial.</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-900/20 p-4">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-1"><i class="bi bi-pencil-square text-amber-600 mr-1"></i> Edicao rapida</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">Use os botoes do card para editar, exportar e excluir em 1 toque.</p>
+                                    </div>
+                                </div>
+
+                                <div x-show="currentStep === 4" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 md:p-5">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-2">Selecao inteligente</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">Marque produtos individualmente ou use o seletor do cabecalho para selecionar todos da pagina.</p>
+                                    </div>
+                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <div class="rounded-2xl border border-red-200 dark:border-red-900/60 bg-red-50/80 dark:bg-red-900/20 p-4">
+                                            <h5 class="font-semibold text-slate-900 dark:text-white mb-1"><i class="bi bi-trash text-red-500 mr-1"></i> Excluir em massa</h5>
+                                            <p class="text-sm text-slate-600 dark:text-slate-300">Remove varios itens de uma vez com confirmacao.</p>
+                                        </div>
+                                        <div class="rounded-2xl border border-sky-200 dark:border-sky-900/60 bg-sky-50/80 dark:bg-sky-900/20 p-4">
+                                            <h5 class="font-semibold text-slate-900 dark:text-white mb-1"><i class="bi bi-download text-sky-500 mr-1"></i> Exportar selecao</h5>
+                                            <p class="text-sm text-slate-600 dark:text-slate-300">Gere arquivos para compartilhamento e impressao.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div x-show="currentStep === 5" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-4">
+                                    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 md:p-5">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-2">Ordenacao e pagina</h4>
+                                        <p class="text-sm text-slate-600 dark:text-slate-300">Defina ordem por nome, preco, data ou estoque e escolha quantos itens ver por pagina.</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/80 dark:bg-emerald-900/20 p-4 md:p-5">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-2">Layout responsivo real</h4>
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-slate-700 dark:text-slate-300">
+                                            <p><i class="bi bi-phone text-emerald-600 mr-1"></i> Phone 15: foco em toque e leitura vertical</p>
+                                            <p><i class="bi bi-tablet-landscape text-emerald-600 mr-1"></i> iPad 11: espacamento para produtividade</p>
+                                            <p><i class="bi bi-laptop text-emerald-600 mr-1"></i> Desktop: mais colunas e acoes simultaneas</p>
+                                            <p><i class="bi bi-display text-emerald-600 mr-1"></i> Ultra wide: densidade alta sem perder clareza</p>
+                                        </div>
+                                    </div>
+                                    <div class="rounded-2xl border border-amber-300 dark:border-amber-700 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 p-4 md:p-5">
+                                        <h4 class="font-bold text-slate-900 dark:text-white mb-1">Tudo pronto</h4>
+                                        <p class="text-sm text-slate-700 dark:text-slate-300">Quando quiser revisar o fluxo, abra novamente o botao de dicas.</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-4 md:p-5 border-t border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/85">
+                                <div class="flex items-center justify-between gap-3">
+                                    <button @click="prevStep()"
+                                        x-show="currentStep > 1"
+                                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold transition-colors">
+                                        <i class="bi bi-arrow-left"></i>
+                                        Anterior
+                                    </button>
+                                    <div x-show="currentStep === 1"></div>
+
+                                    <div class="flex items-center gap-1.5">
+                                        <template x-for="step in totalSteps" :key="step">
+                                            <button @click="currentStep = step" class="h-2.5 rounded-full transition-all duration-200" :class="currentStep === step ? 'w-8 bg-blue-600' : 'w-2.5 bg-slate-300 dark:bg-slate-600'"></button>
+                                        </template>
+                                    </div>
+
+                                    <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
+                                        class="inline-flex items-center gap-2 px-4 md:px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold shadow-lg transition-all duration-200">
+                                        <span x-text="currentStep < totalSteps ? 'Proximo' : 'Concluir'"></span>
+                                        <i class="bi" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-circle-fill'"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 </div>
             </div>
