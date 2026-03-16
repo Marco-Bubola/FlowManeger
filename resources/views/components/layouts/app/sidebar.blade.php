@@ -24,15 +24,7 @@
         @endphp
         <!-- Modern Sidebar with Toggle -->
         <div id="modernSidebar" class="modern-sidebar mobile-sidebar-closed fixed left-0 top-0 h-screen z-50 transition-all duration-300 ease-in-out" style="width: 280px; box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15), 0 1.5px 8px 0 rgba(80, 80, 200, 0.10); border-radius: 0 1.5rem 1.5rem 0;">
-                    <style>
-                    @keyframes fade-slide-in {
-                        0% { opacity: 0; transform: translateX(-24px); }
-                        100% { opacity: 1; transform: translateX(0); }
-                    }
-                    .animate-fade-slide-in {
-                        animation: fade-slide-in 0.7s cubic-bezier(.4,1.7,.6,1) 0s 1 both;
-                    }
-                    </style>
+            {{-- CSS do sidebar movido para public/assets/css/responsive/sidebar.css --}}
             <!-- Sidebar Container with Glassmorphism -->
             <div class="h-full relative overflow-hidden">
                 <!-- Background Blur Layer -->
@@ -573,185 +565,406 @@
             </button>
         </nav>
 
-        <!-- FAB Sheet: Ações Rápidas -->
+        <!-- FAB Sheet: Ações Rápidas — apenas creates e uploads -->
         <div id="mobileFabSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
             <div class="mobile-sheet-backdrop" onclick="closeFabSheet()"></div>
             <div class="mobile-sheet-panel">
                 <div class="mobile-sheet-handle"></div>
-                <h3 class="mobile-sheet-title">
-                    <svg class="w-5 h-5 inline-block mr-1.5 -mt-0.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                    </svg>
-                    Ações Rápidas
-                </h3>
+                {{-- Header estilizado --}}
+                <div class="fab-sheet-header">
+                    <div class="fab-sheet-header-icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="fab-sheet-title">Criar &amp; Importar</p>
+                        <p class="fab-sheet-subtitle">Todas as páginas · criar e upload</p>
+                    </div>
+                </div>
+
+                {{-- ─── VENDAS ─── --}}
+                <div class="fab-section-chip fab-chip-emerald">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Vendas
+                </div>
+                <a href="{{ route('sales.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Nova Venda</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── CLIENTES ─── --}}
+                <div class="fab-section-chip fab-chip-violet">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                    Clientes
+                </div>
+                <a href="{{ route('clients.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Novo Cliente</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── PRODUTOS ─── --}}
+                <div class="fab-section-chip fab-chip-amber">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                    Produtos
+                </div>
                 <div class="mobile-sheet-grid">
-                    <a href="{{ route('sales.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background: linear-gradient(135deg,#10b981,#059669)">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                            </svg>
-                        </div>
-                        <span>Nova Venda</span>
-                    </a>
-                    <a href="{{ route('products.upload') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background: linear-gradient(135deg,#3b82f6,#1d4ed8)">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
-                            </svg>
-                        </div>
-                        <span>Upload</span>
-                    </a>
-                    <a href="{{ route('clients.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background: linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
-                            </svg>
-                        </div>
-                        <span>Novo Cliente</span>
-                    </a>
                     <a href="{{ route('products.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background: linear-gradient(135deg,#f59e0b,#d97706)">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
+                        <div class="action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                         </div>
                         <span>Novo Produto</span>
                     </a>
-                    <a href="{{ route('mercadolivre.products') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background: linear-gradient(135deg,#ef4444,#b91c1c)">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path>
-                            </svg>
+                    <a href="{{ route('products.kit.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#fb923c,#f97316)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                         </div>
-                        <span>Pub. ML</span>
+                        <span>Novo Kit</span>
                     </a>
-                    <a href="{{ route('clients.index') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background: linear-gradient(135deg,#06b6d4,#0891b2)">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                            </svg>
+                    <a href="{{ route('products.upload') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <div class="fab-upload-badge">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                            </div>
                         </div>
-                        <span>Clientes</span>
+                        <span>Upload CSV</span>
                     </a>
                 </div>
+
+                {{-- ─── CATEGORIAS ─── --}}
+                <div class="fab-section-chip fab-chip-pink">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    Categorias
+                </div>
+                <a href="{{ route('categories.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Nova Categoria</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── LIVRO CAIXA ─── --}}
+                <div class="fab-section-chip fab-chip-cyan">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                    Livro Caixa
+                </div>
+                <div class="mobile-sheet-grid" style="grid-template-columns:repeat(2,1fr)">
+                    <a href="{{ route('cashbook.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <span>Nova Entrada</span>
+                    </a>
+                    <a href="{{ route('cashbook.upload.minimal') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#22d3ee,#06b6d4)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <div class="fab-upload-badge">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                            </div>
+                        </div>
+                        <span>Upload Caixa</span>
+                    </a>
+                </div>
+
+                {{-- ─── BANCOS ─── --}}
+                <div class="fab-section-chip fab-chip-blue">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                    Bancos
+                </div>
+                <a href="{{ route('banks.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Novo Banco</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── COFRINHOS ─── --}}
+                <div class="fab-section-chip fab-chip-indigo">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Cofrinhos
+                </div>
+                <a href="{{ route('cofrinhos.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Novo Cofrinho</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── CONSÓRCIOS ─── --}}
+                <div class="fab-section-chip fab-chip-teal">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    Consórcios
+                </div>
+                <a href="{{ route('consortiums.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Novo Consórcio</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── HÁBITOS ─── --}}
+                <div class="fab-section-chip fab-chip-lime">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    Hábitos Diários
+                </div>
+                <a href="{{ route('daily-habits.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Novo Hábito</span>
+                        <span class="fab-action-tag">Criar</span>
+                    </div>
+                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
+                {{-- ─── MERCADO LIVRE ─── --}}
+                <div class="fab-section-chip fab-chip-gold">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
+                    Mercado Livre
+                </div>
+                <a href="{{ route('mercadolivre.products.publish.create') }}" class="mobile-sheet-action fab-action-wide fab-ml-card" wire:navigate onclick="closeFabSheet()">
+                    <div class="action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path></svg>
+                    </div>
+                    <div class="fab-action-text">
+                        <span class="fab-action-name">Publicar no ML</span>
+                        <span class="fab-action-tag">Nova publicação</span>
+                    </div>
+                    <div class="fab-action-arrow" style="background:rgba(245,158,11,.15);color:#d97706"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
+                </a>
+
             </div>
         </div>
 
-        <!-- Mais Sheet: Navegação Completa -->
+        <!-- Mais Sheet: Navegação Completa (espelho da sidebar) -->
         <div id="mobileMoreSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
             <div class="mobile-sheet-backdrop" onclick="closeMoreSheet()"></div>
             <div class="mobile-sheet-panel">
                 <div class="mobile-sheet-handle"></div>
-                <h3 class="mobile-sheet-title">
-                    <svg class="w-5 h-5 inline-block mr-1.5 -mt-0.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-                    </svg>
-                    Menu Completo
-                </h3>
 
-                {{-- NAVEGAÇÃO PRINCIPAL --}}
-                <p class="mobile-sheet-section-label">Navegação</p>
-                <div class="mobile-sheet-list">
-                    <a href="{{ url('products') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        </div>
-                        <span class="mobile-sheet-nav-label">Produtos</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                {{-- ─── PERFIL DO USUÁRIO ─── --}}
+                <div class="more-sheet-profile">
+                    <div class="more-sheet-avatar">{{ auth()->user()->initials() }}</div>
+                    <div class="more-sheet-user-info">
+                        <p class="more-sheet-user-name">{{ auth()->user()->name }}</p>
+                        <p class="more-sheet-user-email">{{ auth()->user()->email }}</p>
+                    </div>
+                    <a href="{{ route('settings.profile') }}" class="more-sheet-settings-btn" wire:navigate onclick="closeMoreSheet()" title="Configurações de perfil">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
                     </a>
-                    <a href="{{ route('clients.index') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                </div>
+
+                {{-- ─── PRINCIPAL ─── --}}
+                <p class="mobile-sheet-section-label">Principal</p>
+                <div class="mobile-sheet-list">
+                    <a href="{{ route('dashboard.index') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.index') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Dashboard</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ url('sales') }}" class="mobile-sheet-nav-item {{ Request::is('sales*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Vendas</span>
+                        @if($mobilePendingSales > 0)
+                            <span class="mobile-sheet-badge">{{ $mobilePendingSales > 99 ? '99+' : $mobilePendingSales }}</span>
+                        @endif
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('clients.index') }}" class="mobile-sheet-nav-item {{ Request::is('clients*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         <span class="mobile-sheet-nav-label">Clientes</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
-                    <a href="{{ route('mercadolivre.products') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                    <a href="{{ url('products') }}" class="mobile-sheet-nav-item {{ Request::is('products*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
                         <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Mercado Livre</span>
+                        <span class="mobile-sheet-nav-label">Produtos</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ url('categories') }}" class="mobile-sheet-nav-item {{ Request::is('categories*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Categorias</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                {{-- ─── FINANCEIRO ─── --}}
+                <p class="mobile-sheet-section-label">Financeiro</p>
+                <div class="mobile-sheet-list">
+                    <a href="{{ url('cashbook') }}" class="mobile-sheet-nav-item {{ Request::is('cashbook*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Livro Caixa</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ url('banks') }}" class="mobile-sheet-nav-item {{ Request::is('banks*') || Request::is('invoices*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Bancos & Faturas</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ url('cofrinhos') }}" class="mobile-sheet-nav-item {{ Request::is('cofrinhos*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Cofrinhos</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('consortiums.index') }}" class="mobile-sheet-nav-item {{ Request::is('consortiums*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Consórcios</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('goals.dashboard') }}" class="mobile-sheet-nav-item {{ Request::is('goals*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#a855f7,#9333ea)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 2v1m0 18v1M4.22 4.22l.707.707M18.364 18.364l.707.707M2 12h1m18 0h1M4.22 19.778l.707-.707M18.364 5.636l.707-.707"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Metas e Objetivos</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('daily-habits.dashboard') }}" class="mobile-sheet-nav-item {{ Request::is('daily-habits*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Hábitos Diários</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('achievements.index') }}" class="mobile-sheet-nav-item {{ Request::is('achievements*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#eab308,#ca8a04)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Conquistas</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                </div>
+
+                {{-- ─── MERCADO LIVRE ─── --}}
+                <p class="more-sheet-ml-label">Mercado Livre</p>
+                <div class="mobile-sheet-list">
+                    <a href="{{ route('mercadolivre.products') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Produtos ML</span>
                         @if($mobilePendingMl > 0)
                             <span class="mobile-sheet-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
                         @endif
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('mercadolivre.orders') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre/orders*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Pedidos ML</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('mercadolivre.publications') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre/publications*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Publicações ML</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('mercadolivre.settings') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre/settings*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Config. ML</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
                 </div>
 
-                {{-- DASHBOARDS --}}
-                <p class="mobile-sheet-section-label" style="margin-top:0.9rem">Dashboards</p>
+                {{-- ─── DASHBOARDS ─── --}}
+                <p class="mobile-sheet-section-label">Dashboards</p>
                 <div class="mobile-sheet-list">
-                    <a href="{{ route('dashboard.index') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"></path></svg>
-                        </div>
-                        <span class="mobile-sheet-nav-label">Dashboard Geral</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                    <a href="{{ route('dashboard.cashbook') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                    <a href="{{ route('dashboard.cashbook') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.cashbook') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
                         <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Financeiro</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="mobile-sheet-nav-label">Dashboard Financeiro</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
-                    <a href="{{ route('dashboard.sales') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                    <a href="{{ route('dashboard.products') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.products') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f97316,#ea580c)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                        </div>
+                        <span class="mobile-sheet-nav-label">Dashboard Produtos</span>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
+                    <a href="{{ route('dashboard.sales') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.sales') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
                         <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <span class="mobile-sheet-nav-label">Dashboard Vendas</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
-                    <a href="{{ route('dashboard.clients') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
+                    <a href="{{ route('dashboard.clients') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.clients') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
                         <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         <span class="mobile-sheet-nav-label">Dashboard Clientes</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
                 </div>
 
-                {{-- CRIAR / UPLOAD --}}
-                <p class="mobile-sheet-section-label" style="margin-top:0.9rem">Criar &amp; Importar</p>
-                <div class="mobile-sheet-list">
-                    <a href="{{ route('sales.create') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                {{-- ─── LOGOUT ─── --}}
+                <div class="mobile-sheet-divider" style="margin: 0.9rem 0 0.4rem"></div>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="more-sheet-logout-btn">
+                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Nova Venda</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                    <a href="{{ route('products.create') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </div>
-                        <span class="mobile-sheet-nav-label">Novo Produto</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                    <a href="{{ route('clients.create') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                        </div>
-                        <span class="mobile-sheet-nav-label">Novo Cliente</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                    <a href="{{ route('products.upload') }}" class="mobile-sheet-nav-item" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                        </div>
-                        <span class="mobile-sheet-nav-label">Upload Produtos</span>
-                        <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </a>
-                </div>
+                        Sair da conta
+                    </button>
+                </form>
 
-                <div class="mobile-sheet-divider" style="margin-top:0.9rem"></div>
-                <button class="mobile-sheet-nav-item w-full text-left" onclick="closeMoreSheet(); setTimeout(openMobileSidebar, 220)">
-                    <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#475569,#334155)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-                    </div>
-                    <span class="mobile-sheet-nav-label">Menu Completo (Sidebar)</span>
-                    <svg class="w-4 h-4 text-slate-400 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                </button>
             </div>
         </div>
 
@@ -760,462 +973,7 @@
             {{ $slot }}
         </div>
 
-        <!-- Custom Styles -->
-        <style>
-            /* Custom Scrollbar - Invisível */
-            .custom-scrollbar::-webkit-scrollbar {
-                width: 0px;
-                display: none;
-            }
-            .custom-scrollbar {
-                -ms-overflow-style: none;  /* IE and Edge */
-                scrollbar-width: none;  /* Firefox */
-            }
-
-            /* Navigation Items */
-            .nav-item {
-                @apply relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300;
-            }
-            .nav-item:hover {
-                @apply bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white transform translate-x-1;
-            }
-            .nav-item.active {
-                @apply bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 text-blue-600 dark:text-blue-400 font-semibold;
-            }
-            .nav-item.nav-subitem {
-                @apply py-2 text-sm;
-            }
-            .nav-icon-wrapper {
-                @apply flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0;
-            }
-            .nav-item.active .nav-icon-wrapper {
-                @apply bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30;
-            }
-            .nav-text {
-                @apply flex-1 font-medium truncate;
-            }
-            .nav-indicator {
-                @apply hidden absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-l-full;
-            }
-            .nav-item.active .nav-indicator {
-                @apply block;
-            }
-
-            /* Compact Mode */
-            body.sidebar-compact #modernSidebar {
-                width: 100px !important;
-            }
-            body.sidebar-compact #mainContent {
-                margin-left: 100px !important;
-            }
-            body.sidebar-compact .sidebar-text {
-                display: none !important;
-            }
-            body.sidebar-compact .nav-item {
-                justify-content: center;
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
-            }
-            body.sidebar-compact .nav-icon-wrapper {
-                margin: 0 auto;
-            }
-            body.sidebar-compact #sidebarToggle svg {
-                transform: rotate(180deg);
-            }
-
-            /* Tablet: compact sidebar on iPad landscape and larger tablets */
-            @media (min-width: 1025px) and (max-width: 1366px) {
-                #modernSidebar {
-                    width: 240px !important;
-                }
-
-                #mainContent {
-                    margin-left: 240px !important;
-                }
-            }
-
-            /* Mobile Responsive */
-            @media (max-width: 1024px) {
-                #modernSidebar {
-                    width: min(86vw, 280px) !important;
-                    border-radius: 0 1.1rem 1.1rem 0 !important;
-                }
-                #mainContent {
-                    margin-left: 0 !important;
-                    padding-bottom: calc(76px + env(safe-area-inset-bottom));
-                }
-
-                #modernSidebar.mobile-sidebar-closed {
-                    transform: translateX(-100%);
-                }
-
-                #modernSidebar:not(.mobile-sidebar-closed) {
-                    transform: translateX(0);
-                }
-
-                #modernSidebar.animate-fade-slide-in {
-                    animation: none;
-                }
-
-                .mobile-sidebar-backdrop {
-                    position: fixed;
-                    inset: 0;
-                    z-index: 45;
-                    background: rgba(2, 6, 23, 0.42);
-                    backdrop-filter: blur(3px);
-                    opacity: 0;
-                    pointer-events: none;
-                    transition: opacity 0.2s ease;
-                }
-
-                #modernSidebar:not(.mobile-sidebar-closed) ~ .mobile-sidebar-backdrop {
-                    opacity: 1;
-                    pointer-events: auto;
-                }
-            }
-
-            /* ─── Mobile bottom tab bar (premium) ─── */
-            .mobile-bottom-tabbar {
-                position: fixed;
-                left: 0; right: 0; bottom: 0;
-                z-index: 60;
-                display: grid;
-                grid-template-columns: repeat(5, minmax(0, 1fr));
-                align-items: center;
-                gap: 0;
-                padding: 0.25rem 0.35rem calc(0.3rem + env(safe-area-inset-bottom));
-                background: rgba(255,255,255,0.96);
-                backdrop-filter: blur(20px) saturate(1.8);
-                -webkit-backdrop-filter: blur(20px) saturate(1.8);
-                border-top: 1px solid rgba(148,163,184,0.2);
-                box-shadow: 0 -6px 28px rgba(15,23,42,0.10), 0 -1px 0 rgba(148,163,184,0.15);
-            }
-
-            .dark .mobile-bottom-tabbar {
-                background: rgba(8,12,26,0.95);
-                border-top-color: rgba(51,65,85,0.5);
-                box-shadow: 0 -6px 28px rgba(0,0,0,0.35), 0 -1px 0 rgba(51,65,85,0.35);
-            }
-
-            /* Tab item base */
-            .mobile-tab-item {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                gap: 0.14rem;
-                padding: 0.28rem 0.15rem;
-                min-height: 3rem;
-                border-radius: 0.75rem;
-                color: #64748b;
-                font-size: 0.6rem;
-                font-weight: 700;
-                letter-spacing: 0.015em;
-                line-height: 1;
-                transition: color 0.2s ease, transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                position: relative;
-                text-decoration: none;
-                -webkit-tap-highlight-color: transparent;
-                user-select: none;
-            }
-
-            .dark .mobile-tab-item { color: #94a3b8; }
-
-            /* Tab icon wrapper */
-            .mobile-tab-item .tab-icon {
-                width: 1.7rem;
-                height: 1.7rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 0.55rem;
-                transition: all 0.2s cubic-bezier(0.34,1.56,0.64,1);
-            }
-
-            /* Active state */
-            .mobile-tab-item.is-active { color: #3b82f6; }
-            .dark .mobile-tab-item.is-active { color: #60a5fa; }
-
-            .mobile-tab-item.is-active .tab-icon {
-                background: linear-gradient(135deg,rgba(59,130,246,.14),rgba(99,102,241,.2));
-                transform: translateY(-3px) scale(1.1);
-                box-shadow: 0 5px 14px rgba(59,130,246,.22);
-            }
-            .dark .mobile-tab-item.is-active .tab-icon {
-                background: linear-gradient(135deg,rgba(30,64,175,.4),rgba(79,70,229,.4));
-                box-shadow: 0 5px 14px rgba(59,130,246,.35);
-            }
-
-            /* Active dot */
-            .mobile-tab-item.is-active::after {
-                content:'';
-                position:absolute;
-                bottom:0.12rem;
-                left:50%;
-                transform:translateX(-50%);
-                width:0.3rem;
-                height:0.3rem;
-                border-radius:50%;
-                background:linear-gradient(135deg,#3b82f6,#6366f1);
-                box-shadow: 0 0 4px rgba(99,102,241,.5);
-            }
-
-            /* FAB center button */
-            .mobile-tab-fab { gap: 0 !important; padding: 0 !important; }
-
-            .mobile-tab-fab .fab-circle {
-                width: 3rem;
-                height: 3rem;
-                border-radius: 50%;
-                background: linear-gradient(135deg,#3b82f6 0%,#6366f1 50%,#8b5cf6 100%);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 6px 22px rgba(99,102,241,.45), 0 2px 8px rgba(59,130,246,.3), inset 0 1px 0 rgba(255,255,255,.2);
-                transform: translateY(-5px);
-                transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
-                color: white;
-            }
-            .mobile-tab-fab:active .fab-circle,
-            .mobile-tab-fab:focus-visible .fab-circle {
-                transform: translateY(-3px) scale(0.93);
-                box-shadow: 0 3px 12px rgba(99,102,241,.3);
-            }
-
-            /* Badge */
-            .mobile-tab-badge {
-                position: absolute;
-                top: 0.08rem;
-                right: calc(50% - 0.95rem);
-                min-width: 1.05rem;
-                height: 1.05rem;
-                padding: 0 0.2rem;
-                border-radius: 9999px;
-                background: linear-gradient(135deg,#ef4444,#f97316);
-                color: #fff;
-                font-size: 0.55rem;
-                font-weight: 800;
-                line-height: 1.05rem;
-                text-align: center;
-                box-shadow: 0 0 0 2px white;
-                animation: mobile-badge-pulse 1.8s infinite;
-                pointer-events: none;
-            }
-            .dark .mobile-tab-badge { box-shadow: 0 0 0 2px rgba(8,12,26,.95); }
-
-            @keyframes mobile-badge-pulse {
-                0%,100% { transform: scale(1); }
-                50% { transform: scale(1.12); }
-            }
-
-            /* ML-only tab: hidden on mobile, shown on iPad */
-            .tab-ipad-only { display: none !important; }
-
-            /* iPad portrait: 6-column layout with ML tab (override Tailwind lg:hidden at 1024px) */
-            @media (min-width: 768px) and (max-width: 1024px) {
-                .mobile-bottom-tabbar {
-                    display: grid !important;
-                    grid-template-columns: repeat(6, minmax(0, 1fr));
-                    padding: 0.45rem 0.75rem calc(0.5rem + env(safe-area-inset-bottom));
-                }
-                .tab-ipad-only {
-                    display: flex !important;
-                }
-                .mobile-tab-item {
-                    min-height: 3.6rem;
-                    font-size: 0.65rem;
-                    gap: 0.18rem;
-                }
-                .mobile-tab-item .tab-icon {
-                    width: 1.85rem;
-                    height: 1.85rem;
-                }
-                .mobile-tab-fab .fab-circle {
-                    width: 3rem;
-                    height: 3rem;
-                    transform: translateY(-6px);
-                }
-            }
-
-            /* ─── Action Sheets ─── */
-            .mobile-action-sheet {
-                position: fixed;
-                inset: 0;
-                z-index: 80;
-                pointer-events: none;
-            }
-            .mobile-action-sheet.is-open { pointer-events: auto; }
-
-            .mobile-sheet-backdrop {
-                position: absolute;
-                inset: 0;
-                background: rgba(2,6,23,.55);
-                backdrop-filter: blur(5px);
-                -webkit-backdrop-filter: blur(5px);
-                opacity: 0;
-                transition: opacity 0.25s ease;
-            }
-            .mobile-action-sheet.is-open .mobile-sheet-backdrop { opacity: 1; }
-
-            .mobile-sheet-panel {
-                position: absolute;
-                left: 0; right: 0; bottom: 0;
-                background: #ffffff;
-                border-radius: 1.5rem 1.5rem 0 0;
-                padding: 0.4rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
-                transform: translateY(100%);
-                transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
-                box-shadow: 0 -10px 50px rgba(15,23,42,.18);
-                max-height: 88dvh;
-                overflow-y: auto;
-                overscroll-behavior: contain;
-            }
-            .dark .mobile-sheet-panel {
-                background: #0d1526;
-                border-top: 1px solid rgba(51,65,85,.4);
-            }
-            .mobile-action-sheet.is-open .mobile-sheet-panel { transform: translateY(0); }
-
-            .mobile-sheet-handle {
-                width: 2.5rem; height: 0.25rem;
-                border-radius: 9999px;
-                background: #e2e8f0;
-                margin: 0.3rem auto 0.85rem;
-            }
-            .dark .mobile-sheet-handle { background: #1e293b; }
-
-            .mobile-sheet-title {
-                font-size: 1rem;
-                font-weight: 800;
-                color: #0f172a;
-                margin-bottom: 0.9rem;
-                display: flex;
-                align-items: center;
-            }
-            .dark .mobile-sheet-title { color: #f1f5f9; }
-
-            /* FAB Sheet: grid 3 cols */
-            .mobile-sheet-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 0.7rem;
-                padding-bottom: 0.5rem;
-            }
-            .mobile-sheet-action {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 0.5rem;
-                padding: 0.85rem 0.4rem;
-                border-radius: 1.1rem;
-                background: #f8fafc;
-                border: 1.5px solid #e2e8f0;
-                text-decoration: none;
-                color: #0f172a;
-                font-size: 0.7rem;
-                font-weight: 700;
-                transition: all 0.16s ease;
-                -webkit-tap-highlight-color: transparent;
-            }
-            .dark .mobile-sheet-action {
-                background: #1e293b;
-                border-color: rgba(51,65,85,.55);
-                color: #f1f5f9;
-            }
-            .mobile-sheet-action:active { transform: scale(0.94); }
-            .action-icon {
-                width: 2.9rem; height: 2.9rem;
-                border-radius: 0.85rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 1.3rem;
-                box-shadow: 0 4px 12px rgba(0,0,0,.15);
-            }
-
-            /* More Sheet: nav list */
-            .mobile-sheet-list {
-                display: flex;
-                flex-direction: column;
-                gap: 0.15rem;
-            }
-            .mobile-sheet-nav-item {
-                display: flex;
-                align-items: center;
-                gap: 0.85rem;
-                padding: 0.8rem 0.6rem;
-                border-radius: 0.85rem;
-                text-decoration: none;
-                color: #0f172a;
-                font-size: 0.88rem;
-                font-weight: 600;
-                background: transparent;
-                border: none;
-                cursor: pointer;
-                transition: background 0.14s ease;
-                -webkit-tap-highlight-color: transparent;
-            }
-            .dark .mobile-sheet-nav-item { color: #e2e8f0; }
-            .mobile-sheet-nav-item:active,
-            .mobile-sheet-nav-item:hover { background: #f1f5f9; }
-            .dark .mobile-sheet-nav-item:active,
-            .dark .mobile-sheet-nav-item:hover { background: #1e293b; }
-
-            .mobile-sheet-nav-icon {
-                width: 2.3rem; height: 2.3rem;
-                border-radius: 0.65rem;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: white;
-                font-size: 1rem;
-                flex-shrink: 0;
-                box-shadow: 0 3px 8px rgba(0,0,0,.12);
-            }
-            .mobile-sheet-nav-label { flex: 1; }
-            .mobile-sheet-badge {
-                min-width: 1.35rem; height: 1.35rem;
-                padding: 0 0.3rem;
-                border-radius: 9999px;
-                background: linear-gradient(135deg,#ef4444,#f97316);
-                color: white;
-                font-size: 0.62rem;
-                font-weight: 800;
-                line-height: 1.35rem;
-                text-align: center;
-            }
-            .mobile-sheet-divider {
-                height: 1px;
-                background: #e2e8f0;
-                margin: 0.4rem 0;
-            }
-            .dark .mobile-sheet-divider { background: #1e293b; }
-
-            /* Section labels inside More sheet */
-            .mobile-sheet-section-label {
-                font-size: 0.62rem;
-                font-weight: 800;
-                letter-spacing: 0.08em;
-                text-transform: uppercase;
-                color: #94a3b8;
-                padding: 0 0.3rem;
-                margin: 0.2rem 0 0.3rem;
-            }
-            .dark .mobile-sheet-section-label { color: #475569; }
-
-            /* ─── Animations ─── */
-            @keyframes slideIn {
-                from { opacity: 0; transform: translateX(-10px); }
-                to { opacity: 1; transform: translateX(0); }
-            }
-            .nav-item {
-                animation: slideIn 0.3s ease-out;
-            }
-        </style>
+        {{-- CSS do tab bar e action sheets movido para public/assets/css/responsive/tabbar.css --}}
 
         <!-- Toggle Script -->
         <script>
