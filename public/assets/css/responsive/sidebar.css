@@ -40,6 +40,36 @@ body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
     #mainContent   { margin-left: 240px !important; }
 }
 
+/* iPad landscape (1024-1366): navigation mode selected by user */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    body.tablet-nav-sidebar #modernSidebar {
+        width: 240px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    body.tablet-nav-sidebar #mainContent {
+        margin-left: 240px !important;
+        padding-bottom: 0 !important;
+    }
+
+    body.tablet-nav-sidebar .mobile-sidebar-backdrop {
+        display: none !important;
+    }
+
+    body.tablet-nav-tabbar #modernSidebar {
+        transform: translateX(-100%) !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    body.tablet-nav-tabbar #mainContent {
+        margin-left: 0 !important;
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+}
+
 /* ─── Mobile/Tablet — Sidebar as Slide-in Drawer ─── */
 @media (max-width: 1024px) {
     #modernSidebar {
