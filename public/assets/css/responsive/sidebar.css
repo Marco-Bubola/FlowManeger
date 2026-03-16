@@ -1,0 +1,72 @@
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR CSS — FlowManager
+   Desktop sidebar, compact mode, mobile drawer overlay
+   ════════════════════════════════════════════════════════════ */
+
+/* ─── Entrance Animations ─── */
+@keyframes fade-slide-in {
+    0%   { opacity: 0; transform: translateX(-24px); }
+    100% { opacity: 1; transform: translateX(0); }
+}
+.animate-fade-slide-in {
+    animation: fade-slide-in 0.7s cubic-bezier(.4, 1.7, .6, 1) 0s 1 both;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+/* ─── Custom Scrollbar — Invisible ─── */
+.custom-scrollbar::-webkit-scrollbar { width: 0; display: none; }
+.custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ─── Compact Sidebar Mode ─── */
+body.sidebar-compact #modernSidebar { width: 100px !important; }
+body.sidebar-compact #mainContent   { margin-left: 100px !important; }
+body.sidebar-compact .sidebar-text  { display: none !important; }
+
+body.sidebar-compact .nav-item {
+    justify-content: center;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+}
+body.sidebar-compact .nav-icon-wrapper { margin: 0 auto; }
+body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
+
+/* ─── Tablet — Narrower Sidebar ─── */
+@media (min-width: 1025px) and (max-width: 1366px) {
+    #modernSidebar { width: 240px !important; }
+    #mainContent   { margin-left: 240px !important; }
+}
+
+/* ─── Mobile/Tablet — Sidebar as Slide-in Drawer ─── */
+@media (max-width: 1024px) {
+    #modernSidebar {
+        width: min(86vw, 280px) !important;
+        border-radius: 0 1.1rem 1.1rem 0 !important;
+    }
+    #mainContent {
+        margin-left: 0 !important;
+        padding-bottom: calc(76px + env(safe-area-inset-bottom));
+    }
+
+    #modernSidebar.mobile-sidebar-closed       { transform: translateX(-100%); }
+    #modernSidebar:not(.mobile-sidebar-closed) { transform: translateX(0); }
+    #modernSidebar.animate-fade-slide-in       { animation: none; }
+
+    .mobile-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(2, 6, 23, 0.42);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+    #modernSidebar:not(.mobile-sidebar-closed) ~ .mobile-sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
