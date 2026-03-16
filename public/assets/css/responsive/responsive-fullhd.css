@@ -1,0 +1,76 @@
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — FULL HD (≥1800px)
+   Para monitores Full HD 1920x1080 e similares
+   ═══════════════════════════════════════════════════════════ */
+
+/* Full HD 1920x1080: grid otimizado */
+@media (min-width: 1900px) and (max-width: 1930px) and (min-height: 1040px) {
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .publications-page .products-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+/* UltraWind/FullHD: sales grid expandido */
+@media (min-width: 1800px) {
+    /* UltraWind: 4 colunas em telas muito grandes */
+    .sales-grid[data-ultrawind='true'] {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    /* Full HD (1920) não-UltraWind: 2 colunas */
+    .sales-grid[data-full-hd='true']:not([data-ultrawind='true']) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* Upload transactions grid: 6 colunas para ultrawind, 4 para fullhd */
+@media (min-width: 1800px) {
+    .upload-transactions-grid[data-ultrawind='true'] {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .upload-transactions-grid[data-full-hd='true']:not([data-ultrawind='true']) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+/* Products step grid: 6 colunas em FullHD+ */
+@media (min-width: 1920px) {
+    .products-step-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+/* Card de produto dentro da venda: fontes reduzidas em ultrawind */
+@media (min-width: 1800px) {
+    .sales-grid[data-ultrawind='true'] .sale-card-product .product-title {
+        font-size: 0.72rem;
+        line-height: 1.14;
+    }
+
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-product-code,
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-quantity {
+        font-size: 0.64rem;
+    }
+
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-price,
+    .sales-grid[data-ultrawind='true'] .sale-card-product .badge-price-sale {
+        font-size: 0.66rem;
+    }
+}
+
+/* Ultra-wide: badges reduzidos no card de produto */
+@media (min-width: 1800px) {
+    .sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-product-code {
+        font-size: 0.64em !important;
+    }
+
+    .sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-price,
+    .sales-grid[data-ultrawind='true'] .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.68em !important;
+    }
+}
