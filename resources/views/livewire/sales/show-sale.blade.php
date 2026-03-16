@@ -1,4 +1,4 @@
-<div class="w-full mobile-393-base">
+<div class="w-full h-screen min-h-screen app-viewport-fit sale-show-page mobile-393-base">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     <!-- Header modernizado usando sales-header -->
