@@ -1,0 +1,136 @@
+/* Create Sale - iPhone 15 / 15 Pro (390x844 class) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .sales-create-page.mobile-393-base .sales-create-header {
+        border-radius: 1rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .sales-create-header-title {
+        font-size: 1.2rem !important;
+        line-height: 1.05 !important;
+    }
+
+    .sales-create-page.mobile-393-base .sales-create-header-subtitle {
+        font-size: 0.76rem !important;
+        line-height: 1.15 !important;
+    }
+
+    .sales-create-page.mobile-393-base .sales-create-header-main > div:first-child {
+        gap: 0.5rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .sales-create-header-actions {
+        justify-content: flex-start !important;
+        gap: 0.32rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-header-step-badge {
+        font-size: 0.64rem !important;
+        padding: 0.2rem 0.42rem !important;
+        white-space: nowrap !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-header-next-btn {
+        padding: 0.44rem 0.68rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-step-grid {
+        gap: 0.5rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern,
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .product-img-area {
+        min-height: 158px !important;
+        height: 158px !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .product-img-area {
+        min-height: 148px !important;
+        height: 148px !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .card-body {
+        padding: 2.56em 0.44em 2.05em 0.44em !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .card-body {
+        padding: 2.38em 0.42em 1.95em 0.42em !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .price-area {
+        gap: 0.16em !important;
+        min-height: 1.82em !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .price-area {
+        gap: 0.14em !important;
+        min-height: 1.76em !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .product-title {
+        font-size: 0.76em !important;
+        line-height: 1.12 !important;
+        line-clamp: 2 !important;
+        -webkit-line-clamp: 2 !important;
+        min-height: 2.08em !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .product-title {
+        font-size: 0.74em !important;
+        line-height: 1.1 !important;
+        line-clamp: 2 !important;
+        -webkit-line-clamp: 2 !important;
+        min-height: 2.04em !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .category-icon-wrapper,
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .category-icon-wrapper {
+        width: 48px !important;
+        height: 48px !important;
+        bottom: -24px !important;
+        border-width: 3px !important;
+    }
+
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .category-icon,
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .category-icon {
+        font-size: 1.5em !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-selected-list {
+        max-height: 380px;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-title {
+        font-size: 1.12rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-client-card,
+    .sales-create-page.mobile-393-base .create-sale-review-total-card {
+        padding: 0.68rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-actions button {
+        font-size: 0.8rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-products-title {
+        font-size: 1.08rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-total-footer {
+        padding: 0.82rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-summary-card {
+        padding: 0.85rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-selected-item {
+        padding: 0.64rem !important;
+    }
+}
