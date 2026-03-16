@@ -1140,3 +1140,155 @@
         height: 1.8rem !important;
     }
 }
+
+/* === iPad portrait sales header final override (v3) === */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .sales-index-page .sales-index-header {
+        border-radius: 1.35rem !important;
+        border: 1px solid rgba(122, 157, 255, 0.22) !important;
+        background: linear-gradient(120deg, rgba(15, 32, 74, 0.96), rgba(31, 56, 116, 0.96), rgba(22, 44, 98, 0.95)) !important;
+        box-shadow: 0 16px 34px rgba(6, 14, 40, 0.34) !important;
+    }
+
+    .sales-index-page .sales-index-header-inner {
+        padding: 1rem 0.95rem 0.85rem !important;
+    }
+
+    .sales-index-page .sales-index-header-title {
+        font-size: clamp(1.6rem, 2.5vw, 1.95rem) !important;
+        line-height: 1.04 !important;
+        letter-spacing: -0.02em !important;
+        background: linear-gradient(90deg, #f2f7ff, #dbe8ff, #c7dcff) !important;
+        -webkit-background-clip: text !important;
+        background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+
+    .sales-index-page .sales-index-header-row-1 {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto auto !important;
+        align-items: center !important;
+        gap: 0.44rem 0.5rem !important;
+    }
+
+    .sales-index-page .sales-index-header-left {
+        min-width: 0 !important;
+        gap: 0.56rem !important;
+    }
+
+    .sales-index-page .sales-index-header-badges {
+        grid-column: 2 / 3 !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 0.3rem !important;
+        margin-top: 0 !important;
+        white-space: nowrap !important;
+    }
+
+    .sales-index-page .sale-badge {
+        font-size: 0.7rem !important;
+        border-radius: 999px !important;
+        padding: 0.28rem 0.58rem !important;
+    }
+
+    .sales-index-page .sales-index-header-btn-create {
+        grid-column: 3 / 4 !important;
+        align-self: center !important;
+        padding: 0.5rem 0.78rem !important;
+        min-width: max-content !important;
+        border-radius: 0.72rem !important;
+        font-size: 0.72rem !important;
+        font-weight: 700 !important;
+        box-shadow: 0 8px 22px rgba(94, 114, 255, 0.38) !important;
+    }
+
+    .sales-index-page .sales-index-header-search {
+        grid-column: 1 / -1 !important;
+        width: 100% !important;
+        margin-top: 0.06rem !important;
+        min-width: 0 !important;
+    }
+
+    .sales-index-page .sales-index-header-search input {
+        height: 2.62rem !important;
+        border-radius: 0.82rem !important;
+        background: rgba(10, 23, 56, 0.52) !important;
+        border-color: rgba(126, 153, 234, 0.36) !important;
+        color: #e8f0ff !important;
+        font-size: 0.84rem !important;
+    }
+
+    .sales-index-page .sales-index-header-search input::placeholder {
+        color: rgba(198, 214, 246, 0.8) !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2 {
+        margin-top: 0.55rem !important;
+        padding-top: 0.52rem !important;
+        border-top: 1px solid rgba(142, 167, 237, 0.24) !important;
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) auto !important;
+        gap: 0.4rem !important;
+        align-items: center !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        gap: 0.34rem !important;
+        padding-bottom: 0.12rem !important;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sales-index-page .sale-filter-pills {
+        flex-shrink: 0 !important;
+        background: rgba(10, 23, 56, 0.62) !important;
+        border-color: rgba(133, 159, 235, 0.3) !important;
+        padding: 0.16rem !important;
+    }
+
+    .sales-index-page .sale-filter-pill {
+        color: #b8c9ee !important;
+        font-size: 0.63rem !important;
+        padding: 0.31rem 0.48rem !important;
+    }
+
+    .sales-index-page .sale-filter-pill.active {
+        color: #ffffff !important;
+    }
+
+    .sales-index-page .sale-filter-pill-label {
+        color: #9bb0de !important;
+        font-size: 0.6rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-right {
+        gap: 0.32rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .sales-index-page .sale-pagination-compact {
+        background: rgba(8, 18, 44, 0.58) !important;
+        border-color: rgba(129, 158, 242, 0.32) !important;
+    }
+
+    .sales-index-page .sale-pagination-indicator {
+        color: #d7e4ff !important;
+        font-size: 0.64rem !important;
+    }
+
+    .sales-index-page .sale-action-btn {
+        width: 1.95rem !important;
+        height: 1.95rem !important;
+    }
+}
