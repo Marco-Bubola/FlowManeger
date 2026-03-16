@@ -1,4 +1,4 @@
-<div class="min-h-screen flex flex-col">
+<div class="w-full h-screen min-h-screen app-viewport-fit mobile-393-base publications-page flex flex-col">
 
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
@@ -13,17 +13,17 @@
         <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-indigo-400/20 to-blue-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
         <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
 
-        <div class="relative px-4 py-3">
+        <div class="relative px-4 py-3 lg:px-5 lg:py-4">
             {{-- Primeira Linha: Título + Badges + Controles --}}
-            <div class="flex items-center justify-between gap-6">
+            <div class="publications-header-row-1 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 xl:gap-6">
                 {{-- Esquerda: Ícone + Título + Stats --}}
-                <div class="flex items-center gap-5">
+                <div class="publications-header-left flex items-start sm:items-center gap-3 sm:gap-5 min-w-0">
                     <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 rounded-2xl shadow-xl shadow-purple-500/25">
                         <i class="bi bi-list-check text-white text-2xl"></i>
                         <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
                     </div>
 
-                    <div class="space-y-1.5">
+                    <div class="space-y-1.5 min-w-0 flex-1">
                         <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                             <a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition-colors">Dashboard</a>
                             <i class="bi bi-chevron-right text-[10px]"></i>
@@ -31,11 +31,11 @@
                             <i class="bi bi-chevron-right text-[10px]"></i>
                             <span class="text-slate-700 dark:text-slate-300 font-semibold">Publicações</span>
                         </nav>
-                        <h1 class="text-3xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-300 dark:via-indigo-300 dark:to-blue-300 bg-clip-text text-transparent">
+                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-300 dark:via-indigo-300 dark:to-blue-300 bg-clip-text text-transparent truncate">
                             Publicações ML
                         </h1>
 
-                        <div class="flex items-center gap-3">
+                        <div class="publications-header-stats hidden md:flex items-center gap-2 lg:gap-3 flex-wrap">
                             <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg border border-blue-200 dark:border-blue-700">
                                 <i class="bi bi-box-seam text-blue-600 dark:text-blue-400 text-xs"></i>
                                 <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">{{ $stats['total'] }} publicações</span>
@@ -65,12 +65,12 @@
                 </div>
 
                 {{-- Direita: Pesquisa + Filtros + Paginação + Ações --}}
-                <div class="flex items-center gap-3 flex-wrap justify-end">
+                <div class="publications-header-controls flex items-center gap-2 md:gap-3 flex-wrap justify-start xl:justify-end w-full xl:w-auto">
                     {{-- Campo de Pesquisa --}}
-                    <div class="relative group">
+                    <div class="relative group w-full sm:w-auto">
                         <input type="text" wire:model.live.debounce.300ms="search"
                             placeholder="Buscar publicações..."
-                            class="w-56 pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-200 shadow-md text-sm">
+                            class="w-full sm:w-56 md:w-64 pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-200 shadow-md text-sm">
                         <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
                             <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors text-sm"></i>
                         </div>
@@ -83,7 +83,7 @@
                     </div>
 
                     {{-- Contador --}}
-                    <div class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl shadow-md">
+                    <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl shadow-md">
                         <div class="w-7 h-7 bg-gradient-to-br from-purple-400 to-indigo-600 rounded-lg flex items-center justify-center">
                             <i class="bi bi-list-check text-white text-xs"></i>
                         </div>
@@ -94,7 +94,7 @@
                     </div>
 
                     {{-- Filtros Rápidos - Status --}}
-                    <div class="flex items-center gap-1.5">
+                    <div class="hidden md:flex items-center gap-1.5">
                         <button wire:click="$set('statusFilter', 'all')"
                             class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'all' ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600' }}">
                             Todos
