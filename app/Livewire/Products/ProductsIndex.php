@@ -249,6 +249,97 @@ class ProductsIndex extends Component
         $this->resetPage();
     }
 
+    public function applyPricePreset(string $preset): void
+    {
+        switch ($preset) {
+            case 'all':
+                $this->preco_min = '';
+                $this->preco_max = '';
+                break;
+            case '0-99':
+                $this->preco_min = '0';
+                $this->preco_max = '99.99';
+                break;
+            case '100-299':
+                $this->preco_min = '100';
+                $this->preco_max = '299.99';
+                break;
+            case '300-999':
+                $this->preco_min = '300';
+                $this->preco_max = '999.99';
+                break;
+            case '1000+':
+                $this->preco_min = '1000';
+                $this->preco_max = '';
+                break;
+        }
+
+        $this->resetPage();
+    }
+
+    public function applyDatePreset(string $preset): void
+    {
+        $today = now()->toDateString();
+
+        switch ($preset) {
+            case 'all':
+                $this->data_inicio = '';
+                $this->data_fim = '';
+                break;
+            case 'today':
+                $this->data_inicio = $today;
+                $this->data_fim = $today;
+                break;
+            case '7d':
+                $this->data_inicio = now()->subDays(7)->toDateString();
+                $this->data_fim = $today;
+                break;
+            case '30d':
+                $this->data_inicio = now()->subDays(30)->toDateString();
+                $this->data_fim = $today;
+                break;
+            case '90d':
+                $this->data_inicio = now()->subDays(90)->toDateString();
+                $this->data_fim = $today;
+                break;
+        }
+
+        $this->resetPage();
+    }
+
+    public function applyStockPreset(string $preset): void
+    {
+        switch ($preset) {
+            case 'all':
+                $this->estoque = '';
+                $this->estoque_valor = '';
+                $this->semEstoque = false;
+                break;
+            case 'zero':
+                $this->estoque = 'zerado';
+                $this->estoque_valor = '';
+                $this->semEstoque = true;
+                break;
+            case 'low-5':
+                $this->estoque = 'abaixo';
+                $this->estoque_valor = '5';
+                $this->semEstoque = false;
+                break;
+            case 'low-10':
+                $this->estoque = 'abaixo';
+                $this->estoque_valor = '10';
+                $this->semEstoque = false;
+                break;
+            case 'low-20':
+                $this->estoque = 'abaixo';
+                $this->estoque_valor = '20';
+                $this->semEstoque = false;
+                break;
+        }
+
+        $this->resetPage();
+    }
+
     public function toggleSelectAll()
     {
         if ($this->selectAll) {
