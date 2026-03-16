@@ -19,7 +19,8 @@
 'startDate' => '',
 'endDate' => '',
 'minValue' => '',
-'maxValue' => ''
+'maxValue' => '',
+'quickFilter' => ''
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
@@ -57,7 +58,7 @@
 
             @if(!$showSteps)
             <!-- Badges de estatísticas -->
-            <div class="sales-index-header-badges">
+            <div class="sales-index-header-badges sales-mobile-hide hidden md:flex">
                 <div class="sale-badge sale-badge-success">
                     <i class="bi bi-cart-check"></i>
                     <span>{{ $totalSales }} vendas</span>
@@ -114,13 +115,13 @@
                         <span>Todos</span>
                     </button>
                     <button type="button" wire:click="$set('statusFilter', 'pendente')"
-                        class="sale-filter-pill pill-warning {{ $statusFilter === 'pendente' ? 'active' : '' }}"
+                        class="sale-filter-pill pill-warning sales-mobile-hide hidden md:inline-flex {{ $statusFilter === 'pendente' ? 'active' : '' }}"
                         title="Somente Pendentes">
                         <i class="bi bi-clock-history"></i>
                         <span>Pendentes</span>
                     </button>
                     <button type="button" wire:click="$set('statusFilter', 'pago')"
-                        class="sale-filter-pill pill-success {{ $statusFilter === 'pago' ? 'active' : '' }}"
+                        class="sale-filter-pill pill-success sales-mobile-hide hidden md:inline-flex {{ $statusFilter === 'pago' ? 'active' : '' }}"
                         title="Somente Pagos">
                         <i class="bi bi-check-circle-fill"></i>
                         <span>Pagos</span>
@@ -128,7 +129,7 @@
                 </div>
 
                 <!-- Seletor de itens por página estilo pills -->
-                <div class="sale-filter-pills sale-perpage-pills">
+                <div class="sale-filter-pills sale-perpage-pills sales-mobile-hide hidden md:inline-flex">
                     @php $currentPerPage = $sales->perPage(); @endphp
                     @foreach([12, 24, 48, 64] as $pp)
                     <button type="button" wire:click="$set('perPage', {{ $pp }})"
@@ -137,6 +138,58 @@
                         <span>{{ $pp }}</span>
                     </button>
                     @endforeach
+                </div>
+
+                <!-- Ordenação rápida: oculto no mobile -->
+                <div class="sale-filter-pills sale-sort-pills sales-mobile-hide hidden md:flex">
+                    <span class="sale-filter-pill-label">
+                        <i class="bi bi-arrow-down-up"></i>
+                        <span>Ordenar</span>
+                    </span>
+
+                    <button type="button" wire:click="setSortOrder('created_at', 'desc')"
+                        class="sale-filter-pill {{ $sortBy === 'created_at' && $sortDirection === 'desc' ? 'active' : '' }}"
+                        title="Mais recentes">
+                        <span>Recentes</span>
+                    </button>
+
+                    <button type="button" wire:click="setSortOrder('created_at', 'asc')"
+                        class="sale-filter-pill {{ $sortBy === 'created_at' && $sortDirection === 'asc' ? 'active' : '' }}"
+                        title="Mais antigas">
+                        <span>Antigas</span>
+                    </button>
+
+                    <button type="button" wire:click="setSortOrder('total_price', 'desc')"
+                        class="sale-filter-pill {{ $sortBy === 'total_price' && $sortDirection === 'desc' ? 'active' : '' }}"
+                        title="Maior valor">
+                        <span>Maior valor</span>
+                    </button>
+                </div>
+
+                <!-- Filtro rápido de período: oculto no mobile -->
+                <div class="sale-filter-pills sale-period-pills sales-mobile-hide hidden md:flex">
+                    <span class="sale-filter-pill-label">
+                        <i class="bi bi-calendar-week"></i>
+                        <span>Período</span>
+                    </span>
+
+                    <button type="button" wire:click="setQuickFilter('today')"
+                        class="sale-filter-pill {{ $quickFilter === 'today' ? 'active' : '' }}"
+                        title="Vendas de hoje">
+                        <span>Hoje</span>
+                    </button>
+
+                    <button type="button" wire:click="setQuickFilter('week')"
+                        class="sale-filter-pill {{ $quickFilter === 'week' ? 'active' : '' }}"
+                        title="Vendas da semana">
+                        <span>Semana</span>
+                    </button>
+
+                    <button type="button" wire:click="setQuickFilter('month')"
+                        class="sale-filter-pill {{ $quickFilter === 'month' ? 'active' : '' }}"
+                        title="Vendas do mês">
+                        <span>Mês</span>
+                    </button>
                 </div>
             </div>
 
