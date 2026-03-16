@@ -7,6 +7,7 @@
         @php
             $mobilePendingSales = 0;
             $mobilePendingMl = 0;
+            $mobileBanks = collect();
             try {
                 if (auth()->check()) {
                     $mobilePendingSales = \App\Models\Sale::where('user_id', auth()->id())
@@ -16,10 +17,17 @@
                     $mobilePendingMl = \App\Models\MlPublication::where('user_id', auth()->id())
                         ->where('sync_status', 'pending')
                         ->count();
+
+                    $mobileBanks = \App\Models\Bank::where('user_id', auth()->id())
+                        ->select('id_bank', 'name')
+                        ->orderBy('name')
+                        ->limit(8)
+                        ->get();
                 }
             } catch (\Throwable $e) {
                 $mobilePendingSales = 0;
                 $mobilePendingMl = 0;
+                $mobileBanks = collect();
             }
         @endphp
         <!-- Modern Sidebar with Toggle -->
@@ -583,37 +591,23 @@
                     </div>
                 </div>
 
-                {{-- ─── VENDAS ─── --}}
-                <div class="fab-section-chip fab-chip-emerald">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Vendas
+                {{-- PAIR: Vendas + Clientes --}}
+                <div class="fab-compact-pair-grid">
+                    <a href="{{ route('sales.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Nova Venda</span>
+                        <div class="fab-card-chip fab-chip-emerald">Vendas</div>
+                    </a>
+                    <a href="{{ route('clients.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Novo Cliente</span>
+                        <div class="fab-card-chip fab-chip-violet">Clientes</div>
+                    </a>
                 </div>
-                <a href="{{ route('sales.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Nova Venda</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
-
-                {{-- ─── CLIENTES ─── --}}
-                <div class="fab-section-chip fab-chip-violet">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                    Clientes
-                </div>
-                <a href="{{ route('clients.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Novo Cliente</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
 
                 {{-- ─── PRODUTOS ─── --}}
                 <div class="fab-section-chip fab-chip-amber">
@@ -644,21 +638,23 @@
                     </a>
                 </div>
 
-                {{-- ─── CATEGORIAS ─── --}}
-                <div class="fab-section-chip fab-chip-pink">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path></svg>
-                    Categorias
+                {{-- PAIR: Categorias + Bancos --}}
+                <div class="fab-compact-pair-grid">
+                    <a href="{{ route('categories.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Nova Categoria</span>
+                        <div class="fab-card-chip fab-chip-pink">Categorias</div>
+                    </a>
+                    <a href="{{ route('banks.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Novo Banco</span>
+                        <div class="fab-card-chip fab-chip-blue">Bancos</div>
+                    </a>
                 </div>
-                <a href="{{ route('categories.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Nova Categoria</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
 
                 {{-- ─── LIVRO CAIXA ─── --}}
                 <div class="fab-section-chip fab-chip-cyan">
@@ -683,85 +679,81 @@
                     </a>
                 </div>
 
-                {{-- ─── BANCOS ─── --}}
-                <div class="fab-section-chip fab-chip-blue">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
-                    Bancos
+                {{-- PAIR: Cofrinhos + Consórcios --}}
+                <div class="fab-compact-pair-grid">
+                    <a href="{{ route('cofrinhos.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Novo Cofrinho</span>
+                        <div class="fab-card-chip fab-chip-indigo">Cofrinhos</div>
+                    </a>
+                    <a href="{{ route('consortiums.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Novo Consórcio</span>
+                        <div class="fab-card-chip fab-chip-teal">Consórcios</div>
+                    </a>
                 </div>
-                <a href="{{ route('banks.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Novo Banco</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
 
-                {{-- ─── COFRINHOS ─── --}}
-                <div class="fab-section-chip fab-chip-indigo">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Cofrinhos
+                {{-- ─── FATURAS POR BANCO (dinâmico) ─── --}}
+                @if($mobileBanks->count() > 0)
+                    @php
+                        $bankGrads = [
+                            ['#3b82f6','#1d4ed8'],
+                            ['#8b5cf6','#7c3aed'],
+                            ['#0ea5e9','#0284c7'],
+                            ['#6366f1','#4f46e5'],
+                            ['#10b981','#059669'],
+                            ['#f59e0b','#d97706'],
+                            ['#14b8a6','#0d9488'],
+                            ['#ec4899','#db2777'],
+                        ];
+                    @endphp
+                    <div class="fab-section-chip fab-chip-blue">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        Faturas por Banco
+                    </div>
+                    @foreach($mobileBanks as $bank)
+                        @php $grad = $bankGrads[$loop->index % count($bankGrads)]; @endphp
+                        <div class="fab-compact-pair-grid">
+                            <a href="{{ route('invoices.create', $bank->id_bank) }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                                <div class="action-icon" style="background:linear-gradient(135deg,{{ $grad[0] }},{{ $grad[1] }})">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                </div>
+                                <span class="fab-card-name">{{ Str::limit($bank->name, 12) }}</span>
+                                <div class="fab-card-chip fab-chip-blue">Criar Fatura</div>
+                            </a>
+                            <a href="{{ route('invoices.upload', $bank->id_bank) }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                                <div class="action-icon" style="background:linear-gradient(135deg,{{ $grad[0] }},{{ $grad[1] }})">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                    <div class="fab-upload-badge">
+                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                    </div>
+                                </div>
+                                <span class="fab-card-name">{{ Str::limit($bank->name, 12) }}</span>
+                                <div class="fab-card-chip fab-chip-cyan">Upload</div>
+                            </a>
+                        </div>
+                    @endforeach
+                @endif
+                <div class="fab-compact-pair-grid">
+                    <a href="{{ route('daily-habits.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Novo Hábito</span>
+                        <div class="fab-card-chip fab-chip-lime">Hábitos</div>
+                    </a>
+                    <a href="{{ route('mercadolivre.products.publish.create') }}" class="mobile-sheet-action fab-action-card fab-ml-card" wire:navigate onclick="closeFabSheet()">
+                        <div class="action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path></svg>
+                        </div>
+                        <span class="fab-card-name">Publicar no ML</span>
+                        <div class="fab-card-chip fab-chip-gold">Mercado Livre</div>
+                    </a>
                 </div>
-                <a href="{{ route('cofrinhos.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Novo Cofrinho</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
-
-                {{-- ─── CONSÓRCIOS ─── --}}
-                <div class="fab-section-chip fab-chip-teal">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                    Consórcios
-                </div>
-                <a href="{{ route('consortiums.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Novo Consórcio</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
-
-                {{-- ─── HÁBITOS ─── --}}
-                <div class="fab-section-chip fab-chip-lime">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Hábitos Diários
-                </div>
-                <a href="{{ route('daily-habits.create') }}" class="mobile-sheet-action fab-action-wide" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Novo Hábito</span>
-                        <span class="fab-action-tag">Criar</span>
-                    </div>
-                    <div class="fab-action-arrow"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
-
-                {{-- ─── MERCADO LIVRE ─── --}}
-                <div class="fab-section-chip fab-chip-gold">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
-                    Mercado Livre
-                </div>
-                <a href="{{ route('mercadolivre.products.publish.create') }}" class="mobile-sheet-action fab-action-wide fab-ml-card" wire:navigate onclick="closeFabSheet()">
-                    <div class="action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path></svg>
-                    </div>
-                    <div class="fab-action-text">
-                        <span class="fab-action-name">Publicar no ML</span>
-                        <span class="fab-action-tag">Nova publicação</span>
-                    </div>
-                    <div class="fab-action-arrow" style="background:rgba(245,158,11,.15);color:#d97706"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></div>
-                </a>
 
             </div>
         </div>
@@ -789,167 +781,147 @@
 
                 {{-- ─── PRINCIPAL ─── --}}
                 <p class="mobile-sheet-section-label">Principal</p>
-                <div class="mobile-sheet-list">
-                    <a href="{{ route('dashboard.index') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.index') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                <div class="more-sheet-app-grid">
+                    <a href="{{ route('dashboard.index') }}" class="more-app-card {{ request()->routeIs('dashboard.index') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0h6"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Dashboard</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Dashboard</span>
                     </a>
-                    <a href="{{ url('sales') }}" class="mobile-sheet-nav-item {{ Request::is('sales*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                    <a href="{{ url('sales') }}" class="more-app-card {{ Request::is('sales*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Vendas</span>
+                        <span class="more-app-label">Vendas</span>
                         @if($mobilePendingSales > 0)
-                            <span class="mobile-sheet-badge">{{ $mobilePendingSales > 99 ? '99+' : $mobilePendingSales }}</span>
+                            <span class="more-app-badge">{{ $mobilePendingSales > 99 ? '99+' : $mobilePendingSales }}</span>
                         @endif
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
-                    <a href="{{ route('clients.index') }}" class="mobile-sheet-nav-item {{ Request::is('clients*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                    <a href="{{ route('clients.index') }}" class="more-app-card {{ Request::is('clients*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Clientes</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Clientes</span>
                     </a>
-                    <a href="{{ url('products') }}" class="mobile-sheet-nav-item {{ Request::is('products*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                    <a href="{{ url('products') }}" class="more-app-card {{ Request::is('products*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Produtos</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Produtos</span>
                     </a>
-                    <a href="{{ url('categories') }}" class="mobile-sheet-nav-item {{ Request::is('categories*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                    <a href="{{ url('categories') }}" class="more-app-card {{ Request::is('categories*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Categorias</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Categorias</span>
                     </a>
                 </div>
 
                 {{-- ─── FINANCEIRO ─── --}}
                 <p class="mobile-sheet-section-label">Financeiro</p>
-                <div class="mobile-sheet-list">
-                    <a href="{{ url('cashbook') }}" class="mobile-sheet-nav-item {{ Request::is('cashbook*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                <div class="more-sheet-app-grid">
+                    <a href="{{ url('cashbook') }}" class="more-app-card {{ Request::is('cashbook*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Livro Caixa</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Livro Caixa</span>
                     </a>
-                    <a href="{{ url('banks') }}" class="mobile-sheet-nav-item {{ Request::is('banks*') || Request::is('invoices*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+                    <a href="{{ url('banks') }}" class="more-app-card {{ Request::is('banks*') || Request::is('invoices*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Bancos & Faturas</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Bancos & Faturas</span>
                     </a>
-                    <a href="{{ url('cofrinhos') }}" class="mobile-sheet-nav-item {{ Request::is('cofrinhos*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                    <a href="{{ url('cofrinhos') }}" class="more-app-card {{ Request::is('cofrinhos*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Cofrinhos</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Cofrinhos</span>
                     </a>
-                    <a href="{{ route('consortiums.index') }}" class="mobile-sheet-nav-item {{ Request::is('consortiums*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
+                    <a href="{{ route('consortiums.index') }}" class="more-app-card {{ Request::is('consortiums*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Consórcios</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Consórcios</span>
                     </a>
-                    <a href="{{ route('goals.dashboard') }}" class="mobile-sheet-nav-item {{ Request::is('goals*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#a855f7,#9333ea)">
+                    <a href="{{ route('goals.dashboard') }}" class="more-app-card {{ Request::is('goals*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#a855f7,#9333ea)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 2v1m0 18v1M4.22 4.22l.707.707M18.364 18.364l.707.707M2 12h1m18 0h1M4.22 19.778l.707-.707M18.364 5.636l.707-.707"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Metas e Objetivos</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Metas</span>
                     </a>
-                    <a href="{{ route('daily-habits.dashboard') }}" class="mobile-sheet-nav-item {{ Request::is('daily-habits*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+                    <a href="{{ route('daily-habits.dashboard') }}" class="more-app-card {{ Request::is('daily-habits*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Hábitos Diários</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Hábitos Diários</span>
                     </a>
-                    <a href="{{ route('achievements.index') }}" class="mobile-sheet-nav-item {{ Request::is('achievements*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#eab308,#ca8a04)">
+                    <a href="{{ route('achievements.index') }}" class="more-app-card {{ Request::is('achievements*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#eab308,#ca8a04)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Conquistas</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Conquistas</span>
                     </a>
                 </div>
 
                 {{-- ─── MERCADO LIVRE ─── --}}
                 <p class="more-sheet-ml-label">Mercado Livre</p>
-                <div class="mobile-sheet-list">
-                    <a href="{{ route('mercadolivre.products') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                <div class="more-sheet-app-grid more-ml-grid">
+                    <a href="{{ route('mercadolivre.products') }}" class="more-app-card {{ Request::is('mercadolivre*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Produtos ML</span>
+                        <span class="more-app-label">Produtos ML</span>
                         @if($mobilePendingMl > 0)
-                            <span class="mobile-sheet-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
+                            <span class="more-app-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
                         @endif
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
                     </a>
-                    <a href="{{ route('mercadolivre.orders') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre/orders*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+                    <a href="{{ route('mercadolivre.orders') }}" class="more-app-card {{ Request::is('mercadolivre/orders*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Pedidos ML</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Pedidos ML</span>
                     </a>
-                    <a href="{{ route('mercadolivre.publications') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre/publications*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b)">
+                    <a href="{{ route('mercadolivre.publications') }}" class="more-app-card {{ Request::is('mercadolivre/publications*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Publicações ML</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Publicações ML</span>
                     </a>
-                    <a href="{{ route('mercadolivre.settings') }}" class="mobile-sheet-nav-item {{ Request::is('mercadolivre/settings*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">
+                    <a href="{{ route('mercadolivre.settings') }}" class="more-app-card {{ Request::is('mercadolivre/settings*') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Config. ML</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Config. ML</span>
                     </a>
                 </div>
 
                 {{-- ─── DASHBOARDS ─── --}}
                 <p class="mobile-sheet-section-label">Dashboards</p>
-                <div class="mobile-sheet-list">
-                    <a href="{{ route('dashboard.cashbook') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.cashbook') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                <div class="more-sheet-app-grid">
+                    <a href="{{ route('dashboard.cashbook') }}" class="more-app-card {{ request()->routeIs('dashboard.cashbook') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Dashboard Financeiro</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Financeiro</span>
                     </a>
-                    <a href="{{ route('dashboard.products') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.products') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#f97316,#ea580c)">
+                    <a href="{{ route('dashboard.products') }}" class="more-app-card {{ request()->routeIs('dashboard.products') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f97316,#ea580c)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Dashboard Produtos</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Produtos</span>
                     </a>
-                    <a href="{{ route('dashboard.sales') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.sales') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                    <a href="{{ route('dashboard.sales') }}" class="more-app-card {{ request()->routeIs('dashboard.sales') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Dashboard Vendas</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Vendas</span>
                     </a>
-                    <a href="{{ route('dashboard.clients') }}" class="mobile-sheet-nav-item {{ request()->routeIs('dashboard.clients') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
-                        <div class="mobile-sheet-nav-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
+                    <a href="{{ route('dashboard.clients') }}" class="more-app-card {{ request()->routeIs('dashboard.clients') ? 'is-active' : '' }}" wire:navigate onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#0ea5e9,#0284c7)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="mobile-sheet-nav-label">Dashboard Clientes</span>
-                        <svg class="sheet-chevron" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <span class="more-app-label">Clientes</span>
                     </a>
                 </div>
 
