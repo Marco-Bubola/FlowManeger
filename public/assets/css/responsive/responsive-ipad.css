@@ -212,3 +212,441 @@
         padding: 0.33rem 0.54rem;
     }
 }
+
+/* === iPad sales normalization: proportion, readability and balance === */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .sales-index-page .sale-card {
+        padding: 0.82rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .sales-index-page .sale-card-products {
+        gap: 0.38rem !important;
+        --sale-product-card-min-height: 176px !important;
+        --sale-product-image-height: 142px !important;
+        --sale-product-image-max-height: 96px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-img-area {
+        min-height: 142px !important;
+        height: 142px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-title {
+        font-size: 0.64rem !important;
+        line-height: 1.15 !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-product-code,
+    .sales-index-page .sale-card .sale-card-product .badge-quantity {
+        font-size: 0.54rem !important;
+        padding: 0.08rem 0.24rem !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-price,
+    .sales-index-page .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.62rem !important;
+        line-height: 1.1 !important;
+        padding: 0.08rem 0.22rem !important;
+        min-width: auto !important;
+    }
+
+    .sales-index-page .sale-card-fin-data span {
+        font-size: 0.6rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.78rem !important;
+    }
+
+    .sales-index-page .sale-card-progress-label,
+    .sales-index-page .sale-card-progress-pct,
+    .sales-index-page .sale-card-progress-hint {
+        font-size: 0.64rem !important;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .sales-index-page .sale-card {
+        padding: 0.78rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .sales-index-page .sale-card-products {
+        gap: 0.34rem !important;
+        --sale-product-card-min-height: 160px !important;
+        --sale-product-image-height: 128px !important;
+        --sale-product-image-max-height: 88px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-img-area {
+        min-height: 128px !important;
+        height: 128px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product.product-card-modern .card-body {
+        padding: 0.28rem 0.28rem 0.42rem 0.28rem !important;
+        gap: 0.08rem !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-title {
+        font-size: 0.6rem !important;
+        line-height: 1.12 !important;
+        letter-spacing: 0.01em !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-product-code,
+    .sales-index-page .sale-card .sale-card-product .badge-quantity {
+        font-size: 0.5rem !important;
+        line-height: 1.08 !important;
+        padding: 0.06rem 0.2rem !important;
+        max-width: 74px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-price,
+    .sales-index-page .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.56rem !important;
+        line-height: 1.08 !important;
+        padding: 0.06rem 0.2rem !important;
+        min-width: auto !important;
+    }
+
+    .sales-index-page .sale-card-financial-grid {
+        gap: 0.3rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-block {
+        padding: 0.34rem 0.34rem !important;
+        gap: 0.26rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data span {
+        font-size: 0.54rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.72rem !important;
+    }
+
+    .sales-index-page .sale-card-progress-label,
+    .sales-index-page .sale-card-progress-pct,
+    .sales-index-page .sale-card-progress-hint {
+        font-size: 0.58rem !important;
+    }
+
+    .sales-index-page .sale-card-actions {
+        gap: 0.26rem !important;
+        padding: 0.34rem !important;
+    }
+
+    .sales-index-page .sale-card-actions a,
+    .sales-index-page .sale-card-actions button {
+        height: 2rem !important;
+        border-radius: 0.52rem !important;
+    }
+}
+
+/* === iPad final tuning: sales header + sale card proportions === */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .sales-index-page .sales-index-header {
+        border-radius: 1.2rem !important;
+    }
+
+    .sales-index-page .sales-index-header-inner {
+        padding: 0.95rem 0.9rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-1 {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 0.65rem !important;
+        align-items: center !important;
+    }
+
+    .sales-index-page .sales-index-header-left {
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+        gap: 0.6rem !important;
+    }
+
+    .sales-index-page .sales-index-header-icon {
+        width: 2.55rem !important;
+        height: 2.55rem !important;
+        border-radius: 0.72rem !important;
+    }
+
+    .sales-index-page .sales-index-header-title {
+        font-size: 1.95rem !important;
+        line-height: 1.05 !important;
+    }
+
+    .sales-index-page .sales-index-header-badges {
+        order: 2;
+        flex: 1 1 auto !important;
+        min-width: 0 !important;
+        gap: 0.32rem !important;
+    }
+
+    .sales-index-page .sale-badge {
+        font-size: 0.66rem !important;
+        padding: 0.28rem 0.52rem !important;
+        border-radius: 0.52rem !important;
+    }
+
+    .sales-index-page .sales-index-header-btn-create {
+        order: 3;
+        padding: 0.5rem 0.82rem !important;
+        font-size: 0.74rem !important;
+        border-radius: 0.62rem !important;
+    }
+
+    .sales-index-page .sales-index-header-search {
+        order: 4;
+        flex: 1 1 100% !important;
+        min-width: 0 !important;
+    }
+
+    .sales-index-page .sales-index-header-search input {
+        height: 2.55rem !important;
+        font-size: 0.84rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2 {
+        margin-top: 0.55rem !important;
+        padding-top: 0.55rem !important;
+        gap: 0.46rem !important;
+        align-items: stretch !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left {
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        max-width: 100% !important;
+        gap: 0.34rem !important;
+        padding-bottom: 0.1rem !important;
+    }
+
+    .sales-index-page .sale-filter-pills {
+        flex-shrink: 0 !important;
+    }
+
+    .sales-index-page .sale-filter-pill {
+        font-size: 0.66rem !important;
+        padding: 0.33rem 0.54rem !important;
+    }
+
+    .sales-index-page .sale-filter-pill-label {
+        font-size: 0.62rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-right {
+        flex-shrink: 0 !important;
+        gap: 0.34rem !important;
+    }
+
+    .sales-index-page .sale-pagination-compact {
+        padding: 0.18rem !important;
+    }
+
+    .sales-index-page .sale-pagination-indicator {
+        font-size: 0.64rem !important;
+    }
+
+    .sales-index-page .sale-action-btn {
+        width: 1.95rem !important;
+        height: 1.95rem !important;
+    }
+
+    .sales-index-page .sale-card {
+        padding: 0.9rem !important;
+        border-radius: 1.06rem !important;
+    }
+
+    .sales-index-page .sale-card-products {
+        --sale-product-card-min-height: 186px !important;
+        --sale-product-image-height: 150px !important;
+        --sale-product-image-max-height: 102px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-img-area {
+        min-height: 150px !important;
+        height: 150px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-title {
+        font-size: 0.68rem !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-product-code,
+    .sales-index-page .sale-card .sale-card-product .badge-quantity {
+        font-size: 0.57rem !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-price,
+    .sales-index-page .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.64rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data span {
+        font-size: 0.62rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.8rem !important;
+    }
+
+    .sales-index-page .sale-card-progress-label,
+    .sales-index-page .sale-card-progress-pct,
+    .sales-index-page .sale-card-progress-hint {
+        font-size: 0.64rem !important;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .sales-index-page .sales-index-header {
+        border-radius: 1.3rem !important;
+    }
+
+    .sales-index-page .sales-index-header-inner {
+        padding: 1rem 1rem 0.9rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-1 {
+        gap: 0.7rem !important;
+        align-items: center !important;
+    }
+
+    .sales-index-page .sales-index-header-left {
+        flex: 0 1 auto !important;
+        min-width: 0 !important;
+        gap: 0.58rem !important;
+    }
+
+    .sales-index-page .sales-index-header-icon {
+        width: 2.45rem !important;
+        height: 2.45rem !important;
+        border-radius: 0.68rem !important;
+    }
+
+    .sales-index-page .sales-index-header-title {
+        font-size: 1.88rem !important;
+        line-height: 1.05 !important;
+    }
+
+    .sales-index-page .sales-index-header-badges {
+        gap: 0.3rem !important;
+    }
+
+    .sales-index-page .sale-badge {
+        font-size: 0.64rem !important;
+        padding: 0.26rem 0.5rem !important;
+        border-radius: 0.5rem !important;
+    }
+
+    .sales-index-page .sales-index-header-search {
+        min-width: 250px !important;
+    }
+
+    .sales-index-page .sales-index-header-search input {
+        height: 2.46rem !important;
+        font-size: 0.82rem !important;
+    }
+
+    .sales-index-page .sales-index-header-btn-create {
+        padding: 0.5rem 0.8rem !important;
+        font-size: 0.74rem !important;
+        border-radius: 0.62rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2 {
+        margin-top: 0.52rem !important;
+        padding-top: 0.52rem !important;
+        gap: 0.42rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-left {
+        gap: 0.3rem !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        max-width: calc(100% - 208px) !important;
+    }
+
+    .sales-index-page .sale-filter-pills {
+        flex-shrink: 0 !important;
+        padding: 0.16rem !important;
+    }
+
+    .sales-index-page .sale-filter-pill {
+        font-size: 0.62rem !important;
+        padding: 0.3rem 0.46rem !important;
+    }
+
+    .sales-index-page .sale-filter-pill-label {
+        font-size: 0.58rem !important;
+    }
+
+    .sales-index-page .sales-index-header-row-2-right {
+        gap: 0.3rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    .sales-index-page .sale-pagination-indicator {
+        font-size: 0.62rem !important;
+    }
+
+    .sales-index-page .sale-action-btn {
+        width: 1.85rem !important;
+        height: 1.85rem !important;
+    }
+
+    .sales-index-page .sale-card {
+        padding: 0.9rem !important;
+        border-radius: 1.05rem !important;
+    }
+
+    .sales-index-page .sale-card-products {
+        --sale-product-card-min-height: 172px !important;
+        --sale-product-image-height: 138px !important;
+        --sale-product-image-max-height: 94px !important;
+        gap: 0.34rem !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-img-area {
+        min-height: 138px !important;
+        height: 138px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .product-title {
+        font-size: 0.66rem !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-product-code,
+    .sales-index-page .sale-card .sale-card-product .badge-quantity {
+        font-size: 0.54rem !important;
+        max-width: 84px !important;
+    }
+
+    .sales-index-page .sale-card .sale-card-product .badge-price,
+    .sales-index-page .sale-card .sale-card-product .badge-price-sale {
+        font-size: 0.6rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data span {
+        font-size: 0.6rem !important;
+    }
+
+    .sales-index-page .sale-card-fin-data strong {
+        font-size: 0.78rem !important;
+    }
+
+    .sales-index-page .sale-card-progress-label,
+    .sales-index-page .sale-card-progress-pct,
+    .sales-index-page .sale-card-progress-hint {
+        font-size: 0.62rem !important;
+    }
+}
