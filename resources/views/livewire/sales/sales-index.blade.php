@@ -3,7 +3,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 @endpush
 
-<div class="w-full sales-index-page mobile-393-base" x-data="{
+<div class="w-full h-screen min-h-screen app-viewport-fit sales-index-page mobile-393-base" x-data="{
     showFilters: false,
     fullHd: false,
     ultra: false,
@@ -70,7 +70,8 @@
             :start-date="$startDate"
             :end-date="$endDate"
             :min-value="$minValue"
-            :max-value="$maxValue">
+            :max-value="$maxValue"
+            :quick-filter="$quickFilter">
             <x-slot name="breadcrumb">
                 <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
                     <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
@@ -87,7 +88,8 @@
         <!-- Filtros Avançados -->
         <x-sales-filters :show-filters="false" :clients="$clients ?? collect()" :sellers="$sellers ?? collect()" :status-filter="$statusFilter" :client-filter="$clientFilter"
             :start-date="$startDate" :end-date="$endDate" :min-value="$minValue" :max-value="$maxValue" :payment-method-filter="$paymentMethodFilter"
-            :seller-filter="$sellerFilter" :quick-filter="$quickFilter" :sort-by="$sortBy" :sort-direction="$sortDirection" :per-page-options="$perPageOptions" />
+            :seller-filter="$sellerFilter" :quick-filter="$quickFilter" :sort-by="$sortBy" :sort-direction="$sortDirection" :per-page-options="$perPageOptions"
+            :per-page="$perPage" :search="$search" />
 
         <!-- Grid de Cards de Vendas -->
         <div class="sales-grid gap-4 mb-8" x-ref="salesGrid"
@@ -211,6 +213,7 @@
 
         <!-- Modal de Confirmação de Exclusão -->
         <div class="fixed inset-0 z-[9999] overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md sales-delete-modal-overlay"
+            x-cloak
             x-show="showDeleteModal"
             x-transition:enter="transition ease-out duration-300"
             x-transition:enter-start="opacity-0"
