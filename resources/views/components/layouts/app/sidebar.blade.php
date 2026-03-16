@@ -500,7 +500,7 @@
         <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop lg:hidden" onclick="closeMobileSidebar()" aria-hidden="true"></div>
 
         <!-- Mobile Bottom Tab Bar (premium) -->
-        <nav class="mobile-bottom-tabbar lg:hidden" role="navigation" aria-label="Navegação principal">
+        <nav class="mobile-bottom-tabbar" role="navigation" aria-label="Navegação principal">
 
             <!-- Inicio -->
             <a href="{{ route('dashboard.index') }}" wire:navigate
@@ -960,22 +960,25 @@
                 return window.matchMedia('(min-width: 1024px) and (max-width: 1366px) and (orientation: landscape)').matches;
             }
 
+            function isDesktopOrLarger() {
+                return window.innerWidth >= 1366;
+            }
+
             function applyTabletNavMode() {
                 const sidebar = document.getElementById('modernSidebar');
                 const mode = getTabletNavMode();
 
                 document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
 
-                if (!isTabletLandscape()) {
-                    return;
-                }
+                // Apply preference for iPad landscape or desktop
+                if (isTabletLandscape() || isDesktopOrLarger()) {
+                    document.body.classList.add(mode === 'tabbar' ? 'tablet-nav-tabbar' : 'tablet-nav-sidebar');
 
-                document.body.classList.add(mode === 'tabbar' ? 'tablet-nav-tabbar' : 'tablet-nav-sidebar');
-
-                if (mode === 'tabbar') {
-                    sidebar?.classList.add('mobile-sidebar-closed');
-                } else {
-                    sidebar?.classList.remove('mobile-sidebar-closed');
+                    if (mode === 'tabbar') {
+                        sidebar?.classList.add('mobile-sidebar-closed');
+                    } else {
+                        sidebar?.classList.remove('mobile-sidebar-closed');
+                    }
                 }
 
                 document.body.classList.remove('overflow-hidden');
