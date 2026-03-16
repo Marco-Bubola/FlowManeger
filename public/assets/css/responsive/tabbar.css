@@ -177,6 +177,21 @@
     .more-ml-grid.more-sheet-app-grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
 
+/* iPad landscape (1024-1366): user can choose sidebar OR tab bar */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    body.tablet-nav-sidebar .mobile-bottom-tabbar {
+        display: none !important;
+    }
+
+    body.tablet-nav-sidebar .mobile-action-sheet {
+        display: none !important;
+    }
+
+    body.tablet-nav-tabbar .mobile-bottom-tabbar {
+        display: grid !important;
+    }
+}
+
 
 /* ═══════════════════════════════════════════════════════════
    ACTION SHEETS (shared base)
