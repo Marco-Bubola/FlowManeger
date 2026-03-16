@@ -29,22 +29,22 @@
     .sale-filter-pill.pill-perpage span { display: inline; }
 
     .sale-card-products {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        --sale-product-card-min-height: 165px;
-        --sale-product-image-height: 145px;
-        --sale-product-image-max-height: 90px;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        --sale-product-card-min-height: 175px;
+        --sale-product-image-height: 150px;
+        --sale-product-image-max-height: 95px;
     }
 
     /* Forçar altura da imagem com maior especificidade */
     .sales-grid .sale-card .sale-card-products {
-        --sale-product-card-min-height: 165px !important;
-        --sale-product-image-height: 145px !important;
-        --sale-product-image-max-height: 90px !important;
+        --sale-product-card-min-height: 175px !important;
+        --sale-product-image-height: 150px !important;
+        --sale-product-image-max-height: 95px !important;
     }
 
     .sales-grid .sale-card .sale-card-product .product-img-area {
-        min-height: 145px !important;
-        height: 145px !important;
+        min-height: 150px !important;
+        height: 150px !important;
     }
 
     /* Maior especificidade para sobrescrever regras gerais */
@@ -135,14 +135,17 @@
         padding: 0.75rem !important;
     }
 
+    /* Row-1 iPhone: [🛒 Título (flex-grow)] [+ Nova Venda (compacto)]
+                     [🔍 Buscar — full width abaixo               ] */
     .mobile-393-base .sales-index-header-row-1 {
         flex-wrap: wrap;
-        gap: 0.55rem;
-        align-items: flex-start;
+        gap: 0.45rem;
+        align-items: center;
     }
 
+    /* Left: cresce para preencher, NÃO força width: 100% */
     .mobile-393-base .sales-index-header-left {
-        width: 100%;
+        flex: 1 1 auto;
         min-width: 0;
     }
 
@@ -156,44 +159,39 @@
         padding: 0.2rem 0.45rem;
     }
 
+    /* Search: empurra para a próxima linha */
+    .mobile-393-base .sales-index-header-search {
+        order: 10;
+        flex: 1 1 100%;
+        width: 100%;
+        min-width: 0;
+    }
     .mobile-393-base .sales-index-header-search input {
-        font-size: 0.8rem;
-        padding-top: 0.6rem;
-        padding-bottom: 0.6rem;
+        font-size: 16px;
+        min-height: 42px;
+        border-radius: 0.8rem;
+        padding-left: 2.7rem;
     }
 
+    /* Botão Nova Venda: compacto, na mesma linha do título */
     .mobile-393-base .sales-index-header-btn-create {
+        flex: 0 0 auto;
+        width: auto;
+        justify-content: center;
         font-size: 0.78rem;
-        padding: 0.55rem 0.8rem;
+        padding: 0.55rem 0.85rem;
         border-radius: 0.65rem;
+        white-space: nowrap;
     }
 
     .mobile-393-base .sales-index-header-badges {
         display: none;
     }
 
-    .mobile-393-base .sales-index-header-search {
-        width: 100%;
-        min-width: 0;
-        order: 3;
-    }
-
-    .mobile-393-base .sales-index-header-btn-create {
-        width: 100%;
-        justify-content: center;
-        order: 4;
-    }
-
-    .mobile-393-base .sales-index-header-row-2 {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-    }
-
+    /* Row-2: mantém layout horizontal do responsive-mobile.css */
     .mobile-393-base .sales-index-header-row-2-left,
     .mobile-393-base .sales-index-header-row-2-right {
-        width: 100%;
-        justify-content: center;
+        justify-content: flex-start;
     }
 
     .mobile-393-base .sale-filter-pills {
@@ -392,11 +390,11 @@
     }
 
     .mobile-393-base .sale-card-products {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 0.45rem;
-        --sale-product-card-min-height: 196px;
-        --sale-product-image-height: 112px;
-        --sale-product-image-max-height: 84px;
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.35rem;
+        --sale-product-card-min-height: 180px;
+        --sale-product-image-height: 130px;
+        --sale-product-image-max-height: 90px;
     }
 
     .mobile-393-base .sale-card-product.product-card-modern .card-body {
