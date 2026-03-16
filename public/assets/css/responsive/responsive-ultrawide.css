@@ -1,0 +1,27 @@
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE — ULTRAWIDE (≥2400px)
+   Para monitores ultra-wide 2560x1080 e superiores
+   ═══════════════════════════════════════════════════════════ */
+
+/* Ultra-wide 2560x1080: grid expandido */
+@media (min-width: 2500px) and (max-width: 2600px) and (max-height: 1120px) {
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .publications-page .products-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    .sales-index-page .sales-index-header-title,
+    .publications-page h1 {
+        font-size: 2rem !important;
+    }
+}
+
+/* Products grid: 8 colunas em ultrawide com data-ultrawind */
+@media (min-width: 2498px) {
+    .products-grid[data-ultrawind='true'] {
+        grid-template-columns: repeat(8, minmax(0, 1fr));
+    }
+}
