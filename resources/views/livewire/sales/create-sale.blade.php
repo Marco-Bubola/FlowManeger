@@ -1,86 +1,11 @@
 <div x-data="{ currentStep: 1, completedSteps: [], init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; }); } }" x-init="init()" class="sales-create-page mobile-393-base">
-    <!-- Custom CSS para manter o estilo dos cards -->
+    <!-- CSS base + responsivo modular por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
-    <style>
-        @media (max-width: 640px) {
-            .products-mobile-compact-grid .product-card-modern {
-                min-height: 0 !important;
-                height: auto !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .product-img-area {
-                min-height: 200px !important;
-                height: 200px !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .card-body {
-                padding: 1.15em 0.35em 0.12em 0.35em !important;
-                min-height: 0 !important;
-                gap: 0.08em !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .product-title {
-                font-size: 0.74em !important;
-                line-height: 1.06 !important;
-                display: block !important;
-                white-space: nowrap !important;
-                overflow: hidden !important;
-                text-overflow: ellipsis !important;
-                letter-spacing: 0.03em !important;
-                margin-top: 0 !important;
-                margin-bottom: 0 !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .price-area {
-                position: static !important;
-                width: 100% !important;
-                min-height: 0 !important;
-                margin-top: 0.34em !important;
-                margin-bottom: 0 !important;
-                display: grid !important;
-                grid-template-columns: 1fr 1fr !important;
-                gap: 0.18em !important;
-                align-items: center !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .badge-price,
-            .products-mobile-compact-grid .product-card-modern .badge-price-sale,
-            .products-mobile-compact-grid .product-card-modern .badge-product-code,
-            .products-mobile-compact-grid .product-card-modern .badge-quantity {
-                font-size: 0.72em !important;
-                padding: 0.2em 0.5em !important;
-                line-height: 1 !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .badge-price,
-            .products-mobile-compact-grid .product-card-modern .badge-price-sale {
-                position: static !important;
-                left: auto !important;
-                right: auto !important;
-                bottom: auto !important;
-                min-width: 0 !important;
-                width: 100% !important;
-                border-radius: 0.45rem !important;
-                text-align: center !important;
-                display: inline-flex !important;
-                justify-content: center !important;
-                align-items: center !important;
-                box-sizing: border-box !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .category-icon-wrapper {
-                width: 38px !important;
-                height: 38px !important;
-                bottom: -18px !important;
-            }
-
-            .products-mobile-compact-grid .product-card-modern .category-icon {
-                font-size: 1.25em !important;
-            }
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-landscape.css') }}">
 
     <!-- Header Modernizado -->
     <x-sales-header
@@ -179,16 +104,16 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[80vh]">
+                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[80vh] create-sale-step-products-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-full lg:w-3/4 flex flex-col lg:h-full min-h-0">
+                    <div class="w-full lg:w-3/4 flex flex-col lg:h-full min-h-0 create-sale-products-pane">
                         <!-- Header com Controles -->
                         <div class="p-2  ">
 
 
                             <!-- Controles de pesquisa e filtro -->
-                            <div class="flex flex-row items-center gap-2 md:gap-4">
+                            <div class="flex flex-row items-center gap-2 md:gap-4 create-sale-products-controls">
                                 <!-- Campo de pesquisa -->
                                 <div class="flex-1">
                                     <div class="relative">
@@ -331,9 +256,9 @@
                 </div>
 
                 <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) -->
-                <div class="w-full lg:w-1/4 flex flex-col lg:h-[80vh]">
+                <div class="w-full lg:w-1/4 flex flex-col lg:h-[80vh] create-sale-summary-pane">
                     <!-- Painel de Resumo da Venda Modernizado -->
-                    <div class="p-4 ">
+                    <div class="p-4 create-sale-summary-card">
                         <div class="flex justify-between items-center mb-4">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                 <i class="bi bi-receipt text-indigo-500"></i>
@@ -343,7 +268,7 @@
                         </div>
 
                         <!-- Grid de Informações 2x2 -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 create-sale-summary-info-grid">
 
                             <!-- Bloco Cliente -->
                             <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
@@ -512,7 +437,7 @@
 
 
                     <!-- Lista de produtos selecionados com scroll -->
-                    <div class="flex-1 overflow-y-auto">
+                    <div class="flex-1 overflow-y-auto create-sale-selected-list">
                         @if(empty($selectedProducts))
                         <div class="p-3 text-center">
                             <div class="text-gray-400 mb-2">
@@ -531,7 +456,7 @@
 
                                 @if($selectedProduct)
                                 {{-- Card de produto selecionado com UI/UX moderno --}}
-                                <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group">
+                                <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group create-sale-selected-item">
                                     <div class="flex items-center gap-4">
                                         {{-- Imagem --}}
                                         <div class="flex-shrink-0">
@@ -614,17 +539,17 @@
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
-                class="w-full flex flex-col lg:flex-row lg:max-h-screen overflow-y-auto lg:overflow-hidden">
+                class="w-full flex flex-col lg:flex-row lg:max-h-screen overflow-y-auto lg:overflow-hidden create-sale-step-review-shell">
 
                 <!-- Coluna Esquerda: Informações do Cliente e Total (2/5 da tela) -->
-                <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-5 flex flex-col gap-3 sm:gap-4">
-                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center sm:text-left mb-1 sm:mb-4">
+                <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-5 flex flex-col gap-3 sm:gap-4 create-sale-review-info-pane">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center sm:text-left mb-1 sm:mb-4 create-sale-review-title">
                         <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                         Resumo da Venda
                     </h2>
 
                     <!-- Informações do Cliente -->
-                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-blue-500">
+                    <div class="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-blue-500 create-sale-review-client-card">
                         <h3 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-3">
                             <i class="bi bi-person-circle mr-2"></i>Cliente
                         </h3>
@@ -656,7 +581,7 @@
                     </div>
 
                     <!-- Total Geral -->
-                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-indigo-500">
+                    <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-indigo-500 create-sale-review-total-card">
                         <h3 class="text-lg font-bold text-indigo-800 dark:text-indigo-200 mb-2">
                             <i class="bi bi-calculator mr-2"></i>Total da Venda
                         </h3>
@@ -712,7 +637,7 @@
                     </div>
 
                     <!-- Navegação Final Modernizada -->
-                    <div class="mt-2 lg:mt-auto space-y-3">
+                    <div class="mt-2 lg:mt-auto space-y-3 create-sale-review-actions">
                         <button type="button"
                             @click="currentStep = 1"
                             class="group relative w-full inline-flex items-center justify-center px-8 py-3 sm:py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
@@ -741,13 +666,13 @@
                 </div>
 
                 <!-- Coluna Direita: Lista de Produtos (3/5 da tela) -->
-                <div class="w-full lg:w-3/5 bg-green-50 dark:bg-green-900/20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 p-4 sm:p-8">
-                    <h3 class="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200 mb-4 sm:mb-6">
+                <div class="w-full lg:w-3/5 bg-green-50 dark:bg-green-900/20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 p-4 sm:p-8 create-sale-review-products-pane">
+                    <h3 class="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200 mb-4 sm:mb-6 create-sale-review-products-title">
                         <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($products) }})
                     </h3>
 
                     <!-- Grid de Cards de Produtos -->
-                    <div class="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 overflow-y-visible lg:overflow-y-auto max-h-none lg:max-h-118 products-mobile-compact-grid">
+                    <div class="grid grid-cols-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-4 overflow-y-visible lg:overflow-y-auto max-h-none lg:max-h-118 products-mobile-compact-grid create-sale-review-products-grid">
                         @foreach($products as $product)
                         @if($product['product_id'])
                         @php
@@ -806,7 +731,7 @@
                     </div>
 
                     <!-- Resumo Total abaixo dos cards -->
-                    <div class="mt-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6">
+                    <div class="mt-6 bg-white dark:bg-zinc-800 rounded-xl shadow-lg p-6 create-sale-review-total-footer">
                         <div class="flex justify-between items-center gap-3">
                             <span class="text-lg sm:text-xl font-bold text-green-800 dark:text-green-200">
                                 <i class="bi bi-calculator mr-2"></i>
