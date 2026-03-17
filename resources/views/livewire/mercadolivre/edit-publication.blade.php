@@ -1,4 +1,10 @@
-<div class="min-h-screen w-full bg-gradient-to-b from-slate-50 via-indigo-50/30 to-slate-50 dark:from-slate-950 dark:via-indigo-950/20 dark:to-slate-950">
+<div class="edit-publication-page min-h-screen w-full bg-gradient-to-b from-slate-50 via-indigo-50/30 to-slate-50 dark:from-slate-950 dark:via-indigo-950/20 dark:to-slate-950 mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-publication-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-publication-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-publication-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-publication-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-publication-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-publication-ultrawide.css') }}">
     <div class="px-4 sm:px-6 lg:px-8 py-6 space-y-8">
 
         {{-- Header (sales style) --}}
