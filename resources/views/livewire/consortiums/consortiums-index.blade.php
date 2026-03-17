@@ -1,4 +1,10 @@
-<div class="w-full" x-data="{
+<div class="consortiums-index-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-ultrawide.css') }}">
     showFilters: false,
     fullHd: false,
     ultra: false,
