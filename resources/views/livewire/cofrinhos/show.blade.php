@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="cofrinhos-show-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-ultrawide.css') }}">
     <!-- Header -->
     <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
         <div class="w-full px-4">
