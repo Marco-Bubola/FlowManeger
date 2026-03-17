@@ -1,5 +1,11 @@
-<div class="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
+<div class="daily-habits-dashboard-page w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 mobile-393-base"
     style="min-height: 100vh;">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-ultrawide.css') }}">
 
     <!-- Header Padronizado -->
     <x-sales-header title="🎯 Hábitos Diários" description="Construa sua melhor versão, um dia de cada vez">
