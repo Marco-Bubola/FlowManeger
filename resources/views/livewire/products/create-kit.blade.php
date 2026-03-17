@@ -1,4 +1,10 @@
-<div class="mobile-393-base">
+<div class="create-kit-page mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-ultrawide.css') }}">
     <!-- Header Compacto no Estilo das Outras Páginas -->
     <div class="create-kit-header sticky top-0 z-40 relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
