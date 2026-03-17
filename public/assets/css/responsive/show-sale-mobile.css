@@ -16,47 +16,62 @@
         padding-bottom: 1rem !important;
     }
 
-    /* ── NAVEGAÇÃO DAS ABAS ───────────────────────────────── */
-    .sale-show-page nav.flex.space-x-2 {
-        gap: 0.25rem !important;
-        overflow-x: auto !important;
-        scrollbar-width: none !important;
-        -ms-overflow-style: none !important;
+    /* ── HEADER ───────────────────────────────────────────── */
+    .sale-show-page .sales-create-header {
+        border-radius: 0 0 1rem 1rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2::-webkit-scrollbar {
+    .sale-show-page .sales-create-header-inner {
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    .sale-show-page .sales-create-header-main {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+    }
+
+    .sale-show-page .sales-create-header-title {
+        font-size: 1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .sale-show-page .sales-create-header-subtitle {
+        font-size: 0.7rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    .sale-show-page .sales-create-header-actions {
+        width: 100% !important;
+        justify-content: flex-end !important;
+        gap: 0.4rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    .sale-show-page .sales-create-header-actions button,
+    .sale-show-page .sales-create-header-actions a {
+        padding: 0.45rem 0.8rem !important;
+        font-size: 0.72rem !important;
+        border-radius: 0.85rem !important;
+    }
+
+    .sale-show-page .sales-create-header-actions .hidden.sm\:inline {
         display: none !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button {
-        padding: 0.5rem 0.6rem !important;
-        font-size: 0.7rem !important;
-        min-width: 72px !important;
-        flex-shrink: 0 !important;
-        border-radius: 0.65rem !important;
-    }
-
-    .sale-show-page nav.flex.space-x-2 button .text-lg {
-        font-size: 0.9rem !important;
-    }
-
-    .sale-show-page nav.flex.space-x-2 button span:not(.ml-1) {
-        font-size: 0.65rem !important;
-    }
-
-    /* badge de contador nas abas */
-    .sale-show-page nav.flex.space-x-2 button .ml-1 {
-        padding: 0.1em 0.38em !important;
-        font-size: 0.58rem !important;
-    }
-
-    /* ── GRID PRINCIPAL (RESUMO) ─────────────────────────── */
-    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
+    /* ── 3 CARDS INFO — 1 coluna no mobile ───────────────── */
+    .sale-show-page .grid.grid-cols-1.sm\:grid-cols-3 {
         grid-template-columns: 1fr !important;
-        gap: 0.75rem !important;
+        gap: 0.65rem !important;
     }
 
     /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .show-card {
+        padding: 0.85rem !important;
+        border-radius: 1rem !important;
+    }
+
     .sale-show-page .rounded-2xl.p-6 {
         padding: 0.85rem !important;
         border-radius: 1rem !important;
@@ -117,6 +132,40 @@
     /* barra de progresso */
     .sale-show-page .w-full.bg-gray-200.rounded-full.h-3 {
         height: 0.5rem !important;
+    }
+
+    /* ── PRODUTOS — 2 colunas ─────────────────────────────── */
+    .sale-show-page .products-step-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.65rem !important;
+    }
+
+    /* ── PAGAMENTOS — barra resumo compacta ───────────────── */
+    .sale-show-page .payment-summary-bar {
+        border-radius: 0.85rem !important;
+        padding: 0.85rem !important;
+    }
+
+    .sale-show-page .payment-summary-bar .grid {
+        gap: 0.35rem !important;
+    }
+
+    .sale-show-page .payment-summary-bar .text-lg {
+        font-size: 0.9rem !important;
+    }
+
+    /* ── METHOD PICKER — 3 colunas ───────────────────────── */
+    .sale-show-page .method-picker {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.4rem !important;
+    }
+
+    .sale-show-page .method-picker label .text-base {
+        font-size: 1.1rem !important;
+    }
+
+    .sale-show-page .method-picker label .text-xs {
+        font-size: 0.58rem !important;
     }
 
     /* resumo rápido */
