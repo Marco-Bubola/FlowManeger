@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ultrawide.css') }}">
 
     <!-- Header Modernizado -->
     <x-sales-header
