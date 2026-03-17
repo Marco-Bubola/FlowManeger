@@ -43,6 +43,12 @@
     }
 }" x-init="initResponsiveWatcher()" x-bind:data-ultrawind="ultra ? 'true' : 'false'"
     x-bind:data-full-hd="fullHd ? 'true' : 'false'">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-ultrawide.css') }}">
     <style>
         [x-cloak] {
             display: none !important;
