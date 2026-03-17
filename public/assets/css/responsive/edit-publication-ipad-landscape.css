@@ -1,3 +1,5 @@
+/* edit-publication — iPad Landscape */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .edit-publication-page { }
+    .edit-publication-page { padding-inline: 1.2rem !important; }
+    .edit-publication-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
 }

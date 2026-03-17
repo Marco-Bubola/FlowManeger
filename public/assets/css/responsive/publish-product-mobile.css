@@ -1,3 +1,10 @@
+/* publish-product — Mobile (<=767px) */
 @media (max-width: 767px) {
     .publish-product-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .publish-product-page .grid { grid-template-columns: 1fr !important; }
+    .publish-product-page .grid.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+    .publish-product-page .grid.lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 540px) and (max-width: 767px) {
+    .publish-product-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
 }

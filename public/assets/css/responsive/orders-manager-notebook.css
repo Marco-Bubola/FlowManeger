@@ -1,3 +1,4 @@
+/* orders-manager — Notebook */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .orders-manager-page { }
+    .orders-manager-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
 }

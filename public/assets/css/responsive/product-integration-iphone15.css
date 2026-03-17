@@ -1,3 +1,5 @@
+/* product-integration — iPhone 15 */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .product-integration-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .product-integration-page .grid { grid-template-columns: 1fr !important; }
 }

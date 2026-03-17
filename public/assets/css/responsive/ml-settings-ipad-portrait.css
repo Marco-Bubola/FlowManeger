@@ -1,3 +1,6 @@
+/* ml-settings — iPad Portrait */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .ml-settings-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .ml-settings-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .ml-settings-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .ml-settings-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
 }

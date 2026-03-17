@@ -1,3 +1,6 @@
+/* publish-product — iPad Portrait */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .publish-product-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .publish-product-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .publish-product-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .publish-product-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
 }

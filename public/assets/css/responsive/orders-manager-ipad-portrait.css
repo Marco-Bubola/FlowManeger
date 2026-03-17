@@ -1,3 +1,6 @@
+/* orders-manager — iPad Portrait */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .orders-manager-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .orders-manager-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .orders-manager-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .orders-manager-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
 }

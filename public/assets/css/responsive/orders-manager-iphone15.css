@@ -1,3 +1,5 @@
+/* orders-manager — iPhone 15 */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .orders-manager-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .orders-manager-page .grid { grid-template-columns: 1fr !important; }
 }

@@ -1,3 +1,4 @@
+/* product-integration — Ultrawide */
 @media (min-width: 1441px) {
-    .product-integration-page { max-width: 1920px; margin: 0 auto; }
+    .product-integration-page { max-width: 1920px; margin-inline: auto; }
 }

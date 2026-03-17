@@ -1,3 +1,4 @@
+/* ml-settings — Notebook */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .ml-settings-page { }
+    .ml-settings-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
 }

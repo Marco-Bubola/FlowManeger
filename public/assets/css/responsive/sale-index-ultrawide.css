@@ -8,14 +8,7 @@
 
 @media (min-width: 1441px) {
 
-    /* ── CONTAINER ────────────────────────────────────────── */
-    .sales-index-page {
-        max-width: 1920px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        padding-bottom: 2.5rem !important;
-    }
-
+  
     /* ── HEADER ───────────────────────────────────────────── */
     .sales-index-header {
         border-radius: 1.375rem !important;

@@ -1,3 +1,5 @@
+/* ml-settings — iPad Landscape */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .ml-settings-page { }
+    .ml-settings-page { padding-inline: 1.2rem !important; }
+    .ml-settings-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
 }

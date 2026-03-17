@@ -1,3 +1,5 @@
+/* publish-product — iPhone 15 */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .publish-product-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .publish-product-page .grid { grid-template-columns: 1fr !important; }
 }
