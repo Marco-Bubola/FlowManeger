@@ -1,0 +1,230 @@
+/* ============================================================
+   Sales Index — Mobile (max-width: 767px)
+   - Header compacto: ícone menor, título menor, seção única
+   - Filter pills: ocultar grupos desnecessários, compactar
+   - Grid: 1 coluna, cards compactos
+   - Tabbar clearance
+   ============================================================ */
+
+@media (max-width: 767px) {
+
+    /* ── TABBAR CLEARANCE ─────────────────────────────────── */
+    .sales-index-page {
+        padding-bottom: calc(74px + env(safe-area-inset-bottom)) !important;
+        padding-left: 0.375rem !important;
+        padding-right: 0.375rem !important;
+    }
+
+    /* ── HEADER EXTERNO ───────────────────────────────────── */
+    .sales-index-header {
+        border-radius: 1rem !important;
+        margin-bottom: 0.625rem !important;
+    }
+    .sales-index-header-inner {
+        padding: 0.625rem 0.75rem !important;
+    }
+
+    /* ── ROW 1: ícone + título + badges + busca + botão ────── */
+    .sales-index-header-row-1 {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        gap: 0.375rem !important;
+    }
+    /* seção esquerda (ícone + título) */
+    .sales-index-header-left {
+        gap: 0.375rem !important;
+        flex: 0 0 auto !important;
+    }
+    /* ícone */
+    .sales-index-header-icon {
+        width: 2.125rem !important;
+        height: 2.125rem !important;
+        border-radius: 0.625rem !important;
+    }
+    .sales-index-header-icon i {
+        font-size: 1rem !important;
+    }
+    /* Wrapper título */
+    .sales-index-header-title-wrap {
+        gap: 0 !important;
+    }
+    /* título */
+    .sales-index-header-title {
+        font-size: 1.125rem !important;
+        line-height: 1.2 !important;
+    }
+    /* ocultar breadcrumb */
+    .sales-index-header-title-wrap .mb-2 {
+        display: none !important;
+    }
+    /* badges: ocultar */
+    .sales-index-header-badges,
+    .sales-mobile-hide {
+        display: none !important;
+    }
+    /* busca: largura total em nova linha */
+    .sales-index-header-search {
+        flex: 1 1 100% !important;
+        order: 10 !important;
+        min-width: 0 !important;
+    }
+    .sales-index-header-search input {
+        font-size: 0.78rem !important;
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    /* Botão Nova Venda: compacto */
+    .sales-index-header-btn-create {
+        padding: 0.4rem 0.625rem !important;
+        font-size: 0.72rem !important;
+        border-radius: 0.625rem !important;
+        gap: 0.25rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ── ROW 2: filtros + paginação ───────────────────────── */
+    .sales-index-header-row-2 {
+        margin-top: 0.375rem !important;
+        gap: 0.375rem !important;
+        flex-wrap: wrap !important;
+    }
+    .sales-index-header-row-2-left {
+        flex-wrap: wrap !important;
+        gap: 0.25rem !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    /* deixar só o grupo de status + paginação no mobile */
+    .sale-sort-pills,
+    .sale-period-pills,
+    .sale-perpage-pills {
+        display: none !important;
+    }
+    /* pills de status */
+    .sale-filter-pills.sale-status-group {
+        flex-wrap: wrap !important;
+    }
+    .sale-filter-pill {
+        font-size: 0.65rem !important;
+        padding: 0.35rem 0.5rem !important;
+        gap: 0.2rem !important;
+    }
+    .sale-badge {
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.5rem !important;
+    }
+    /* right side: ação botões compactos */
+    .sales-index-header-row-2-right {
+        gap: 0.25rem !important;
+    }
+    .sale-action-btn {
+        width: 2rem !important;
+        height: 2rem !important;
+        font-size: 0.8rem !important;
+        border-radius: 0.5rem !important;
+    }
+    .sale-pagination-compact {
+        gap: 0.25rem !important;
+    }
+    .sale-pagination-btn {
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        font-size: 0.72rem !important;
+    }
+    .sale-pagination-indicator {
+        font-size: 0.72rem !important;
+    }
+
+    /* ── GRID DE CARDS ────────────────────────────────────── */
+    .sales-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.625rem !important;
+    }
+
+    /* ── CARD ─────────────────────────────────────────────── */
+    .sale-card {
+        border-radius: 0.875rem !important;
+        padding: 0.75rem !important;
+        gap: 0.625rem !important;
+    }
+    .sale-card-client {
+        gap: 0.5rem !important;
+    }
+    .sale-card-avatar {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        font-size: 0.8rem !important;
+    }
+    .sale-card-client-info h3 {
+        font-size: 0.85rem !important;
+    }
+    .sale-card-client-info span {
+        font-size: 0.7rem !important;
+    }
+    /* produtos: 3 colunas */
+    .sale-card-products {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.3rem !important;
+    }
+    /* financial block: 2 colunas no mobile */
+    .sale-card-financial {
+        flex-wrap: wrap !important;
+        gap: 0.4rem !important;
+    }
+    .sale-card-financial .sale-card-financial-block,
+    .sale-card-financial .sale-card-total-block {
+        flex: 1 1 calc(50% - 0.25rem) !important;
+    }
+    .sale-card-fin-data span {
+        font-size: 0.68rem !important;
+    }
+    .sale-card-fin-data strong {
+        font-size: 0.85rem !important;
+    }
+    /* ações */
+    .sale-card-actions {
+        gap: 0.375rem !important;
+    }
+    .sale-card-actions a,
+    .sale-card-actions button {
+        font-size: 0.7rem !important;
+        padding: 0.375rem 0.5rem !important;
+    }
+    /* progress */
+    .sale-card-progress-status {
+        padding: 0.375rem 0.5rem !important;
+        gap: 0.375rem !important;
+    }
+    .sale-card-progress-status strong {
+        font-size: 0.7rem !important;
+    }
+
+    /* ── PAGINAÇÃO INFERIOR ───────────────────────────────── */
+    .sales-pagination-section {
+        margin-top: 0.625rem !important;
+    }
+    .sales-pagination-shell {
+        padding: 0.75rem !important;
+        border-radius: 1rem !important;
+        flex-direction: column !important;
+        gap: 0.625rem !important;
+        align-items: flex-start !important;
+    }
+    .sales-pagination-left {
+        gap: 0.5rem !important;
+        flex-wrap: wrap !important;
+    }
+    .sales-pagination-center {
+        gap: 0.25rem !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+    .sales-per-page select {
+        font-size: 0.78rem !important;
+        padding: 0.25rem 0.375rem !important;
+    }
+    .sales-pagination-shell .text-sm {
+        font-size: 0.72rem !important;
+    }
+}
