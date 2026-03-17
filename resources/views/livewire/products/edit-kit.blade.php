@@ -1,4 +1,10 @@
-<div class="mobile-393-base">
+<div class="edit-kit-page mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-kit-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-kit-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-kit-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-kit-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-kit-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-kit-ultrawide.css') }}">
     <!-- Header Modernizado -->
     <x-sales-header
         title="Editar Kit: {{ $kit->name }}"
