@@ -527,6 +527,17 @@
                 @endif
             </a>
 
+            <!-- Clientes: visível somente no iPad (768px+) via tab-ipad-only -->
+            <a href="{{ url('clients') }}" wire:navigate
+               class="mobile-tab-item tab-ipad-only {{ Request::is('clients*') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                </div>
+                <span>Clientes</span>
+            </a>
+
             <!-- FAB Central: Ações Rápidas -->
             <button type="button" class="mobile-tab-item mobile-tab-fab" onclick="openFabSheet()" aria-label="Ações rápidas">
                 <div class="fab-circle">
@@ -536,8 +547,18 @@
                 </div>
             </button>
 
-            <!-- Produtos (mobile) / ML (iPad extra - hidden on pure mobile) -->
-            <!-- ML tab: visivel somente no iPad (768px+) -->
+            <!-- Produtos -->
+            <a href="{{ url('products') }}" wire:navigate
+               class="mobile-tab-item {{ Request::is('products*') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+                <span>Produtos</span>
+            </a>
+
+            <!-- ML: visível somente no iPad (768px+) -->
             <a href="{{ route('mercadolivre.products') }}" wire:navigate
                class="mobile-tab-item tab-ipad-only {{ Request::is('mercadolivre*') ? 'is-active' : '' }}">
                 <div class="tab-icon">
@@ -549,17 +570,6 @@
                 @if($mobilePendingMl > 0)
                     <span class="mobile-tab-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
                 @endif
-            </a>
-
-            <!-- Produtos -->
-            <a href="{{ url('products') }}" wire:navigate
-               class="mobile-tab-item {{ Request::is('products*') ? 'is-active' : '' }}">
-                <div class="tab-icon">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                    </svg>
-                </div>
-                <span>Produtos</span>
             </a>
 
             <!-- Mais -->
@@ -941,7 +951,7 @@
         </div>
 
         <!-- Main Content Area -->
-        <div id="mainContent" class="transition-all duration-300 ease-in-out" style="margin-left: 280px;">
+        <div id="mainContent" class="transition-all duration-300 ease-in-out">
             {{ $slot }}
         </div>
 
@@ -954,6 +964,10 @@
             function getTabletNavMode() {
                 const mode = localStorage.getItem(TABLET_NAV_PREF_KEY);
                 return mode === 'tabbar' ? 'tabbar' : 'sidebar';
+            }
+
+            function isTabletPortrait() {
+                return window.innerWidth >= 768 && window.innerWidth <= 1024;
             }
 
             function isTabletLandscape() {
@@ -970,8 +984,14 @@
 
                 document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
 
-                // Apply preference for iPad landscape or desktop
-                if (isTabletLandscape() || isDesktopOrLarger()) {
+                if (isTabletPortrait()) {
+                    // iPad portrait (768-1024): TabBar é sempre a nav, sidebar só como drawer
+                    // Não aplica classe tablet-nav-* neste range (CSS trata via media query diretamente)
+                    sidebar?.classList.add('mobile-sidebar-closed');
+                    document.body.classList.remove('overflow-hidden');
+
+                } else if (isTabletLandscape() || isDesktopOrLarger()) {
+                    // iPad landscape ou desktop: aplica preferência do usuário
                     document.body.classList.add(mode === 'tabbar' ? 'tablet-nav-tabbar' : 'tablet-nav-sidebar');
 
                     if (mode === 'tabbar') {
@@ -979,6 +999,10 @@
                     } else {
                         sidebar?.classList.remove('mobile-sidebar-closed');
                     }
+                } else {
+                    // Mobile puro (<768px): sidebar como drawer, tabbar visível
+                    sidebar?.classList.add('mobile-sidebar-closed');
+                    document.body.classList.remove('overflow-hidden');
                 }
 
                 document.body.classList.remove('overflow-hidden');
@@ -988,6 +1012,7 @@
                 const sidebar = document.getElementById('modernSidebar');
                 if (!sidebar) return;
 
+                // No iPad landscape com modo sidebar: não abre como overlay (já está fixo)
                 if (isTabletLandscape() && getTabletNavMode() === 'sidebar') {
                     sidebar.classList.remove('mobile-sidebar-closed');
                     return;
@@ -1001,6 +1026,7 @@
                 const sidebar = document.getElementById('modernSidebar');
                 if (!sidebar) return;
 
+                // No iPad landscape com modo sidebar: não fecha (sidebar fixa)
                 if (isTabletLandscape() && getTabletNavMode() === 'sidebar') {
                     return;
                 }
@@ -1009,12 +1035,18 @@
                 document.body.classList.remove('overflow-hidden');
             }
 
+            function _tabbar() {
+                return document.querySelector('.mobile-bottom-tabbar');
+            }
+
             function openFabSheet() {
                 const sheet = document.getElementById('mobileFabSheet');
                 if (!sheet) return;
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('overflow-hidden');
+                const tb = _tabbar();
+                if (tb) { tb.style.visibility = 'hidden'; tb.style.pointerEvents = 'none'; }
             }
 
             function closeFabSheet() {
@@ -1023,6 +1055,8 @@
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
                 document.body.classList.remove('overflow-hidden');
+                const tb = _tabbar();
+                if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
             }
 
             function openMoreSheet() {
@@ -1031,6 +1065,8 @@
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('overflow-hidden');
+                const tb = _tabbar();
+                if (tb) { tb.style.visibility = 'hidden'; tb.style.pointerEvents = 'none'; }
             }
 
             function closeMoreSheet() {
@@ -1039,6 +1075,8 @@
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
                 document.body.classList.remove('overflow-hidden');
+                const tb = _tabbar();
+                if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
             }
 
             function initSidebar() {
@@ -1047,31 +1085,23 @@
 
                 applyTabletNavMode();
 
-                // Load saved compact state (desktop only — > 1024px)
+                // Load saved compact state (desktop only — > 1024px landscape ou > 1366px)
                 const isCompact = localStorage.getItem('sidebarCompact') === 'true';
-                if (isCompact && window.innerWidth > 1024) {
-                    document.body.classList.add('sidebar-compact');
+                if (isCompact && (isTabletLandscape() || isDesktopOrLarger())) {
+                    if (getTabletNavMode() === 'sidebar') {
+                        document.body.classList.add('sidebar-compact');
+                    }
                 } else {
                     document.body.classList.remove('sidebar-compact');
                 }
 
-                // Enforce mobile-sidebar-closed on mobile/tablet (including 1024px iPad Pro)
-                if (window.innerWidth <= 1024) {
-                    sidebar?.classList.add('mobile-sidebar-closed');
-                    document.body.classList.remove('overflow-hidden');
-                } else if (isTabletLandscape() && getTabletNavMode() === 'tabbar') {
-                    sidebar?.classList.add('mobile-sidebar-closed');
-                    document.body.classList.remove('overflow-hidden');
-                } else {
-                    sidebar?.classList.remove('mobile-sidebar-closed');
-                    document.body.classList.remove('overflow-hidden');
-                }
-
-                // Close any open sheets on navigation
+                // Close any open sheets on navigation and always restore tabbar
                 closeFabSheet();
                 closeMoreSheet();
+                const tb = _tabbar();
+                if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
 
-                // Desktop toggle functionality
+                // Desktop toggle functionality (apenas quando sidebar está ativa)
                 if (toggle && !toggle.hasAttribute('data-sidebar-initialized')) {
                     toggle.setAttribute('data-sidebar-initialized', 'true');
                     toggle.addEventListener('click', function() {
@@ -1081,10 +1111,10 @@
                     });
                 }
 
-                // Close mobile sidebar on nav link click
+                // Close mobile sidebar on nav link click (mobile e iPad portrait)
                 document.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', function() {
-                        if (window.innerWidth <= 1024) {
+                        if (window.innerWidth < 1024 || isTabletPortrait()) {
                             closeMobileSidebar();
                         }
                     });
@@ -1101,13 +1131,20 @@
             }
 
             window.addEventListener('resize', applyTabletNavMode);
-            window.addEventListener('orientationchange', applyTabletNavMode);
+            window.addEventListener('orientationchange', function() {
+                setTimeout(applyTabletNavMode, 100); // aguarda orientação estabilizar
+            });
             window.addEventListener('flowmanager:tablet-nav-mode-changed', function() {
                 applyTabletNavMode();
             });
 
             document.addEventListener('DOMContentLoaded', initSidebar);
             document.addEventListener('livewire:navigated', initSidebar);
+            // Fechar sheets ANTES da navegação (garante que não persistam na próxima página)
+            document.addEventListener('livewire:navigate', function() {
+                closeFabSheet();
+                closeMoreSheet();
+            });
         </script>
 
         @fluxScripts
