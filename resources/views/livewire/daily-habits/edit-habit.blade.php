@@ -1,4 +1,10 @@
-<div>
+<div class="edit-habit-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-ultrawide.css') }}">
     <div class="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
         style="min-height: 100vh;">
         <x-sales-header title="📝 Editar Hábito" description="Atualize as informações do seu hábito">
