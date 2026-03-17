@@ -1,0 +1,126 @@
+/* ============================================================
+   Sales Index — iPad Landscape (768–1366px, landscape)
+   - Header: row completo, todos os pills visíveis
+   - Grid: 3 colunas (768–1023px) / 4 colunas (1024–1366px)
+   - Sem tabbar em landscape
+   ============================================================ */
+
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+
+    .sales-index-page {
+        padding-bottom: 1rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .sales-index-header {
+        border-radius: 1.125rem !important;
+        margin-bottom: 0.875rem !important;
+    }
+    .sales-index-header-inner {
+        padding: 0.75rem 1.375rem !important;
+    }
+
+    /* ROW 1 */
+    .sales-index-header-row-1 {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.625rem !important;
+        flex-wrap: nowrap !important;
+    }
+    .sales-index-header-left {
+        gap: 0.5rem !important;
+        flex-shrink: 0 !important;
+    }
+    .sales-index-header-icon {
+        width: 3rem !important;
+        height: 3rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .sales-index-header-icon i {
+        font-size: 1.5rem !important;
+    }
+    .sales-index-header-title {
+        font-size: 2rem !important;
+    }
+    .sales-index-header-title-wrap .mb-2 {
+        display: none !important;
+    }
+    /* badges: mostrar */
+    .sales-index-header-badges {
+        display: flex !important;
+        flex-shrink: 0 !important;
+    }
+    .sale-badge {
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0.625rem !important;
+    }
+    .sales-index-header-search {
+        flex: 1 !important;
+        min-width: 160px !important;
+    }
+    .sales-index-header-search input {
+        font-size: 0.875rem !important;
+    }
+    .sales-index-header-btn-create {
+        padding: 0.5rem 0.875rem !important;
+        font-size: 0.82rem !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ROW 2: mostrar tudo */
+    .sales-index-header-row-2 {
+        margin-top: 0.5rem !important;
+        gap: 0.5rem !important;
+    }
+    .sales-index-header-row-2-left {
+        gap: 0.375rem !important;
+        flex-wrap: wrap !important;
+    }
+    .sales-mobile-hide {
+        display: flex !important;
+    }
+    .sale-filter-pill {
+        font-size: 0.72rem !important;
+        padding: 0.375rem 0.625rem !important;
+    }
+    .sale-filter-pill-label {
+        font-size: 0.72rem !important;
+    }
+
+    /* ── GRID ─────────────────────────────────────────────── */
+    .sales-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1rem !important;
+    }
+
+    /* Em telas landscape maiores (≥1024px): 4 colunas */
+    @media (min-width: 1024px) {
+        .sales-grid {
+            grid-template-columns: repeat(4, 1fr) !important;
+        }
+    }
+
+    /* ── CARD ─────────────────────────────────────────────── */
+    .sale-card {
+        padding: 0.875rem !important;
+        border-radius: 1rem !important;
+    }
+    .sale-card-avatar {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+    }
+    .sale-card-client-info h3 {
+        font-size: 0.875rem !important;
+    }
+    .sale-card-products {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+
+    /* ── PAGINAÇÃO ────────────────────────────────────────── */
+    .sales-pagination-shell {
+        padding: 1rem 1.25rem !important;
+        border-radius: 1.125rem !important;
+    }
+}
