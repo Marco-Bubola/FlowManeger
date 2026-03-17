@@ -1,0 +1,15 @@
+/* Client Dashboard - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .client-dashboard-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .client-dashboard-page h1.text-2xl {
+        font-size: 1.15rem !important;
+    }
+
+    .client-dashboard-page .grid.grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+    }
+}

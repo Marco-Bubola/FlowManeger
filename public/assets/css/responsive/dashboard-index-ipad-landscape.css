@@ -1,0 +1,11 @@
+/* Dashboard Index — iPad Landscape */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
+    .dashboard-index-page { padding-inline: 1.2rem !important; }
+    .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(8, 1fr) !important; }
+    .dashboard-index-page .xl\:col-span-8 { grid-column: span 5 !important; }
+    .dashboard-index-page .xl\:col-span-4 { grid-column: span 3 !important; }
+    .dashboard-index-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+}
+@media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
+    .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(12, 1fr) !important; }
+}

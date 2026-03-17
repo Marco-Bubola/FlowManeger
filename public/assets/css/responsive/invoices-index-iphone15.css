@@ -1,0 +1,6 @@
+/* Invoices Index — iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .invoices-index-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .invoices-index-page .grid.lg\:grid-cols-4 { grid-template-columns: 1fr !important; }
+    .invoices-index-page .grid.grid-cols-7 { font-size: 0.65rem !important; }
+}

@@ -1,0 +1,28 @@
+/* Add Payments - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .add-payments-page {
+        padding-bottom: 1.5rem;
+    }
+
+    .add-payments-main {
+        padding-inline: 1.125rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    /* Layout: 2 colunas */
+    .add-payments-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 300px !important;
+        gap: 1.25rem !important;
+        align-items: flex-start !important;
+    }
+
+    /* Header */
+    .add-payments-page .sales-create-header-title {
+        font-size: 1.5rem !important;
+    }
+
+    .add-payments-page .sales-create-header-subtitle {
+        font-size: 0.84rem !important;
+    }
+}

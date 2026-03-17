@@ -9,7 +9,13 @@ $bankIcons = [
 ['name' => 'Bradesco', 'icon' => asset('assets/img/banks/bradesco.png')],
 ];
 @endphp
-<div class="w-full">
+<div class="edit-bank-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-ultrawide.css') }}">
     <!-- Header componentizado para consistência visual -->
     <x-sales-header title="Editar Cartão/Banco" description="Atualize as informações do seu cartão ou banco"
         icon="bi-pencil-square" iconColor="orange">

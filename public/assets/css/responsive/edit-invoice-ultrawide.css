@@ -1,0 +1,6 @@
+/* edit-invoice - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .edit-invoice-page { max-width: 1800px; margin-inline: auto; }
+    .edit-invoice-page h1.text-3xl, .edit-invoice-page h1.text-2xl { font-size: 2rem !important; }
+    .edit-invoice-page .rounded-2xl.p-6 { padding: 1.75rem !important; }
+}

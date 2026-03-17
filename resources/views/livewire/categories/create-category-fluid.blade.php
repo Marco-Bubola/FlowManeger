@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="create-category-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-category-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-category-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-category-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-category-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-category-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-category-ultrawide.css') }}">
 
     <!-- Header Moderno -->
     <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-4">

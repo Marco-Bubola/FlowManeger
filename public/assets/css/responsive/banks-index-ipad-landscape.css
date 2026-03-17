@@ -1,0 +1,12 @@
+/* Banks Index - iPad Landscape (768-1366px, orientação paisagem) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .banks-index-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3,
+    .banks-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .banks-index-page h1.text-3xl,
+    .banks-index-page h1.text-2xl {
+        font-size: 1.55rem !important;
+    }
+}

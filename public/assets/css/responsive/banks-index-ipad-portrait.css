@@ -1,0 +1,16 @@
+/* Banks Index - iPad Portrait (768-1024px, orientação retrato) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .banks-index-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .banks-index-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3,
+    .banks-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .banks-index-page h1.text-3xl,
+    .banks-index-page h1.text-2xl {
+        font-size: 1.45rem !important;
+    }
+}

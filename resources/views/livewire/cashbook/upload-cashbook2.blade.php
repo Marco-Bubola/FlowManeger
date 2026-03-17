@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="upload-cashbook2-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook2-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook2-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook2-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook2-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook2-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook2-ultrawide.css') }}">
     @push('styles')
         @vite('resources/css/upload-animations.css')
     @endpush

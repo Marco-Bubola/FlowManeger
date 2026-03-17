@@ -1,0 +1,6 @@
+/* cofrinhos-create - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .cofrinhos-create-page { max-width: 1800px; margin-inline: auto; }
+    .cofrinhos-create-page h1.text-3xl, .cofrinhos-create-page h1.text-2xl { font-size: 2rem !important; }
+    .cofrinhos-create-page .rounded-2xl.p-6 { padding: 1.75rem !important; }
+}

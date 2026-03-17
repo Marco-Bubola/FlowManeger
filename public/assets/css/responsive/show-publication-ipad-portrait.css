@@ -1,0 +1,20 @@
+/* Show Publication - iPad Portrait (768-1024px, orientação retrato) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .publication-show-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .publication-show-page h1.text-3xl {
+        font-size: 1.45rem !important;
+    }
+
+    /* Grid 2 colunas em portrait */
+    .publication-show-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .publication-show-page .w-20.h-20.rounded-xl {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+}

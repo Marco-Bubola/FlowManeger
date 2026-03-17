@@ -1,0 +1,8 @@
+/* Categories Index — iPad Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .categories-index-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 { grid-template-columns: repeat(4, 1fr) !important; gap: 0.75rem !important; }
+    .categories-index-page .grid.grid-cols-1.lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .categories-index-page .grid.grid-cols-2.md\:grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
+}

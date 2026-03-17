@@ -1,0 +1,5 @@
+/* Cashbook Index - iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .cashbook-index-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .cashbook-index-page h1.text-3xl, .cashbook-index-page h1.text-2xl { font-size: 1.2rem !important; }
+}

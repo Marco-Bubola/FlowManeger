@@ -1,0 +1,6 @@
+/* Categories Index — iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .categories-index-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-3 { grid-template-columns: 1fr !important; }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 { grid-template-columns: repeat(2, 1fr) !important; }
+}

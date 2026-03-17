@@ -1,0 +1,39 @@
+/* Upload Products - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .upload-products-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header via x-upload-header-original */
+    .upload-products-page .rounded-2xl,
+    .upload-products-page .rounded-3xl {
+        border-radius: 0.9rem !important;
+    }
+
+    .upload-products-page .px-8.py-4,
+    .upload-products-page .px-6.py-4 {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    /* Título */
+    .upload-products-page h1.text-3xl,
+    .upload-products-page h1.text-2xl {
+        font-size: 1.1rem !important;
+    }
+
+    /* Botões de ação no header */
+    .upload-products-page .inline-flex.items-center.px-5.py-2\.5 {
+        padding: 0.45rem 0.75rem !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* Drop zone */
+    .upload-products-page .border-dashed {
+        padding: 1.5rem 0.75rem !important;
+    }
+
+    /* Grid de tabela */
+    .upload-products-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+}

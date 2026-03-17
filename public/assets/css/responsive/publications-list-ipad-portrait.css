@@ -1,0 +1,62 @@
+/* ═══════════════════════════════════════════════════════════
+   Publications List — iPad Portrait (768–1024px, orientação retrato)
+   4 publicações por linha, proporções compactas e estilizadas
+   ═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+
+    /* ── Padding tabbar inferior ── */
+    .publications-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+        padding-inline: 0.9rem !important;
+    }
+
+    /* ── Header compacto ── */
+    .publications-page h1 {
+        font-size: 1.4rem !important;
+    }
+
+    .publications-page .publications-header-row-1 {
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: wrap !important;
+        gap: 0.5rem !important;
+    }
+
+    /* ── Grid: 4 colunas ── */
+    .publications-page .products-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    /* ── Área de imagem: proporção adaptada para card estreito ── */
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 160px !important;
+        min-height: 160px !important;
+    }
+
+    /* ── Card estrutura ── */
+    .publications-page .products-grid .product-card-modern {
+        min-height: auto !important;
+        border-radius: 1rem !important;
+    }
+
+    /* ── Card body ── */
+    .publications-page .products-grid .product-card-modern .card-body {
+        padding: 0.6rem 0.5rem !important;
+        gap: 0.2rem !important;
+    }
+
+    /* ── Título do produto ── */
+    .publications-page .products-grid .product-card-modern .product-title {
+        font-size: 0.75rem !important;
+        -webkit-line-clamp: 2 !important;
+        line-clamp: 2 !important;
+    }
+
+    /* ── Ações do card (botões) ── */
+    .publications-page .products-grid .product-card-modern a,
+    .publications-page .products-grid .product-card-modern button {
+        font-size: 0.65rem !important;
+    }
+}

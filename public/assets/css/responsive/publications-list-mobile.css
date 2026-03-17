@@ -1,0 +1,74 @@
+/* Publications List — Mobile (≤767px) */
+@media (max-width: 767.98px) {
+    .publications-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .publications-page .rounded-3xl {
+        border-radius: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .publications-page .relative.px-4.py-3 {
+        padding: 0.6rem 0.6rem !important;
+    }
+
+    /* Ícone */
+    .publications-page .w-14.h-14.rounded-2xl {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        border-radius: 0.6rem !important;
+    }
+
+    .publications-page .bi-list-check {
+        font-size: 1rem !important;
+    }
+
+    /* Título */
+    .publications-page h1 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Stats badges */
+    .publications-page .publications-header-stats {
+        display: none !important;
+    }
+
+    /* Linha de filtro — botões empilhados */
+    .publications-page .publications-header-row-1 {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Search input */
+    .publications-page input[type="text"],
+    .publications-page input[type="search"] {
+        font-size: 0.85rem !important;
+    }
+
+    /* Grid: 1 coluna em mobile pequeno, 2 em sm */
+    .publications-page .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
+
+    /* Imagem menor no mobile */
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 200px !important;
+        min-height: 200px !important;
+    }
+}
+
+/* ── sm (640-767px): 2 colunas ── */
+@media (min-width: 640px) and (max-width: 767.98px) {
+    .publications-page .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.9rem !important;
+    }
+
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 180px !important;
+        min-height: 180px !important;
+    }
+}

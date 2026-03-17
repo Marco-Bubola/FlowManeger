@@ -1,4 +1,10 @@
 <div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="w-full clients-index-page mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-ultrawide.css') }}">
     <style>
         [x-cloak] {
             display: none !important;
@@ -140,7 +146,7 @@
     x-transition:enter-end="opacity-100 transform translate-y-0" x-transition:leave="transition ease-in duration-200"
     x-transition:leave-start="opacity-100 transform translate-y-0"
     x-transition:leave-end="opacity-0 transform -translate-y-4"
-    class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
+    class="clients-filters-panel bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50 mb-6">
 
     <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center justify-between">
         <div class="flex items-center">
@@ -362,7 +368,7 @@
 
 
 <!-- Grid de clientes -->
-<div class="p-3">
+<div class="clients-grid-wrap p-3">
     @if($clients->isEmpty())
         <div
             class="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-8 text-center border border-dashed border-gray-300 dark:border-gray-700">
@@ -570,7 +576,7 @@
 @include('livewire.clients._export-modal')
 
 <!-- Modal de Confirmação de Exclusão -->
-<div class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
+<div x-cloak class="fixed inset-0 z-50 overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
     x-show="showDeleteModal" x-transition:enter="transition ease-out duration-300"
     x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
     x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
@@ -779,7 +785,7 @@
 <!-- Navegação de Paginação no Final da Página -->
 @if ($clients->hasPages())
     <div
-        class="mt-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
+        class="clients-pagination-bottom mt-8 bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-2xl p-6 shadow-lg border border-white/20 dark:border-slate-700/50">
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
             <!-- Informações da Paginação -->
             <div class="flex items-center gap-3">

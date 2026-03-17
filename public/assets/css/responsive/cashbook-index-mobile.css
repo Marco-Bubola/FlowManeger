@@ -1,0 +1,9 @@
+/* Cashbook Index - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .cashbook-index-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .cashbook-index-page h1.text-3xl, .cashbook-index-page h1.text-2xl { font-size: 1.1rem !important; }
+    .cashbook-index-page .px-8.py-4, .cashbook-index-page .px-6.py-4 { padding: 0.65rem 0.75rem !important; }
+    .cashbook-index-page .grid.grid-cols-1.lg\:grid-cols-4 { grid-template-columns: 1fr !important; gap: 0.65rem !important; }
+    .cashbook-index-page .grid.grid-cols-2.md\:grid-cols-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.5rem !important; }
+    .cashbook-index-page .rounded-xl.p-6, .cashbook-index-page .rounded-2xl.p-6 { padding: 0.75rem !important; }
+}

@@ -1,0 +1,11 @@
+/* Dashboard Index — Mobile (<=767px) */
+@media (max-width: 767px) {
+    .dashboard-index-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .dashboard-index-page .grid { grid-template-columns: 1fr !important; }
+    .dashboard-index-page .xl\:col-span-8,
+    .dashboard-index-page .xl\:col-span-4,
+    .dashboard-index-page .lg\:col-span-2 { grid-column: 1 / -1 !important; }
+}
+@media (min-width: 540px) and (max-width: 767px) {
+    .dashboard-index-page .grid.grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}

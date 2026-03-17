@@ -1,0 +1,39 @@
+/* Add Payments - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .add-payments-page {
+        padding-bottom: 2.5rem;
+    }
+
+    .add-payments-main {
+        max-width: 1800px !important;
+        margin-inline: auto !important;
+        padding-inline: 1.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    .add-payments-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 380px !important;
+        gap: 2rem !important;
+        align-items: flex-start !important;
+    }
+
+    /* Header maior */
+    .add-payments-page .sales-create-header-inner {
+        padding: 1.25rem 2.25rem !important;
+    }
+
+    .add-payments-page .sales-create-header-title {
+        font-size: 2.5rem !important;
+    }
+
+    .add-payments-page .sales-create-header-subtitle {
+        font-size: 1rem !important;
+    }
+
+    /* Gráfico maior */
+    .add-payments-sidebar .w-28 {
+        width: 8rem !important;
+        height: 8rem !important;
+    }
+}

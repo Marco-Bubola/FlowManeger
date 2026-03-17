@@ -1,0 +1,15 @@
+/* Client Metrics - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .client-metrics-page {
+        padding-bottom: 1.5rem;
+        padding-inline: 1rem;
+    }
+
+    .client-metrics-page .rounded-2xl.p-6.text-white.shadow-xl {
+        padding: 1.25rem !important;
+    }
+
+    .client-metrics-page .bg-white.dark\:bg-gray-800.rounded-2xl.p-6 {
+        padding: 1.125rem !important;
+    }
+}

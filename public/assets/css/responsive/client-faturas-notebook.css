@@ -1,0 +1,23 @@
+/* Client Faturas - Notebook (1025–1440px) */
+
+/* Bloco 1: 1025–1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .client-faturas-page .w-full.max-w-none {
+        padding-inline: 1.25rem !important;
+    }
+
+    .client-faturas-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+}
+
+/* Bloco 2: 1280–1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .client-faturas-page .w-full.max-w-none {
+        padding-inline: 1.5rem !important;
+    }
+
+    .client-faturas-page h1.text-3xl {
+        font-size: 2.25rem !important;
+    }
+}

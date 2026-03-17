@@ -1,0 +1,5 @@
+/* Consortiums Index — iPad Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .consortiums-index-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .consortiums-index-page .grid { grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
+}

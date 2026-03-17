@@ -1,0 +1,6 @@
+/* edit-category - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .edit-category-page { max-width: 1800px; margin-inline: auto; }
+    .edit-category-page h1.text-3xl, .edit-category-page h1.text-2xl { font-size: 2rem !important; }
+    .edit-category-page .rounded-2xl.p-6 { padding: 1.75rem !important; }
+}

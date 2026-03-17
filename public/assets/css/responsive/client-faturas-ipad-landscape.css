@@ -1,0 +1,19 @@
+/* Client Faturas - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .client-faturas-page {
+        padding-bottom: 1.5rem;
+    }
+
+    .client-faturas-page .w-full.max-w-none {
+        padding-inline: 1.25rem !important;
+    }
+
+    .client-faturas-page .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1rem !important;
+    }
+
+    .client-faturas-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+}

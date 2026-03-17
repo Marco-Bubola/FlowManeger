@@ -1,0 +1,5 @@
+/* edit-cashbook - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .edit-cashbook-page { max-width: 1600px; margin-inline: auto; }
+    .edit-cashbook-page h1.text-3xl, .edit-cashbook-page h1.text-2xl { font-size: 2rem !important; }
+}

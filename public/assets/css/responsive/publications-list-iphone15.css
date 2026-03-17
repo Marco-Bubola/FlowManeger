@@ -1,0 +1,30 @@
+/* Publications List — iPhone 15 (380–430px, altura ≥ 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .publications-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .publications-page .relative.px-4.py-3 {
+        padding: 0.7rem 0.7rem !important;
+    }
+
+    .publications-page h1 {
+        font-size: 1.2rem !important;
+    }
+
+    .publications-page .w-14.h-14.rounded-2xl {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+    }
+
+    /* 1 coluna em iPhone 15 */
+    .publications-page .products-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
+
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 210px !important;
+        min-height: 210px !important;
+    }
+}

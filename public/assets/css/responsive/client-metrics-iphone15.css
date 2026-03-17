@@ -1,0 +1,15 @@
+/* Client Metrics - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .client-metrics-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .client-metrics-page .rounded-2xl.p-6.text-white.shadow-xl {
+        padding: 0.925rem !important;
+    }
+
+    .client-metrics-page .w-16.h-16.bg-white\/20 {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+    }
+}

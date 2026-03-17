@@ -1,0 +1,180 @@
+/* ============================================================
+   Clients Index — iPad Portrait (768–1024px, orientação retrato)
+   Principais ajustes:
+   - Header: forçar row layout (lg:flex-row = 1024px+, aqui 768px)
+   - Ícone 3rem, título 2rem, stats 3 badges visíveis
+   - Grid: 2 colunas (Tailwind md:grid-cols-2 já ativo — ajustar gaps/card)
+   - Controls: full width no slot do header
+   - Filtros: 2 colunas Tailwind md:grid-cols-2 já ativo
+   - Clearance tabbar
+   ============================================================ */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+
+    /* ── TABBAR CLEARANCE ─────────────────────────────────── */
+    .clients-index-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .clients-index-header {
+        border-radius: 1.25rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .clients-index-header-inner {
+        padding: 1rem 1.5rem !important;
+    }
+    /* FORÇAR layout em linha (lg:flex-row ativa em 1024px pelo Tailwind) */
+    .clients-index-header-inner > .flex {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 1rem !important;
+    }
+    /* seção esquerda */
+    .clients-index-header .flex-shrink-0 {
+        gap: 0.75rem !important;
+        flex-shrink: 0 !important;
+    }
+    /* ícone principal */
+    .clients-index-header .from-indigo-500.via-purple-500 {
+        width: 3rem !important;
+        height: 3rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 > i {
+        font-size: 1.5rem !important;
+    }
+    /* título */
+    .clients-index-header h1 {
+        font-size: 2rem !important;
+        line-height: 1.15 !important;
+    }
+    /* breadcrumb: ocultar para economizar espaço */
+    .clients-index-header .mb-2.flex.items-center.gap-2 {
+        display: none !important;
+    }
+    /* stats: mostrar 3 badges */
+    .clients-index-header .mt-3 {
+        gap: 0.375rem !important;
+        margin-top: 0.5rem !important;
+        flex-wrap: nowrap !important;
+    }
+    .clients-index-header .mt-3 > div {
+        padding: 0.25rem 0.625rem !important;
+    }
+    .clients-index-header .mt-3 > div span {
+        font-size: 0.75rem !important;
+    }
+    /* mostrar todos os badges (override mobile) */
+    .clients-index-header .mt-3 > div:nth-child(n+3) {
+        display: flex !important;
+    }
+    /* slot de controles: lado direito, flex-1 */
+    .clients-index-header .flex-1.flex.items-center.justify-end {
+        justify-content: flex-end !important;
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+    .clients-index-header .flex-1.flex.items-center.justify-end > .flex-1 {
+        max-width: 560px !important;
+    }
+
+    /* ── CONTROLS ─────────────────────────────────────────── */
+    .clients-index-controls-wrap {
+        gap: 0.625rem !important;
+    }
+    .clients-index-controls-row-1 {
+        gap: 0.5rem !important;
+    }
+    /* busca */
+    .clients-index-controls-row-1 > .relative.flex-1 input {
+        font-size: 0.875rem !important;
+        padding-top: 0.625rem !important;
+        padding-bottom: 0.625rem !important;
+    }
+    /* mostrar texto "Cliente" no botão criar */
+    .clients-index-controls-actions > a.flex.items-center.gap-2 span {
+        display: inline !important;
+    }
+    .clients-index-controls-actions > a.flex.items-center.gap-2 {
+        padding: 0.625rem 0.75rem !important;
+    }
+    /* row 2: paginação + ordenação */
+    .clients-index-controls-row-2 .text-sm.font-semibold {
+        font-size: 0.8rem !important;
+    }
+
+    /* ── FILTROS PANEL ────────────────────────────────────── */
+    .clients-filters-panel {
+        padding: 1.125rem !important;
+        border-radius: 1.125rem !important;
+        margin-bottom: 0.875rem !important;
+    }
+    /* Tailwind md:grid-cols-2 já ativo → mantém 2 colunas */
+    .clients-filters-panel > .grid {
+        gap: 1rem !important;
+    }
+    .clients-filters-panel h3 {
+        font-size: 1rem !important;
+    }
+
+    /* ── GRID DE CARDS — 2 COLUNAS ───────────────────────── */
+    .clients-grid-wrap {
+        padding: 0.5rem !important;
+    }
+    .clients-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.875rem !important;
+    }
+
+    /* ── CLIENT CARD ──────────────────────────────────────── */
+    /* banner */
+    .client-card-modern .h-16.bg-gradient-to-br {
+        height: 3.5rem !important;
+    }
+    .client-card-modern .flex.justify-center.-mt-8 {
+        margin-top: -1.875rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    .client-card-modern .w-16.h-16.rounded-full {
+        width: 3.75rem !important;
+        height: 3.75rem !important;
+    }
+    .client-card-modern .w-5.h-5.-bottom-1 {
+        width: 1.125rem !important;
+        height: 1.125rem !important;
+    }
+    /* info */
+    .client-card-modern .px-4.pb-4 {
+        padding: 0.875rem !important;
+    }
+    .client-card-modern h3.text-base {
+        font-size: 0.95rem !important;
+    }
+    /* stats (Vendas/Consórcios) */
+    .client-card-modern .grid.grid-cols-2.gap-3 {
+        gap: 0.5rem !important;
+    }
+    .client-card-modern .grid.grid-cols-2.gap-3 > div {
+        padding: 0.625rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .client-card-modern .w-8.h-8.bg-gradient-to-br {
+        width: 1.875rem !important;
+        height: 1.875rem !important;
+    }
+    .client-card-modern .text-xl.font-bold {
+        font-size: 1.125rem !important;
+    }
+
+    /* ── PAGINAÇÃO INFERIOR ───────────────────────────────── */
+    .clients-pagination-bottom {
+        padding: 1.125rem 1.25rem !important;
+        border-radius: 1.125rem !important;
+        margin-top: 1rem !important;
+    }
+    .clients-pagination-bottom h3 {
+        font-size: 1rem !important;
+    }
+}

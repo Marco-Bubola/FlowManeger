@@ -1,0 +1,7 @@
+/* upload-cashbook2 - Notebook (1025-1440px) */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .upload-cashbook2-page h1.text-3xl, .upload-cashbook2-page h1.text-2xl { font-size: 1.6rem !important; }
+}
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .upload-cashbook2-page h1.text-3xl, .upload-cashbook2-page h1.text-2xl { font-size: 1.75rem !important; }
+}

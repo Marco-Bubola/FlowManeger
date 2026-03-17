@@ -1,0 +1,41 @@
+/* Edit Prices - Notebook (1025–1440px) */
+
+/* Bloco 1: 1025–1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .edit-prices-page {
+        padding-inline: 1rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-inner {
+        padding: 0.875rem 1.5rem !important;
+    }
+
+    /* Grid: 3 colunas */
+    .edit-prices-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 1.125rem !important;
+    }
+}
+
+/* Bloco 2: 1280–1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .edit-prices-page {
+        padding-inline: 1.25rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-inner {
+        padding: 1rem 1.75rem !important;
+    }
+
+    /* Grid: 4 colunas */
+    .edit-prices-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-title {
+        font-size: 1.75rem !important;
+    }
+}

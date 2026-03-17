@@ -1,0 +1,22 @@
+/* Banks Index - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .banks-index-page {
+        max-width: 1800px;
+        margin-inline: auto;
+    }
+
+    .banks-index-page h1.text-3xl,
+    .banks-index-page h1.text-2xl {
+        font-size: 2rem !important;
+    }
+
+    .banks-index-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3,
+    .banks-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    .banks-index-page .rounded-2xl.p-6 {
+        padding: 1.75rem !important;
+    }
+}

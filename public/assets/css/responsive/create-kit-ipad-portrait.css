@@ -1,0 +1,18 @@
+/* Create Kit - iPad Portrait (768-1024px, orientação retrato) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .create-kit-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .create-kit-page .create-kit-header-inner {
+        padding: 0.85rem 1rem !important;
+    }
+
+    .create-kit-page h1.text-3xl {
+        font-size: 1.45rem !important;
+    }
+
+    .create-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}

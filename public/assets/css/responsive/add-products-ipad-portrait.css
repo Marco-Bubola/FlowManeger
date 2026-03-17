@@ -1,0 +1,52 @@
+/* Add Products - iPad Portrait (768–1024px, portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .add-products-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding-inline: 0.75rem;
+    }
+
+    /* Split: lado a lado */
+    .add-products-split-shell {
+        flex-direction: row !important;
+        height: 76vh !important;
+    }
+
+    .add-products-pane {
+        width: 68% !important;
+    }
+
+    .add-products-split-shell > div:last-child {
+        width: 32% !important;
+        height: 76vh !important;
+    }
+
+    /* Grid: 3 colunas */
+    .add-products-page .products-step-grid,
+    .add-products-pane .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+    }
+
+    .add-products-page .product-card-modern .product-img-area {
+        min-height: 125px !important;
+        height: 125px !important;
+    }
+
+    .add-products-page .product-card-modern .card-body {
+        padding: 2.05em 0.48em 1.72em 0.48em !important;
+    }
+
+    .add-products-page .product-card-modern .product-title {
+        font-size: 0.77em !important;
+    }
+
+    /* Cabeçalho compacto */
+    .add-products-pane .p-6.border-b {
+        padding: 0.875rem !important;
+    }
+
+    .add-products-pane h2 {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.65rem !important;
+    }
+}

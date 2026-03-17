@@ -1,0 +1,7 @@
+/* Categories Index — iPad Landscape */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .categories-index-page { padding-inline: 1.2rem !important; }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 { grid-template-columns: repeat(5, 1fr) !important; }
+    .categories-index-page .grid.grid-cols-1.lg\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}

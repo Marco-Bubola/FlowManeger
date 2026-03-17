@@ -1,0 +1,33 @@
+/* Client Transferencias - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .client-transferencias-page {
+        max-width: 1800px;
+        margin-inline: auto;
+    }
+
+    /* Grid 4 colunas amplas */
+    .client-transferencias-page .grid.grid-cols-1.lg\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    /* Header */
+    .client-transferencias-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+
+    .client-transferencias-page .text-lg.text-gray-600 {
+        font-size: 1.1rem !important;
+    }
+
+    /* Avatar */
+    .client-transferencias-page .w-12.h-12.rounded-full {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+
+    /* Cards */
+    .client-transferencias-page .rounded-xl.shadow-sm.border.p-6 {
+        padding: 1.75rem !important;
+    }
+}

@@ -1,0 +1,26 @@
+/* Edit Kit - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .edit-kit-page {
+        max-width: 1600px;
+        margin-inline: auto;
+    }
+
+    .edit-kit-page .px-8.py-4 {
+        padding: 1.25rem 2rem !important;
+    }
+
+    .edit-kit-page h1.text-3xl,
+    .edit-kit-page h1.text-2xl {
+        font-size: 2rem !important;
+    }
+
+    .edit-kit-page .w-14.h-14,
+    .edit-kit-page .w-12.h-12 {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+
+    .edit-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}

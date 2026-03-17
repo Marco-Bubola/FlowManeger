@@ -1,0 +1,48 @@
+/* Add Products - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .add-products-page {
+        padding-inline: 0.875rem;
+        padding-bottom: 1.25rem;
+    }
+
+    .add-products-split-shell {
+        flex-direction: row !important;
+        height: 72vh !important;
+    }
+
+    .add-products-pane {
+        width: 72% !important;
+    }
+
+    .add-products-split-shell > div:last-child {
+        width: 28% !important;
+        height: 72vh !important;
+    }
+
+    /* Grid: 3–4 colunas */
+    .add-products-page .products-step-grid,
+    .add-products-pane .grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+
+    @media (min-width: 1024px) {
+        .add-products-page .products-step-grid,
+        .add-products-pane .grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        }
+    }
+
+    .add-products-page .product-card-modern .product-img-area {
+        min-height: 118px !important;
+        height: 118px !important;
+    }
+
+    .add-products-page .product-card-modern .card-body {
+        padding: 1.9em 0.48em 1.6em 0.48em !important;
+    }
+
+    .add-products-pane .p-6.border-b {
+        padding: 0.875rem 1rem !important;
+    }
+}

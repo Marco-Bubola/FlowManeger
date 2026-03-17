@@ -1,0 +1,24 @@
+/* Show Product - iPad Portrait (768-1024px, orientação retrato) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .show-product-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .show-product-page h1.text-2xl,
+    .show-product-page h1.text-3xl {
+        font-size: 1.45rem !important;
+    }
+
+    .show-product-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .show-product-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    .show-product-page .w-20.h-20.rounded-2xl {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+}

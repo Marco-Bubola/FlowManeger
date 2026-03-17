@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="cofrinhos-edit-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-ultrawide.css') }}">
     <!-- Header -->
     <x-sales-header title="Editar Cofrinho" subtitle="Atualize as informações do seu cofrinho">
         <x-slot name="actions">

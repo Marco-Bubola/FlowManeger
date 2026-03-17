@@ -1,0 +1,9 @@
+/* Edit Bank - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-bank-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .edit-bank-page h1.text-3xl, .edit-bank-page h1.text-2xl { font-size: 1.1rem !important; }
+    .edit-bank-page .px-8.py-4, .edit-bank-page .px-6.py-4 { padding: 0.65rem 0.75rem !important; }
+    .edit-bank-page .grid.grid-cols-4.sm\:grid-cols-6.md\:grid-cols-8 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 0.5rem !important; }
+    .edit-bank-page .grid.grid-cols-1.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+    .edit-bank-page .rounded-2xl.p-6 { padding: 0.85rem !important; }
+}

@@ -1,0 +1,64 @@
+/* Edit Payments - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-payments-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header compacto */
+    .edit-payments-header {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .edit-payments-header .w-14 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        border-radius: 0.7rem !important;
+    }
+
+    .edit-payments-header .bi-credit-card-fill {
+        font-size: 1.2rem !important;
+    }
+
+    .edit-payments-header h1 {
+        font-size: 1.1rem !important;
+        gap: 0.35rem !important;
+    }
+
+    .edit-payments-header h1 span.ml-2 {
+        font-size: 0.75rem !important;
+        margin-left: 0.25rem !important;
+    }
+
+    .edit-payments-header p.mt-1 {
+        font-size: 0.7rem !important;
+        margin-top: 0.2rem !important;
+    }
+
+    /* Botões de ação compactos */
+    .edit-payments-header .flex.gap-3 {
+        gap: 0.4rem !important;
+    }
+
+    .edit-payments-header a,
+    .edit-payments-header button {
+        padding: 0.4rem 0.65rem !important;
+        font-size: 0.75rem !important;
+        border-radius: 0.55rem !important;
+    }
+
+    .edit-payments-header a .bi-arrow-left,
+    .edit-payments-header button .bi-check-circle {
+        margin-right: 0.3rem !important;
+    }
+
+    /* Conteúdo */
+    .edit-payments-page .w-full.p-6 {
+        padding: 0.65rem 0.55rem !important;
+    }
+
+    /* Info card da venda compacto */
+    .edit-payments-page .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+}

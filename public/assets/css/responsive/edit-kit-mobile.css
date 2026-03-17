@@ -1,0 +1,40 @@
+/* Edit Kit - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-kit-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header via x-sales-header */
+    .edit-kit-page .sales-header {
+        border-radius: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .edit-kit-page .px-8.py-4 {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    /* Ícone */
+    .edit-kit-page .w-14.h-14,
+    .edit-kit-page .w-12.h-12 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        border-radius: 0.65rem !important;
+    }
+
+    /* Título */
+    .edit-kit-page h1.text-3xl,
+    .edit-kit-page h1.text-2xl {
+        font-size: 1.1rem !important;
+    }
+
+    /* Steps */
+    .edit-kit-page .text-sm.font-medium {
+        font-size: 0.72rem !important;
+    }
+
+    /* Grid formulário */
+    .edit-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+}

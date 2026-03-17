@@ -1,0 +1,5 @@
+/* upload-cashbook - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .upload-cashbook-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .upload-cashbook-page h1.text-3xl, .upload-cashbook-page h1.text-2xl { font-size: 1.2rem !important; }
+}

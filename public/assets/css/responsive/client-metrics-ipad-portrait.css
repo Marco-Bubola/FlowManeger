@@ -1,0 +1,20 @@
+/* Client Metrics - iPad Portrait (768–1024px, portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .client-metrics-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding-inline: 0.75rem;
+    }
+
+    .client-metrics-page .rounded-2xl.p-6.text-white.shadow-xl {
+        padding: 1rem !important;
+    }
+
+    .client-metrics-page .text-xl.font-bold {
+        font-size: 1.2rem !important;
+    }
+
+    .client-metrics-page .w-16.h-16.bg-white\/20 {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+}

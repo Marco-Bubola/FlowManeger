@@ -1,0 +1,8 @@
+/* Goals Dashboard — Mobile (<=767px) */
+@media (max-width: 767px) {
+    .goals-dashboard-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .goals-dashboard-page .grid { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 540px) and (max-width: 767px) {
+    .goals-dashboard-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}

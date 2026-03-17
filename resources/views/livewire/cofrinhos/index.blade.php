@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="cofrinhos-index-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-ultrawide.css') }}">
     <!-- Header -->
     <x-sales-header title="Meus Cofrinhos" subtitle="&quot;O segredo do sucesso é a constância do propósito.&quot; - Benjamin Disraeli">
         <x-slot name="breadcrumb">

@@ -1,0 +1,15 @@
+/* Achievements - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .achievements-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .achievements-page h1.text-3xl,
+    .achievements-page h1.text-2xl {
+        font-size: 1.2rem !important;
+    }
+
+    .achievements-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+}

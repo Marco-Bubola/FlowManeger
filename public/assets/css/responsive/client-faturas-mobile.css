@@ -1,0 +1,49 @@
+/* Client Faturas - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .client-faturas-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Padding container */
+    .client-faturas-page .w-full.max-w-none {
+        padding-inline: 0.55rem !important;
+    }
+
+    /* Header */
+    .client-faturas-page h1.text-3xl {
+        font-size: 1.25rem !important;
+    }
+
+    .client-faturas-page .w-12.h-12 {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        border-radius: 0.6rem !important;
+    }
+
+    /* KPIs grid: 1 col */
+    .client-faturas-page .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .client-faturas-page .grid.grid-cols-1.md\:grid-cols-3 .p-6 {
+        padding: 0.75rem !important;
+    }
+
+    /* Tabela de faturas: compacta */
+    .client-faturas-page table {
+        font-size: 0.78rem !important;
+    }
+
+    .client-faturas-page th,
+    .client-faturas-page td {
+        padding: 0.45rem 0.5rem !important;
+    }
+
+    /* Badges de status */
+    .client-faturas-page .rounded-full.px-2\.5 {
+        font-size: 0.65rem !important;
+        padding: 0.12em 0.5em !important;
+    }
+}

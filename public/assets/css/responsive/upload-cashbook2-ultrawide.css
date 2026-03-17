@@ -1,0 +1,5 @@
+/* upload-cashbook2 - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .upload-cashbook2-page { max-width: 1600px; margin-inline: auto; }
+    .upload-cashbook2-page h1.text-3xl, .upload-cashbook2-page h1.text-2xl { font-size: 2rem !important; }
+}

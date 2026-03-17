@@ -1,0 +1,49 @@
+/* Create Kit - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .create-kit-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .create-kit-page .create-kit-header {
+        border-radius: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    .create-kit-page .create-kit-header-inner {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .create-kit-page .create-kit-header-row {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Ícone */
+    .create-kit-page .w-14.h-14.rounded-2xl {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+        border-radius: 0.65rem !important;
+    }
+
+    /* Título */
+    .create-kit-page h1.text-3xl {
+        font-size: 1.1rem !important;
+    }
+
+    /* Steps horizontais */
+    .create-kit-page .w-6.h-6.rounded-full {
+        width: 1.3rem !important;
+        height: 1.3rem !important;
+    }
+
+    .create-kit-page .text-sm.font-medium {
+        font-size: 0.72rem !important;
+    }
+
+    /* Formulário */
+    .create-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+}

@@ -1,0 +1,11 @@
+/* Banks Index - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .banks-index-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .banks-index-page h1.text-3xl,
+    .banks-index-page h1.text-2xl {
+        font-size: 1.2rem !important;
+    }
+}

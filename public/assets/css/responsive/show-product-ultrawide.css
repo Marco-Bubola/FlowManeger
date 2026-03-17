@@ -1,0 +1,36 @@
+/* Show Product - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .show-product-page {
+        max-width: 1800px;
+        margin-inline: auto;
+    }
+
+    .show-product-page .relative.px-8.py-6 {
+        padding: 1.5rem 2rem !important;
+    }
+
+    .show-product-page h1.text-2xl,
+    .show-product-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+
+    .show-product-page .w-20.h-20.rounded-2xl {
+        width: 5.5rem !important;
+        height: 5.5rem !important;
+    }
+
+    .show-product-page .w-14.h-14.rounded-xl {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+
+    .show-product-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+
+    .show-product-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+}

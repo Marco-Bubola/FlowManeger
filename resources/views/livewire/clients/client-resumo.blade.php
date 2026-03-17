@@ -1,6 +1,11 @@
-<div class="w-full mobile-393-base">
-
-    <!-- Header Moderno -->
+<div class="client-resumo-page w-full mobile-393-base">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ultrawide.css') }}">
     <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-6">
         <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
         <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>

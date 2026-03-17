@@ -1,4 +1,11 @@
-<div class="w-full mobile-393-base">
+<div class="client-metrics-page w-full mobile-393-base">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-metrics-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-metrics-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-metrics-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-metrics-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-metrics-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-metrics-ultrawide.css') }}">
     <!-- Score de Fidelidade -->
     <div class="bg-gradient-to-br from-purple-500 to-pink-600 rounded-2xl p-6 text-white shadow-xl">
         <div class="flex items-center justify-between mb-4">

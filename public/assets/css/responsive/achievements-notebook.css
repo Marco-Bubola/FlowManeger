@@ -1,0 +1,19 @@
+/* Achievements - Notebook (1025-1440px) */
+
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .achievements-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .achievements-page h1.text-3xl,
+    .achievements-page h1.text-2xl {
+        font-size: 1.6rem !important;
+    }
+}
+
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .achievements-page h1.text-3xl,
+    .achievements-page h1.text-2xl {
+        font-size: 1.75rem !important;
+    }
+}

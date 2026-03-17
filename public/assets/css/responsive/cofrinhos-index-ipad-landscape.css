@@ -1,0 +1,7 @@
+/* Cofrinhos Index — iPad Landscape */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .cofrinhos-index-page { padding-inline: 1.2rem !important; }
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(4, 1fr) !important; gap: 1.25rem !important;
+    }
+}

@@ -1,0 +1,32 @@
+/* Add Payments - iPad Portrait (768–1024px, portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .add-payments-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .add-payments-main {
+        padding-inline: 1rem !important;
+        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Layout: 2 colunas (formulários 65% + sidebar 35%) */
+    .add-payments-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 280px !important;
+        gap: 1rem !important;
+        align-items: flex-start !important;
+    }
+
+    .add-payments-forms {
+        width: 100% !important;
+    }
+
+    .add-payments-sidebar {
+        width: 100% !important;
+    }
+
+    /* Header */
+    .add-payments-page .sales-create-header-title {
+        font-size: 1.35rem !important;
+    }
+}

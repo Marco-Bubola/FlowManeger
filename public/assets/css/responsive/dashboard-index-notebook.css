@@ -1,0 +1,7 @@
+/* Dashboard Index — Notebook */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(12, 1fr) !important; }
+    .dashboard-index-page .xl\:col-span-8 { grid-column: span 8 !important; }
+    .dashboard-index-page .xl\:col-span-4 { grid-column: span 4 !important; }
+    .dashboard-index-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+}

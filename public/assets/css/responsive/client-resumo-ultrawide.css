@@ -1,0 +1,47 @@
+/* Client Resumo - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .client-resumo-page {
+        max-width: 1800px;
+        margin-inline: auto;
+    }
+
+    /* Header */
+    .client-resumo-page .rounded-2xl.shadow-xl.mb-6 {
+        margin: 1.25rem 1.25rem 1.5rem !important;
+    }
+
+    .client-resumo-page .relative.px-6.py-4 {
+        padding: 1.5rem 2rem !important;
+    }
+
+    /* Avatar */
+    .client-resumo-page .w-16.h-16.rounded-xl {
+        width: 5rem !important;
+        height: 5rem !important;
+    }
+
+    /* Nome */
+    .client-resumo-page h1.text-2xl,
+    .client-resumo-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+
+    /* KPIs — 4 colunas amplas */
+    .client-resumo-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    /* Seções 2 colunas */
+    .client-resumo-page .grid.grid-cols-1.lg\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+
+    /* Tabs */
+    .client-resumo-page .flex.gap-2.overflow-x-auto a,
+    .client-resumo-page .flex.gap-2.overflow-x-auto button {
+        padding: 0.65rem 1.25rem !important;
+        font-size: 0.95rem !important;
+    }
+}

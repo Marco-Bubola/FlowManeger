@@ -1,0 +1,24 @@
+/* Show Publication - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .publication-show-page .container {
+        max-width: 1600px;
+    }
+
+    .publication-show-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+
+    .publication-show-page .rounded-2xl .p-6 {
+        padding: 2rem !important;
+    }
+
+    .publication-show-page .w-20.h-20.rounded-xl {
+        width: 5.5rem !important;
+        height: 5.5rem !important;
+    }
+
+    .publication-show-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+}

@@ -1,0 +1,35 @@
+/* Add Payments - Notebook (1025–1440px) */
+
+/* Bloco 1: 1025–1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .add-payments-main {
+        padding-inline: 1rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .add-payments-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 320px !important;
+        gap: 1.25rem !important;
+        align-items: flex-start !important;
+    }
+}
+
+/* Bloco 2: 1280–1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .add-payments-main {
+        padding-inline: 1.25rem !important;
+        padding-bottom: 2rem !important;
+    }
+
+    .add-payments-layout {
+        display: grid !important;
+        grid-template-columns: 1fr 340px !important;
+        gap: 1.5rem !important;
+        align-items: flex-start !important;
+    }
+
+    .add-payments-page .sales-create-header-title {
+        font-size: 1.75rem !important;
+    }
+}

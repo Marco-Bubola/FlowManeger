@@ -1,0 +1,46 @@
+/* Client Resumo - iPad Portrait (768-1024px, orientação retrato) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .client-resumo-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .client-resumo-page .rounded-2xl.shadow-xl.mb-6 {
+        margin: 0.75rem 0.75rem 1rem !important;
+    }
+
+    .client-resumo-page .relative.px-6.py-4 {
+        padding: 1rem 1.25rem !important;
+    }
+
+    /* Avatar */
+    .client-resumo-page .w-16.h-16.rounded-xl {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+
+    /* Nome */
+    .client-resumo-page h1.text-2xl,
+    .client-resumo-page h1.text-3xl {
+        font-size: 1.4rem !important;
+    }
+
+    /* KPIs — 2 colunas */
+    .client-resumo-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    /* Seções em coluna única */
+    .client-resumo-page .grid.grid-cols-1.lg\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
+
+    /* Tabs */
+    .client-resumo-page .flex.gap-2.overflow-x-auto a,
+    .client-resumo-page .flex.gap-2.overflow-x-auto button {
+        padding: 0.52rem 0.85rem !important;
+        font-size: 0.8rem !important;
+    }
+}

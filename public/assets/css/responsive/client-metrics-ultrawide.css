@@ -1,0 +1,32 @@
+/* Client Metrics - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .client-metrics-page {
+        max-width: 1800px;
+        margin-inline: auto;
+        padding-inline: 2rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    .client-metrics-page .rounded-2xl.p-6.text-white.shadow-xl {
+        padding: 1.75rem !important;
+        border-radius: 1.5rem !important;
+    }
+
+    .client-metrics-page .text-xl.font-bold {
+        font-size: 1.5rem !important;
+    }
+
+    .client-metrics-page .w-16.h-16.bg-white\/20 {
+        width: 5rem !important;
+        height: 5rem !important;
+    }
+
+    .client-metrics-page .text-2xl.font-bold {
+        font-size: 1.75rem !important;
+    }
+
+    .client-metrics-page .bg-white.dark\:bg-gray-800.rounded-2xl.p-6 {
+        padding: 1.5rem !important;
+        border-radius: 1.5rem !important;
+    }
+}

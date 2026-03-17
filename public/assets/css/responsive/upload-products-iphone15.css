@@ -1,0 +1,21 @@
+/* Upload Products - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .upload-products-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .upload-products-page .px-8.py-4,
+    .upload-products-page .px-6.py-4 {
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    .upload-products-page h1.text-3xl,
+    .upload-products-page h1.text-2xl {
+        font-size: 1.2rem !important;
+    }
+
+    .upload-products-page .inline-flex.items-center.px-5.py-2\.5 {
+        padding: 0.5rem 0.85rem !important;
+        font-size: 0.82rem !important;
+    }
+}

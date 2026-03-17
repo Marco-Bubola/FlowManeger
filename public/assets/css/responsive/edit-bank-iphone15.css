@@ -1,0 +1,5 @@
+/* Edit Bank - iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .edit-bank-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .edit-bank-page h1.text-3xl, .edit-bank-page h1.text-2xl { font-size: 1.2rem !important; }
+}

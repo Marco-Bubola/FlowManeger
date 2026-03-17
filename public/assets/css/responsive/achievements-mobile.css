@@ -1,0 +1,33 @@
+/* Achievements - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .achievements-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .achievements-page .px-8.py-4,
+    .achievements-page .px-6.py-4 {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .achievements-page h1.text-3xl,
+    .achievements-page h1.text-2xl {
+        font-size: 1.1rem !important;
+    }
+
+    /* Grid de conquistas */
+    .achievements-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem !important;
+    }
+
+    .achievements-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
+    }
+
+    /* Cards */
+    .achievements-page .rounded-2xl.p-6 {
+        padding: 0.85rem !important;
+    }
+}

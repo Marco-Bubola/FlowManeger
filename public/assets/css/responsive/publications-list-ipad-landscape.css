@@ -1,0 +1,60 @@
+/* ═══════════════════════════════════════════════════════════
+   Publications List — iPad Landscape (768–1366px, orientação paisagem)
+   4 colunas abaixo de 1181px, 5 colunas acima
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 768–1180px landscape (iPad mini / iPad Air pequenos) ── */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
+
+    .publications-page {
+        padding-inline: 1rem !important;
+    }
+
+    .publications-page .products-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.9rem !important;
+    }
+
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 185px !important;
+        min-height: 185px !important;
+    }
+
+    .publications-page .products-grid .product-card-modern {
+        min-height: auto !important;
+    }
+
+    .publications-page .products-grid .product-card-modern .card-body {
+        padding: 0.75rem 0.6rem !important;
+    }
+
+    .publications-page h1 {
+        font-size: 1.5rem !important;
+    }
+}
+
+/* ── 1181–1366px landscape (iPad Air / iPad Pro) ── */
+@media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
+
+    .publications-page {
+        padding-inline: 1.2rem !important;
+    }
+
+    .publications-page .products-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 200px !important;
+        min-height: 200px !important;
+    }
+
+    .publications-page .products-grid .product-card-modern {
+        min-height: auto !important;
+    }
+
+    .publications-page h1 {
+        font-size: 1.6rem !important;
+    }
+}

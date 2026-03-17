@@ -1,0 +1,4 @@
+/* settings-profile — Notebook */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .settings-profile-page form, .settings-profile-page .form-section { max-width: 800px; }
+}

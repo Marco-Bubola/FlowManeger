@@ -1,4 +1,11 @@
-<div class="w-full mobile-393-base">
+<div class="client-faturas-page w-full mobile-393-base">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-faturas-ultrawide.css') }}">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">

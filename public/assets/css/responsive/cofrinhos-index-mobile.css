@@ -1,0 +1,12 @@
+/* Cofrinhos Index — Mobile (≤767px) */
+@media (max-width: 767px) {
+    .cofrinhos-index-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: 1fr !important; gap: 0.85rem !important;
+    }
+}
+@media (min-width: 540px) and (max-width: 767px) {
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+}

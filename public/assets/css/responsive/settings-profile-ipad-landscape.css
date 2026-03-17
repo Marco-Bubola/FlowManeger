@@ -1,0 +1,5 @@
+/* settings-profile — iPad Landscape */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .settings-profile-page { padding-inline: 2rem !important; }
+    .settings-profile-page form, .settings-profile-page .form-section { max-width: 720px; }
+}

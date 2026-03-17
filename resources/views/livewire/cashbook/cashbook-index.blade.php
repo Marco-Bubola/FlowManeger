@@ -1,4 +1,10 @@
-<div x-data="{ showFilters: false }" class="w-full">
+<div x-data="{ showFilters: false }" class="cashbook-index-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cashbook-index-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cashbook-index-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cashbook-index-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cashbook-index-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cashbook-index-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cashbook-index-ultrawide.css') }}">
 
     <!-- Main Content Layout -->
     <div class="w-full">

@@ -10,7 +10,13 @@ $bankIcons = [
 ];
 @endphp
 
-<div class="w-full">
+<div class="create-bank-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-bank-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-bank-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-bank-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-bank-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-bank-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-bank-ultrawide.css') }}">
     <!-- Header componentizado para consistência visual -->
     <x-sales-header title="Adicionar Novo Cartão/Banco" description="Cadastre um novo cartão ou banco para gerenciar suas finanças"
         icon="bi-credit-card" iconColor="blue">

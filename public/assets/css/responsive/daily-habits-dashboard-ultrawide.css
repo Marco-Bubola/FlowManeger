@@ -1,0 +1,4 @@
+/* Daily Habits Dashboard — Ultrawide */
+@media (min-width: 1441px) {
+    .daily-habits-dashboard-page { max-width: 1920px; margin-inline: auto; }
+}

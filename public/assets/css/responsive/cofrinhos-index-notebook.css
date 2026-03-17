@@ -1,0 +1,6 @@
+/* Cofrinhos Index — Notebook */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}

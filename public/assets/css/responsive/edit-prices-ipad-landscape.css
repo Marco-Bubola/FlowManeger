@@ -1,0 +1,22 @@
+/* Edit Prices - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .edit-prices-page {
+        padding-inline: 0.875rem;
+        padding-bottom: 1.5rem;
+    }
+
+    /* Header */
+    .edit-prices-page .sales-create-header-title {
+        font-size: 1.5rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-subtitle {
+        font-size: 0.84rem !important;
+    }
+
+    /* Grid: 3 colunas */
+    .edit-prices-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+}

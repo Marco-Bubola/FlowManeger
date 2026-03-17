@@ -1,0 +1,5 @@
+/* Categories Index — Ultrawide */
+@media (min-width: 1441px) {
+    .categories-index-page { max-width: 1920px; margin-inline: auto; }
+    .categories-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-5 { grid-template-columns: repeat(6, 1fr) !important; gap: 1.5rem !important; }
+}

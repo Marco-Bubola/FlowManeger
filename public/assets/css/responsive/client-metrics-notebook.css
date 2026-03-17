@@ -1,0 +1,17 @@
+/* Client Metrics - Notebook (1025–1440px) */
+
+/* Bloco 1: 1025–1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .client-metrics-page {
+        padding-inline: 1.25rem !important;
+        padding-bottom: 2rem !important;
+    }
+}
+
+/* Bloco 2: 1280–1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .client-metrics-page {
+        padding-inline: 1.5rem !important;
+        padding-bottom: 2rem !important;
+    }
+}

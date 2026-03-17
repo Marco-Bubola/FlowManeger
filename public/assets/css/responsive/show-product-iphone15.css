@@ -1,0 +1,20 @@
+/* Show Product - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .show-product-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .show-product-page .relative.px-8.py-6 {
+        padding: 0.8rem 0.85rem !important;
+    }
+
+    .show-product-page h1.text-2xl,
+    .show-product-page h1.text-3xl {
+        font-size: 1.2rem !important;
+    }
+
+    .show-product-page .w-20.h-20.rounded-2xl {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+    }
+}

@@ -1,0 +1,68 @@
+/* Client Dashboard - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .client-dashboard-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header do dashboard */
+    .client-dashboard-page .rounded-2xl.shadow-xl.mb-6 {
+        margin: 0.65rem 0.55rem 0.75rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .client-dashboard-page .relative.px-6.py-4 {
+        padding: 0.72rem 0.75rem !important;
+    }
+
+    /* Foto/avatar */
+    .client-dashboard-page .w-16.h-16 {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+        border-radius: 0.625rem !important;
+    }
+
+    .client-dashboard-page .w-16.h-16 .fas {
+        font-size: 1.1rem !important;
+    }
+
+    /* Nome do cliente */
+    .client-dashboard-page h1.text-2xl {
+        font-size: 1.1rem !important;
+    }
+
+    /* Status badges */
+    .client-dashboard-page .flex.items-center.gap-3.text-sm {
+        flex-wrap: wrap !important;
+        gap: 0.3rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* Botões de ação do header */
+    .client-dashboard-page .flex.flex-wrap.items-center.gap-2 {
+        gap: 0.3rem !important;
+    }
+
+    .client-dashboard-page .flex.flex-wrap.items-center.gap-2 a,
+    .client-dashboard-page .flex.flex-wrap.items-center.gap-2 button {
+        padding: 0.35rem 0.6rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    /* Conteúdo: padding menor */
+    .client-dashboard-page .px-4.sm\:px-6.lg\:px-8 {
+        padding-inline: 0.55rem !important;
+    }
+
+    /* KPIs grid: 2 cols */
+    .client-dashboard-page .grid.grid-cols-2.lg\:grid-cols-4,
+    .client-dashboard-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Charts grid: 1 col */
+    .client-dashboard-page .grid.grid-cols-1.lg\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem !important;
+    }
+}

@@ -1,0 +1,4 @@
+/* Consortiums Index — Notebook */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .consortiums-index-page .grid { grid-template-columns: repeat(4, 1fr) !important; gap: 1.5rem !important; }
+}

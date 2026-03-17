@@ -1,0 +1,6 @@
+/* Create Bank - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .create-bank-page { max-width: 1600px; margin-inline: auto; }
+    .create-bank-page h1.text-3xl, .create-bank-page h1.text-2xl { font-size: 2rem !important; }
+    .create-bank-page .grid.grid-cols-4.sm\:grid-cols-6.md\:grid-cols-8 { grid-template-columns: repeat(10, minmax(0, 1fr)) !important; }
+}

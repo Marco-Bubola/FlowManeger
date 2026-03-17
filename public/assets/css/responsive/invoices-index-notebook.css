@@ -1,0 +1,4 @@
+/* Invoices Index — Notebook */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .invoices-index-page .grid.lg\:grid-cols-4 { grid-template-columns: 1fr 3fr !important; }
+}

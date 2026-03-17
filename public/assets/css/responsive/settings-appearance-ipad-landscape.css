@@ -1,0 +1,5 @@
+/* settings-appearance — iPad Landscape */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .settings-appearance-page { padding-inline: 2rem !important; }
+    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 720px; }
+}

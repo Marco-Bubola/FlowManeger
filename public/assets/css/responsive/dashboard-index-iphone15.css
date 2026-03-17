@@ -1,0 +1,7 @@
+/* Dashboard Index — iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .dashboard-index-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .dashboard-index-page .grid { grid-template-columns: 1fr !important; }
+    .dashboard-index-page .xl\:col-span-8,
+    .dashboard-index-page .xl\:col-span-4 { grid-column: 1 / -1 !important; }
+}

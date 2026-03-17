@@ -1,0 +1,43 @@
+/* Edit Prices - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .edit-prices-page {
+        max-width: 1800px;
+        margin-inline: auto;
+        padding-inline: 1.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    /* Header maior */
+    .edit-prices-page .sales-create-header-inner {
+        padding: 1.25rem 2.25rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-title {
+        font-size: 2.5rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-subtitle {
+        font-size: 1rem !important;
+    }
+
+    /* Grid: 4–5 colunas */
+    .edit-prices-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+
+    /* Botões de ação maiores */
+    .edit-prices-page .flex.justify-center.gap-4 a,
+    .edit-prices-page .flex.justify-center.gap-4 button {
+        padding: 0.875rem 2rem !important;
+        font-size: 0.95rem !important;
+        border-radius: 0.875rem !important;
+    }
+}
+
+@media (min-width: 1536px) {
+    .edit-prices-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 1.625rem !important;
+    }
+}

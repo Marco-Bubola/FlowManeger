@@ -1,4 +1,10 @@
-<div class=" w-full ">
+<div class="upload-cashbook-minimal-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-minimal-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-minimal-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-minimal-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-minimal-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-minimal-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-minimal-ultrawide.css') }}">
     <!-- Header alinhado ao estilo de products/sales -->
     <x-products-header
         title="Upload de Transações"

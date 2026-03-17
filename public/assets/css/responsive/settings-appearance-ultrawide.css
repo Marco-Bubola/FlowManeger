@@ -1,0 +1,5 @@
+/* settings-appearance — Ultrawide */
+@media (min-width: 1441px) {
+    .settings-appearance-page { max-width: 1920px; margin-inline: auto; }
+    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 900px; }
+}

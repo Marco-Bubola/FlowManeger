@@ -1,0 +1,20 @@
+/* Create Kit - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .create-kit-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .create-kit-page .create-kit-header-inner {
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    .create-kit-page h1.text-3xl {
+        font-size: 1.2rem !important;
+    }
+
+    .create-kit-page .w-14.h-14.rounded-2xl {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+    }
+}

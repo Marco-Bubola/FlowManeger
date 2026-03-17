@@ -1,0 +1,21 @@
+/* Edit Kit - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .edit-kit-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .edit-kit-page .px-8.py-4 {
+        padding: 0.75rem 0.85rem !important;
+    }
+
+    .edit-kit-page h1.text-3xl,
+    .edit-kit-page h1.text-2xl {
+        font-size: 1.2rem !important;
+    }
+
+    .edit-kit-page .w-14.h-14,
+    .edit-kit-page .w-12.h-12 {
+        width: 2.75rem !important;
+        height: 2.75rem !important;
+    }
+}

@@ -1,0 +1,4 @@
+/* Invoices Index — Ultrawide */
+@media (min-width: 1441px) {
+    .invoices-index-page { max-width: 1920px; margin-inline: auto; }
+}

@@ -1,0 +1,8 @@
+/* Daily Habits Dashboard — Mobile (<=767px) */
+@media (max-width: 767px) {
+    .daily-habits-dashboard-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .daily-habits-dashboard-page .grid { grid-template-columns: 1fr !important; }
+}
+@media (min-width: 540px) and (max-width: 767px) {
+    .daily-habits-dashboard-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}

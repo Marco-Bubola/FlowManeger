@@ -1,0 +1,7 @@
+/* Cashbook Index - Ultrawide */
+@media (min-width: 1441px) {
+    .cashbook-index-page { max-width: 1800px; margin-inline: auto; }
+    .cashbook-index-page h1.text-3xl, .cashbook-index-page h1.text-2xl { font-size: 2rem !important; }
+    .cashbook-index-page .grid.grid-cols-1.lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 1.25rem !important; }
+    .cashbook-index-page .rounded-xl.p-6, .cashbook-index-page .rounded-2xl.p-6 { padding: 1.75rem !important; }
+}

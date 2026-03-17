@@ -1,0 +1,44 @@
+/* Edit Prices - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-prices-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header compacto (x-sales-header) */
+    .edit-prices-page .sales-create-header-inner {
+        padding: 0.72rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-title {
+        font-size: 1.1rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-subtitle {
+        font-size: 0.72rem !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Grid de produtos: 1 coluna em mobile */
+    .edit-prices-page .grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    /* Padding do conteúdo */
+    .edit-prices-page > div:not([class*="header"]) {
+        padding: 0.65rem 0.55rem !important;
+    }
+
+    /* Botões de ação */
+    .edit-prices-page .flex.justify-center.gap-4 {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    .edit-prices-page .flex.justify-center.gap-4 a,
+    .edit-prices-page .flex.justify-center.gap-4 button {
+        width: 100% !important;
+        justify-content: center !important;
+        padding: 0.65rem 1rem !important;
+    }
+}

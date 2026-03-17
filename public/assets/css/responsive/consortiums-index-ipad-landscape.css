@@ -1,0 +1,8 @@
+/* Consortiums Index — iPad Landscape */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
+    .consortiums-index-page { padding-inline: 1.2rem !important; }
+    .consortiums-index-page .grid { grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important; }
+}
+@media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
+    .consortiums-index-page .grid { grid-template-columns: repeat(4, 1fr) !important; gap: 1.25rem !important; }
+}

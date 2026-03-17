@@ -1,0 +1,3 @@
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .add-contemplation-products-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+}

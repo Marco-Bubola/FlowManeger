@@ -1,0 +1,7 @@
+/* Cofrinhos Index — Ultrawide */
+@media (min-width: 1441px) {
+    .cofrinhos-index-page { max-width: 1920px; margin-inline: auto; }
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(5, 1fr) !important; gap: 1.5rem !important;
+    }
+}

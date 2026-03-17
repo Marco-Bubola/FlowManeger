@@ -1,0 +1,5 @@
+/* edit-invoice - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .edit-invoice-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .edit-invoice-page h1.text-3xl, .edit-invoice-page h1.text-2xl { font-size: 1.2rem !important; }
+}

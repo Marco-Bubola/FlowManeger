@@ -1,0 +1,9 @@
+/* edit-habit - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-habit-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .edit-habit-page h1.text-3xl, .edit-habit-page h1.text-2xl { font-size: 1.1rem !important; }
+    .edit-habit-page .px-8.py-4, .edit-habit-page .px-6.py-4 { padding: 0.65rem 0.75rem !important; }
+    .edit-habit-page .grid.grid-cols-1.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+    .edit-habit-page .grid.grid-cols-1.lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+    .edit-habit-page .rounded-2xl.p-6 { padding: 0.85rem !important; }
+}

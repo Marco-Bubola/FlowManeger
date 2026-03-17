@@ -1,0 +1,36 @@
+/* Edit Payments - Notebook (1025–1440px) */
+
+/* Bloco 1: 1025–1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .edit-payments-header {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .edit-payments-header .w-14 {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+
+    .edit-payments-header h1 {
+        font-size: 2rem !important;
+    }
+
+    .edit-payments-page .w-full.p-6 {
+        padding: 1.25rem !important;
+    }
+}
+
+/* Bloco 2: 1280–1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .edit-payments-header {
+        padding: 1.125rem 1.75rem !important;
+    }
+
+    .edit-payments-header h1 {
+        font-size: 2.25rem !important;
+    }
+
+    .edit-payments-page .w-full.p-6 {
+        padding: 1.5rem !important;
+    }
+}

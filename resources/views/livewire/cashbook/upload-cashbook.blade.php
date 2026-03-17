@@ -1,4 +1,10 @@
-﻿<div class="w-full">
+﻿<div class="upload-cashbook-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-cashbook-ultrawide.css') }}">
     <div class="w-full px-4 sm:px-6 lg:px-8 py-12">
         @if ($step == 1)
             <!-- Step 1: Upload File -->

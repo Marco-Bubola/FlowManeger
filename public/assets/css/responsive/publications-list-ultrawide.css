@@ -1,0 +1,30 @@
+/* Publications List — Ultrawide (≥1441px) */
+@media (min-width: 1441px) {
+    .publications-page {
+        max-width: 1920px;
+        margin-inline: auto;
+    }
+
+    .publications-page h1 {
+        font-size: 2rem !important;
+    }
+
+    .publications-page .relative.px-4.py-3 {
+        padding: 1.25rem 1.5rem !important;
+    }
+
+    /* Cards — 6 colunas em ultrawide */
+    .publications-page .products-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+
+    .publications-page .products-grid .product-card-modern .product-img-area {
+        height: 260px !important;
+        min-height: 260px !important;
+    }
+
+    .publications-page .products-grid .product-card-modern {
+        min-height: auto !important;
+    }
+}

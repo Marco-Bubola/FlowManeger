@@ -1,0 +1,19 @@
+/* Create Kit - Notebook (1025-1440px) */
+
+/* Notebook menor: 1025-1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .create-kit-page h1.text-3xl {
+        font-size: 1.6rem !important;
+    }
+
+    .create-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* Notebook maior: 1280-1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .create-kit-page h1.text-3xl {
+        font-size: 1.75rem !important;
+    }
+}

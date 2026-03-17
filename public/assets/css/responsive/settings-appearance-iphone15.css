@@ -1,0 +1,5 @@
+/* settings-appearance — iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .settings-appearance-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); padding-inline: 1rem; }
+    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 100% !important; }
+}

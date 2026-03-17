@@ -1,0 +1,21 @@
+/* Achievements - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .achievements-page {
+        max-width: 1800px;
+        margin-inline: auto;
+    }
+
+    .achievements-page h1.text-3xl,
+    .achievements-page h1.text-2xl {
+        font-size: 2rem !important;
+    }
+
+    .achievements-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    .achievements-page .rounded-2xl.p-6 {
+        padding: 1.75rem !important;
+    }
+}

@@ -1,0 +1,5 @@
+/* Consortiums Index — Ultrawide */
+@media (min-width: 1441px) {
+    .consortiums-index-page { max-width: 1920px; margin-inline: auto; }
+    .consortiums-index-page .grid { grid-template-columns: repeat(6, 1fr) !important; gap: 1.5rem !important; }
+}

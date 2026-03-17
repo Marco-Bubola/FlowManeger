@@ -1,0 +1,16 @@
+/* Show Publication - iPad Landscape (768-1366px, orientação paisagem) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .publication-show-page h1.text-3xl {
+        font-size: 1.6rem !important;
+    }
+
+    /* Grid 3 colunas em landscape */
+    .publication-show-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .publication-show-page .flex.flex-col.lg\:flex-row {
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+}

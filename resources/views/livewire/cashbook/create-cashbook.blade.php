@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="create-cashbook-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-cashbook-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-cashbook-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-cashbook-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-cashbook-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-cashbook-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-cashbook-ultrawide.css') }}">
     <!-- Header Modernizado com botões de ação -->
     <x-sales-header title="Nova Transação" description="Adicione uma nova transação ao seu livro caixa" :back-route="route('cashbook.index')"
         :current-step="1" :steps="[]">

@@ -1,0 +1,20 @@
+/* Show Product - iPad Landscape (768-1366px, orientação paisagem) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .show-product-page h1.text-2xl,
+    .show-product-page h1.text-3xl {
+        font-size: 1.6rem !important;
+    }
+
+    .show-product-page .flex.flex-col.lg\:flex-row {
+        flex-direction: row !important;
+        align-items: center !important;
+    }
+
+    .show-product-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .show-product-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
+}

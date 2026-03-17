@@ -1,0 +1,5 @@
+/* Cashbook Index - iPad Landscape */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .cashbook-index-page .grid.grid-cols-1.lg\:grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    .cashbook-index-page h1.text-3xl, .cashbook-index-page h1.text-2xl { font-size: 1.55rem !important; }
+}

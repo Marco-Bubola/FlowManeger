@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="edit-cashbook-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-ultrawide.css') }}">
     <!-- Header Modernizado com botões de ação -->
     <x-sales-header title="Editar Transação" description="Altere os dados da transação" :back-route="route('cashbook.index')"
         :current-step="1" :steps="[]">

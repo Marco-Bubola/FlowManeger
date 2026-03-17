@@ -1,0 +1,18 @@
+/* Client Transferencias - iPad Landscape (768-1366px, orientação paisagem) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    /* Grid — 4 colunas */
+    .client-transferencias-page .grid.grid-cols-1.lg\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+
+    /* Header */
+    .client-transferencias-page h1.text-3xl {
+        font-size: 1.6rem !important;
+    }
+
+    /* Cards */
+    .client-transferencias-page .rounded-xl.shadow-sm.border.p-6 {
+        padding: 1.1rem !important;
+    }
+}

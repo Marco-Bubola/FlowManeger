@@ -1,0 +1,6 @@
+/* settings-profile — iPad Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .settings-profile-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1.5rem !important; }
+    .settings-profile-page form, .settings-profile-page .form-section { max-width: 600px; }
+    .settings-profile-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+}

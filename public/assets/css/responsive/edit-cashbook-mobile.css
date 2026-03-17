@@ -1,0 +1,8 @@
+/* edit-cashbook - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-cashbook-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .edit-cashbook-page h1.text-3xl, .edit-cashbook-page h1.text-2xl { font-size: 1.1rem !important; }
+    .edit-cashbook-page .px-8.py-4, .edit-cashbook-page .px-6.py-4 { padding: 0.65rem 0.75rem !important; }
+    .edit-cashbook-page .grid.grid-cols-1.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+    .edit-cashbook-page .rounded-2xl.p-6 { padding: 0.85rem !important; }
+}

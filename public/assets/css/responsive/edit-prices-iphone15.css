@@ -1,0 +1,15 @@
+/* Edit Prices - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .edit-prices-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .edit-prices-page .sales-create-header-title {
+        font-size: 1.15rem !important;
+    }
+
+    .edit-prices-page .grid {
+        grid-template-columns: repeat(1, minmax(0, 1fr)) !important;
+        gap: 0.875rem !important;
+    }
+}

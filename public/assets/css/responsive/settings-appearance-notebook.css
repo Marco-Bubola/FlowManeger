@@ -1,0 +1,4 @@
+/* settings-appearance — Notebook */
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 800px; }
+}

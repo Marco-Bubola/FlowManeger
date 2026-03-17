@@ -1,4 +1,10 @@
-<div class=" w-full mobile-393-base ">
+<div class="client-transferencias-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-ultrawide.css') }}">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
         <!-- Header -->
         <div class="mb-8">

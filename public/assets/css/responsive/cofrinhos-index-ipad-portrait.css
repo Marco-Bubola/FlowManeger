@@ -1,0 +1,7 @@
+/* Cofrinhos Index — iPad Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .cofrinhos-index-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important; gap: 1rem !important;
+    }
+}

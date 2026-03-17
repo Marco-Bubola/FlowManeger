@@ -1,0 +1,21 @@
+/* Show Product - Notebook (1025-1440px) */
+
+/* 1025-1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .show-product-page h1.text-2xl,
+    .show-product-page h1.text-3xl {
+        font-size: 1.6rem !important;
+    }
+
+    .show-product-page .grid.grid-cols-1.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+/* 1280-1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .show-product-page h1.text-2xl,
+    .show-product-page h1.text-3xl {
+        font-size: 1.75rem !important;
+    }
+}

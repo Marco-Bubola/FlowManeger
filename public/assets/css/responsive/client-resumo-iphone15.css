@@ -1,0 +1,41 @@
+/* Client Resumo - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .client-resumo-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .client-resumo-page .rounded-2xl.shadow-xl.mb-6 {
+        margin: 0.6rem 0.6rem 0.85rem !important;
+        border-radius: 1.1rem !important;
+    }
+
+    .client-resumo-page .relative.px-6.py-4 {
+        padding: 0.8rem 0.85rem !important;
+    }
+
+    /* Avatar */
+    .client-resumo-page .w-16.h-16.rounded-xl {
+        width: 2.9rem !important;
+        height: 2.9rem !important;
+    }
+
+    /* Nome */
+    .client-resumo-page h1.text-2xl,
+    .client-resumo-page h1.text-3xl {
+        font-size: 1.2rem !important;
+    }
+
+    /* Tabs */
+    .client-resumo-page .flex.gap-2.overflow-x-auto a,
+    .client-resumo-page .flex.gap-2.overflow-x-auto button {
+        padding: 0.48rem 0.75rem !important;
+        font-size: 0.76rem !important;
+    }
+
+    /* KPIs */
+    .client-resumo-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
+    }
+}

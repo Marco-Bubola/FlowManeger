@@ -1,0 +1,9 @@
+/* create-goal - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .create-goal-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .create-goal-page h1.text-3xl, .create-goal-page h1.text-2xl { font-size: 1.1rem !important; }
+    .create-goal-page .px-8.py-4, .create-goal-page .px-6.py-4 { padding: 0.65rem 0.75rem !important; }
+    .create-goal-page .grid.grid-cols-1.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+    .create-goal-page .grid.grid-cols-1.lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+    .create-goal-page .rounded-2xl.p-6 { padding: 0.85rem !important; }
+}

@@ -1,0 +1,6 @@
+/* Daily Habits Dashboard — iPad Portrait */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .daily-habits-dashboard-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
+    .daily-habits-dashboard-page .grid.md\:grid-cols-2.lg\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; gap: 0.75rem !important; }
+    .daily-habits-dashboard-page .grid.md\:grid-cols-2.lg\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
+}

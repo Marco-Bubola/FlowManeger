@@ -1,0 +1,5 @@
+/* Dashboard Index — Ultrawide */
+@media (min-width: 1441px) {
+    .dashboard-index-page { max-width: 1920px; margin-inline: auto; }
+    .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(12, 1fr) !important; }
+}

@@ -1,0 +1,27 @@
+/* Client Dashboard - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .client-dashboard-page {
+        padding-bottom: 1.5rem;
+    }
+
+    /* Header */
+    .client-dashboard-page .relative.px-6.py-4 {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .client-dashboard-page h1.text-2xl {
+        font-size: 1.75rem !important;
+    }
+
+    /* KPIs: 4 colunas */
+    .client-dashboard-page .grid.grid-cols-2.lg\:grid-cols-4 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+
+    /* Charts: 2 cols */
+    .client-dashboard-page .grid.grid-cols-1.lg\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+}

@@ -1,0 +1,33 @@
+/* Edit Payments - iPad Portrait (768–1024px, portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .edit-payments-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .edit-payments-header {
+        padding: 0.875rem 1.25rem !important;
+    }
+
+    .edit-payments-header .w-14 {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+    }
+
+    .edit-payments-header h1 {
+        font-size: 1.75rem !important;
+    }
+
+    .edit-payments-header p.mt-1 {
+        font-size: 0.8rem !important;
+    }
+
+    /* Info grid: 3 colunas como pedido */
+    .edit-payments-page .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+
+    .edit-payments-page .w-full.p-6 {
+        padding: 1rem !important;
+    }
+}

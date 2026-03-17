@@ -1,0 +1,27 @@
+/* Edit Payments - iPad Landscape (768–1366px, landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .edit-payments-page {
+        padding-bottom: 1.5rem;
+    }
+
+    .edit-payments-header {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .edit-payments-header .w-14 {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+
+    .edit-payments-header h1 {
+        font-size: 2rem !important;
+    }
+
+    .edit-payments-page .w-full.p-6 {
+        padding: 1.25rem !important;
+    }
+
+    .edit-payments-page .grid.grid-cols-1.md\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}

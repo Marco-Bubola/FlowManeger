@@ -1,0 +1,7 @@
+/* upload-invoice - iPad Portrait (768-1024px, orientação retrato) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .upload-invoice-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .upload-invoice-page h1.text-3xl, .upload-invoice-page h1.text-2xl { font-size: 1.45rem !important; }
+    .upload-invoice-page .grid.grid-cols-1.md\:grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .upload-invoice-page .grid.grid-cols-1.lg\:grid-cols-3 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}

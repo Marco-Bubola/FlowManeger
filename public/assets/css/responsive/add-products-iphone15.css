@@ -1,0 +1,25 @@
+/* Add Products - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .add-products-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .add-products-page .products-step-grid,
+    .add-products-pane .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    .add-products-page .product-card-modern .product-img-area {
+        min-height: 148px !important;
+        height: 148px !important;
+    }
+
+    .add-products-page .product-card-modern .card-body {
+        padding: 2.45em 0.46em 2em 0.46em !important;
+    }
+
+    .add-products-page .product-card-modern .product-title {
+        font-size: 0.77em !important;
+    }
+}

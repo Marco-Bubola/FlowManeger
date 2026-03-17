@@ -1,0 +1,14 @@
+/* Client Faturas - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .client-faturas-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .client-faturas-page h1.text-3xl {
+        font-size: 1.3rem !important;
+    }
+
+    .client-faturas-page table {
+        font-size: 0.8rem !important;
+    }
+}

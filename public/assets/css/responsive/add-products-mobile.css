@@ -1,0 +1,73 @@
+/* Add Products - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .add-products-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header compacto */
+    .add-products-page .sales-add-products-header-inner,
+    .add-products-page [class*="px-8"][class*="py-6"] {
+        padding: 0.72rem !important;
+    }
+
+    /* Split: empilha verticalmente */
+    .add-products-split-shell {
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: 0 !important;
+    }
+
+    .add-products-pane {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    .add-products-split-shell > div:last-child {
+        width: 100% !important;
+        height: auto !important;
+        max-height: 45vh;
+    }
+
+    /* Controles de pesquisa */
+    .add-products-pane .p-6.border-b {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .add-products-pane h2 {
+        font-size: 1.1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .add-products-pane .flex-col.md\:flex-row {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    .add-products-pane input[type="text"] {
+        height: 2.6rem !important;
+        font-size: 0.84rem !important;
+    }
+
+    /* Grid: 2 colunas */
+    .add-products-page .products-step-grid,
+    .add-products-pane .grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.45rem !important;
+    }
+
+    /* Cards compactos */
+    .add-products-page .product-card-modern .product-img-area {
+        min-height: 138px !important;
+        height: 138px !important;
+    }
+
+    .add-products-page .product-card-modern .card-body {
+        padding: 2.3em 0.42em 1.9em 0.42em !important;
+        gap: 0.12em !important;
+    }
+
+    .add-products-page .product-card-modern .product-title {
+        font-size: 0.74em !important;
+        line-height: 1.25 !important;
+    }
+}

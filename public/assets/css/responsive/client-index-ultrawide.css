@@ -1,0 +1,220 @@
+/* ============================================================
+   Clients Index — Ultrawide / 4K (1441px+)
+   Principais ajustes:
+   - Container max-width 1900px centralizado
+   - Header grande: ícone 4rem, título 2.75rem
+   - Grid: 5–6 colunas (2xl:grid-cols-6 ativo em 1536px)
+   - Cards espaçosos, tipografia maior
+   ============================================================ */
+
+@media (min-width: 1441px) {
+
+    /* ── CONTAINER ────────────────────────────────────────── */
+    .clients-index-page {
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .clients-index-header {
+        border-radius: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
+    }
+    .clients-index-header-inner {
+        padding: 1.5rem 2.5rem !important;
+    }
+    .clients-index-header-inner > .flex {
+        gap: 1.5rem !important;
+    }
+    .clients-index-header .flex-shrink-0 {
+        gap: 1rem !important;
+    }
+    /* ícone */
+    .clients-index-header .from-indigo-500.via-purple-500 {
+        width: 4rem !important;
+        height: 4rem !important;
+        border-radius: 1.125rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 > i {
+        font-size: 2rem !important;
+    }
+    /* título */
+    .clients-index-header h1 {
+        font-size: 2.75rem !important;
+        line-height: 1.1 !important;
+    }
+    /* breadcrumb */
+    .clients-index-header .mb-2.flex.items-center {
+        font-size: 0.875rem !important;
+    }
+    /* stats badges */
+    .clients-index-header .mt-3 {
+        gap: 0.5rem !important;
+        margin-top: 0.625rem !important;
+    }
+    .clients-index-header .mt-3 > div {
+        padding: 0.375rem 0.875rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .clients-index-header .mt-3 > div span {
+        font-size: 0.875rem !important;
+    }
+    .clients-index-header .mt-3 > div i {
+        font-size: 0.875rem !important;
+    }
+
+    /* ── CONTROLS ─────────────────────────────────────────── */
+    .clients-index-controls-wrap {
+        gap: 0.875rem !important;
+    }
+    .clients-index-controls-row-1 {
+        gap: 0.75rem !important;
+    }
+    .clients-index-controls-row-1 > .relative.flex-1 input {
+        font-size: 0.9rem !important;
+        padding-top: 0.75rem !important;
+        padding-bottom: 0.75rem !important;
+        padding-left: 2.75rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .clients-index-controls-row-1 > .relative.flex-1 .absolute.left-3 {
+        left: 0.875rem !important;
+    }
+    /* ações */
+    .clients-index-controls-actions {
+        gap: 0.5rem !important;
+    }
+    .clients-index-controls-actions > div.flex.items-center {
+        padding: 0.625rem 0.875rem !important;
+    }
+    .clients-index-controls-actions > div .text-sm {
+        font-size: 0.875rem !important;
+    }
+    .clients-index-controls-actions > div > span.text-xs {
+        font-size: 0.75rem !important;
+        display: inline !important;
+    }
+    .clients-index-controls-actions > button,
+    .clients-index-controls-actions > a {
+        padding: 0.625rem 0.75rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .clients-index-controls-actions > a span {
+        font-size: 0.875rem !important;
+        display: inline !important;
+    }
+    /* row 2 */
+    .clients-index-controls-row-2 .text-sm.font-semibold {
+        font-size: 0.875rem !important;
+    }
+
+    /* ── FILTROS ──────────────────────────────────────────── */
+    .clients-filters-panel {
+        padding: 1.5rem 2rem !important;
+        border-radius: 1.375rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+    .clients-filters-panel h3 {
+        font-size: 1.125rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .clients-filters-panel h4 {
+        font-size: 0.875rem !important;
+    }
+    .clients-filters-panel > .grid {
+        gap: 1.5rem !important;
+    }
+
+    /* ── GRID — 5 COLUNAS (2xl = 1536px dá 6; aqui 1441–1535 = 5) ── */
+    .clients-grid-wrap {
+        padding: 1rem !important;
+    }
+    .clients-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 1.25rem !important;
+    }
+    /* em 1536px+ (2xl) o Tailwind dá 6 colunas, manter */
+    @media (min-width: 1536px) {
+        .clients-grid {
+            grid-template-columns: repeat(6, 1fr) !important;
+        }
+    }
+
+    /* ── CLIENT CARD ──────────────────────────────────────── */
+    .client-card-modern {
+        border-radius: 0.875rem !important;
+    }
+    .client-card-modern .h-16.bg-gradient-to-br {
+        height: 4.5rem !important;
+    }
+    .client-card-modern .flex.justify-center.-mt-8 {
+        margin-top: -2.25rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    .client-card-modern .w-16.h-16.rounded-full {
+        width: 4.5rem !important;
+        height: 4.5rem !important;
+        border-width: 4px !important;
+    }
+    .client-card-modern .w-5.h-5.-bottom-1 {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+    }
+    .client-card-modern .px-4.pb-4 {
+        padding: 1.125rem !important;
+    }
+    .client-card-modern h3.text-base {
+        font-size: 1rem !important;
+    }
+    /* stats grid */
+    .client-card-modern .grid.grid-cols-2.gap-3 {
+        gap: 0.625rem !important;
+    }
+    .client-card-modern .grid.grid-cols-2.gap-3 > div {
+        padding: 0.75rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .client-card-modern .w-8.h-8.bg-gradient-to-br {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        border-radius: 0.625rem !important;
+    }
+    .client-card-modern .w-8.h-8.bg-gradient-to-br > i {
+        font-size: 1rem !important;
+    }
+    .client-card-modern .text-xl.font-bold {
+        font-size: 1.375rem !important;
+    }
+    /* botões */
+    .client-card-modern .grid.grid-cols-3.gap-2.mb-3 > a,
+    .client-card-modern .grid.grid-cols-3.gap-2.mb-3 > button {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* ── PAGINAÇÃO INFERIOR ───────────────────────────────── */
+    .clients-pagination-bottom {
+        padding: 1.5rem 2rem !important;
+        border-radius: 1.375rem !important;
+        margin-top: 1.5rem !important;
+    }
+    .clients-pagination-bottom h3 {
+        font-size: 1.25rem !important;
+    }
+    .clients-pagination-bottom p.text-sm {
+        font-size: 0.875rem !important;
+    }
+    .clients-pagination-bottom .p-2.bg-gradient-to-br {
+        padding: 0.625rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .clients-pagination-bottom .p-3 {
+        padding: 0.75rem !important;
+    }
+    .clients-pagination-bottom select {
+        padding: 0.5rem 0.75rem !important;
+        font-size: 0.875rem !important;
+    }
+}

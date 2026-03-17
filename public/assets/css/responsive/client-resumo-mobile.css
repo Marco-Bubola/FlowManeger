@@ -1,0 +1,63 @@
+/* Client Resumo - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .client-resumo-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header */
+    .client-resumo-page .rounded-2xl.shadow-xl.mb-6 {
+        margin: 0.5rem 0.55rem 0.75rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .client-resumo-page .relative.px-6.py-4 {
+        padding: 0.72rem 0.75rem !important;
+    }
+
+    /* Avatar */
+    .client-resumo-page .w-16.h-16.rounded-xl {
+        width: 2.625rem !important;
+        height: 2.625rem !important;
+        border-radius: 0.6rem !important;
+    }
+
+    /* Nome */
+    .client-resumo-page h1.text-2xl,
+    .client-resumo-page h1.text-3xl {
+        font-size: 1.1rem !important;
+    }
+
+    /* Botão voltar */
+    .client-resumo-page .w-12.h-12.rounded-xl {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+    }
+
+    /* Tabs de navegação */
+    .client-resumo-page .flex.gap-2.overflow-x-auto {
+        gap: 0.35rem !important;
+    }
+
+    .client-resumo-page .flex.gap-2.overflow-x-auto a,
+    .client-resumo-page .flex.gap-2.overflow-x-auto button {
+        padding: 0.42rem 0.65rem !important;
+        font-size: 0.72rem !important;
+        white-space: nowrap;
+    }
+
+    /* Conteúdo: KPIs */
+    .client-resumo-page .grid.grid-cols-2.md\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    .client-resumo-page .grid.grid-cols-1.lg\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem !important;
+    }
+
+    /* Padding do conteúdo */
+    .client-resumo-page .px-4.sm\:px-6 {
+        padding-inline: 0.55rem !important;
+    }
+}

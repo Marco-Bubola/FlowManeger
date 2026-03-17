@@ -1,0 +1,19 @@
+/* Edit Payments - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .edit-payments-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .edit-payments-header {
+        padding: 0.72rem 0.85rem !important;
+    }
+
+    .edit-payments-header h1 {
+        font-size: 1.15rem !important;
+    }
+
+    .edit-payments-header .w-14 {
+        width: 2.625rem !important;
+        height: 2.625rem !important;
+    }
+}

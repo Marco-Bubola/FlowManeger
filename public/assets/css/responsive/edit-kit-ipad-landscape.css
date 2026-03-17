@@ -1,0 +1,15 @@
+/* Edit Kit - iPad Landscape (768-1366px, orientação paisagem) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .edit-kit-page .px-8.py-4 {
+        padding: 0.9rem 1.1rem !important;
+    }
+
+    .edit-kit-page h1.text-3xl,
+    .edit-kit-page h1.text-2xl {
+        font-size: 1.55rem !important;
+    }
+
+    .edit-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}

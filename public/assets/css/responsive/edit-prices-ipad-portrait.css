@@ -1,0 +1,22 @@
+/* Edit Prices - iPad Portrait (768–1024px, portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .edit-prices-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding-inline: 0.75rem;
+    }
+
+    /* Header */
+    .edit-prices-page .sales-create-header-title {
+        font-size: 1.35rem !important;
+    }
+
+    .edit-prices-page .sales-create-header-subtitle {
+        font-size: 0.8rem !important;
+    }
+
+    /* Grid: 2 colunas */
+    .edit-prices-page .grid.grid-cols-1.sm\:grid-cols-2.lg\:grid-cols-3.xl\:grid-cols-4 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+}

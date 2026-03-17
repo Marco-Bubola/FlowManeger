@@ -1,0 +1,35 @@
+/* Client Dashboard - Notebook (1025–1440px) */
+
+/* Bloco 1: 1025–1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .client-dashboard-page .rounded-2xl.shadow-xl.mb-6 {
+        margin: 1rem 1.25rem 1.125rem !important;
+    }
+
+    .client-dashboard-page .relative.px-6.py-4 {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .client-dashboard-page h1.text-2xl {
+        font-size: 1.75rem !important;
+    }
+
+    .client-dashboard-page .px-4.sm\:px-6.lg\:px-8 {
+        padding-inline: 1.25rem !important;
+    }
+}
+
+/* Bloco 2: 1280–1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .client-dashboard-page .relative.px-6.py-4 {
+        padding: 1.125rem 1.75rem !important;
+    }
+
+    .client-dashboard-page h1.text-2xl {
+        font-size: 2rem !important;
+    }
+
+    .client-dashboard-page .px-4.sm\:px-6.lg\:px-8 {
+        padding-inline: 1.5rem !important;
+    }
+}

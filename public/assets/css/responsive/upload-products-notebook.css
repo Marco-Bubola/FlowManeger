@@ -1,0 +1,17 @@
+/* Upload Products - Notebook (1025-1440px) */
+
+/* 1025-1279px */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .upload-products-page h1.text-3xl,
+    .upload-products-page h1.text-2xl {
+        font-size: 1.6rem !important;
+    }
+}
+
+/* 1280-1440px */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .upload-products-page h1.text-3xl,
+    .upload-products-page h1.text-2xl {
+        font-size: 1.75rem !important;
+    }
+}

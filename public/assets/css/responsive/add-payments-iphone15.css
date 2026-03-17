@@ -1,0 +1,19 @@
+/* Add Payments - iPhone 15 (380–430px, h >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .add-payments-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .add-payments-main {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .add-payments-page .sales-create-header-title {
+        font-size: 1.15rem !important;
+    }
+
+    .add-payments-sidebar .w-28 {
+        width: 6rem !important;
+        height: 6rem !important;
+    }
+}

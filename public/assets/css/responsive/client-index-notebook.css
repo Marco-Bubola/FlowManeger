@@ -1,0 +1,138 @@
+/* ============================================================
+   Clients Index — Notebook / Desktop (1025–1440px)
+   Dois blocos:
+   Bloco 1 (1025–1279px): xl:flex-row ainda não ativo, ajuste fino
+   Bloco 2 (1280–1440px): xl: ativo, mais espaço
+   ============================================================ */
+
+/* ── BLOCO 1: 1025–1279px ─────────────────────────────────── */
+@media (min-width: 1025px) and (max-width: 1279px) {
+
+    .clients-index-page {
+        padding-bottom: 2rem !important;
+    }
+
+    /* Header */
+    .clients-index-header-inner {
+        padding: 1.125rem 1.75rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 > i {
+        font-size: 1.75rem !important;
+    }
+    .clients-index-header h1 {
+        font-size: 2.25rem !important;
+    }
+    .clients-index-header .mt-3 > div span {
+        font-size: 0.82rem !important;
+    }
+
+    /* Grid: forçar 4 colunas (Tailwind xl:grid-cols-4 = 1280px) */
+    .clients-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1.125rem !important;
+    }
+    .clients-grid-wrap {
+        padding: 0.75rem !important;
+    }
+
+    /* Cards: bom tamanho a ~250px */
+    .client-card-modern .h-16.bg-gradient-to-br {
+        height: 3.75rem !important;
+    }
+    .client-card-modern .px-4.pb-4 {
+        padding: 1rem !important;
+    }
+
+    /* Controls */
+    .clients-index-controls-wrap {
+        gap: 0.625rem !important;
+    }
+
+    /* Filtros: 4 colunas (lg:grid-cols-4 já ativo) */
+    .clients-filters-panel {
+        padding: 1.25rem 1.5rem !important;
+    }
+
+    /* Paginação */
+    .clients-pagination-bottom {
+        padding: 1.25rem 1.5rem !important;
+    }
+}
+
+/* ── BLOCO 2: 1280–1440px ─────────────────────────────────── */
+@media (min-width: 1280px) and (max-width: 1440px) {
+
+    .clients-index-page {
+        padding-bottom: 2rem !important;
+    }
+
+    /* Header espaçoso */
+    .clients-index-header-inner {
+        padding: 1.25rem 2rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 {
+        width: 3.75rem !important;
+        height: 3.75rem !important;
+        border-radius: 1rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 > i {
+        font-size: 1.875rem !important;
+    }
+    .clients-index-header h1 {
+        font-size: 2.5rem !important;
+    }
+    .clients-index-header .mt-3 > div {
+        padding: 0.3rem 0.75rem !important;
+    }
+    .clients-index-header .mt-3 > div span {
+        font-size: 0.85rem !important;
+    }
+
+    /* Grid: xl:grid-cols-4 já ativo no Tailwind */
+    .clients-grid {
+        gap: 1.25rem !important;
+    }
+    .clients-grid-wrap {
+        padding: 0.875rem !important;
+    }
+
+    /* Cards */
+    .client-card-modern .h-16.bg-gradient-to-br {
+        height: 4rem !important;
+    }
+    .client-card-modern .px-4.pb-4 {
+        padding: 1rem 1.125rem !important;
+    }
+    .client-card-modern h3.text-base {
+        font-size: 1rem !important;
+    }
+    .client-card-modern .text-xl.font-bold {
+        font-size: 1.25rem !important;
+    }
+
+    /* Controls */
+    .clients-index-controls-row-1 > .relative.flex-1 input {
+        font-size: 0.9rem !important;
+        padding-top: 0.625rem !important;
+        padding-bottom: 0.625rem !important;
+    }
+
+    /* Filtros */
+    .clients-filters-panel {
+        padding: 1.375rem 1.75rem !important;
+        border-radius: 1.25rem !important;
+    }
+
+    /* Paginação */
+    .clients-pagination-bottom {
+        padding: 1.375rem 1.75rem !important;
+        border-radius: 1.25rem !important;
+    }
+    .clients-pagination-bottom h3 {
+        font-size: 1.125rem !important;
+    }
+}

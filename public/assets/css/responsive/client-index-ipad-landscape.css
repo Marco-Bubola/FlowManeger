@@ -1,0 +1,139 @@
+/* ============================================================
+   Clients Index — iPad Landscape (768–1366px, orientação paisagem)
+   Principais ajustes:
+   - Header: lg:flex-row ativa em 1024px (landscape exato)
+     Para 768–1023px landscape forçar row também
+   - Ícone 3.25rem, título 2.125rem
+   - Grid: 3 colunas (lg:grid-cols-3 ativo no Tailwind)
+   - Filtros: 4 colunas (lg:grid-cols-4 ativo no Tailwind)
+   - Clearance: sem tabbar em landscape tipicamente
+   ============================================================ */
+
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+
+    /* ── TABBAR CLEARANCE (landscape sem tabbar) ──────────── */
+    .clients-index-page {
+        padding-bottom: 1rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .clients-index-header {
+        border-radius: 1.25rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .clients-index-header-inner {
+        padding: 0.875rem 1.5rem !important;
+    }
+    /* row layout: lg:flex-row ativa em 1024px; para 768–1023px forçar */
+    .clients-index-header-inner > .flex {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 1rem !important;
+    }
+    .clients-index-header .flex-shrink-0 {
+        gap: 0.75rem !important;
+        flex-shrink: 0 !important;
+    }
+    /* ícone principal */
+    .clients-index-header .from-indigo-500.via-purple-500 {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .clients-index-header .from-indigo-500.via-purple-500 > i {
+        font-size: 1.625rem !important;
+    }
+    /* título */
+    .clients-index-header h1 {
+        font-size: 2.125rem !important;
+        line-height: 1.15 !important;
+    }
+    /* breadcrumb: ocultar */
+    .clients-index-header .mb-2.flex.items-center.gap-2 {
+        display: none !important;
+    }
+    /* stats badges */
+    .clients-index-header .mt-3 {
+        gap: 0.375rem !important;
+        margin-top: 0.375rem !important;
+    }
+    .clients-index-header .mt-3 > div {
+        padding: 0.25rem 0.625rem !important;
+    }
+    .clients-index-header .mt-3 > div:nth-child(n+3) {
+        display: flex !important;
+    }
+    /* slot controles */
+    .clients-index-header .flex-1.flex.items-center.justify-end {
+        flex: 1 !important;
+        min-width: 0 !important;
+        justify-content: flex-end !important;
+    }
+    .clients-index-header .flex-1.flex.items-center.justify-end > .flex-1 {
+        max-width: 620px !important;
+    }
+
+    /* ── CONTROLS ─────────────────────────────────────────── */
+    .clients-index-controls-wrap {
+        gap: 0.625rem !important;
+    }
+    .clients-index-controls-row-1 {
+        gap: 0.5rem !important;
+    }
+    .clients-index-controls-row-1 > .relative.flex-1 input {
+        font-size: 0.875rem !important;
+    }
+    /* botão criar: mostrar texto */
+    .clients-index-controls-actions > a.flex.items-center.gap-2 span {
+        display: inline !important;
+    }
+
+    /* ── FILTROS PANEL ────────────────────────────────────── */
+    .clients-filters-panel {
+        padding: 1.125rem 1.25rem !important;
+        border-radius: 1.125rem !important;
+    }
+    /* Tailwind lg:grid-cols-4 ativo em 1024px; 768–1023 landscape → forçar 3 cols */
+    @media (max-width: 1023px) {
+        .clients-filters-panel > .grid {
+            grid-template-columns: repeat(3, 1fr) !important;
+        }
+    }
+
+    /* ── GRID — 3 COLUNAS ────────────────────────────────── */
+    .clients-grid-wrap {
+        padding: 0.5rem !important;
+    }
+    .clients-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 1rem !important;
+    }
+
+    /* ── CLIENT CARD ──────────────────────────────────────── */
+    .client-card-modern .h-16.bg-gradient-to-br {
+        height: 3.5rem !important;
+    }
+    .client-card-modern .flex.justify-center.-mt-8 {
+        margin-top: -1.875rem !important;
+    }
+    .client-card-modern .w-16.h-16.rounded-full {
+        width: 3.75rem !important;
+        height: 3.75rem !important;
+    }
+    .client-card-modern .px-4.pb-4 {
+        padding: 0.875rem !important;
+    }
+    .client-card-modern h3.text-base {
+        font-size: 0.9rem !important;
+    }
+    .client-card-modern .text-xl.font-bold {
+        font-size: 1.125rem !important;
+    }
+
+    /* ── PAGINAÇÃO INFERIOR ───────────────────────────────── */
+    .clients-pagination-bottom {
+        padding: 1.25rem !important;
+        border-radius: 1.125rem !important;
+    }
+}

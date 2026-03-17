@@ -1,0 +1,19 @@
+/* Show Publication - iPhone 15 (380-430px, altura >= 780px) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .publication-show-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .publication-show-page .rounded-2xl .p-6 {
+        padding: 0.85rem !important;
+    }
+
+    .publication-show-page h1.text-3xl {
+        font-size: 1.2rem !important;
+    }
+
+    .publication-show-page .w-20.h-20.rounded-xl {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+    }
+}

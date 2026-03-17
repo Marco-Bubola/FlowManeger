@@ -1,0 +1,7 @@
+/* Cofrinhos Index — iPhone 15 */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .cofrinhos-index-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+    .cofrinhos-index-page .grid.grid-cols-1.md\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+}

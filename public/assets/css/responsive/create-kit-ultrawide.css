@@ -1,0 +1,24 @@
+/* Create Kit - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+    .create-kit-page {
+        max-width: 1600px;
+        margin-inline: auto;
+    }
+
+    .create-kit-page .create-kit-header-inner {
+        padding: 1.25rem 2rem !important;
+    }
+
+    .create-kit-page h1.text-3xl {
+        font-size: 2rem !important;
+    }
+
+    .create-kit-page .w-14.h-14.rounded-2xl {
+        width: 4rem !important;
+        height: 4rem !important;
+    }
+
+    .create-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
