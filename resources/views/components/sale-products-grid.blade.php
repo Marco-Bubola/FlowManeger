@@ -35,8 +35,6 @@
                 $product = $item->product;
                 $productName = $product->name ?? 'Produto não encontrado';
                 $productCode = $product->product_code ?? 'N/A';
-                $difference = $item->price_sale - $item->price;
-                $subtotal = $item->price_sale * $item->quantity;
             @endphp
 
             <div class="product-card-modern sale-product-card">
@@ -80,8 +78,6 @@
                         {{ ucwords($productName) }}
                     </div>
 
-
-
                     <div class="price-area">
                         <span class="badge-price" title="Preço Original">
                             <i class="bi bi-tag"></i>
@@ -92,24 +88,6 @@
                             <i class="bi bi-currency-dollar"></i>
                             {{ number_format($item->price_sale, 2, ',', '.') }}
                         </span>
-                    </div>
-
-                    <div class="sale-card-summary">
-                        <div class="sale-card-row">
-                            <span class="sale-card-label"><i class="bi bi-calculator"></i> Subtotal</span>
-                            <span class="sale-card-value">R$ {{ number_format($subtotal, 2, ',', '.') }}</span>
-                        </div>
-                        @if($difference != 0)
-                        <div class="sale-card-row {{ $difference > 0 ? 'sale-card-row-increase' : 'sale-card-row-discount' }}">
-                            <span class="sale-card-label">
-                                <i class="bi {{ $difference > 0 ? 'bi-arrow-up-right' : 'bi-arrow-down-right' }}"></i>
-                                {{ $difference > 0 ? 'Aumento' : 'Desconto' }}
-                            </span>
-                            <span class="sale-card-value">
-                                {{ $difference > 0 ? '+' : '' }}R$ {{ number_format($difference, 2, ',', '.') }}
-                            </span>
-                        </div>
-                        @endif
                     </div>
                 </div>
             </div>
