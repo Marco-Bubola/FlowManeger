@@ -1,0 +1,54 @@
+/* Add Payments - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .add-payments-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    /* Header compacto */
+    .add-payments-page .sales-create-header-inner {
+        padding: 0.72rem !important;
+    }
+
+    .add-payments-page .sales-create-header-title {
+        font-size: 1.1rem !important;
+    }
+
+    .add-payments-page .sales-create-header-subtitle {
+        font-size: 0.73rem !important;
+    }
+
+    /* Main container */
+    .add-payments-main {
+        padding-inline: 0.55rem !important;
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Layout: empilha sidebar abaixo */
+    .add-payments-layout {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1rem !important;
+    }
+
+    .add-payments-forms {
+        order: 1;
+        width: 100% !important;
+    }
+
+    .add-payments-sidebar {
+        order: 2;
+        width: 100% !important;
+    }
+
+    /* Sidebar compacta (não sticky em mobile) */
+    .add-payments-sidebar .sticky {
+        position: relative !important;
+        top: auto !important;
+    }
+
+    /* Gráfico menor */
+    .add-payments-sidebar .w-28 {
+        width: 5.5rem !important;
+        height: 5.5rem !important;
+    }
+}
