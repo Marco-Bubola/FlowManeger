@@ -1,0 +1,120 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCTS-INDEX — iPHONE 15 (390–430px)
+   Catálogo de Produtos no iPhone 15 / 14 Pro / 13 Pro Max
+   2 colunas por linha, cards muito compactos
+   ═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 390px) and (max-width: 430px) {
+
+    /* ── PÁGINA ─────────────────────────────────────────── */
+    .products-index-page {
+        padding-inline: 0.4rem !important;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .products-index-page .products-index-header-inner {
+        padding: 0.75rem 0.75rem !important;
+    }
+
+    .products-index-page .products-index-header-content h1 {
+        font-size: 1.15rem !important;
+    }
+
+    .products-index-page .products-index-header-stats > div {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    /* ── GRID: 2 COLUNAS ────────────────────────────────── */
+    .products-index-page .products-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    /* ── CARD MUITO COMPACTO ────────────────────────────── */
+    .products-index-page .products-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+        border-radius: 0.9rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img-area {
+        min-height: 115px !important;
+        height: 115px !important;
+        border-top-left-radius: 0.9rem !important;
+        border-top-right-radius: 0.9rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img {
+        height: 115px !important;
+        max-height: 115px !important;
+        border-top-left-radius: 0.9rem !important;
+        border-top-right-radius: 0.9rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
+        width: 33px !important;
+        height: 33px !important;
+        bottom: -15px !important;
+        border-width: 2px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon {
+        font-size: 1rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .card-body {
+        padding: 1.5em 0.45em 1.1em 0.45em !important;
+        gap: 0.1em !important;
+        min-height: 0 !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-title {
+        font-size: 0.63em !important;
+        line-height: 1.2 !important;
+        letter-spacing: 0.03em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-price,
+    .products-index-page .products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.6rem !important;
+        padding: 0.1em 0.35em !important;
+        min-width: auto !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-product-code,
+    .products-index-page .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.48rem !important;
+        padding: 0.07em 0.25em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .price-area {
+        padding: 0.2rem 0.35rem 0.3rem !important;
+    }
+
+    /* ── BOTÕES DE AÇÃO ─────────────────────────────────── */
+    .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
+        width: 1.4rem !important;
+        height: 1.4rem !important;
+        font-size: 0.5rem !important;
+        border-radius: 0.35rem !important;
+    }
+
+    /* ── CONTROLES: COMPACTO ────────────────────────────── */
+    .products-index-page .products-index-controls-row-1 {
+        flex-wrap: wrap !important;
+        gap: 0.35rem !important;
+    }
+
+    .products-index-page .products-index-main-actions a {
+        padding: 0.4rem 0.55rem !important;
+        font-size: 0.72rem !important;
+    }
+}
+
+/* ── iPhone 15 exato (393×852) ──────────────────────────── */
+@media (width: 393px) and (height: 852px) {
+    .products-index-page .products-index-header-content h1 {
+        font-size: 1.2rem !important;
+    }
+}
