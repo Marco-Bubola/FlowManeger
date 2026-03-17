@@ -1,11 +1,15 @@
 <div x-data="{
     activeTab: 'overview',
     chartInitialized: false
-}" class="w-full mobile-393-base">
+}" class="show-product-page w-full mobile-393-base">
 
-@push('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-@endpush
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-ultrawide.css') }}">
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
 <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
