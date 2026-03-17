@@ -21,6 +21,14 @@
 .custom-scrollbar::-webkit-scrollbar { width: 0; display: none; }
 .custom-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* ─── Desktop padrão (> 1366px, sem classe tablet-nav-*): sidebar fixa ─── */
+/* O mainContent precisa de margin-left para não ficar atrás da sidebar */
+@media (min-width: 1366px) {
+    body:not(.tablet-nav-tabbar) #mainContent {
+        margin-left: 280px;
+    }
+}
+
 /* ─── Compact Sidebar Mode ─── */
 body.sidebar-compact #modernSidebar { width: 100px !important; }
 body.sidebar-compact #mainContent   { margin-left: 100px !important; }
@@ -34,51 +42,110 @@ body.sidebar-compact .nav-item {
 body.sidebar-compact .nav-icon-wrapper { margin: 0 auto; }
 body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
 
-/* ─── Tablet — Narrower Sidebar ─── */
-@media (min-width: 1025px) and (max-width: 1366px) {
-    #modernSidebar { width: 240px !important; }
-    #mainContent   { margin-left: 240px !important; }
+/* ─── iPad portrait (768-1024px): TabBar SEMPRE visível, sidebar SEMPRE drawer ─── */
+/* Sem escolha neste range: tabbar é a nav principal, sidebar é drawer de overlay */
+@media (min-width: 768px) and (max-width: 1024px) {
+    #modernSidebar {
+        width: min(82vw, 300px) !important;
+        border-radius: 0 1.35rem 1.35rem 0 !important;
+        /* sempre começa fechado no portrait — usuário abre manualmente */
+    }
+    #mainContent {
+        margin-left: 0 !important;
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+    #modernSidebar.mobile-sidebar-closed       { transform: translateX(-100%) !important; }
+    #modernSidebar:not(.mobile-sidebar-closed) { transform: translateX(0) !important; }
 }
 
-/* iPad landscape (1024-1366): navigation mode selected by user */
+/* ─── iPad landscape (1024-1366): Sidebar fixa OU TabBar — nunca as duas ─── */
 @media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    /* === MODO SIDEBAR: sidebar fixa à esquerda, tabbar escondida === */
     body.tablet-nav-sidebar #modernSidebar {
         width: 240px !important;
         transform: translateX(0) !important;
         visibility: visible !important;
         pointer-events: auto !important;
+        position: fixed !important;
     }
-
     body.tablet-nav-sidebar #mainContent {
         margin-left: 240px !important;
         padding-bottom: 0 !important;
     }
-
     body.tablet-nav-sidebar .mobile-sidebar-backdrop {
         display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
     }
-
+    /* === MODO TABBAR: sidebar escondida, tabbar visível === */
     body.tablet-nav-tabbar #modernSidebar {
         transform: translateX(-100%) !important;
         visibility: hidden !important;
         pointer-events: none !important;
     }
-
     body.tablet-nav-tabbar #mainContent {
         margin-left: 0 !important;
-        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+        padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+    }
+    /* Se classe não estiver definida ainda (estado inicial), default = sidebar */
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #modernSidebar {
+        width: 240px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+    }
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #mainContent {
+        margin-left: 240px !important;
+        padding-bottom: 0 !important;
     }
 }
 
-/* ─── Mobile/Tablet — Sidebar as Slide-in Drawer ─── */
-@media (max-width: 1024px) {
+/* ─── Desktop largo (>1366px): Sidebar fixa OU TabBar — nunca as duas ─── */
+@media (min-width: 1366px) {
+    body.tablet-nav-sidebar #modernSidebar {
+        width: 280px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+    body.tablet-nav-sidebar #mainContent {
+        margin-left: 280px !important;
+        padding-bottom: 0 !important;
+    }
+    body.tablet-nav-sidebar .mobile-sidebar-backdrop {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    body.tablet-nav-tabbar #modernSidebar {
+        transform: translateX(-100%) !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+    body.tablet-nav-tabbar #mainContent {
+        margin-left: 0 !important;
+        padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+    }
+    /* Default sem classe = sidebar */
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #modernSidebar {
+        width: 280px !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+    }
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #mainContent {
+        margin-left: 280px !important;
+        padding-bottom: 0 !important;
+    }
+}
+
+/* ─── Mobile puro (< 768px) — Sidebar como drawer de overlay ─── */
+@media (max-width: 767.98px) {
     #modernSidebar {
         width: min(86vw, 280px) !important;
         border-radius: 0 1.1rem 1.1rem 0 !important;
     }
     #mainContent {
         margin-left: 0 !important;
-        padding-bottom: calc(76px + env(safe-area-inset-bottom));
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
 
     #modernSidebar.mobile-sidebar-closed       { transform: translateX(-100%); }
@@ -100,3 +167,166 @@ body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
         pointer-events: auto;
     }
 }
+
+/* ─── iPad portrait (768-1024px): backdrop para drawer de overlay ─── */
+@media (min-width: 768px) and (max-width: 1024px) {
+    #modernSidebar.animate-fade-slide-in { animation: none; }
+
+    .mobile-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(2, 6, 23, 0.42);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
+    }
+    #modernSidebar:not(.mobile-sidebar-closed) ~ .mobile-sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR MODERNIZATION — Cores do App (indigo/blue/purple)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Linha de gradiente superior na sidebar ─────────────── */
+#modernSidebar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6, #a855f7, #ec4899);
+    border-radius: 0 1.5rem 0 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* ── Borda lateral com gradiente ────────────────────────── */
+#modernSidebar {
+    border-right: 1px solid rgba(99,102,241,0.12);
+}
+.dark #modernSidebar {
+    border-right: 1px solid rgba(99,102,241,0.2);
+}
+
+/* ── Header da sidebar: logo + título ───────────────────── */
+#modernSidebar .sidebar-logo-wrap {
+    background: linear-gradient(135deg, rgba(99,102,241,0.07) 0%, rgba(139,92,246,0.04) 100%);
+    border-bottom: 1px solid rgba(99,102,241,0.1);
+}
+.dark #modernSidebar .sidebar-logo-wrap {
+    background: linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(139,92,246,0.06) 100%);
+    border-bottom: 1px solid rgba(99,102,241,0.2);
+}
+
+/* ── Nav-item base: hover state melhorado ───────────────── */
+#modernSidebar .nav-item-base {
+    transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+#modernSidebar .nav-item-base:hover {
+    background: linear-gradient(90deg, rgba(99,102,241,0.07) 0%, rgba(139,92,246,0.04) 100%) !important;
+    transform: translateX(2px);
+}
+
+/* ── Nav-item active: indicator bar colorida ─────────────── */
+#modernSidebar a.nav-active,
+#modernSidebar a[class*="text-blue-600"],
+#modernSidebar a[class*="text-emerald-600"],
+#modernSidebar a[class*="text-indigo-600"],
+#modernSidebar a[class*="text-purple-600"] {
+    position: relative;
+}
+
+/* ── Separador de seções estilizado ─────────────────────── */
+.sidebar-section-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.15), transparent);
+    margin: 0.5rem 0.75rem;
+}
+.dark .sidebar-section-divider {
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.25), transparent);
+}
+
+/* ── Section labels com cores ───────────────────────────── */
+.sidebar-section-label {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.9rem 0.35rem;
+    color: #94a3b8;
+}
+.dark .sidebar-section-label { color: #475569; }
+
+/* ── Ícone do nav-item active com gradiente ─────────────── */
+#modernSidebar .nav-icon-active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 12px rgba(99,102,241,0.35) !important;
+}
+
+/* ── Cada cor de seção ───────────────────────────────────── */
+/* Dashboard = azul */
+.sidebar-section-dashboard .sidebar-section-label { color: #6366f1; }
+.dark .sidebar-section-dashboard .sidebar-section-label { color: #818cf8; }
+
+/* Financeiro = emerald */
+.sidebar-section-financeiro .sidebar-section-label { color: #10b981; }
+.dark .sidebar-section-financeiro .sidebar-section-label { color: #34d399; }
+
+/* Vendas = indigo */
+.sidebar-section-vendas .sidebar-section-label { color: #4f46e5; }
+.dark .sidebar-section-vendas .sidebar-section-label { color: #818cf8; }
+
+/* Catálogo = purple */
+.sidebar-section-catalogo .sidebar-section-label { color: #7c3aed; }
+.dark .sidebar-section-catalogo .sidebar-section-label { color: #a78bfa; }
+
+/* ML = amber/orange */
+.sidebar-section-ml .sidebar-section-label { color: #f59e0b; }
+.dark .sidebar-section-ml .sidebar-section-label { color: #fbbf24; }
+
+/* Configurações = slate */
+.sidebar-section-config .sidebar-section-label { color: #64748b; }
+.dark .sidebar-section-config .sidebar-section-label { color: #94a3b8; }
+
+/* ── Glow no active item ─────────────────────────────────── */
+#modernSidebar a.route-active-item {
+    background: linear-gradient(90deg,
+        rgba(99,102,241,0.12) 0%,
+        rgba(139,92,246,0.07) 100%
+    ) !important;
+}
+.dark #modernSidebar a.route-active-item {
+    background: linear-gradient(90deg,
+        rgba(99,102,241,0.22) 0%,
+        rgba(139,92,246,0.12) 100%
+    ) !important;
+}
+
+/* ── Botão toggle compacto ───────────────────────────────── */
+#sidebarToggle {
+    background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(139,92,246,0.06)) !important;
+    border: 1px solid rgba(99,102,241,0.15) !important;
+    transition: all 0.2s ease !important;
+}
+#sidebarToggle:hover {
+    background: linear-gradient(135deg, rgba(99,102,241,0.18), rgba(139,92,246,0.12)) !important;
+    border-color: rgba(99,102,241,0.3) !important;
+    transform: scale(1.05) !important;
+}
+
+/* ── Scrollbar da nav com cor ───────────────────────────── */
+#modernSidebar .custom-scrollbar::-webkit-scrollbar { width: 3px; display: initial; }
+#modernSidebar .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+#modernSidebar .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(99,102,241,0.3), rgba(139,92,246,0.2));
+    border-radius: 9999px;
+}
+#modernSidebar .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, rgba(99,102,241,0.5), rgba(139,92,246,0.4));
+}
+
