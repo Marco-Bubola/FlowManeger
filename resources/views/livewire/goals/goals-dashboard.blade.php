@@ -1,4 +1,10 @@
-<div class="w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800" style="min-height: 100vh; display: flex; flex-direction: column;">
+<div class="goals-dashboard-page w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 mobile-393-base" style="min-height: 100vh; display: flex; flex-direction: column;">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-ultrawide.css') }}">
     <!-- Header Moderno -->
     <x-sales-header
         title="📊 Dashboard de Metas"
