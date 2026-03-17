@@ -1,0 +1,329 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCTS-INDEX HEADER CSS
+   Estilos do header do catálogo de produtos - pills de filtro,
+   busca, ações e paginação compacta no header
+   Palete: indigo-purple (app colors)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── CONTAINER DO HEADER ─────────────────────────────────── */
+.products-index-header {
+    background: linear-gradient(135deg,
+        rgba(255,255,255,0.92) 0%,
+        rgba(238,242,255,0.95) 40%,
+        rgba(243,232,255,0.9) 100%
+    ) !important;
+    border: 1px solid rgba(165,180,252,0.25) !important;
+    box-shadow:
+        0 4px 24px rgba(99,102,241,0.10),
+        0 1px 6px rgba(139,92,246,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.8) !important;
+}
+.dark .products-index-header {
+    background: linear-gradient(135deg,
+        rgba(15,23,42,0.95) 0%,
+        rgba(30,27,75,0.92) 40%,
+        rgba(23,23,54,0.95) 100%
+    ) !important;
+    border-color: rgba(99,102,241,0.18) !important;
+    box-shadow:
+        0 4px 24px rgba(0,0,0,0.3),
+        0 1px 6px rgba(99,102,241,0.12),
+        inset 0 1px 0 rgba(99,102,241,0.06) !important;
+}
+
+/* Linha de brilho no topo do header */
+.products-index-header::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        #6366f1 25%,
+        #8b5cf6 50%,
+        #a855f7 75%,
+        transparent 100%
+    );
+    border-radius: 1.5rem 1.5rem 0 0;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* ── ÍCONE DO HEADER ─────────────────────────────────────── */
+.products-index-header-icon {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%) !important;
+    box-shadow: 0 8px 20px rgba(99,102,241,0.35), 0 0 0 4px rgba(99,102,241,0.08) !important;
+}
+.dark .products-index-header-icon {
+    box-shadow: 0 8px 20px rgba(99,102,241,0.45), 0 0 0 4px rgba(99,102,241,0.15) !important;
+}
+
+/* ── TÍTULO ──────────────────────────────────────────────── */
+.products-index-header-content h1 {
+    background: linear-gradient(95deg, #1e293b 0%, #4338ca 45%, #7c3aed 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+    font-weight: 900 !important;
+}
+.dark .products-index-header-content h1 {
+    background: linear-gradient(95deg, #e2e8f0 0%, #a5b4fc 50%, #c4b5fd 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+}
+
+/* ── STATS BADGES ────────────────────────────────────────── */
+.products-index-header-stats > div {
+    background: rgba(255,255,255,0.75) !important;
+    border: 1px solid rgba(165,180,252,0.3) !important;
+    backdrop-filter: blur(8px) !important;
+    transition: all 0.2s ease !important;
+}
+.products-index-header-stats > div:hover {
+    background: rgba(238,242,255,0.95) !important;
+    border-color: rgba(99,102,241,0.35) !important;
+    transform: translateY(-1px) !important;
+}
+.dark .products-index-header-stats > div {
+    background: rgba(30,27,75,0.6) !important;
+    border-color: rgba(99,102,241,0.25) !important;
+}
+
+/* ── ROW 1: Busca + Novo Produto ─────────────────────────── */
+.prod-header-row-1 {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.prod-header-search {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+}
+
+.prod-header-btn-create {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.55rem 1.1rem;
+    background: linear-gradient(135deg, #10b981 0%, #059669 60%, #047857 100%);
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-radius: 0.75rem;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 6px 16px rgba(16,185,129,0.35), 0 0 0 3px rgba(16,185,129,0.08);
+    transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
+    text-decoration: none;
+}
+.prod-header-btn-create:hover {
+    box-shadow: 0 8px 24px rgba(16,185,129,0.5), 0 0 0 4px rgba(16,185,129,0.12);
+    transform: translateY(-2px) scale(1.03);
+}
+
+/* ── ROW 2: Pills + Paginação + Ações ────────────────────── */
+.prod-header-row-2 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    margin-top: 0.6rem;
+    padding-top: 0.6rem;
+    border-top: 1px solid rgba(148,163,184,0.13);
+    flex-wrap: wrap;
+}
+
+.prod-header-row-2-left {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+}
+
+.prod-header-row-2-right {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-shrink: 0;
+}
+
+/* ── PILLS VARIANTES PARA PRODUTOS ──────────────────────── */
+
+/* Tipo (Prods/Kits) pill */
+.sale-filter-pill.prod-pill-type.active {
+    background: linear-gradient(135deg, #6366f1, #4f46e5) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(99,102,241,0.4) !important;
+}
+.dark .sale-filter-pill.prod-pill-type.active {
+    background: linear-gradient(135deg, #4f46e5, #3730a3) !important;
+}
+
+/* Quick filter pill */
+.sale-filter-pill.prod-pill-quick.active {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(245,158,11,0.4) !important;
+}
+
+/* ── AÇÕES DE KIT E UPLOAD ───────────────────────────────── */
+.sale-action-btn.prod-action-kit {
+    color: #3b82f6;
+    border-color: rgba(59,130,246,0.2);
+}
+.sale-action-btn.prod-action-kit:hover {
+    background: rgba(59,130,246,0.1);
+    color: #2563eb;
+}
+.dark .sale-action-btn.prod-action-kit { color: #60a5fa; }
+
+.sale-action-btn.prod-action-upload {
+    color: #8b5cf6;
+    border-color: rgba(139,92,246,0.2);
+}
+.sale-action-btn.prod-action-upload:hover {
+    background: rgba(139,92,246,0.1);
+    color: #7c3aed;
+}
+.dark .sale-action-btn.prod-action-upload { color: #a78bfa; }
+
+/* ── RESPONSIVIDADE DO HEADER CONTROLS ──────────────────── */
+@media (max-width: 767.98px) {
+    .prod-header-row-1 {
+        gap: 0.5rem;
+    }
+
+    .prod-header-btn-create {
+        padding: 0.48rem 0.75rem;
+        font-size: 0.78rem;
+        border-radius: 0.65rem;
+    }
+
+    .prod-header-row-2 {
+        margin-top: 0.5rem;
+        padding-top: 0.5rem;
+        gap: 0.4rem;
+        justify-content: flex-end;
+    }
+
+    .prod-header-row-2-left {
+        display: none; /* Pills ocultos no mobile - usar modal de filtros */
+    }
+
+    .prod-header-row-2-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+    .prod-header-row-1 {
+        gap: 0.65rem;
+    }
+    .prod-header-row-2 {
+        gap: 0.5rem;
+    }
+    .prod-header-row-2-left {
+        gap: 0.4rem;
+    }
+}
+
+/* ── COMPACTAÇÃO DO HEADER VISUAL ────────────────────────── */
+
+/* Padding interno compacto */
+.products-index-header-inner {
+    padding: 1.15rem 1.5rem 1rem !important;
+}
+
+/* Título principal mais compacto */
+.products-index-header-content h1 {
+    font-size: 1.75rem !important;
+    line-height: 1.2 !important;
+}
+
+/* Ícone principal: ligeiramente menor */
+.products-index-header-icon {
+    width: 3.5rem !important;
+    height: 3.5rem !important;
+    border-radius: 1rem !important;
+    flex-shrink: 0;
+}
+.products-index-header-icon .bi {
+    font-size: 1.5rem !important;
+}
+
+/* Stats badges: mais compactos */
+.products-index-header-stats {
+    gap: 0.75rem !important;
+}
+.products-index-header-stats > div {
+    padding: 0.4rem 0.85rem !important;
+    gap: 0.4rem !important;
+    font-size: 0.875rem !important;
+    border-radius: 0.75rem !important;
+}
+.products-index-header-stats > div .text-lg {
+    font-size: 0.9rem !important;
+    font-weight: 700 !important;
+}
+.products-index-header-stats > div > div:first-child {
+    width: 1.6rem !important;
+    height: 1.6rem !important;
+    border-radius: 0.45rem !important;
+}
+.products-index-header-stats > div > div:first-child .bi {
+    font-size: 0.7rem !important;
+}
+
+/* ── MOBILE: header ainda mais compacto ── */
+@media (max-width: 767.98px) {
+    .products-index-header-inner {
+        padding: 0.75rem 1rem 0.75rem !important;
+    }
+    .products-index-header-layout {
+        gap: 0.6rem !important;
+    }
+    .products-index-header-left {
+        gap: 0.7rem !important;
+    }
+    .products-index-header-icon {
+        width: 2.8rem !important;
+        height: 2.8rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .products-index-header-icon .bi {
+        font-size: 1.2rem !important;
+    }
+    .products-index-header-content h1 {
+        font-size: 1.3rem !important;
+    }
+    .products-index-header-stats {
+        gap: 0.45rem !important;
+    }
+    .products-index-header-stats > div {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.78rem !important;
+    }
+}
+
+/* ── iPad: moderadamente compacto ── */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .products-index-header-inner {
+        padding: 0.9rem 1.25rem 0.85rem !important;
+    }
+    .products-index-header-content h1 {
+        font-size: 1.55rem !important;
+    }
+    .products-index-header-icon {
+        width: 3.2rem !important;
+        height: 3.2rem !important;
+    }
+    .products-index-header-stats > div {
+        padding: 0.35rem 0.7rem !important;
+        font-size: 0.82rem !important;
+    }
+}
