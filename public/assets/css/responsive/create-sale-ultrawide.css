@@ -1,0 +1,76 @@
+/* ============================================================
+   Create Sale — Ultrawide / 4K (1441px+)
+   - Container max-width 1800px
+   - Header grande
+   - Split 3/4 + 1/4 com mais espaço
+   - Tipografia maior nos controles
+   ============================================================ */
+
+@media (min-width: 1441px) {
+
+    /* ── CONTAINER ────────────────────────────────────────── */
+    .sales-create-page {
+        max-width: 1800px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-bottom: 2.5rem !important;
+        padding-inline: 1.5rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .sales-create-page .relative.overflow-hidden.rounded-3xl {
+        border-radius: 1.375rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+    .sales-create-page .relative.px-8.py-6 {
+        padding: 1.25rem 2.25rem !important;
+    }
+    /* Ícone principal no header */
+    .sales-create-page .relative.overflow-hidden.rounded-3xl .w-16.h-16 {
+        width: 4rem !important;
+        height: 4rem !important;
+        border-radius: 1rem !important;
+    }
+    .sales-create-page .relative.overflow-hidden.rounded-3xl .w-16.h-16 i {
+        font-size: 2rem !important;
+    }
+    /* Botão voltar */
+    .sales-create-page .w-14.h-14 {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+    /* Título */
+    .sales-create-page .text-4xl {
+        font-size: 2.75rem !important;
+    }
+    /* Steppers */
+    .sales-create-page .w-12.h-12.rounded-xl {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+    }
+
+    /* ── STEP 1: SPLIT LAYOUT ─────────────────────────────── */
+    .create-sale-step-products-shell {
+        gap: 1.5rem !important;
+    }
+
+    /* Controls */
+    .create-sale-products-controls {
+        gap: 1rem !important;
+    }
+    .create-sale-products-controls input {
+        font-size: 0.9rem !important;
+        padding: 0.75rem 1rem 0.75rem 2.75rem !important;
+        border-radius: 0.875rem !important;
+    }
+
+    /* Product cards dentro do painel esquerdo */
+    .create-sale-products-pane .product-card-modern {
+        border-radius: 0.875rem !important;
+    }
+
+    /* Painel direito (selecionados) */
+    .create-sale-step-products-shell > .w-full.lg\:w-1\/4 {
+        /* Manter proporção */
+    }
+}
