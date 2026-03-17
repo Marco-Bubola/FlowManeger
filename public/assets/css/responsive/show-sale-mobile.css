@@ -140,18 +140,13 @@
         gap: 0.65rem !important;
     }
 
-    /* ── PAGAMENTOS — barra resumo compacta ───────────────── */
-    .sale-show-page .payment-summary-bar {
-        border-radius: 0.85rem !important;
-        padding: 0.85rem !important;
+    /* ── PAGAMENTOS — 1 coluna (mobile) ────────────────────── */
+    .sale-show-page .payments-layout-grid {
+        display: block !important;
     }
 
-    .sale-show-page .payment-summary-bar .grid {
-        gap: 0.35rem !important;
-    }
-
-    .sale-show-page .payment-summary-bar .text-lg {
-        font-size: 0.9rem !important;
+    .sale-show-page .payments-col-form {
+        margin-bottom: 1rem !important;
     }
 
     /* ── METHOD PICKER — 3 colunas ───────────────────────── */
