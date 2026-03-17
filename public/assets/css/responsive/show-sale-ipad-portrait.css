@@ -88,24 +88,49 @@
         border-radius: 1rem !important;
     }
 
-    /* ── STATUS ───────────────────────────────────────────── */
-    .sale-show-page .w-20.h-20.mx-auto {
-        width: 4rem !important;
-        height: 4rem !important;
-        margin-bottom: 0.65rem !important;
+    /* ── STATUS CARD — proporcional no iPad portrait ─────── */
+    /* Ícone do cabeçalho de todos os cards */
+    .sale-show-page .show-card i.text-xl {
+        font-size: 0.95rem !important;
     }
 
-    .sale-show-page .w-20.h-20.mx-auto i {
-        font-size: 1.7rem !important;
+    /* Título e subtítulo do cabeçalho dos cards */
+    .sale-show-page .show-card h3.font-bold.text-sm {
+        font-size: 0.73rem !important;
+    }
+    .sale-show-page .show-card p.text-xs {
+        font-size: 0.63rem !important;
     }
 
-    .sale-show-page .text-xl.font-bold.mb-2 {
-        font-size: 1.05rem !important;
-        margin-bottom: 0.55rem !important;
+    /* Badge de status (PAGO / PARCIAL / PENDENTE) */
+    .sale-show-page .show-card span.rounded-full.text-xs.font-bold {
+        font-size: 0.58rem !important;
+        padding: 0.18rem 0.5rem !important;
     }
 
-    .sale-show-page .grid.grid-cols-2.gap-4 .text-lg.font-bold {
-        font-size: 0.9rem !important;
+    /* Espaçamentos internos mb-4 do card (header → círculo, círculo → valores) */
+    .sale-show-page .show-card .mb-4 {
+        margin-bottom: 0.6rem !important;
+    }
+
+    /* Círculo SVG: de 7rem (112px) → 5.25rem (84px) */
+    .sale-show-page .show-card .relative.w-28.h-28,
+    .sale-show-page .show-card svg.w-28.h-28 {
+        width: 5.25rem !important;
+        height: 5.25rem !important;
+    }
+
+    /* Percentual dentro do círculo */
+    .sale-show-page .show-card .text-2xl.font-extrabold {
+        font-size: 1.1rem !important;
+    }
+
+    /* Linhas de valor: Total / Pago / Restante */
+    .sale-show-page .show-card .space-y-1\.5 > div {
+        padding: 0.3rem 0.6rem !important;
+    }
+    .sale-show-page .show-card .space-y-1\.5 span.text-sm {
+        font-size: 0.72rem !important;
     }
 
     /* ── PRODUTOS — 4 colunas no iPad portrait ────────────── */
@@ -114,24 +139,17 @@
         gap: 0.75rem !important;
     }
 
-    /* ── PAGAMENTOS — barra larga ─────────────────────────── */
-    .sale-show-page .payment-summary-bar {
-        border-radius: 1rem !important;
-        padding: 0 !important;
+    /* ── PAGAMENTOS — layout 2 colunas (iPad portrait) ─────── */
+    .sale-show-page .payments-layout-grid {
+        display: grid !important;
+        grid-template-columns: 320px 1fr !important;
+        gap: 1rem !important;
+        align-items: start !important;
     }
 
-    .sale-show-page .payment-summary-bar .grid.grid-cols-3 > div {
-        padding: 0.9rem 0.75rem !important;
-    }
-
-    .sale-show-page .payment-summary-bar .text-lg {
-        font-size: 1rem !important;
-    }
-
-    /* ── PAGAMENTOS — lista 2 colunas ─────────────────────── */
-    .sale-show-page .payments-section .grid.grid-cols-1.lg\:grid-cols-2 {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 0.85rem !important;
+    .sale-show-page .payments-col-form {
+        position: sticky !important;
+        top: 1rem !important;
     }
 
     /* ── METHOD PICKER — 6 colunas ───────────────────────── */
