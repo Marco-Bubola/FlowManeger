@@ -1,6 +1,12 @@
 <div class="w-full h-screen min-h-screen app-viewport-fit sale-show-page mobile-393-base">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-ultrawide.css') }}">
     <!-- Header modernizado usando sales-header -->
     @php
         if($sale->client) {
