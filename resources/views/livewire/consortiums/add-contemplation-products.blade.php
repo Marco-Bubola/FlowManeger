@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="add-contemplation-products-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-contemplation-products-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-contemplation-products-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-contemplation-products-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-contemplation-products-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-contemplation-products-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-contemplation-products-ultrawide.css') }}">
     <!-- Incluir CSS dos produtos -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
