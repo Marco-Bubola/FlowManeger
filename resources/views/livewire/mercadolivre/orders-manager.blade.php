@@ -1,4 +1,10 @@
-<div class="p-6 space-y-6">
+<div class="orders-manager-page p-6 space-y-6 mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/orders-manager-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/orders-manager-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/orders-manager-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/orders-manager-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/orders-manager-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/orders-manager-ultrawide.css') }}">
     {{-- Header --}}
     <x-sales-header 
         title="Pedidos do Mercado Livre"
