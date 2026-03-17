@@ -1,0 +1,32 @@
+/* Edit Sale - iPhone 15 / telas 380–430px com altura >= 780px */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .edit-sale-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+
+    .edit-sale-page .sales-create-header-title {
+        font-size: 1.2rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-subtitle {
+        font-size: 0.76rem !important;
+    }
+
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 152px !important;
+        height: 152px !important;
+    }
+
+    .edit-sale-page .product-card-modern .card-body {
+        padding: 2.55em 0.48em 2.1em 0.48em !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-title {
+        font-size: 0.77em !important;
+    }
+}
