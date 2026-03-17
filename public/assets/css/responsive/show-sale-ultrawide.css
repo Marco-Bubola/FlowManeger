@@ -14,31 +14,60 @@
         padding-bottom: 1.75rem !important;
     }
 
-    /* ── ABAS ─────────────────────────────────────────────── */
-    .sale-show-page nav.flex.space-x-2 {
-        gap: 0.6rem !important;
+    /* ── HEADER — ultrawide completo ─────────────────────── */
+    .sale-show-page .sales-create-header {
+        border-radius: 0 0 1.75rem 1.75rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button {
-        padding: 0.75rem 1.25rem !important;
+    .sale-show-page .sales-create-header-inner {
+        padding: 1.25rem 2.5rem !important;
+        max-width: 1800px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    .sale-show-page .sales-create-header-main {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 1.5rem !important;
+    }
+
+    .sale-show-page .sales-create-header-title {
+        font-size: 1.5rem !important;
+    }
+
+    .sale-show-page .sales-create-header-subtitle {
         font-size: 0.88rem !important;
-        border-radius: 1.1rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button .text-lg {
-        font-size: 1.15rem !important;
+    .sale-show-page .sales-create-header-actions {
+        flex-shrink: 0 !important;
+        gap: 0.75rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button span:not(.ml-1) {
-        font-size: 0.82rem !important;
+    .sale-show-page .sales-create-header-actions button,
+    .sale-show-page .sales-create-header-actions a {
+        padding: 0.65rem 1.5rem !important;
+        font-size: 0.88rem !important;
+        border-radius: 1.2rem !important;
     }
 
-    /* ── GRID — espaçamento mais folgado ─────────────────── */
-    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
+    .sale-show-page .sales-create-header-actions .hidden.sm\:inline {
+        display: inline !important;
+    }
+
+    /* ── 3 CARDS INFO ─────────────────────────────────────── */
+    .sale-show-page .grid.grid-cols-1.sm\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
         gap: 1.5rem !important;
     }
 
     /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .show-card {
+        padding: 1.4rem 1.5rem !important;
+        border-radius: 1.4rem !important;
+    }
+
     .sale-show-page .rounded-2xl.p-6 {
         padding: 1.4rem 1.5rem !important;
         border-radius: 1.4rem !important;
@@ -81,12 +110,33 @@
         font-size: 1rem !important;
     }
 
-    /* barra progresso */
     .sale-show-page .w-full.bg-gray-200.rounded-full.h-3 {
         height: 0.65rem !important;
     }
 
-    /* ── COL 3 — PRODUTOS & PAGAMENTOS ───────────────────── */
+    /* ── PRODUTOS — 5 colunas no ultrawide ───────────────── */
+    .sale-show-page .products-step-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 1.25rem !important;
+    }
+
+    /* ── PAGAMENTOS ───────────────────────────────────────── */
+    .sale-show-page .payment-summary-bar {
+        border-radius: 1.4rem !important;
+        padding: 1.5rem !important;
+    }
+
+    .sale-show-page .payment-summary-bar .text-lg {
+        font-size: 1.2rem !important;
+    }
+
+    /* ── METHOD PICKER — 6 colunas ───────────────────────── */
+    .sale-show-page .method-picker {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 0.75rem !important;
+    }
+
+    /* ── LISTAS ───────────────────────────────────────────── */
     .sale-show-page .xl\:col-span-5 .space-y-4 {
         gap: 1.25rem !important;
     }
@@ -112,11 +162,6 @@
         font-size: 0.7rem !important;
     }
 
-    /* ── ABA PAGAMENTOS ───────────────────────────────────── */
-    .sale-show-page .grid.grid-cols-1.lg\:grid-cols-2 {
-        gap: 1.25rem !important;
-    }
-
     /* ── TEXTOS BASE ──────────────────────────────────────── */
     .sale-show-page .text-sm {
         font-size: 0.83rem !important;
@@ -124,10 +169,5 @@
 
     .sale-show-page .text-xs {
         font-size: 0.71rem !important;
-    }
-
-    /* ── RESUMO ABA min-height ────────────────────────────── */
-    .tab-content.resumo-tab {
-        min-height: auto !important;
     }
 }
