@@ -1,0 +1,109 @@
+/* Edit Sale - Ultrawide (>= 1441px) */
+@media (min-width: 1441px) {
+
+    .edit-sale-page {
+        max-width: 1800px;
+        margin-inline: auto;
+        padding-inline: 1.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+
+    /* Header maior */
+    .edit-sale-page .sales-create-header-inner {
+        padding: 1.25rem 2.25rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-title {
+        font-size: 2.75rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-subtitle {
+        font-size: 1.05rem !important;
+    }
+
+    /* Steppers maiores */
+    .edit-sale-page .create-header-step .w-10 {
+        width: 3.25rem !important;
+        height: 3.25rem !important;
+        font-size: 1.25rem !important;
+    }
+
+    /* Step 1 */
+    .edit-sale-step1-shell {
+        height: 80vh !important;
+        gap: 1.5rem !important;
+    }
+
+    .edit-sale-products-pane {
+        width: 75% !important;
+    }
+
+    .edit-sale-side-pane {
+        width: 25% !important;
+    }
+
+    /* Grid produtos: 5 colunas */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 1rem !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 148px !important;
+        height: 148px !important;
+    }
+
+    .edit-sale-page .product-card-modern .card-body {
+        padding: 2.5em 0.65em 2.1em 0.65em !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-title {
+        font-size: 0.82em !important;
+    }
+
+    /* Pesquisa maior */
+    .edit-sale-products-pane input[type="text"] {
+        font-size: 0.94rem !important;
+        padding: 0.75rem 1rem 0.75rem 2.75rem !important;
+        border-radius: 0.875rem !important;
+    }
+
+    /* Painel lateral maior */
+    .edit-sale-side-pane > div:first-child {
+        padding: 1.25rem !important;
+    }
+
+    /* Step 2 */
+    .edit-sale-step2-shell {
+        max-height: 84vh !important;
+    }
+
+    .edit-sale-review-info-pane {
+        width: 36% !important;
+        padding: 1.75rem !important;
+    }
+
+    .edit-sale-step2-shell > div:last-child {
+        width: 64% !important;
+        padding: 1.75rem !important;
+    }
+
+    .edit-sale-review-info-pane h2 {
+        font-size: 1.75rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+}
+
+/* ── 1536px+ ─────────────────────────────────────────────── */
+@media (min-width: 1536px) {
+
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 1.125rem !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 156px !important;
+        height: 156px !important;
+    }
+}
