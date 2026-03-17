@@ -1,4 +1,11 @@
 <div class="w-full min-h-screen app-viewport-fit add-payments-page mobile-393-base">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-ultrawide.css') }}">
 
     <x-sales-header
         title="Adicionar Pagamentos"
