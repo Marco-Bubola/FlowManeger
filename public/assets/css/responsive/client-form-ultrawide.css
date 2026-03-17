@@ -1,0 +1,125 @@
+/* ============================================================
+   Client Form — Ultrawide (≥ 1441px)
+   - Limita largura máxima do layout
+   - Avatar grid 6 colunas com avatares maiores
+   - Tipografia e espaçamentos generosos
+   ============================================================ */
+
+@media (min-width: 1441px) {
+
+    /* Limita spread para monitores super largos */
+    .client-form-page .cf-layout {
+        max-width: 1800px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        gap: 2rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .relative.px-8.py-6 {
+        padding: 1.5rem 2.5rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl h1.text-4xl {
+        font-size: 2.25rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl p.text-lg {
+        font-size: 1rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl a.w-14.h-14 {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+        min-width: 3.5rem !important;
+        border-radius: 1rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl a.w-14.h-14 i {
+        font-size: 1.3rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .w-16.h-16 {
+        width: 4rem !important;
+        height: 4rem !important;
+        min-width: 4rem !important;
+        border-radius: 1rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .w-16.h-16 i {
+        font-size: 1.75rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .flex.items-center.gap-6 {
+        gap: 1.25rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .flex.items-center.gap-3 a,
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .flex.items-center.gap-3 button {
+        padding: 0.875rem 1.5rem !important;
+        font-size: 1rem !important;
+        border-radius: 0.875rem !important;
+        gap: 0.5rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .flex.items-center.gap-3 i {
+        font-size: 1.1rem !important;
+    }
+
+    /* ── AVATAR CARD ──────────────────────────────────────── */
+    .client-form-page .cf-avatar-col > div.bg-white\/70 {
+        padding: 2rem !important;
+        border-radius: 1.5rem !important;
+    }
+    .client-form-page .cf-avatar-col h3.text-2xl {
+        font-size: 1.5rem !important;
+    }
+    /* Grid 6 colunas, avatares grandes */
+    .client-form-page .cf-avatar-col .grid {
+        gap: 0.875rem !important;
+    }
+    .client-form-page .cf-avatar-col .w-20.h-20 {
+        border-radius: 1.1rem !important;
+    }
+    .client-form-page .cf-avatar-col .w-8.h-8 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem !important;
+    }
+    .client-form-page .cf-avatar-col .w-12.h-12 {
+        width: 3rem !important;
+        height: 3rem !important;
+    }
+
+    /* ── FORM CARD ────────────────────────────────────────── */
+    .client-form-page .cf-form-col > div.bg-white\/70 {
+        padding: 2rem 2.25rem !important;
+        border-radius: 1.5rem !important;
+    }
+    .client-form-page .cf-form-col h3.text-2xl {
+        font-size: 1.5rem !important;
+    }
+    .client-form-page .cf-form-col .mt-2.text-sm {
+        font-size: 0.88rem !important;
+    }
+    .client-form-page .cf-form-col .grid.grid-cols-1 {
+        gap: 1.25rem !important;
+    }
+    /* Inputs */
+    .client-form-page .cf-form-col input[type="text"],
+    .client-form-page .cf-form-col input[type="email"],
+    .client-form-page .cf-form-col input[type="tel"],
+    .client-form-page .cf-form-col textarea {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        padding-left: 3.375rem !important;
+        font-size: 1rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .client-form-page .cf-form-col .absolute.left-4 i,
+    .client-form-page .cf-form-col .absolute.left-4.top-6 i {
+        font-size: 1.15rem !important;
+    }
+    .client-form-page .cf-form-col label .text-sm {
+        font-size: 0.9rem !important;
+    }
+    .client-form-page .cf-form-col label .w-5.h-5 {
+        width: 1.25rem !important;
+        height: 1.25rem !important;
+        min-width: 1.25rem !important;
+    }
+    .client-form-page .cf-form-col label.block {
+        margin-bottom: 0.625rem !important;
+    }
+}
