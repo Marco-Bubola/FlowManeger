@@ -1,5 +1,11 @@
-<div class="w-full bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
+<div class="edit-goal-page w-full bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 mobile-393-base"
     style="min-height: 100vh;">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-ultrawide.css') }}">
 
     <x-modern-header :icon="'bi bi-pencil'" :title="'📝 Editar Meta - ' . $board_name" :subtitle="'Atualize as informações da sua meta'" :breadcrumb="[
         ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'url' => route('dashboard')],
