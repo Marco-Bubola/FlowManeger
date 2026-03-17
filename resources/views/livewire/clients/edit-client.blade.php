@@ -1,4 +1,10 @@
-<div x-data="{ currentStep: 1 }" class=" w-full mobile-393-base ">
+<div x-data="{ currentStep: 1 }" class=" w-full mobile-393-base client-form-page">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-ultrawide.css') }}">
     <style>
         [x-cloak] { display: none !important; }
     </style>
@@ -46,10 +52,10 @@
         </x-client-create-header>
 
         <!-- Conteúdo Principal -->
-        <div class="flex flex-col xl:flex-row gap-8">
+        <div class="cf-layout flex flex-col xl:flex-row gap-8">
 
             <!-- Lado Esquerdo: Seleção de Avatar (40% em telas grandes) -->
-            <div class="w-full xl:w-2/5">
+            <div class="cf-avatar-col w-full xl:w-2/5">
                 <x-client-avatar-selector
                     :avatar-options="$avatarOptions"
                     :selected-avatar="$avatar_cliente"
@@ -57,7 +63,7 @@
             </div>
 
             <!-- Lado Direito: Formulário (60% em telas grandes) -->
-            <div class="w-full xl:w-3/5">
+            <div class="cf-form-col w-full xl:w-3/5">
                 <x-client-edit-form
                     :name="$name"
                     :email="$email"
