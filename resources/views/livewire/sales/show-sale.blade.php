@@ -72,7 +72,7 @@
     {{-- ============================================================
          CONTEÚDO PRINCIPAL
     ============================================================ --}}
-    <div class="sale-main-content container-fluid mx-auto  ">
+    <div class="sale-main-content container-fluid mx-auto px-4 sm:px-6 pb-16">
 
         {{-- Flash messages --}}
         @if(session('success'))
@@ -393,173 +393,23 @@
         ======================================================== --}}
         <div class="payments-section mb-6">
 
-            {{-- Cabeçalho da seção --}}
-            <div class="flex items-center justify-between mb-4">
-                <div class="flex items-center gap-3">
-                    <div class="p-2.5 bg-emerald-500/10 rounded-xl">
-                        <i class="bi bi-wallet2 text-emerald-600 dark:text-emerald-400 text-xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-base font-bold text-gray-900 dark:text-white">Pagamentos</h2>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">
-                            {{ $sale->payments->count() }} registro(s) · última em
-                            {{ $sale->payments->count() > 0 ? \Carbon\Carbon::parse($sale->payments->sortByDesc('payment_date')->first()->payment_date)->format('d/m/Y') : '-' }}
-                        </p>
-                    </div>
-                </div>
-                <button wire:click="toggleAddPaymentForm"
-                        class="payment-add-btn inline-flex items-center gap-2 px-4 py-2.5 text-sm font-bold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl
-                               {{ $showAddPaymentForm
-                                   ? 'bg-gray-100 dark:bg-zinc-700 text-gray-700 dark:text-gray-300'
-                                   : 'bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white' }}">
-                    <i class="bi bi-{{ $showAddPaymentForm ? 'x-lg' : 'plus-circle-fill' }}"></i>
-                    <span class="hidden sm:inline">{{ $showAddPaymentForm ? 'Fechar' : 'Novo Pagamento' }}</span>
-                </button>
-            </div>
+            
 
-            {{-- Barra financeira resumida --}}
-            <div class="payment-summary-bar rounded-2xl overflow-hidden mb-5 shadow-md">
-                <div class="grid grid-cols-3">
-                    <div class="px-5 py-4 bg-gradient-to-br from-slate-700 to-slate-800 text-white text-center">
-                        <p class="text-[10px] font-semibold uppercase tracking-widest text-white/60 mb-0.5">Total</p>
-                        <p class="text-lg font-extrabold leading-none">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</p>
-                    </div>
-                    <div class="px-5 py-4 bg-gradient-to-br from-emerald-600 to-green-700 text-white text-center">
-                        <p class="text-[10px] font-semibold uppercase tracking-widest text-white/60 mb-0.5">Pago</p>
-                        <p class="text-lg font-extrabold leading-none">R$ {{ number_format($sale->total_paid, 2, ',', '.') }}</p>
-                    </div>
-                    <div class="px-5 py-4 text-white text-center
-                        @if($sale->remaining_amount <= 0) bg-gradient-to-br from-green-500 to-teal-600
-                        @else bg-gradient-to-br from-red-500 to-rose-600 @endif">
-                        <p class="text-[10px] font-semibold uppercase tracking-widest text-white/60 mb-0.5">Restante</p>
-                        <p class="text-lg font-extrabold leading-none">R$ {{ number_format($sale->remaining_amount, 2, ',', '.') }}</p>
-                    </div>
-                </div>
-                {{-- Barra de progresso --}}
-                <div class="h-2 bg-gray-200 dark:bg-zinc-700">
-                    <div class="h-full rounded-r-full transition-all duration-1000
-                        @if($status === 'pago') bg-gradient-to-r from-emerald-400 to-green-500
-                        @elseif($status === 'parcial') bg-gradient-to-r from-amber-400 to-orange-400
-                        @else bg-gradient-to-r from-red-400 to-rose-400 @endif"
-                         style="width: {{ number_format($percentage, 2, '.', '') }}%">
-                    </div>
-                </div>
-            </div>
+            {{-- Layout 2 colunas no desktop: formulário | listas --}}
+            <div class="payments-layout-grid">
 
-            {{-- Formulário de pagamento moderno --}}
-            @if($showAddPaymentForm)
-                <div class="payment-form-modern bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-xl border border-emerald-200/80 dark:border-emerald-700/40 mb-5 animate-fade-in">
-                    {{-- Header do form --}}
-                    <div class="px-5 py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 flex items-center justify-between">
-                        <div class="flex items-center gap-3">
-                            <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
-                                <i class="bi bi-plus-circle-fill text-white text-lg"></i>
-                            </div>
-                            <div>
-                                <h4 class="font-bold text-white text-sm">Registrar Pagamento</h4>
-                                <p class="text-xs text-white/70">Preencha os dados abaixo</p>
-                            </div>
-                        </div>
-                        @if($sale->remaining_amount > 0)
-                            <button wire:click="payFull"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-bold rounded-xl transition-colors border border-white/30">
-                                <i class="bi bi-lightning-fill"></i> Pagar Tudo
-                            </button>
+                
+                {{-- Coluna direita: listagens de parcelas e pagamentos --}}
+                <div class="payments-col-lists">
+                    <div class="space-y-4">
+                        @if($sale->tipo_pagamento === 'parcelado' && $sale->parcelasVenda && $sale->parcelasVenda->count() > 0)
+                            <x-installments-list :parcelas="$sale->parcelasVenda" />
                         @endif
-                    </div>
-
-                    <div class="p-5">
-                        @foreach($newPayments as $index => $payment)
-                            <div class="payment-row-card mb-4 p-4 bg-gray-50/80 dark:bg-zinc-800/80 rounded-2xl border border-gray-200/80 dark:border-zinc-700/60
-                                        {{ count($newPayments) > 1 ? '' : '' }}">
-
-                                {{-- Seletor visual de método --}}
-                                <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2.5">Método de Pagamento</p>
-                                <div class="method-picker grid grid-cols-3 sm:grid-cols-6 gap-2 mb-4">
-                                    @php
-                                        $methods = [
-                                            'dinheiro'       => ['emoji' => '💵', 'label' => 'Dinheiro',      'color' => 'emerald'],
-                                            'pix'            => ['emoji' => '⚡', 'label' => 'PIX',           'color' => 'violet'],
-                                            'cartao_debito'  => ['emoji' => '💳', 'label' => 'Débito',        'color' => 'blue'],
-                                            'cartao_credito' => ['emoji' => '💳', 'label' => 'Crédito',       'color' => 'indigo'],
-                                            'transferencia'  => ['emoji' => '🏦', 'label' => 'Transfer.',     'color' => 'cyan'],
-                                            'cheque'         => ['emoji' => '🧾', 'label' => 'Cheque',        'color' => 'amber'],
-                                        ];
-                                    @endphp
-                                    @foreach($methods as $value => $meta)
-                                        <label class="method-btn-label cursor-pointer">
-                                            <input type="radio" wire:model="newPayments.{{ $index }}.payment_method"
-                                                   value="{{ $value }}" class="sr-only peer">
-                                            <div class="flex flex-col items-center justify-center gap-1 p-2.5 rounded-xl border-2
-                                                        border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-900
-                                                        peer-checked:border-{{ $meta['color'] }}-500 peer-checked:bg-{{ $meta['color'] }}-50 dark:peer-checked:bg-{{ $meta['color'] }}-900/30
-                                                        peer-checked:shadow-md hover:border-{{ $meta['color'] }}-300 transition-all duration-150 select-none">
-                                                <span class="text-xl leading-none">{{ $meta['emoji'] }}</span>
-                                                <span class="text-[10px] font-semibold text-gray-600 dark:text-gray-400 peer-checked:text-{{ $meta['color'] }}-700 dark:peer-checked:text-{{ $meta['color'] }}-300 leading-none text-center">{{ $meta['label'] }}</span>
-                                            </div>
-                                        </label>
-                                    @endforeach
-                                </div>
-
-                                {{-- Valor + Data --}}
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Valor (R$)</label>
-                                        <div class="relative">
-                                            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-sm">R$</span>
-                                            <input type="number" step="0.01" min="0.01"
-                                                   wire:model="newPayments.{{ $index }}.amount_paid"
-                                                   placeholder="0,00"
-                                                   class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 dark:border-zinc-600 rounded-xl text-base font-bold bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-0 focus:border-emerald-500 transition-colors">
-                                        </div>
-                                        @if($sale->remaining_amount > 0)
-                                            <button type="button"
-                                                    wire:click="$set('newPayments.{{ $index }}.amount_paid', '{{ number_format($sale->remaining_amount, 2, '.', '') }}')"
-                                                    class="mt-1 text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
-                                                Usar restante (R$ {{ number_format($sale->remaining_amount, 2, ',', '.') }})
-                                            </button>
-                                        @endif
-                                    </div>
-                                    <div>
-                                        <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Data</label>
-                                        <input type="date"
-                                               wire:model="newPayments.{{ $index }}.payment_date"
-                                               class="w-full px-4 py-3 border-2 border-gray-200 dark:border-zinc-600 rounded-xl text-sm bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-0 focus:border-emerald-500 transition-colors">
-                                    </div>
-                                </div>
-
-                                @if(count($newPayments) > 1)
-                                    <div class="flex justify-end mt-3">
-                                        <button wire:click="removePaymentRow({{ $index }})"
-                                                class="inline-flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 font-medium transition-colors">
-                                            <i class="bi bi-trash"></i> Remover linha
-                                        </button>
-                                    </div>
-                                @endif
-                            </div>
-                        @endforeach
-
-                        <div class="flex items-center justify-between pt-1">
-                            <button wire:click="addPaymentRow"
-                                    class="inline-flex items-center gap-1.5 text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-semibold transition-colors">
-                                <i class="bi bi-plus-square"></i> Outra linha
-                            </button>
-                            <button wire:click="addPayments"
-                                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white font-bold rounded-2xl transition-all text-sm shadow-xl hover:shadow-2xl transform hover:scale-105">
-                                <i class="bi bi-check-circle-fill text-base"></i> Confirmar Pagamento
-                            </button>
-                        </div>
+                        <x-payments-list :sale="$sale" />
                     </div>
                 </div>
-            @endif
 
-            {{-- Listagens --}}
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                @if($sale->tipo_pagamento === 'parcelado' && $sale->parcelasVenda && $sale->parcelasVenda->count() > 0)
-                    <x-installments-list :parcelas="$sale->parcelasVenda" />
-                @endif
-                <x-payments-list :sale="$sale" />
-            </div>
+            </div>{{-- end .payments-layout-grid --}}
         </div>
 
         {{-- ========================================================
@@ -677,6 +527,7 @@
         @foreach($sale->saleItems as $item)
         <div x-data="{ modalOpen: false }"
              x-show="modalOpen"
+             x-cloak
              x-on:show-modal-{{ $item->id }}.window="modalOpen = true"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0"
@@ -746,6 +597,9 @@
     @endif
 
     <style>
+    /* ── Alpine.js cloak (evita flash de modal no carregamento) ── */
+    [x-cloak] { display: none !important; }
+
     /* ── Animações ─────────────────────────────────────────────── */
     .animate-fade-in {
         animation: fadeInUp 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
