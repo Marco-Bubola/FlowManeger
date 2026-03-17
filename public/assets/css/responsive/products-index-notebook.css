@@ -1,0 +1,97 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCTS-INDEX — NOTEBOOK (1280–1535px)
+   Catálogo de Produtos em notebooks e telas intermediárias
+   5 colunas por linha, cards proporcionais com sidebar
+   ═══════════════════════════════════════════════════════════ */
+
+@media (min-width: 1280px) and (max-width: 1535px) {
+
+    /* ── PÁGINA ─────────────────────────────────────────── */
+    .products-index-page {
+        padding-inline: 1.1rem !important;
+    }
+
+    /* ── HEADER ─────────────────────────────────────────── */
+    .products-index-page .products-index-header-inner {
+        padding: 1.2rem 1.75rem !important;
+    }
+
+    .products-index-page .products-index-header-layout {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 1.25rem !important;
+    }
+
+    .products-index-page .products-index-header-icon {
+        width: 3rem !important;
+        height: 3rem !important;
+    }
+
+    .products-index-page .products-index-header-content h1 {
+        font-size: 1.85rem !important;
+    }
+
+    .products-index-page .products-index-header-stats > div {
+        padding: 0.4rem 0.85rem !important;
+        font-size: 0.87rem !important;
+    }
+
+    /* ── GRID: 5 COLUNAS ─────────────────────────────────── */
+    .products-index-page .products-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 1.1rem !important;
+    }
+
+    /* ── CARD PROPORÇÕES PARA NOTEBOOK ──────────────────── */
+    .products-index-page .products-grid .product-card-modern {
+        min-height: 360px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img-area {
+        min-height: 185px !important;
+        height: 185px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img {
+        height: 185px !important;
+        max-height: 185px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
+        width: 52px !important;
+        height: 52px !important;
+        bottom: -25px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon {
+        font-size: 1.6rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .card-body {
+        padding: 2.4em 0.75em 1.8em 0.75em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-title {
+        font-size: 0.88em !important;
+        line-height: 1.25 !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-price,
+    .products-index-page .products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.82em !important;
+        min-width: 55px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-product-code,
+    .products-index-page .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.78em !important;
+    }
+
+    /* ── BOTÕES DE AÇÃO ─────────────────────────────────── */
+    .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
+        width: 1.85rem !important;
+        height: 1.85rem !important;
+        font-size: 0.68rem !important;
+        border-radius: 0.5rem !important;
+    }
+}
