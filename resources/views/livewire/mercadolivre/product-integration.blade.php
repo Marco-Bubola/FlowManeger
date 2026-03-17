@@ -1,4 +1,10 @@
-<div class="min-h-screen flex flex-col ">
+<div class="product-integration-page min-h-screen flex flex-col mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-integration-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-integration-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-integration-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-integration-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-integration-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-integration-ultrawide.css') }}">
 
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
