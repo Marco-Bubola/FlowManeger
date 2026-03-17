@@ -32,7 +32,23 @@
     }
 
     .publications-page .products-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    /* Imagem do card menor para caber em 4 colunas */
+    .publications-page .product-card-modern .product-img-area {
+        height: 160px !important;
+        min-height: 160px !important;
+    }
+
+    .publications-page .product-card-modern {
+        min-height: auto !important;
+    }
+
+    .publications-page .product-card-modern .card-body {
+        padding: 0.6rem !important;
+        gap: 0.2rem !important;
     }
 
     .sales-index-page .sales-index-header-row-1,
