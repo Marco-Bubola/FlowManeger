@@ -103,14 +103,25 @@
         gap: 1rem !important;
     }
 
-    /* ── PAGAMENTOS ───────────────────────────────────────── */
-    .sale-show-page .payment-summary-bar {
-        border-radius: 1.2rem !important;
-        padding: 1.25rem !important;
+    /* ── PAGAMENTOS — layout 2 colunas ─────────────────────── */
+    .sale-show-page .payments-layout-grid {
+        display: grid !important;
+        grid-template-columns: 420px 1fr !important;
+        gap: 1.5rem !important;
+        align-items: start !important;
     }
 
-    .sale-show-page .payment-summary-bar .text-lg {
-        font-size: 1.1rem !important;
+    .sale-show-page .payments-col-form {
+        position: sticky !important;
+        top: 1rem !important;
+    }
+
+    .sale-show-page .payments-summary-compact {
+        min-height: 260px !important;
+    }
+
+    .sale-show-page .payment-form-modern {
+        width: 100% !important;
     }
 
     /* ── METHOD PICKER — 6 colunas ───────────────────────── */
