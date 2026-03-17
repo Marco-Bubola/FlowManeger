@@ -1,4 +1,10 @@
-<div class="min-h-screen w-full bg-slate-50 dark:bg-slate-950">
+<div class="dashboard-clientes-page min-h-screen w-full bg-slate-50 dark:bg-slate-950 mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-ultrawide.css') }}">
 
     <div class="sticky top-0 z-40">
         @include('livewire.dashboard.partials.header-new')
