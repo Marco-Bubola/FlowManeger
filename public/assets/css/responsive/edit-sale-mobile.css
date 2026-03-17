@@ -1,0 +1,137 @@
+/* Edit Sale - Mobile Base (<= 767px) */
+@media (max-width: 767.98px) {
+    .edit-sale-page {
+        padding-inline: 0.55rem;
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    .edit-sale-page .sales-create-header-inner {
+        padding: 0.72rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-main {
+        align-items: stretch !important;
+        gap: 0.55rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-main > div:first-child {
+        gap: 0.55rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-title {
+        font-size: 1.15rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-subtitle {
+        font-size: 0.74rem !important;
+        line-height: 1.2 !important;
+        margin-top: 0.1rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-actions {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        flex-wrap: nowrap !important;
+        gap: 0.4rem !important;
+        overflow-x: auto;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .edit-sale-page .sales-create-header-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .edit-sale-page .create-header-action {
+        padding: 0.42rem !important;
+        flex: 0 0 auto;
+    }
+
+    .edit-sale-page .create-header-next-btn {
+        padding: 0.45rem 0.72rem !important;
+        font-size: 0.72rem !important;
+        flex: 0 0 auto;
+        white-space: nowrap;
+    }
+
+    /* Step 1: empilha verticalmente em mobile */
+    .edit-sale-step1-shell {
+        flex-direction: column !important;
+        height: auto !important;
+        gap: 0.65rem !important;
+    }
+
+    .edit-sale-products-pane,
+    .edit-sale-side-pane {
+        width: 100% !important;
+        height: auto !important;
+    }
+
+    /* Controles de pesquisa */
+    .edit-sale-products-pane .flex-col.md\:flex-row {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+
+    .edit-sale-products-pane input[type="text"] {
+        height: 2.7rem !important;
+        font-size: 0.84rem !important;
+    }
+
+    .edit-sale-products-pane .toggle-filter {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Grid de produtos: 2 colunas */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.45rem !important;
+    }
+
+    /* Cards de produto compactos */
+    .edit-sale-page .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 142px !important;
+        height: 142px !important;
+    }
+
+    .edit-sale-page .product-card-modern .card-body {
+        padding: 2.42em 0.42em 2em 0.42em !important;
+        gap: 0.14em !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-title {
+        font-size: 0.74em !important;
+        line-height: 1.25 !important;
+    }
+
+    /* Painel lateral (resumo) — compacto */
+    .edit-sale-side-pane > div:first-child {
+        padding: 0.65rem 0.75rem !important;
+    }
+
+    .edit-sale-side-pane .grid.grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 0.4rem !important;
+    }
+
+    /* Step 2: empilha verticalmente */
+    .edit-sale-step2-shell {
+        flex-direction: column !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .edit-sale-review-info-pane {
+        width: 100% !important;
+    }
+
+    .edit-sale-step2-shell > div:last-child {
+        width: 100% !important;
+    }
+}
