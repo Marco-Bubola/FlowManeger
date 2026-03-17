@@ -1,4 +1,10 @@
-﻿<div class="w-full">
+﻿<div class="dashboard-sales-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-ultrawide.css') }}">
 
     <!-- Header Moderno -->
     <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-pink-50/80 dark:from-slate-800/90 dark:via-purple-900/30 dark:to-pink-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-6">
