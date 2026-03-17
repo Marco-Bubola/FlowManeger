@@ -1,4 +1,4 @@
-<div class="w-full" x-data="{
+<div class="upload-invoice-page w-full mobile-393-base" x-data="{
     fullHd: false,
     ultra: false,
     initResponsiveWatcher() {
@@ -23,6 +23,12 @@
     }
 }"
     x-init="initResponsiveWatcher()">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-ultrawide.css') }}">
     @push('styles')
         @vite('resources/css/upload-animations.css')
     @endpush
