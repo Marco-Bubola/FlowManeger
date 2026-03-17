@@ -1,0 +1,145 @@
+/* ═══════════════════════════════════════════════════════════
+   PRODUCTS-INDEX — ULTRAWIDE (≥1536px)
+   Catálogo de Produtos em telas grandes e ultrawide
+   6–8 colunas por linha, cards em tamanho padrão/aumentado
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Full HD (1536–1919px): 6 colunas ─────────────────── */
+@media (min-width: 1536px) and (max-width: 1919px) {
+
+    .products-index-page {
+        padding-inline: 1.5rem !important;
+    }
+
+    .products-index-page .products-index-header-inner {
+        padding: 1.25rem 2rem !important;
+    }
+
+    .products-index-page .products-index-header-content h1 {
+        font-size: 2rem !important;
+    }
+
+    .products-index-page .products-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern {
+        min-height: 400px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img-area {
+        min-height: 220px !important;
+        height: 220px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img {
+        height: 220px !important;
+        max-height: 220px !important;
+    }
+}
+
+/* ── Full HD exato / 1920px (3xl): 7 colunas ──────────── */
+@media (min-width: 1920px) and (max-width: 2497px) {
+
+    .products-index-page {
+        padding-inline: 2rem !important;
+    }
+
+    .products-index-page .products-index-header-content h1 {
+        font-size: 2.25rem !important;
+    }
+
+    .products-index-page .products-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 1.4rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern {
+        min-height: 420px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img-area {
+        min-height: 240px !important;
+        height: 240px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img {
+        height: 240px !important;
+        max-height: 240px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
+        width: 68px !important;
+        height: 68px !important;
+        bottom: -34px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon {
+        font-size: 2.3rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .card-body {
+        padding: 3.2em 1rem 2.4em 1rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-title {
+        font-size: 1.05em !important;
+        letter-spacing: 0.09em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-price,
+    .products-index-page .products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.95em !important;
+        min-width: 70px !important;
+    }
+
+    /* ── Botões de ação maiores ──────────────────── */
+    .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        font-size: 0.75rem !important;
+        border-radius: 0.6rem !important;
+    }
+}
+
+/* ── Ultrawide (≥2498px): 8 colunas ───────────────────── */
+@media (min-width: 2498px) {
+
+    .products-index-page {
+        padding-inline: 2.5rem !important;
+    }
+
+    .products-index-page .products-index-header-content h1 {
+        font-size: 2.5rem !important;
+    }
+
+    .products-index-page .products-grid {
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+        gap: 1.5rem !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern {
+        min-height: 450px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img-area {
+        min-height: 260px !important;
+        height: 260px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-img {
+        height: 260px !important;
+        max-height: 260px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-title {
+        font-size: 1.12em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
+        width: 2.3rem !important;
+        height: 2.3rem !important;
+        font-size: 0.8rem !important;
+    }
+}
