@@ -54,7 +54,13 @@
         }
     }
 </script>
-<div class="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+<div class="edit-invoice-page min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-invoice-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-invoice-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-invoice-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-invoice-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-invoice-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-invoice-ultrawide.css') }}">
     @include('components.toast-notifications')
 
     <form wire:submit.prevent="save">
