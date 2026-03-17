@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="show-consortium-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-ultrawide.css') }}">
     <!-- Header Moderno com Gradiente e Glassmorphism -->
     <div class="relative bg-gradient-to-r from-white/80 via-emerald-50/90 to-teal-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
         <!-- Background decorativo com overflow controlado -->
