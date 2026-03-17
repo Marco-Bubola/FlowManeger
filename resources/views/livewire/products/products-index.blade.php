@@ -123,6 +123,12 @@
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-mobile.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-iphone15.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ipad-portrait.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ipad-landscape.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-notebook.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ultrawide.css') }}">
     @endpush
 
     <!-- Header Modernizado (com slot para controles) -->
@@ -623,7 +629,7 @@
         </form>
 
         <!-- Paginação Aprimorada Inferior -->
-        <div class="mt-8 space-y-6">
+        <div class="mt-8 space-y-6 products-pagination-area">
           
             <!-- Paginação Principal -->
             @if ($products->hasPages())
