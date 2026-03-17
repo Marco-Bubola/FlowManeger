@@ -1,4 +1,10 @@
-<div class="w-full space-y-4" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+<div class="add-participants-page w-full space-y-4 mobile-393-base" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-ultrawide.css') }}">
     <!-- Header Padrão -->
     <x-sales-header title="Adicionar Participantes"
         subtitle="{{ $consortium->name }} @if ($consortium->max_participants) • <strong class='text-amber-300'>Máx: {{ $consortium->max_participants }} participantes</strong> @endif"
