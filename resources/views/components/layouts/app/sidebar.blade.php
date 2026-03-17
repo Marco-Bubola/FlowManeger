@@ -595,10 +595,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                         </svg>
                     </div>
-                    <div>
+                    <div class="flex-1 min-w-0">
                         <p class="fab-sheet-title">Criar &amp; Importar</p>
                         <p class="fab-sheet-subtitle">Todas as páginas · criar e upload</p>
                     </div>
+                    <button type="button" class="fab-sheet-close-btn" onclick="closeFabSheet()" aria-label="Fechar">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
 
                 {{-- PAIR: Vendas + Clientes --}}
@@ -773,6 +778,11 @@
             <div class="mobile-sheet-backdrop" onclick="closeMoreSheet()"></div>
             <div class="mobile-sheet-panel">
                 <div class="mobile-sheet-handle"></div>
+                <button type="button" class="fab-sheet-close-btn fab-sheet-close-absolute" onclick="closeMoreSheet()" aria-label="Fechar">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
 
                 {{-- ─── PERFIL DO USUÁRIO ─── --}}
                 <div class="more-sheet-profile">
