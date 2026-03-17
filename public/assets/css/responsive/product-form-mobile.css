@@ -1,0 +1,285 @@
+/* ============================================================
+   Product Form — Mobile (≤ 767px)
+   Cobre: layout empilhado, espaço tabbar, x-currency-input,
+   x-quantity-input, x-image-upload, header compacto.
+   ============================================================ */
+
+@media (max-width: 767px) {
+
+    /* ── TABBAR CLEARANCE ─────────────────────────────────── */
+    .product-form-page {
+        padding-bottom: calc(74px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* ── FORM WRAPPER ─────────────────────────────────────── */
+    .product-form-page .pf-form {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-top: 0.875rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    /* ── LAYOUT: empilhado ────────────────────────────────── */
+    .product-form-page .pf-layout {
+        flex-direction: column !important;
+        gap: 0.875rem !important;
+    }
+
+    .product-form-page .pf-left-col,
+    .product-form-page .pf-right-col {
+        width: 100% !important;
+        flex: none !important;
+        max-width: none !important;
+        min-width: 0 !important;
+    }
+
+    /* ── LEFT CARD ─────────────────────────────────────────── */
+    .product-form-page .pf-form-card {
+        padding: 1.125rem !important;
+        border-radius: 1.375rem !important;
+    }
+
+    /* Espaçamento de seção */
+    .product-form-page .pf-form-card .mb-8 {
+        margin-bottom: 0.875rem !important;
+    }
+
+    /* Divisores */
+    .product-form-page .pf-form-card .border-t.my-6 {
+        margin-top: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Header de seção — ícone + título */
+    .product-form-page .pf-form-card .flex.items-center.gap-3.mb-6,
+    .product-form-page .pf-form-card .flex.items-center.gap-3.mb-4 {
+        gap: 0.5rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Ícone de seção (seções Básico/Descrição/Preços) */
+    .product-form-page .pf-form-card > .mb-8 > .flex > .w-10.h-10,
+    .product-form-page .pf-form-card > div > .flex > .w-10.h-10 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem !important;
+        border-radius: 0.5rem !important;
+    }
+    .product-form-page .pf-form-card > .mb-8 > .flex > .w-10.h-10 i,
+    .product-form-page .pf-form-card > div > .flex > .w-10.h-10 i {
+        font-size: 0.85rem !important;
+    }
+
+    /* Títulos de seção */
+    .product-form-page .pf-form-card h3.text-lg.font-bold {
+        font-size: 0.9rem !important;
+        line-height: 1.3 !important;
+    }
+    .product-form-page .pf-form-card p.text-xs.text-slate-400 {
+        font-size: 0.68rem !important;
+    }
+
+    /* ── GRID DE CAMPOS: 1 coluna ────────────────────────── */
+    .product-form-page .pf-form-card .grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.625rem !important;
+    }
+    .product-form-page .pf-form-card .md\:col-span-2 {
+        grid-column: span 1 !important;
+    }
+
+    /* ── INPUTS PADRÃO (nome, código, barcode) ──────────── */
+    .product-form-page .pf-form-card .space-y-2 input[type="text"] {
+        padding: 0.6rem 0.875rem !important;
+        font-size: 0.85rem !important;
+        border-radius: 0.625rem !important;
+    }
+    .product-form-page .pf-form-card textarea {
+        padding: 0.6rem 0.875rem !important;
+        font-size: 0.85rem !important;
+        border-radius: 0.625rem !important;
+        min-height: 72px !important;
+    }
+
+    /* Botão de categoria (dropdown Alpine) */
+    .product-form-page .pf-form-card div[x-data] > button[type="button"] {
+        padding: 0.6rem 0.875rem !important;
+        font-size: 0.85rem !important;
+        border-radius: 0.625rem !important;
+    }
+
+    /* Labels dos campos regulares */
+    .product-form-page .pf-form-card .space-y-2 > label {
+        font-size: 0.75rem !important;
+    }
+    .product-form-page .pf-form-card .space-y-2 > label i {
+        font-size: 0.75rem !important;
+    }
+
+    /* ── X-CURRENCY-INPUT ─────────────────────────────────── */
+    /* Label (text-base font-semibold) */
+    .product-form-page .pf-form-card label.text-base.font-semibold {
+        font-size: 0.78rem !important;
+        line-height: 1.3 !important;
+    }
+    /* Ícone dentro do label (w-8 h-8 rounded-lg mr-3) */
+    .product-form-page .pf-form-card label.text-base > .w-8.h-8 {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+        min-width: 1.5rem !important;
+        border-radius: 0.3125rem !important;
+        margin-right: 0.4375rem !important;
+    }
+    /* Símbolo R$ */
+    .product-form-page .pf-form-card .inset-y-0.left-0.pl-3 {
+        padding-left: 0.625rem !important;
+    }
+    .product-form-page .pf-form-card .inset-y-0.left-0.pl-3 span {
+        font-size: 0.82rem !important;
+    }
+    /* Input de texto do currency (pl-10 ou pl-12) */
+    .product-form-page .pf-form-card .group.space-y-2 .relative input[type="text"] {
+        padding-top: 0.6rem !important;
+        padding-bottom: 0.6rem !important;
+        padding-left: 2.5rem !important;
+        font-size: 0.9rem !important;
+        border-radius: 0.625rem !important;
+    }
+
+    /* ── X-QUANTITY-INPUT ─────────────────────────────────── */
+    /* Label (text-lg font-bold) */
+    .product-form-page .pf-form-card label.text-lg.font-bold {
+        font-size: 0.78rem !important;
+        line-height: 1.3 !important;
+    }
+    /* Ícone dentro do label quantity (w-10 h-10 rounded-xl mr-4) */
+    .product-form-page .pf-form-card label.text-lg > .w-10.h-10 {
+        width: 1.625rem !important;
+        height: 1.625rem !important;
+        min-width: 1.625rem !important;
+        border-radius: 0.375rem !important;
+        margin-right: 0.4375rem !important;
+    }
+    /* Reduz espaço entre label e controles (space-y-4 → 0.5rem) */
+    .product-form-page .pf-form-card .group.space-y-4 > * + * {
+        margin-top: 0.5rem !important;
+    }
+    /* Botões ± (h-14 w-14 rounded-2xl) */
+    .product-form-page .pf-form-card .relative.flex.items-center > button[type="button"] {
+        height: 2.75rem !important;
+        width: 2.75rem !important;
+        min-width: 2.75rem !important;
+        border-radius: 0.625rem !important;
+        padding: 0 !important;
+    }
+    /* Input number (h-14 text-lg) */
+    .product-form-page .pf-form-card .relative.flex.items-center > input[type="number"] {
+        height: 2.75rem !important;
+        font-size: 1rem !important;
+    }
+
+    /* ── RIGHT CARD (Imagem) ──────────────────────────────── */
+    .product-form-page .pf-image-card {
+        padding: 1.125rem !important;
+        border-radius: 1.375rem !important;
+    }
+    .product-form-page .pf-image-card .flex.items-center.gap-3.mb-6 {
+        margin-bottom: 0.5rem !important;
+    }
+    .product-form-page .pf-image-card h3.text-lg.font-bold {
+        font-size: 0.9rem !important;
+    }
+    .product-form-page .pf-image-card .flex.items-center.gap-3 > .w-10.h-10 {
+        width: 2rem !important;
+        height: 2rem !important;
+        min-width: 2rem !important;
+        border-radius: 0.5rem !important;
+    }
+    /* Wrapper do x-image-upload (flex-1) */
+    .product-form-page .pf-image-card .flex-1.flex.items-center {
+        flex: none !important;
+    }
+    /* Override h-[500px] do x-image-upload */
+    .product-form-page .pf-image-card .flex.items-center.justify-center label {
+        height: 210px !important;
+        min-height: 210px !important;
+        border-radius: 1.125rem !important;
+    }
+    .product-form-page .pf-image-card .mt-4 {
+        font-size: 0.68rem !important;
+        margin-top: 0.5rem !important;
+    }
+
+    /* ── HEADER (x-sales-header) ──────────────────────────── */
+    .product-form-page .sales-create-header {
+        border-radius: 0.875rem !important;
+        margin-bottom: 0.375rem !important;
+    }
+    .product-form-page .sales-create-header-inner {
+        padding: 0.5rem 0.75rem !important;
+    }
+    .product-form-page .sales-create-header-main {
+        gap: 0.5rem !important;
+    }
+    .product-form-page .sales-create-header-title {
+        font-size: 1rem !important;
+        line-height: 1.2 !important;
+    }
+    .product-form-page .sales-create-header-subtitle {
+        font-size: 0.68rem !important;
+    }
+    .product-form-page .sales-create-header-actions {
+        gap: 0.3rem !important;
+        flex-wrap: wrap !important;
+        justify-content: flex-start !important;
+    }
+    .product-form-page .sales-create-header-actions a,
+    .product-form-page .sales-create-header-actions button[type="button"],
+    .product-form-page .sales-create-header-actions button[type="submit"] {
+        padding: 0.4rem 0.7rem !important;
+        font-size: 0.7rem !important;
+        border-radius: 0.5rem !important;
+        gap: 0.25rem !important;
+    }
+    .product-form-page .sales-create-header-actions i {
+        font-size: 0.82rem !important;
+    }
+    /* Botão voltar */
+    .product-form-page .sales-create-header-main > div:first-child > a {
+        width: 1.875rem !important;
+        height: 1.875rem !important;
+        min-width: 1.875rem !important;
+        border-radius: 0.4375rem !important;
+    }
+
+    /* ── IMAGE UPLOAD: escalona conteúdo interno (210px de altura) ───── */
+    .product-form-page .pf-image-card label .bi-cloud-upload {
+        font-size: 2rem !important;
+        line-height: 1 !important;
+    }
+    .product-form-page .pf-image-card label .w-8.h-8 {
+        width: 0.95rem !important;
+        height: 0.95rem !important;
+    }
+    .product-form-page .pf-image-card label .space-y-8 > * + * {
+        margin-top: 0.4rem !important;
+    }
+    .product-form-page .pf-image-card label .space-y-4 > * + * {
+        margin-top: 0.2rem !important;
+    }
+    .product-form-page .pf-image-card label h3.text-2xl {
+        font-size: 0.78rem !important;
+        line-height: 1.15 !important;
+    }
+    /* Oculta descrição e tags no mobile (pouco espaço vertical) */
+    .product-form-page .pf-image-card label p.text-lg {
+        display: none !important;
+    }
+    .product-form-page .pf-image-card label .pt-4 {
+        display: none !important;
+    }
+    .product-form-page .pf-image-card label .absolute.-top-4,
+    .product-form-page .pf-image-card label .absolute.-bottom-6 {
+        display: none !important;
+    }
+}
