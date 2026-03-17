@@ -1,0 +1,242 @@
+/* ============================================================
+   Product Form — Ultrawide / 4K (> 1440px)
+   Principais mudanças:
+   - Largura máxima do layout para não esticar
+   - Coluna de imagem generosa (560px)
+   - Tipografia e espaçamentos maiores
+   - Ícones, inputs e botões com mais destaque
+   ============================================================ */
+
+@media (min-width: 1441px) {
+
+    /* ── FORM WRAPPER ─────────────────────────────────────── */
+    .product-form-page .pf-form {
+        padding: 1.75rem 2.5rem 3rem !important;
+    }
+
+    /* ── LAYOUT ───────────────────────────────────────────── */
+    .product-form-page .pf-layout {
+        gap: 2rem !important;
+        max-width: 1900px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+    }
+
+    /* Coluna de imagem generosa */
+    .product-form-page .pf-right-col {
+        width: 560px !important;
+        min-width: 560px !important;
+        max-width: 560px !important;
+        flex: none !important;
+    }
+
+    /* ── LEFT CARD ─────────────────────────────────────────── */
+    .product-form-page .pf-form-card {
+        padding: 2.5rem !important;
+        border-radius: 2.25rem !important;
+    }
+
+    .product-form-page .pf-form-card .mb-8 {
+        margin-bottom: 2.25rem !important;
+    }
+
+    .product-form-page .pf-form-card .border-t.my-6 {
+        margin-top: 1.75rem !important;
+        margin-bottom: 1.75rem !important;
+    }
+
+    .product-form-page .pf-form-card .flex.items-center.gap-3.mb-6,
+    .product-form-page .pf-form-card .flex.items-center.gap-3.mb-4 {
+        gap: 1rem !important;
+        margin-bottom: 1.375rem !important;
+    }
+
+    /* Ícones de seção maiores */
+    .product-form-page .pf-form-card > .mb-8 > .flex > .w-10.h-10,
+    .product-form-page .pf-form-card > div > .flex > .w-10.h-10 {
+        width: 3rem !important;
+        height: 3rem !important;
+        min-width: 3rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .product-form-page .pf-form-card > .mb-8 > .flex > .w-10.h-10 i,
+    .product-form-page .pf-form-card > div > .flex > .w-10.h-10 i {
+        font-size: 1.375rem !important;
+    }
+
+    /* Títulos de seção */
+    .product-form-page .pf-form-card h3.text-lg.font-bold {
+        font-size: 1.35rem !important;
+    }
+    .product-form-page .pf-form-card p.text-xs.text-slate-400 {
+        font-size: 0.875rem !important;
+    }
+
+    /* Grid gap generoso */
+    .product-form-page .pf-form-card .grid {
+        gap: 1.625rem !important;
+    }
+    .product-form-page .pf-form-card .md\:col-span-2 {
+        grid-column: span 2 !important;
+    }
+
+    /* ── INPUTS PADRÃO ────────────────────────────────────── */
+    .product-form-page .pf-form-card .space-y-2 input[type="text"] {
+        padding: 0.875rem 1.125rem !important;
+        font-size: 1rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .product-form-page .pf-form-card textarea {
+        padding: 0.875rem 1.125rem !important;
+        font-size: 1rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .product-form-page .pf-form-card div[x-data] > button[type="button"] {
+        padding: 0.875rem 1.125rem !important;
+        font-size: 1rem !important;
+        border-radius: 0.875rem !important;
+    }
+
+    /* Labels */
+    .product-form-page .pf-form-card .space-y-2 > label {
+        font-size: 0.95rem !important;
+    }
+    .product-form-page .pf-form-card .space-y-2 > label i {
+        font-size: 0.95rem !important;
+    }
+
+    /* ── X-CURRENCY-INPUT ─────────────────────────────────── */
+    .product-form-page .pf-form-card label.text-base.font-semibold {
+        font-size: 1.025rem !important;
+    }
+    .product-form-page .pf-form-card label.text-base > .w-8.h-8 {
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        min-width: 2.25rem !important;
+        border-radius: 0.5rem !important;
+        margin-right: 0.625rem !important;
+    }
+    .product-form-page .pf-form-card .group.space-y-2 .relative input[type="text"] {
+        padding-top: 0.875rem !important;
+        padding-bottom: 0.875rem !important;
+        padding-left: 3rem !important;
+        font-size: 1.025rem !important;
+        border-radius: 0.875rem !important;
+    }
+    /* Símbolo R$ maior */
+    .product-form-page .pf-form-card .inset-y-0.left-0.pl-3 span {
+        font-size: 1rem !important;
+    }
+
+    /* ── X-QUANTITY-INPUT ─────────────────────────────────── */
+    .product-form-page .pf-form-card label.text-lg.font-bold {
+        font-size: 1.025rem !important;
+    }
+    .product-form-page .pf-form-card label.text-lg > .w-10.h-10 {
+        width: 2.625rem !important;
+        height: 2.625rem !important;
+        min-width: 2.625rem !important;
+        border-radius: 0.5rem !important;
+        margin-right: 0.625rem !important;
+    }
+    .product-form-page .pf-form-card .group.space-y-4 > * + * {
+        margin-top: 1rem !important;
+    }
+    /* Botões ± maiores */
+    .product-form-page .pf-form-card .relative.flex.items-center > button[type="button"] {
+        height: 3.75rem !important;
+        width: 3.75rem !important;
+        min-width: 3.75rem !important;
+        border-radius: 1rem !important;
+    }
+    /* Input number */
+    .product-form-page .pf-form-card .relative.flex.items-center > input[type="number"] {
+        height: 3.75rem !important;
+        font-size: 1.25rem !important;
+    }
+
+    /* ── RIGHT CARD (Imagem) ──────────────────────────────── */
+    .product-form-page .pf-image-card {
+        padding: 2.25rem !important;
+        border-radius: 2.25rem !important;
+    }
+    .product-form-page .pf-image-card h3.text-lg.font-bold {
+        font-size: 1.25rem !important;
+    }
+    .product-form-page .pf-image-card .flex.items-center.gap-3.mb-6 {
+        margin-bottom: 1rem !important;
+    }
+    .product-form-page .pf-image-card .flex.items-center.gap-3 > .w-10.h-10 {
+        width: 3rem !important;
+        height: 3rem !important;
+        min-width: 3rem !important;
+    }
+    .product-form-page .pf-image-card .flex-1.flex.items-center {
+        flex: none !important;
+    }
+    /* Override h-[500px] — mais alto no ultrawide */
+    .product-form-page .pf-image-card .flex.items-center.justify-center label {
+        height: 580px !important;
+        min-height: 580px !important;
+        border-radius: 1.75rem !important;
+    }
+    .product-form-page .pf-image-card .mt-4 {
+        font-size: 0.875rem !important;
+        margin-top: 1rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .product-form-page .sales-create-header {
+        border-radius: 1.5rem !important;
+        margin-bottom: 0.875rem !important;
+    }
+    .product-form-page .sales-create-header-inner {
+        padding: 1.25rem 2rem !important;
+    }
+    .product-form-page .sales-create-header-main {
+        gap: 1.25rem !important;
+    }
+    .product-form-page .sales-create-header-main > div:first-child {
+        gap: 1rem !important;
+    }
+    /* Ícone principal do header */
+    .product-form-page .sales-create-header-main > div:first-child > .relative.flex {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+        min-width: 3.5rem !important;
+        border-radius: 0.875rem !important;
+    }
+    .product-form-page .sales-create-header-main > div:first-child > .relative.flex i {
+        font-size: 1.75rem !important;
+    }
+    /* Botão voltar */
+    .product-form-page .sales-create-header-main > div:first-child > a {
+        width: 3rem !important;
+        height: 3rem !important;
+        min-width: 3rem !important;
+        border-radius: 0.75rem !important;
+    }
+    .product-form-page .sales-create-header-title {
+        font-size: 1.875rem !important;
+    }
+    .product-form-page .sales-create-header-subtitle {
+        font-size: 1rem !important;
+    }
+    .product-form-page .sales-create-header-actions {
+        width: auto !important;
+        flex-wrap: nowrap !important;
+        gap: 0.875rem !important;
+    }
+    .product-form-page .sales-create-header-actions a,
+    .product-form-page .sales-create-header-actions button[type="button"],
+    .product-form-page .sales-create-header-actions button[type="submit"] {
+        padding: 0.75rem 1.5rem !important;
+        font-size: 1rem !important;
+        border-radius: 1rem !important;
+        gap: 0.5rem !important;
+        white-space: nowrap !important;
+    }
+    .product-form-page .sales-create-header-actions i {
+        font-size: 1.125rem !important;
+    }
+}
