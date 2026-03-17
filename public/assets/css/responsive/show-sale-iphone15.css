@@ -17,36 +17,58 @@
         padding-bottom: 1.25rem !important;
     }
 
-    /* ── ABAS ─────────────────────────────────────────────── */
-    .sale-show-page nav.flex.space-x-2 {
-        gap: 0.3rem !important;
-        overflow-x: auto !important;
-        scrollbar-width: none !important;
+    /* ── HEADER — coluna compacta ─────────────────────────── */
+    .sale-show-page .sales-create-header {
+        border-radius: 0 0 1.1rem 1.1rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2::-webkit-scrollbar {
-        display: none !important;
+    .sale-show-page .sales-create-header-inner {
+        padding: 0.8rem 1rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button {
-        padding: 0.55rem 0.75rem !important;
+    .sale-show-page .sales-create-header-main {
+        flex-direction: column !important;
+        gap: 0.4rem !important;
+        align-items: flex-start !important;
+    }
+
+    .sale-show-page .sales-create-header-title {
+        font-size: 1.05rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .sale-show-page .sales-create-header-subtitle {
+        font-size: 0.68rem !important;
+        white-space: normal !important;
+        word-break: break-word !important;
+    }
+
+    .sale-show-page .sales-create-header-actions {
+        width: 100% !important;
+        justify-content: flex-end !important;
+        gap: 0.35rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    .sale-show-page .sales-create-header-actions button,
+    .sale-show-page .sales-create-header-actions a {
+        padding: 0.45rem 0.85rem !important;
         font-size: 0.72rem !important;
-        min-width: 80px !important;
-        flex-shrink: 0 !important;
-        border-radius: 0.75rem !important;
+        border-radius: 0.9rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button .text-lg {
-        font-size: 0.92rem !important;
-    }
-
-    /* ── GRID 1 COLUNA ────────────────────────────────────── */
-    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
+    /* ── 3 CARDS INFO — 1 coluna no iPhone ───────────────── */
+    .sale-show-page .grid.grid-cols-1.sm\:grid-cols-3 {
         grid-template-columns: 1fr !important;
-        gap: 0.75rem !important;
+        gap: 0.6rem !important;
     }
 
     /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .show-card {
+        padding: 0.9rem !important;
+        border-radius: 1.1rem !important;
+    }
+
     .sale-show-page .rounded-2xl.p-6 {
         padding: 0.9rem !important;
         border-radius: 1.1rem !important;
@@ -76,6 +98,36 @@
         max-height: none !important;
     }
 
+    /* ── PRODUTOS — 2 colunas ─────────────────────────────── */
+    .sale-show-page .products-step-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.6rem !important;
+    }
+
+    /* ── PAGAMENTOS compactos ─────────────────────────────── */
+    .sale-show-page .payment-summary-bar {
+        border-radius: 0.9rem !important;
+        padding: 0.8rem !important;
+    }
+
+    .sale-show-page .payment-summary-bar .text-lg {
+        font-size: 0.88rem !important;
+    }
+
+    /* ── METHOD PICKER — 3 colunas iPhone ────────────────── */
+    .sale-show-page .method-picker {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 0.35rem !important;
+    }
+
+    .sale-show-page .method-picker label .text-base {
+        font-size: 1.05rem !important;
+    }
+
+    .sale-show-page .method-picker label .text-xs {
+        font-size: 0.55rem !important;
+    }
+
     /* ── ITENS DE PRODUTO/PAGAMENTO ───────────────────────── */
     .sale-show-page .space-y-3 .rounded-xl.p-3 {
         padding: 0.55rem 0.65rem !important;
@@ -92,10 +144,5 @@
 
     .sale-show-page .space-y-3 p.font-bold.text-sm {
         font-size: 0.72rem !important;
-    }
-
-    /* ── BOTÕES + ÍCONES HEADER ───────────────────────────── */
-    .sale-show-page .container-fluid .mb-8 {
-        margin-bottom: 0.85rem !important;
     }
 }
