@@ -11,26 +11,56 @@
         padding-bottom: 1.5rem !important;
     }
 
-    /* ── ABAS ─────────────────────────────────────────────── */
-    .sale-show-page nav.flex.space-x-2 button {
-        padding: 0.7rem 1rem !important;
+    /* ── HEADER — desktop completo ────────────────────────── */
+    .sale-show-page .sales-create-header {
+        border-radius: 0 0 1.5rem 1.5rem !important;
+    }
+
+    .sale-show-page .sales-create-header-inner {
+        padding: 1.1rem 1.75rem !important;
+    }
+
+    .sale-show-page .sales-create-header-main {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 1.25rem !important;
+    }
+
+    .sale-show-page .sales-create-header-title {
+        font-size: 1.35rem !important;
+    }
+
+    .sale-show-page .sales-create-header-subtitle {
         font-size: 0.82rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button .text-lg {
-        font-size: 1.05rem !important;
+    .sale-show-page .sales-create-header-actions {
+        flex-shrink: 0 !important;
+        gap: 0.65rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button span:not(.ml-1) {
-        font-size: 0.78rem !important;
+    .sale-show-page .sales-create-header-actions button,
+    .sale-show-page .sales-create-header-actions a {
+        padding: 0.6rem 1.25rem !important;
+        font-size: 0.82rem !important;
+        border-radius: 1.1rem !important;
     }
 
-    /* ── GRID — 12 colunas ────────────────────────────────── */
-    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
+    .sale-show-page .sales-create-header-actions .hidden.sm\:inline {
+        display: inline !important;
+    }
+
+    /* ── 3 CARDS INFO ─────────────────────────────────────── */
+    .sale-show-page .grid.grid-cols-1.sm\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
         gap: 1.1rem !important;
     }
 
     /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .show-card {
+        padding: 1.15rem 1.2rem !important;
+    }
+
     .sale-show-page .rounded-2xl.p-6 {
         padding: 1.15rem 1.2rem !important;
     }
@@ -63,12 +93,33 @@
         font-size: 1.15rem !important;
     }
 
-    /* barra progresso */
     .sale-show-page .w-full.bg-gray-200.rounded-full.h-3 {
         height: 0.6rem !important;
     }
 
-    /* ── COL 3 — PRODUTOS & PAGAMENTOS ───────────────────── */
+    /* ── PRODUTOS — 4 colunas ─────────────────────────────── */
+    .sale-show-page .products-step-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 1rem !important;
+    }
+
+    /* ── PAGAMENTOS ───────────────────────────────────────── */
+    .sale-show-page .payment-summary-bar {
+        border-radius: 1.2rem !important;
+        padding: 1.25rem !important;
+    }
+
+    .sale-show-page .payment-summary-bar .text-lg {
+        font-size: 1.1rem !important;
+    }
+
+    /* ── METHOD PICKER — 6 colunas ───────────────────────── */
+    .sale-show-page .method-picker {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 0.6rem !important;
+    }
+
+    /* ── LISTAS ───────────────────────────────────────────── */
     .sale-show-page .xl\:col-span-5 .space-y-4 {
         gap: 1rem !important;
     }
@@ -85,12 +136,7 @@
         padding: 0.6rem 0.7rem !important;
     }
 
-    /* ── ABA PAGAMENTOS ───────────────────────────────────── */
-    .sale-show-page .grid.grid-cols-1.lg\:grid-cols-2 {
-        gap: 1rem !important;
-    }
-
-    /* ── TEXTO BASE ───────────────────────────────────────── */
+    /* ── TEXTOS BASE ──────────────────────────────────────── */
     .sale-show-page .text-sm {
         font-size: 0.8rem !important;
     }
