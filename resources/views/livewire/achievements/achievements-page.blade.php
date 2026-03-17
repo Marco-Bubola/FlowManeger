@@ -1,4 +1,10 @@
-<div class="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 dark:from-slate-900 dark:via-purple-950 dark:to-indigo-950">
+<div class="achievements-page mobile-393-base min-h-screen bg-gradient-to-br from-slate-50 via-purple-50 to-indigo-50 dark:from-slate-900 dark:via-purple-950 dark:to-indigo-950">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-ultrawide.css') }}">
     <!-- Header -->
     <x-sales-header
         title="Conquistas"
