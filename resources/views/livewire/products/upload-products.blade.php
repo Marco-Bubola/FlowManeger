@@ -1,6 +1,12 @@
-<div class="mobile-393-base">
+<div class="upload-products-page mobile-393-base">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-ultrawide.css') }}">
 
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
