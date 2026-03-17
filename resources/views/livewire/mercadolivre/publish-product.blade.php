@@ -1,5 +1,11 @@
 {{-- PUBLISH PRODUCT — FLUXO POR STEPS (1. Produtos | 2. Catálogo | 3. Config) --}}
-<div class="min-h-screen flex flex-col" x-data="{ autoSearched: false }">
+<div class="publish-product-page min-h-screen flex flex-col mobile-393-base" x-data="{ autoSearched: false }">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publish-product-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publish-product-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publish-product-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publish-product-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publish-product-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publish-product-ultrawide.css') }}">
     @push('styles')
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
