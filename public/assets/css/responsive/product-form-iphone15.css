@@ -1,0 +1,211 @@
+/* ============================================================
+   Product Form — iPhone 15 / 15 Pro (390–430px, h ≥ 780px)
+   Override fino sobre o mobile.css para telas altas e estreitas.
+   ============================================================ */
+
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+
+    /* ── TABBAR CLEARANCE ─────────────────────────────────── */
+    .product-form-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* ── FORM WRAPPER ─────────────────────────────────────── */
+    .product-form-page .pf-form {
+        padding-left: 0.625rem !important;
+        padding-right: 0.625rem !important;
+        padding-top: 0.625rem !important;
+        padding-bottom: 1.25rem !important;
+    }
+
+    /* ── LEFT CARD ─────────────────────────────────────────── */
+    .product-form-page .pf-form-card {
+        padding: 1rem !important;
+        border-radius: 1.25rem !important;
+    }
+
+    /* Espaçamento de seção */
+    .product-form-page .pf-form-card .mb-8 {
+        margin-bottom: 0.75rem !important;
+    }
+
+    /* Divisores */
+    .product-form-page .pf-form-card .border-t.my-6 {
+        margin-top: 0.625rem !important;
+        margin-bottom: 0.625rem !important;
+    }
+
+    /* Header de seção */
+    .product-form-page .pf-form-card .flex.items-center.gap-3.mb-6,
+    .product-form-page .pf-form-card .flex.items-center.gap-3.mb-4 {
+        gap: 0.4375rem !important;
+        margin-bottom: 0.625rem !important;
+    }
+
+    /* Ícone de seção */
+    .product-form-page .pf-form-card > .mb-8 > .flex > .w-10.h-10,
+    .product-form-page .pf-form-card > div > .flex > .w-10.h-10 {
+        width: 1.875rem !important;
+        height: 1.875rem !important;
+        min-width: 1.875rem !important;
+        border-radius: 0.4375rem !important;
+    }
+    .product-form-page .pf-form-card > .mb-8 > .flex > .w-10.h-10 i,
+    .product-form-page .pf-form-card > div > .flex > .w-10.h-10 i {
+        font-size: 0.78rem !important;
+    }
+
+    /* Títulos de seção */
+    .product-form-page .pf-form-card h3.text-lg.font-bold {
+        font-size: 0.82rem !important;
+    }
+    .product-form-page .pf-form-card p.text-xs.text-slate-400 {
+        font-size: 0.65rem !important;
+    }
+
+    /* Gap do grid */
+    .product-form-page .pf-form-card .grid {
+        gap: 0.5rem !important;
+    }
+
+    /* ── INPUTS PADRÃO ────────────────────────────────────── */
+    .product-form-page .pf-form-card .space-y-2 input[type="text"] {
+        padding: 0.5625rem 0.75rem !important;
+        font-size: 0.825rem !important;
+        border-radius: 0.5625rem !important;
+    }
+    .product-form-page .pf-form-card textarea {
+        padding: 0.5625rem 0.75rem !important;
+        font-size: 0.825rem !important;
+        border-radius: 0.5625rem !important;
+        min-height: 68px !important;
+    }
+    .product-form-page .pf-form-card div[x-data] > button[type="button"] {
+        padding: 0.5625rem 0.75rem !important;
+        font-size: 0.825rem !important;
+        border-radius: 0.5625rem !important;
+    }
+
+    /* Labels regulares */
+    .product-form-page .pf-form-card .space-y-2 > label {
+        font-size: 0.7rem !important;
+    }
+
+    /* ── X-CURRENCY-INPUT ─────────────────────────────────── */
+    .product-form-page .pf-form-card label.text-base.font-semibold {
+        font-size: 0.72rem !important;
+    }
+    .product-form-page .pf-form-card label.text-base > .w-8.h-8 {
+        width: 1.375rem !important;
+        height: 1.375rem !important;
+        min-width: 1.375rem !important;
+        margin-right: 0.375rem !important;
+    }
+    .product-form-page .pf-form-card .group.space-y-2 .relative input[type="text"] {
+        padding-top: 0.5625rem !important;
+        padding-bottom: 0.5625rem !important;
+        padding-left: 2.375rem !important;
+        font-size: 0.875rem !important;
+    }
+
+    /* ── X-QUANTITY-INPUT ─────────────────────────────────── */
+    .product-form-page .pf-form-card label.text-lg.font-bold {
+        font-size: 0.72rem !important;
+    }
+    .product-form-page .pf-form-card label.text-lg > .w-10.h-10 {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+        min-width: 1.5rem !important;
+        margin-right: 0.375rem !important;
+    }
+    .product-form-page .pf-form-card .group.space-y-4 > * + * {
+        margin-top: 0.375rem !important;
+    }
+    /* Botões ± */
+    .product-form-page .pf-form-card .relative.flex.items-center > button[type="button"] {
+        height: 2.5rem !important;
+        width: 2.5rem !important;
+        min-width: 2.5rem !important;
+        border-radius: 0.5rem !important;
+    }
+    /* Input number */
+    .product-form-page .pf-form-card .relative.flex.items-center > input[type="number"] {
+        height: 2.5rem !important;
+        font-size: 0.9rem !important;
+    }
+
+    /* ── RIGHT CARD (Imagem) ──────────────────────────────── */
+    .product-form-page .pf-image-card {
+        padding: 1rem !important;
+        border-radius: 1.25rem !important;
+    }
+    .product-form-page .pf-image-card h3.text-lg.font-bold {
+        font-size: 0.82rem !important;
+    }
+    /* Override h-[500px] */
+    .product-form-page .pf-image-card .flex.items-center.justify-center label {
+        height: 186px !important;
+        min-height: 186px !important;
+        border-radius: 1rem !important;
+    }
+    .product-form-page .pf-image-card .mt-4 {
+        font-size: 0.65rem !important;
+        margin-top: 0.375rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .product-form-page .sales-create-header {
+        border-radius: 0.75rem !important;
+    }
+    .product-form-page .sales-create-header-inner {
+        padding: 0.4375rem 0.625rem !important;
+    }
+    .product-form-page .sales-create-header-title {
+        font-size: 0.92rem !important;
+    }
+    .product-form-page .sales-create-header-subtitle {
+        font-size: 0.62rem !important;
+    }
+    .product-form-page .sales-create-header-actions a,
+    .product-form-page .sales-create-header-actions button[type="button"],
+    .product-form-page .sales-create-header-actions button[type="submit"] {
+        padding: 0.35rem 0.6rem !important;
+        font-size: 0.65rem !important;
+        border-radius: 0.4375rem !important;
+    }
+    .product-form-page .sales-create-header-main > div:first-child > a {
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        min-width: 1.75rem !important;
+    }
+
+    /* ── IMAGE UPLOAD: escalona conteúdo interno (186px de altura) ───── */
+    .product-form-page .pf-image-card label .bi-cloud-upload {
+        font-size: 1.75rem !important;
+        line-height: 1 !important;
+    }
+    .product-form-page .pf-image-card label .w-8.h-8 {
+        width: 0.85rem !important;
+        height: 0.85rem !important;
+    }
+    .product-form-page .pf-image-card label .space-y-8 > * + * {
+        margin-top: 0.3rem !important;
+    }
+    .product-form-page .pf-image-card label .space-y-4 > * + * {
+        margin-top: 0.15rem !important;
+    }
+    .product-form-page .pf-image-card label h3.text-2xl {
+        font-size: 0.72rem !important;
+        line-height: 1.1 !important;
+    }
+    .product-form-page .pf-image-card label p.text-lg {
+        display: none !important;
+    }
+    .product-form-page .pf-image-card label .pt-4 {
+        display: none !important;
+    }
+    .product-form-page .pf-image-card label .absolute.-top-4,
+    .product-form-page .pf-image-card label .absolute.-bottom-6 {
+        display: none !important;
+    }
+}
