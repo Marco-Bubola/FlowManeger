@@ -1,7 +1,14 @@
-<div x-data="{ currentStep: $wire.currentStep, init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; $wire.set('currentStep', e.detail); }); $watch('currentStep', v => $wire.set('currentStep', v)); } }" x-init="init()" class="mobile-393-base">
+<div x-data="{ currentStep: $wire.currentStep, init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; $wire.set('currentStep', e.detail); }); $watch('currentStep', v => $wire.set('currentStep', v)); } }" x-init="init()" class="edit-sale-page mobile-393-base">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-ultrawide.css') }}">
 
     <!-- Header Modernizado para Edição (2 passos como Create) -->
     <x-sales-header
@@ -88,10 +95,10 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full h-[80vh] flex">
+                    class="w-full h-[80vh] flex edit-sale-step1-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-3/4 flex flex-col h-full">
+                    <div class="w-3/4 flex flex-col h-full edit-sale-products-pane">
                         <!-- Header com Controles -->
                         <div class="p-2">
                             <div class="flex flex-col md:flex-row gap-4">
@@ -219,7 +226,7 @@
                     </div>
 
                     <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) - igual ao Create -->
-                    <div class="w-1/4 flex flex-col h-[80vh]">
+                    <div class="w-1/4 flex flex-col h-[80vh] edit-sale-side-pane">
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
@@ -457,9 +464,9 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full max-h-screen flex overflow-hidden">
+                    class="w-full max-h-screen flex overflow-hidden edit-sale-step2-shell">
 
-                    <div class="w-2/5 bg-white dark:bg-zinc-800 p-4 flex flex-col">
+                    <div class="w-2/5 bg-white dark:bg-zinc-800 p-4 flex flex-col edit-sale-review-info-pane">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                             <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                             Resumo da Venda
