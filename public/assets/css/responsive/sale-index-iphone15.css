@@ -1,0 +1,51 @@
+/* ============================================================
+   Sales Index — iPhone 15 / Pro / Max (380–430px, h ≥ 780px)
+   Fine-tune para telas altas: mais espaço, busca melhor
+   ============================================================ */
+
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+
+    .sales-index-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* Header: levemente maiores */
+    .sales-index-header-inner {
+        padding: 0.75rem 0.875rem !important;
+    }
+    .sales-index-header-icon {
+        width: 2.375rem !important;
+        height: 2.375rem !important;
+    }
+    .sales-index-header-icon i {
+        font-size: 1.125rem !important;
+    }
+    .sales-index-header-title {
+        font-size: 1.25rem !important;
+    }
+
+    /* Busca: padding levemente maior */
+    .sales-index-header-search input {
+        font-size: 0.82rem !important;
+        padding-top: 0.5625rem !important;
+        padding-bottom: 0.5625rem !important;
+    }
+
+    /* Grid: 1 coluna */
+    .sales-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    /* Card: levemente maior */
+    .sale-card {
+        padding: 0.875rem !important;
+    }
+    .sale-card-avatar {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+    .sale-card-client-info h3 {
+        font-size: 0.9rem !important;
+    }
+}
