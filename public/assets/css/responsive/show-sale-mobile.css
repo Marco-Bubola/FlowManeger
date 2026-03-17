@@ -1,0 +1,155 @@
+/* ==========================================================
+   Show Sale — Mobile (até 767px)
+   ========================================================== */
+@media (max-width: 767px) {
+
+    /* ── PAGE ─────────────────────────────────────────────── */
+    .sale-show-page {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
+
+    /* ── CONTAINER PRINCIPAL ─────────────────────────────── */
+    .sale-show-page .container-fluid {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+        padding-top: 0.75rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    /* ── NAVEGAÇÃO DAS ABAS ───────────────────────────────── */
+    .sale-show-page nav.flex.space-x-2 {
+        gap: 0.25rem !important;
+        overflow-x: auto !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+    }
+
+    .sale-show-page nav.flex.space-x-2::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .sale-show-page nav.flex.space-x-2 button {
+        padding: 0.5rem 0.6rem !important;
+        font-size: 0.7rem !important;
+        min-width: 72px !important;
+        flex-shrink: 0 !important;
+        border-radius: 0.65rem !important;
+    }
+
+    .sale-show-page nav.flex.space-x-2 button .text-lg {
+        font-size: 0.9rem !important;
+    }
+
+    .sale-show-page nav.flex.space-x-2 button span:not(.ml-1) {
+        font-size: 0.65rem !important;
+    }
+
+    /* badge de contador nas abas */
+    .sale-show-page nav.flex.space-x-2 button .ml-1 {
+        padding: 0.1em 0.38em !important;
+        font-size: 0.58rem !important;
+    }
+
+    /* ── GRID PRINCIPAL (RESUMO) ─────────────────────────── */
+    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+    }
+
+    /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .rounded-2xl.p-6 {
+        padding: 0.85rem !important;
+        border-radius: 1rem !important;
+    }
+
+    .sale-show-page .rounded-2xl.p-4 {
+        padding: 0.75rem !important;
+        border-radius: 1rem !important;
+    }
+
+    /* ── CARD CLIENTE ─────────────────────────────────────── */
+    .sale-show-page .xl\:col-span-3 {
+        order: 1 !important;
+    }
+
+    .sale-show-page .xl\:col-span-3 h3 {
+        font-size: 0.95rem !important;
+    }
+
+    .sale-show-page .xl\:col-span-3 .space-y-3 > div {
+        margin-top: 0.45rem !important;
+    }
+
+    .sale-show-page .xl\:col-span-3 .text-lg.font-semibold {
+        font-size: 0.95rem !important;
+    }
+
+    /* ── CARD STATUS ──────────────────────────────────────── */
+    .sale-show-page .xl\:col-span-4 {
+        order: 2 !important;
+    }
+
+    /* ícone status */
+    .sale-show-page .w-20.h-20.mx-auto {
+        width: 3.2rem !important;
+        height: 3.2rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .sale-show-page .w-20.h-20.mx-auto i {
+        font-size: 1.5rem !important;
+    }
+
+    .sale-show-page .text-xl.font-bold.mb-2 {
+        font-size: 1rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+
+    /* grid total/pago 2 colunas */
+    .sale-show-page .grid.grid-cols-2.gap-4 {
+        gap: 0.5rem !important;
+    }
+
+    .sale-show-page .grid.grid-cols-2.gap-4 .text-lg.font-bold {
+        font-size: 0.88rem !important;
+    }
+
+    /* barra de progresso */
+    .sale-show-page .w-full.bg-gray-200.rounded-full.h-3 {
+        height: 0.5rem !important;
+    }
+
+    /* resumo rápido */
+    .sale-show-page .grid.grid-cols-2.gap-2 {
+        gap: 0.35rem !important;
+    }
+
+    /* ── CARDS PRODUTOS/PAGAMENTOS (col 3) ────────────────── */
+    .sale-show-page .xl\:col-span-5 {
+        order: 3 !important;
+    }
+
+    /* height fixo desabilitado em mobile */
+    .sale-show-page .h-\[48\%\] {
+        height: auto !important;
+    }
+
+    /* listas internas */
+    .sale-show-page .space-y-3.max-h-40 {
+        max-height: none !important;
+    }
+
+    /* ── CABEÇALHO DE CARDS ───────────────────────────────── */
+    .sale-show-page h3.text-lg.font-bold {
+        font-size: 0.88rem !important;
+    }
+
+    .sale-show-page p.text-sm.text-gray-600 {
+        font-size: 0.68rem !important;
+    }
+
+    /* ── BOTÕES HEADER ────────────────────────────────────── */
+    .sale-show-page .container-fluid .mb-8 {
+        margin-bottom: 0.75rem !important;
+    }
+}
