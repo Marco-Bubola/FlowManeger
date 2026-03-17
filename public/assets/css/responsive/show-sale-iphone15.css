@@ -104,14 +104,13 @@
         gap: 0.6rem !important;
     }
 
-    /* ── PAGAMENTOS compactos ─────────────────────────────── */
-    .sale-show-page .payment-summary-bar {
-        border-radius: 0.9rem !important;
-        padding: 0.8rem !important;
+    /* ── PAGAMENTOS — 1 coluna (iPhone) ────────────────────── */
+    .sale-show-page .payments-layout-grid {
+        display: block !important;
     }
 
-    .sale-show-page .payment-summary-bar .text-lg {
-        font-size: 0.88rem !important;
+    .sale-show-page .payments-col-form {
+        margin-bottom: 1rem !important;
     }
 
     /* ── METHOD PICKER — 3 colunas iPhone ────────────────── */
