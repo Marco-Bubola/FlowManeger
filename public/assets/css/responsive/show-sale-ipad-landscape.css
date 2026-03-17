@@ -16,40 +16,68 @@
         padding-bottom: 1.25rem !important;
     }
 
-    /* ── ABAS ─────────────────────────────────────────────── */
-    .sale-show-page nav.flex.space-x-2 button {
-        padding: 0.65rem 0.9rem !important;
+    /* ── HEADER — horizontal completo ─────────────────────── */
+    .sale-show-page .sales-create-header {
+        border-radius: 0 0 1.35rem 1.35rem !important;
+    }
+
+    .sale-show-page .sales-create-header-inner {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .sale-show-page .sales-create-header-main {
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        gap: 1rem !important;
+    }
+
+    .sale-show-page .sales-create-header-main > div:first-child {
+        flex: 1 !important;
+        min-width: 0 !important;
+    }
+
+    .sale-show-page .sales-create-header-title {
+        font-size: 1.2rem !important;
+    }
+
+    .sale-show-page .sales-create-header-subtitle {
+        font-size: 0.78rem !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+        max-width: 100% !important;
+    }
+
+    .sale-show-page .sales-create-header-actions {
+        width: auto !important;
+        flex-shrink: 0 !important;
+        gap: 0.6rem !important;
+    }
+
+    .sale-show-page .sales-create-header-actions button,
+    .sale-show-page .sales-create-header-actions a {
+        padding: 0.55rem 1.1rem !important;
         font-size: 0.8rem !important;
+        border-radius: 1rem !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button .text-lg {
-        font-size: 1rem !important;
+    .sale-show-page .sales-create-header-actions .hidden.sm\:inline {
+        display: inline !important;
     }
 
-    .sale-show-page nav.flex.space-x-2 button span:not(.ml-1) {
-        font-size: 0.77rem !important;
-    }
-
-    /* ── GRID — 3 colunas (lg:grid-cols-8) ────────────────── */
-    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
-        display: grid !important;
-        grid-template-columns: 2.5fr 2fr 3fr !important;
+    /* ── 3 CARDS INFO — sempre 3 colunas ─────────────────── */
+    .sale-show-page .grid.grid-cols-1.sm\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
         gap: 0.9rem !important;
     }
 
-    .sale-show-page .xl\:col-span-3 {
-        grid-column: 1 / 2 !important;
-    }
-
-    .sale-show-page .xl\:col-span-4 {
-        grid-column: 2 / 3 !important;
-    }
-
-    .sale-show-page .xl\:col-span-5 {
-        grid-column: 3 / 4 !important;
-    }
-
     /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .show-card {
+        padding: 1rem 1.1rem !important;
+        border-radius: 1.2rem !important;
+    }
+
     .sale-show-page .rounded-2xl.p-6 {
         padding: 1rem 1.1rem !important;
         border-radius: 1.2rem !important;
@@ -58,15 +86,6 @@
     .sale-show-page .rounded-2xl.p-4 {
         padding: 0.85rem !important;
         border-radius: 1.1rem !important;
-    }
-
-    /* ── CLIENTE ──────────────────────────────────────────── */
-    .sale-show-page .xl\:col-span-3 h3.text-lg {
-        font-size: 0.92rem !important;
-    }
-
-    .sale-show-page .xl\:col-span-3 .text-lg.font-semibold {
-        font-size: 0.88rem !important;
     }
 
     /* ── STATUS ───────────────────────────────────────────── */
@@ -84,16 +103,37 @@
         font-size: 1.1rem !important;
     }
 
-    /* barra progresso */
     .sale-show-page .w-full.bg-gray-200.rounded-full.h-3 {
         height: 0.55rem !important;
     }
 
-    /* ── PRODUTOS/PAGAMENTOS na col 3 ─────────────────────── */
-    .sale-show-page .xl\:col-span-5 .space-y-4 {
+    /* ── PRODUTOS — 4 colunas no iPad landscape ───────────── */
+    .sale-show-page .products-step-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
         gap: 0.85rem !important;
     }
 
+    /* ── PAGAMENTOS ───────────────────────────────────────── */
+    .sale-show-page .payment-summary-bar {
+        border-radius: 1.1rem !important;
+        padding: 0 !important;
+    }
+
+    .sale-show-page .payment-summary-bar .grid.grid-cols-3 > div {
+        padding: 1rem !important;
+    }
+
+    .sale-show-page .payment-summary-bar .text-lg {
+        font-size: 1.05rem !important;
+    }
+
+    /* ── METHOD PICKER — 6 colunas ───────────────────────── */
+    .sale-show-page .method-picker {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 0.55rem !important;
+    }
+
+    /* ── LISTAS ───────────────────────────────────────────── */
     .sale-show-page .h-\[48\%\] {
         height: auto !important;
         max-height: 16rem !important;
@@ -103,7 +143,6 @@
         max-height: 10rem !important;
     }
 
-    /* itens lista */
     .sale-show-page .space-y-3 .rounded-xl.p-3 {
         padding: 0.58rem 0.65rem !important;
     }
@@ -116,14 +155,47 @@
         font-size: 0.64rem !important;
     }
 
-    /* ── ABA PAGAMENTOS ───────────────────────────────────── */
-    .sale-show-page .grid.grid-cols-1.lg\:grid-cols-2 {
-        grid-template-columns: 1fr 1fr !important;
-        gap: 0.9rem !important;
+    /* ── PRODUCT CARDS — escalonados para 4 colunas ───────── */
+    .sale-show-page .products-step-grid .product-card-modern {
+        min-height: 310px !important;
     }
 
-    /* ── min-height aba resumo ────────────────────────────── */
-    .tab-content.resumo-tab {
-        min-height: auto !important;
+    .sale-show-page .products-step-grid .product-card-modern .product-img-area {
+        min-height: 160px !important;
+        height: 160px !important;
+    }
+
+    .sale-show-page .products-step-grid .product-card-modern .category-icon-wrapper {
+        width: 46px !important;
+        height: 46px !important;
+        bottom: -23px !important;
+    }
+
+    .sale-show-page .products-step-grid .product-card-modern .category-icon {
+        font-size: 1.6em !important;
+    }
+
+    .sale-show-page .products-step-grid .product-card-modern .card-body {
+        padding: 2em 0.7rem 0.9rem 0.7rem !important;
+        gap: 0.28em !important;
+    }
+
+    .sale-show-page .products-step-grid .product-card-modern .product-title {
+        font-size: 0.76em !important;
+        letter-spacing: 0.04em !important;
+    }
+
+    .sale-show-page .products-step-grid .product-card-modern .price-area {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.25rem !important;
+    }
+
+    .sale-show-page .products-step-grid .product-card-modern .badge-product-code,
+    .sale-show-page .products-step-grid .product-card-modern .badge-quantity,
+    .sale-show-page .products-step-grid .product-card-modern .badge-price,
+    .sale-show-page .products-step-grid .product-card-modern .badge-price-sale {
+        font-size: 0.72em !important;
+        padding: 0.2em 0.7em !important;
     }
 }
