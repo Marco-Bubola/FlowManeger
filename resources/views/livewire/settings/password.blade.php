@@ -37,7 +37,13 @@ new class extends Component {
     }
 }; ?>
 
-<section class="w-full">
+<section class="settings-password-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-password-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-password-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-password-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-password-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-password-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-password-ultrawide.css') }}">
     @include('partials.settings-heading')
 
     <x-settings.layout :heading="''">
