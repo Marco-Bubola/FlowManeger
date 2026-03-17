@@ -1,4 +1,10 @@
-<div class="w-full" x-data="{ spinning: false, showDraw: $wire.entangle('showDrawModal'), showWinner: $wire.entangle('showWinnerModal'), showRedemption: $wire.entangle('showRedemptionModal') }">
+<div class="consortium-draw-page w-full mobile-393-base" x-data="{ spinning: false, showDraw: $wire.entangle('showDrawModal'), showWinner: $wire.entangle('showWinnerModal'), showRedemption: $wire.entangle('showRedemptionModal') }">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-ultrawide.css') }}">
 
     <!-- Header Moderno igual às outras páginas -->
     <x-sales-header
