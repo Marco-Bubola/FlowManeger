@@ -1,0 +1,129 @@
+/* ==========================================================
+   Show Sale — iPad Landscape (1024–1366px, landscape)
+   ========================================================== */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+
+    /* ── PAGE ─────────────────────────────────────────────── */
+    .sale-show-page {
+        padding-bottom: calc(72px + env(safe-area-inset-bottom));
+    }
+
+    /* ── CONTAINER ────────────────────────────────────────── */
+    .sale-show-page .container-fluid {
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 1.25rem !important;
+    }
+
+    /* ── ABAS ─────────────────────────────────────────────── */
+    .sale-show-page nav.flex.space-x-2 button {
+        padding: 0.65rem 0.9rem !important;
+        font-size: 0.8rem !important;
+    }
+
+    .sale-show-page nav.flex.space-x-2 button .text-lg {
+        font-size: 1rem !important;
+    }
+
+    .sale-show-page nav.flex.space-x-2 button span:not(.ml-1) {
+        font-size: 0.77rem !important;
+    }
+
+    /* ── GRID — 3 colunas (lg:grid-cols-8) ────────────────── */
+    .sale-show-page .grid.grid-cols-1.xl\:grid-cols-12 {
+        display: grid !important;
+        grid-template-columns: 2.5fr 2fr 3fr !important;
+        gap: 0.9rem !important;
+    }
+
+    .sale-show-page .xl\:col-span-3 {
+        grid-column: 1 / 2 !important;
+    }
+
+    .sale-show-page .xl\:col-span-4 {
+        grid-column: 2 / 3 !important;
+    }
+
+    .sale-show-page .xl\:col-span-5 {
+        grid-column: 3 / 4 !important;
+    }
+
+    /* ── CARDS ────────────────────────────────────────────── */
+    .sale-show-page .rounded-2xl.p-6 {
+        padding: 1rem 1.1rem !important;
+        border-radius: 1.2rem !important;
+    }
+
+    .sale-show-page .rounded-2xl.p-4 {
+        padding: 0.85rem !important;
+        border-radius: 1.1rem !important;
+    }
+
+    /* ── CLIENTE ──────────────────────────────────────────── */
+    .sale-show-page .xl\:col-span-3 h3.text-lg {
+        font-size: 0.92rem !important;
+    }
+
+    .sale-show-page .xl\:col-span-3 .text-lg.font-semibold {
+        font-size: 0.88rem !important;
+    }
+
+    /* ── STATUS ───────────────────────────────────────────── */
+    .sale-show-page .w-20.h-20.mx-auto {
+        width: 4.2rem !important;
+        height: 4.2rem !important;
+        margin-bottom: 0.6rem !important;
+    }
+
+    .sale-show-page .w-20.h-20.mx-auto i {
+        font-size: 1.85rem !important;
+    }
+
+    .sale-show-page .text-xl.font-bold.mb-2 {
+        font-size: 1.1rem !important;
+    }
+
+    /* barra progresso */
+    .sale-show-page .w-full.bg-gray-200.rounded-full.h-3 {
+        height: 0.55rem !important;
+    }
+
+    /* ── PRODUTOS/PAGAMENTOS na col 3 ─────────────────────── */
+    .sale-show-page .xl\:col-span-5 .space-y-4 {
+        gap: 0.85rem !important;
+    }
+
+    .sale-show-page .h-\[48\%\] {
+        height: auto !important;
+        max-height: 16rem !important;
+    }
+
+    .sale-show-page .space-y-3.max-h-40 {
+        max-height: 10rem !important;
+    }
+
+    /* itens lista */
+    .sale-show-page .space-y-3 .rounded-xl.p-3 {
+        padding: 0.58rem 0.65rem !important;
+    }
+
+    .sale-show-page .space-y-3 p.font-medium.text-sm {
+        font-size: 0.75rem !important;
+    }
+
+    .sale-show-page .space-y-3 p.text-xs {
+        font-size: 0.64rem !important;
+    }
+
+    /* ── ABA PAGAMENTOS ───────────────────────────────────── */
+    .sale-show-page .grid.grid-cols-1.lg\:grid-cols-2 {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.9rem !important;
+    }
+
+    /* ── min-height aba resumo ────────────────────────────── */
+    .tab-content.resumo-tab {
+        min-height: auto !important;
+    }
+}
