@@ -1,0 +1,90 @@
+/* Edit Sale - iPad Portrait (768–1024px, orientação portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .edit-sale-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding-inline: 0.75rem;
+    }
+
+    /* Header */
+    .edit-sale-page .sales-create-header-inner {
+        padding: 1rem 1.25rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-main {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-title {
+        font-size: 1.35rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-subtitle {
+        font-size: 0.8rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-actions {
+        flex-direction: row !important;
+        gap: 0.5rem !important;
+    }
+
+    /* Step 1: layout side-by-side (3/4 + 1/4) */
+    .edit-sale-step1-shell {
+        flex-direction: row !important;
+        height: 78vh !important;
+    }
+
+    .edit-sale-products-pane {
+        width: 68% !important;
+    }
+
+    .edit-sale-side-pane {
+        width: 32% !important;
+        height: 78vh !important;
+    }
+
+    /* Grid produtos: 3 colunas */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 130px !important;
+        height: 130px !important;
+    }
+
+    .edit-sale-page .product-card-modern .card-body {
+        padding: 2.1em 0.5em 1.8em 0.5em !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-title {
+        font-size: 0.78em !important;
+    }
+
+    /* Painel lateral — compacto */
+    .edit-sale-side-pane > div {
+        padding: 0.75rem !important;
+    }
+
+    .edit-sale-side-pane .text-lg {
+        font-size: 0.95rem !important;
+    }
+
+    /* Step 2: lado a lado */
+    .edit-sale-step2-shell {
+        flex-direction: row !important;
+        max-height: 85vh !important;
+    }
+
+    .edit-sale-review-info-pane {
+        width: 42% !important;
+        overflow-y: auto;
+    }
+
+    .edit-sale-step2-shell > div:last-child {
+        width: 58% !important;
+        overflow-y: auto;
+    }
+}
