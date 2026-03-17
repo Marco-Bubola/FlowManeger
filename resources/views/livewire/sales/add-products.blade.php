@@ -1,7 +1,14 @@
-<div class="w-full mobile-393-base">
+<div class="add-products-page w-full mobile-393-base">
     <!-- Incluir CSS dos produtos -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-ultrawide.css') }}">
 
     <style>
         .product-card-modern.selected {
@@ -32,9 +39,9 @@
         :total-selected="count($newProducts)" />
 
     <!-- Layout Split 3/4 e 1/4 -->
-    <div class="w-full h-[75vh] flex">
+    <div class="w-full h-[75vh] flex add-products-split-shell">
         <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-        <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col">
+        <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col add-products-pane">
             <!-- Header com Controles -->
             <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
