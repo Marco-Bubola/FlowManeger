@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="invoices-index-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ultrawide.css') }}">
 
     <!-- Main Content Layout -->
     <div class="w-full">
