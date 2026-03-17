@@ -1,4 +1,10 @@
-<div class="w-full px-4 py-8">
+<div class="show-client-consortiums-page w-full px-4 py-8 mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-ultrawide.css') }}">
     <!-- Header Moderno com Glassmorphism -->
     <div class="mb-8">
         <div class="relative bg-gradient-to-r from-white/80 via-emerald-50/90 to-teal-50/80 dark:from-slate-800/90 dark:via-emerald-900/30 dark:to-teal-900/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl">
