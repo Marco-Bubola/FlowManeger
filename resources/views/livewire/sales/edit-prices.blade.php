@@ -1,7 +1,14 @@
-<div class=" w-full mobile-393-base ">
+<div class="edit-prices-page w-full mobile-393-base">
     <!-- Incluir CSS dos produtos -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ultrawide.css') }}">
 
     <!-- Header Modernizado -->
     <x-sales-header
