@@ -1,9 +1,13 @@
 <div class="w-full h-screen min-h-screen app-viewport-fit mobile-393-base publications-page flex flex-col">
 
-    @push('styles')
-        <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-        <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
-    @endpush
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ultrawide.css') }}">
 
     {{-- ═══════════════════════════════════════════════════════════
          HEADER ESTILO SALES-INDEX (search, filtros, paginação)
