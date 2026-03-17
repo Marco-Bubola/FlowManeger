@@ -1,0 +1,132 @@
+/* ============================================================
+   Edit Sale — Notebook / Desktop (1025–1440px)
+   Bloco 1 (1025–1279px): lg: ativo — layout 3/4+1/4 natural
+   Bloco 2 (1280–1440px): espaços maiores, tipografia maior
+   ============================================================ */
+
+/* ── BLOCO 1: 1025–1279px ─────────────────────────────────── */
+@media (min-width: 1025px) and (max-width: 1279px) {
+
+    .edit-sale-page {
+        padding-bottom: 2rem !important;
+        padding-inline: 1rem !important;
+    }
+
+    /* Header */
+    .edit-sale-page .relative.overflow-hidden.rounded-3xl {
+        border-radius: 1.125rem !important;
+        margin-bottom: 0.875rem !important;
+    }
+    .edit-sale-page .relative.px-8.py-6 {
+        padding: 0.875rem 1.5rem !important;
+    }
+
+    /* Step 1: grid de produtos 4 colunas */
+    .edit-sale-step1-shell {
+        height: 76vh !important;
+        gap: 1rem !important;
+    }
+
+    .edit-sale-products-pane {
+        width: 72% !important;
+    }
+
+    .edit-sale-side-pane {
+        width: 28% !important;
+    }
+
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 118px !important;
+        height: 118px !important;
+    }
+
+    /* Controles de pesquisa */
+    .edit-sale-products-pane input[type="text"] {
+        font-size: 0.875rem !important;
+        padding: 0.625rem 0.75rem 0.625rem 2.375rem !important;
+    }
+
+    /* Step 2 */
+    .edit-sale-step2-shell {
+        max-height: 80vh !important;
+    }
+
+    .edit-sale-review-info-pane {
+        width: 40% !important;
+        padding: 1.125rem !important;
+    }
+
+    .edit-sale-step2-shell > div:last-child {
+        width: 60% !important;
+        padding: 1.125rem !important;
+    }
+}
+
+/* ── BLOCO 2: 1280–1440px ─────────────────────────────────── */
+@media (min-width: 1280px) and (max-width: 1440px) {
+
+    .edit-sale-page {
+        padding-bottom: 2rem !important;
+        padding-inline: 1.25rem !important;
+    }
+
+    /* Header */
+    .edit-sale-page .relative.overflow-hidden.rounded-3xl {
+        border-radius: 1.25rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .edit-sale-page .relative.px-8.py-6 {
+        padding: 1rem 1.75rem !important;
+    }
+
+    /* Step 1 */
+    .edit-sale-step1-shell {
+        height: 78vh !important;
+        gap: 1.25rem !important;
+    }
+
+    .edit-sale-products-pane {
+        width: 74% !important;
+    }
+
+    .edit-sale-side-pane {
+        width: 26% !important;
+    }
+
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 128px !important;
+        height: 128px !important;
+    }
+
+    /* Controles */
+    .edit-sale-products-pane input[type="text"] {
+        font-size: 0.9rem !important;
+        padding: 0.6875rem 0.875rem 0.6875rem 2.5rem !important;
+        border-radius: 0.75rem !important;
+    }
+
+    /* Step 2 */
+    .edit-sale-step2-shell {
+        max-height: 82vh !important;
+    }
+
+    .edit-sale-review-info-pane {
+        width: 38% !important;
+        padding: 1.25rem !important;
+    }
+
+    .edit-sale-step2-shell > div:last-child {
+        width: 62% !important;
+        padding: 1.25rem !important;
+    }
+}
