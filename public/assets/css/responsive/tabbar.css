@@ -141,69 +141,144 @@
 /* ─── iPad-only Tab ─── */
 .tab-ipad-only { display: none !important; }
 
-/* iPad portrait/landscape (768–1280px): 6-col tabbar + expanded grids */
-@media (min-width: 768px) and (max-width: 1280px) {
+/* ─── iPad portrait (768-1024px): TabBar SEMPRE ativa, sem escolha ─── */
+@media (min-width: 768px) and (max-width: 1024px) {
     .mobile-bottom-tabbar {
         display: grid !important;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        padding: 0.5rem 1.5rem calc(0.55rem + env(safe-area-inset-bottom));
-        max-width: 900px;
-        margin: 0 auto;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        padding: 0.55rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
+        max-width: none;
         left: 0; right: 0;
+        border-radius: 1.25rem 1.25rem 0 0;
     }
     .tab-ipad-only { display: flex !important; }
     .mobile-tab-item {
         min-height: 3.8rem;
-        font-size: 0.67rem;
-        gap: 0.2rem;
+        font-size: 0.6rem;
+        gap: 0.15rem;
     }
-    .mobile-tab-item .tab-icon { width: 2rem; height: 2rem; border-radius: 0.65rem; }
+    .mobile-tab-item .tab-icon { width: 1.85rem; height: 1.85rem; border-radius: 0.6rem; }
     .mobile-tab-fab .fab-circle {
-        width: 3.3rem; height: 3.3rem;
+        width: 3.1rem; height: 3.1rem;
         transform: translateY(-8px);
     }
-    /* Sheet panel: full-width (standard bottom sheet on tablet) */
+
+    /* ── FAB Sheet: layout moderno no iPad — grid uniforme 4 colunas ── */
     .mobile-sheet-panel {
-        padding-left: 2rem;
-        padding-right: 2rem;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+        padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
         max-height: 80dvh;
     }
-    /* FAB sheet: 4-col grid */
-    .fab-compact-pair-grid { grid-template-columns: repeat(4, 1fr) !important; }
-    .mobile-sheet-grid { grid-template-columns: repeat(4, 1fr) !important; }
-    .mobile-sheet-grid[style*="repeat(2"] { grid-template-columns: repeat(4, 1fr) !important; }
-    /* More sheet: 5-col app grid */
+
+    /* Header do FAB sheet mais compacto */
+    .fab-sheet-header {
+        margin-bottom: 0.65rem;
+    }
+    .fab-sheet-header-icon {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        border-radius: 0.65rem !important;
+    }
+    .fab-sheet-title { font-size: 0.92rem !important; }
+    .fab-sheet-subtitle { font-size: 0.6rem !important; }
+
+    /* Seção chips: linha horizontal scrollável com visual pill moderno */
+    .fab-section-chip {
+        font-size: 0.55rem !important;
+        padding: 0.18rem 0.55rem 0.18rem 0.38rem !important;
+        margin: 0.5rem 0 0.3rem !important;
+    }
+
+    /* Grid uniforme de 4 colunas em TUDO no FAB sheet */
+    .fab-compact-pair-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 0.55rem !important;
+    }
+    .mobile-sheet-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 0.5rem !important;
+    }
+    /* Override inline style repeat(2,1fr) */
+    .mobile-sheet-grid[style*="repeat(2"] {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    /* Cards de ação: compactos, proporcionais para 4 colunas */
+    .fab-action-card {
+        padding: 0.7rem 0.3rem 0.6rem !important;
+        gap: 0.3rem !important;
+        border-radius: 0.85rem !important;
+    }
+    .fab-action-card .action-icon {
+        width: 2.4rem !important;
+        height: 2.4rem !important;
+        border-radius: 0.65rem !important;
+    }
+    .fab-card-name { font-size: 0.64rem !important; line-height: 1.2 !important; }
+    .fab-card-chip { font-size: 0.42rem !important; padding: 0.08rem 0.32rem !important; }
+
+    /* mobile-sheet-action (grid não-pair) */
+    .mobile-sheet-action {
+        padding: 0.7rem 0.3rem !important;
+        font-size: 0.62rem !important;
+        border-radius: 0.85rem !important;
+        gap: 0.3rem !important;
+    }
+    .mobile-sheet-action .action-icon {
+        width: 2.4rem !important;
+        height: 2.4rem !important;
+        border-radius: 0.65rem !important;
+    }
+    .mobile-sheet-action span { line-height: 1.2 !important; }
+
+    /* More sheet: grid 5 colunas */
     .more-sheet-app-grid { grid-template-columns: repeat(5, 1fr) !important; }
     .more-ml-grid.more-sheet-app-grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
 
-/* iPad landscape (1024-1366): user can choose sidebar OR tab bar */
+/* ─── iPad landscape (1024-1366): sidebar OU tabbar — nunca as duas ─── */
 @media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    /* Modo sidebar: esconde tabbar e sheets */
     body.tablet-nav-sidebar .mobile-bottom-tabbar {
         display: none !important;
     }
-
     body.tablet-nav-sidebar .mobile-action-sheet {
         display: none !important;
     }
-
+    /* Modo tabbar: mostra tabbar */
     body.tablet-nav-tabbar .mobile-bottom-tabbar {
         display: grid !important;
     }
+    /* Default (sem classe ainda = sidebar, tabbar escondida) */
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) .mobile-bottom-tabbar {
+        display: none !important;
+    }
+    /* FAB sheet expandido em landscape */
+    .mobile-sheet-panel {
+        padding-left: 2.5rem;
+        padding-right: 2.5rem;
+        max-height: 75dvh;
+    }
+    .fab-compact-pair-grid { grid-template-columns: repeat(5, 1fr) !important; }
+    .mobile-sheet-grid { grid-template-columns: repeat(5, 1fr) !important; }
+    .more-sheet-app-grid { grid-template-columns: repeat(6, 1fr) !important; }
 }
 
-/* Desktop (> 1366px): user can choose sidebar OR tab bar */
+/* ─── Desktop (>1366px): sidebar OU tabbar — nunca as duas ─── */
 @media (min-width: 1366px) {
     body.tablet-nav-sidebar .mobile-bottom-tabbar {
         display: none !important;
     }
-
     body.tablet-nav-sidebar .mobile-action-sheet {
         display: none !important;
     }
-
     body.tablet-nav-tabbar .mobile-bottom-tabbar {
         display: grid !important;
+    }
+    /* Default sem classe = sidebar */
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) .mobile-bottom-tabbar {
+        display: none !important;
     }
 }
 
@@ -217,8 +292,16 @@
     inset: 0;
     z-index: 80;
     pointer-events: none;
+    /* Remove element from rendering entirely when closed —
+       prevents iOS Safari GPU compositing layer from persisting */
+    visibility: hidden;
+    transition: visibility 0s linear 0.35s; /* delay = panel close animation */
 }
-.mobile-action-sheet.is-open { pointer-events: auto; }
+.mobile-action-sheet.is-open {
+    pointer-events: auto;
+    visibility: visible;
+    transition: visibility 0s linear 0s; /* show immediately on open */
+}
 
 .mobile-sheet-backdrop {
     position: absolute;
@@ -813,3 +896,125 @@
     margin: 0.75rem 0 0.3rem;
 }
 .dark .more-sheet-ml-label { color: #f59e0b; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   TABBAR MODERNIZATION — Cores do App (indigo / purple / pink)
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Linha de acento gradient no topo da tabbar ── */
+.mobile-bottom-tabbar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        #6366f1 0%,
+        #8b5cf6 35%,
+        #a855f7 65%,
+        #ec4899 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.82;
+}
+.dark .mobile-bottom-tabbar::before { opacity: 0.55; }
+
+/* ── FAB: gradiente mais vibrante + glow intenso ── */
+.mobile-tab-fab .fab-circle {
+    background: linear-gradient(145deg, #4f46e5 0%, #6366f1 45%, #7c3aed 100%) !important;
+    box-shadow:
+        0 6px 24px rgba(99,102,241,.68),
+        0 2px 8px rgba(79,70,229,.38),
+        0 0 0 3px rgba(99,102,241,.24),
+        0 0 0 6.5px rgba(99,102,241,.1),
+        inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+
+/* ── Active tab icon: glow mais intenso com app colors ── */
+.mobile-tab-item.is-active .tab-icon {
+    background: linear-gradient(135deg, rgba(99,102,241,.22), rgba(139,92,246,.32)) !important;
+    box-shadow:
+        0 5px 20px rgba(99,102,241,.42),
+        0 0 0 1.5px rgba(99,102,241,.28),
+        0 0 14px rgba(139,92,246,.2) !important;
+    transform: translateY(-4px) scale(1.15) !important;
+}
+.dark .mobile-tab-item.is-active .tab-icon {
+    background: linear-gradient(135deg, rgba(79,70,229,.46), rgba(109,40,217,.52)) !important;
+    box-shadow:
+        0 8px 24px rgba(99,102,241,.58),
+        0 0 0 1.5px rgba(129,140,248,.32) !important;
+}
+
+/* ── Active indicator dot: ligeiramente maior e mais vibrante ── */
+.mobile-tab-item.is-active::after {
+    width: 0.38rem !important;
+    height: 0.38rem !important;
+    box-shadow: 0 0 8px rgba(99,102,241,.9), 0 0 18px rgba(139,92,246,.45) !important;
+}
+
+/* ── Action sheets: linha de acento no topo ── */
+.mobile-sheet-panel {
+    position: relative;
+    overflow: hidden;
+}
+.mobile-sheet-panel::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2.5px;
+    background: linear-gradient(90deg,
+        #6366f1 0%,
+        #8b5cf6 40%,
+        #a855f7 70%,
+        #ec4899 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.78;
+}
+.dark .mobile-sheet-panel::after { opacity: 0.5; }
+
+/* ── FAB sheet: linha de acento emerald → indigo ── */
+.fab-sheet {
+    position: relative;
+    overflow: hidden;
+}
+.fab-sheet::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2.5px;
+    background: linear-gradient(90deg,
+        #10b981 0%,
+        #3b82f6 40%,
+        #6366f1 70%,
+        #8b5cf6 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+    opacity: 0.72;
+}
+.dark .fab-sheet::after { opacity: 0.5; }
+
+/* ── iPad: tabbar com cantos arredondados no topo ── */
+@media (min-width: 768px) and (max-width: 1280px) {
+    .mobile-bottom-tabbar {
+        border-radius: 1.5rem 1.5rem 0 0;
+        border-left: 1px solid rgba(99,102,241,.12) !important;
+        border-right: 1px solid rgba(99,102,241,.12) !important;
+    }
+    .mobile-bottom-tabbar::before {
+        border-radius: 1.5rem 1.5rem 0 0;
+    }
+    .mobile-tab-fab .fab-circle {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+        transform: translateY(-10px) !important;
+        box-shadow:
+            0 8px 28px rgba(99,102,241,.72),
+            0 0 0 4px rgba(99,102,241,.22),
+            inset 0 1px 0 rgba(255,255,255,.25) !important;
+    }
+}
