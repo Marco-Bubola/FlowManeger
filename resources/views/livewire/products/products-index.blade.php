@@ -123,6 +123,7 @@
     @push('styles')
         <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-header.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-mobile.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-iphone15.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ipad-portrait.css') }}">
@@ -149,135 +150,126 @@
         </x-slot>
 
         <!-- Barra de Controle integrada ao header (slot) -->
-        <div class="space-y-4 w-full products-index-controls">
-            <!-- Linha 1: Campo de Pesquisa + Botões de Ação -->
-            <div class="flex items-center gap-4 w-full products-index-controls-row-1">
-                <!-- Campo de Pesquisa (flex-1) -->
-                <div class="flex-1">
-                    <div class="relative group">
-                        <div class="relative">
-                            <input type="text" wire:model.live.debounce.300ms="search"
-                                placeholder="Buscar produtos por nome, código, categoria ou descrição..."
-                                class="w-full pl-12 pr-16 py-3 bg-gradient-to-r from-white via-slate-50 to-blue-50 dark:from-slate-800 dark:via-slate-700 dark:to-blue-900 border border-slate-200/50 dark:border-slate-600/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-300 shadow-sm backdrop-blur-sm text-base font-medium">
+        <div class="w-full products-index-controls">
 
-                            <div class="absolute left-4 top-1/2 transform -translate-y-1/2">
-                                <i class="bi bi-search text-slate-500 dark:text-slate-400 text-lg group-focus-within:text-purple-500 transition-colors duration-200"></i>
-                            </div>
-
-                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
-                                    x-transition:enter="transition ease-out duration-200"
-                                    x-transition:enter-start="opacity-0 scale-50"
-                                    x-transition:enter-end="opacity-100 scale-100"
-                                    x-transition:leave="transition ease-in duration-150"
-                                    x-transition:leave-start="opacity-100 scale-100"
-                                    x-transition:leave-end="opacity-0 scale-50"
-                                    class="group/clear p-1.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg transform hover:scale-110"
-                                    title="Limpar busca">
-                                    <i class="bi bi-x-lg text-xs group-hover/clear:rotate-90 transition-transform duration-200"></i>
-                                </button>
-                            </div>
-
-                            <div wire:loading.delay wire:target="search" class="absolute right-12 top-1/2 transform -translate-y-1/2">
-                                <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
-                            </div>
-                        </div>
+            <!-- ── LINHA 1: Busca + Novo Produto ─────────────────────── -->
+            <div class="prod-header-row-1">
+                <!-- Campo de Pesquisa -->
+                <div class="prod-header-search relative group">
+                    <input type="text" wire:model.live.debounce.300ms="search"
+                        placeholder="Buscar produtos por nome, código, categoria..."
+                        class="w-full pl-11 pr-10 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
+                    <div class="absolute left-3.5 top-1/2 transform -translate-y-1/2">
+                        <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
+                    </div>
+                    <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
+                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
+                        <i class="bi bi-x text-sm"></i>
+                    </button>
+                    <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 transform -translate-y-1/2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
                     </div>
                 </div>
 
-                <!-- Botões de Controle -->
-                <div class="flex items-center gap-3 products-index-aux-actions">
-                    <button @click="openFiltersModal()"
-                        class="flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg"
-                        :class="showFilters ? 'bg-purple-500 hover:bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300'"
-                        title="Filtros avançados">
-                        <i class="bi bi-funnel"></i>
-                        <span class="hidden xl:inline text-sm font-semibold">Filtros</span>
-                    </button>
+                <!-- Novo Produto (destaque) -->
+                <a href="{{ route('products.create') }}" class="prod-header-btn-create group">
+                    <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
+                    <span>Novo Produto</span>
+                </a>
+            </div>
 
-                    <button wire:click="toggleTips"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-700 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg font-semibold"
-                        title="Ver Dicas">
-                        <i class="bi bi-lightbulb"></i>
-                        <span class="hidden xl:inline text-sm">Dicas</span>
-                    </button>
+            <!-- ── LINHA 2: Pills de filtro + Paginação + Ações ───────── -->
+            <div class="prod-header-row-2">
+
+                <!-- Lado Esquerdo: Filtros pill group -->
+                <div class="prod-header-row-2-left">
+
+                    <!-- Tipo pills -->
+                    <div class="sale-filter-pills hidden md:inline-flex">
+                        <button type="button" wire:click="$set('tipo', '')"
+                            class="sale-filter-pill prod-pill-type {{ $tipo === '' ? 'active' : '' }}" title="Todos os tipos">
+                            <i class="bi bi-box-seam"></i>
+                            <span>Prods.</span>
+                        </button>
+                        <button type="button" wire:click="$set('tipo', 'kit')"
+                            class="sale-filter-pill prod-pill-type {{ $tipo === 'kit' ? 'active' : '' }}" title="Somente kits">
+                            <i class="bi bi-boxes"></i>
+                            <span>Kits</span>
+                        </button>
+                    </div>
+
+                    <!-- Ordenação -->
+                    <div class="sale-filter-pills sale-sort-pills hidden md:flex">
+                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i><span>Ord.</span></span>
+                        <button type="button" wire:click="toggleSort('data')"
+                            class="sale-filter-pill {{ in_array($ordem, ['recentes','data_desc','data_asc']) ? 'active' : '' }}" title="Ordenar por data">
+                            <span>Recentes</span>
+                        </button>
+                        <button type="button" wire:click="toggleSort('nome')"
+                            class="sale-filter-pill {{ in_array($ordem, ['az','nome_asc','nome_desc']) ? 'active' : '' }}" title="Ordenar A-Z">
+                            <span>A-Z</span>
+                        </button>
+                        <button type="button" wire:click="toggleSort('preco')"
+                            class="sale-filter-pill {{ in_array($ordem, ['preco_desc','preco_asc']) ? 'active' : '' }}" title="Ordenar por preço">
+                            <span>Preço</span>
+                        </button>
+                    </div>
+
+                    <!-- Per-page pills -->
+                    <div class="sale-filter-pills sale-perpage-pills hidden md:inline-flex">
+                        @php $currentPerPage = $products->perPage(); @endphp
+                        @foreach(array_slice($perPageOptions, 0, 5) as $pp)
+                        <button type="button" wire:click="$set('perPage', {{ $pp }})"
+                            class="sale-filter-pill pill-perpage {{ $currentPerPage == $pp ? 'active' : '' }}" title="{{ $pp }} por página">
+                            <span>{{ $pp }}</span>
+                        </button>
+                        @endforeach
+                    </div>
+
                 </div>
 
-                <!-- Ações Principais -->
-                <div class="flex items-center gap-3 pl-3 border-l-2 border-slate-200 dark:border-slate-600 products-index-main-actions">
-                    <a href="{{ route('products.create') }}"
-                        class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                        <i class="bi bi-plus-lg text-lg"></i>
-                        <span class="hidden lg:inline">Novo Produto</span>
-                    </a>
+                <!-- Lado Direito: Paginação compact + Ações -->
+                <div class="prod-header-row-2-right">
 
+                    @if ($products->hasPages())
+                    <div class="sale-pagination-compact">
+                        @if ($products->currentPage() > 1)
+                        <button type="button" wire:click.prevent="previousPage" class="sale-pagination-btn" title="Página anterior">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        @endif
+                        <span class="sale-pagination-indicator">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
+                        @if ($products->hasMorePages())
+                        <button type="button" wire:click.prevent="nextPage" class="sale-pagination-btn" title="Próxima página">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                        @endif
+                    </div>
+                    @endif
+
+                    <button type="button" wire:click="toggleTips"
+                        class="sale-action-btn sale-action-tips" title="Dicas">
+                        <i class="bi bi-lightbulb"></i>
+                    </button>
+
+                    <button type="button" @click="openFiltersModal()"
+                        class="sale-action-btn sale-action-filter"
+                        :class="{ 'active': showFilters }" title="Filtros Avançados">
+                        <i class="bi bi-sliders"></i>
+                    </button>
+
+                    <!-- Kit e Upload como ícones compactos -->
                     <a href="{{ route('products.kit.create') }}"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                        class="sale-action-btn prod-action-kit" title="Novo Kit">
                         <i class="bi bi-boxes"></i>
-                        <span class="hidden xl:inline text-sm">Novo Kit</span>
                     </a>
 
                     <a href="{{ route('products.upload') }}"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
+                        class="sale-action-btn prod-action-upload" title="Upload em Lote">
                         <i class="bi bi-file-earmark-arrow-up"></i>
-                        <span class="hidden xl:inline text-sm">Upload</span>
                     </a>
+
                 </div>
-            </div>
-
-            <!-- Linha 2: Informações + Paginação -->
-            <div class="flex items-center justify-between products-index-controls-row-2">
-                <div class="flex items-center gap-2">
-                    <div class="p-2 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg text-white">
-                        <i class="bi bi-box text-base"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">
-                            @if ($products->total())
-                                {{ $products->total() }} {{ $products->total() === 1 ? 'Produto' : 'Produtos' }}
-                            @else
-                                Nenhum produto
-                            @endif
-                        </h3>
-                        @if ($products->total() > 0)
-                            <p class="text-xs text-slate-600 dark:text-slate-400">
-                                {{ $products->firstItem() ?? 0 }} - {{ $products->lastItem() ?? 0 }}
-                            </p>
-                        @endif
-                    </div>
-                </div>
-
-                @if ($products->hasPages())
-                    <div class="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 rounded-lg p-1">
-                        @if ($products->currentPage() > 1)
-                            <a href="{{ $products->url(1) }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Primeira página">
-                                <i class="bi bi-chevron-double-left text-sm"></i>
-                            </a>
-                        @endif
-
-                        @if ($products->previousPageUrl())
-                            <a href="{{ $products->previousPageUrl() }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Página anterior">
-                                <i class="bi bi-chevron-left text-sm"></i>
-                            </a>
-                        @endif
-
-                        <div class="flex items-center px-3 py-1">
-                            <span class="text-sm font-medium text-slate-700 dark:text-slate-300">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
-                        </div>
-
-                        @if ($products->nextPageUrl())
-                            <a href="{{ $products->nextPageUrl() }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Próxima página">
-                                <i class="bi bi-chevron-right text-sm"></i>
-                            </a>
-                        @endif
-
-                        @if ($products->currentPage() < $products->lastPage())
-                            <a href="{{ $products->url($products->lastPage()) }}" class="p-2 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-white dark:hover:bg-slate-600 rounded transition-all duration-200" title="Última página">
-                                <i class="bi bi-chevron-double-right text-sm"></i>
-                            </a>
-                        @endif
-                    </div>
-                @endif
             </div>
         </div>
 
