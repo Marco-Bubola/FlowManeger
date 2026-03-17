@@ -438,6 +438,47 @@
     gap: 0.75rem;
     margin-bottom: 0.85rem;
 }
+
+/* ─── Sheet Close Button ─── */
+.fab-sheet-close-btn {
+    width: 1.9rem; height: 1.9rem;
+    border-radius: 50%;
+    background: rgba(148,163,184,.15);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #64748b;
+    flex-shrink: 0;
+    transition: all 0.18s ease;
+    -webkit-tap-highlight-color: transparent;
+    margin-left: auto;
+}
+.dark .fab-sheet-close-btn {
+    background: rgba(51,65,85,.5);
+    color: #94a3b8;
+}
+.fab-sheet-close-btn:hover,
+.fab-sheet-close-btn:active {
+    background: rgba(239,68,68,.14);
+    color: #ef4444;
+    transform: scale(1.08);
+}
+/* Posicionado absolutamente no more-sheet */
+.fab-sheet-close-absolute {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.85rem;
+    z-index: 2;
+}
+
+/* Mobile (<768px): reduz max-height para deixar backdrop tapável */
+@media (max-width: 767px) {
+    .mobile-sheet-panel {
+        max-height: 76dvh;
+    }
+}
 .fab-sheet-header-icon {
     width: 2.6rem; height: 2.6rem;
     border-radius: 0.8rem;
