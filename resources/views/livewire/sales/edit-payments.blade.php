@@ -1,6 +1,13 @@
-<div class=" w-full mobile-393-base ">
+<div class="edit-payments-page w-full mobile-393-base">
+    <!-- Responsive CSS -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-ultrawide.css') }}">
     <!-- Header fixo -->
-    <div class="w-full px-6 py-4 sticky top-0 z-20 shadow-lg rounded-b-2xl backdrop-blur border-b ">
+    <div class="edit-payments-header w-full px-6 py-4 sticky top-0 z-20 shadow-lg rounded-b-2xl backdrop-blur border-b ">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 <span class="inline-flex items-center justify-center w-14 h-14 rounded-full bg-purple-100 dark:bg-purple-900 shadow">
