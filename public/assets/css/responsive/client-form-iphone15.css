@@ -1,0 +1,68 @@
+/* ============================================================
+   Client Form — iPhone 15 Pro (380–430px, altura ≥ 780px)
+   Fine-tuning sobre o mobile base
+   ============================================================ */
+
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+
+    /* ── TABBAR CLEARANCE ─────────────────────────────────── */
+    .client-form-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
+    }
+
+    /* ── WRAPPER ──────────────────────────────────────────── */
+    .client-form-page > div.w-full.max-w-none {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* ── HEADER ───────────────────────────────────────────── */
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl h1.text-4xl {
+        font-size: 1.05rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl a.w-14.h-14 {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        min-width: 2.1rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .w-16.h-16 {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        min-width: 2.2rem !important;
+    }
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .flex.items-center.gap-3 a,
+    .client-form-page .relative.overflow-hidden.bg-gradient-to-r.rounded-3xl .flex.items-center.gap-3 button {
+        padding: 0.44rem 0.75rem !important;
+        font-size: 0.74rem !important;
+    }
+
+    /* ── AVATAR CARD ──────────────────────────────────────── */
+    .client-form-page .cf-avatar-col .grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 0.55rem !important;
+    }
+    .client-form-page .cf-avatar-col h3.text-2xl {
+        font-size: 0.88rem !important;
+    }
+
+    /* ── FORM CARD ────────────────────────────────────────── */
+    .client-form-page .cf-form-col input[type="text"],
+    .client-form-page .cf-form-col input[type="email"],
+    .client-form-page .cf-form-col input[type="tel"],
+    .client-form-page .cf-form-col textarea {
+        padding-top: 0.625rem !important;
+        padding-bottom: 0.625rem !important;
+        padding-left: 2.5rem !important;
+        font-size: 0.85rem !important;
+    }
+    .client-form-page .cf-form-col label .text-sm {
+        font-size: 0.72rem !important;
+    }
+    .client-form-page .cf-form-col .absolute.left-4 i,
+    .client-form-page .cf-form-col .absolute.left-4.top-6 i {
+        font-size: 0.88rem !important;
+    }
+    .client-form-page .cf-form-col .grid.grid-cols-1 {
+        gap: 0.75rem !important;
+    }
+}
