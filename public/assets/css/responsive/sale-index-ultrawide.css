@@ -2,7 +2,7 @@
    Sales Index — Ultrawide / 4K (1441px+)
    - Container max-width 1920px
    - Header grande: ícone 4rem, título 2.75rem
-   - Grid: 5 colunas (1441–1535px) / 6 colunas (1536px+)
+   - Grid: 4 colunas (1441px+)
    - Cards espaçosos
    ============================================================ */
 
@@ -81,17 +81,10 @@
         font-size: 0.875rem !important;
     }
 
-    /* ── GRID — 5 COLUNAS ─────────────────────────────────── */
+    /* ── GRID — 4 COLUNAS ─────────────────────────────────── */
     .sales-grid {
-        grid-template-columns: repeat(5, 1fr) !important;
+        grid-template-columns: repeat(4, 1fr) !important;
         gap: 1.375rem !important;
-    }
-
-    /* 1536px+: 6 colunas */
-    @media (min-width: 1536px) {
-        .sales-grid {
-            grid-template-columns: repeat(6, 1fr) !important;
-        }
     }
 
     /* ── CARD ─────────────────────────────────────────────── */
