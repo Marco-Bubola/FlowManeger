@@ -3,7 +3,7 @@
 <div class="payment-row-card bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-zinc-700/60">
 
     {{-- Cabeçalho do card --}}
-    <div class="px-5 py-3.5 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-500 flex items-center justify-between">
+    <div class="px-5 py-3.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
             <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
                 <i class="bi bi-credit-card-2-front text-white text-sm"></i>
