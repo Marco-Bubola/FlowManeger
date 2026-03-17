@@ -1,0 +1,73 @@
+/* ============================================================
+   Create Sale — Notebook / Desktop (1025–1440px)
+   Bloco 1 (1025–1279px): lg: ativo — layout 3/4+1/4 natural
+   Bloco 2 (1280–1440px): espaços maiores, tipografia maior
+   ============================================================ */
+
+/* ── BLOCO 1: 1025–1279px ─────────────────────────────────── */
+@media (min-width: 1025px) and (max-width: 1279px) {
+
+    .sales-create-page {
+        padding-bottom: 2rem !important;
+        padding-inline: 1rem !important;
+    }
+
+    /* Header */
+    .sales-create-page .relative.overflow-hidden.rounded-3xl {
+        border-radius: 1.125rem !important;
+        margin-bottom: 0.875rem !important;
+    }
+    .sales-create-page .relative.px-8.py-6 {
+        padding: 0.875rem 1.5rem !important;
+    }
+
+    /* Step 1: split 3/4 + 1/4 (já ativo pelo lg:) */
+    .create-sale-step-products-shell {
+        gap: 1rem !important;
+    }
+    .create-sale-products-pane {
+        /* w-3/4 já ativo */
+    }
+
+    /* Controls de pesquisa */
+    .create-sale-products-controls {
+        gap: 0.75rem !important;
+    }
+    .create-sale-products-controls input {
+        font-size: 0.875rem !important;
+        padding: 0.625rem 0.75rem 0.625rem 2.375rem !important;
+    }
+}
+
+/* ── BLOCO 2: 1280–1440px ─────────────────────────────────── */
+@media (min-width: 1280px) and (max-width: 1440px) {
+
+    .sales-create-page {
+        padding-bottom: 2rem !important;
+        padding-inline: 1.25rem !important;
+    }
+
+    /* Header */
+    .sales-create-page .relative.overflow-hidden.rounded-3xl {
+        border-radius: 1.25rem !important;
+        margin-bottom: 1rem !important;
+    }
+    .sales-create-page .relative.px-8.py-6 {
+        padding: 1rem 1.75rem !important;
+    }
+
+    /* Split layout */
+    .create-sale-step-products-shell {
+        gap: 1.25rem !important;
+    }
+
+    /* Controls */
+    .create-sale-products-controls {
+        gap: 0.875rem !important;
+    }
+    .create-sale-products-controls input {
+        font-size: 0.9rem !important;
+        padding: 0.6875rem 0.875rem 0.6875rem 2.5rem !important;
+        border-radius: 0.75rem !important;
+    }
+}
