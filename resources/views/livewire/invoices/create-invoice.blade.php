@@ -1,4 +1,10 @@
-<div class="w-full">
+<div class="create-invoice-page w-full mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-invoice-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-invoice-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-invoice-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-invoice-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-invoice-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-invoice-ultrawide.css') }}">
     <!-- Header Modernizado com botões de ação -->
     <x-sales-header title="Nova Transação" description="Adicione uma nova transação ao sistema" :back-route="route('invoices.index')"
         :current-step="1" :steps="[]">
