@@ -1,4 +1,10 @@
-<div class="w-full space-y-4" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+<div class="create-consortium-page w-full space-y-4 mobile-393-base" x-data="{ loaded: false }" x-init="setTimeout(() => loaded = true, 100)">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-ultrawide.css') }}">
     <!-- Header Original com Botões Integrados -->
     <x-sales-header title="Novo Consórcio" subtitle="Configure todos os detalhes do consórcio" icon="bi-plus-circle-fill"
         :backRoute="route('consortiums.index')">
