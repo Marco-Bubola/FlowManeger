@@ -1,0 +1,86 @@
+/* Edit Sale - iPad Landscape (768–1366px, orientação landscape) */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .edit-sale-page {
+        padding-inline: 1rem;
+        padding-bottom: 1.5rem;
+    }
+
+    /* Header */
+    .edit-sale-page .sales-create-header-inner {
+        padding: 0.875rem 1.5rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-title {
+        font-size: 1.5rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-subtitle {
+        font-size: 0.84rem !important;
+    }
+
+    .edit-sale-page .sales-create-header-actions {
+        flex-direction: row !important;
+        gap: 0.6rem !important;
+    }
+
+    /* Step 1: layout side-by-side natural 3/4 + 1/4 */
+    .edit-sale-step1-shell {
+        flex-direction: row !important;
+        height: 74vh !important;
+    }
+
+    .edit-sale-products-pane {
+        width: 72% !important;
+    }
+
+    .edit-sale-side-pane {
+        width: 28% !important;
+        height: 74vh !important;
+    }
+
+    /* Grid produtos: 3–4 colunas */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+
+    @media (min-width: 1024px) {
+        .edit-sale-page .products-step-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        }
+    }
+
+    .edit-sale-page .product-card-modern .product-img-area {
+        min-height: 120px !important;
+        height: 120px !important;
+    }
+
+    .edit-sale-page .product-card-modern .card-body {
+        padding: 1.9em 0.5em 1.6em 0.5em !important;
+    }
+
+    .edit-sale-page .product-card-modern .product-title {
+        font-size: 0.76em !important;
+    }
+
+    /* Painel lateral */
+    .edit-sale-side-pane > div:first-child {
+        padding: 0.875rem !important;
+    }
+
+    /* Step 2: lado a lado */
+    .edit-sale-step2-shell {
+        flex-direction: row !important;
+        max-height: 82vh !important;
+    }
+
+    .edit-sale-review-info-pane {
+        width: 40% !important;
+        overflow-y: auto;
+    }
+
+    .edit-sale-step2-shell > div:last-child {
+        width: 60% !important;
+        overflow-y: auto;
+    }
+}
