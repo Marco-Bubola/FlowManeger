@@ -1,8 +1,11 @@
-@push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-@endpush
-
 <div class="w-full h-screen min-h-screen app-viewport-fit publication-show-page mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-publication-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-publication-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-publication-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-publication-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-publication-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-publication-ultrawide.css') }}">
     <div class="container mx-auto px-4 py-6 max-w-7xl">
 
         {{-- Header Moderno Estilo Sales-Index --}}
