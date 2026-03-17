@@ -1,4 +1,10 @@
-<div class="w-full h-full bg-slate-900 text-white p-6">
+<div class="dashboard-banks-page w-full h-full bg-slate-900 text-white p-6 mobile-393-base">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-ultrawide.css') }}">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-3xl font-bold">Dashboard de Bancos</h1>
         <a href="{{ route('dashboard.cashbook') }}" class="text-indigo-400 hover:text-indigo-300">Voltar</a>
