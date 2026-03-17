@@ -1,4 +1,10 @@
-<div class="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900" style="min-height: 100vh;">
+<div class="create-habit-page w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 mobile-393-base" style="min-height: 100vh;">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-ultrawide.css') }}">
     <x-sales-header
         title="🎯 Criar Novo Hábito"
         description="Adicione um novo hábito à sua rotina diária">
