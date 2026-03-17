@@ -1,4 +1,11 @@
-<div class="mobile-393-base">
+<div class="mobile-393-base product-form-page">
+    <!-- CSS modular responsivo por dispositivo -->
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-mobile.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-iphone15.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ipad-portrait.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ipad-landscape.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-notebook.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ultrawide.css') }}">
     <!-- Header Modernizado com botões de ação -->
     <x-sales-header
         title="Criar Novo Produto"
@@ -50,12 +57,12 @@
     </x-sales-header>
 
     <!-- Conteúdo Principal -->
-    <form id="create-product-form" wire:submit.prevent="store" class=" py-6">
-        <div class="flex flex-col xl:flex-row gap-6">
+    <form id="create-product-form" wire:submit.prevent="store" class="pf-form py-6">
+        <div class="pf-layout flex flex-col xl:flex-row gap-6">
 
             <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
-            <div class="flex-1">
-                <div class="bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50">
+            <div class="pf-left-col flex-1">
+                <div class="pf-form-card bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50">
 
                     <!-- Informações Básicas -->
                     <div class="mb-8">
@@ -288,8 +295,8 @@
             </div>
 
             <!-- ========== COLUNA DIREITA: Upload ========== -->
-            <div class="w-full xl:w-[550px]">
-                <div class="bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
+            <div class="pf-right-col w-full xl:w-[550px]">
+                <div class="pf-image-card bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
                             <i class="bi bi-image-fill text-white text-lg"></i>
