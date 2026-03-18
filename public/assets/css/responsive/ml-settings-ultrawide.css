@@ -1,4 +1,4 @@
 /* ml-settings — Ultrawide */
 @media (min-width: 1441px) {
-    .ml-settings-page { max-width: 1920px; margin-inline: auto; }
+    .ml-settings-page { margin-inline: auto; }
 }
