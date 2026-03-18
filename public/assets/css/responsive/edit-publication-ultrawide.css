@@ -1,4 +1,4 @@
 /* edit-publication — Ultrawide */
 @media (min-width: 1441px) {
-    .edit-publication-page { max-width: 1920px; margin-inline: auto; }
+    .edit-publication-page { margin-inline: auto; }
 }
