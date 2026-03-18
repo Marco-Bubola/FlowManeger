@@ -1,4 +1,4 @@
-<div class="w-full h-screen min-h-screen app-viewport-fit products-index-page mobile-393-base" x-data="{
+<div class="w-full  app-viewport-fit products-index-page mobile-393-base" x-data="{
     showFilters: false,
     showQuickActions: false,
     isCompactModal: false,
