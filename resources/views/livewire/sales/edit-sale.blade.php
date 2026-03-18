@@ -95,13 +95,13 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full h-[80vh] flex edit-sale-step1-shell">
+                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[80vh] edit-sale-step1-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-3/4 flex flex-col h-full edit-sale-products-pane">
+                    <div class="w-full lg:w-3/4 flex flex-col lg:h-full min-h-0 edit-sale-products-pane">
                         <!-- Header com Controles -->
                         <div class="p-2">
-                            <div class="flex flex-col md:flex-row gap-4">
+                            <div class="flex flex-row items-center gap-2 md:gap-4 edit-sale-products-controls">
                                 <div class="flex-1">
                                     <div class="relative">
                                         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -113,7 +113,7 @@
                                             class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
                                     </div>
                                 </div>
-                                <div class="flex items-center">
+                                <div class="flex items-center shrink-0">
                                     <label class="toggle-filter">
                                         <input type="checkbox"
                                                wire:model.live="showOnlySelected"
@@ -130,7 +130,7 @@
                         </div>
 
                         <!-- Grid de Produtos com Scroll -->
-                        <div class="flex-1 p-6 overflow-y-auto min-h-0">
+                        <div class="flex-1 p-3 sm:p-6 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
                             <div class="flex flex-col items-center justify-center h-full">
                                 <div class="w-32 h-32 mx-auto mb-6 text-gray-400">
@@ -158,7 +158,7 @@
                                 </p>
                             </div>
                             @else
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 products-step-grid">
+                            <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 products-step-grid products-mobile-compact-grid">
                                 @foreach($this->getFilteredProducts() as $product)
                                 @php
                                     $isSelected = collect($selectedProducts)->contains(function($selected) use ($product) {
@@ -226,8 +226,8 @@
                     </div>
 
                     <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) - igual ao Create -->
-                    <div class="w-1/4 flex flex-col h-[80vh] edit-sale-side-pane">
-                        <div class="p-4">
+                    <div class="w-full lg:w-1/4 flex flex-col lg:h-full edit-sale-side-pane">
+                        <div class="p-4 edit-sale-summary-card">
                             <div class="flex justify-between items-center mb-4">
                                 <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
                                     <i class="bi bi-receipt text-indigo-500"></i>
@@ -236,7 +236,7 @@
                                 <span class="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full dark:bg-amber-900 dark:text-amber-300">Edição</span>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 edit-sale-summary-info-grid">
                                 <!-- Bloco Cliente -->
                                 <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
                                     <div class="relative">
@@ -381,7 +381,7 @@
                         </div>
 
                         <!-- Lista de produtos selecionados com scroll (estilo igual ao Create) -->
-                        <div class="flex-1 overflow-y-auto">
+                        <div class="flex-1 overflow-y-auto edit-sale-selected-list">
                             @if(empty($selectedProducts))
                             <div class="p-3 text-center">
                                 <div class="text-gray-400 mb-2">
@@ -398,7 +398,7 @@
                                         $selectedProduct = $products->firstWhere('id', $productItem['product_id']);
                                     @endphp
                                     @if($selectedProduct)
-                                    <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group">
+                                    <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group edit-sale-selected-item">
                                         <div class="flex items-center gap-4">
                                             <div class="flex-shrink-0">
                                                 <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
@@ -464,15 +464,15 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full max-h-screen flex overflow-hidden edit-sale-step2-shell">
+                    class="w-full flex flex-col lg:flex-row lg:max-h-screen lg:overflow-hidden edit-sale-step2-shell">
 
-                    <div class="w-2/5 bg-white dark:bg-zinc-800 p-4 flex flex-col edit-sale-review-info-pane">
-                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                    <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-5 flex flex-col gap-3 sm:gap-4 edit-sale-review-info-pane">
+                        <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center sm:text-left mb-1 sm:mb-4 edit-sale-review-title">
                             <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                             Resumo da Venda
                         </h2>
 
-                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 mb-4 rounded-lg border-l-4 border-blue-500">
+                        <div class="bg-blue-50 dark:bg-blue-900/20 p-4 mb-4 rounded-lg border-l-4 border-blue-500 edit-sale-review-client-card">
                             <h3 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-3">
                                 <i class="bi bi-person-circle mr-2"></i>Cliente
                             </h3>
@@ -502,7 +502,7 @@
                             @endif
                         </div>
 
-                        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border-l-4 border-indigo-500 mb-4">
+                        <div class="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 p-4 rounded-lg border-l-4 border-indigo-500 mb-4 edit-sale-review-total-card">
                             <h3 class="text-lg font-bold text-indigo-800 dark:text-indigo-200 mb-2">
                                 <i class="bi bi-calculator mr-2"></i>Total da Venda
                             </h3>
@@ -554,7 +554,7 @@
                             </div>
                         </div>
 
-                        <div class="mt-auto space-y-3">
+                        <div class="mt-auto space-y-3 edit-sale-review-actions">
                             <button type="button"
                                 @click="currentStep = 1; $wire.set('currentStep', 1)"
                                 class="group relative w-full inline-flex items-center justify-center px-8 py-4 rounded-2xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
@@ -582,8 +582,8 @@
                         </div>
                     </div>
 
-                    <div class="w-4/5 bg-green-50 dark:bg-green-900/20 border-l border-gray-200 dark:border-zinc-700 p-8">
-                        <h3 class="text-2xl font-bold text-green-800 dark:text-green-200 mb-6">
+                    <div class="w-full lg:w-4/5 bg-green-50 dark:bg-green-900/20 border-l border-gray-200 dark:border-zinc-700 p-4 sm:p-8 edit-sale-review-products-pane">
+                        <h3 class="text-2xl font-bold text-green-800 dark:text-green-200 mb-6 edit-sale-review-products-title">
                             <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($selectedProducts) }})
                         </h3>
 
