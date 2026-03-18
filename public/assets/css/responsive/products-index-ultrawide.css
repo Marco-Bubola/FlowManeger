@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════
    PRODUCTS-INDEX — ULTRAWIDE (≥1536px)
    Catálogo de Produtos em telas grandes e ultrawide
-   6–8 colunas por linha, cards em tamanho padrão/aumentado
+   6–8 colunas por linha, cards compactos e bem proporcionados
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Full HD (1536–1919px): 6 colunas ─────────────────── */
@@ -21,28 +21,83 @@
 
     .products-index-page .products-grid {
         grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
-        gap: 1.25rem !important;
+        gap: 1rem !important;
     }
 
+    /* Card: altura compacta para 6 colunas */
     .products-index-page .products-grid .product-card-modern {
-        min-height: 400px !important;
+        min-height: 0 !important;
+        height: auto !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img-area {
-        min-height: 220px !important;
-        height: 220px !important;
+        min-height: 205px !important;
+        height: 205px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img {
-        height: 220px !important;
-        max-height: 220px !important;
+        height: 205px !important;
+        max-height: 205px !important;
+    }
+
+    /* Ícone de categoria menor */
+    .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
+        width: 48px !important;
+        height: 48px !important;
+        bottom: -24px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon {
+        font-size: 1.6rem !important;
+    }
+
+    /* Body compacto */
+    .products-index-page .products-grid .product-card-modern .card-body {
+        padding: 1.7em 0.75rem 0.5rem 0.75rem !important;
+        min-height: 0 !important;
+        gap: 0.15em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .product-title {
+        font-size: 0.9em !important;
+        letter-spacing: 0.05em !important;
+        line-height: 1.15 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-price,
+    .products-index-page .products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.86em !important;
+        padding: 0.2em 0.5em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .price-area {
+        margin-top: 0.25em !important;
+    }
+
+    /* Botões de ação menores */
+    .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
+        width: 1.7rem !important;
+        height: 1.7rem !important;
+        font-size: 0.65rem !important;
+        border-radius: 0.45rem !important;
+    }
+
+    /* Badge de código do produto */
+    .products-index-page .products-grid .product-card-modern .badge-product-code {
+        font-size: 0.72em !important;
+        padding: 0.12em 0.55em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.68em !important;
+        padding: 0.08em 0.4em !important;
     }
 }
 
 /* ── Full HD exato / 1920px (3xl): 7 colunas ──────────── */
 @media (min-width: 1920px) and (max-width: 2497px) {
-
-    
 
     .products-index-page .products-index-header-content h1 {
         font-size: 2.25rem !important;
@@ -50,54 +105,78 @@
 
     .products-index-page .products-grid {
         grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
-        gap: 1.4rem !important;
+        gap: 1.1rem !important;
     }
 
+    /* Card: altura compacta para 7 colunas */
     .products-index-page .products-grid .product-card-modern {
-        min-height: 420px !important;
+        min-height: 0 !important;
+        height: auto !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img-area {
-        min-height: 240px !important;
-        height: 240px !important;
+        min-height: 210px !important;
+        height: 210px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img {
-        height: 240px !important;
-        max-height: 240px !important;
+        height: 210px !important;
+        max-height: 210px !important;
     }
 
+    /* Ícone de categoria proporcional */
     .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
-        width: 68px !important;
-        height: 68px !important;
-        bottom: -34px !important;
+        width: 50px !important;
+        height: 50px !important;
+        bottom: -25px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .category-icon {
-        font-size: 2.3rem !important;
+        font-size: 1.7rem !important;
     }
 
+    /* Body compacto */
     .products-index-page .products-grid .product-card-modern .card-body {
-        padding: 3.2em 1rem 2.4em 1rem !important;
+        padding: 1.75em 0.8rem 0.5rem 0.8rem !important;
+        min-height: 0 !important;
+        gap: 0.15em !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-title {
-        font-size: 1.05em !important;
-        letter-spacing: 0.09em !important;
+        font-size: 0.93em !important;
+        letter-spacing: 0.06em !important;
+        line-height: 1.15 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
     .products-index-page .products-grid .product-card-modern .badge-price,
     .products-index-page .products-grid .product-card-modern .badge-price-sale {
-        font-size: 0.95em !important;
-        min-width: 70px !important;
+        font-size: 0.88em !important;
+        padding: 0.22em 0.55em !important;
     }
 
-    /* ── Botões de ação maiores ──────────────────── */
+    .products-index-page .products-grid .product-card-modern .price-area {
+        margin-top: 0.25em !important;
+    }
+
+    /* Botões de ação menores */
     .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
-        width: 2.1rem !important;
-        height: 2.1rem !important;
-        font-size: 0.75rem !important;
-        border-radius: 0.6rem !important;
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        font-size: 0.67rem !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* Badge de código do produto */
+    .products-index-page .products-grid .product-card-modern .badge-product-code {
+        font-size: 0.74em !important;
+        padding: 0.14em 0.6em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.7em !important;
+        padding: 0.09em 0.45em !important;
     }
 }
 
@@ -114,30 +193,77 @@
 
     .products-index-page .products-grid {
         grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
-        gap: 1.5rem !important;
+        gap: 1.2rem !important;
     }
 
+    /* Card: altura compacta para 8 colunas */
     .products-index-page .products-grid .product-card-modern {
-        min-height: 450px !important;
+        min-height: 0 !important;
+        height: auto !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img-area {
-        min-height: 260px !important;
-        height: 260px !important;
+        min-height: 215px !important;
+        height: 215px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img {
-        height: 260px !important;
-        max-height: 260px !important;
+        height: 215px !important;
+        max-height: 215px !important;
+    }
+
+    /* Ícone de categoria proporcional */
+    .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
+        width: 52px !important;
+        height: 52px !important;
+        bottom: -26px !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .category-icon {
+        font-size: 1.75rem !important;
+    }
+
+    /* Body compacto */
+    .products-index-page .products-grid .product-card-modern .card-body {
+        padding: 1.8em 0.85rem 0.5rem 0.85rem !important;
+        min-height: 0 !important;
+        gap: 0.15em !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-title {
-        font-size: 1.12em !important;
+        font-size: 0.95em !important;
+        letter-spacing: 0.06em !important;
+        line-height: 1.15 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0 !important;
     }
 
+    .products-index-page .products-grid .product-card-modern .badge-price,
+    .products-index-page .products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.9em !important;
+        padding: 0.22em 0.6em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .price-area {
+        margin-top: 0.3em !important;
+    }
+
+    /* Botões de ação */
     .products-index-page .products-grid .product-card-modern .btn-action-group .btn {
-        width: 2.3rem !important;
-        height: 2.3rem !important;
-        font-size: 0.8rem !important;
+        width: 1.8rem !important;
+        height: 1.8rem !important;
+        font-size: 0.68rem !important;
+        border-radius: 0.5rem !important;
+    }
+
+    /* Badge de código do produto */
+    .products-index-page .products-grid .product-card-modern .badge-product-code {
+        font-size: 0.75em !important;
+        padding: 0.14em 0.6em !important;
+    }
+
+    .products-index-page .products-grid .product-card-modern .badge-quantity {
+        font-size: 0.71em !important;
+        padding: 0.09em 0.45em !important;
     }
 }
