@@ -1,4 +1,4 @@
-<div class="mobile-393-base product-form-page">
+<div class="mobile-393-base w-full product-form-page">
     <!-- CSS modular responsivo por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-iphone15.css') }}">
@@ -57,8 +57,8 @@
     </x-sales-header>
 
     <!-- Conteúdo Principal -->
-    <form id="edit-product-form" wire:submit.prevent="update" class="pf-form px-6 py-6">
-        <div class="pf-layout flex flex-col xl:flex-row gap-6">
+    <form id="edit-product-form" wire:submit.prevent="update" class="pf-form ">
+        <div class="pf-layout flex flex-col xl:flex-row ">
 
             <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
             <div class="pf-left-col flex-1">
@@ -142,11 +142,13 @@
                                     selectedCategory: @entangle('category_id'),
                                     selectedCategoryName: '{{ $selectedCategoryName ?? 'Selecione...' }}',
                                     selectedCategoryIcon: '{{ $selectedCategoryIcon ?? 'bi-grid-3x3-gap-fill' }}',
+                                    search: '',
                                     selectCategory(category) {
                                         this.selectedCategory = category.id;
                                         this.selectedCategoryName = category.name;
                                         this.selectedCategoryIcon = category.icon;
                                         this.open = false;
+                                        this.search = '';
                                         $wire.set('category_id', category.id);
                                     }
                                 }">
@@ -165,15 +167,32 @@
                                     <div x-show="open"
                                          x-transition
                                          @click.away="open = false"
-                                         class="absolute z-50 w-full mt-2 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                                         class="absolute z-50 w-full mt-2 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl">
+                                        <!-- Campo de pesquisa -->
+                                        <div class="p-2 border-b border-slate-700">
+                                            <div class="relative">
+                                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                                                <input type="text"
+                                                       x-model="search"
+                                                       @click.stop
+                                                       x-ref="searchInput"
+                                                       x-init="$watch('open', v => v && $nextTick(() => $refs.searchInput.focus()))"
+                                                       placeholder="Pesquisar categoria..."
+                                                       class="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-white text-sm placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20">
+                                            </div>
+                                        </div>
+                                        <!-- Lista de categorias filtrada -->
+                                        <div class="max-h-52 overflow-y-auto">
                                         @foreach($categories as $category)
                                             <button type="button"
+                                                    x-show="!search || '{{ strtolower($category->name) }}'.includes(search.toLowerCase())"
                                                     @click="selectCategory({ id: {{ $category->id_category }}, name: '{{ $category->name }}', icon: '{{ $this->getCategoryIcon($category->icone) }}' })"
                                                     class="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-slate-700/80 transition-colors border-b border-slate-700 last:border-b-0">
                                                 <i class="{{ $this->getCategoryIcon($category->icone) }} text-pink-400"></i>
                                                 <span class="text-white text-sm font-medium">{{ $category->name }}</span>
                                             </button>
                                         @endforeach
+                                        </div>
                                     </div>
                                 </div>
                                 @error('category_id')
