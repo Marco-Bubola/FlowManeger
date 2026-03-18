@@ -1,4 +1,4 @@
 /* publish-product — Ultrawide */
 @media (min-width: 1441px) {
-    .publish-product-page { max-width: 1920px; margin-inline: auto; }
+    .publish-product-page { margin-inline: auto; }
 }
