@@ -91,7 +91,7 @@
 }
 
 /* ─── FAB Center Button ─── */
-.mobile-tab-fab { gap: 0 !important; padding: 0 !important; }
+.mobile-tab-fab { gap: 0.1rem !important; padding: 0.12rem 0.15rem 0.26rem !important; }
 
 .mobile-tab-fab .fab-circle {
     width: 3.1rem; height: 3.1rem;
@@ -311,21 +311,26 @@
     -webkit-backdrop-filter: blur(5px);
     opacity: 0;
     transition: opacity 0.25s ease;
+    touch-action: none; /* impede scroll da página por baixo no iOS Safari */
+    -webkit-tap-highlight-color: transparent;
 }
 .mobile-action-sheet.is-open .mobile-sheet-backdrop { opacity: 1; }
 
 .mobile-sheet-panel {
     position: absolute;
     left: 0; right: 0; bottom: 0;
+    z-index: 1;
     background: rgba(255,255,255,0.97);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     border-radius: 1.75rem 1.75rem 0 0;
     padding: 0.4rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
     transform: translateY(100%);
+    will-change: transform;
     transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
     box-shadow: 0 -12px 60px rgba(15,23,42,.2), 0 -1px 0 rgba(148,163,184,.12);
     max-height: 88dvh;
+    overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
 }
@@ -997,8 +1002,7 @@
 
 /* ── Action sheets: linha de acento no topo ── */
 .mobile-sheet-panel {
-    position: relative;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 .mobile-sheet-panel::after {
     content: '';
@@ -1058,4 +1062,315 @@
             0 0 0 4px rgba(99,102,241,.22),
             inset 0 1px 0 rgba(255,255,255,.25) !important;
     }
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   FAB LABEL — Label "Criar" abaixo do botão FAB central
+   ════════════════════════════════════════════════════════════ */
+
+.fab-label {
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: #4f46e5;
+    letter-spacing: 0.015em;
+    line-height: 1;
+    margin-top: 0.02rem;
+    transition: color 0.2s ease;
+}
+.dark .fab-label { color: #818cf8; }
+
+/* FAB aberto (sheet visível) → X vermelho rotacionado */
+.mobile-tab-fab.fab-sheet-open .fab-circle {
+    background: linear-gradient(145deg, #dc2626 0%, #ef4444 45%, #f97316 100%) !important;
+    transform: translateY(-5px) rotate(45deg) !important;
+    box-shadow:
+        0 6px 24px rgba(239,68,68,.6),
+        0 0 0 3px rgba(239,68,68,.22),
+        inset 0 1px 0 rgba(255,255,255,.22) !important;
+    transition: all 0.28s cubic-bezier(0.34,1.56,0.64,1) !important;
+}
+.mobile-tab-fab.fab-sheet-open .fab-label { color: #ef4444; }
+.dark .mobile-tab-fab.fab-sheet-open .fab-label { color: #fca5a5; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   FAB AREA CARDS — Quick Actions redesign (cards por área)
+   ════════════════════════════════════════════════════════════ */
+
+/* ─── Grid pai: 2 colunas no mobile ─── */
+.fab-areas-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    margin-top: 0.3rem;
+}
+
+/* Card full-width (span 2 colunas) */
+.fab-area-full { grid-column: 1 / -1; }
+
+/* ─── Card base ─── */
+.fab-area-card {
+    border-radius: 1.15rem;
+    overflow: hidden;
+    border: 1.5px solid rgba(148,163,184,.18);
+    background: #f8fafc;
+    transition: box-shadow 0.18s ease, transform 0.18s ease;
+}
+.dark .fab-area-card {
+    background: rgba(15,23,42,.72);
+    border-color: rgba(51,65,85,.42);
+}
+.fab-area-card:hover { box-shadow: 0 4px 18px rgba(99,102,241,.1); }
+
+/* ─── Header do card ─── */
+.fab-area-header {
+    display: flex;
+    align-items: center;
+    gap: 0.42rem;
+    padding: 0.58rem 0.7rem;
+    font-size: 0.67rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    line-height: 1;
+    border-bottom: 1px solid rgba(0,0,0,.055);
+}
+.dark .fab-area-header { border-bottom-color: rgba(255,255,255,.07); }
+
+.fab-area-icon-wrap {
+    width: 1.52rem;
+    height: 1.52rem;
+    border-radius: 0.38rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,.16);
+}
+.fab-area-icon-wrap svg { width: 0.8rem; height: 0.8rem; }
+
+/* ─── Body do card (grid de ações) ─── */
+.fab-area-body {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.4rem;
+    padding: 0.52rem 0.48rem 0.58rem;
+}
+.fab-area-body-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.fab-area-body-cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* ─── Botão de ação dentro do card ─── */
+.fab-area-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.26rem;
+    padding: 0.55rem 0.18rem 0.52rem;
+    border-radius: 0.75rem;
+    background: rgba(255,255,255,.85);
+    border: 1px solid rgba(148,163,184,.14);
+    text-decoration: none;
+    color: #1e293b;
+    font-size: 0.58rem;
+    font-weight: 700;
+    text-align: center;
+    transition: all 0.16s cubic-bezier(0.34,1.56,0.64,1);
+    -webkit-tap-highlight-color: transparent;
+    line-height: 1.25;
+    position: relative;
+}
+.dark .fab-area-action {
+    background: rgba(30,41,59,.72);
+    border-color: rgba(71,85,105,.35);
+    color: #e2e8f0;
+}
+.fab-area-action:active { transform: scale(0.88) !important; }
+.fab-area-action:hover {
+    background: rgba(99,102,241,.07);
+    border-color: rgba(99,102,241,.28);
+    transform: scale(1.04);
+    box-shadow: 0 3px 10px rgba(99,102,241,.14);
+}
+
+/* Upload — indicador sutil */
+.fab-area-action-upload::after {
+    content: '↑';
+    position: absolute;
+    top: 0.2rem;
+    right: 0.25rem;
+    font-size: 0.4rem;
+    font-weight: 900;
+    color: #94a3b8;
+    line-height: 1;
+}
+.dark .fab-area-action-upload::after { color: #475569; }
+
+/* ML card especial */
+.fab-area-ml-action {
+    background: linear-gradient(135deg, rgba(245,158,11,.08), rgba(251,191,36,.11)) !important;
+    border-color: rgba(245,158,11,.26) !important;
+}
+.dark .fab-area-ml-action {
+    background: linear-gradient(135deg, rgba(245,158,11,.14), rgba(251,191,36,.18)) !important;
+    border-color: rgba(245,158,11,.34) !important;
+}
+
+/* Ícone da ação */
+.fab-area-action-icon {
+    width: 1.95rem;
+    height: 1.95rem;
+    border-radius: 0.52rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    box-shadow: 0 3px 8px rgba(0,0,0,.16);
+    flex-shrink: 0;
+}
+.fab-area-action-icon svg { width: 0.9rem; height: 0.9rem; }
+
+/* ─── Temas de cor dos headers ─── */
+.fab-acolor-emerald {
+    background: linear-gradient(135deg, rgba(16,185,129,.11), rgba(5,150,105,.07));
+    color: #064e3b;
+}
+.dark .fab-acolor-emerald {
+    background: linear-gradient(135deg, rgba(16,185,129,.24), rgba(5,150,105,.16));
+    color: #6ee7b7;
+}
+.fab-acolor-amber {
+    background: linear-gradient(135deg, rgba(245,158,11,.11), rgba(217,119,6,.07));
+    color: #78350f;
+}
+.dark .fab-acolor-amber {
+    background: linear-gradient(135deg, rgba(245,158,11,.24), rgba(217,119,6,.16));
+    color: #fcd34d;
+}
+.fab-acolor-cyan {
+    background: linear-gradient(135deg, rgba(6,182,212,.11), rgba(8,145,178,.07));
+    color: #164e63;
+}
+.dark .fab-acolor-cyan {
+    background: linear-gradient(135deg, rgba(6,182,212,.24), rgba(8,145,178,.16));
+    color: #67e8f9;
+}
+.fab-acolor-pink {
+    background: linear-gradient(135deg, rgba(236,72,153,.11), rgba(219,39,119,.07));
+    color: #831843;
+}
+.dark .fab-acolor-pink {
+    background: linear-gradient(135deg, rgba(236,72,153,.24), rgba(219,39,119,.16));
+    color: #f9a8d4;
+}
+.fab-acolor-indigo {
+    background: linear-gradient(135deg, rgba(99,102,241,.11), rgba(79,70,229,.07));
+    color: #312e81;
+}
+.dark .fab-acolor-indigo {
+    background: linear-gradient(135deg, rgba(99,102,241,.24), rgba(79,70,229,.16));
+    color: #a5b4fc;
+}
+.fab-acolor-lime {
+    background: linear-gradient(135deg, rgba(132,204,22,.11), rgba(101,163,13,.07));
+    color: #365314;
+}
+.dark .fab-acolor-lime {
+    background: linear-gradient(135deg, rgba(132,204,22,.24), rgba(101,163,13,.16));
+    color: #bef264;
+}
+.fab-acolor-blue {
+    background: linear-gradient(135deg, rgba(59,130,246,.11), rgba(29,78,216,.07));
+    color: #1e3a8a;
+}
+.dark .fab-acolor-blue {
+    background: linear-gradient(135deg, rgba(59,130,246,.24), rgba(29,78,216,.16));
+    color: #93c5fd;
+}
+
+/* ─── Seção Faturas por Banco ─── */
+.fab-area-banks-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.38rem;
+    padding: 0.52rem 0.48rem 0.58rem;
+}
+
+.fab-area-bank-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    padding: 0.42rem 0.6rem;
+    background: rgba(255,255,255,.82);
+    border-radius: 0.65rem;
+    border: 1px solid rgba(148,163,184,.14);
+    min-width: 0;
+}
+.dark .fab-area-bank-card {
+    background: rgba(30,41,59,.65);
+    border-color: rgba(71,85,105,.35);
+}
+
+.fab-area-bank-name {
+    font-size: 0.62rem;
+    font-weight: 600;
+    color: #334155;
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dark .fab-area-bank-name { color: #e2e8f0; }
+
+.fab-area-bank-actions {
+    display: flex;
+    gap: 0.28rem;
+    flex-shrink: 0;
+}
+
+.fab-bank-btn {
+    width: 1.75rem;
+    height: 1.75rem;
+    border-radius: 0.42rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: white;
+    transition: all 0.14s ease;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 2px 6px rgba(0,0,0,.14);
+}
+.fab-bank-btn svg { width: 0.75rem; height: 0.75rem; }
+.fab-bank-btn:active { transform: scale(0.82); opacity: 0.9; }
+
+.fab-bank-btn-upload {
+    background: rgba(59,130,246,.14) !important;
+    color: #1d4ed8 !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(59,130,246,.22);
+}
+.dark .fab-bank-btn-upload {
+    background: rgba(59,130,246,.22) !important;
+    color: #60a5fa !important;
+    border-color: rgba(59,130,246,.32);
+}
+
+/* ─── Responsivo: iPad portrait → 3 colunas ─── */
+@media (min-width: 768px) and (max-width: 1024px) {
+    .fab-areas-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .fab-area-full { grid-column: 1 / -1 !important; }
+    .fab-area-banks-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .fab-area-header { padding: 0.52rem 0.62rem; font-size: 0.64rem; }
+    .fab-area-body { padding: 0.48rem 0.42rem 0.52rem; gap: 0.38rem; }
+    .fab-area-action-icon { width: 1.75rem; height: 1.75rem; }
+}
+
+/* ─── Responsivo: iPad landscape → 4 colunas ─── */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .fab-areas-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .fab-area-full { grid-column: 1 / -1 !important; }
+    .fab-area-banks-grid { grid-template-columns: repeat(5, 1fr) !important; }
 }
