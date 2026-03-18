@@ -11,15 +11,19 @@
 
     /* ── FORM WRAPPER ─────────────────────────────────────── */
     .product-form-page .pf-form {
-        padding: 1.75rem 2.5rem 3rem !important;
+        padding: 1rem 2rem 1.5rem !important;
     }
 
     /* ── LAYOUT ───────────────────────────────────────────── */
     .product-form-page .pf-layout {
         gap: 2rem !important;
-        max-width: 1900px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
+    }
+
+    /* Coluna esquerda ocupa espaço total restante */
+    .product-form-page .pf-left-col {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        width: 0 !important;
     }
 
     /* Coluna de imagem generosa */
@@ -32,23 +36,23 @@
 
     /* ── LEFT CARD ─────────────────────────────────────────── */
     .product-form-page .pf-form-card {
-        padding: 2.5rem !important;
-        border-radius: 2.25rem !important;
+        padding: 1.75rem !important;
+        border-radius: 2rem !important;
     }
 
     .product-form-page .pf-form-card .mb-8 {
-        margin-bottom: 2.25rem !important;
+        margin-bottom: 1.25rem !important;
     }
 
     .product-form-page .pf-form-card .border-t.my-6 {
-        margin-top: 1.75rem !important;
-        margin-bottom: 1.75rem !important;
+        margin-top: 1rem !important;
+        margin-bottom: 1rem !important;
     }
 
     .product-form-page .pf-form-card .flex.items-center.gap-3.mb-6,
     .product-form-page .pf-form-card .flex.items-center.gap-3.mb-4 {
-        gap: 1rem !important;
-        margin-bottom: 1.375rem !important;
+        gap: 0.875rem !important;
+        margin-bottom: 1rem !important;
     }
 
     /* Ícones de seção maiores */
@@ -157,14 +161,14 @@
 
     /* ── RIGHT CARD (Imagem) ──────────────────────────────── */
     .product-form-page .pf-image-card {
-        padding: 2.25rem !important;
-        border-radius: 2.25rem !important;
+        padding: 1.75rem !important;
+        border-radius: 2rem !important;
     }
     .product-form-page .pf-image-card h3.text-lg.font-bold {
         font-size: 1.25rem !important;
     }
     .product-form-page .pf-image-card .flex.items-center.gap-3.mb-6 {
-        margin-bottom: 1rem !important;
+        margin-bottom: 0.75rem !important;
     }
     .product-form-page .pf-image-card .flex.items-center.gap-3 > .w-10.h-10 {
         width: 3rem !important;
@@ -172,17 +176,18 @@
         min-width: 3rem !important;
     }
     .product-form-page .pf-image-card .flex-1.flex.items-center {
-        flex: none !important;
+        flex: 1 1 0% !important;
+        min-height: 0 !important;
     }
-    /* Override h-[500px] — mais alto no ultrawide */
+    /* Override h-[500px] — proporcional no ultrawide */
     .product-form-page .pf-image-card .flex.items-center.justify-center label {
-        height: 580px !important;
-        min-height: 580px !important;
+        height: 500px !important;
+        min-height: 500px !important;
         border-radius: 1.75rem !important;
     }
     .product-form-page .pf-image-card .mt-4 {
         font-size: 0.875rem !important;
-        margin-top: 1rem !important;
+        margin-top: 0.75rem !important;
     }
 
     /* ── HEADER ───────────────────────────────────────────── */
