@@ -212,7 +212,7 @@
                 @endphp
                 <div class="product-card-modern">
                     {{-- Área da imagem com badges e botões --}}
-                    <div class="product-img-area" style="height: 330px; position: relative; overflow: visible !important;">
+                    <div class="product-img-area" style="position: relative; overflow: visible;">
                         <img src="{{ $product->image_url }}" class="product-img" alt="{{ $product->name }}">
 
                         {{-- Código do produto - TOPO ESQUERDO --}}
