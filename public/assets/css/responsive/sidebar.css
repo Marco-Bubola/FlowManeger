@@ -27,6 +27,12 @@
     body:not(.tablet-nav-tabbar) #mainContent {
         margin-left: 280px;
     }
+    /* Garante que sidebar nunca fique travada como fechada no desktop padrão */
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #modernSidebar {
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
 }
 
 /* ─── Compact Sidebar Mode ─── */
