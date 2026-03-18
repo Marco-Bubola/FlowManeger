@@ -1,5 +1,5 @@
 /* settings-profile — Ultrawide */
 @media (min-width: 1441px) {
-    .settings-profile-page { max-width: 1920px; margin-inline: auto; }
+    .settings-profile-page { margin-inline: auto; }
     .settings-profile-page form, .settings-profile-page .form-section { max-width: 900px; }
 }
