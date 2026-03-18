@@ -1,109 +1,77 @@
-/* Edit Sale - Ultrawide (>= 1441px) */
+/* ============================================================
+   Edit Sale — Ultrawide / 4K (1441px+)
+   - Container max-width 1800px
+   - Header grande
+   - Split 3/4 + 1/4 com mais espaço
+   - Tipografia maior nos controles
+   ============================================================ */
+
 @media (min-width: 1441px) {
 
+    /* ── CONTAINER ────────────────────────────────────────── */
     .edit-sale-page {
-        max-width: 1800px;
-        margin-inline: auto;
-        padding-inline: 1.5rem !important;
+        max-width: 1800px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
         padding-bottom: 2.5rem !important;
+        padding-inline: 1.5rem !important;
     }
 
-    /* Header maior */
-    .edit-sale-page .sales-create-header-inner {
+    /* ── HEADER ───────────────────────────────────────────── */
+    .edit-sale-page .relative.overflow-hidden.rounded-3xl {
+        border-radius: 1.375rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+    .edit-sale-page .relative.px-8.py-6 {
         padding: 1.25rem 2.25rem !important;
     }
-
-    .edit-sale-page .sales-create-header-title {
+    /* Ícone principal no header */
+    .edit-sale-page .relative.overflow-hidden.rounded-3xl .w-16.h-16 {
+        width: 4rem !important;
+        height: 4rem !important;
+        border-radius: 1rem !important;
+    }
+    .edit-sale-page .relative.overflow-hidden.rounded-3xl .w-16.h-16 i {
+        font-size: 2rem !important;
+    }
+    /* Botão voltar */
+    .edit-sale-page .w-14.h-14 {
+        width: 3.5rem !important;
+        height: 3.5rem !important;
+    }
+    /* Título */
+    .edit-sale-page .text-4xl {
         font-size: 2.75rem !important;
     }
-
-    .edit-sale-page .sales-create-header-subtitle {
-        font-size: 1.05rem !important;
-    }
-
-    /* Steppers maiores */
-    .edit-sale-page .create-header-step .w-10 {
+    /* Steppers */
+    .edit-sale-page .w-12.h-12.rounded-xl {
         width: 3.25rem !important;
         height: 3.25rem !important;
-        font-size: 1.25rem !important;
     }
 
-    /* Step 1 */
+    /* ── STEP 1: SPLIT LAYOUT ─────────────────────────────── */
     .edit-sale-step1-shell {
-        height: 80vh !important;
         gap: 1.5rem !important;
     }
 
-    .edit-sale-products-pane {
-        width: 75% !important;
-    }
-
-    .edit-sale-side-pane {
-        width: 25% !important;
-    }
-
-    /* Grid produtos: 5 colunas */
-    .edit-sale-page .products-step-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    /* Controls */
+    .edit-sale-products-controls {
         gap: 1rem !important;
     }
-
-    .edit-sale-page .product-card-modern .product-img-area {
-        min-height: 148px !important;
-        height: 148px !important;
-    }
-
-    .edit-sale-page .product-card-modern .card-body {
-        padding: 2.5em 0.65em 2.1em 0.65em !important;
-    }
-
-    .edit-sale-page .product-card-modern .product-title {
-        font-size: 0.82em !important;
-    }
-
-    /* Pesquisa maior */
-    .edit-sale-products-pane input[type="text"] {
-        font-size: 0.94rem !important;
+    .edit-sale-products-controls input {
+        font-size: 0.9rem !important;
         padding: 0.75rem 1rem 0.75rem 2.75rem !important;
         border-radius: 0.875rem !important;
     }
 
-    /* Painel lateral maior */
-    .edit-sale-side-pane > div:first-child {
-        padding: 1.25rem !important;
+    /* Product cards dentro do painel esquerdo */
+    .edit-sale-products-pane .product-card-modern {
+        border-radius: 0.875rem !important;
     }
 
-    /* Step 2 */
-    .edit-sale-step2-shell {
-        max-height: 84vh !important;
-    }
-
-    .edit-sale-review-info-pane {
-        width: 36% !important;
-        padding: 1.75rem !important;
-    }
-
-    .edit-sale-step2-shell > div:last-child {
-        width: 64% !important;
-        padding: 1.75rem !important;
-    }
-
-    .edit-sale-review-info-pane h2 {
-        font-size: 1.75rem !important;
-        margin-bottom: 1.25rem !important;
+    /* Painel direito (selecionados) */
+    .edit-sale-step1-shell > .w-full.lg\:w-1\/4 {
+        /* Manter proporção */
     }
 }
 
-/* ── 1536px+ ─────────────────────────────────────────────── */
-@media (min-width: 1536px) {
-
-    .edit-sale-page .products-step-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-        gap: 1.125rem !important;
-    }
-
-    .edit-sale-page .product-card-modern .product-img-area {
-        min-height: 156px !important;
-        height: 156px !important;
-    }
-}
