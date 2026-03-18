@@ -1,7 +1,6 @@
 /* Publications List — Ultrawide (≥1441px) */
 @media (min-width: 1441px) {
     .publications-page {
-        max-width: 1920px;
         margin-inline: auto;
     }
 
