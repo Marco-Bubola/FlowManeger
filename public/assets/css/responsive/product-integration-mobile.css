@@ -1,3 +1,17 @@
+/* product-integration — Global (todos os breakpoints) */
+/* Garante truncamento correto do título com "..." em todos os tamanhos de tela.
+   O card-body base tem align-items:center, que faz o título encolher para a largura
+   do próprio conteúdo, quebrando o -webkit-line-clamp. width:100% corrige isso. */
+.product-integration-page .product-card-modern .product-title {
+    width: 100% !important;
+    display: -webkit-box !important;
+    -webkit-box-orient: vertical !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
+
 /* product-integration — Mobile (<=767px) */
 @media (max-width: 767px) {
     .product-integration-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
