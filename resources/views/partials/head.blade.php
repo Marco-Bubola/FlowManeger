@@ -1,5 +1,5 @@
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="csrf-token" content="{{ csrf_token() }}">
 
 <title>{{ $title ?? config('app.name') }}</title>
@@ -57,7 +57,8 @@
 <!-- Critical CSS: sidebar oculta no mobile ANTES do body renderizar (evita flash no F5) -->
 <style>
     [x-cloak] { display: none !important; }
-    @media (max-width: 1024px) {
+    /* Mobile e iPad portrait: oculta sidebar com mobile-sidebar-closed */
+    @media (max-width: 1023.98px) {
         #modernSidebar.mobile-sidebar-closed {
             transform: translateX(-100%) !important;
             visibility: hidden;
@@ -67,6 +68,13 @@
             visibility: visible;
         }
     }
+    /* Desktop sem classe: sidebar sempre visível (override classe residual) */
+    @media (min-width: 1366px) {
+        body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #modernSidebar.mobile-sidebar-closed {
+            transform: translateX(0) !important;
+            visibility: visible !important;
+        }
+    }
     .mobile-action-sheet .mobile-sheet-panel { transform: translateY(100%); }
     .mobile-action-sheet .mobile-sheet-backdrop { opacity: 0; }
 </style>
@@ -74,8 +82,8 @@
 @stack('styles')
 
 <!-- Sidebar & Tab Bar CSS (extraídos do inline) -->
-<link rel="stylesheet" href="{{ asset('assets/css/responsive/sidebar.css') }}">
-<link rel="stylesheet" href="{{ asset('assets/css/responsive/tabbar.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/sidebar.css') }}?v={{ filemtime(public_path('assets/css/responsive/sidebar.css')) }}">
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/tabbar.css') }}?v={{ filemtime(public_path('assets/css/responsive/tabbar.css')) }}">
 
 <!-- Responsive CSS separado por dispositivo -->
 <link rel="stylesheet" href="{{ asset('assets/css/responsive/responsive-mobile.css') }}">
