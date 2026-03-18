@@ -1,4 +1,31 @@
 /* product-integration — Notebook */
-@media (min-width: 1025px) and (max-width: 1440px) {
-    .product-integration-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+
+/* ── BLOCO 1: 1025–1279px ─────────────────────────────────── */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .product-integration-page .products-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+        gap: 1rem !important;
+    }
+    .product-integration-page .product-card-modern .product-img-area {
+        height: 220px !important;
+        min-height: 220px !important;
+    }
+    .product-integration-page .product-card-modern .product-img {
+        height: 220px !important;
+    }
+}
+
+/* ── BLOCO 2: 1280–1440px ─────────────────────────────────── */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .product-integration-page .products-grid {
+        grid-template-columns: repeat(6, 1fr) !important;
+        gap: 1.125rem !important;
+    }
+    .product-integration-page .product-card-modern .product-img-area {
+        height: 240px !important;
+        min-height: 240px !important;
+    }
+    .product-integration-page .product-card-modern .product-img {
+        height: 240px !important;
+    }
 }
