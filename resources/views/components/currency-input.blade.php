@@ -136,17 +136,17 @@
         };
 
         // Inicializa campo visível (usado apenas no carregamento da página)
+        // val vem do PHP em formato americano (e.g. "4874.00"), usar parseFloat direto
         const initializeValue = (val) => {
             if (!val || val === '' || val === '0' || val === '0.00') {
                 inputMasked.value = '';
                 return;
             }
             
-            const normalized = normalizeForParse(val);
-            const numValue = parseFloat(normalized);
+            const numValue = parseFloat(val);
             
             if (!isNaN(numValue) && numValue > 0) {
-                inputMasked.value = formatNumber(normalized);
+                inputMasked.value = formatNumber(numValue.toFixed(2));
             }
         };
 
