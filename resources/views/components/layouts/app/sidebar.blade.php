@@ -539,12 +539,13 @@
             </a>
 
             <!-- FAB Central: Ações Rápidas -->
-            <button type="button" class="mobile-tab-item mobile-tab-fab" onclick="openFabSheet()" aria-label="Ações rápidas">
+            <button type="button" class="mobile-tab-item mobile-tab-fab" id="tabFabBtn" onclick="openFabSheet()" aria-label="Ações rápidas">
                 <div class="fab-circle">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
                     </svg>
                 </div>
+                <span class="fab-label">Criar</span>
             </button>
 
             <!-- Produtos -->
@@ -583,12 +584,13 @@
             </button>
         </nav>
 
-        <!-- FAB Sheet: Ações Rápidas — apenas creates e uploads -->
+        <!-- FAB Sheet: Criar & Importar — Cards por Área -->
         <div id="mobileFabSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
             <div class="mobile-sheet-backdrop" onclick="closeFabSheet()"></div>
-            <div class="mobile-sheet-panel">
+            <div class="mobile-sheet-panel fab-sheet">
                 <div class="mobile-sheet-handle"></div>
-                {{-- Header estilizado --}}
+
+                {{-- ─── Header ─── --}}
                 <div class="fab-sheet-header">
                     <div class="fab-sheet-header-icon">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -597,7 +599,7 @@
                     </div>
                     <div class="flex-1 min-w-0">
                         <p class="fab-sheet-title">Criar &amp; Importar</p>
-                        <p class="fab-sheet-subtitle">Todas as páginas · criar e upload</p>
+                        <p class="fab-sheet-subtitle">Organize todas as áreas do sistema</p>
                     </div>
                     <button type="button" class="fab-sheet-close-btn" onclick="closeFabSheet()" aria-label="Fechar">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -606,113 +608,162 @@
                     </button>
                 </div>
 
-                {{-- PAIR: Vendas + Clientes --}}
-                <div class="fab-compact-pair-grid">
-                    <a href="{{ route('sales.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Nova Venda</span>
-                        <div class="fab-card-chip fab-chip-emerald">Vendas</div>
-                    </a>
-                    <a href="{{ route('clients.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Novo Cliente</span>
-                        <div class="fab-card-chip fab-chip-violet">Clientes</div>
-                    </a>
-                </div>
+                {{-- ─── AREA CARDS GRID (2 colunas, moderno) ─── --}}
+                <div class="fab-areas-grid">
 
-                {{-- ─── PRODUTOS ─── --}}
-                <div class="fab-section-chip fab-chip-amber">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                    Produtos
-                </div>
-                <div class="mobile-sheet-grid">
-                    <a href="{{ route('products.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </div>
-                        <span>Novo Produto</span>
-                    </a>
-                    <a href="{{ route('products.kit.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#fb923c,#f97316)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-                        </div>
-                        <span>Novo Kit</span>
-                    </a>
-                    <a href="{{ route('products.upload') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <div class="fab-upload-badge">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                    {{-- Card 1: Vendas & Clientes --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-emerald">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#10b981,#059669)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                             </div>
+                            <span>Vendas &amp; Clientes</span>
                         </div>
-                        <span>Upload CSV</span>
-                    </a>
-                </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
+                            <a href="{{ route('sales.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#10b981,#059669)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <span>Nova Venda</span>
+                            </a>
+                            <a href="{{ route('clients.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+                                </div>
+                                <span>Novo Cliente</span>
+                            </a>
+                        </div>
+                    </div>
 
-                {{-- PAIR: Categorias + Bancos --}}
-                <div class="fab-compact-pair-grid">
-                    <a href="{{ route('categories.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Nova Categoria</span>
-                        <div class="fab-card-chip fab-chip-pink">Categorias</div>
-                    </a>
-                    <a href="{{ route('banks.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Novo Banco</span>
-                        <div class="fab-card-chip fab-chip-blue">Bancos</div>
-                    </a>
-                </div>
-
-                {{-- ─── LIVRO CAIXA ─── --}}
-                <div class="fab-section-chip fab-chip-cyan">
-                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                    Livro Caixa
-                </div>
-                <div class="mobile-sheet-grid" style="grid-template-columns:repeat(2,1fr)">
-                    <a href="{{ route('cashbook.create') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                        </div>
-                        <span>Nova Entrada</span>
-                    </a>
-                    <a href="{{ route('cashbook.upload.minimal') }}" class="mobile-sheet-action" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#22d3ee,#06b6d4)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                            <div class="fab-upload-badge">
-                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                    {{-- Card 2: Produtos --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-amber">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
                             </div>
+                            <span>Produtos</span>
                         </div>
-                        <span>Upload Caixa</span>
-                    </a>
+                        <div class="fab-area-body fab-area-body-cols-3">
+                            <a href="{{ route('products.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </div>
+                                <span>Novo</span>
+                            </a>
+                            <a href="{{ route('products.kit.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#fb923c,#f97316)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+                                </div>
+                                <span>Kit</span>
+                            </a>
+                            <a href="{{ route('products.upload') }}" class="fab-area-action fab-area-action-upload" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                </div>
+                                <span>Upload CSV</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Card 3: Livro Caixa --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-cyan">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
+                            </div>
+                            <span>Livro Caixa</span>
+                        </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
+                            <a href="{{ route('cashbook.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                </div>
+                                <span>Nova Entrada</span>
+                            </a>
+                            <a href="{{ route('cashbook.upload.minimal') }}" class="fab-area-action fab-area-action-upload" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#22d3ee,#06b6d4)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                </div>
+                                <span>Upload CSV</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Card 4: Organização --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-pink">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                            </div>
+                            <span>Organização</span>
+                        </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
+                            <a href="{{ route('categories.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A2 2 0 013 12V7a4 4 0 014-4z"/></svg>
+                                </div>
+                                <span>Categoria</span>
+                            </a>
+                            <a href="{{ route('banks.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/></svg>
+                                </div>
+                                <span>Banco</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Card 5: Reservas --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-indigo">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                            </div>
+                            <span>Reservas</span>
+                        </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
+                            <a href="{{ route('cofrinhos.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                </div>
+                                <span>Cofrinho</span>
+                            </a>
+                            <a href="{{ route('consortiums.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                                </div>
+                                <span>Consórcio</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Card 6: Pessoal & ML --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-lime">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            </div>
+                            <span>Pessoal &amp; ML</span>
+                        </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
+                            <a href="{{ route('daily-habits.create') }}" class="fab-area-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                </div>
+                                <span>Hábito</span>
+                            </a>
+                            <a href="{{ route('mercadolivre.products.publish.create') }}" class="fab-area-action fab-area-ml-action" wire:navigate onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
+                                </div>
+                                <span>Publicar ML</span>
+                            </a>
+                        </div>
+                    </div>
+
                 </div>
 
-                {{-- PAIR: Cofrinhos + Consórcios --}}
-                <div class="fab-compact-pair-grid">
-                    <a href="{{ route('cofrinhos.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Novo Cofrinho</span>
-                        <div class="fab-card-chip fab-chip-indigo">Cofrinhos</div>
-                    </a>
-                    <a href="{{ route('consortiums.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#14b8a6,#0d9488)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Novo Consórcio</span>
-                        <div class="fab-card-chip fab-chip-teal">Consórcios</div>
-                    </a>
-                </div>
-
-                {{-- ─── FATURAS POR BANCO (dinâmico) ─── --}}
+                {{-- ─── FATURAS POR BANCO (full-width, dinâmico) ─── --}}
                 @if($mobileBanks->count() > 0)
                     @php
                         $bankGrads = [
@@ -726,49 +777,32 @@
                             ['#ec4899','#db2777'],
                         ];
                     @endphp
-                    <div class="fab-section-chip fab-chip-blue">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-                        Faturas por Banco
-                    </div>
-                    @foreach($mobileBanks as $bank)
-                        @php $grad = $bankGrads[$loop->index % count($bankGrads)]; @endphp
-                        <div class="fab-compact-pair-grid">
-                            <a href="{{ route('invoices.create', $bank->id_bank) }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                                <div class="action-icon" style="background:linear-gradient(135deg,{{ $grad[0] }},{{ $grad[1] }})">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                                </div>
-                                <span class="fab-card-name">{{ Str::limit($bank->name, 12) }}</span>
-                                <div class="fab-card-chip fab-chip-blue">Criar Fatura</div>
-                            </a>
-                            <a href="{{ route('invoices.upload', $bank->id_bank) }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                                <div class="action-icon" style="background:linear-gradient(135deg,{{ $grad[0] }},{{ $grad[1] }})">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                                    <div class="fab-upload-badge">
-                                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                    <div class="fab-area-card fab-area-full" style="margin-top:0.6rem">
+                        <div class="fab-area-header fab-acolor-blue">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8)">
+                                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                            </div>
+                            <span>Faturas por Banco</span>
+                        </div>
+                        <div class="fab-area-banks-grid">
+                            @foreach($mobileBanks as $bank)
+                                @php $grad = $bankGrads[$loop->index % count($bankGrads)]; @endphp
+                                <div class="fab-area-bank-card">
+                                    <span class="fab-area-bank-name">{{ Str::limit($bank->name, 13) }}</span>
+                                    <div class="fab-area-bank-actions">
+                                        <a href="{{ route('invoices.create', $bank->id_bank) }}" class="fab-bank-btn fab-bank-btn-create" wire:navigate onclick="closeFabSheet()" title="Criar Fatura"
+                                           style="background:linear-gradient(135deg,{{ $grad[0] }},{{ $grad[1] }})">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                                        </a>
+                                        <a href="{{ route('invoices.upload', $bank->id_bank) }}" class="fab-bank-btn fab-bank-btn-upload" wire:navigate onclick="closeFabSheet()" title="Upload Fatura">
+                                            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                                        </a>
                                     </div>
                                 </div>
-                                <span class="fab-card-name">{{ Str::limit($bank->name, 12) }}</span>
-                                <div class="fab-card-chip fab-chip-cyan">Upload</div>
-                            </a>
+                            @endforeach
                         </div>
-                    @endforeach
+                    </div>
                 @endif
-                <div class="fab-compact-pair-grid">
-                    <a href="{{ route('daily-habits.create') }}" class="mobile-sheet-action fab-action-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Novo Hábito</span>
-                        <div class="fab-card-chip fab-chip-lime">Hábitos</div>
-                    </a>
-                    <a href="{{ route('mercadolivre.products.publish.create') }}" class="mobile-sheet-action fab-action-card fab-ml-card" wire:navigate onclick="closeFabSheet()">
-                        <div class="action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path></svg>
-                        </div>
-                        <span class="fab-card-name">Publicar no ML</span>
-                        <div class="fab-card-chip fab-chip-gold">Mercado Livre</div>
-                    </a>
-                </div>
 
             </div>
         </div>
@@ -989,20 +1023,28 @@
             }
 
             function applyTabletNavMode() {
+                // Não interferir enquanto um sheet de ações está aberto
+                if (_isAnySheetOpen()) return;
+
                 const sidebar = document.getElementById('modernSidebar');
                 const mode = getTabletNavMode();
 
-                document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
-
                 if (isTabletPortrait()) {
-                    // iPad portrait (768-1024): TabBar é sempre a nav, sidebar só como drawer
-                    // Não aplica classe tablet-nav-* neste range (CSS trata via media query diretamente)
+                    // iPad portrait (768-1024): TabBar sempre ativa, sidebar somente como drawer
+                    // Remove classes tablet-nav-* se houver (CSS media query cuida diretamente)
+                    if (document.body.classList.contains('tablet-nav-sidebar') || document.body.classList.contains('tablet-nav-tabbar')) {
+                        document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
+                    }
                     sidebar?.classList.add('mobile-sidebar-closed');
-                    document.body.classList.remove('overflow-hidden');
 
                 } else if (isTabletLandscape() || isDesktopOrLarger()) {
                     // iPad landscape ou desktop: aplica preferência do usuário
-                    document.body.classList.add(mode === 'tabbar' ? 'tablet-nav-tabbar' : 'tablet-nav-sidebar');
+                    // Evita remover+readicionar a mesma classe (causa flash de layout)
+                    const targetClass = mode === 'tabbar' ? 'tablet-nav-tabbar' : 'tablet-nav-sidebar';
+                    if (!document.body.classList.contains(targetClass)) {
+                        document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
+                        document.body.classList.add(targetClass);
+                    }
 
                     if (mode === 'tabbar') {
                         sidebar?.classList.add('mobile-sidebar-closed');
@@ -1011,19 +1053,19 @@
                     }
                 } else {
                     // Mobile puro (<768px): sidebar como drawer, tabbar visível
+                    if (document.body.classList.contains('tablet-nav-sidebar') || document.body.classList.contains('tablet-nav-tabbar')) {
+                        document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
+                    }
                     sidebar?.classList.add('mobile-sidebar-closed');
-                    document.body.classList.remove('overflow-hidden');
                 }
-
-                document.body.classList.remove('overflow-hidden');
             }
 
             function openMobileSidebar() {
                 const sidebar = document.getElementById('modernSidebar');
                 if (!sidebar) return;
 
-                // No iPad landscape com modo sidebar: não abre como overlay (já está fixo)
-                if (isTabletLandscape() && getTabletNavMode() === 'sidebar') {
+                // Desktop e iPad landscape com modo sidebar: sidebar já é fixa, não vira overlay
+                if ((isDesktopOrLarger() || isTabletLandscape()) && getTabletNavMode() === 'sidebar') {
                     sidebar.classList.remove('mobile-sidebar-closed');
                     return;
                 }
@@ -1036,17 +1078,21 @@
                 const sidebar = document.getElementById('modernSidebar');
                 if (!sidebar) return;
 
-                // No iPad landscape com modo sidebar: não fecha (sidebar fixa)
-                if (isTabletLandscape() && getTabletNavMode() === 'sidebar') {
+                // Desktop e iPad landscape com modo sidebar: não fecha (sidebar é fixa)
+                if ((isDesktopOrLarger() || isTabletLandscape()) && getTabletNavMode() === 'sidebar') {
                     return;
                 }
 
                 sidebar.classList.add('mobile-sidebar-closed');
-                document.body.classList.remove('overflow-hidden');
             }
 
             function _tabbar() {
                 return document.querySelector('.mobile-bottom-tabbar');
+            }
+
+            function _isAnySheetOpen() {
+                return document.getElementById('mobileFabSheet')?.classList.contains('is-open')
+                    || document.getElementById('mobileMoreSheet')?.classList.contains('is-open');
             }
 
             function openFabSheet() {
@@ -1054,9 +1100,9 @@
                 if (!sheet) return;
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('overflow-hidden');
                 const tb = _tabbar();
                 if (tb) { tb.style.visibility = 'hidden'; tb.style.pointerEvents = 'none'; }
+                document.getElementById('tabFabBtn')?.classList.add('fab-sheet-open');
             }
 
             function closeFabSheet() {
@@ -1064,9 +1110,11 @@
                 if (!sheet) return;
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('overflow-hidden');
-                const tb = _tabbar();
-                if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
+                document.getElementById('tabFabBtn')?.classList.remove('fab-sheet-open');
+                if (!_isAnySheetOpen()) {
+                    const tb = _tabbar();
+                    if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
+                }
             }
 
             function openMoreSheet() {
@@ -1074,7 +1122,6 @@
                 if (!sheet) return;
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
-                document.body.classList.add('overflow-hidden');
                 const tb = _tabbar();
                 if (tb) { tb.style.visibility = 'hidden'; tb.style.pointerEvents = 'none'; }
             }
@@ -1084,9 +1131,10 @@
                 if (!sheet) return;
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
-                document.body.classList.remove('overflow-hidden');
-                const tb = _tabbar();
-                if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
+                if (!_isAnySheetOpen()) {
+                    const tb = _tabbar();
+                    if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
+                }
             }
 
             function initSidebar() {
@@ -1108,6 +1156,7 @@
                 // Close any open sheets on navigation and always restore tabbar
                 closeFabSheet();
                 closeMoreSheet();
+                document.getElementById('tabFabBtn')?.classList.remove('fab-sheet-open');
                 const tb = _tabbar();
                 if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
 
