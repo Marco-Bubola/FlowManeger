@@ -1,4 +1,31 @@
 /* product-integration — Ultrawide */
+
+/* ── 1441–2399px: desktop full HD → 7 colunas ─────────────── */
 @media (min-width: 1441px) {
-    .product-integration-page { max-width: 1920px; margin-inline: auto; }
+    .product-integration-page .products-grid {
+        grid-template-columns: repeat(7, 1fr) !important;
+        gap: 1.25rem !important;
+    }
+    .product-integration-page .product-card-modern .product-img-area {
+        height: 260px !important;
+        min-height: 260px !important;
+    }
+    .product-integration-page .product-card-modern .product-img {
+        height: 260px !important;
+    }
+}
+
+/* ── 2400px+: ultrawide real → 8 colunas ───────────────────── */
+@media (min-width: 2400px) {
+    .product-integration-page .products-grid {
+        grid-template-columns: repeat(8, 1fr) !important;
+        gap: 1.375rem !important;
+    }
+    .product-integration-page .product-card-modern .product-img-area {
+        height: 300px !important;
+        min-height: 300px !important;
+    }
+    .product-integration-page .product-card-modern .product-img {
+        height: 300px !important;
+    }
 }
