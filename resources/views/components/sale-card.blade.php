@@ -163,7 +163,7 @@
     </div>
     </template>
 
-    <div class="sale-card-actions p-3 border-t border-slate-200/60 dark:border-slate-700/60 bg-transparent">
+    <div class="sale-card-actions">
 
         {{-- 1. Ver detalhes --}}
         <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
