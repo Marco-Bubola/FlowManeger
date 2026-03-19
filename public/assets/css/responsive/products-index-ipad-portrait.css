@@ -112,29 +112,41 @@
         flex-shrink: 0 !important;
     }
 
-    /* Pills compactos */
+    /* segunda linha: não quebra de jeito nenhum */
+    .products-index-page .prod-header-row-2 {
+        flex-wrap: nowrap !important;
+    }
+
+    /* Pills compactos — fonte menor para caber em 1 linha */
     .products-index-page .prod-header-row-2 .sale-filter-pills {
-        gap: 0.18rem !important;
+        gap: 0.12rem !important;
+        flex-shrink: 0 !important;
     }
 
     .products-index-page .prod-header-row-2 .sale-filter-pill {
-        padding: 0.26rem 0.52rem !important;
-        font-size: 0.73rem !important;
-        gap: 0.18rem !important;
-        border-radius: 0.52rem !important;
+        padding: 0.2rem 0.38rem !important;
+        font-size: 0.65rem !important;
+        gap: 0.12rem !important;
+        border-radius: 0.45rem !important;
+        white-space: nowrap !important;
+    }
+
+    .products-index-page .prod-header-row-2 .sale-filter-pill i {
+        font-size: 0.65rem !important;
     }
 
     .products-index-page .prod-header-row-2 .sale-filter-pill-label {
-        padding: 0.22rem 0.42rem !important;
-        font-size: 0.73rem !important;
+        padding: 0.18rem 0.32rem !important;
+        font-size: 0.65rem !important;
     }
 
     /* Ações — só ícone */
     .products-index-page .prod-header-row-2 .sale-action-btn {
-        padding: 0.26rem 0.52rem !important;
-        font-size: 0.73rem !important;
-        gap: 0.18rem !important;
-        border-radius: 0.52rem !important;
+        padding: 0.2rem 0.38rem !important;
+        font-size: 0.65rem !important;
+        gap: 0.12rem !important;
+        border-radius: 0.45rem !important;
+        flex-shrink: 0 !important;
     }
 
     .products-index-page .prod-header-row-2 .sale-action-btn span {
@@ -143,18 +155,19 @@
 
     /* Paginação compacta */
     .products-index-page .prod-header-row-2 .sale-pagination-compact {
-        gap: 0.18rem !important;
+        gap: 0.14rem !important;
+        flex-shrink: 0 !important;
     }
 
     .products-index-page .prod-header-row-2 .sale-pagination-btn {
-        width: 1.55rem !important;
-        height: 1.55rem !important;
-        font-size: 0.72rem !important;
+        width: 1.45rem !important;
+        height: 1.45rem !important;
+        font-size: 0.65rem !important;
     }
 
     .products-index-page .prod-header-row-2 .sale-pagination-indicator {
-        font-size: 0.72rem !important;
-        padding: 0.2rem 0.42rem !important;
+        font-size: 0.65rem !important;
+        padding: 0.18rem 0.36rem !important;
     }
 
     /* ── GRID: 4 COLUNAS ─────────────────────────────────── */
