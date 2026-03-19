@@ -23,7 +23,8 @@
 
 /* ─── Desktop padrão (> 1366px, sem classe tablet-nav-*): sidebar fixa ─── */
 /* O mainContent precisa de margin-left para não ficar atrás da sidebar */
-@media (min-width: 1366px) {
+/* Usa 1367px para excluir iPad Pro 12.9" landscape (= 1366px) que é tratado pelo bloco landscape */
+@media (min-width: 1367px) {
     body:not(.tablet-nav-tabbar) #mainContent {
         margin-left: 280px;
     }
@@ -64,49 +65,38 @@ body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
     #modernSidebar:not(.mobile-sidebar-closed) { transform: translateX(0) !important; }
 }
 
-/* ─── iPad landscape (1024-1366): Sidebar fixa OU TabBar — nunca as duas ─── */
-@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
-    /* === MODO SIDEBAR: sidebar fixa à esquerda, tabbar escondida === */
-    body.tablet-nav-sidebar #modernSidebar {
-        width: 240px !important;
-        transform: translateX(0) !important;
-        visibility: visible !important;
-        pointer-events: auto !important;
-        position: fixed !important;
+/* ─── iPad landscape (1024-1366): TabBar SEMPRE ativa, sidebar SEMPRE drawer ─── */
+/* pointer: coarse distingue iPads (touch) de notebooks (pointer: fine) no mesmo range */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) and (pointer: coarse) {
+    #modernSidebar {
+        width: 300px !important;
+        border-radius: 0 1.35rem 1.35rem 0 !important;
     }
-    body.tablet-nav-sidebar #mainContent {
-        margin-left: 240px !important;
-        padding-bottom: 0 !important;
-    }
-    body.tablet-nav-sidebar .mobile-sidebar-backdrop {
-        display: none !important;
-        opacity: 0 !important;
-        pointer-events: none !important;
-    }
-    /* === MODO TABBAR: sidebar escondida, tabbar visível === */
-    body.tablet-nav-tabbar #modernSidebar {
-        transform: translateX(-100%) !important;
-        visibility: hidden !important;
-        pointer-events: none !important;
-    }
-    body.tablet-nav-tabbar #mainContent {
+    #mainContent {
         margin-left: 0 !important;
         padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
     }
-    /* Se classe não estiver definida ainda (estado inicial), default = sidebar */
-    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #modernSidebar {
-        width: 240px !important;
-        transform: translateX(0) !important;
-        visibility: visible !important;
+    #modernSidebar.mobile-sidebar-closed       { transform: translateX(-100%) !important; }
+    #modernSidebar:not(.mobile-sidebar-closed) { transform: translateX(0) !important; }
+    .mobile-sidebar-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 45;
+        background: rgba(2, 6, 23, 0.42);
+        backdrop-filter: blur(3px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.2s ease;
     }
-    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) #mainContent {
-        margin-left: 240px !important;
-        padding-bottom: 0 !important;
+    #modernSidebar:not(.mobile-sidebar-closed) ~ .mobile-sidebar-backdrop {
+        opacity: 1;
+        pointer-events: auto;
     }
 }
 
 /* ─── Desktop largo (>1366px): Sidebar fixa OU TabBar — nunca as duas ─── */
-@media (min-width: 1366px) {
+/* Usa 1367px para excluir iPad Pro 12.9" landscape (1366px) — tratado pelo bloco landscape */
+@media (min-width: 1367px) {
     body.tablet-nav-sidebar #modernSidebar {
         width: 280px !important;
         transform: translateX(0) !important;
