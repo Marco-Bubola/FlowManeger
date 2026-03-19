@@ -144,7 +144,7 @@
                 <div class="sale-filter-pills sale-sort-pills sales-mobile-hide hidden md:flex">
                     <span class="sale-filter-pill-label">
                         <i class="bi bi-arrow-down-up"></i>
-                        <span>Ordenar</span>
+                       
                     </span>
 
                     <button type="button" wire:click="setSortOrder('created_at', 'desc')"
@@ -170,7 +170,7 @@
                 <div class="sale-filter-pills sale-period-pills sales-mobile-hide hidden md:flex">
                     <span class="sale-filter-pill-label">
                         <i class="bi bi-calendar-week"></i>
-                        <span>Período</span>
+                       
                     </span>
 
                     <button type="button" wire:click="setQuickFilter('today')"
@@ -216,12 +216,14 @@
                 <button type="button" wire:click="toggleTips"
                     class="sale-action-btn sale-action-tips" title="Dicas">
                     <i class="bi bi-lightbulb"></i>
+                    <span>Dicas</span>
                 </button>
 
                 <button type="button" @click="showFilters = !showFilters"
                     class="sale-action-btn sale-action-filter"
                     :class="{ 'active': showFilters }" title="Filtros Avançados">
                     <i class="bi bi-sliders"></i>
+                    <span>Filtros</span>
                 </button>
             </div>
         </div>
