@@ -19,8 +19,9 @@
     }
 }
 
-/* Tablet/iPad landscape & notebook: sidebar compacta */
-@media (min-width: 1025px) and (max-width: 1366px) {
+/* Notebook landscape: sidebar compacta — apenas dispositivos com mouse (pointer: fine) */
+/* Exclui iPads (pointer: coarse/touch) que ficam no range 1024-1366px landscape */
+@media (min-width: 1025px) and (max-width: 1366px) and (pointer: fine) {
     #modernSidebar {
         width: 240px !important;
     }
