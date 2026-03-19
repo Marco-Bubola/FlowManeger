@@ -92,9 +92,10 @@
         flex: 1 !important;
         min-width: 0 !important;
     }
-    /* mostrar pills de status + per-page, ocultar sort/period */
+    /* mostrar pills de status, ocultar sort/period + per-page */
     .sale-sort-pills,
-    .sale-period-pills {
+    .sale-period-pills,
+    .sale-perpage-pills {
         display: none !important;
     }
     .sales-mobile-hide {
