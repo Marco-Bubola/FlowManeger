@@ -61,18 +61,22 @@
         gap: 0.625rem !important;
     }
     .sale-filter-pill {
-        font-size: 0.82rem !important;
-        padding: 0.4375rem 1rem !important;
-        border-radius: 0.625rem !important;
+        font-size: 0.72rem !important;
+        padding: 0.3rem 0.65rem !important;
+        border-radius: 0.55rem !important;
     }
     .sale-filter-pill-label {
-        font-size: 0.82rem !important;
+        font-size: 0.7rem !important;
     }
     .sale-action-btn {
-        width: 2.5rem !important;
-        height: 2.5rem !important;
-        font-size: 1rem !important;
+        width: auto !important;
+        min-width: 2.3rem !important;
+        min-height: 2.3rem !important;
+        height: auto !important;
+        padding: 0.35rem 0.75rem !important;
+        font-size: 0.82rem !important;
         border-radius: 0.625rem !important;
+        line-height: 1.2 !important;
     }
     .sale-pagination-btn {
         width: 2.25rem !important;
@@ -116,10 +120,10 @@
         grid-template-columns: repeat(3, 1fr) !important;
     }
     .sale-card-fin-data span {
-        font-size: 0.78rem !important;
+        font-size: 0.62rem !important;
     }
     .sale-card-fin-data strong {
-        font-size: 1.125rem !important;
+        font-size: 0.88rem !important;
     }
     .sale-card-actions a,
     .sale-card-actions button {
