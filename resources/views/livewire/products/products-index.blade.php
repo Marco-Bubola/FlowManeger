@@ -64,6 +64,7 @@
         const mqCompact = window.matchMedia('(max-width: 1024px)');
         const mqPhone15 = window.matchMedia('(max-width: 430px)');
         const mqIpad11 = window.matchMedia('(min-width: 768px) and (max-width: 1194px)');
+        const mqIpadLandscape = window.matchMedia('(min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) and (pointer: coarse)');
 
         const sync = () => {
             this.fullHd = mq.matches;
@@ -83,6 +84,12 @@
             this.isCompactModal = mqCompact.matches;
             this.isPhone15 = mqPhone15.matches;
             this.isIpad11 = mqIpad11.matches;
+        };
+
+        const syncIpadLandscape = () => {
+            if ($wire) {
+                $wire.set('ipadLandscapeLayout', mqIpadLandscape.matches);
+            }
         };
 
         sync();
@@ -118,6 +125,14 @@
         } else {
             mqIpad11.addListener(syncDevice);
         }
+
+        syncIpadLandscape();
+        if (typeof mqIpadLandscape.addEventListener === 'function') {
+            mqIpadLandscape.addEventListener('change', syncIpadLandscape);
+        } else {
+            mqIpadLandscape.addListener(syncIpadLandscape);
+        }
+        window.addEventListener('orientationchange', () => setTimeout(syncIpadLandscape, 150));
     }
 }" x-init="initResponsiveWatcher()">
     @push('styles')
@@ -200,7 +215,7 @@
 
                     <!-- Ordenação -->
                     <div class="sale-filter-pills sale-sort-pills hidden md:flex">
-                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i><span>Ord.</span></span>
+                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i></span>
                         <button type="button" wire:click="toggleSort('data')"
                             class="sale-filter-pill {{ in_array($ordem, ['recentes','data_desc','data_asc']) ? 'active' : '' }}" title="Ordenar por data">
                             <span>Recentes</span>
@@ -250,23 +265,27 @@
                     <button type="button" wire:click="toggleTips"
                         class="sale-action-btn sale-action-tips" title="Dicas">
                         <i class="bi bi-lightbulb"></i>
+                        <span>Dicas</span>
                     </button>
 
                     <button type="button" @click="openFiltersModal()"
                         class="sale-action-btn sale-action-filter"
                         :class="{ 'active': showFilters }" title="Filtros Avançados">
                         <i class="bi bi-sliders"></i>
+                        <span>Filtros</span>
                     </button>
 
                     <!-- Kit e Upload como ícones compactos -->
                     <a href="{{ route('products.kit.create') }}"
                         class="sale-action-btn prod-action-kit" title="Novo Kit">
                         <i class="bi bi-boxes"></i>
+                        <span>Novo Kit</span>
                     </a>
 
                     <a href="{{ route('products.upload') }}"
                         class="sale-action-btn prod-action-upload" title="Upload em Lote">
                         <i class="bi bi-file-earmark-arrow-up"></i>
+                        <span>Upload</span>
                     </a>
 
                 </div>
