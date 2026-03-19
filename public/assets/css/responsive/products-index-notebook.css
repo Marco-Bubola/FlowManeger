@@ -48,13 +48,13 @@
     }
 
     .products-index-page .products-grid .product-card-modern .product-img-area {
-        min-height: 185px !important;
-        height: 185px !important;
+        min-height: 210px !important;
+        height: 210px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img {
-        height: 185px !important;
-        max-height: 185px !important;
+        height: 210px !important;
+        max-height: 210px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
