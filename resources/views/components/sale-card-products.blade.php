@@ -51,8 +51,9 @@
     </div>
 
     @if($items->count() > $max)
-        <div class="sale-card-more text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
-            +{{ $items->count() - $max }} produtos
+        <div class="sale-card-more">
+            <i class="bi bi-plus-circle-fill"></i>
+            <span>+{{ $items->count() - $max }} produtos</span>
         </div>
     @endif
 @endif
