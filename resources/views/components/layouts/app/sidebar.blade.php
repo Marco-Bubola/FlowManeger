@@ -1015,11 +1015,12 @@
             }
 
             function isTabletLandscape() {
-                return window.matchMedia('(min-width: 1024px) and (max-width: 1366px) and (orientation: landscape)').matches;
+                // pointer: coarse distingue iPads (touch) de notebooks (mouse) no mesmo range de largura
+                return window.matchMedia('(min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) and (pointer: coarse)').matches;
             }
 
             function isDesktopOrLarger() {
-                return window.innerWidth >= 1366;
+                return window.innerWidth >= 1367;
             }
 
             function applyTabletNavMode() {
@@ -1029,16 +1030,16 @@
                 const sidebar = document.getElementById('modernSidebar');
                 const mode = getTabletNavMode();
 
-                if (isTabletPortrait()) {
-                    // iPad portrait (768-1024): TabBar sempre ativa, sidebar somente como drawer
+                if (isTabletPortrait() || isTabletLandscape()) {
+                    // iPad portrait + landscape: TabBar sempre ativa, sidebar somente como drawer
                     // Remove classes tablet-nav-* se houver (CSS media query cuida diretamente)
                     if (document.body.classList.contains('tablet-nav-sidebar') || document.body.classList.contains('tablet-nav-tabbar')) {
                         document.body.classList.remove('tablet-nav-sidebar', 'tablet-nav-tabbar');
                     }
                     sidebar?.classList.add('mobile-sidebar-closed');
 
-                } else if (isTabletLandscape() || isDesktopOrLarger()) {
-                    // iPad landscape ou desktop: aplica preferência do usuário
+                } else if (isDesktopOrLarger()) {
+                    // Desktop: aplica preferência do usuário
                     // Evita remover+readicionar a mesma classe (causa flash de layout)
                     const targetClass = mode === 'tabbar' ? 'tablet-nav-tabbar' : 'tablet-nav-sidebar';
                     if (!document.body.classList.contains(targetClass)) {
@@ -1064,8 +1065,8 @@
                 const sidebar = document.getElementById('modernSidebar');
                 if (!sidebar) return;
 
-                // Desktop e iPad landscape com modo sidebar: sidebar já é fixa, não vira overlay
-                if ((isDesktopOrLarger() || isTabletLandscape()) && getTabletNavMode() === 'sidebar') {
+                // Desktop com modo sidebar: sidebar já é fixa, não vira overlay
+                if (isDesktopOrLarger() && getTabletNavMode() === 'sidebar') {
                     sidebar.classList.remove('mobile-sidebar-closed');
                     return;
                 }
@@ -1078,8 +1079,8 @@
                 const sidebar = document.getElementById('modernSidebar');
                 if (!sidebar) return;
 
-                // Desktop e iPad landscape com modo sidebar: não fecha (sidebar é fixa)
-                if ((isDesktopOrLarger() || isTabletLandscape()) && getTabletNavMode() === 'sidebar') {
+                // Desktop com modo sidebar: não fecha (sidebar é fixa)
+                if (isDesktopOrLarger() && getTabletNavMode() === 'sidebar') {
                     return;
                 }
 
@@ -1143,9 +1144,9 @@
 
                 applyTabletNavMode();
 
-                // Load saved compact state (desktop only — > 1024px landscape ou > 1366px)
+                // Load saved compact state (desktop only — > 1366px)
                 const isCompact = localStorage.getItem('sidebarCompact') === 'true';
-                if (isCompact && (isTabletLandscape() || isDesktopOrLarger())) {
+                if (isCompact && isDesktopOrLarger()) {
                     if (getTabletNavMode() === 'sidebar') {
                         document.body.classList.add('sidebar-compact');
                     }
@@ -1173,7 +1174,7 @@
                 // Close mobile sidebar on nav link click (mobile e iPad portrait)
                 document.querySelectorAll('.nav-item').forEach(item => {
                     item.addEventListener('click', function() {
-                        if (window.innerWidth < 1024 || isTabletPortrait()) {
+                        if (window.innerWidth < 1024 || isTabletPortrait() || isTabletLandscape()) {
                             closeMobileSidebar();
                         }
                     });
