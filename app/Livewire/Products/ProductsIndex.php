@@ -32,6 +32,7 @@ class ProductsIndex extends Component
     public bool $semEstoque = false;
     public bool $fullHdLayout = false;
     public bool $ultraLayout = false;
+    public bool $ipadLandscapeLayout = false;
     public int $perPage = 18;
     public int $page = 1;
 
@@ -72,7 +73,9 @@ class ProductsIndex extends Component
 
     private function defaultPerPage(): int
     {
-        return $this->isUltraWind() ? 32 : 18;
+        if ($this->isUltraWind()) return 32;
+        if ($this->ipadLandscapeLayout) return 21; // 3 linhas × 7 colunas
+        return 18;
     }
 
     private function alignPerPageToOptions(): void
@@ -141,6 +144,17 @@ class ProductsIndex extends Component
         // Não resetamos a página para evitar comportamento de retornar
         // à página 1 quando Alpine reaplica a propriedade.
         $this->alignPerPageToOptions();
+    }
+
+    public function updatedIpadLandscapeLayout(bool $isIpadLandscape): void
+    {
+        // Quando entra/sai do modo iPad landscape, realinha perPage para
+        // múltiplos de 7 (landscape) ou 6 (outros), garantindo mín. 3 linhas.
+        $this->queryString['perPage']['except'] = $isIpadLandscape ? 21 : 18;
+        $this->alignPerPageToOptions();
+        if ($isIpadLandscape && $this->perPage < 21) {
+            $this->perPage = 21;
+        }
     }
 
     public function updatingSearch()
@@ -466,6 +480,11 @@ class ProductsIndex extends Component
         if ($this->fullHdLayout) {
             // Layout pensado para monitores 1920px (5 cards por linha)
             return [25, 30, 35, 40, 45, 50];
+        }
+
+        if ($this->ipadLandscapeLayout) {
+            // iPad landscape: 7 colunas por linha → múltiplos de 7
+            return [14, 21, 28, 35, 42];
         }
 
         // Múltiplos de 6 (padrão)
