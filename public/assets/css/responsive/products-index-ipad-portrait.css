@@ -12,96 +12,149 @@
         padding-bottom: calc(82px + env(safe-area-inset-bottom)) !important;
     }
 
-    /* ── HEADER: COMPACTO ────────────────────────────────── */
+    /* ── HEADER: GRID 2×2 — título+busca na linha 1, pills full-width na linha 2 ── */
     .products-index-page .products-index-header {
         border-radius: 1.5rem !important;
         margin-bottom: 1rem !important;
     }
 
+    /* inner vira grid: coluna 1 = ícone/título (auto), coluna 2 = busca/botão (1fr) */
     .products-index-page .products-index-header-inner {
-        padding: 0.85rem 1.1rem !important;
+        display: grid !important;
+        grid-template-columns: auto 1fr !important;
+        grid-template-rows: auto auto !important;
+        column-gap: 0.7rem !important;
+        row-gap: 0 !important;
+        align-items: center !important;
+        padding: 0.85rem 1.1rem 0.8rem !important;
     }
 
-    .products-index-page .products-index-header-layout {
-        flex-direction: column !important;
-        gap: 0.65rem !important;
+    /* Dissolve wrappers intermediários para que filhos entrem no grid */
+    .products-index-page .products-index-header-layout,
+    .products-index-page .products-index-header-slot,
+    .products-index-page .products-index-controls {
+        display: contents !important;
     }
 
+    /* ── CÉLULA (col1, row1): ícone + título ─────────────── */
     .products-index-page .products-index-header-left {
-        gap: 0.6rem !important;
+        grid-column: 1 / 2 !important;
+        grid-row: 1 / 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        align-self: center !important;
     }
 
     .products-index-page .products-index-header-icon {
-        width: 2.25rem !important;
-        height: 2.25rem !important;
+        width: 2.2rem !important;
+        height: 2.2rem !important;
         border-radius: 0.6rem !important;
         flex-shrink: 0 !important;
     }
 
     .products-index-page .products-index-header-icon i {
-        font-size: 1.05rem !important;
+        font-size: 1rem !important;
     }
 
     .products-index-page .products-index-header-content h1 {
-        font-size: 1.35rem !important;
+        font-size: 1.25rem !important;
         line-height: 1.2 !important;
+        white-space: nowrap !important;
     }
 
+    /* Badges de stats: ocultos — sem espaço na linha 1 */
     .products-index-page .products-index-header-stats {
+        display: none !important;
+    }
+
+    /* ── CÉLULA (col2, row1): busca + botão ──────────────── */
+    .products-index-page .prod-header-row-1 {
+        grid-column: 2 / 3 !important;
+        grid-row: 1 / 2 !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        align-self: center !important;
+        min-width: 0 !important;
+    }
+
+    .products-index-page .prod-header-btn-create {
+        padding: 0.48rem 0.85rem !important;
+        font-size: 0.78rem !important;
+        border-radius: 0.65rem !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* ── CÉLULA (col1→2, row2): pills + paginação full-width ── */
+    .products-index-page .prod-header-row-2 {
+        grid-column: 1 / -1 !important;
+        grid-row: 2 / 3 !important;
+        align-self: start !important;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
         gap: 0.4rem !important;
+        margin-top: 0.45rem !important;
+        padding-top: 0.45rem !important;
+        border-top: 1px solid rgba(148,163,184,0.13) !important;
+    }
+
+    .products-index-page .prod-header-row-2-left {
+        gap: 0.35rem !important;
         flex-wrap: wrap !important;
     }
 
-    .products-index-page .products-index-header-stats > div {
-        padding: 0.28rem 0.6rem !important;
-        font-size: 0.76rem !important;
+    .products-index-page .prod-header-row-2-right {
         gap: 0.35rem !important;
+        flex-shrink: 0 !important;
     }
 
-    .products-index-page .products-index-header-stats > div > div {
+    /* Pills compactos */
+    .products-index-page .prod-header-row-2 .sale-filter-pills {
+        gap: 0.18rem !important;
+    }
+
+    .products-index-page .prod-header-row-2 .sale-filter-pill {
+        padding: 0.26rem 0.52rem !important;
+        font-size: 0.73rem !important;
+        gap: 0.18rem !important;
+        border-radius: 0.52rem !important;
+    }
+
+    .products-index-page .prod-header-row-2 .sale-filter-pill-label {
+        padding: 0.22rem 0.42rem !important;
+        font-size: 0.73rem !important;
+    }
+
+    /* Ações — só ícone */
+    .products-index-page .prod-header-row-2 .sale-action-btn {
+        padding: 0.26rem 0.52rem !important;
+        font-size: 0.73rem !important;
+        gap: 0.18rem !important;
+        border-radius: 0.52rem !important;
+    }
+
+    .products-index-page .prod-header-row-2 .sale-action-btn span {
+        display: none !important;
+    }
+
+    /* Paginação compacta */
+    .products-index-page .prod-header-row-2 .sale-pagination-compact {
+        gap: 0.18rem !important;
+    }
+
+    .products-index-page .prod-header-row-2 .sale-pagination-btn {
         width: 1.55rem !important;
         height: 1.55rem !important;
+        font-size: 0.72rem !important;
     }
 
-    /* ── CONTROLES LINHA 1 ──────────────────────────────── */
-    .products-index-page .products-index-controls-row-1 {
-        flex-wrap: wrap !important;
-        gap: 0.5rem !important;
-    }
-
-    .products-index-page .products-index-aux-actions button {
-        padding: 0.5rem 0.65rem !important;
-        font-size: 0.8rem !important;
-        border-radius: 0.65rem !important;
-    }
-
-    .products-index-page .products-index-aux-actions button span {
-        display: none !important;
-    }
-
-    .products-index-page .products-index-main-actions {
-        padding-left: 0.6rem !important;
-        gap: 0.35rem !important;
-    }
-
-    .products-index-page .products-index-main-actions a {
-        padding: 0.5rem 0.75rem !important;
-        font-size: 0.8rem !important;
-        border-radius: 0.7rem !important;
-    }
-
-    .products-index-page .products-index-main-actions a span {
-        display: none !important;
-    }
-
-    .products-index-page .products-index-main-actions a:first-child span {
-        display: inline !important;
-    }
-
-    /* ── CONTROLES LINHA 2 ──────────────────────────────── */
-    .products-index-page .products-index-controls-row-2 {
-        flex-wrap: wrap !important;
-        gap: 0.45rem !important;
+    .products-index-page .prod-header-row-2 .sale-pagination-indicator {
+        font-size: 0.72rem !important;
+        padding: 0.2rem 0.42rem !important;
     }
 
     /* ── GRID: 4 COLUNAS ─────────────────────────────────── */
@@ -117,17 +170,17 @@
         border-radius: 1.05rem !important;
     }
 
-    /* Área de imagem: ~150px para ~175px de largura de card */
+    /* Área de imagem: ~180px para ~175px de largura de card */
     .products-index-page .products-grid .product-card-modern .product-img-area {
-        min-height: 150px !important;
-        height: 150px !important;
+        min-height: 180px !important;
+        height: 180px !important;
         border-top-left-radius: 1.05rem !important;
         border-top-right-radius: 1.05rem !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img {
-        height: 150px !important;
-        max-height: 150px !important;
+        height: 180px !important;
+        max-height: 180px !important;
         border-top-left-radius: 1.05rem !important;
         border-top-right-radius: 1.05rem !important;
     }
@@ -263,13 +316,13 @@
     }
 
     .products-index-page .products-grid .product-card-modern .product-img-area {
-        min-height: 150px !important;
-        height: 150px !important;
+        min-height: 180px !important;
+        height: 180px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .product-img {
-        height: 150px !important;
-        max-height: 150px !important;
+        height: 180px !important;
+        max-height: 180px !important;
     }
 
     .products-index-page .products-grid .product-card-modern .category-icon-wrapper {
