@@ -107,27 +107,41 @@
             @empty
             <!-- Estado Vazio -->
             <div class="col-span-full">
-                <div
-                    class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-12 text-center border border-gray-200 dark:border-zinc-700">
-                    <div
-                        class="w-20 h-20 bg-gradient-to-r from-gray-400 to-gray-500 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i class="bi bi-cart-x text-white text-3xl"></i>
+                <div class="relative overflow-hidden rounded-3xl shadow-2xl border border-indigo-100/40 dark:border-indigo-900/30"
+                    style="background: linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(238,242,255,0.97) 50%, rgba(243,232,255,0.93) 100%);">
+                    <!-- Brilho topo -->
+                    <div class="absolute top-0 left-0 right-0 h-0.5 rounded-t-3xl"
+                        style="background: linear-gradient(90deg, transparent, #6366f1 30%, #8b5cf6 60%, transparent);"></div>
+                    <!-- Decoração fundo -->
+                    <div class="absolute top-0 right-0 w-64 h-64 rounded-full opacity-20 -translate-y-1/2 translate-x-1/2"
+                        style="background: radial-gradient(circle, #a855f7, transparent 70%);"></div>
+                    <div class="absolute bottom-0 left-0 w-48 h-48 rounded-full opacity-15 translate-y-1/3 -translate-x-1/4"
+                        style="background: radial-gradient(circle, #6366f1, transparent 70%);"></div>
+
+                    <div class="relative px-8 py-12 text-center">
+                        <!-- Ícone animado -->
+                        <div class="inline-flex items-center justify-center w-24 h-24 rounded-2xl mb-6 shadow-xl"
+                            style="background: linear-gradient(135deg, #6366f1, #8b5cf6, #a855f7);">
+                            <i class="bi bi-cart-x text-white text-4xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-black mb-2"
+                            style="background: linear-gradient(90deg, #1e293b, #4338ca, #7c3aed); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                            Nenhuma venda encontrada
+                        </h3>
+                        <p class="text-slate-500 dark:text-slate-400 mb-8 max-w-sm mx-auto text-sm">
+                            @if ($search ?? false)
+                            Não encontramos vendas com o termo &ldquo;{{ $search }}&rdquo;.
+                            @else
+                            Comece registrando sua primeira venda.
+                            @endif
+                        </p>
+                        <a href="{{ route('sales.create') }}"
+                            class="inline-flex items-center gap-2 px-7 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+                            style="background: linear-gradient(135deg, #6366f1 0%, #7c3aed 60%, #a855f7 100%); box-shadow: 0 6px 20px rgba(99,102,241,0.4);">
+                            <i class="bi bi-plus-circle"></i>
+                            Criar Nova Venda
+                        </a>
                     </div>
-                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        Nenhuma venda encontrada
-                    </h3>
-                    <p class="text-gray-500 dark:text-gray-400 mb-6">
-                        @if ($search ?? false)
-                        Não encontramos vendas com o termo "{{ $search }}".
-                        @else
-                        Comece registrando sua primeira venda.
-                        @endif
-                    </p>
-                    <a href="{{ route('sales.create') }}"
-                        class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                        <i class="bi bi-plus-circle mr-2"></i>
-                        Criar Nova Venda
-                    </a>
                 </div>
             </div>
             @endforelse
