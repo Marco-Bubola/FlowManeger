@@ -138,7 +138,7 @@ class PublicationsList extends Component
     public function getPublications()
     {
         $query = MlPublication::query()
-            ->with(['products', 'user'])
+            ->with(['products.category', 'user'])
             ->where('user_id', Auth::id());
         
         // Filtro de busca
