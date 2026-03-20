@@ -1,4 +1,4 @@
-<div class="w-full h-screen min-h-screen app-viewport-fit mobile-393-base publications-page flex flex-col">
+<div class="w-full app-viewport-fit mobile-393-base publications-page">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ultrawide.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-carousel.css') }}">
 
     {{-- ═══════════════════════════════════════════════════════════
          HEADER ESTILO SALES-INDEX (search, filtros, paginação)
@@ -68,113 +69,143 @@
                     </div>
                 </div>
 
-                {{-- Direita: Pesquisa + Filtros + Paginação + Ações --}}
-                <div class="publications-header-controls flex items-center gap-2 md:gap-3 flex-wrap justify-start xl:justify-end w-full xl:w-auto">
-                    {{-- Campo de Pesquisa --}}
-                    <div class="relative group w-full sm:w-auto">
-                        <input type="text" wire:model.live.debounce.300ms="search"
-                            placeholder="Buscar publicações..."
-                            class="w-full sm:w-56 md:w-64 pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 transition-all duration-200 shadow-md text-sm">
-                        <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                            <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors text-sm"></i>
+                {{-- Direita: Controles em 2 linhas (estilo produto index) --}}
+                <div class="publications-header-controls flex flex-col gap-2 w-full xl:w-auto">
+
+                    {{-- ── LINHA 1: Pesquisa + Nova Publicação ─────────────────── --}}
+                    <div class="flex items-center gap-2 w-full">
+                        {{-- Campo de Pesquisa --}}
+                        <div class="relative group flex-1 xl:flex-none">
+                            <input type="text" wire:model.live.debounce.300ms="search"
+                                placeholder="Buscar publicações..."
+                                class="w-full xl:w-64 pl-9 pr-8 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
+                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                                <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
+                            </div>
+                            @if($search)
+                            <button wire:click="$set('search', '')"
+                                class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
+                                <i class="bi bi-x text-sm"></i>
+                            </button>
+                            @endif
+                            <div wire:loading.delay wire:target="search" class="absolute right-9 top-1/2 transform -translate-y-1/2">
+                                <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
+                            </div>
                         </div>
-                        @if($search)
-                        <button wire:click="$set('search', '')"
-                            class="absolute right-2 top-1/2 transform -translate-y-1/2 p-0.5 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-md transition-all duration-200">
-                            <i class="bi bi-x text-xs"></i>
-                        </button>
-                        @endif
+
+                        {{-- Botão Nova Publicação --}}
+                        <a href="{{ route('mercadolivre.products') }}"
+                           class="inline-flex items-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm whitespace-nowrap">
+                            <i class="bi bi-plus-circle"></i>
+                            <span class="hidden sm:inline">Nova Publicação</span>
+                        </a>
                     </div>
 
-                    {{-- Contador --}}
-                    <div class="hidden md:flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl shadow-md">
-                        <div class="w-7 h-7 bg-gradient-to-br from-purple-400 to-indigo-600 rounded-lg flex items-center justify-center">
-                            <i class="bi bi-list-check text-white text-xs"></i>
+                    {{-- ── LINHA 2: Pills de filtro + Paginação + Ações ──────────── --}}
+                    <div class="flex items-center gap-2 flex-wrap justify-start xl:justify-end">
+
+                        {{-- Lado Esquerdo: pills de status, tipo, sync --}}
+                        <div class="flex items-center gap-1.5 flex-wrap">
+
+                            {{-- Status pills --}}
+                            <div class="sale-filter-pills hidden md:inline-flex">
+                                <button type="button" wire:click="$set('statusFilter', 'all')"
+                                    class="sale-filter-pill {{ $statusFilter === 'all' ? 'active' : '' }}" title="Todos os status">
+                                    <i class="bi bi-list-check"></i>
+                                    <span>Todos</span>
+                                </button>
+                                <button type="button" wire:click="$set('statusFilter', 'active')"
+                                    class="sale-filter-pill pill-success {{ $statusFilter === 'active' ? 'active' : '' }}" title="Apenas ativas">
+                                    <i class="bi bi-check-circle"></i>
+                                    <span>Ativas</span>
+                                </button>
+                                <button type="button" wire:click="$set('statusFilter', 'paused')"
+                                    class="sale-filter-pill pill-warning {{ $statusFilter === 'paused' ? 'active' : '' }}" title="Apenas pausadas">
+                                    <i class="bi bi-pause-circle"></i>
+                                    <span>Pausadas</span>
+                                </button>
+                            </div>
+
+                            {{-- Tipo pills --}}
+                            <div class="sale-filter-pills hidden md:inline-flex">
+                                <button type="button" wire:click="$set('typeFilter', 'all')"
+                                    class="sale-filter-pill {{ $typeFilter === 'all' ? 'active' : '' }}" title="Todos os tipos">
+                                    <i class="bi bi-box-seam"></i>
+                                    <span>Tipos</span>
+                                </button>
+                                <button type="button" wire:click="$set('typeFilter', 'simple')"
+                                    class="sale-filter-pill {{ $typeFilter === 'simple' ? 'active' : '' }}" title="Simples">
+                                    <i class="bi bi-box"></i>
+                                    <span>Simples</span>
+                                </button>
+                                <button type="button" wire:click="$set('typeFilter', 'kit')"
+                                    class="sale-filter-pill {{ $typeFilter === 'kit' ? 'active' : '' }}" title="Kits">
+                                    <i class="bi bi-boxes"></i>
+                                    <span>Kits</span>
+                                </button>
+                            </div>
+
+                            {{-- Sync pills --}}
+                            <div class="sale-filter-pills hidden lg:inline-flex">
+                                <button type="button" wire:click="$set('syncFilter', 'all')"
+                                    class="sale-filter-pill {{ $syncFilter === 'all' ? 'active' : '' }}" title="Todos sync">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                    <span>Sync</span>
+                                </button>
+                                <button type="button" wire:click="$set('syncFilter', 'synced')"
+                                    class="sale-filter-pill pill-success {{ $syncFilter === 'synced' ? 'active' : '' }}" title="Sincronizados">
+                                    <span>OK</span>
+                                </button>
+                                <button type="button" wire:click="$set('syncFilter', 'pending')"
+                                    class="sale-filter-pill pill-warning {{ $syncFilter === 'pending' ? 'active' : '' }}" title="Pendentes">
+                                    <span>Pendente</span>
+                                </button>
+                                <button type="button" wire:click="$set('syncFilter', 'error')"
+                                    class="sale-filter-pill {{ $syncFilter === 'error' ? 'active' : '' }}" style="{{ $syncFilter === 'error' ? 'background: #ef4444; color: #fff;' : '' }}" title="Com erro">
+                                    <span>Erro</span>
+                                </button>
+                            </div>
                         </div>
-                        <div class="text-sm">
-                            <span class="font-bold text-slate-800 dark:text-slate-200">{{ $publications->total() }}</span>
-                            <span class="text-slate-600 dark:text-slate-400 ml-1">{{ $publications->total() === 1 ? 'publicação' : 'publicações' }}</span>
+
+                        {{-- Paginação Compacta --}}
+                        @if($publications->hasPages())
+                        <div class="sale-pagination-compact">
+                            @if($publications->currentPage() > 1)
+                            <button wire:click.prevent="previousPage" class="sale-pagination-btn" title="Página anterior">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            @endif
+                            <span class="sale-pagination-indicator">{{ $publications->currentPage() }} / {{ $publications->lastPage() }}</span>
+                            @if($publications->hasMorePages())
+                            <button wire:click.prevent="nextPage" class="sale-pagination-btn" title="Próxima página">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                            @endif
                         </div>
-                    </div>
-
-                    {{-- Filtros Rápidos - Status --}}
-                    <div class="hidden md:flex items-center gap-1.5">
-                        <button wire:click="$set('statusFilter', 'all')"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'all' ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/30' : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-200 dark:hover:bg-slate-600' }}">
-                            Todos
-                        </button>
-                        <button wire:click="$set('statusFilter', 'active')"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'active' ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30' : 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border border-green-200 dark:border-green-700 hover:bg-green-200 dark:hover:bg-green-800' }}">
-                            Ativas
-                        </button>
-                        <button wire:click="$set('statusFilter', 'paused')"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all {{ $statusFilter === 'paused' ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 'bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border border-yellow-200 dark:border-yellow-700 hover:bg-yellow-200 dark:hover:bg-yellow-800' }}">
-                            Pausadas
-                        </button>
-                    </div>
-
-                    {{-- Filtro Tipo --}}
-                    <select wire:model.live="typeFilter"
-                            class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 shadow-md">
-                        <option value="all">📦 Todos Tipos</option>
-                        <option value="simple">Simples</option>
-                        <option value="kit">Kit</option>
-                    </select>
-
-                    {{-- Filtro Sync --}}
-                    <select wire:model.live="syncFilter"
-                            class="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 text-xs focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 shadow-md">
-                        <option value="all">🔄 Todos Status</option>
-                        <option value="synced">Sincronizado</option>
-                        <option value="pending">Pendente</option>
-                        <option value="error">Erro</option>
-                    </select>
-
-                    {{-- Paginação Compacta --}}
-                    @if($publications->hasPages())
-                    <div class="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl p-1 shadow-md">
-                        @if($publications->currentPage() > 1)
-                        <button wire:click.prevent="previousPage" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
-                            <i class="bi bi-chevron-left text-sm text-slate-600 dark:text-slate-300"></i>
-                        </button>
                         @endif
-                        <span class="px-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-                            {{ $publications->currentPage() }} / {{ $publications->lastPage() }}
-                        </span>
-                        @if($publications->hasMorePages())
-                        <button wire:click.prevent="nextPage" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
-                            <i class="bi bi-chevron-right text-sm text-slate-600 dark:text-slate-300"></i>
-                        </button>
-                        @endif
+
+                        {{-- Toggle Visualização --}}
+                        <div class="sale-pagination-compact">
+                            <button wire:click="$set('viewMode', 'cards')"
+                                    title="Cards"
+                                    class="sale-pagination-btn {{ $viewMode === 'cards' ? 'bg-purple-500 text-white' : '' }}">
+                                <i class="bi bi-grid-3x3-gap"></i>
+                            </button>
+                            <button wire:click="$set('viewMode', 'table')"
+                                    title="Tabela"
+                                    class="sale-pagination-btn {{ $viewMode === 'table' ? 'bg-purple-500 text-white' : '' }}">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
+                        </div>
+
+                        {{-- Botão Configurações --}}
+                        <a href="{{ route('mercadolivre.settings') }}"
+                           class="sale-action-btn" title="Configurações ML">
+                            <i class="bi bi-gear"></i>
+                            <span class="hidden sm:inline">Config</span>
+                        </a>
+
                     </div>
-                    @endif
-
-                    {{-- Toggle Visualização --}}
-                    <div class="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl p-1 shadow-md">
-                        <button wire:click="$set('viewMode', 'cards')" 
-                                title="Visualizar em Cards"
-                                class="p-1.5 rounded-lg transition-all {{ $viewMode === 'cards' ? 'bg-purple-500 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                            <i class="bi bi-grid-3x3-gap text-sm"></i>
-                        </button>
-                        <button wire:click="$set('viewMode', 'table')" 
-                                title="Visualizar em Tabela"
-                                class="p-1.5 rounded-lg transition-all {{ $viewMode === 'table' ? 'bg-purple-500 text-white' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                            <i class="bi bi-list-ul text-sm"></i>
-                        </button>
-                    </div>
-
-                    {{-- Botão Nova Publicação --}}
-                    <a href="{{ route('mercadolivre.products') }}"
-                       class="flex items-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm">
-                        <i class="bi bi-plus-circle"></i>
-                        <span>Nova Publicação</span>
-                    </a>
-
-                    {{-- Botão Configurações --}}
-                    <a href="{{ route('mercadolivre.settings') }}"
-                       class="p-2 bg-white/80 hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl transition-all duration-200 shadow-md">
-                        <i class="bi bi-gear text-slate-600 dark:text-slate-400"></i>
-                    </a>
                 </div>
             </div>
         </div>
@@ -275,7 +306,7 @@
     {{-- ═══════════════════════════════════════════════
          CONTEÚDO PRINCIPAL - GRID DE PUBLICAÇÕES
     ═══════════════════════════════════════════════ --}}
-    <div class="flex-1 pb-6">
+    <div class="pb-6">
         
         @if($viewMode === 'cards')
             {{-- GRID DE PUBLICAÇÕES - 5 colunas --}}
@@ -311,263 +342,259 @@
                         }
                     @endphp
 
-                    <div class="product-card-modern">
-                        {{-- Área das IMAGENS DOS PRODUTOS --}}
-                        <div class="product-img-area" style="height: 330px; position: relative; overflow: hidden; background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); display: flex; align-items: center; justify-content: center; padding: 15px;">
-                            
-                            @if($publication->products->count() === 1)
-                                {{-- UM PRODUTO: Imagem Grande --}}
-                                @php $singleProduct = $publication->products->first(); @endphp
-                                @if($singleProduct->image && $singleProduct->image !== 'product-placeholder.png')
-                                    <img src="{{ asset('storage/products/' . $singleProduct->image) }}" 
-                                         alt="{{ $singleProduct->name }}" 
-                                         class="w-full h-full object-contain rounded-2xl shadow-2xl"
-                                         style="max-width: 280px; max-height: 300px;">
-                                @else
-                                    <div class="w-64 h-64 bg-slate-200/50 rounded-2xl flex items-center justify-center border-4 border-slate-300">
-                                        <i class="bi bi-image text-slate-400 text-6xl"></i>
-                                    </div>
-                                @endif
-                            @elseif($publication->products->count() === 2)
-                                {{-- DOIS PRODUTOS: Grid 1x2 --}}
-                                <div class="grid grid-cols-2 gap-3 w-full h-full p-2">
-                                    @foreach($publication->products as $product)
-                                        @if($product->image && $product->image !== 'product-placeholder.png')
-                                            <div class="relative group overflow-hidden rounded-xl border-2 border-slate-200 shadow-lg bg-white">
-                                                <img src="{{ asset('storage/products/' . $product->image) }}" 
-                                                     alt="{{ $product->name }}" 
-                                                     class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300">
-                                            </div>
-                                        @else
-                                            <div class="flex items-center justify-center bg-slate-200/50 rounded-xl border-2 border-slate-300">
-                                                <i class="bi bi-image text-slate-400 text-4xl"></i>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @elseif($publication->products->count() === 3)
-                                {{-- TRÊS PRODUTOS: 1 grande + 2 pequenos --}}
-                                <div class="grid grid-cols-2 grid-rows-2 gap-3 w-full h-full p-2">
-                                    @foreach($publication->products as $index => $product)
-                                        @if($product->image && $product->image !== 'product-placeholder.png')
-                                            <div class="relative group overflow-hidden rounded-xl border-2 border-slate-200 shadow-lg bg-white {{ $index === 0 ? 'row-span-2' : '' }}">
-                                                <img src="{{ asset('storage/products/' . $product->image) }}" 
-                                                     alt="{{ $product->name }}" 
-                                                     class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300">
-                                            </div>
-                                        @else
-                                            <div class="flex items-center justify-center bg-slate-200/50 rounded-xl border-2 border-slate-300 {{ $index === 0 ? 'row-span-2' : '' }}">
-                                                <i class="bi bi-image text-slate-400 text-4xl"></i>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                            @else
-                                {{-- QUATRO OU MAIS: Grid 2x2 --}}
-                                <div class="grid grid-cols-2 grid-rows-2 gap-3 w-full h-full p-2">
-                                    @foreach($publication->products->take(4) as $product)
-                                        @if($product->image && $product->image !== 'product-placeholder.png')
-                                            <div class="relative group overflow-hidden rounded-xl border-2 border-slate-200 shadow-lg bg-white">
-                                                <img src="{{ asset('storage/products/' . $product->image) }}" 
-                                                     alt="{{ $product->name }}" 
-                                                     class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300">
-                                            </div>
-                                        @else
-                                            <div class="flex items-center justify-center bg-slate-200/50 rounded-xl border-2 border-slate-300">
-                                                <i class="bi bi-image text-slate-400 text-3xl"></i>
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                </div>
-                                
-                                {{-- Badge de mais produtos --}}
-                                @if($publication->products->count() > 4)
-                                    <div class="absolute bottom-16 right-4 z-10">
-                                        <span class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white text-sm font-black border-2 border-white shadow-2xl">
-                                            <i class="bi bi-plus-circle-fill"></i>
-                                            +{{ $publication->products->count() - 4 }}
-                                        </span>
-                                    </div>
-                                @endif
-                            @endif
+                    {{-- ═════════════════════════════════════════════════════
+                         PUBLICATION CARD: carousel de product cards
+                         (cada produto aparece como card idêntico ao products-index,
+                          um por vez com navegação por setas e dots)
+                    ═════════════════════════════════════════════════════ --}}
+                    <div class="product-card-modern pub-publication-card"
+                         x-data="{ slide: 0, count: {{ $publication->products->count() }} }">
 
-                            {{-- ML Item ID - TOPO ESQUERDO --}}
+                        {{-- ══ BOTÕES DE AÇÃO DA PUBLICAÇÃO (flutuantes, z-index alto) ══ --}}
+                        <div class="btn-action-group">
+                            @if($publication->ml_permalink)
+                                <a href="{{ $publication->ml_permalink }}" target="_blank" rel="noopener"
+                                   title="Ver no Mercado Livre"
+                                   class="btn" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #fff; border: 2px solid #fcd34d;">
+                                    <i class="bi bi-box-arrow-up-right"></i>
+                                </a>
+                            @endif
+                            <a href="{{ route('mercadolivre.publications.show', $publication->id) }}"
+                               title="Ver Publicação" class="btn btn-secondary">
+                                <i class="bi bi-eye"></i>
+                            </a>
                             @if($publication->ml_item_id)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black shadow-lg border-2 border-white" 
-                                      style="position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%); color: white;"
-                                      title="ID Mercado Livre">
-                                    <i class="bi bi-tag-fill"></i> {{ substr($publication->ml_item_id, 0, 12) }}...
-                                </span>
+                                <a href="{{ route('mercadolivre.publications.edit', $publication->id) }}"
+                                   title="Editar Publicação" class="btn btn-primary">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <button wire:click="syncPublication({{ $publication->id }})"
+                                        wire:loading.attr="disabled"
+                                        title="Sincronizar com ML"
+                                        class="btn" style="background: #3b82f6; color: #fff; border: 2px solid #93c5fd;">
+                                    <i class="bi bi-arrow-repeat"></i>
+                                </button>
+                                @if($publication->status === 'active')
+                                    <button wire:click="pausePublication({{ $publication->id }})"
+                                            wire:confirm="Pausar esta publicação?"
+                                            title="Pausar Publicação"
+                                            class="btn" style="background: #f59e0b; color: #fff; border: 2px solid #fcd34d;">
+                                        <i class="bi bi-pause-circle"></i>
+                                    </button>
+                                @elseif($publication->status === 'paused')
+                                    <button wire:click="activatePublication({{ $publication->id }})"
+                                            title="Ativar Publicação"
+                                            class="btn" style="background: #10b981; color: #fff; border: 2px solid #6ee7b7;">
+                                        <i class="bi bi-play-circle"></i>
+                                    </button>
+                                @endif
                             @else
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black shadow-lg border-2 border-white" 
-                                      style="position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white;"
-                                      title="Não Publicado">
-                                    <i class="bi bi-clock"></i> Não Publicado
-                                </span>
+                                <a href="{{ route('mercadolivre.products.publish', $publication->products->first()?->id) }}"
+                                   title="Publicar no Mercado Livre"
+                                   class="btn btn-success" style="animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite;">
+                                    <i class="bi bi-upload"></i>
+                                </a>
+                            @endif
+                            <button wire:click="deletePublication({{ $publication->id }})"
+                                    wire:confirm="Tem certeza que deseja excluir esta publicação?"
+                                    title="Excluir Publicação"
+                                    class="btn btn-danger">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+
+                        {{-- ══ CARROSSEL DE CARDS DE PRODUTO (estilo products-index) ══ --}}
+                        <div class="pub-product-carousel">
+
+                            {{-- Slides: um card completo por produto --}}
+                            @foreach($publication->products as $idx => $product)
+                                <div x-show="slide === {{ $idx }}"
+                                     x-transition:enter="transition ease-in-out duration-200"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100"
+                                     class="pub-product-slide">
+
+                                    {{-- ── Área de imagem (idêntica ao products-index) ────── --}}
+                                    <div class="product-img-area pub-img-area">
+                                        @if($product->image && $product->image !== 'product-placeholder.png')
+                                            <img src="{{ asset('storage/products/' . $product->image) }}"
+                                                 class="product-img"
+                                                 alt="{{ $product->name }}">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center"
+                                                 style="background: var(--card-bg);">
+                                                <i class="bi bi-image text-5xl" style="color: var(--card-border);"></i>
+                                            </div>
+                                        @endif
+
+                                        {{-- Fora de estoque do produto --}}
+                                        @if($product->stock_quantity == 0)
+                                            <div class="out-of-stock">
+                                                <i class="bi bi-x-circle"></i> Fora de Estoque
+                                            </div>
+                                        @endif
+
+                                        {{-- Overlay "Não Publicado" (publicação ainda não enviada ao ML) --}}
+                                        @if(!$publication->ml_item_id)
+                                            <div class="out-of-stock"
+                                                 style="background: linear-gradient(90deg, rgba(245,158,11,0.95), rgba(217,119,6,0.95)); transform: translateY(-50%) rotate(-12deg); z-index: 12;">
+                                                <i class="bi bi-clock-history"></i> Não Publicado
+                                            </div>
+                                        @endif
+
+                                        {{-- Badge código do produto (top-left) --}}
+                                        <span class="badge-product-code"
+                                              title="Código: {{ $product->product_code }}">
+                                            <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
+                                        </span>
+
+                                        {{-- Badge estoque do produto (bottom-right) --}}
+                                        <span class="badge-quantity"
+                                              title="Estoque: {{ $product->stock_quantity }} unidades">
+                                            <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
+                                        </span>
+
+                                        {{-- Ícone da categoria (bottom-center, idêntico ao products-index) --}}
+                                        <div class="category-icon-wrapper"
+                                             title="{{ $product->category?->name ?? 'Categoria' }}">
+                                            <i class="{{ $product->category?->icone ?? 'bi bi-box' }} category-icon"></i>
+                                        </div>
+                                    </div>{{-- /product-img-area --}}
+
+                                    {{-- ── Conteúdo do produto (idêntico ao products-index) ── --}}
+                                    <div class="card-body">
+                                        <div class="product-title" title="{{ $product->name }}">
+                                            {{ ucwords($product->name) }}
+                                        </div>
+
+                                        {{-- Status + badge Novo (igual products-index) --}}
+                                        <div class="mt-1 mb-1 flex items-center gap-1.5 flex-wrap justify-center">
+                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium
+                                                bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-100
+                                                text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-800
+                                                dark:bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-900
+                                                dark:text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-200">
+                                                <i class="bi bi-circle-fill mr-0.5" style="font-size:6px;"></i>
+                                                {{ ucfirst($product->status) }}
+                                            </span>
+                                            @if(\Carbon\Carbon::parse($product->created_at)->diffInDays(now()) <= 7)
+                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                                                    <i class="bi bi-stars mr-0.5"></i> Novo
+                                                </span>
+                                            @endif
+                                        </div>
+
+                                        {{-- Preços do produto (idêntico ao products-index) --}}
+                                        <div class="price-area mt-1">
+                                            <div class="flex flex-col gap-1">
+                                                <span class="badge-price" title="Preço de Custo">
+                                                    <i class="bi bi-tag"></i>
+                                                    R$ {{ number_format($product->price, 2, ',', '.') }}
+                                                </span>
+                                                <span class="badge-price-sale" title="Preço de Venda">
+                                                    <i class="bi bi-currency-dollar"></i>
+                                                    R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>{{-- /card-body produto --}}
+
+                                </div>{{-- /pub-product-slide --}}
+                            @endforeach
+
+                            {{-- Setas de navegação (só quando há mais de 1 produto) --}}
+                            @if($publication->products->count() > 1)
+                                <button x-on:click.prevent="slide = (slide - 1 + count) % count"
+                                        class="pub-carousel-arrow pub-carousel-arrow-left"
+                                        title="Produto anterior">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <button x-on:click.prevent="slide = (slide + 1) % count"
+                                        class="pub-carousel-arrow pub-carousel-arrow-right"
+                                        title="Próximo produto">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
                             @endif
 
-                            {{-- Tipo - ABAIXO DO ML ID --}}
-                            @php
-                                $typeConfig = $publication->publication_type === 'kit' 
-                                    ? ['bg' => 'linear-gradient(135deg, #a855f7 0%, #9333ea 100%)', 'icon' => 'boxes', 'text' => 'Kit']
-                                    : ['bg' => 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', 'icon' => 'box', 'text' => 'Simples'];
-                            @endphp
-                            <span class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-black shadow-lg border-2 border-white" 
-                                  style="position: absolute; top: 40px; left: 10px; background: {{ $typeConfig['bg'] }}; color: white;"
-                                  title="Tipo de Publicação">
-                                <i class="bi bi-{{ $typeConfig['icon'] }}"></i> 
-                                {{ $typeConfig['text'] }}
-                            </span>
+                        </div>{{-- /pub-product-carousel --}}
 
-                            {{-- Status ML - INFERIOR ESQUERDO --}}
-                            <div class="absolute bottom-3 left-3 z-10">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r {{ $statusConfig['color'] }} text-white shadow-xl border-2 border-white text-xs font-bold">
+                        {{-- Dots indicadores + contador (só quando há mais de 1 produto) --}}
+                        @if($publication->products->count() > 1)
+                            <div class="pub-carousel-nav">
+                                @foreach($publication->products as $idx => $product)
+                                    <button x-on:click.prevent="slide = {{ $idx }}"
+                                            :class="['pub-carousel-dot', slide === {{ $idx }} ? 'pub-carousel-dot-active' : '']"
+                                            title="{{ $product->name }}"></button>
+                                @endforeach
+                                <span class="pub-carousel-counter"
+                                      x-text="(slide + 1) + ' / ' + count"></span>
+                            </div>
+                        @endif
+
+                        {{-- ══ FOOTER: DADOS DA PUBLICAÇÃO NO ML ══ --}}
+                        <div class="pub-info-footer">
+
+                            {{-- Título da publicação --}}
+                            <div class="product-title" title="{{ $publication->title }}" style="font-size:0.82rem;">
+                                <i class="bi bi-megaphone-fill"
+                                   style="color:var(--card-accent); font-size:0.65rem; vertical-align:middle;"></i>
+                                {{ $publication->title }}
+                            </div>
+
+                            {{-- ML ID + Tipo de publicação --}}
+                            <div class="flex items-center gap-1 flex-wrap justify-center mt-1">
+                                <span class="pub-ml-badge"
+                                      title="{{ $publication->ml_item_id ? 'ID ML: '.$publication->ml_item_id : 'Aguardando publicação' }}">
+                                    @if($publication->ml_item_id)
+                                        <i class="bi bi-tag-fill"></i> {{ substr($publication->ml_item_id, 0, 10) }}
+                                    @else
+                                        <i class="bi bi-clock"></i> Pendente
+                                    @endif
+                                </span>
+                                <span class="pub-type-badge {{ $publication->publication_type === 'kit' ? 'pub-type-kit' : 'pub-type-simple' }}">
+                                    <i class="bi bi-{{ $publication->publication_type === 'kit' ? 'boxes' : 'box' }}"></i>
+                                    {{ $publication->publication_type === 'kit' ? 'Kit' : 'Simples' }}
+                                </span>
+                            </div>
+
+                            {{-- Status ML + Status Sync --}}
+                            <div class="flex items-center gap-1 flex-wrap justify-center mt-1">
+                                <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-gradient-to-r {{ $statusConfig['color'] }} text-white shadow-sm">
                                     <i class="bi bi-{{ $statusConfig['icon'] }}"></i>
                                     {{ $statusConfig['text'] }}
                                 </span>
-                            </div>
-
-                            {{-- Quantidade Disponível (inferior direito) --}}
-                            <div class="absolute bottom-3 right-3 z-10">
-                                <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-xl border-2 border-white text-xs font-bold">
-                                    <i class="bi bi-stack"></i> {{ $availableQty }}
-                                </span>
-                            </div>
-
-                            {{-- Badge Sync Status - ACIMA DO STATUS --}}
-                            <div class="absolute bottom-14 left-3 z-10">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r {{ $syncConfig['color'] }} text-white shadow-xl border-2 border-white text-[10px] font-bold">
+                                <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[9px] font-bold bg-gradient-to-r {{ $syncConfig['color'] }} text-white shadow-sm">
                                     <i class="bi bi-{{ $syncConfig['icon'] }}"></i>
                                     {{ $syncConfig['text'] }}
                                 </span>
                             </div>
 
-                            {{-- Botões de Ação - LATERAL DIREITA --}}
-                            <div class="absolute top-3 right-3 z-20 flex flex-col gap-2">
-                                {{-- Ver no ML (se publicado) --}}
-                                @if($publication->ml_permalink)
-                                    <a href="{{ $publication->ml_permalink }}" 
-                                       target="_blank"
-                                       title="Ver no Mercado Livre"
-                                       class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-600 hover:to-amber-700 text-white rounded-full shadow-lg transition-all">
-                                        <i class="bi bi-box-arrow-up-right text-lg"></i>
-                                    </a>
-                                @endif
-                                
-                                {{-- Ver Publicação (sempre visível) --}}
-                                <a href="{{ route('mercadolivre.publications.show', $publication->id) }}" 
-                                   title="Ver Publicação Completa"
-                                   class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-full shadow-lg transition-all">
-                                    <i class="bi bi-eye text-lg"></i>
-                                </a>
-                            {{-- Editar Publicação --}}
-                            @if($publication->ml_item_id)
-                                <a href="{{ route('mercadolivre.publications.edit', $publication->id) }}" 
-                                   title="Editar Publicação"
-                                   class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-full shadow-lg transition-all">
-                                    <i class="bi bi-pencil-square text-lg"></i>
-                                </a>
-                            @else
-                                {{-- Publicar --}}
-                                <a href="{{ route('mercadolivre.products.publish', $publication->products->first()->id) }}" 
-                                   title="Publicar no ML"
-                                   class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-full shadow-lg transition-all animate-pulse">
-                                    <i class="bi bi-upload text-lg"></i>
-                                </a>
+                            {{-- Mensagem de erro ML --}}
+                            @if($publication->error_message)
+                                <div class="mt-1 px-2 py-1 rounded-lg w-full"
+                                     style="background: var(--card-danger); border: 1px solid #ef9a9a;">
+                                    <p class="text-[9px] truncate text-center" style="color: #b71c1c;"
+                                       title="{{ $publication->error_message }}">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        {{ \Illuminate\Support\Str::limit($publication->error_message, 35) }}
+                                    </p>
+                                </div>
                             @endif
 
-                            {{-- Sincronizar (se publicado) --}}
-                            @if($publication->ml_item_id)
-                                <button wire:click="syncPublication({{ $publication->id }})" 
-                                        wire:loading.attr="disabled"
-                                        title="Sincronizar com ML"
-                                        class="inline-flex items-center justify-center w-10 h-10 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg transition-all">
-                                    <i class="bi bi-arrow-repeat text-lg"></i>
-                                </button>
-                            @endif
-
-                            {{-- Pausar/Ativar --}}
-                            @if($publication->ml_item_id)
-                                @if($publication->status === 'active')
-                                    <button wire:click="pausePublication({{ $publication->id }})" 
-                                            wire:confirm="Pausar esta publicação?"
-                                            title="Pausar Publicação"
-                                            class="inline-flex items-center justify-center w-10 h-10 bg-amber-500 hover:bg-amber-600 text-white rounded-full shadow-lg transition-all">
-                                        <i class="bi bi-pause-circle text-lg"></i>
-                                    </button>
-                                @elseif($publication->status === 'paused')
-                                    <button wire:click="activatePublication({{ $publication->id }})" 
-                                            title="Ativar Publicação"
-                                            class="inline-flex items-center justify-center w-10 h-10 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-all">
-                                        <i class="bi bi-play-circle text-lg"></i>
-                                    </button>
-                                @endif
-                            @endif
-
-                            {{-- Excluir/Cancelar --}}
-                            <button wire:click="deletePublication({{ $publication->id }})" 
-                                    wire:confirm="Tem certeza que deseja excluir esta publicação?"
-                                    title="Excluir Publicação"
-                                    class="inline-flex items-center justify-center w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full shadow-lg transition-all">
-                                <i class="bi bi-trash text-lg"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    {{-- Conteúdo do Card --}}
-                    <div class="card-body">
-                        {{-- Título da Publicação --}}
-                        <h3 class="text-sm font-bold text-slate-800 dark:text-slate-100 mb-3 line-clamp-2 leading-tight min-h-[2.5rem]" title="{{ $publication->title }}">
-                            {{ $publication->title }}
-                        </h3>
-
-                        {{-- Preço e Quantidade em destaque --}}
-                        <div class="flex items-center justify-between">
-                            <div class="flex-1">
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">PREÇO</p>
-                                <span class="text-2xl font-black bg-gradient-to-r from-green-600 to-emerald-600 dark:from-green-400 dark:to-emerald-400 bg-clip-text text-transparent">
+                            {{-- Preço no ML + Qtd disponível --}}
+                            <div class="price-area mt-1">
+                                <span class="badge-price" title="Preço no Mercado Livre">
+                                    <i class="bi bi-tag-fill"></i>
                                     R$ {{ number_format($publication->price, 2, ',', '.') }}
                                 </span>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] text-slate-500 dark:text-slate-400 mb-1 font-semibold">DISPONÍVEL</p>
-                                <div class="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-gradient-to-r from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 border border-purple-300 dark:border-purple-700">
-                                    <i class="bi bi-stack text-purple-600 dark:text-purple-400"></i>
-                                    <span class="text-lg font-black text-purple-700 dark:text-purple-300">{{ $availableQty }}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Info Rápida --}}
-                        <div class="mt-3 flex items-center justify-between text-xs">
-                            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold">
-                                <i class="bi bi-box-seam"></i>
-                                {{ $publication->products->count() }} {{ $publication->products->count() === 1 ? 'produto' : 'produtos' }}
-                            </span>
-                            
-                            @if($publication->ml_item_id)
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 font-semibold">
-                                    <i class="bi bi-check-circle-fill"></i>
-                                    Publicado
+                                <span class="badge-price-sale" title="Quantidade disponível">
+                                    <i class="bi bi-stack"></i> {{ $availableQty }}
                                 </span>
-                            @else
-                                <span class="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 font-semibold">
-                                    <i class="bi bi-clock"></i>
-                                    Pendente
-                                </span>
-                            @endif
-                        </div>
-
-                        {{-- Mensagem de Erro --}}
-                        @if($publication->error_message)
-                            <div class="mt-2 p-2 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800">
-                                <p class="text-[10px] text-red-600 dark:text-red-400 truncate" title="{{ $publication->error_message }}">
-                                    <i class="bi bi-exclamation-triangle"></i> {{ \Illuminate\Support\Str::limit($publication->error_message, 50) }}
-                                </p>
                             </div>
-                        @endif
-                    </div>
-                </div>
+
+                        </div>{{-- /pub-info-footer --}}
+
+                    </div>{{-- /pub-publication-card --}}
             @empty
                 {{-- Estado Vazio --}}
                 <div class="col-span-full">
