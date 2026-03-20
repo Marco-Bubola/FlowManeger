@@ -1,0 +1,127 @@
+/* ══════════════════════════════════════════════════════════════════
+   publications-list-carousel.css
+   Overrides responsivos para a altura da imagem dentro do carousel
+   de product cards nas publication cards.
+
+   Este arquivo é carregado DEPOIS de todos os outros arquivos
+   responsivos de publications-list para garantir que os overrides
+   com !important aqui tenham precedência.
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Default desktop (1440-1280px) ─────────────────────────────── */
+.pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+    height: 175px !important;
+    min-height: 175px !important;
+    border-top-left-radius: 1.7em !important;
+    border-top-right-radius: 1.7em !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.pub-publication-card .pub-product-carousel .pub-product-slide .product-img {
+    border-top-left-radius: 1.5em !important;
+    border-top-right-radius: 1.5em !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+.pub-carousel-arrow { top: 87px; }  /* metade de 175px */
+
+/* ── Mobile ≤767px ─────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 160px !important;
+        min-height: 160px !important;
+    }
+    .pub-carousel-arrow { top: 80px; }
+}
+
+/* ── sm 640-767px: 2 colunas ───────────────────────────────────── */
+@media (min-width: 640px) and (max-width: 767.98px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 145px !important;
+        min-height: 145px !important;
+    }
+    .pub-carousel-arrow { top: 72px; }
+}
+
+/* ── iPhone 15 Pro (380–430px, h≥780px) ────────────────────────── */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 170px !important;
+        min-height: 170px !important;
+    }
+    .pub-carousel-arrow { top: 85px; }
+}
+
+/* ── iPad portrait (768–1024px) ────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 125px !important;
+        min-height: 125px !important;
+    }
+    .pub-carousel-arrow { top: 62px; }
+}
+
+/* ── iPad landscape 768–1180px ─────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 140px !important;
+        min-height: 140px !important;
+    }
+    .pub-carousel-arrow { top: 70px; }
+}
+
+/* ── iPad landscape 1181–1366px ────────────────────────────────── */
+@media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 155px !important;
+        min-height: 155px !important;
+    }
+    .pub-carousel-arrow { top: 77px; }
+}
+
+/* ── Notebook 1025–1279px: 4 colunas ──────────────────────────── */
+@media (min-width: 1025px) and (max-width: 1279px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 162px !important;
+        min-height: 162px !important;
+    }
+    .pub-carousel-arrow { top: 81px; }
+}
+
+/* ── Notebook 1280–1440px: 5 colunas ──────────────────────────── */
+@media (min-width: 1280px) and (max-width: 1440px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 175px !important;
+        min-height: 175px !important;
+    }
+    .pub-carousel-arrow { top: 87px; }
+}
+
+/* ── Ultrawide ≥1441px: 6 colunas ─────────────────────────────── */
+@media (min-width: 1441px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 200px !important;
+        min-height: 200px !important;
+    }
+    .pub-carousel-arrow { top: 100px; }
+}
+
+/* ── card-body compacto dentro do carousel (menos padding que standalone) ── */
+.pub-publication-card .pub-product-carousel .pub-product-slide .card-body {
+    padding: 2.8em 0.8em 1.8em !important;
+    gap: 0.25em !important;
+    min-height: 0 !important;
+}
+
+/* ── product-title menor no carousel ───────────────────────────── */
+.pub-publication-card .pub-product-carousel .pub-product-slide .product-title {
+    font-size: 0.85em !important;
+    -webkit-line-clamp: 2 !important;
+    line-clamp: 2 !important;
+    margin-top: 0 !important;
+}
+
+/* ── price-area compacta no carousel ───────────────────────────── */
+.pub-publication-card .pub-product-carousel .pub-product-slide .price-area {
+    min-height: 1.9em !important;
+}
