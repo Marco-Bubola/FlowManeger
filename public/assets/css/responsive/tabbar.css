@@ -94,23 +94,21 @@
 .mobile-tab-fab { gap: 0.1rem !important; padding: 0.12rem 0.15rem 0.26rem !important; }
 
 .mobile-tab-fab .fab-circle {
-    width: 3.1rem; height: 3.1rem;
+    width: 6rem; height: 6rem;
     border-radius: 50%;
-    background: linear-gradient(145deg, #6366f1 0%, #4f46e5 40%, #7c3aed 100%);
-    box-shadow: 0 4px 20px rgba(99,102,241,.55), 0 0 0 3px rgba(99,102,241,.18), 0 0 0 6px rgba(99,102,241,.08) !important;
+    background: transparent;
+    border: none;
+    box-shadow: none;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 6px 22px rgba(99,102,241,.45), 0 2px 8px rgba(59,130,246,.3),
-                inset 0 1px 0 rgba(255,255,255,.2);
-    transform: translateY(-5px);
+    transform: translateY(-14px) scale(1);
     transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1);
-    color: white;
+    overflow: visible;
 }
 .mobile-tab-fab:active .fab-circle,
 .mobile-tab-fab:focus-visible .fab-circle {
-    transform: translateY(-3px) scale(0.93);
-    box-shadow: 0 3px 12px rgba(99,102,241,.3);
+    transform: translateY(-10px) scale(0.92);
 }
 
 /* ─── Notification Badge ─── */
@@ -146,21 +144,44 @@
     .mobile-bottom-tabbar {
         display: grid !important;
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        padding: 0.55rem 0.75rem calc(0.6rem + env(safe-area-inset-bottom));
+        padding: 0 0.5rem env(safe-area-inset-bottom);
+        overflow: visible !important;
         max-width: none;
         left: 0; right: 0;
         border-radius: 1.25rem 1.25rem 0 0;
+        align-items: stretch;
     }
     .tab-ipad-only { display: flex !important; }
     .mobile-tab-item {
-        min-height: 3.8rem;
-        font-size: 0.6rem;
-        gap: 0.15rem;
+        height: 3.8rem;       /* height fixo — não infla o grid */
+        min-height: unset;
+        font-size: 0.65rem;
+        gap: 0.14rem;
+        padding: 0.3rem 0.1rem;
     }
-    .mobile-tab-item .tab-icon { width: 1.85rem; height: 1.85rem; border-radius: 0.6rem; }
+    .mobile-tab-item .tab-icon { width: 1.8rem; height: 1.8rem; border-radius: 0.55rem; }
+
+    /* FAB: height igual aos demais, overflow visible, translateY sobe o círculo */
+    .mobile-tab-fab {
+        height: 3.8rem !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        position: relative !important;
+    }
     .mobile-tab-fab .fab-circle {
-        width: 3.1rem; height: 3.1rem;
-        transform: translateY(-8px);
+        width: 4.8rem !important;
+        height: 4.8rem !important;
+        transform: translateY(-22px) scale(1) !important;
+        transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+        position: static !important;
+    }
+    .mobile-tab-fab .fab-circle img {
+        width: 4.8rem !important;
+        height: 4.8rem !important;
+    }
+    .mobile-tab-fab:active .fab-circle,
+    .mobile-tab-fab:focus-visible .fab-circle {
+        transform: translateY(-18px) scale(0.92) !important;
     }
 
     /* ── FAB Sheet: layout moderno no iPad — grid uniforme 4 colunas ── */
@@ -243,21 +264,43 @@
     .mobile-bottom-tabbar {
         display: grid !important;
         grid-template-columns: repeat(7, minmax(0, 1fr));
-        padding: 0.55rem 1.5rem calc(0.6rem + env(safe-area-inset-bottom));
+        padding: 0 1.5rem env(safe-area-inset-bottom);
+        overflow: visible !important;
         max-width: none;
         left: 0; right: 0;
         border-radius: 1.25rem 1.25rem 0 0;
+        align-items: stretch;
     }
     .tab-ipad-only { display: flex !important; }
     .mobile-tab-item {
-        min-height: 3.8rem;
-        font-size: 0.62rem;
-        gap: 0.15rem;
+        height: 3.8rem;
+        min-height: unset;
+        font-size: 0.65rem;
+        gap: 0.14rem;
+        padding: 0.3rem 0.1rem;
     }
-    .mobile-tab-item .tab-icon { width: 1.85rem; height: 1.85rem; border-radius: 0.6rem; }
+    .mobile-tab-item .tab-icon { width: 1.8rem; height: 1.8rem; border-radius: 0.55rem; }
+    /* FAB — landscape */
+    .mobile-tab-fab {
+        height: 3.8rem !important;
+        overflow: visible !important;
+        padding: 0 !important;
+        position: relative !important;
+    }
     .mobile-tab-fab .fab-circle {
-        width: 3.1rem; height: 3.1rem;
-        transform: translateY(-8px);
+        width: 4.8rem !important;
+        height: 4.8rem !important;
+        transform: translateY(-22px) scale(1) !important;
+        transition: all 0.22s cubic-bezier(0.34,1.56,0.64,1) !important;
+        position: static !important;
+    }
+    .mobile-tab-fab .fab-circle img {
+        width: 4.8rem !important;
+        height: 4.8rem !important;
+    }
+    .mobile-tab-fab:active .fab-circle,
+    .mobile-tab-fab:focus-visible .fab-circle {
+        transform: translateY(-18px) scale(0.92) !important;
     }
     /* FAB sheet expandido em landscape */
     .mobile-sheet-panel {
@@ -295,18 +338,17 @@
 
 .mobile-action-sheet {
     position: fixed;
-    inset: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     z-index: 80;
     pointer-events: none;
-    /* Remove element from rendering entirely when closed —
-       prevents iOS Safari GPU compositing layer from persisting */
     visibility: hidden;
-    transition: visibility 0s linear 0.35s; /* delay = panel close animation */
+    transition: visibility 0s linear 0.35s;
+    /* IMPORTANTE: sem transform — transform em position:fixed quebra descendentes no iOS Safari */
 }
 .mobile-action-sheet.is-open {
     pointer-events: auto;
     visibility: visible;
-    transition: visibility 0s linear 0s; /* show immediately on open */
+    transition: visibility 0s linear 0s;
 }
 
 .mobile-sheet-backdrop {
@@ -317,20 +359,23 @@
     -webkit-backdrop-filter: blur(5px);
     opacity: 0;
     transition: opacity 0.25s ease;
-    touch-action: none; /* impede scroll da página por baixo no iOS Safari */
+    touch-action: none;
     -webkit-tap-highlight-color: transparent;
 }
 .mobile-action-sheet.is-open .mobile-sheet-backdrop { opacity: 1; }
 
 .mobile-sheet-panel {
-    position: absolute;
+    /* position: fixed ancorado diretamente ao viewport — evita bug iOS Safari
+       onde position:absolute dentro de fixed calcula bottom errado */
+    position: fixed;
     left: 0; right: 0; bottom: 0;
-    z-index: 1;
+    z-index: 81; /* acima do backdrop (z-index:80) */
     background: rgba(255,255,255,0.97);
     backdrop-filter: blur(20px) saturate(1.6);
     -webkit-backdrop-filter: blur(20px) saturate(1.6);
     border-radius: 1.75rem 1.75rem 0 0;
     padding: 0.4rem 1.1rem calc(1.4rem + env(safe-area-inset-bottom));
+    -webkit-transform: translateY(100%);
     transform: translateY(100%);
     will-change: transform;
     transition: transform 0.35s cubic-bezier(0.32,0.72,0,1);
@@ -339,6 +384,7 @@
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
 }
 .dark .mobile-sheet-panel {
     background: rgba(8,14,36,0.97);
@@ -347,7 +393,10 @@
     border-top: 1px solid rgba(51,65,85,.3);
     box-shadow: 0 -12px 60px rgba(0,0,0,.55), 0 -1px 0 rgba(51,65,85,.25);
 }
-.mobile-action-sheet.is-open .mobile-sheet-panel { transform: translateY(0); }
+.mobile-action-sheet.is-open .mobile-sheet-panel {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+}
 
 .mobile-sheet-handle {
     width: 2.8rem; height: 0.26rem;
@@ -972,15 +1021,11 @@
 }
 .dark .mobile-bottom-tabbar::before { opacity: 0.55; }
 
-/* ── FAB: gradiente mais vibrante + glow intenso ── */
+/* ── FAB: apenas o SVG, sem fundo nem borda ── */
 .mobile-tab-fab .fab-circle {
-    background: linear-gradient(145deg, #4f46e5 0%, #6366f1 45%, #7c3aed 100%) !important;
-    box-shadow:
-        0 6px 24px rgba(99,102,241,.68),
-        0 2px 8px rgba(79,70,229,.38),
-        0 0 0 3px rgba(99,102,241,.24),
-        0 0 0 6.5px rgba(99,102,241,.1),
-        inset 0 1px 0 rgba(255,255,255,.22) !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 /* ── Active tab icon: glow mais intenso com app colors ── */
@@ -1029,8 +1074,10 @@
 
 /* ── FAB sheet: linha de acento emerald → indigo ── */
 .fab-sheet {
-    position: relative;
-    overflow: hidden;
+    /* NOTA: position NÃO declarado aqui — herda position:fixed do .mobile-sheet-panel base.
+       Declarar position:relative aqui QUEBRARIA o ancoramento ao bottom do viewport,
+       pois ambas as classes têm especificidade 0-1-0 e a última declarada vence. */
+    overflow-x: hidden; /* apenas eixo X — preserva overflow-y:auto (scroll) do .mobile-sheet-panel */
 }
 .fab-sheet::after {
     content: '';
@@ -1060,13 +1107,12 @@
         border-radius: 1.5rem 1.5rem 0 0;
     }
     .mobile-tab-fab .fab-circle {
-        width: 3.5rem !important;
-        height: 3.5rem !important;
-        transform: translateY(-10px) !important;
-        box-shadow:
-            0 8px 28px rgba(99,102,241,.72),
-            0 0 0 4px rgba(99,102,241,.22),
-            inset 0 1px 0 rgba(255,255,255,.25) !important;
+        width: 6.8rem !important;
+        height: 6.8rem !important;
+        transform: translateY(-18px) scale(1) !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
     }
 }
 
