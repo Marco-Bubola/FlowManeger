@@ -541,11 +541,8 @@
             <!-- FAB Central: Ações Rápidas -->
             <button type="button" class="mobile-tab-item mobile-tab-fab" id="tabFabBtn" onclick="openFabSheet()" aria-label="Ações rápidas">
                 <div class="fab-circle">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path>
-                    </svg>
+                    <img src="{{ asset('assets/img/Criar.svg') }}" alt="Criar" style="display:block; width:5.8rem; height:5.8rem; object-fit:contain; border-radius:50%;">
                 </div>
-                <span class="fab-label">Criar</span>
             </button>
 
             <!-- Produtos -->
@@ -1085,6 +1082,7 @@
                 }
 
                 sidebar.classList.add('mobile-sidebar-closed');
+                document.body.classList.remove('overflow-hidden'); // ← corrige iOS fixed bug
             }
 
             function _tabbar() {
@@ -1099,10 +1097,9 @@
             function openFabSheet() {
                 const sheet = document.getElementById('mobileFabSheet');
                 if (!sheet) return;
+                closeMobileSidebar(); // fecha sidebar antes — evita z-index conflict
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
-                const tb = _tabbar();
-                if (tb) { tb.style.visibility = 'hidden'; tb.style.pointerEvents = 'none'; }
                 document.getElementById('tabFabBtn')?.classList.add('fab-sheet-open');
             }
 
@@ -1112,19 +1109,14 @@
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
                 document.getElementById('tabFabBtn')?.classList.remove('fab-sheet-open');
-                if (!_isAnySheetOpen()) {
-                    const tb = _tabbar();
-                    if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
-                }
             }
 
             function openMoreSheet() {
                 const sheet = document.getElementById('mobileMoreSheet');
                 if (!sheet) return;
+                closeMobileSidebar(); // fecha sidebar antes
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
-                const tb = _tabbar();
-                if (tb) { tb.style.visibility = 'hidden'; tb.style.pointerEvents = 'none'; }
             }
 
             function closeMoreSheet() {
@@ -1132,10 +1124,6 @@
                 if (!sheet) return;
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
-                if (!_isAnySheetOpen()) {
-                    const tb = _tabbar();
-                    if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
-                }
             }
 
             function initSidebar() {
@@ -1154,12 +1142,10 @@
                     document.body.classList.remove('sidebar-compact');
                 }
 
-                // Close any open sheets on navigation and always restore tabbar
+                // Close any open sheets on navigation
                 closeFabSheet();
                 closeMoreSheet();
                 document.getElementById('tabFabBtn')?.classList.remove('fab-sheet-open');
-                const tb = _tabbar();
-                if (tb) { tb.style.visibility = ''; tb.style.pointerEvents = ''; }
 
                 // Desktop toggle functionality (apenas quando sidebar está ativa)
                 if (toggle && !toggle.hasAttribute('data-sidebar-initialized')) {
