@@ -2132,10 +2132,158 @@
     justify-content: center;
     border-radius: 50%;
     position: absolute;
-    left: 50%;
-    bottom: -32px;
-    transform: translateX(-50%);
-    z-index: 20;
+}
+
+
+/* ════════════════════════════════════════════════════════════════
+   PUBLICATION CARD — Carousel de Product Cards (estilo products-index)
+   Classes: .pub-publication-card, .pub-product-carousel, .pub-product-slide
+            .pub-carousel-arrow, .pub-carousel-nav, .pub-carousel-dot
+            .pub-info-footer, .pub-ml-badge, .pub-type-badge
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── Outer publication card ─────────────────────────────────────── */
+.pub-publication-card {
+    min-height: 0 !important; /* deixa altura ser determinada pelo conteúdo */
+    height: auto !important;
+}
+
+/* ── Bloco do carousel (envolve todos os slides) ─────────────────── */
+.pub-publication-card .pub-product-carousel {
+    position: relative;
+    overflow: visible; /* permite o category-icon-wrapper (-32px) aparecer */
+    flex: 0 0 auto;
+}
+
+/* ── Slide de produto ────────────────────────────────────────────── */
+.pub-publication-card .pub-product-carousel .pub-product-slide {
+    position: relative;
+    width: 100%;
+}
+
+/* ── Imagem dentro do carousel: sem border-radius superior (carousel já tem) ── */
+.pub-publication-card .pub-product-carousel .pub-product-slide .pub-img-area {
+    border-top-left-radius: 1.7em !important;
+    border-top-right-radius: 1.7em !important;
+}
+
+/* ── Setas de navegação do carousel ─────────────────────────────── */
+.pub-carousel-arrow {
+    position: absolute;
+    top: 110px; /* ~metade da altura da img-area padrão (220px) */
+    transform: translateY(-50%);
+    z-index: 30;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    padding: 0;
+    transition: background 0.18s, transform 0.18s;
+    line-height: 1;
+}
+.pub-carousel-arrow:hover {
+    background: rgba(0, 0, 0, 0.82);
+    transform: translateY(-50%) scale(1.12);
+}
+.pub-carousel-arrow-left  { left: 7px; }
+.pub-carousel-arrow-right { right: 7px; }
+
+/* ── Dots + contador (linha entre carousel e pub-info-footer) ────── */
+.pub-carousel-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 5px 10px 3px;
+    background: var(--card-bg, #e6e6fa);
+    border-top: 2px solid var(--card-border, #b39ddb);
+    border-bottom: 1px solid var(--card-border, #b39ddb);
+    flex: 0 0 auto;
+}
+
+.pub-carousel-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--card-border, #b39ddb);
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.18s, transform 0.18s;
+}
+.pub-carousel-dot-active,
+.pub-carousel-dot.pub-carousel-dot-active {
+    background: var(--primary, #9575cd);
+    transform: scale(1.4);
+}
+.pub-carousel-counter {
+    font-size: 0.58rem;
+    font-weight: 700;
+    color: var(--gray-600, #7e57c2);
+    margin-left: 4px;
+    letter-spacing: 0.03em;
+}
+
+/* ── Footer: dados da publicação ML ─────────────────────────────── */
+.pub-info-footer {
+    padding: 0.5rem 0.75rem 0.65rem !important;
+    border-top: 2.5px solid var(--card-border, #b39ddb) !important;
+    background: var(--card-bg, #e6e6fa);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    flex: 0 0 auto;
+}
+
+/* ── Badge ML ID ─────────────────────────────────────────────────── */
+.pub-ml-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--card-accent, #ffe0b2), var(--card-border, #b39ddb));
+    color: var(--card-text, #424242);
+    box-shadow: 0 1px 4px var(--card-shadow, rgba(149,117,205,0.13));
+}
+
+/* ── Badge tipo de publicação ────────────────────────────────────── */
+.pub-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    color: #fff;
+}
+.pub-type-kit    { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+.pub-type-simple { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+
+/* ── pub-info-footer reutiliza product-title e price-area do card ── */
+.pub-info-footer .product-title {
+    width: 100%;
+    text-align: center;
+    font-size: 0.82rem !important;
+    margin: 0 !important;
+}
+.pub-info-footer .price-area {
+    width: 100%;
+    position: relative;
+    min-height: 2.2em;
+    margin: 0 !important;
 }
 
 .sales-grid .sale-card .sale-card-product .category-icon {
