@@ -941,96 +941,91 @@ class PublishProduct extends Component
             
             // Enviar atributos: do catálogo ou preenchidos manualmente
             if (!empty($this->catalogAttributes)) {
-                // Tem atributos do catálogo - usar eles
+                // Tem atributos do catálogo
                 $attributes = [];
-                // Atributos problemáticos que causam erro de validação no ML API
-                $ignoredAttrs = [
-                    'MANUAL_TITLE',
-                    'HAIR_TYPES',           // Causa erro: valores múltiplos
-                    'HAIR_CARE_TYPES',      // Causa erro: validação de value_id
-                ];
-                
-                foreach ($this->catalogAttributes as $attr) {
-                    // Pular atributos que devem ser ignorados
-                    if (empty($attr['id']) || in_array($attr['id'], $ignoredAttrs)) {
-                        continue;
-                    }
-                    
-                    // Pular atributos com valores inválidos/nulos
-                    if (empty($attr['value_id']) && empty($attr['value_name'])) {
-                        continue;
-                    }
-                    
-                    // Se tem value_id, DEVE ter value_name também
-                    if (!empty($attr['value_id'])) {
-                        $valueName = $attr['value_name'];
-                        
-                        // Se value_name está vazio/null, buscar na lista de values
-                        if (empty($valueName) && !empty($attr['values'])) {
-                            foreach ($attr['values'] as $value) {
-                                if ($value['id'] === $attr['value_id']) {
-                                    $valueName = $value['name'];
-                                    break;
+
+                // Quando publicando VINCULADO ao catálogo (linkToCatalog=true + catalogProductId),
+                // o ML HERDA automaticamente os atributos do catálogo.
+                // Enviar atributos de catálogo causa "invalid.item.attribute.values" (ex: PERFUME_TYPE).
+                // Nesse modo, enviar apenas BRAND, MODEL e GTIN.
+                if ($this->catalogProductId && $this->linkToCatalog) {
+                    Log::info('Modo catálogo vinculado: enviando apenas atributos essenciais (sem atributos do catálogo)', [
+                        'catalog_product_id' => $this->catalogProductId,
+                    ]);
+                    // Não adicionar nada — ProductService auto-adiciona BRAND, MODEL e GTIN
+                } else {
+                    // MODO cópia independente: enviar atributos do catálogo mas com filtro
+                    // Atributos problemáticos que causam erro de validação no ML API
+                    $ignoredAttrs = [
+                        'MANUAL_TITLE',
+                        'HAIR_TYPES',           // Causa erro: valores múltiplos
+                        'HAIR_CARE_TYPES',      // Causa erro: validação de value_id
+                        'PERFUME_TYPE',          // Causa erro: invalid.item.attribute.values
+                        'FRAGRANCE_TYPE',        // Mesmo motivo
+                        'WRIST_WATCH_TYPE',      // Mesmo motivo
+                        'CLOTHING_TYPE',         // Mesmo motivo
+                        'SHOE_TYPE',             // Mesmo motivo
+                    ];
+
+                    foreach ($this->catalogAttributes as $attr) {
+                        // Pular atributos que devem ser ignorados
+                        if (empty($attr['id']) || in_array($attr['id'], $ignoredAttrs)) {
+                            continue;
+                        }
+
+                        // Pular atributos com valores inválidos/nulos
+                        if (empty($attr['value_id']) && empty($attr['value_name'])) {
+                            continue;
+                        }
+
+                        // Se tem value_id, DEVE ter value_name também
+                        if (!empty($attr['value_id'])) {
+                            $valueName = $attr['value_name'];
+
+                            // Se value_name está vazio/null, buscar na lista de values
+                            if (empty($valueName) && !empty($attr['values'])) {
+                                foreach ($attr['values'] as $value) {
+                                    if ($value['id'] === $attr['value_id']) {
+                                        $valueName = $value['name'];
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        
-                        // CORREÇÃO: Filtrar atributos com value_name contendo vírgula (múltiplos valores)
-                        // Esses causam erro "invalid.item.attribute.values" no ML API
-                        if (!empty($valueName) && str_contains($valueName, ',')) {
-                            Log::warning('Atributo ignorado - value_name contém vírgula (múltiplos valores)', [
-                                'attr_id' => $attr['id'],
-                                'attr_name' => $attr['name'],
-                                'value_id' => $attr['value_id'],
-                                'value_name' => $valueName,
-                            ]);
-                            continue;
-                        }
-                        
-                        // Só adicionar se conseguiu o value_name
-                        if (!empty($valueName)) {
+
+                            // CORREÇÃO: Filtrar atributos com value_name contendo vírgula (múltiplos valores)
+                            if (!empty($valueName) && str_contains($valueName, ',')) {
+                                Log::warning('Atributo ignorado - value_name contém vírgula (múltiplos valores)', [
+                                    'attr_id' => $attr['id'],
+                                    'value_name' => $valueName,
+                                ]);
+                                continue;
+                            }
+
+                            if (!empty($valueName)) {
+                                $attributes[$attr['id']] = [
+                                    'id' => $attr['id'],
+                                    'value_id' => $attr['value_id'],
+                                    'value_name' => $valueName,
+                                ];
+                            }
+                        } elseif (!empty($attr['value_name'])) {
+                            // Atributos do tipo texto (sem value_id) — filtrar vírgulas
+                            if (str_contains($attr['value_name'], ',')) {
+                                continue;
+                            }
                             $attributes[$attr['id']] = [
                                 'id' => $attr['id'],
-                                'value_id' => $attr['value_id'],
-                                'value_name' => $valueName,
-                            ];
-                            
-                            Log::info('Atributo preparado para envio', [
-                                'attr_id' => $attr['id'],
-                                'value_id' => $attr['value_id'],
-                                'value_name' => $valueName,
-                            ]);
-                        } else {
-                            Log::warning('Atributo ignorado - value_name não encontrado', [
-                                'attr_id' => $attr['id'],
-                                'attr_name' => $attr['name'],
-                                'value_id' => $attr['value_id'],
-                                'values_count' => !empty($attr['values']) ? count($attr['values']) : 0,
-                            ]);
-                        }
-                    } elseif (!empty($attr['value_name'])) {
-                        // Atributos do tipo texto (sem value_id)
-                        // CORREÇÃO: Também filtrar atributos texto com vírgula
-                        if (str_contains($attr['value_name'], ',')) {
-                            Log::warning('Atributo texto ignorado - contém vírgula', [
-                                'attr_id' => $attr['id'],
                                 'value_name' => $attr['value_name'],
-                            ]);
-                            continue;
+                            ];
                         }
-                        $attributes[$attr['id']] = [
-                            'id' => $attr['id'],
-                            'value_name' => $attr['value_name'],
-                        ];
                     }
+
+                    Log::info('Enviando atributos do catálogo (modo cópia)', [
+                        'attributes_count' => count($attributes),
+                    ]);
                 }
+
                 $publishData['attributes'] = array_values($attributes);
-                
-                Log::info('Enviando atributos do catálogo', [
-                    'attributes_count' => count($attributes),
-                    'attributes' => $attributes,
-                    'link_to_catalog' => $this->linkToCatalog
-                ]);
             } elseif (!empty($this->selectedAttributes)) {
                 // Atributos preenchidos manualmente
                 $publishData['attributes'] = $this->selectedAttributes;
