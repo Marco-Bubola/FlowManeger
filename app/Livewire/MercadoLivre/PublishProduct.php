@@ -946,31 +946,23 @@ class PublishProduct extends Component
             
             // Enviar atributos: do catálogo ou preenchidos manualmente
             if (!empty($this->catalogAttributes)) {
-                // Tem atributos do catálogo
+                // Tem atributos do catálogo — enviar com filtro de atributos problemáticos
+                // Mesmo no modo vinculado (catalog_product_id), o ML exige atributos required
+                // como UNIT_VOLUME e PERFUME_NAME na categoria MLB6284.
                 $attributes = [];
-
-                // Quando publicando VINCULADO ao catálogo (linkToCatalog=true + catalogProductId),
-                // o ML HERDA automaticamente os atributos do catálogo.
-                // Enviar atributos de catálogo causa "invalid.item.attribute.values" (ex: PERFUME_TYPE).
-                // Nesse modo, enviar apenas BRAND, MODEL e GTIN.
-                if ($this->catalogProductId && $this->linkToCatalog) {
-                    Log::info('Modo catálogo vinculado: enviando apenas atributos essenciais (sem atributos do catálogo)', [
-                        'catalog_product_id' => $this->catalogProductId,
-                    ]);
-                    // Não adicionar nada — ProductService auto-adiciona BRAND, MODEL e GTIN
-                } else {
-                    // MODO cópia independente: enviar atributos do catálogo mas com filtro
-                    // Atributos problemáticos que causam erro de validação no ML API
-                    $ignoredAttrs = [
-                        'MANUAL_TITLE',
-                        'HAIR_TYPES',           // Causa erro: valores múltiplos
-                        'HAIR_CARE_TYPES',      // Causa erro: validação de value_id
-                        'PERFUME_TYPE',          // Causa erro: invalid.item.attribute.values
-                        'FRAGRANCE_TYPE',        // Mesmo motivo
-                        'WRIST_WATCH_TYPE',      // Mesmo motivo
-                        'CLOTHING_TYPE',         // Mesmo motivo
-                        'SHOE_TYPE',             // Mesmo motivo
-                    ];
+                
+                // Atributos que NUNCA devem ser enviados manualmente
+                // (causam invalid.item.attribute.values — o ML os herda/calcula sozinho)
+                $ignoredAttrs = [
+                    'MANUAL_TITLE',
+                    'HAIR_TYPES',
+                    'HAIR_CARE_TYPES',
+                    'PERFUME_TYPE',
+                    'FRAGRANCE_TYPE',
+                    'WRIST_WATCH_TYPE',
+                    'CLOTHING_TYPE',
+                    'SHOE_TYPE',
+                ];
 
                     foreach ($this->catalogAttributes as $attr) {
                         // Pular atributos que devem ser ignorados
@@ -983,11 +975,13 @@ class PublishProduct extends Component
                             continue;
                         }
 
-                        // Se tem value_id, DEVE ter value_name também
+                        // Se tem value_id, enviar MESMO se value_name estiver vazio
+                        // O ML aceita value_id sozinho — e atributos como UNIT_VOLUME, PERFUME_NAME
+                        // podem ter value_id mas value_name vazio no catálogo.
                         if (!empty($attr['value_id'])) {
                             $valueName = $attr['value_name'];
 
-                            // Se value_name está vazio/null, buscar na lista de values
+                            // Tentar resolver value_name via lista de values
                             if (empty($valueName) && !empty($attr['values'])) {
                                 foreach ($attr['values'] as $value) {
                                     if ($value['id'] === $attr['value_id']) {
@@ -997,22 +991,22 @@ class PublishProduct extends Component
                                 }
                             }
 
-                            // CORREÇÃO: Filtrar atributos com value_name contendo vírgula (múltiplos valores)
+                            // Filtrar value_name com vírgula (múltiplos valores concatenados)
                             if (!empty($valueName) && str_contains($valueName, ',')) {
-                                Log::warning('Atributo ignorado - value_name contém vírgula (múltiplos valores)', [
+                                Log::warning('Atributo ignorado - value_name contém vírgula', [
                                     'attr_id' => $attr['id'],
                                     'value_name' => $valueName,
                                 ]);
                                 continue;
                             }
 
+                            // Enviar com value_id; incluir value_name se disponível
+                            $payload = ['id' => $attr['id'], 'value_id' => $attr['value_id']];
                             if (!empty($valueName)) {
-                                $attributes[$attr['id']] = [
-                                    'id' => $attr['id'],
-                                    'value_id' => $attr['value_id'],
-                                    'value_name' => $valueName,
-                                ];
+                                $payload['value_name'] = $valueName;
                             }
+                            $attributes[$attr['id']] = $payload;
+                            Log::info('Atributo do catálogo incluído', ['id' => $attr['id'], 'value_id' => $attr['value_id'], 'value_name' => $valueName]);
                         } elseif (!empty($attr['value_name'])) {
                             // Atributos do tipo texto (sem value_id) — filtrar vírgulas
                             if (str_contains($attr['value_name'], ',')) {
@@ -1025,10 +1019,11 @@ class PublishProduct extends Component
                         }
                     }
 
-                    Log::info('Enviando atributos do catálogo (modo cópia)', [
+                    Log::info('Enviando atributos do catálogo', [
+                        'mode' => $this->linkToCatalog ? 'vinculado' : 'cópia',
                         'attributes_count' => count($attributes),
+                        'attr_ids' => array_keys($attributes),
                     ]);
-                }
 
                 $publishData['attributes'] = array_values($attributes);
             } elseif (!empty($this->selectedAttributes)) {
