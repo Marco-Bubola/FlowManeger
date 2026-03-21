@@ -1,5 +1,22 @@
-/* publish-product — iPhone 15 */
+/* publish-product — iPhone 15 (393x852) */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
-    .publish-product-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
-    .publish-product-page .grid { grid-template-columns: 1fr !important; }
+    .publish-product-page {
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+        padding-inline: .75rem;
+    }
+    .publish-product-page .grid {
+        grid-template-columns: 1fr !important;
+    }
+    /* Loading overlay adjustments */
+    .publish-product-page h2.text-xl {
+        font-size: 1.125rem !important;
+    }
+    /* Compact step items */
+    .pp-step-item {
+        padding: .625rem .875rem !important;
+    }
+    /* Skeleton 2 cols always on iPhone */
+    .publish-product-page .grid.sm\:grid-cols-4 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
 }
