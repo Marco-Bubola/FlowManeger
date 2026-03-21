@@ -1,4 +1,6 @@
 /* edit-publication — Notebook */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .edit-publication-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .edit-publication-page .ep-grid { grid-template-columns: 2fr 1.2fr 1fr !important; gap: 0.6rem !important; }
+    .edit-publication-page .ep-products-grid { grid-template-columns: repeat(3, 1fr) !important; }
+    .edit-publication-page .ep-card { padding: 0.8rem !important; }
 }
