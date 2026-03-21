@@ -1,4 +1,4 @@
-<div class="w-full app-viewport-fit mobile-393-base publications-page">
+<div class="w-full app-viewport-fit mobile-393-base publications-page" x-data="{ filterOpen: false, tipsOpen: false }">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -198,6 +198,23 @@
                             </button>
                         </div>
 
+                        {{-- Botão Filtros Avançados --}}
+                        <button @click="filterOpen = true"
+                                class="sale-action-btn" title="Filtros avançados">
+                            <i class="bi bi-funnel"></i>
+                            <span class="hidden sm:inline">Filtros</span>
+                            @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all')
+                                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+                            @endif
+                        </button>
+
+                        {{-- Botão Dicas --}}
+                        <button @click="tipsOpen = true"
+                                class="sale-action-btn" title="Dicas de publicação">
+                            <i class="bi bi-lightbulb"></i>
+                            <span class="hidden sm:inline">Dicas</span>
+                        </button>
+
                         {{-- Botão Configurações --}}
                         <a href="{{ route('mercadolivre.settings') }}"
                            class="sale-action-btn" title="Configurações ML">
@@ -212,92 +229,29 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════
-         INDICADOR DE SINCRONIZAÇÃO AUTOMÁTICA
+         INDICADOR DE SINCRONIZAÇÃO AUTOMÁTICA (INLINE)
     ═══════════════════════════════════════════════ --}}
-    @if($isSyncing || $syncedCount > 0)
-    <div class="mb-6 rounded-2xl overflow-hidden shadow-xl border-2" 
-         x-data="{ show: true }"
-         x-show="show"
-         x-transition:enter="transition ease-out duration-300"
-         x-transition:enter-start="opacity-0 transform -translate-y-4"
-         x-transition:enter-end="opacity-100 transform translate-y-0"
-         class="{{ $isSyncing ? 'border-blue-400 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30' : ($syncedCount > 0 && count($syncErrors) === 0 ? 'border-emerald-400 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-950/30 dark:to-green-950/30' : 'border-amber-400 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/30 dark:to-orange-950/30') }}">
+    @if($isSyncing)
+    <div class="mb-4 rounded-xl overflow-hidden border-2 border-blue-400 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30">
         <div class="p-4">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-4 flex-1">
-                    @if($isSyncing)
-                        {{-- Em sincronização --}}
-                        <div class="flex-shrink-0 w-12 h-12 rounded-full bg-blue-500 flex items-center justify-center animate-pulse">
-                            <i class="bi bi-arrow-repeat text-white text-xl animate-spin"></i>
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center animate-pulse">
+                        <i class="bi bi-arrow-repeat text-white animate-spin"></i>
+                    </div>
+                    <div class="flex-1">
+                        <p class="text-sm font-bold text-blue-700 dark:text-blue-300">🔄 Sincronizando com o Mercado Livre...</p>
+                        <p class="text-xs text-blue-600 dark:text-blue-400">{{ $syncedCount }} de {{ $totalToSync }} publicações sincronizadas</p>
+                        @if($totalToSync > 0)
+                        <div class="mt-1.5 w-full bg-blue-200 dark:bg-blue-900 rounded-full h-1.5 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500"
+                                 style="width: {{ ($syncedCount / $totalToSync) * 100 }}%"></div>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="text-lg font-bold text-blue-700 dark:text-blue-300 mb-1">
-                                🔄 Sincronizando com o Mercado Livre...
-                            </h3>
-                            <p class="text-sm text-blue-600 dark:text-blue-400">
-                                {{ $syncedCount }} de {{ $totalToSync }} publicações sincronizadas
-                            </p>
-                            {{-- Barra de Progresso --}}
-                            @if($totalToSync > 0)
-                            <div class="mt-2 w-full bg-blue-200 dark:bg-blue-900 rounded-full h-2 overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full transition-all duration-500" 
-                                     style="width: {{ ($syncedCount / $totalToSync) * 100 }}%"></div>
-                            </div>
-                            @endif
-                        </div>
-                    @else
-                        {{-- Sincronização concluída --}}
-                        @if(count($syncErrors) === 0)
-                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center">
-                                <i class="bi bi-check-circle-fill text-white text-2xl"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-lg font-bold text-emerald-700 dark:text-emerald-300">
-                                    ✅ Sincronização Concluída!
-                                </h3>
-                                <p class="text-sm text-emerald-600 dark:text-emerald-400">
-                                    {{ $syncedCount }} de {{ $totalToSync }} publicações atualizadas com sucesso
-                                </p>
-                            </div>
-                        @else
-                            <div class="flex-shrink-0 w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center">
-                                <i class="bi bi-exclamation-triangle-fill text-white text-2xl"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h3 class="text-lg font-bold text-amber-700 dark:text-amber-300">
-                                    ⚠️ Sincronização Concluída com Avisos
-                                </h3>
-                                <p class="text-sm text-amber-600 dark:text-amber-400 mb-2">
-                                    {{ $syncedCount }} sincronizadas · {{ count($syncErrors) }} com erro
-                                </p>
-                                {{-- Lista de erros (colapsável) --}}
-                                @if(count($syncErrors) > 0)
-                                <details class="mt-2">
-                                    <summary class="cursor-pointer text-xs font-semibold text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200">
-                                        Ver erros ({{ count($syncErrors) }})
-                                    </summary>
-                                    <div class="mt-2 space-y-1 max-h-40 overflow-y-auto">
-                                        @foreach($syncErrors as $error)
-                                        <div class="p-2 rounded-lg bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-800">
-                                            <p class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ $error['title'] }}</p>
-                                            <p class="text-xs text-red-600 dark:text-red-400">{{ $error['error'] }}</p>
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                </details>
-                                @endif
-                            </div>
                         @endif
-                    @endif
+                    </div>
                 </div>
                 
-                {{-- Botão Fechar --}}
-                @if(!$isSyncing)
-                <button @click="show = false" 
-                        class="flex-shrink-0 p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
-                    <i class="bi bi-x-lg text-slate-600 dark:text-slate-400"></i>
-                </button>
-                @endif
+
             </div>
         </div>
     </div>
@@ -348,6 +302,7 @@
                           um por vez com navegação por setas e dots)
                     ═════════════════════════════════════════════════════ --}}
                     <div class="product-card-modern pub-publication-card"
+                         wire:key="pub-{{ $publication->id }}"
                          x-data="{ slide: 0, count: {{ $publication->products->count() }} }">
 
                         {{-- ══ BOTÕES DE AÇÃO DA PUBLICAÇÃO (flutuantes, z-index alto) ══ --}}
@@ -888,4 +843,310 @@
         @endif
 
     </div>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         MODAL DE FILTROS AVANÇADOS
+    ═══════════════════════════════════════════════════════════════ --}}
+    <div x-show="filterOpen"
+         x-cloak
+         class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+         @keydown.escape.window="filterOpen = false">
+
+        {{-- Overlay --}}
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
+             @click="filterOpen = false"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"></div>
+
+        {{-- Painel do Modal --}}
+        <div class="relative w-full sm:w-auto sm:min-w-[500px] sm:max-w-lg mx-0 sm:mx-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700/50 overflow-hidden"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95 sm:translate-y-0"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95 sm:translate-y-0">
+
+            {{-- Decoração topo (mobile handle) --}}
+            <div class="sm:hidden mx-auto mt-3 mb-1 w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 dark:from-purple-950/30 dark:to-indigo-950/30">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/20">
+                        <i class="bi bi-funnel-fill text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Filtros Avançados</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Filtre suas publicações</p>
+                    </div>
+                </div>
+                <button @click="filterOpen = false"
+                        class="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 space-y-5 max-h-[60vh] sm:max-h-none overflow-y-auto">
+
+                {{-- Status --}}
+                <div>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                        <i class="bi bi-circle-half text-purple-500"></i> Status da Publicação
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach([
+                            ['value' => 'all',          'label' => 'Todos',     'icon' => 'list-check',    'color' => 'purple'],
+                            ['value' => 'active',       'label' => 'Ativas',    'icon' => 'check-circle',  'color' => 'emerald'],
+                            ['value' => 'paused',       'label' => 'Pausadas',  'icon' => 'pause-circle',  'color' => 'amber'],
+                            ['value' => 'closed',       'label' => 'Fechadas',  'icon' => 'x-circle',      'color' => 'red'],
+                            ['value' => 'under_review', 'label' => 'Em Revisão','icon' => 'search',        'color' => 'violet'],
+                        ] as $opt)
+                        <button wire:click="$set('statusFilter', '{{ $opt['value'] }}')"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
+                                       {{ $statusFilter === $opt['value']
+                                          ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
+                                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
+                            <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Tipo --}}
+                <div>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                        <i class="bi bi-boxes text-blue-500"></i> Tipo de Publicação
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach([
+                            ['value' => 'all',    'label' => 'Todos',   'icon' => 'box-seam', 'color' => 'blue'],
+                            ['value' => 'simple', 'label' => 'Simples', 'icon' => 'box',      'color' => 'blue'],
+                            ['value' => 'kit',    'label' => 'Kits',    'icon' => 'boxes',    'color' => 'purple'],
+                        ] as $opt)
+                        <button wire:click="$set('typeFilter', '{{ $opt['value'] }}')"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
+                                       {{ $typeFilter === $opt['value']
+                                          ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
+                                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
+                            <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Sincronização --}}
+                <div>
+                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                        <i class="bi bi-arrow-repeat text-teal-500"></i> Status de Sincronização
+                    </label>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach([
+                            ['value' => 'all',     'label' => 'Todos',        'icon' => 'arrow-repeat',        'color' => 'teal'],
+                            ['value' => 'synced',  'label' => 'Sincronizados','icon' => 'check-circle',        'color' => 'emerald'],
+                            ['value' => 'pending', 'label' => 'Pendentes',    'icon' => 'clock',               'color' => 'amber'],
+                            ['value' => 'error',   'label' => 'Com Erros',    'icon' => 'exclamation-triangle','color' => 'red'],
+                        ] as $opt)
+                        <button wire:click="$set('syncFilter', '{{ $opt['value'] }}')"
+                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
+                                       {{ $syncFilter === $opt['value']
+                                          ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
+                                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
+                            <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Resumo dos filtros ativos --}}
+                @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search)
+                <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
+                    <p class="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1.5">
+                        <i class="bi bi-funnel-fill mr-1"></i> Filtros ativos:
+                    </p>
+                    <div class="flex flex-wrap gap-1.5">
+                        @if($search)
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
+                                <i class="bi bi-search"></i> "{{ $search }}"
+                            </span>
+                        @endif
+                        @if($statusFilter !== 'all')
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
+                                Status: {{ $statusFilter }}
+                            </span>
+                        @endif
+                        @if($typeFilter !== 'all')
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
+                                Tipo: {{ $typeFilter }}
+                            </span>
+                        @endif
+                        @if($syncFilter !== 'all')
+                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
+                                Sync: {{ $syncFilter }}
+                            </span>
+                        @endif
+                    </div>
+                </div>
+                @endif
+
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 pb-6 pt-4 flex items-center justify-between gap-3 border-t border-slate-200/60 dark:border-slate-700/60">
+                <button wire:click="clearFilters" @click="filterOpen = false"
+                        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold transition-all text-sm">
+                    <i class="bi bi-x-circle"></i> Limpar Tudo
+                </button>
+                <button @click="filterOpen = false"
+                        class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
+                    <i class="bi bi-check-lg"></i> Aplicar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         MODAL DE DICAS DE PUBLICAÇÃO
+    ═══════════════════════════════════════════════════════════════ --}}
+    <div x-show="tipsOpen"
+         x-cloak
+         class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+         @keydown.escape.window="tipsOpen = false">
+
+        {{-- Overlay --}}
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
+             @click="tipsOpen = false"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"></div>
+
+        {{-- Painel do Modal --}}
+        <div class="relative w-full sm:w-auto sm:min-w-[540px] sm:max-w-xl mx-0 sm:mx-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700/50 overflow-hidden"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95 sm:translate-y-0"
+             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+             x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95 sm:translate-y-0">
+
+            {{-- Mobile handle --}}
+            <div class="sm:hidden mx-auto mt-3 mb-1 w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+
+            {{-- Header --}}
+            <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-950/30 dark:to-orange-950/30">
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20">
+                        <i class="bi bi-lightbulb-fill text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Dicas de Publicação</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Melhores práticas no Mercado Livre</p>
+                    </div>
+                </div>
+                <button @click="tipsOpen = false"
+                        class="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-6 py-5 space-y-3 max-h-[65vh] overflow-y-auto">
+
+                {{-- Dica 1: Título --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-type-h1 text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-blue-800 dark:text-blue-300 mb-0.5">Título Otimizado</p>
+                        <p class="text-xs text-blue-700 dark:text-blue-400 leading-relaxed">Use 60–80 caracteres com palavras-chave relevantes. Inclua marca, modelo e características principais. Evite símbolos e maiúsculas excessivas.</p>
+                    </div>
+                </div>
+
+                {{-- Dica 2: Imagens --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-images text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-purple-800 dark:text-purple-300 mb-0.5">Imagens de Qualidade</p>
+                        <p class="text-xs text-purple-700 dark:text-purple-400 leading-relaxed">Use no mínimo 6 fotos com fundo branco. Mínimo 500x500px. A primeira imagem é a mais importante — mostre o produto com clareza.</p>
+                    </div>
+                </div>
+
+                {{-- Dica 3: Preço --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-emerald-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-currency-dollar text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-emerald-800 dark:text-emerald-300 mb-0.5">Preço Competitivo</p>
+                        <p class="text-xs text-emerald-700 dark:text-emerald-400 leading-relaxed">Pesquise a concorrência antes de definir o preço. Lembre-se das taxas do ML (cerca de 11–16% para conta clássica). Ofereça frete grátis quando possível.</p>
+                    </div>
+                </div>
+
+                {{-- Dica 4: Estoque --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-boxes text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-amber-800 dark:text-amber-300 mb-0.5">Estoque Atualizado</p>
+                        <p class="text-xs text-amber-700 dark:text-amber-400 leading-relaxed">Mantenha o estoque sempre sincronizado para evitar vendas canceladas. Publicações pausadas por falta de estoque afetam a reputação do vendedor.</p>
+                    </div>
+                </div>
+
+                {{-- Dica 5: Sincronização --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/20 border border-teal-100 dark:border-teal-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-arrow-repeat text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-teal-800 dark:text-teal-300 mb-0.5">Sincronização Regular</p>
+                        <p class="text-xs text-teal-700 dark:text-teal-400 leading-relaxed">Use o botão de sincronizar para atualizar preço e estoque no ML. Erros de sincronização ficam marcados em vermelho — resolva-os rapidamente.</p>
+                    </div>
+                </div>
+
+                {{-- Dica 6: Kits --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-gift text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-indigo-800 dark:text-indigo-300 mb-0.5">Kits Aumentam o Ticket</p>
+                        <p class="text-xs text-indigo-700 dark:text-indigo-400 leading-relaxed">Publicações do tipo "Kit" combinam produtos complementares. O estoque disponível é calculado automaticamente com base no produto de menor estoque do kit.</p>
+                    </div>
+                </div>
+
+                {{-- Dica 7: Reputação --}}
+                <div class="flex gap-3 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900">
+                    <div class="flex-shrink-0 w-9 h-9 rounded-xl bg-rose-500 flex items-center justify-center shadow-sm">
+                        <i class="bi bi-star-fill text-white text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-rose-800 dark:text-rose-300 mb-0.5">Proteja sua Reputação</p>
+                        <p class="text-xs text-rose-700 dark:text-rose-400 leading-relaxed">Responda perguntas em menos de 24h. Envie dentro do prazo. Reputação verde ou amarela garante maior visibilidade nos resultados do ML.</p>
+                    </div>
+                </div>
+
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-6 pb-5 pt-3 flex items-center justify-end border-t border-slate-200/60 dark:border-slate-700/60">
+                <button @click="tipsOpen = false"
+                        class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
+                    <i class="bi bi-check-lg"></i> Entendido!
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
