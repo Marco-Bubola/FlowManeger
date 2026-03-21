@@ -1,10 +1,13 @@
 /* edit-publication — Mobile (<=767px) */
 @media (max-width: 767px) {
     .edit-publication-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
-    .edit-publication-page .grid { grid-template-columns: 1fr !important; }
-    .edit-publication-page .grid.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
-    .edit-publication-page .grid.lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+    .edit-publication-page .ep-grid { grid-template-columns: 1fr !important; grid-template-areas: "title" "price" "sidebar" "products" "images" "attrs" !important; }
+    .edit-publication-page .ep-products-grid { grid-template-columns: 1fr !important; }
+    .edit-publication-page .ep-images-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .edit-publication-page .ep-card { padding: 0.75rem !important; }
+    .edit-publication-page .ep-save-bar { flex-direction: column; gap: 0.5rem; }
 }
 @media (min-width: 540px) and (max-width: 767px) {
-    .edit-publication-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .edit-publication-page .ep-products-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    .edit-publication-page .ep-images-grid { grid-template-columns: repeat(3, 1fr) !important; }
 }
