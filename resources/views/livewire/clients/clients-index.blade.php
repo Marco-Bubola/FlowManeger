@@ -1,4 +1,4 @@
-<div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="w-full clients-index-page mobile-393-base">
+<div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="w-full clients-index-page mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-ipad-portrait.css') }}">
@@ -10,6 +10,8 @@
             display: none !important;
         }
     </style>
+
+    <x-loading-overlay message="Carregando clientes..." />
 
     <div class="">
 
