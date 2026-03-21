@@ -53,7 +53,16 @@ class PublicationsList extends Component
     {
         $this->resetPage();
     }
-    
+
+    public function clearFilters(): void
+    {
+        $this->search = '';
+        $this->statusFilter = 'all';
+        $this->typeFilter = 'all';
+        $this->syncFilter = 'all';
+        $this->resetPage();
+    }
+
     /**
      * Executar sincronização automática ao montar o componente
      */
