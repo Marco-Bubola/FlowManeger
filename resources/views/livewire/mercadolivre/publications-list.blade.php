@@ -1,4 +1,4 @@
-<div class="w-full app-viewport-fit mobile-393-base publications-page" x-data="{
+<div class="w-full app-viewport-fit mobile-393-base publications-page relative" x-data="{
     showFilters: false,
     tipsOpen: false,
     hasActiveFilters: {{ ($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search) ? 'true' : 'false' }},
@@ -26,6 +26,8 @@
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ultrawide.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-carousel.css') }}">
     @endpush
+
+    <x-loading-overlay message="Carregando anúncios..." />
 
     {{-- ═══════════════════════════════════════════════════════════════
          HEADER MODERNO — COMPONENTE x-publications-header (amber/ML)
