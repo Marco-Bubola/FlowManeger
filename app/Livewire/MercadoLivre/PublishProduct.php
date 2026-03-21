@@ -44,6 +44,11 @@ class PublishProduct extends Component
     public array $selectedProducts = [];
     public bool $showProductSelector = false;
     public string $publicationType = 'simple';
+
+    // Variações de produto (cor, tamanho, etc.)
+    public bool  $hasVariations = false;
+    public array $variations = [];           // [{attribute_combinations:[{name,value_name}], price, available_quantity}]
+    public array $variationAttributeNames = []; // Nomes dos atributos de variação definidos (ex: ['COR','TAMANHO'])
     
     // Step 1: filtros de produtos
     public string $searchTerm = '';
