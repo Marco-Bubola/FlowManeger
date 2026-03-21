@@ -826,11 +826,12 @@ class ProductService extends MercadoLivreService
             if (!empty($publishData['attributes'])) {
                 foreach ($publishData['attributes'] as $attrId => $attrValue) {
                     // Se já vem como array estruturado (do catálogo), usar direto
+                    // Chave do array = id do atributo (ex: BRAND, UNIT_VOLUME)
                     if (is_array($attrValue) && isset($attrValue['id'])) {
-                        $attributes[$attrId] = $attrValue;
+                        $attributes[$attrValue['id']] = $attrValue;
                     }
                     // Se é valor simples (string/number), converter para formato ML
-                    elseif (!empty($attrValue)) {
+                    elseif (!empty($attrValue) && is_string($attrId) && !is_numeric($attrId)) {
                         $attributes[$attrId] = [
                             'id' => $attrId,
                             'value_name' => (string) $attrValue,
@@ -898,24 +899,39 @@ class ProductService extends MercadoLivreService
             
             // Sempre preencher atributos obrigatórios/catalog_required ausentes
             // (evita erro 400 item.attributes.missing_required em categorias como MLB6284)
-            // EXCETO quando vinculado ao catálogo (catalog_product_id) — o ML herda os atributos
-            // e envia-los causa invalid.item.attribute.values.
-            if (empty($publishData['catalog_product_id'])) {
-                try {
-                    $accessToken = null;
-                    if ($userId) {
-                        $authService = new AuthService();
-                        $token = $authService->getActiveToken($userId);
-                        $accessToken = $token?->access_token;
-                    }
-                    $this->autoFillRequiredAttributes($mlData['category_id'], $attributes, $product, $accessToken, $userId);
-                } catch (\Exception $e) {
-                    Log::warning('autoFillRequiredAttributes (pre-ship) falhou', ['error' => $e->getMessage()]);
+            // Roda mesmo quando catalog_product_id está presente — o ML exige atributos
+            // required (UNIT_VOLUME, PERFUME_NAME) mesmo no modo vinculado ao catálogo.
+            try {
+                $accessToken = null;
+                if ($userId) {
+                    $authService = new AuthService();
+                    $token = $authService->getActiveToken($userId);
+                    $accessToken = $token?->access_token;
                 }
+                Log::info('[DEBUG] Atributos ANTES do autoFill', [
+                    'keys' => array_keys($attributes),
+                    'has_UNIT_VOLUME' => isset($attributes['UNIT_VOLUME']),
+                    'has_PERFUME_NAME' => isset($attributes['PERFUME_NAME']),
+                    'count' => count($attributes),
+                ]);
+                $this->autoFillRequiredAttributes($mlData['category_id'], $attributes, $product, $accessToken, $userId);
+                Log::info('[DEBUG] Atributos DEPOIS do autoFill', [
+                    'keys' => array_keys($attributes),
+                    'has_UNIT_VOLUME' => isset($attributes['UNIT_VOLUME']),
+                    'has_PERFUME_NAME' => isset($attributes['PERFUME_NAME']),
+                    'count' => count($attributes),
+                ]);
+            } catch (\Exception $e) {
+                Log::warning('autoFillRequiredAttributes (pre-ship) falhou', ['error' => $e->getMessage()]);
             }
 
             // Sempre enviar atributos (API exige pelo menos BRAND e MODEL)
             $mlData['attributes'] = array_values($attributes);
+            
+            Log::info('[DEBUG] Payload attributes final', [
+                'count' => count($mlData['attributes']),
+                'attr_ids' => array_column($mlData['attributes'], 'id'),
+            ]);
             
             // Configurar shipping - sem especificar mode (ML auto-detecta)
             $mlData['shipping'] = [
