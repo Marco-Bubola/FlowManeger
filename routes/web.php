@@ -344,7 +344,30 @@ Route::prefix('mercadolivre')->middleware(['auth'])->name('mercadolivre.')->grou
     // Orders Management
     Route::get('/orders', \App\Livewire\MercadoLivre\OrdersManager::class)
         ->name('orders');
-    
+
+    Route::get('/orders/{orderId}', \App\Livewire\MercadoLivre\ShowOrder::class)
+        ->name('orders.show');
+
+    // Questions (Perguntas de compradores)
+    Route::get('/questions', \App\Livewire\MercadoLivre\Questions::class)
+        ->name('questions');
+
+    // Messages (Mensagens pós-venda)
+    Route::get('/messages', \App\Livewire\MercadoLivre\Messages::class)
+        ->name('messages');
+
+    // Reputation (Reputação & Métricas)
+    Route::get('/reputation', \App\Livewire\MercadoLivre\Reputation::class)
+        ->name('reputation');
+
+    // Mediations (Devoluções & Disputas)
+    Route::get('/mediations', \App\Livewire\MercadoLivre\Mediations::class)
+        ->name('mediations');
+
+    // Promotions (Promoções)
+    Route::get('/promotions', \App\Livewire\MercadoLivre\Promotions::class)
+        ->name('promotions');
+
     // OAuth 2.0 Authentication
     Route::get('/auth/redirect', [MercadoLivreAuthController::class, 'redirect'])
         ->name('auth.redirect');

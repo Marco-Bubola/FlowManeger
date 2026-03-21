@@ -43,29 +43,17 @@
 
 /* ══════════════════════════════════════════════════════════════
    LOADING STATES GLOBAIS — FlowManager
-   Aplica visual de loading em QUALQUER elemento com wire:loading
+   IMPORTANTE: NÃO aplicar estilos via atributo wire:loading/*
+   pois o CSS estático se aplica SEMPRE, não apenas durante loading.
+   O Livewire usa JS para mostrar/ocultar via display:none.
+   Usar SOMENTE classes via wire:loading.class nos templates.
    ══════════════════════════════════════════════════════════════ */
 
-/* Botões com wire:loading ficam opacos e com cursor de espera */
-[wire\:loading],
-[wire\:loading\.delay],
-[wire\:loading\.class] {
-    opacity: .7;
-    cursor: wait !important;
-    pointer-events: none;
-}
-
-/* Remove opacidade de ícones spin (são intencionais durante loading) */
-[wire\:loading] .animate-spin,
-[wire\:loading\.delay] .animate-spin {
-    opacity: 1;
-}
-
-/* Botão pai que tem wire:loading.attr="disabled" — estado visual */
-button[disabled]:not([class*="opacity"]),
-button[disabled]:not([class*="cursor"]) {
+/* Botão desabilitado pelo wire:loading.attr="disabled" */
+button[disabled] {
     opacity: .55;
     cursor: not-allowed !important;
+    pointer-events: none;
 }
 
 /* Skeleton shimmer global (reutilizável em qualquer página) */

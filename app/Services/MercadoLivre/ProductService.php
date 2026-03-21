@@ -354,13 +354,18 @@ class ProductService extends MercadoLivreService
                 $attrId = $attr['id'] ?? null;
                 $tags = $attr['tags'] ?? [];
                 
-                // Verificar se é obrigatório ou catalog_required ou conditional_required
+                // Verificar se é REALMENTE obrigatório para itens regulares.
+                // NOTA: 'catalog_required' significa obrigatório APENAS para catálogo,
+                // não pode ser enviado em item regular (causa "invalid.item.attribute.values").
+                // 'conditional_required' pode ser ignorado também (condicional).
                 $isRequired = false;
                 if (is_array($tags)) {
                     if (isset($tags[0])) {
-                        $isRequired = in_array('required', $tags) || in_array('catalog_required', $tags) || in_array('conditional_required', $tags);
+                        // Tags indexado: somente 'required' (não 'catalog_required')
+                        $isRequired = in_array('required', $tags);
                     } else {
-                        $isRequired = !empty($tags['required']) || !empty($tags['catalog_required']) || !empty($tags['conditional_required']);
+                        // Tags associativo: somente 'required' true (não 'catalog_required')
+                        $isRequired = !empty($tags['required']);
                     }
                 }
                 
