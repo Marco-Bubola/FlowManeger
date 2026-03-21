@@ -1,6 +1,29 @@
-/* publish-product — iPad Portrait */
+/* publish-product — iPad Portrait (768-1024px portrait) */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .publish-product-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1rem !important; }
-    .publish-product-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
-    .publish-product-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; }
+    .publish-product-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+        padding-inline: 1rem !important;
+    }
+    .publish-product-page .grid.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    .publish-product-page .grid.lg\:grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    /* Step 1: product list + sidebar stacked */
+    .publish-product-page .lg\:w-3\/4 {
+        width: 100% !important;
+    }
+    .publish-product-page .lg\:w-1\/4 {
+        width: 100% !important;
+        max-height: 280px;
+    }
+    /* Step 2: catalog results take full width before details */
+    .publish-product-page .lg\:w-96 {
+        width: 100% !important;
+    }
+    /* Skeleton 4 cols on iPad portrait */
+    .publish-product-page .grid.sm\:grid-cols-4 {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
 }
