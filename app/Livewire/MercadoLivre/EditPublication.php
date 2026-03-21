@@ -30,6 +30,7 @@ class EditPublication extends Component
     // Produtos do kit
     public array $products = [];
     public bool $showProductSelector = false;
+    public string $productSearch = '';
     
     public function mount(MlPublication $publication)
     {
@@ -88,6 +89,31 @@ class EditPublication extends Component
                 'unit_cost' => (float)$product->pivot->unit_cost,
             ];
         })->toArray();
+    }
+    
+    /**
+     * Produtos disponíveis para busca inline
+     */
+    public function getSearchableProductsProperty()
+    {
+        $addedIds = array_column($this->products, 'id');
+        
+        $query = Product::where('user_id', Auth::id())
+            ->where('status', 'ativo')
+            ->whereNotIn('id', $addedIds)
+            ->where('stock_quantity', '>', 0)
+            ->where('price', '>', 0);
+        
+        if (strlen($this->productSearch) >= 2) {
+            $term = $this->productSearch;
+            $query->where(function($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('product_code', 'like', "%{$term}%")
+                  ->orWhere('barcode', 'like', "%{$term}%");
+            });
+        }
+        
+        return $query->orderBy('name')->limit(20)->get();
     }
     
     /**
@@ -191,6 +217,7 @@ class EditPublication extends Component
                 'price' => $this->price,
                 'ml_category_id' => $this->mlCategoryId ?: $this->publication->ml_category_id,
                 'listing_type' => $this->listingType,
+                'publication_type' => $this->publicationType,
                 'free_shipping' => $this->freeShipping,
                 'local_pickup' => $this->localPickup,
                 'condition' => $this->condition,
@@ -338,6 +365,8 @@ class EditPublication extends Component
         return view('livewire.mercadolivre.edit-publication', [
             'availableQuantity' => $availableQuantity,
             'stockLogs' => $stockLogs,
+            'mlAttributes' => $this->publication->ml_attributes ?? [],
+            'pictures' => $this->publication->pictures ?? [],
         ])->layout('components.layouts.app');
     }
 }
