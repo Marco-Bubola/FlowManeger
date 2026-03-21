@@ -354,18 +354,19 @@ class ProductService extends MercadoLivreService
                 $attrId = $attr['id'] ?? null;
                 $tags = $attr['tags'] ?? [];
                 
-                // Verificar se é REALMENTE obrigatório para itens regulares.
-                // NOTA: 'catalog_required' significa obrigatório APENAS para catálogo,
-                // não pode ser enviado em item regular (causa "invalid.item.attribute.values").
-                // 'conditional_required' pode ser ignorado também (condicional).
+                // Verificar se é obrigatório: 'required' OU 'catalog_required'.
+                // 'catalog_required' aparece em certas categorias (ex: perfumes, MLB6284) e
+                // o ML exige sua presença mesmo em publicações independentes — gera erro 400
+                // item.attributes.missing_required se não enviados.
+                // 'conditional_required' continua sendo ignorado (depende de outros campos).
                 $isRequired = false;
                 if (is_array($tags)) {
                     if (isset($tags[0])) {
-                        // Tags indexado: somente 'required' (não 'catalog_required')
-                        $isRequired = in_array('required', $tags);
+                        // Tags indexado: ex ['required'] ou ['catalog_required']
+                        $isRequired = in_array('required', $tags) || in_array('catalog_required', $tags);
                     } else {
-                        // Tags associativo: somente 'required' true (não 'catalog_required')
-                        $isRequired = !empty($tags['required']);
+                        // Tags associativo: ex {'required': true} ou {'catalog_required': true}
+                        $isRequired = !empty($tags['required']) || !empty($tags['catalog_required']);
                     }
                 }
                 
@@ -419,6 +420,19 @@ class ProductService extends MercadoLivreService
                         'id' => $attrId,
                         'value_name' => '1',
                     ];
+                } elseif ($valueType === 'number_unit') {
+                    // Atributos com unidade de medida (ex: UNIT_VOLUME → "100 ml")
+                    // Tentar encontrar uma unidade padrão na lista de unidades permitidas
+                    $allowedUnits = $attr['allowed_units'] ?? [];
+                    $unit = !empty($allowedUnits[0]['id']) ? $allowedUnits[0]['id'] : 'ml';
+                    $attributes[$attrId] = [
+                        'id'         => $attrId,
+                        'value_name' => '1 ' . $unit,
+                    ];
+                    Log::info('Atributo obrigatório auto-preenchido (number_unit)', [
+                        'attr_id' => $attrId,
+                        'unit'    => $unit,
+                    ]);
                 }
             }
         } catch (\Exception $e) {
@@ -882,6 +896,24 @@ class ProductService extends MercadoLivreService
                 ];
             }
             
+            // Sempre preencher atributos obrigatórios/catalog_required ausentes
+            // (evita erro 400 item.attributes.missing_required em categorias como MLB6284)
+            // EXCETO quando vinculado ao catálogo (catalog_product_id) — o ML herda os atributos
+            // e envia-los causa invalid.item.attribute.values.
+            if (empty($publishData['catalog_product_id'])) {
+                try {
+                    $accessToken = null;
+                    if ($userId) {
+                        $authService = new AuthService();
+                        $token = $authService->getActiveToken($userId);
+                        $accessToken = $token?->access_token;
+                    }
+                    $this->autoFillRequiredAttributes($mlData['category_id'], $attributes, $product, $accessToken, $userId);
+                } catch (\Exception $e) {
+                    Log::warning('autoFillRequiredAttributes (pre-ship) falhou', ['error' => $e->getMessage()]);
+                }
+            }
+
             // Sempre enviar atributos (API exige pelo menos BRAND e MODEL)
             $mlData['attributes'] = array_values($attributes);
             
