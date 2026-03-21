@@ -1,4 +1,12 @@
-/* publish-product — Ultrawide */
+/* publish-product — Ultrawide (>=1441px) */
 @media (min-width: 1441px) {
-    .publish-product-page { margin-inline: auto; }
+    .publish-product-page {
+        margin-inline: auto;
+    }
+}
+/* FullHD+ (>=1800px): loading overlay centered card gets max-width constraint */
+@media (min-width: 1800px) {
+    .publish-product-page .fixed.inset-0 > div.relative.z-10 {
+        max-width: 480px;
+    }
 }
