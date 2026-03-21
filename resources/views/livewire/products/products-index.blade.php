@@ -1,4 +1,4 @@
-<div class="w-full  app-viewport-fit products-index-page mobile-393-base" x-data="{
+<div class="w-full  app-viewport-fit products-index-page mobile-393-base relative" x-data="{
     showFilters: false,
     showQuickActions: false,
     isCompactModal: false,
@@ -146,6 +146,8 @@
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-notebook.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ultrawide.css') }}">
     @endpush
+
+    <x-loading-overlay message="Carregando produtos..." />
 
     <!-- Header Modernizado (com slot para controles) -->
     <x-products-header title="Catálogo de Produtos" description="" :total-products="$products->total() ?? 0" :total-categories="$categories->count()"
