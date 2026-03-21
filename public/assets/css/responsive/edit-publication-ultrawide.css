@@ -1,4 +1,6 @@
 /* edit-publication — Ultrawide */
 @media (min-width: 1441px) {
-    .edit-publication-page { margin-inline: auto; }
+    .edit-publication-page { margin-inline: auto; max-width: 2200px; }
+    .edit-publication-page .ep-grid { gap: 0.8rem !important; }
+    .edit-publication-page .ep-products-grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
