@@ -1,5 +1,7 @@
 /* edit-publication — iPhone 15 */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .edit-publication-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
-    .edit-publication-page .grid { grid-template-columns: 1fr !important; }
+    .edit-publication-page .ep-grid { grid-template-columns: 1fr !important; grid-template-areas: "title" "price" "sidebar" "products" "images" "attrs" !important; }
+    .edit-publication-page .ep-products-grid { grid-template-columns: 1fr !important; }
+    .edit-publication-page .ep-card { padding: 0.6rem !important; }
 }
