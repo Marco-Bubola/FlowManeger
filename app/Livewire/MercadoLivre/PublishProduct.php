@@ -78,6 +78,11 @@ class PublishProduct extends Component
             $this->productCondition = $product->condition ?? 'new';
             $this->publishQuantity = max(1, (int)($product->stock_quantity ?? 1));
             
+            // Pré-preencher descrição com a do produto (catálogo sobrescreverá se selecionado)
+            if (!empty($product->description)) {
+                $this->catalogDescription = $product->description;
+            }
+            
             if ($product->image && $product->image !== 'product-placeholder.png') {
                 $this->selectedPictures = [$product->image_url];
             }
@@ -121,6 +126,10 @@ class PublishProduct extends Component
         if ($this->currentStep === 1 && $this->hasSelectedProducts()) {
             $this->currentStep = 2;
             $this->product = Product::find($this->selectedProducts[0]['id']);
+            // Pré-preencher descrição com a do produto se ainda não tiver
+            if (empty($this->catalogDescription) && !empty($this->product?->description)) {
+                $this->catalogDescription = $this->product->description;
+            }
             $this->predictCategory();
             $this->searchCatalog();
         } elseif ($this->currentStep === 2) {
@@ -858,6 +867,9 @@ class PublishProduct extends Component
             $description = $mainProduct->description ?? '';
             if ($this->catalogProductId && !empty($this->catalogDescription)) {
                 $description = $this->catalogDescription;
+            } elseif (!empty($this->catalogDescription)) {
+                // Usa a descrição editada pelo usuário no Step 3 mesmo sem catálogo
+                $description = $this->catalogDescription;
             }
             
             Log::info('PublishProduct: Preparando título e descrição', [
@@ -905,7 +917,9 @@ class PublishProduct extends Component
                 'price' => $price,
                 'quantity' => $publication->calculateAvailableQuantity(),
                 'category_id' => $this->mlCategoryId,
-                'description' => $description, // Incluir descrição (catálogo ou produto)
+                'description' => $description,
+                'condition' => $this->productCondition,
+                'warranty' => $this->warranty,
             ];
             
             // Verificar se deve vincular ao catálogo ou apenas copiar dados
