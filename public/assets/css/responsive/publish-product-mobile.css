@@ -1,10 +1,38 @@
 /* publish-product — Mobile (<=767px) */
 @media (max-width: 767px) {
-    .publish-product-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
-    .publish-product-page .grid { grid-template-columns: 1fr !important; }
-    .publish-product-page .grid.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
-    .publish-product-page .grid.lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+    .publish-product-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+        padding-inline: .75rem;
+    }
+    /* Stacks all grid columns */
+    .publish-product-page .grid {
+        grid-template-columns: 1fr !important;
+    }
+    .publish-product-page .grid.md\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+    }
+    .publish-product-page .grid.lg\:grid-cols-3 {
+        grid-template-columns: 1fr !important;
+    }
+    /* Loading overlay typography */
+    .publish-product-page .pp-step-item {
+        padding-inline: .75rem;
+    }
+    /* Product cards grid on mobile */
+    .publish-product-page .grid.grid-cols-2.md\:grid-cols-3 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    /* Step 3 sidebar stacks below main */
+    .publish-product-page aside {
+        order: 2;
+    }
 }
 @media (min-width: 540px) and (max-width: 767px) {
-    .publish-product-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .publish-product-page .grid.md\:grid-cols-2 {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    /* Skeleton overlay — 4 cols from 540px */
+    .publish-product-page .grid.grid-cols-2.sm\:grid-cols-4 {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
 }
