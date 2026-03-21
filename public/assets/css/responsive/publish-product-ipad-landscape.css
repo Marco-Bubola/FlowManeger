@@ -1,5 +1,19 @@
-/* publish-product — iPad Landscape */
+/* publish-product — iPad Landscape (768-1366px landscape) */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .publish-product-page { padding-inline: 1.2rem !important; }
-    .publish-product-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .publish-product-page {
+        padding-inline: 1.2rem !important;
+    }
+    .publish-product-page .grid.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+    /* Step 1: side-by-side layout on landscape iPad */
+    .publish-product-page .flex-col.lg\:flex-row {
+        flex-direction: row !important;
+    }
+    .publish-product-page .lg\:w-3\/4 {
+        width: 72% !important;
+    }
+    .publish-product-page .lg\:w-1\/4 {
+        width: 28% !important;
+    }
 }
