@@ -31,19 +31,66 @@
         .product-card-modern.selected:hover {
             transform: translateY(-2px) scale(1.02);
         }
+
+        /* ======================================================
+           PUBLISH-PRODUCT: LOADING ANIMATIONS
+           ====================================================== */
+        @keyframes pp-spin {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pp-orbit {
+            0%   { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pp-pulse-glow {
+            0%, 100% { transform: scale(0.9);  opacity: .35; }
+            50%       { transform: scale(1.12); opacity: .9;  }
+        }
+        @keyframes pp-step-in {
+            from { opacity: 0; transform: translateX(-16px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pp-shimmer {
+            0%   { background-position: 250% 0; }
+            100% { background-position: -250% 0; }
+        }
+        @keyframes pp-enter {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .pp-step-item {
+            opacity: 0;
+            animation: pp-step-in .45s cubic-bezier(.4,0,.2,1) both;
+        }
+        .pp-skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 250% 100%;
+            animation: pp-shimmer 1.6s ease-in-out infinite;
+        }
+        .dark .pp-skeleton {
+            background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
+            background-size: 250% 100%;
+            animation: pp-shimmer 1.6s ease-in-out infinite;
+        }
+        .pp-step-enter {
+            animation: pp-enter .4s cubic-bezier(.4,0,.2,1) both;
+        }
     </style>
 
     {{-- HEADER COM BOTÕES DE NAVEGAÇÃO --}}
     <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-amber-50/90 to-yellow-50/80 dark:from-slate-800/90 dark:via-amber-900/20 dark:to-yellow-900/20 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-        <div class="relative px-6 py-5">
-            <div class="flex items-center justify-between flex-wrap gap-4">
-                <div class="flex items-center gap-5">
-                    <a href="{{ route('mercadolivre.products') }}" class="w-12 h-12 rounded-xl bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-amber-50 dark:hover:bg-slate-700 transition-all">
-                        <i class="bi bi-arrow-left text-xl text-amber-600 dark:text-amber-400"></i>
+        <div class="relative px-4 sm:px-6 py-4 sm:py-5">
+            {{-- Linha 1: Título + Steps --}}
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-3 sm:mb-0">
+                <div class="flex items-center gap-3 flex-shrink-0">
+                    <a href="{{ route('mercadolivre.products') }}" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-white/80 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center hover:bg-amber-50 dark:hover:bg-slate-700 transition-all">
+                        <i class="bi bi-arrow-left text-lg sm:text-xl text-amber-600 dark:text-amber-400"></i>
                     </a>
                     <div>
-                        <h1 class="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent">Publicar no Mercado Livre</h1>
-                        <p class="text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+                        <h1 class="text-lg sm:text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-300 dark:to-orange-300 bg-clip-text text-transparent leading-tight">Publicar no Mercado Livre</h1>
+                        <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5">
                             @if($currentStep === 1) Passo 1: Selecione os produtos
                             @elseif($currentStep === 2) Passo 2: Catálogo ML (opcional)
                             @else Passo 3: Valores e configuração
@@ -52,53 +99,53 @@
                     </div>
                 </div>
                 {{-- Step indicator --}}
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5 sm:gap-2 sm:ml-4">
                     @foreach([1 => 'Produtos', 2 => 'Catálogo', 3 => 'Config'] as $step => $label)
                     <div class="flex items-center">
                         <button type="button" wire:click="goToStep({{ $step }})"
-                            class="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-sm transition-all
+                            class="flex items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-all
                                            {{ $currentStep === $step ? 'bg-amber-500 text-white shadow-lg' : ($currentStep > $step ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-500') }}">
-                            <span class="w-6 h-6 rounded-full flex items-center justify-center {{ $currentStep >= $step ? 'bg-white/20' : '' }}">
+                            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center {{ $currentStep >= $step ? 'bg-white/20' : '' }}">
                                 @if($currentStep > $step)<i class="bi bi-check-lg text-xs"></i>@else{{ $step }}@endif
                             </span>
-                            {{ $label }}
+                            <span class="hidden sm:inline">{{ $label }}</span>
                         </button>
-                        @if($step < 3)<i class="bi bi-chevron-right text-slate-400 text-xs"></i>@endif
+                        @if($step < 3)<i class="bi bi-chevron-right text-slate-400 text-xs mx-0.5"></i>@endif
                     </div>
                     @endforeach
                 </div>
                 {{-- Botões de navegação no header --}}
-                <div class="flex items-center gap-2 ml-auto">
+                <div class="flex items-center gap-2 sm:ml-auto flex-wrap">
                     @if($currentStep === 2)
                     <button type="button" wire:click="searchCatalog" wire:loading.attr="disabled"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold hover:shadow-lg transition-all disabled:opacity-50">
+                        class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 text-white font-bold text-sm hover:shadow-lg transition-all disabled:opacity-50">
                         <i class="bi bi-search" wire:loading.remove wire:target="searchCatalog"></i>
                         <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="searchCatalog"></i>
-                        Buscar Catálogo
+                        <span class="hidden sm:inline">Buscar </span>Catálogo
                     </button>
                     @endif
                     @if($currentStep > 1)
                     <button type="button" wire:click="previousStep"
-                        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
-                        <i class="bi bi-arrow-left"></i> Voltar
+                        class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 font-bold text-sm hover:bg-slate-50 dark:hover:bg-slate-800 transition-all">
+                        <i class="bi bi-arrow-left"></i> <span class="hidden sm:inline">Voltar</span>
                     </button>
                     @endif
                     @if($currentStep < 3)
                         @if($currentStep===1 && $this->hasSelectedProducts())
                         <button type="button" wire:click="nextStep"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg transition-all">
+                            class="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-lg transition-all">
                             Continuar <i class="bi bi-arrow-right"></i>
                         </button>
                         @elseif($currentStep === 2)
                         <button type="button" wire:click="nextStep"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg transition-all">
+                            class="inline-flex items-center gap-1.5 px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-sm shadow-lg transition-all">
                             Próximo <i class="bi bi-arrow-right"></i>
                         </button>
                         @endif
                         @else
                         <button type="submit" form="publish-form"
-                            class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold shadow-xl transition-all">
-                            <i class="bi bi-rocket-takeoff-fill"></i> Publicar no ML
+                            class="inline-flex items-center gap-1.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm shadow-xl transition-all">
+                            <i class="bi bi-rocket-takeoff-fill"></i> <span class="hidden sm:inline">Publicar no </span>ML
                         </button>
                         @endif
                 </div>
@@ -106,10 +153,120 @@
         </div>
     </div>
 
+    {{-- ===================================================================
+         OVERLAY DE LOADING — Step 1→2 / Busca Catálogo
+         Aparece quando nextStep() ou searchCatalog() estão em execução
+         =================================================================== --}}
+    <div wire:loading wire:target="nextStep, searchCatalog"
+         class="fixed inset-0 z-[9998] flex flex-col items-center justify-center overflow-hidden py-6 px-4 bg-white/96 dark:bg-slate-900/97 backdrop-blur-md">
+
+        {{-- Background blobs animados --}}
+        <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+            <div class="absolute w-[28rem] h-[28rem] rounded-full -top-16 left-1/3 -translate-x-1/2"
+                 style="background:radial-gradient(circle,rgba(245,158,11,.18) 0%,transparent 65%);animation:pp-pulse-glow 3.5s ease-in-out infinite"></div>
+            <div class="absolute w-96 h-96 rounded-full bottom-0 right-1/3 translate-x-1/2"
+                 style="background:radial-gradient(circle,rgba(249,115,22,.14) 0%,transparent 65%);animation:pp-pulse-glow 4.5s ease-in-out infinite;animation-delay:1.5s"></div>
+            <div class="absolute w-72 h-72 rounded-full top-1/2 right-8 -translate-y-1/2"
+                 style="background:radial-gradient(circle,rgba(20,184,166,.10) 0%,transparent 65%);animation:pp-pulse-glow 5s ease-in-out infinite;animation-delay:.8s"></div>
+        </div>
+
+        <div class="relative z-10 flex flex-col items-center gap-5 w-full max-w-sm sm:max-w-md">
+
+            {{-- Ícone ML com órbita animada --}}
+            <div class="relative" style="width:96px;height:96px" aria-hidden="true">
+                {{-- Anel externo pulsando --}}
+                <div class="absolute inset-0 rounded-full border-4 border-amber-200 dark:border-amber-800/60 animate-pulse"></div>
+                {{-- Arco girando --}}
+                <div class="absolute inset-0 rounded-full"
+                     style="border:4px solid transparent;border-top-color:#f59e0b;border-right-color:#f97316;animation:pp-spin 1.4s cubic-bezier(.4,0,.6,1) infinite"></div>
+                {{-- Wrapper da órbita —  gira, o ponto acompanha --}}
+                <div class="absolute inset-0" style="animation:pp-orbit 1.4s linear infinite">
+                    <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-emerald-400"
+                         style="box-shadow:0 0 12px 4px rgba(52,211,153,.65)"></div>
+                </div>
+                {{-- Ícone central --}}
+                <div class="absolute rounded-full bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-2xl"
+                     style="inset:16px;box-shadow:0 0 28px rgba(245,158,11,.5)">
+                    <i class="bi bi-shop-window text-2xl text-white"></i>
+                </div>
+            </div>
+
+            {{-- Título --}}
+            <div class="text-center">
+                <h2 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-amber-600 to-orange-600 dark:from-amber-400 dark:to-orange-400 bg-clip-text text-transparent leading-tight">
+                    Buscando no Catálogo ML
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">Aguarde, isso pode levar alguns segundos...</p>
+            </div>
+
+            {{-- Steps animados com fade-in sequencial --}}
+            <div class="flex flex-col gap-2 w-full">
+                <div class="pp-step-item flex items-center gap-3 px-4 py-2.5 rounded-xl
+                            bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50"
+                     style="animation-delay:0s">
+                    <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-cpu-fill text-amber-500 text-xs"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-amber-700 dark:text-amber-300 flex-1">Analisando produto...</span>
+                    <div class="flex gap-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style="animation-delay:0s"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style="animation-delay:.15s"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style="animation-delay:.3s"></span>
+                    </div>
+                </div>
+                <div class="pp-step-item flex items-center gap-3 px-4 py-2.5 rounded-xl
+                            bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/50"
+                     style="animation-delay:.5s">
+                    <div class="w-7 h-7 rounded-lg bg-teal-100 dark:bg-teal-900/50 flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-tags-fill text-teal-500 text-xs"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-teal-700 dark:text-teal-300 flex-1">Prevendo categoria ML...</span>
+                    <div class="flex gap-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce" style="animation-delay:.5s"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce" style="animation-delay:.65s"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-teal-400 animate-bounce" style="animation-delay:.8s"></span>
+                    </div>
+                </div>
+                <div class="pp-step-item flex items-center gap-3 px-4 py-2.5 rounded-xl
+                            bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50"
+                     style="animation-delay:1s">
+                    <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                        <i class="bi bi-search text-blue-500 text-xs"></i>
+                    </div>
+                    <span class="text-sm font-semibold text-blue-700 dark:text-blue-300 flex-1">Buscando no catálogo...</span>
+                    <div class="flex gap-0.5">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:1s"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:1.15s"></span>
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:1.3s"></span>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Skeleton de pé-visualização dos cards do catálogo --}}
+            <div class="w-full">
+                <p class="text-[10px] uppercase font-bold tracking-widest text-slate-400 dark:text-slate-500 mb-2.5">Pré-visualização dos resultados</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    @for($__i = 0; $__i < 4; $__i++)
+                    <div class="rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800/80"
+                         style="animation:pp-enter .4s cubic-bezier(.4,0,.2,1) both;animation-delay:{{ (.10 + $__i * .07) }}s">
+                        <div class="pp-skeleton" style="height:68px"></div>
+                        <div class="p-2 space-y-1.5">
+                            <div class="h-2.5 rounded pp-skeleton w-full"></div>
+                            <div class="h-2 rounded pp-skeleton w-4/5"></div>
+                            <div class="h-3 rounded pp-skeleton w-1/2"></div>
+                        </div>
+                    </div>
+                    @endfor
+                </div>
+            </div>
+
+        </div>
+    </div>{{-- end overlay --}}
+
     {{-- STEP 1: SELEÇÃO DE PRODUTOS --}}
     @if($currentStep === 1)
-    <div class="flex-1 flex">
-        <div class="w-3/4 bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 flex flex-col overflow-hidden">
+    <div class="flex-1 flex flex-col lg:flex-row gap-4">
+        <div class="w-full lg:w-3/4 bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 flex flex-col overflow-hidden">
             <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
                 <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
                     <i class="bi bi-box text-amber-500 mr-3"></i>Selecionar Produtos
@@ -170,7 +327,7 @@
                 @endif
             </div>
         </div>
-        <div class="w-1/4 flex flex-col bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 ml-4 overflow-hidden">
+        <div class="w-full lg:w-1/4 flex flex-col bg-white dark:bg-zinc-800 rounded-2xl border border-slate-200 dark:border-zinc-700 overflow-hidden" style="min-height:200px">
             <div class="p-4 border-b border-gray-200 dark:border-zinc-700">
                 <h3 class="text-sm font-bold text-gray-900 dark:text-white"><i class="bi bi-cart-check text-amber-500 mr-2"></i>Selecionados ({{ count($selectedProducts) }})</h3>
             </div>
@@ -202,10 +359,10 @@
 
     {{-- STEP 2: CATÁLOGO ML --}}
     @if($currentStep === 2)
-    <div class="flex-1 flex gap-6">
+    <div class="flex-1 flex flex-col lg:flex-row gap-6 pp-step-enter">
         {{-- Coluna: Resultados (4 por linha, imagens menores) --}}
         @if(!empty($catalogResults))
-        <div class="flex-shrink-0 w-96 lg:w-[420px]">
+        <div class="flex-shrink-0 w-full lg:w-96 xl:w-[420px]">
             <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 sticky top-4">
                 <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-3">{{ count($catalogResults) }} resultado(s)</h3>
                 <div class="grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
@@ -239,9 +396,33 @@
         </div>
         @endif
 
-        {{-- Coluna: Informações COMPLETAS do catálogo selecionado --}}
-        @if($catalogProductId && !empty($catalogProductData))
-        <div class="flex-1 min-w-0 grid grid-cols-1 xl:grid-cols-2 gap-4">
+        {{-- Coluna: Detalhes do catálogo + spinner overlay para selectCatalogProduct --}}
+        <div class="flex-1 min-w-0 relative">
+
+            {{-- Spinner overlay enquanto selectCatalogProduct processa --}}
+            <div wire:loading wire:target="selectCatalogProduct"
+                 class="absolute inset-0 z-10 flex items-center justify-center rounded-2xl
+                        bg-white/93 dark:bg-slate-900/93 backdrop-blur-sm
+                        border-2 border-dashed border-amber-200 dark:border-amber-800/50 min-h-[200px]">
+                <div class="flex flex-col items-center gap-4 text-center py-8">
+                    <div class="relative w-14 h-14">
+                        <div class="absolute inset-0 rounded-full bg-amber-50 dark:bg-amber-900/20"></div>
+                        <div class="absolute inset-0 rounded-full"
+                             style="border:3px solid transparent;border-top-color:#f59e0b;border-right-color:#f97316;animation:pp-spin 0.8s linear infinite"></div>
+                        <div class="absolute inset-3 flex items-center justify-center">
+                            <i class="bi bi-shop-window text-xl text-amber-500"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-bold text-slate-700 dark:text-slate-300 text-sm">Carregando produto...</p>
+                        <p class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">Buscando dados do catálogo ML</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Conteúdo: Informações COMPLETAS do catálogo selecionado --}}
+            @if($catalogProductId && !empty($catalogProductData))
+            <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
             {{-- Título, Preço e link --}}
             <div class="rounded-2xl bg-white dark:bg-slate-900 border-2 border-teal-200 dark:border-teal-800 overflow-hidden">
                 <div class="px-6 py-4 bg-gradient-to-r from-teal-50 to-cyan-50 dark:from-teal-900/20 dark:to-cyan-900/20 border-b border-teal-200 dark:border-teal-800">
@@ -322,7 +503,7 @@
             @endif
         </div>
         @else
-        <div class="flex-1 flex items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-300 dark:border-slate-700 min-h-[200px]">
+        <div class="h-full flex items-center justify-center rounded-2xl bg-slate-50 dark:bg-slate-900/50 border-2 border-dashed border-slate-300 dark:border-slate-700 min-h-[200px]">
             <div class="text-center p-6">
                 @if(empty($catalogResults))
                 <i class="bi bi-search text-4xl text-slate-400 mb-3"></i>
@@ -334,12 +515,13 @@
             </div>
         </div>
         @endif
+        </div>{{-- end right column wrapper --}}
     </div>
     @endif
 
     {{-- STEP 3: CONFIGURAÇÃO COMPLETA (moderno, ícones, taxas, preço sugerido) --}}
     @if($currentStep === 3)
-    <form id="publish-form" wire:submit.prevent="publishProduct" class="flex-1">
+    <form id="publish-form" wire:submit.prevent="publishProduct" class="flex-1 pp-step-enter">
         @php
         $basePrice = (float)($publishPrice ?: 0) ?: $this->getTotalProductsPrice();
         $mlFee = match($listingType) { 'gold_special' => 0.16, 'gold_pro' => 0.17, 'gold' => 0.13, default => 0.11 };
@@ -579,6 +761,43 @@
                             <option value="{{ $cat['id'] }}">{{ $cat['name'] }}</option>
                             @endforeach
                         </select>
+                    </div>
+                </div>
+
+                {{-- Descrição da Publicação --}}
+                <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg">
+                    <div class="px-5 py-3 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800/50 dark:to-slate-900/50 border-b border-slate-200 dark:border-slate-800">
+                        <h4 class="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                            <i class="bi bi-file-text-fill text-lg"></i> Descrição do Anúncio
+                        </h4>
+                        <p class="text-xs text-slate-500 mt-0.5">Será enviada ao Mercado Livre após a criação do anúncio</p>
+                    </div>
+                    <div class="p-4 space-y-2">
+                        @if($catalogDescription)
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-teal-100 dark:bg-teal-900/30 text-xs font-bold text-teal-700 dark:text-teal-300">
+                                <i class="bi bi-patch-check-fill"></i> Do Catálogo ML
+                            </span>
+                        </div>
+                        @elseif($product && $product->description)
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-400">
+                                <i class="bi bi-box"></i> Do Produto
+                            </span>
+                        </div>
+                        @else
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                <i class="bi bi-pencil-fill"></i> Digite abaixo
+                            </span>
+                        </div>
+                        @endif
+                        <textarea wire:model="catalogDescription" rows="5"
+                            placeholder="Descreva o produto: características, especificações, diferenciais..."
+                            class="w-full px-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm resize-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"></textarea>
+                        <p class="text-[11px] text-slate-400 text-right">
+                            {{ mb_strlen($catalogDescription ?: ($product?->description ?? '')) }} caracteres
+                        </p>
                     </div>
                 </div>
             </div>
