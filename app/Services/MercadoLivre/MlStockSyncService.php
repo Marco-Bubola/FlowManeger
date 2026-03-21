@@ -407,6 +407,11 @@ class MlStockSyncService
                 $description = $descData['plain_text'] ?? $description;
             }
 
+            // Extrair shipping info
+            $shipping = $data['shipping'] ?? [];
+            $freeShipping = $shipping['free_shipping'] ?? $publication->free_shipping;
+            $localPickup = $shipping['local_pick_up'] ?? $publication->local_pickup;
+
             $publication->update([
                 'title' => $data['title'] ?? $publication->title,
                 'price' => $data['price'] ?? $publication->price,
@@ -414,10 +419,17 @@ class MlStockSyncService
                 'description' => $description,
                 'ml_permalink' => $data['permalink'] ?? $publication->ml_permalink,
                 'status' => $data['status'] ?? $publication->status,
+                'condition' => $data['condition'] ?? $publication->condition,
+                'listing_type' => $data['listing_type_id'] ?? $publication->listing_type,
+                'ml_category_id' => $data['category_id'] ?? $publication->ml_category_id,
+                'warranty' => $data['warranty'] ?? $publication->warranty,
+                'free_shipping' => $freeShipping,
+                'local_pickup' => $localPickup,
+                'ml_attributes' => $data['attributes'] ?? $publication->ml_attributes,
+                'pictures' => $data['pictures'] ?? $publication->pictures,
                 'sync_status' => 'synced',
                 'last_sync_at' => now(),
                 'error_message' => null,
-                'pictures' => $data['pictures'] ?? $publication->pictures,
             ]);
 
             Log::info('Publicação atualizada a partir do ML', [
