@@ -48,5 +48,12 @@ return [
         'environment' => env('ML_ENVIRONMENT', 'sandbox'), // sandbox ou production
     ],
 
+    'shopee' => [
+        'partner_id'   => env('SHOPEE_PARTNER_ID'),
+        'partner_key'  => env('SHOPEE_PARTNER_KEY'),
+        'redirect_uri' => env('SHOPEE_REDIRECT_URI', env('APP_URL') . '/shopee/auth/callback'),
+        'environment'  => env('SHOPEE_ENVIRONMENT', 'sandbox'), // sandbox ou production
+    ],
+
 ];
 
