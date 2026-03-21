@@ -1,4 +1,4 @@
-<div class="goals-board-page w-full min-h-screen flex flex-col bg-gradient-to-br from-[#0079BF] to-[#0079BFdd] dark:from-[#1a2634] dark:to-[#1a2634dd] mobile-393-base"
+<div class="goals-board-page w-full min-h-screen flex flex-col bg-gradient-to-br from-[#0079BF] to-[#0079BFdd] dark:from-[#1a2634] dark:to-[#1a2634dd] mobile-393-base relative"
     style="background: linear-gradient(135deg, {{ $board->background_color ?? '#0079BF' }} 0%, {{ $board->background_color ?? '#0079BF' }}dd 100%);">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-board-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-board-iphone15.css') }}">
@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-board-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-board-ultrawide.css') }}">
 
+    <x-loading-overlay message="Carregando metas..." />
 
     <x-modern-header :icon="'bi bi-kanban'" :title="$board->name" :subtitle="$board->description ?? 'Organize suas metas'" :breadcrumb="[
         ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'url' => route('dashboard')],
