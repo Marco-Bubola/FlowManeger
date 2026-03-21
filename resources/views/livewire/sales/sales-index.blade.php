@@ -3,7 +3,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 @endpush
 
-<div class="w-full h-screen min-h-screenapp-viewport-fit sales-index-page mobile-393-base" x-data="{
+<div class="w-full h-screen min-h-screenapp-viewport-fit sales-index-page mobile-393-base relative" x-data="{
     showFilters: false,
     fullHd: false,
     ultra: false,
@@ -55,6 +55,7 @@
         }
     </style>
 
+    <x-loading-overlay message="Carregando vendas..." />
 
 
     <div class="">
