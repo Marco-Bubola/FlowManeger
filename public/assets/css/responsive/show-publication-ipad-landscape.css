@@ -1,16 +1,9 @@
-/* Show Publication - iPad Landscape (768-1366px, orientação paisagem) */
+﻿/* show-publication — iPad Landscape */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .publication-show-page h1.text-3xl {
-        font-size: 1.6rem !important;
+    .publication-show-page .sp-grid {
+        grid-template-columns: 2fr 1.2fr 1fr !important;
+        grid-template-areas: "info details sidebar" "products products sidebar" "images attrs attrs" "history history history" !important;
+        gap: 0.6rem !important;
     }
-
-    /* Grid 3 colunas em landscape */
-    .publication-show-page .grid.grid-cols-1.lg\:grid-cols-3 {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-
-    .publication-show-page .flex.flex-col.lg\:flex-row {
-        flex-direction: row !important;
-        align-items: center !important;
-    }
+    .publication-show-page .sp-products-grid { grid-template-columns: repeat(3, 1fr) !important; }
 }
