@@ -1039,6 +1039,18 @@ class PublishProduct extends Component
             if ($this->useCatalogPictures && !empty($this->selectedPictures)) {
                 $publishData['pictures'] = array_map(fn($url) => ['source' => $url], $this->selectedPictures);
             }
+
+            // Variações de produto
+            if ($this->hasVariations && !empty($this->variations)) {
+                $variationsPayload = $this->buildVariationsPayload();
+                if (!empty($variationsPayload)) {
+                    $publishData['variations'] = $variationsPayload;
+                    // Quando há variações, o available_quantity da raiz deve ser 0
+                    $publishData['available_quantity'] = 0;
+                    // Preço da raiz pode ser 0 para itens com variações (o prices virão nas variações)
+                    Log::info('PublishProduct: Publicação com variações', ['count' => count($variationsPayload)]);
+                }
+            }
             
             $result = $productService->publishProduct(
                 $mainProduct,
@@ -1172,6 +1184,125 @@ class PublishProduct extends Component
         }
         
         return 'Produto sem título';
+    }
+
+    // ---------------------------------------------------------------
+    // Variações
+    // ---------------------------------------------------------------
+
+    /**
+     * Liga/desliga o modo variações.
+     */
+    public function toggleVariations(): void
+    {
+        $this->hasVariations = !$this->hasVariations;
+        if ($this->hasVariations && empty($this->variations)) {
+            $this->addVariation();
+        }
+    }
+
+    /**
+     * Adiciona uma variação em branco.
+     */
+    public function addVariation(): void
+    {
+        $attrCount = max(1, count($this->variationAttributeNames));
+        $combinations = [];
+        for ($i = 0; $i < $attrCount; $i++) {
+            $combinations[] = [
+                'name'       => $this->variationAttributeNames[$i] ?? '',
+                'value_name' => '',
+            ];
+        }
+
+        $this->variations[] = [
+            'attribute_combinations' => $combinations,
+            'price'                  => $this->publishPrice,
+            'available_quantity'     => max(1, $this->publishQuantity),
+        ];
+    }
+
+    /**
+     * Remove uma variação pelo índice.
+     */
+    public function removeVariation(int $index): void
+    {
+        array_splice($this->variations, $index, 1);
+        $this->variations = array_values($this->variations);
+    }
+
+    /**
+     * Adiciona um nome de atributo de variação (coluna na tabela).
+     */
+    public function addVariationAttribute(): void
+    {
+        $this->variationAttributeNames[] = '';
+        // Adicionar coluna em todas as variações existentes
+        foreach ($this->variations as &$var) {
+            $var['attribute_combinations'][] = ['name' => '', 'value_name' => ''];
+        }
+        unset($var);
+    }
+
+    /**
+     * Remove um atributo de variação (coluna) pelo índice.
+     */
+    public function removeVariationAttribute(int $index): void
+    {
+        array_splice($this->variationAttributeNames, $index, 1);
+        $this->variationAttributeNames = array_values($this->variationAttributeNames);
+        foreach ($this->variations as &$var) {
+            array_splice($var['attribute_combinations'], $index, 1);
+            $var['attribute_combinations'] = array_values($var['attribute_combinations']);
+        }
+        unset($var);
+    }
+
+    /**
+     * Sincroniza o nome de um atributo para todas as variações.
+     */
+    public function updatedVariationAttributeNames($value, $key): void
+    {
+        $index = (int) $key;
+        foreach ($this->variations as &$var) {
+            if (isset($var['attribute_combinations'][$index])) {
+                $var['attribute_combinations'][$index]['name'] = $value;
+            }
+        }
+        unset($var);
+    }
+
+    /**
+     * Prepara o array de variações para envio na API do ML.
+     *
+     * @return array  Array formatted for ML API 'variations' key.
+     */
+    protected function buildVariationsPayload(): array
+    {
+        $result = [];
+        foreach ($this->variations as $var) {
+            $combinations = [];
+            foreach ($var['attribute_combinations'] ?? [] as $comb) {
+                $name  = trim($comb['name']       ?? '');
+                $value = trim($comb['value_name'] ?? '');
+                if ($name !== '' && $value !== '') {
+                    $combinations[] = ['name' => $name, 'value_name' => $value];
+                }
+            }
+            if (empty($combinations)) {
+                continue; // Pular variação sem combinações definidas
+            }
+            $entry = [
+                'attribute_combinations' => $combinations,
+                'available_quantity'     => max(0, (int) ($var['available_quantity'] ?? 0)),
+            ];
+            $varPrice = (float) ($var['price'] ?? 0);
+            if ($varPrice > 0) {
+                $entry['price'] = $varPrice;
+            }
+            $result[] = $entry;
+        }
+        return $result;
     }
 
     public function render()
