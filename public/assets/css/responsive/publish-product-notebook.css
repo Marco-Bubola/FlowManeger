@@ -1,4 +1,20 @@
-/* publish-product — Notebook */
+/* publish-product — Notebook (1025-1440px) */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .publish-product-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .publish-product-page .grid.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, 1fr) !important;
+    }
+}
+/* publish-product — Notebook low-height (max-height 780px) */
+@media (min-width: 1025px) and (max-height: 780px) {
+    .publish-product-page {
+        /* Reduce vertical gap on small height notebooks */
+        gap: .75rem;
+    }
+    /* Loading overlay — compact for low-height screens */
+    .publish-product-page .fixed.inset-0 .flex-col.items-center {
+        gap: .875rem !important;
+    }
+    .publish-product-page .fixed.inset-0 .grid.sm\:grid-cols-4 {
+        display: none; /* hide skeleton cards on very low height */
+    }
 }
