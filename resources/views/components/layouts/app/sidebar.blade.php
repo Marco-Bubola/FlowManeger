@@ -431,6 +431,28 @@
                                         <div class="{{ Request::is('mercadolivre/publications') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                     </a>
 
+                                    {{-- ---- Novos módulos ML ---- --}}
+                                    @php
+                                        $mlNewLinks = [
+                                            ['route'=>'mercadolivre.questions',  'label'=>'Perguntas',  'icon'=>'bi bi-chat-left-text', 'pattern'=>'mercadolivre/questions*'],
+                                            ['route'=>'mercadolivre.messages',   'label'=>'Mensagens',  'icon'=>'bi bi-envelope',        'pattern'=>'mercadolivre/messages*'],
+                                            ['route'=>'mercadolivre.reputation', 'label'=>'Reputação',  'icon'=>'bi bi-star-half',       'pattern'=>'mercadolivre/reputation*'],
+                                            ['route'=>'mercadolivre.mediations', 'label'=>'Mediações',  'icon'=>'bi bi-shield-exclamation','pattern'=>'mercadolivre/mediations*'],
+                                            ['route'=>'mercadolivre.promotions', 'label'=>'Promoções',  'icon'=>'bi bi-percent',         'pattern'=>'mercadolivre/promotions*'],
+                                        ];
+                                    @endphp
+                                    @foreach($mlNewLinks as $mlLink)
+                                        <a href="{{ route($mlLink['route']) }}"
+                                           class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is($mlLink['pattern']) ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}"
+                                           wire:navigate.hover>
+                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is($mlLink['pattern']) ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
+                                                <i class="{{ $mlLink['icon'] }} text-sm"></i>
+                                            </div>
+                                            <span class="sidebar-text flex-1 font-medium truncate text-sm">{{ $mlLink['label'] }}</span>
+                                            <div class="{{ Request::is($mlLink['pattern']) ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                        </a>
+                                    @endforeach
+
                                     <a href="{{ route('mercadolivre.settings') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/settings') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/settings') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
