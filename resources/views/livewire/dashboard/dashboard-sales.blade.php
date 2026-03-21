@@ -1,4 +1,4 @@
-﻿<div class="dashboard-sales-page w-full mobile-393-base">
+﻿<div class="dashboard-sales-page w-full mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-sales-ipad-portrait.css') }}">
