@@ -41,3 +41,90 @@
 
 /* Device-specific rules → see responsive/ folder */
 
+/* ══════════════════════════════════════════════════════════════
+   LOADING STATES GLOBAIS — FlowManager
+   Aplica visual de loading em QUALQUER elemento com wire:loading
+   ══════════════════════════════════════════════════════════════ */
+
+/* Botões com wire:loading ficam opacos e com cursor de espera */
+[wire\:loading],
+[wire\:loading\.delay],
+[wire\:loading\.class] {
+    opacity: .7;
+    cursor: wait !important;
+    pointer-events: none;
+}
+
+/* Remove opacidade de ícones spin (são intencionais durante loading) */
+[wire\:loading] .animate-spin,
+[wire\:loading\.delay] .animate-spin {
+    opacity: 1;
+}
+
+/* Botão pai que tem wire:loading.attr="disabled" — estado visual */
+button[disabled]:not([class*="opacity"]),
+button[disabled]:not([class*="cursor"]) {
+    opacity: .55;
+    cursor: not-allowed !important;
+}
+
+/* Skeleton shimmer global (reutilizável em qualquer página) */
+.fm-skeleton {
+    background: linear-gradient(90deg,
+        rgb(241 245 249) 25%,
+        rgb(226 232 240) 50%,
+        rgb(241 245 249) 75%);
+    background-size: 250% 100%;
+    animation: fm-skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: .5rem;
+}
+.dark .fm-skeleton {
+    background: linear-gradient(90deg,
+        rgb(30 41 59) 25%,
+        rgb(51 65 85) 50%,
+        rgb(30 41 59) 75%);
+    background-size: 250% 100%;
+    animation: fm-skeleton-shimmer 1.6s ease-in-out infinite;
+}
+@keyframes fm-skeleton-shimmer {
+    0%   { background-position: 250% 0; }
+    100% { background-position: -250% 0; }
+}
+
+/* Utilitário: overlay de loading sobre qualquer container */
+.fm-loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: inherit;
+    background: rgba(255,255,255,.88);
+    backdrop-filter: blur(3px);
+}
+.dark .fm-loading-overlay {
+    background: rgba(15,23,42,.88);
+}
+
+/* Spinner reutilizável */
+.fm-spinner {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #f59e0b;
+    border-right-color: #f97316;
+    animation: fm-spin .75s linear infinite;
+}
+.fm-spinner-sm {
+    width: 18px;
+    height: 18px;
+    border-width: 2.5px;
+}
+.fm-spinner-lg {
+    width: 44px;
+    height: 44px;
+    border-width: 4px;
+}
+
