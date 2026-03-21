@@ -465,6 +465,56 @@
                                     </a>
                                 </div>
                                 </div>
+
+                                <!-- Shopee com submenu -->
+                                <div x-data="{ shopeeOpen: {{ Request::is('shopee*') ? 'true' : 'false' }} }">
+                                <a href="{{ route('shopee.publications') }}"
+                                   @click.prevent="shopeeOpen = !shopeeOpen; if(!shopeeOpen) window.location='{{ route('shopee.publications') }}'"
+                                   class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee*') ? 'bg-gradient-to-r from-orange-400/20 to-red-500/20 dark:from-orange-500/30 dark:to-red-600/30 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-orange-100 dark:bg-orange-900/50 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee*') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30' : '' }}">
+                                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Shopee</span>
+                                    <i class="sidebar-text bi text-xs transition-transform duration-200 text-slate-400"
+                                       :class="shopeeOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+                                    <div class="{{ Request::is('shopee*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
+                                </a>
+
+                                <!-- Submenu Shopee -->
+                                <div x-show="shopeeOpen"
+                                     x-transition:enter="transition ease-out duration-200"
+                                     x-transition:enter-start="opacity-0 -translate-y-2"
+                                     x-transition:enter-end="opacity-100 translate-y-0"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100 translate-y-0"
+                                     x-transition:leave-end="opacity-0 -translate-y-2"
+                                     class="ml-4 space-y-1 border-l-2 border-orange-200 dark:border-orange-800 pl-2 mt-1">
+
+                                    <a href="{{ route('shopee.publications') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee/publications') ? 'bg-orange-400/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee/publications') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md shadow-orange-500/30' : '' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                                            </svg>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Publicações</span>
+                                        <div class="{{ Request::is('shopee/publications') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('shopee.settings') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee/settings') ? 'bg-orange-400/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee/settings') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md shadow-orange-500/30' : '' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Configurações</span>
+                                        <div class="{{ Request::is('shopee/settings') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
+                                    </a>
+                                </div>
+                                </div>
+
                             </nav>
                         </div>
                     </div>
@@ -978,6 +1028,23 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
                         <span class="more-app-label">Config. ML</span>
+                    </a>
+                </div>
+
+                {{-- ─── SHOPEE ─── --}}
+                <p class="more-sheet-ml-label">Shopee</p>
+                <div class="more-sheet-app-grid">
+                    <a href="{{ route('shopee.publications') }}" class="more-app-card {{ Request::is('shopee/publications*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#EE4D2D,#FF6633)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                        </div>
+                        <span class="more-app-label">Publicações</span>
+                    </a>
+                    <a href="{{ route('shopee.settings') }}" class="more-app-card {{ Request::is('shopee/settings*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#c2410c,#EE4D2D)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        </div>
+                        <span class="more-app-label">Config. Shopee</span>
                     </a>
                 </div>
 
