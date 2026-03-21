@@ -68,10 +68,10 @@ return new class extends Migration
         // Tabela pivot: publicação Shopee ↔ produtos internos
         Schema::create('shopee_publication_products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shopee_publication_id')
-                ->constrained('shopee_publications')->onDelete('cascade');
-            $table->foreignId('product_id')
-                ->constrained('products')->onDelete('cascade');
+            $table->unsignedBigInteger('shopee_publication_id');
+            $table->foreign('shopee_publication_id')->references('id')->on('shopee_publications')->onDelete('cascade');
+            $table->integer('product_id');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
 
             // ID do modelo/variação Shopee para este produto
             $table->string('shopee_model_id')->nullable()
