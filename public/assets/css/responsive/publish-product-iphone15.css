@@ -2,20 +2,42 @@
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .publish-product-page {
         padding-bottom: calc(90px + env(safe-area-inset-bottom));
-        padding-inline: .75rem;
+        padding-inline: .6rem;
     }
-    .publish-product-page .grid {
-        grid-template-columns: 1fr !important;
+
+    /* Step 1: layout coluna única */
+    .publish-product-page .pp-step1-layout {
+        flex-direction: column !important;
     }
-    /* Loading overlay adjustments */
-    .publish-product-page h2.text-xl {
-        font-size: 1.125rem !important;
+    .publish-product-page .pp-s1-sidebar {
+        width: 100% !important;
+        max-height: 300px;
     }
-    /* Compact step items */
+    /* 2 colunas na grade */
+    .publish-product-page .pp-products-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: .5rem !important;
+    }
+    /* Rodapé sticky */
+    .publish-product-page .pp-s1-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 10;
+    }
+    /* scroll selecionados */
+    .publish-product-page .pp-selected-scroll {
+        max-height: 220px;
+    }
+
+    /* Loading overlay */
+    .publish-product-page h2.text-xl,
+    .publish-product-page h2.text-2xl {
+        font-size: 1.1rem !important;
+    }
     .pp-step-item {
-        padding: .625rem .875rem !important;
+        padding: .6rem .875rem !important;
     }
-    /* Skeleton 2 cols always on iPhone */
+    /* Skeleton 2 cols sempre no iPhone */
     .publish-product-page .grid.sm\:grid-cols-4 {
         grid-template-columns: repeat(2, 1fr) !important;
     }
