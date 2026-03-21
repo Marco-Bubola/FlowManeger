@@ -8,25 +8,46 @@
    com !important aqui tenham precedência.
    ══════════════════════════════════════════════════════════════════ */
 
+/* Esconde elementos com x-cloak até Alpine.js inicializar */
+[x-cloak] { display: none !important; }
+
 /* ── Default desktop (1440-1280px) ─────────────────────────────── */
 .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-    height: 175px !important;
-    min-height: 175px !important;
-    border-top-left-radius: 1.7em !important;
-    border-top-right-radius: 1.7em !important;
+    height: 165px !important;
+    min-height: 165px !important;
+    border-top-left-radius: 1.1em !important;
+    border-top-right-radius: 1.1em !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
 }
 .pub-publication-card .pub-product-carousel .pub-product-slide .product-img {
-    border-top-left-radius: 1.5em !important;
-    border-top-right-radius: 1.5em !important;
+    border-top-left-radius: 1.0em !important;
+    border-top-right-radius: 1.0em !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
 }
-.pub-carousel-arrow { top: 87px; }  /* metade de 175px */
+.pub-carousel-arrow { top: 82px; }  /* metade de 165px */
 
 /* ── Mobile ≤767px ─────────────────────────────────────────────── */
 @media (max-width: 767.98px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 150px !important;
+        min-height: 150px !important;
+    }
+    .pub-carousel-arrow { top: 75px; }
+}
+
+/* ── sm 640-767px: 2 colunas ───────────────────────────────────── */
+@media (min-width: 640px) and (max-width: 767.98px) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 135px !important;
+        min-height: 135px !important;
+    }
+    .pub-carousel-arrow { top: 67px; }
+}
+
+/* ── iPhone 15 Pro (380–430px, h≥780px) ────────────────────────── */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
         height: 160px !important;
         min-height: 160px !important;
@@ -34,8 +55,26 @@
     .pub-carousel-arrow { top: 80px; }
 }
 
-/* ── sm 640-767px: 2 colunas ───────────────────────────────────── */
-@media (min-width: 640px) and (max-width: 767.98px) {
+/* ── iPad portrait (768–1024px) ────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 115px !important;
+        min-height: 115px !important;
+    }
+    .pub-carousel-arrow { top: 57px; }
+}
+
+/* ── iPad landscape 768–1180px ─────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
+    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
+        height: 130px !important;
+        min-height: 130px !important;
+    }
+    .pub-carousel-arrow { top: 65px; }
+}
+
+/* ── iPad landscape 1181–1366px ────────────────────────────────── */
+@media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
     .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
         height: 145px !important;
         min-height: 145px !important;
@@ -43,67 +82,31 @@
     .pub-carousel-arrow { top: 72px; }
 }
 
-/* ── iPhone 15 Pro (380–430px, h≥780px) ────────────────────────── */
-@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
-    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 170px !important;
-        min-height: 170px !important;
-    }
-    .pub-carousel-arrow { top: 85px; }
-}
-
-/* ── iPad portrait (768–1024px) ────────────────────────────────── */
-@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 125px !important;
-        min-height: 125px !important;
-    }
-    .pub-carousel-arrow { top: 62px; }
-}
-
-/* ── iPad landscape 768–1180px ─────────────────────────────────── */
-@media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
-    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 140px !important;
-        min-height: 140px !important;
-    }
-    .pub-carousel-arrow { top: 70px; }
-}
-
-/* ── iPad landscape 1181–1366px ────────────────────────────────── */
-@media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
-    .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 155px !important;
-        min-height: 155px !important;
-    }
-    .pub-carousel-arrow { top: 77px; }
-}
-
 /* ── Notebook 1025–1279px: 4 colunas ──────────────────────────── */
 @media (min-width: 1025px) and (max-width: 1279px) {
     .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 162px !important;
-        min-height: 162px !important;
+        height: 152px !important;
+        min-height: 152px !important;
     }
-    .pub-carousel-arrow { top: 81px; }
+    .pub-carousel-arrow { top: 76px; }
 }
 
 /* ── Notebook 1280–1440px: 5 colunas ──────────────────────────── */
 @media (min-width: 1280px) and (max-width: 1440px) {
     .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 175px !important;
-        min-height: 175px !important;
+        height: 165px !important;
+        min-height: 165px !important;
     }
-    .pub-carousel-arrow { top: 87px; }
+    .pub-carousel-arrow { top: 82px; }
 }
 
 /* ── Ultrawide ≥1441px: 6 colunas ─────────────────────────────── */
 @media (min-width: 1441px) {
     .pub-publication-card .pub-product-carousel .pub-product-slide .product-img-area {
-        height: 200px !important;
-        min-height: 200px !important;
+        height: 190px !important;
+        min-height: 190px !important;
     }
-    .pub-carousel-arrow { top: 100px; }
+    .pub-carousel-arrow { top: 95px; }
 }
 
 /* ── card-body compacto dentro do carousel (menos padding que standalone) ── */
