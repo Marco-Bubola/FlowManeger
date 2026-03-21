@@ -1,10 +1,13 @@
-<div class="dashboard-index-page min-h-screen w-full bg-slate-50 dark:bg-slate-950 mobile-393-base">
+<div class="dashboard-index-page min-h-screen w-full bg-slate-50 dark:bg-slate-950 mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-index-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-index-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-index-ultrawide.css') }}">
+
+    <x-loading-overlay message="Carregando dashboard..." />
+
     {{-- Top Header + Conteúdo --}}
     <div>
 
