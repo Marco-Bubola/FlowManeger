@@ -11,7 +11,7 @@
 --}}
 
 <div
-    wire:loading.flex
+    wire:loading.delay.flex
     @if($target) wire:target="{{ $target }}" @endif
     class="fm-lo-backdrop {{ $cover === 'page' ? 'fm-lo-page' : 'fm-lo-section' }}"
 >
