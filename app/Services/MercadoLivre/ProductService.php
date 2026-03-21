@@ -761,7 +761,7 @@ class ProductService extends MercadoLivreService
                 'currency_id' => 'BRL',
                 'available_quantity' => $quantity,
                 'buying_mode' => 'buy_it_now',
-                'condition' => 'new',
+                'condition' => $publishData['condition'] ?? 'new',
                 'listing_type' => $publishData['listing_type'] ?? 'gold_special',
             ];
             
@@ -780,11 +780,16 @@ class ProductService extends MercadoLivreService
                 $mlData['product_id'] = $publishData['product_id'];
             }
             
-            // Adicionar descrição - priorizar a enviada em publishData (pode ser do catálogo)
+            // Descrição: priorizar a do catálogo/formulário, fallback para a do produto
             if (!empty($publishData['description'])) {
                 $mlData['description'] = $publishData['description'];
             } elseif (!empty($product->description)) {
                 $mlData['description'] = $product->description;
+            }
+            
+            // Garantia
+            if (!empty($publishData['warranty'])) {
+                $mlData['warranty'] = $publishData['warranty'];
             }
             
             // Adicionar imagens - priorizar fotos customizadas (catálogo) se fornecidas
@@ -975,6 +980,24 @@ class ProductService extends MercadoLivreService
             
             // Criar produto no ML com autenticação
             $response = $this->makeRequest('POST', '/items', $payload, $accessToken, $userId);
+            
+            // Enviar descrição separadamente — a API ML NÃO aceita description no POST /items
+            if (!empty($mlData['description'])) {
+                try {
+                    $this->makeRequest('POST', "/items/{$response['id']}/description", [
+                        'plain_text' => $mlData['description'],
+                    ], $accessToken, $userId);
+                    Log::info('Descrição enviada ao ML separadamente', [
+                        'item_id' => $response['id'],
+                        'description_length' => mb_strlen($mlData['description']),
+                    ]);
+                } catch (\Exception $descE) {
+                    Log::warning('Falha ao enviar descrição (não crítico, item criado)', [
+                        'item_id' => $response['id'],
+                        'error' => $descE->getMessage(),
+                    ]);
+                }
+            }
             
             // Salvar relacionamento no banco
             $mlProduct = MercadoLivreProduct::create([
@@ -1432,25 +1455,12 @@ class ProductService extends MercadoLivreService
         // category_id é SEMPRE obrigatório pela API do ML
         $payload['category_id'] = $mlData['category_id'];
         
-        // Descrição
-        if (!empty($mlData['description'])) {
-            $payload['description'] = [
-                'plain_text' => $mlData['description'],
-            ];
-            Log::info('ProductService: Descrição adicionada ao payload', [
-                'description_length' => mb_strlen($mlData['description']),
-                'description_preview' => mb_substr($mlData['description'], 0, 100)
-            ]);
-        } elseif (!empty($product->description)) {
-            $payload['description'] = [
-                'plain_text' => $product->description,
-            ];
-            Log::info('ProductService: Descrição do produto adicionada ao payload', [
-                'description_length' => mb_strlen($product->description),
-                'description_preview' => mb_substr($product->description, 0, 100)
-            ]);
-        } else {
-            Log::warning('ProductService: Nenhuma descrição disponível');
+        // NOTA: description NÃO é adicionada ao payload principal — a API ML exige endpoint separado
+        // POST /items/{id}/description — feito após criação em createProduct()
+        
+        // Garantia
+        if (!empty($mlData['warranty'])) {
+            $payload['warranty'] = $mlData['warranty'];
         }
         
         // Imagens
