@@ -190,8 +190,12 @@
                         @endif
                         @else
                         <button type="submit" form="publish-form"
-                            class="inline-flex items-center gap-1.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm shadow-xl transition-all">
-                            <i class="bi bi-rocket-takeoff-fill"></i> <span class="hidden sm:inline">Publicar no </span>ML
+                            wire:loading.attr="disabled" wire:target="publishProduct"
+                            class="inline-flex items-center gap-1.5 px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold text-sm shadow-xl transition-all disabled:opacity-60 disabled:cursor-not-allowed">
+                            <i class="bi bi-rocket-takeoff-fill" wire:loading.remove wire:target="publishProduct"></i>
+                            <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="publishProduct"></i>
+                            <span wire:loading.remove wire:target="publishProduct"><span class="hidden sm:inline">Publicar no </span>ML</span>
+                            <span wire:loading wire:target="publishProduct">Publicando...</span>
                         </button>
                         @endif
                 </div>
@@ -308,6 +312,84 @@
 
     </div>
 </div>{{-- end overlay --}}
+
+{{-- ===================================================================
+     OVERLAY DE LOADING — Publicação no ML
+     Aparece quando publishProduct() está em execução
+     =================================================================== --}}
+<div wire:loading wire:target="publishProduct"
+    class="fixed inset-0 z-[9998] flex flex-col items-center justify-center overflow-hidden py-6 px-4 bg-white/96 dark:bg-slate-900/97 backdrop-blur-md">
+
+    {{-- Background blobs --}}
+    <div class="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="absolute w-[28rem] h-[28rem] rounded-full -top-16 left-1/3 -translate-x-1/2"
+            style="background:radial-gradient(circle,rgba(16,185,129,.18) 0%,transparent 65%);animation:pp-pulse-glow 3.5s ease-in-out infinite"></div>
+        <div class="absolute w-96 h-96 rounded-full bottom-0 right-1/3 translate-x-1/2"
+            style="background:radial-gradient(circle,rgba(52,211,153,.14) 0%,transparent 65%);animation:pp-pulse-glow 4.5s ease-in-out infinite;animation-delay:1.5s"></div>
+    </div>
+
+    <div class="relative z-10 flex flex-col items-center gap-5 w-full max-w-sm sm:max-w-md">
+        {{-- Ícone com spin --}}
+        <div class="relative" style="width:96px;height:96px" aria-hidden="true">
+            <div class="absolute inset-0 rounded-full border-4 border-emerald-200 dark:border-emerald-800/60 animate-pulse"></div>
+            <div class="absolute inset-0 rounded-full"
+                style="border:4px solid transparent;border-top-color:#10b981;border-right-color:#34d399;animation:pp-spin 1.4s cubic-bezier(.4,0,.6,1) infinite"></div>
+            <div class="absolute inset-0" style="animation:pp-orbit 1.4s linear infinite">
+                <div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-amber-400"
+                    style="box-shadow:0 0 12px 4px rgba(245,158,11,.65)"></div>
+            </div>
+            <div class="absolute rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center shadow-2xl"
+                style="inset:16px;box-shadow:0 0 28px rgba(16,185,129,.5)">
+                <i class="bi bi-rocket-takeoff-fill text-2xl text-white"></i>
+            </div>
+        </div>
+
+        {{-- Título --}}
+        <div class="text-center">
+            <h2 class="text-xl sm:text-2xl font-black bg-gradient-to-r from-emerald-600 to-green-600 dark:from-emerald-400 dark:to-green-400 bg-clip-text text-transparent leading-tight">
+                Publicando no Mercado Livre
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">Aguarde, isso pode levar alguns segundos...</p>
+        </div>
+
+        {{-- Steps animados --}}
+        <div class="flex flex-col gap-2 w-full">
+            <div class="pp-step-item flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50" style="animation-delay:0s">
+                <div class="w-7 h-7 rounded-lg bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center flex-shrink-0">
+                    <i class="bi bi-shield-check text-emerald-500 text-xs"></i>
+                </div>
+                <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-300 flex-1">Validando dados...</span>
+                <div class="flex gap-0.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:0s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:.15s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-bounce" style="animation-delay:.3s"></span>
+                </div>
+            </div>
+            <div class="pp-step-item flex items-center gap-3 px-4 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/50" style="animation-delay:.5s">
+                <div class="w-7 h-7 rounded-lg bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center flex-shrink-0">
+                    <i class="bi bi-cloud-upload text-amber-500 text-xs"></i>
+                </div>
+                <span class="text-sm font-semibold text-amber-700 dark:text-amber-300 flex-1">Enviando para API do ML...</span>
+                <div class="flex gap-0.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style="animation-delay:.5s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style="animation-delay:.65s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-bounce" style="animation-delay:.8s"></span>
+                </div>
+            </div>
+            <div class="pp-step-item flex items-center gap-3 px-4 py-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50" style="animation-delay:1s">
+                <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center flex-shrink-0">
+                    <i class="bi bi-check2-all text-blue-500 text-xs"></i>
+                </div>
+                <span class="text-sm font-semibold text-blue-700 dark:text-blue-300 flex-1">Criando anúncio...</span>
+                <div class="flex gap-0.5">
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:1s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:1.15s"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-blue-400 animate-bounce" style="animation-delay:1.3s"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>{{-- end publish overlay --}}
 
 {{-- STEP 1: SELEÇÃO DE PRODUTOS --}}
 @if($currentStep === 1)
