@@ -28,19 +28,28 @@ class Product extends Model
         'model', // Modelo do produto
         'warranty_months', // Meses de garantia
         'condition', // new, used
+        // Campos logísticos (obrigatórios para Shopee, úteis para ML)
+        'weight_grams',  // Peso em gramas
+        'length_cm',     // Comprimento do pacote
+        'width_cm',      // Largura do pacote
+        'height_cm',     // Altura do pacote
     ];
 
     /**
      * The attributes that should be cast.
      */
     protected $casts = [
-        'price' => 'decimal:2',
-        'price_sale' => 'decimal:2',
-        'custos_adicionais' => 'decimal:2',
-        'stock_quantity' => 'integer',
-        'warranty_months' => 'integer',
-        'category_id' => 'integer',
-        'user_id' => 'integer',
+        'price'            => 'decimal:2',
+        'price_sale'       => 'decimal:2',
+        'custos_adicionais'=> 'decimal:2',
+        'stock_quantity'   => 'integer',
+        'warranty_months'  => 'integer',
+        'category_id'      => 'integer',
+        'user_id'          => 'integer',
+        'weight_grams'     => 'integer',
+        'length_cm'        => 'decimal:2',
+        'width_cm'         => 'decimal:2',
+        'height_cm'        => 'decimal:2',
     ];
 
     protected $appends = ['image_url'];
@@ -90,6 +99,26 @@ class Product extends Model
             'ml_publication_id'
         )->withPivot('quantity', 'unit_cost', 'sort_order')
           ->withTimestamps();
+    }
+
+    /**
+     * Relacionamento com publicações da Shopee (N:N com mapeamento de model_id)
+     */
+    public function shopeePublications()
+    {
+        return $this->belongsToMany(
+            \App\Models\ShopeePublication::class,
+            'shopee_publication_products',
+            'product_id',
+            'shopee_publication_id'
+        )->withPivot(
+            'shopee_model_id',
+            'shopee_model_sku',
+            'variation_attributes',
+            'quantity',
+            'unit_cost',
+            'sort_order'
+        )->withTimestamps();
     }
 
     /**
