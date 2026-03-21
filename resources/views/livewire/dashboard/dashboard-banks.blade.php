@@ -1,4 +1,4 @@
-<div class="dashboard-banks-page w-full h-full bg-slate-900 text-white p-6 mobile-393-base">
+<div class="dashboard-banks-page w-full h-full bg-slate-900 text-white p-6 mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-banks-ipad-portrait.css') }}">
