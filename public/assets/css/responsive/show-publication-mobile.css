@@ -1,45 +1,16 @@
-/* Show Publication - Mobile Base (<= 767px) */
+﻿/* show-publication — Mobile (<=767px) */
 @media (max-width: 767.98px) {
-    .publication-show-page {
-        padding-bottom: calc(82px + env(safe-area-inset-bottom));
-    }
-
-    /* Container */
-    .publication-show-page .container {
-        padding: 0.75rem 0.65rem !important;
-    }
-
-    /* Header banner */
-    .publication-show-page .rounded-2xl.shadow-2xl {
-        border-radius: 1rem !important;
-        margin-bottom: 1rem !important;
-    }
-
-    .publication-show-page .rounded-2xl .p-6 {
-        padding: 0.75rem !important;
-    }
-
-    /* Imagem */
-    .publication-show-page .w-20.h-20.rounded-xl {
-        width: 3rem !important;
-        height: 3rem !important;
-    }
-
-    /* Título */
-    .publication-show-page h1.text-3xl {
-        font-size: 1.1rem !important;
-        margin-bottom: 0.4rem !important;
-    }
-
-    /* Flex header -> coluna */
-    .publication-show-page .flex.flex-col.lg\:flex-row {
-        flex-direction: column !important;
-        gap: 0.65rem !important;
-    }
-
-    /* Grid de conteúdo — coluna única */
-    .publication-show-page .grid.grid-cols-1.lg\:grid-cols-3 {
+    .publication-show-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .publication-show-page .sp-grid {
         grid-template-columns: 1fr !important;
-        gap: 0.75rem !important;
+        grid-template-areas: "info" "details" "sidebar" "products" "images" "attrs" "history" !important;
     }
+    .publication-show-page .sp-card { padding: 0 !important; }
+    .publication-show-page .sp-card-body { padding: 0.6rem !important; }
+    .publication-show-page .sp-products-grid { grid-template-columns: 1fr !important; }
+    .publication-show-page .sp-stat-value { font-size: 0.85rem !important; }
+    .publication-show-page .sp-stat-label { font-size: 0.5rem !important; }
+}
+@media (min-width: 540px) and (max-width: 767.98px) {
+    .publication-show-page .sp-products-grid { grid-template-columns: repeat(2, 1fr) !important; }
 }
