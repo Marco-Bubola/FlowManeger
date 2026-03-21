@@ -421,5 +421,43 @@ Route::get('/mercadolivre/webhooks/test', [WebhookController::class, 'test'])
     ->name('mercadolivre.webhooks.test');
 // ==================== END MERCADO LIVRE ROUTES ====================
 
+// ==================== SHOPEE ROUTES ====================
+use App\Http\Controllers\Shopee\AuthController as ShopeeAuthController;
+use App\Http\Controllers\Shopee\WebhookController as ShopeeWebhookController;
+use App\Livewire\Shopee\Settings as ShopeeSettings;
+use App\Livewire\Shopee\PublishProduct as ShopeePublishProduct;
+use App\Livewire\Shopee\PublicationsList as ShopeePublicationsList;
+
+Route::prefix('shopee')->middleware(['auth'])->name('shopee.')->group(function () {
+    // Configurações da integração Shopee
+    Route::get('/settings', ShopeeSettings::class)->name('settings');
+
+    // Publicações
+    Route::get('/publications', ShopeePublicationsList::class)->name('publications');
+
+    // Publicar produto
+    Route::get('/products/publish/create', ShopeePublishProduct::class)
+        ->name('products.publish.create');
+    Route::get('/products/{product}/publish', ShopeePublishProduct::class)
+        ->name('products.publish');
+
+    // OAuth 2.0
+    Route::get('/auth/connect', [ShopeeAuthController::class, 'connect'])->name('auth.connect');
+    Route::get('/auth/callback', [ShopeeAuthController::class, 'callback'])
+        ->name('auth.callback')
+        ->withoutMiddleware(['auth']);
+    Route::post('/auth/disconnect', [ShopeeAuthController::class, 'disconnect'])->name('auth.disconnect');
+});
+
+// Shopee Webhook — público, sem middleware (Shopee chama externamente)
+Route::post('/shopee/webhook', [ShopeeWebhookController::class, 'handle'])
+    ->name('shopee.webhook.handle')
+    ->withoutMiddleware(['auth', 'web']);
+
+Route::get('/shopee/webhook', [ShopeeWebhookController::class, 'verify'])
+    ->name('shopee.webhook.verify')
+    ->withoutMiddleware(['auth', 'web']);
+// ==================== END SHOPEE ROUTES ====================
+
 
 require __DIR__.'/auth.php';
