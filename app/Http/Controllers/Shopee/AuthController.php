@@ -59,8 +59,9 @@ class AuthController extends Controller
         try {
             $token = $this->authService->handleCallback($code, $shopId, $state ?? '');
 
+            $shopName = $token->shop_name ?? $shopId;
             return redirect()->route('shopee.settings')
-                ->with('success', "Shopee conectada com sucesso! Loja: {$token->shop_name ?? $shopId}");
+                ->with('success', "Shopee conectada com sucesso! Loja: {$shopName}");
 
         } catch (\Exception $e) {
             Log::error('ShopeeAuthController: erro no callback', [
