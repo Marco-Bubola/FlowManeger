@@ -1,10 +1,12 @@
-<div class="invoices-index-page w-full mobile-393-base">
+<div class="invoices-index-page w-full mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ultrawide.css') }}">
+
+    <x-loading-overlay message="Carregando faturas..." />
 
     <!-- Main Content Layout -->
     <div class="w-full">
