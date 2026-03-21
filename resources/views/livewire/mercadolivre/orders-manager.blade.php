@@ -28,7 +28,7 @@
 </style>
 @endpush
 
-<div class="orders-manager-page min-h-screen"
+<div class="orders-manager-page min-h-screen relative"
      x-data="{
          showFiltersModal: @entangle('showFiltersModal'),
          tipsOpen: false,
@@ -36,7 +36,7 @@
          openFiltersModal() { this.showFiltersModal = true; },
          closeFiltersModal() { this.showFiltersModal = false; }
      }">
-
+    <x-loading-overlay message="Carregando pedidos..." />
     {{-- ============================================================
          HEADER – AMBER / ML
     ============================================================ --}}
