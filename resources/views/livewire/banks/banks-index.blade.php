@@ -1,10 +1,12 @@
-<div class="banks-index-page w-full mobile-393-base">
+<div class="banks-index-page w-full mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/banks-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/banks-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/banks-index-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/banks-index-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/banks-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/banks-index-ultrawide.css') }}">
+
+    <x-loading-overlay message="Carregando bancos..." />
 
     @php
         // Agrupar por categoria para o gráfico
