@@ -3,17 +3,20 @@
     .publish-product-page {
         padding-inline: 1.2rem !important;
     }
-    .publish-product-page .grid.lg\:grid-cols-3 {
-        grid-template-columns: repeat(3, 1fr) !important;
-    }
-    /* Step 1: side-by-side layout on landscape iPad */
-    .publish-product-page .flex-col.lg\:flex-row {
+
+    /* Step 1: layout lado a lado no landscape */
+    .publish-product-page .pp-step1-layout {
         flex-direction: row !important;
     }
-    .publish-product-page .lg\:w-3\/4 {
-        width: 72% !important;
+    .publish-product-page .pp-s1-main {
+        flex: 1 1 0% !important;
     }
-    .publish-product-page .lg\:w-1\/4 {
-        width: 28% !important;
+    .publish-product-page .pp-s1-sidebar {
+        width: 280px !important;
+        flex-shrink: 0;
+    }
+    /* 3 colunas na grade */
+    .publish-product-page .pp-products-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
     }
 }

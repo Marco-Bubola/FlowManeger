@@ -1,232 +1,226 @@
-<div class="w-full app-viewport-fit mobile-393-base publications-page" x-data="{ filterOpen: false, tipsOpen: false }">
+<div class="w-full app-viewport-fit mobile-393-base publications-page" x-data="{
+    showFilters: false,
+    tipsOpen: false,
+    hasActiveFilters: {{ ($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search) ? 'true' : 'false' }},
+    openFiltersModal() {
+        this.showFilters = true;
+        document.documentElement.style.overflow = 'hidden';
+    },
+    closeFiltersModal() {
+        this.showFilters = false;
+        document.documentElement.style.overflow = '';
+    },
+    applyFiltersModal() {
+        this.closeFiltersModal();
+    }
+}">
 
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ultrawide.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-carousel.css') }}">
+    @push('styles')
+        <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-mobile.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-iphone15.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-portrait.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ipad-landscape.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-notebook.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-ultrawide.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/responsive/publications-list-carousel.css') }}">
+    @endpush
 
-    {{-- ═══════════════════════════════════════════════════════════
-         HEADER ESTILO SALES-INDEX (search, filtros, paginação)
+    {{-- ═══════════════════════════════════════════════════════════════
+         HEADER MODERNO — COMPONENTE x-publications-header (amber/ML)
     ═══════════════════════════════════════════════════════════════ --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-purple-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-indigo-400/20 to-blue-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-blue-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
+    <x-publications-header
+        title="Publicações ML"
+        :total-publications="$stats['total']"
+        :total-active="$stats['active']"
+        :total-kits="$stats['kits']"
+        :total-errors="$stats['errors']"
+        :total-only-on-ml="$stats['only_on_ml'] ?? 0"
+        :show-quick-actions="false">
 
-        <div class="relative px-4 py-3 lg:px-5 lg:py-4">
-            {{-- Primeira Linha: Título + Badges + Controles --}}
-            <div class="publications-header-row-1 flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4 xl:gap-6">
-                {{-- Esquerda: Ícone + Título + Stats --}}
-                <div class="publications-header-left flex items-start sm:items-center gap-3 sm:gap-5 min-w-0">
-                    <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-500 via-indigo-500 to-blue-500 rounded-2xl shadow-xl shadow-purple-500/25">
-                        <i class="bi bi-list-check text-white text-2xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
+        {{-- ── Breadcrumb ──────────────────────────────────────── --}}
+        <x-slot name="breadcrumb">
+            <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Dashboard</a>
+                <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
+                <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+                <span class="text-slate-700 dark:text-slate-300 font-semibold">Publicações</span>
+            </nav>
+        </x-slot>
+
+        {{-- ── Controles: Linha 1 + Linha 2 (padrão products-index) ── --}}
+        <div class="w-full products-index-controls">
+
+            {{-- ── LINHA 1: Pesquisa + Nova Publicação + Sincronizar ── --}}
+            <div class="prod-header-row-1 flex items-center gap-2 w-full mb-2">
+
+                {{-- Campo de Pesquisa --}}
+                <div class="relative group flex-1 xl:flex-none">
+                    <input type="text" wire:model.live.debounce.300ms="search"
+                        placeholder="Buscar publicações..."
+                        class="w-full xl:w-64 pl-9 pr-8 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-amber-500/40 focus:border-amber-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
+                    <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
+                        <i class="bi bi-search text-slate-400 group-focus-within:text-amber-500 transition-colors"></i>
                     </div>
-
-                    <div class="space-y-1.5 min-w-0 flex-1">
-                        <nav class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                            <a href="{{ route('dashboard') }}" class="hover:text-blue-600 transition-colors">Dashboard</a>
-                            <i class="bi bi-chevron-right text-[10px]"></i>
-                            <a href="{{ route('mercadolivre.products') }}" class="hover:text-purple-600 transition-colors">Mercado Livre</a>
-                            <i class="bi bi-chevron-right text-[10px]"></i>
-                            <span class="text-slate-700 dark:text-slate-300 font-semibold">Publicações</span>
-                        </nav>
-                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-300 dark:via-indigo-300 dark:to-blue-300 bg-clip-text text-transparent truncate">
-                            Publicações ML
-                        </h1>
-
-                        <div class="publications-header-stats hidden md:flex items-center gap-2 lg:gap-3 flex-wrap">
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-lg border border-blue-200 dark:border-blue-700">
-                                <i class="bi bi-box-seam text-blue-600 dark:text-blue-400 text-xs"></i>
-                                <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">{{ $stats['total'] }} publicações</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-lg border border-emerald-200 dark:border-emerald-700">
-                                <i class="bi bi-check-circle text-emerald-600 dark:text-emerald-400 text-xs"></i>
-                                <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-300">{{ $stats['active'] }} ativas</span>
-                            </div>
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg border border-purple-200 dark:border-purple-700">
-                                <i class="bi bi-boxes text-purple-600 dark:text-purple-400 text-xs"></i>
-                                <span class="text-xs font-semibold text-purple-700 dark:text-purple-300">{{ $stats['kits'] }} kits</span>
-                            </div>
-                            @if($stats['errors'] > 0)
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-red-500/20 to-rose-500/20 rounded-lg border border-red-200 dark:border-red-700">
-                                <i class="bi bi-exclamation-triangle text-red-600 dark:text-red-400 text-xs"></i>
-                                <span class="text-xs font-semibold text-red-700 dark:text-red-300">{{ $stats['errors'] }} erros</span>
-                            </div>
-                            @endif
-                            @if(($stats['only_on_ml'] ?? 0) > 0)
-                            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 rounded-lg border border-amber-200 dark:border-amber-700">
-                                <i class="bi bi-cloud-download text-amber-600 dark:text-amber-400 text-xs"></i>
-                                <span class="text-xs font-semibold text-amber-700 dark:text-amber-300">{{ $stats['only_on_ml'] }} só no ML</span>
-                            </div>
-                            @endif
-                        </div>
+                    @if($search)
+                    <button wire:click="$set('search', '')"
+                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
+                        <i class="bi bi-x text-sm"></i>
+                    </button>
+                    @endif
+                    <div wire:loading.delay wire:target="search" class="absolute right-9 top-1/2 transform -translate-y-1/2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent"></div>
                     </div>
                 </div>
 
-                {{-- Direita: Controles em 2 linhas (estilo produto index) --}}
-                <div class="publications-header-controls flex flex-col gap-2 w-full xl:w-auto">
+                {{-- Botão Nova Publicação --}}
+                <a href="{{ route('mercadolivre.products') }}"
+                   class="inline-flex items-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm whitespace-nowrap">
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="hidden sm:inline">Nova Publicação</span>
+                </a>
 
-                    {{-- ── LINHA 1: Pesquisa + Nova Publicação ─────────────────── --}}
-                    <div class="flex items-center gap-2 w-full">
-                        {{-- Campo de Pesquisa --}}
-                        <div class="relative group flex-1 xl:flex-none">
-                            <input type="text" wire:model.live.debounce.300ms="search"
-                                placeholder="Buscar publicações..."
-                                class="w-full xl:w-64 pl-9 pr-8 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
-                            </div>
-                            @if($search)
-                            <button wire:click="$set('search', '')"
-                                class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
-                                <i class="bi bi-x text-sm"></i>
-                            </button>
-                            @endif
-                            <div wire:loading.delay wire:target="search" class="absolute right-9 top-1/2 transform -translate-y-1/2">
-                                <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
-                            </div>
-                        </div>
+                {{-- Botão Sincronizar Tudo --}}
+                <button wire:click="syncAllPublications()"
+                        wire:loading.attr="disabled"
+                        wire:loading.class="opacity-60 cursor-not-allowed"
+                        class="relative inline-flex items-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm whitespace-nowrap disabled:opacity-60">
+                    <i class="bi bi-arrow-repeat"
+                       wire:loading.class="animate-spin"
+                       wire:target="syncAllPublications"></i>
+                    <span class="hidden sm:inline">Sincronizar</span>
+                    @if($isSyncing)
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-cyan-400 rounded-full border-2 border-white dark:border-slate-800 animate-pulse"></span>
+                    @endif
+                </button>
 
-                        {{-- Botão Nova Publicação --}}
-                        <a href="{{ route('mercadolivre.products') }}"
-                           class="inline-flex items-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 text-sm whitespace-nowrap">
-                            <i class="bi bi-plus-circle"></i>
-                            <span class="hidden sm:inline">Nova Publicação</span>
-                        </a>
-                    </div>
+            </div>
 
-                    {{-- ── LINHA 2: Pills de filtro + Paginação + Ações ──────────── --}}
-                    <div class="flex items-center gap-2 flex-wrap justify-start xl:justify-end">
+            {{-- ── LINHA 2: Pills de filtro + Paginação + Ações ── --}}
+            <div class="prod-header-row-2 flex items-center gap-2 flex-wrap justify-start xl:justify-end">
 
-                        {{-- Lado Esquerdo: pills de status, tipo, sync --}}
-                        <div class="flex items-center gap-1.5 flex-wrap">
-
-                            {{-- Status pills --}}
-                            <div class="sale-filter-pills hidden md:inline-flex">
-                                <button type="button" wire:click="$set('statusFilter', 'all')"
-                                    class="sale-filter-pill {{ $statusFilter === 'all' ? 'active' : '' }}" title="Todos os status">
-                                    <i class="bi bi-list-check"></i>
-                                    <span>Todos</span>
-                                </button>
-                                <button type="button" wire:click="$set('statusFilter', 'active')"
-                                    class="sale-filter-pill pill-success {{ $statusFilter === 'active' ? 'active' : '' }}" title="Apenas ativas">
-                                    <i class="bi bi-check-circle"></i>
-                                    <span>Ativas</span>
-                                </button>
-                                <button type="button" wire:click="$set('statusFilter', 'paused')"
-                                    class="sale-filter-pill pill-warning {{ $statusFilter === 'paused' ? 'active' : '' }}" title="Apenas pausadas">
-                                    <i class="bi bi-pause-circle"></i>
-                                    <span>Pausadas</span>
-                                </button>
-                            </div>
-
-                            {{-- Tipo pills --}}
-                            <div class="sale-filter-pills hidden md:inline-flex">
-                                <button type="button" wire:click="$set('typeFilter', 'all')"
-                                    class="sale-filter-pill {{ $typeFilter === 'all' ? 'active' : '' }}" title="Todos os tipos">
-                                    <i class="bi bi-box-seam"></i>
-                                    <span>Tipos</span>
-                                </button>
-                                <button type="button" wire:click="$set('typeFilter', 'simple')"
-                                    class="sale-filter-pill {{ $typeFilter === 'simple' ? 'active' : '' }}" title="Simples">
-                                    <i class="bi bi-box"></i>
-                                    <span>Simples</span>
-                                </button>
-                                <button type="button" wire:click="$set('typeFilter', 'kit')"
-                                    class="sale-filter-pill {{ $typeFilter === 'kit' ? 'active' : '' }}" title="Kits">
-                                    <i class="bi bi-boxes"></i>
-                                    <span>Kits</span>
-                                </button>
-                            </div>
-
-                            {{-- Sync pills --}}
-                            <div class="sale-filter-pills hidden lg:inline-flex">
-                                <button type="button" wire:click="$set('syncFilter', 'all')"
-                                    class="sale-filter-pill {{ $syncFilter === 'all' ? 'active' : '' }}" title="Todos sync">
-                                    <i class="bi bi-arrow-repeat"></i>
-                                    <span>Sync</span>
-                                </button>
-                                <button type="button" wire:click="$set('syncFilter', 'synced')"
-                                    class="sale-filter-pill pill-success {{ $syncFilter === 'synced' ? 'active' : '' }}" title="Sincronizados">
-                                    <span>OK</span>
-                                </button>
-                                <button type="button" wire:click="$set('syncFilter', 'pending')"
-                                    class="sale-filter-pill pill-warning {{ $syncFilter === 'pending' ? 'active' : '' }}" title="Pendentes">
-                                    <span>Pendente</span>
-                                </button>
-                                <button type="button" wire:click="$set('syncFilter', 'error')"
-                                    class="sale-filter-pill {{ $syncFilter === 'error' ? 'active' : '' }}" style="{{ $syncFilter === 'error' ? 'background: #ef4444; color: #fff;' : '' }}" title="Com erro">
-                                    <span>Erro</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        {{-- Paginação Compacta --}}
-                        @if($publications->hasPages())
-                        <div class="sale-pagination-compact">
-                            @if($publications->currentPage() > 1)
-                            <button wire:click.prevent="previousPage" class="sale-pagination-btn" title="Página anterior">
-                                <i class="bi bi-chevron-left"></i>
-                            </button>
-                            @endif
-                            <span class="sale-pagination-indicator">{{ $publications->currentPage() }} / {{ $publications->lastPage() }}</span>
-                            @if($publications->hasMorePages())
-                            <button wire:click.prevent="nextPage" class="sale-pagination-btn" title="Próxima página">
-                                <i class="bi bi-chevron-right"></i>
-                            </button>
-                            @endif
-                        </div>
-                        @endif
-
-                        {{-- Toggle Visualização --}}
-                        <div class="sale-pagination-compact">
-                            <button wire:click="$set('viewMode', 'cards')"
-                                    title="Cards"
-                                    class="sale-pagination-btn {{ $viewMode === 'cards' ? 'bg-purple-500 text-white' : '' }}">
-                                <i class="bi bi-grid-3x3-gap"></i>
-                            </button>
-                            <button wire:click="$set('viewMode', 'table')"
-                                    title="Tabela"
-                                    class="sale-pagination-btn {{ $viewMode === 'table' ? 'bg-purple-500 text-white' : '' }}">
-                                <i class="bi bi-list-ul"></i>
-                            </button>
-                        </div>
-
-                        {{-- Botão Filtros Avançados --}}
-                        <button @click="filterOpen = true"
-                                class="sale-action-btn" title="Filtros avançados">
-                            <i class="bi bi-funnel"></i>
-                            <span class="hidden sm:inline">Filtros</span>
-                            @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all')
-                                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-purple-500 rounded-full border-2 border-white dark:border-slate-800"></span>
-                            @endif
-                        </button>
-
-                        {{-- Botão Dicas --}}
-                        <button @click="tipsOpen = true"
-                                class="sale-action-btn" title="Dicas de publicação">
-                            <i class="bi bi-lightbulb"></i>
-                            <span class="hidden sm:inline">Dicas</span>
-                        </button>
-
-                        {{-- Botão Configurações --}}
-                        <a href="{{ route('mercadolivre.settings') }}"
-                           class="sale-action-btn" title="Configurações ML">
-                            <i class="bi bi-gear"></i>
-                            <span class="hidden sm:inline">Config</span>
-                        </a>
-
-                    </div>
+                {{-- Status pills --}}
+                <div class="sale-filter-pills hidden md:inline-flex">
+                    <button type="button" wire:click="$set('statusFilter', 'all')"
+                        class="sale-filter-pill {{ $statusFilter === 'all' ? 'active' : '' }}" title="Todos os status">
+                        <i class="bi bi-list-check"></i>
+                        <span>Todos</span>
+                    </button>
+                    <button type="button" wire:click="$set('statusFilter', 'active')"
+                        class="sale-filter-pill pill-success {{ $statusFilter === 'active' ? 'active' : '' }}" title="Apenas ativas">
+                        <i class="bi bi-check-circle"></i>
+                        <span>Ativas</span>
+                    </button>
+                    <button type="button" wire:click="$set('statusFilter', 'paused')"
+                        class="sale-filter-pill pill-warning {{ $statusFilter === 'paused' ? 'active' : '' }}" title="Apenas pausadas">
+                        <i class="bi bi-pause-circle"></i>
+                        <span>Pausadas</span>
+                    </button>
                 </div>
+
+                {{-- Tipo pills --}}
+                <div class="sale-filter-pills hidden md:inline-flex">
+                    <button type="button" wire:click="$set('typeFilter', 'all')"
+                        class="sale-filter-pill {{ $typeFilter === 'all' ? 'active' : '' }}" title="Todos os tipos">
+                        <i class="bi bi-box-seam"></i>
+                        <span>Tipos</span>
+                    </button>
+                    <button type="button" wire:click="$set('typeFilter', 'simple')"
+                        class="sale-filter-pill {{ $typeFilter === 'simple' ? 'active' : '' }}" title="Simples">
+                        <i class="bi bi-box"></i>
+                        <span>Simples</span>
+                    </button>
+                    <button type="button" wire:click="$set('typeFilter', 'kit')"
+                        class="sale-filter-pill {{ $typeFilter === 'kit' ? 'active' : '' }}" title="Kits">
+                        <i class="bi bi-boxes"></i>
+                        <span>Kits</span>
+                    </button>
+                </div>
+
+                {{-- Sync pills --}}
+                <div class="sale-filter-pills hidden lg:inline-flex">
+                    <button type="button" wire:click="$set('syncFilter', 'all')"
+                        class="sale-filter-pill {{ $syncFilter === 'all' ? 'active' : '' }}" title="Todos sync">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span>Sync</span>
+                    </button>
+                    <button type="button" wire:click="$set('syncFilter', 'synced')"
+                        class="sale-filter-pill pill-success {{ $syncFilter === 'synced' ? 'active' : '' }}" title="Sincronizados">
+                        <span>OK</span>
+                    </button>
+                    <button type="button" wire:click="$set('syncFilter', 'pending')"
+                        class="sale-filter-pill pill-warning {{ $syncFilter === 'pending' ? 'active' : '' }}" title="Pendentes">
+                        <span>Pendente</span>
+                    </button>
+                    <button type="button" wire:click="$set('syncFilter', 'error')"
+                        class="sale-filter-pill {{ $syncFilter === 'error' ? 'active' : '' }}"
+                        style="{{ $syncFilter === 'error' ? 'background: #ef4444; color: #fff;' : '' }}"
+                        title="Com erro">
+                        <span>Erro</span>
+                    </button>
+                </div>
+
+                {{-- Paginação Compacta --}}
+                @if($publications->hasPages())
+                <div class="sale-pagination-compact">
+                    @if($publications->currentPage() > 1)
+                    <button wire:click.prevent="previousPage" class="sale-pagination-btn" title="Página anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    @endif
+                    <span class="sale-pagination-indicator">{{ $publications->currentPage() }} / {{ $publications->lastPage() }}</span>
+                    @if($publications->hasMorePages())
+                    <button wire:click.prevent="nextPage" class="sale-pagination-btn" title="Próxima página">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                    @endif
+                </div>
+                @endif
+
+                {{-- Toggle Visualização --}}
+                <div class="sale-pagination-compact">
+                    <button wire:click="$set('viewMode', 'cards')"
+                            title="Cards"
+                            class="sale-pagination-btn {{ $viewMode === 'cards' ? 'bg-amber-500 text-white' : '' }}">
+                        <i class="bi bi-grid-3x3-gap"></i>
+                    </button>
+                    <button wire:click="$set('viewMode', 'table')"
+                            title="Tabela"
+                            class="sale-pagination-btn {{ $viewMode === 'table' ? 'bg-amber-500 text-white' : '' }}">
+                        <i class="bi bi-list-ul"></i>
+                    </button>
+                </div>
+
+                {{-- Botão Filtros Avançados --}}
+                <button @click="openFiltersModal()"
+                        class="sale-action-btn relative" title="Filtros avançados">
+                    <i class="bi bi-funnel"></i>
+                    <span class="hidden sm:inline">Filtros</span>
+                    @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search)
+                    <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full border-2 border-white dark:border-slate-800"></span>
+                    @endif
+                </button>
+
+                {{-- Botão Dicas --}}
+                <button @click="tipsOpen = true"
+                        class="sale-action-btn" title="Dicas de publicação">
+                    <i class="bi bi-lightbulb"></i>
+                    <span class="hidden sm:inline">Dicas</span>
+                </button>
+
+                {{-- Botão Configurações --}}
+                <a href="{{ route('mercadolivre.settings') }}"
+                   class="sale-action-btn" title="Configurações ML">
+                    <i class="bi bi-gear"></i>
+                    <span class="hidden sm:inline">Config</span>
+                </a>
+
             </div>
         </div>
-    </div>
+
+    </x-publications-header>
 
     {{-- ═══════════════════════════════════════════════
          INDICADOR DE SINCRONIZAÇÃO AUTOMÁTICA (INLINE)
@@ -364,9 +358,13 @@
                             {{-- Slides: um card completo por produto --}}
                             @foreach($publication->products as $idx => $product)
                                 <div x-show="slide === {{ $idx }}"
-                                     x-transition:enter="transition ease-in-out duration-200"
+                                     x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0"
                                      x-transition:enter-end="opacity-100"
+                                     x-transition:leave="transition ease-in duration-150"
+                                     x-transition:leave-start="opacity-100"
+                                     x-transition:leave-end="opacity-0"
+                                     style="{{ $idx !== 0 ? 'display:none;' : '' }}"
                                      class="pub-product-slide">
 
                                     {{-- ── Área de imagem (idêntica ao products-index) ────── --}}
@@ -566,7 +564,7 @@
                             @endif
                         </p>
                         <a href="{{ route('mercadolivre.products') }}"
-                           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                           class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
                             <i class="bi bi-plus-lg"></i> Nova Publicação
                         </a>
                     </div>
@@ -580,26 +578,26 @@
                 <div class="overflow-x-auto">
                     <table class="w-full">
                         <thead>
-                            <tr class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/50 dark:to-indigo-950/50 border-b-2 border-purple-200 dark:border-purple-800">
-                                <th class="px-4 py-4 text-left text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                            <tr class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/50 dark:to-orange-950/50 border-b-2 border-amber-200 dark:border-amber-800">
+                                <th class="px-4 py-4 text-left text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Publicação
                                 </th>
-                                <th class="px-4 py-4 text-left text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                                <th class="px-4 py-4 text-left text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Status
                                 </th>
-                                <th class="px-4 py-4 text-left text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                                <th class="px-4 py-4 text-left text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Tipo
                                 </th>
-                                <th class="px-4 py-4 text-left text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                                <th class="px-4 py-4 text-left text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Produtos
                                 </th>
-                                <th class="px-4 py-4 text-right text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                                <th class="px-4 py-4 text-right text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Preço
                                 </th>
-                                <th class="px-4 py-4 text-center text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                                <th class="px-4 py-4 text-center text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Estoque
                                 </th>
-                                <th class="px-4 py-4 text-center text-xs font-black text-purple-900 dark:text-purple-100 uppercase tracking-wider">
+                                <th class="px-4 py-4 text-center text-xs font-black text-amber-900 dark:text-amber-100 uppercase tracking-wider">
                                     Ações
                                 </th>
                             </tr>
@@ -734,7 +732,7 @@
                                             {{-- Ver Publicação (sempre visível) --}}
                                             <a href="{{ route('mercadolivre.publications.show', $publication->id) }}" 
                                                title="Ver Publicação"
-                                               class="p-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg transition-all">
+                                               class="p-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-all">
                                                 <i class="bi bi-eye"></i>
                                             </a>
                                             
@@ -782,7 +780,7 @@
                                                 @endif
                                             </p>
                                             <a href="{{ route('mercadolivre.products') }}"
-                                               class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
+                                               class="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all">
                                                 <i class="bi bi-plus-lg"></i> Nova Publicação
                                             </a>
                                         </div>
@@ -845,16 +843,16 @@
     </div>
 
     {{-- ═══════════════════════════════════════════════════════════════
-         MODAL DE FILTROS AVANÇADOS
+         MODAL DE FILTROS AVANÇADOS (full-screen z-[9999], estilo ML)
     ═══════════════════════════════════════════════════════════════ --}}
-    <div x-show="filterOpen"
+    <div x-show="showFilters"
          x-cloak
-         class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
-         @keydown.escape.window="filterOpen = false">
+         class="fixed inset-0 z-[9999] products-mobile-filter-modal"
+         @keydown.escape.window="closeFiltersModal()">
 
-        {{-- Overlay --}}
-        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer"
-             @click="filterOpen = false"
+        {{-- Overlay backdrop --}}
+        <div class="absolute inset-0 bg-slate-950/55 backdrop-blur-md cursor-pointer"
+             @click="closeFiltersModal()"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -863,149 +861,152 @@
              x-transition:leave-end="opacity-0"></div>
 
         {{-- Painel do Modal --}}
-        <div class="relative w-full sm:w-auto sm:min-w-[500px] sm:max-w-lg mx-0 sm:mx-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700/50 overflow-hidden"
-             x-transition:enter="transition ease-out duration-300"
-             x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95 sm:translate-y-0"
-             x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave="transition ease-in duration-200"
-             x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-             x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95 sm:translate-y-0">
+        <div class="absolute inset-x-0 bottom-0 md:inset-0 md:flex md:items-center md:justify-center">
+            <div class="relative w-full md:w-auto md:min-w-[540px] md:max-w-lg mx-0 md:mx-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-t-3xl md:rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700/50 overflow-hidden"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-8 md:scale-95 md:translate-y-0"
+                 x-transition:enter-end="opacity-100 translate-y-0 md:scale-100"
+                 x-transition:leave="transition ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 md:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-8 md:scale-95 md:translate-y-0">
 
-            {{-- Decoração topo (mobile handle) --}}
-            <div class="sm:hidden mx-auto mt-3 mb-1 w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+                {{-- Mobile handle --}}
+                <div class="md:hidden mx-auto mt-3 mb-1 w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
 
-            {{-- Header --}}
-            <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-purple-50/80 to-indigo-50/80 dark:from-purple-950/30 dark:to-indigo-950/30">
-                <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 shadow-lg shadow-purple-500/20">
-                        <i class="bi bi-funnel-fill text-white text-lg"></i>
+                {{-- Header do modal (amber/ML) --}}
+                <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-950/30 dark:to-orange-950/30">
+                    <div class="flex items-center gap-3">
+                        <div class="flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 shadow-lg shadow-amber-500/25">
+                            <i class="bi bi-funnel-fill text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Filtros Avançados</h2>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Filtre suas publicações no ML</p>
+                        </div>
                     </div>
+                    <button @click="closeFiltersModal()"
+                            class="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
+                        <i class="bi bi-x-lg text-lg"></i>
+                    </button>
+                </div>
+
+                {{-- Body --}}
+                <div class="px-6 py-5 space-y-5 max-h-[60vh] md:max-h-[70vh] overflow-y-auto">
+
+                    {{-- Status --}}
                     <div>
-                        <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Filtros Avançados</h2>
-                        <p class="text-xs text-slate-500 dark:text-slate-400">Filtre suas publicações</p>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                            <i class="bi bi-circle-half text-amber-500"></i> Status da Publicação
+                        </label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach([
+                                ['value' => 'all',          'label' => 'Todos',      'icon' => 'list-check',    'color' => 'amber'],
+                                ['value' => 'active',       'label' => 'Ativas',     'icon' => 'check-circle',  'color' => 'emerald'],
+                                ['value' => 'paused',       'label' => 'Pausadas',   'icon' => 'pause-circle',  'color' => 'amber'],
+                                ['value' => 'closed',       'label' => 'Fechadas',   'icon' => 'x-circle',      'color' => 'red'],
+                                ['value' => 'under_review', 'label' => 'Em Revisão', 'icon' => 'search',        'color' => 'violet'],
+                            ] as $opt)
+                            <button wire:click="$set('statusFilter', '{{ $opt['value'] }}')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
+                                           {{ $statusFilter === $opt['value']
+                                              ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
+                                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
+                                <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                            </button>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
-                <button @click="filterOpen = false"
-                        class="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-slate-200/80 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200">
-                    <i class="bi bi-x-lg text-lg"></i>
-                </button>
-            </div>
 
-            {{-- Body --}}
-            <div class="px-6 py-5 space-y-5 max-h-[60vh] sm:max-h-none overflow-y-auto">
-
-                {{-- Status --}}
-                <div>
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
-                        <i class="bi bi-circle-half text-purple-500"></i> Status da Publicação
-                    </label>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach([
-                            ['value' => 'all',          'label' => 'Todos',     'icon' => 'list-check',    'color' => 'purple'],
-                            ['value' => 'active',       'label' => 'Ativas',    'icon' => 'check-circle',  'color' => 'emerald'],
-                            ['value' => 'paused',       'label' => 'Pausadas',  'icon' => 'pause-circle',  'color' => 'amber'],
-                            ['value' => 'closed',       'label' => 'Fechadas',  'icon' => 'x-circle',      'color' => 'red'],
-                            ['value' => 'under_review', 'label' => 'Em Revisão','icon' => 'search',        'color' => 'violet'],
-                        ] as $opt)
-                        <button wire:click="$set('statusFilter', '{{ $opt['value'] }}')"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
-                                       {{ $statusFilter === $opt['value']
-                                          ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
-                                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
-                            <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
-                        </button>
-                        @endforeach
+                    {{-- Tipo --}}
+                    <div>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                            <i class="bi bi-boxes text-blue-500"></i> Tipo de Publicação
+                        </label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach([
+                                ['value' => 'all',    'label' => 'Todos',   'icon' => 'box-seam', 'color' => 'blue'],
+                                ['value' => 'simple', 'label' => 'Simples', 'icon' => 'box',      'color' => 'blue'],
+                                ['value' => 'kit',    'label' => 'Kits',    'icon' => 'boxes',    'color' => 'purple'],
+                            ] as $opt)
+                            <button wire:click="$set('typeFilter', '{{ $opt['value'] }}')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
+                                           {{ $typeFilter === $opt['value']
+                                              ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
+                                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
+                                <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                            </button>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
 
-                {{-- Tipo --}}
-                <div>
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
-                        <i class="bi bi-boxes text-blue-500"></i> Tipo de Publicação
-                    </label>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach([
-                            ['value' => 'all',    'label' => 'Todos',   'icon' => 'box-seam', 'color' => 'blue'],
-                            ['value' => 'simple', 'label' => 'Simples', 'icon' => 'box',      'color' => 'blue'],
-                            ['value' => 'kit',    'label' => 'Kits',    'icon' => 'boxes',    'color' => 'purple'],
-                        ] as $opt)
-                        <button wire:click="$set('typeFilter', '{{ $opt['value'] }}')"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
-                                       {{ $typeFilter === $opt['value']
-                                          ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
-                                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
-                            <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
-                        </button>
-                        @endforeach
+                    {{-- Sincronização --}}
+                    <div>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
+                            <i class="bi bi-arrow-repeat text-teal-500"></i> Status de Sincronização
+                        </label>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach([
+                                ['value' => 'all',     'label' => 'Todos',         'icon' => 'arrow-repeat',         'color' => 'teal'],
+                                ['value' => 'synced',  'label' => 'Sincronizados', 'icon' => 'check-circle',         'color' => 'emerald'],
+                                ['value' => 'pending', 'label' => 'Pendentes',     'icon' => 'clock',                'color' => 'amber'],
+                                ['value' => 'error',   'label' => 'Com Erros',     'icon' => 'exclamation-triangle', 'color' => 'red'],
+                            ] as $opt)
+                            <button wire:click="$set('syncFilter', '{{ $opt['value'] }}')"
+                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
+                                           {{ $syncFilter === $opt['value']
+                                              ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
+                                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
+                                <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
+                            </button>
+                            @endforeach
+                        </div>
                     </div>
-                </div>
 
-                {{-- Sincronização --}}
-                <div>
-                    <label class="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">
-                        <i class="bi bi-arrow-repeat text-teal-500"></i> Status de Sincronização
-                    </label>
-                    <div class="flex flex-wrap gap-2">
-                        @foreach([
-                            ['value' => 'all',     'label' => 'Todos',        'icon' => 'arrow-repeat',        'color' => 'teal'],
-                            ['value' => 'synced',  'label' => 'Sincronizados','icon' => 'check-circle',        'color' => 'emerald'],
-                            ['value' => 'pending', 'label' => 'Pendentes',    'icon' => 'clock',               'color' => 'amber'],
-                            ['value' => 'error',   'label' => 'Com Erros',    'icon' => 'exclamation-triangle','color' => 'red'],
-                        ] as $opt)
-                        <button wire:click="$set('syncFilter', '{{ $opt['value'] }}')"
-                                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition-all duration-200 border-2
-                                       {{ $syncFilter === $opt['value']
-                                          ? 'bg-'.$opt['color'].'-500 border-'.$opt['color'].'-500 text-white shadow-md'
-                                          : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:border-'.$opt['color'].'-300' }}">
-                            <i class="bi bi-{{ $opt['icon'] }}"></i> {{ $opt['label'] }}
-                        </button>
-                        @endforeach
+                    {{-- Resumo dos filtros ativos --}}
+                    @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search)
+                    <div class="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
+                        <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-1.5">
+                            <i class="bi bi-funnel-fill mr-1"></i> Filtros ativos:
+                        </p>
+                        <div class="flex flex-wrap gap-1.5">
+                            @if($search)
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                                    <i class="bi bi-search"></i> "{{ $search }}"
+                                </span>
+                            @endif
+                            @if($statusFilter !== 'all')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                                    Status: {{ $statusFilter }}
+                                </span>
+                            @endif
+                            @if($typeFilter !== 'all')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                                    Tipo: {{ $typeFilter }}
+                                </span>
+                            @endif
+                            @if($syncFilter !== 'all')
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 text-xs font-medium">
+                                    Sync: {{ $syncFilter }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
+                    @endif
+
                 </div>
 
-                {{-- Resumo dos filtros ativos --}}
-                @if($statusFilter !== 'all' || $typeFilter !== 'all' || $syncFilter !== 'all' || $search)
-                <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-800">
-                    <p class="text-xs font-semibold text-purple-700 dark:text-purple-300 mb-1.5">
-                        <i class="bi bi-funnel-fill mr-1"></i> Filtros ativos:
-                    </p>
-                    <div class="flex flex-wrap gap-1.5">
-                        @if($search)
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
-                                <i class="bi bi-search"></i> "{{ $search }}"
-                            </span>
-                        @endif
-                        @if($statusFilter !== 'all')
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
-                                Status: {{ $statusFilter }}
-                            </span>
-                        @endif
-                        @if($typeFilter !== 'all')
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
-                                Tipo: {{ $typeFilter }}
-                            </span>
-                        @endif
-                        @if($syncFilter !== 'all')
-                            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-purple-200 dark:bg-purple-800 text-purple-800 dark:text-purple-200 text-xs font-medium">
-                                Sync: {{ $syncFilter }}
-                            </span>
-                        @endif
-                    </div>
+                {{-- Footer com ações --}}
+                <div class="px-6 pb-6 pt-4 flex items-center justify-between gap-3 border-t border-slate-200/60 dark:border-slate-700/60 bg-slate-50/50 dark:bg-slate-800/30">
+                    <button wire:click="clearFilters" @click="closeFiltersModal()"
+                            class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold transition-all text-sm">
+                        <i class="bi bi-x-circle"></i> Limpar Tudo
+                    </button>
+                    <button @click="applyFiltersModal()"
+                            class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
+                        <i class="bi bi-check-lg"></i> Aplicar Filtros
+                    </button>
                 </div>
-                @endif
 
-            </div>
-
-            {{-- Footer --}}
-            <div class="px-6 pb-6 pt-4 flex items-center justify-between gap-3 border-t border-slate-200/60 dark:border-slate-700/60">
-                <button wire:click="clearFilters" @click="filterOpen = false"
-                        class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold transition-all text-sm">
-                    <i class="bi bi-x-circle"></i> Limpar Tudo
-                </button>
-                <button @click="filterOpen = false"
-                        class="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold shadow-lg hover:shadow-xl hover:scale-105 transition-all text-sm">
-                    <i class="bi bi-check-lg"></i> Aplicar Filtros
-                </button>
             </div>
         </div>
     </div>

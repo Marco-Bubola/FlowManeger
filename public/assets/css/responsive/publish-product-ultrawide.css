@@ -1,12 +1,33 @@
-/* publish-product — Ultrawide (>=1441px) */
+/* publish-product — Ultrawide / FullHD (>=1441px) */
 @media (min-width: 1441px) {
     .publish-product-page {
         margin-inline: auto;
     }
+    /* Step 1: 4 colunas na grade */
+    .publish-product-page .pp-products-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+    /* Sidebar um pouco maior */
+    .publish-product-page .pp-s1-sidebar {
+        width: 340px !important;
+    }
 }
-/* FullHD+ (>=1800px): loading overlay centered card gets max-width constraint */
+/* FullHD+ (>=1800px) */
 @media (min-width: 1800px) {
+    .publish-product-page .pp-products-grid {
+        grid-template-columns: repeat(5, 1fr) !important;
+    }
+    .publish-product-page .pp-s1-sidebar {
+        width: 380px !important;
+    }
+    /* Loading overlay card max-width */
     .publish-product-page .fixed.inset-0 > div.relative.z-10 {
         max-width: 480px;
+    }
+}
+/* Ultrawide (>=2500px) */
+@media (min-width: 2500px) {
+    .publish-product-page .pp-products-grid {
+        grid-template-columns: repeat(6, 1fr) !important;
     }
 }

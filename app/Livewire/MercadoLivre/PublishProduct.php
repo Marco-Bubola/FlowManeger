@@ -44,6 +44,11 @@ class PublishProduct extends Component
     public array $selectedProducts = [];
     public bool $showProductSelector = false;
     public string $publicationType = 'simple';
+
+    // Variações de produto (cor, tamanho, etc.)
+    public bool  $hasVariations = false;
+    public array $variations = [];           // [{attribute_combinations:[{name,value_name}], price, available_quantity}]
+    public array $variationAttributeNames = []; // Nomes dos atributos de variação definidos (ex: ['COR','TAMANHO'])
     
     // Step 1: filtros de produtos
     public string $searchTerm = '';
@@ -941,96 +946,91 @@ class PublishProduct extends Component
             
             // Enviar atributos: do catálogo ou preenchidos manualmente
             if (!empty($this->catalogAttributes)) {
-                // Tem atributos do catálogo - usar eles
+                // Tem atributos do catálogo
                 $attributes = [];
-                // Atributos problemáticos que causam erro de validação no ML API
-                $ignoredAttrs = [
-                    'MANUAL_TITLE',
-                    'HAIR_TYPES',           // Causa erro: valores múltiplos
-                    'HAIR_CARE_TYPES',      // Causa erro: validação de value_id
-                ];
-                
-                foreach ($this->catalogAttributes as $attr) {
-                    // Pular atributos que devem ser ignorados
-                    if (empty($attr['id']) || in_array($attr['id'], $ignoredAttrs)) {
-                        continue;
-                    }
-                    
-                    // Pular atributos com valores inválidos/nulos
-                    if (empty($attr['value_id']) && empty($attr['value_name'])) {
-                        continue;
-                    }
-                    
-                    // Se tem value_id, DEVE ter value_name também
-                    if (!empty($attr['value_id'])) {
-                        $valueName = $attr['value_name'];
-                        
-                        // Se value_name está vazio/null, buscar na lista de values
-                        if (empty($valueName) && !empty($attr['values'])) {
-                            foreach ($attr['values'] as $value) {
-                                if ($value['id'] === $attr['value_id']) {
-                                    $valueName = $value['name'];
-                                    break;
+
+                // Quando publicando VINCULADO ao catálogo (linkToCatalog=true + catalogProductId),
+                // o ML HERDA automaticamente os atributos do catálogo.
+                // Enviar atributos de catálogo causa "invalid.item.attribute.values" (ex: PERFUME_TYPE).
+                // Nesse modo, enviar apenas BRAND, MODEL e GTIN.
+                if ($this->catalogProductId && $this->linkToCatalog) {
+                    Log::info('Modo catálogo vinculado: enviando apenas atributos essenciais (sem atributos do catálogo)', [
+                        'catalog_product_id' => $this->catalogProductId,
+                    ]);
+                    // Não adicionar nada — ProductService auto-adiciona BRAND, MODEL e GTIN
+                } else {
+                    // MODO cópia independente: enviar atributos do catálogo mas com filtro
+                    // Atributos problemáticos que causam erro de validação no ML API
+                    $ignoredAttrs = [
+                        'MANUAL_TITLE',
+                        'HAIR_TYPES',           // Causa erro: valores múltiplos
+                        'HAIR_CARE_TYPES',      // Causa erro: validação de value_id
+                        'PERFUME_TYPE',          // Causa erro: invalid.item.attribute.values
+                        'FRAGRANCE_TYPE',        // Mesmo motivo
+                        'WRIST_WATCH_TYPE',      // Mesmo motivo
+                        'CLOTHING_TYPE',         // Mesmo motivo
+                        'SHOE_TYPE',             // Mesmo motivo
+                    ];
+
+                    foreach ($this->catalogAttributes as $attr) {
+                        // Pular atributos que devem ser ignorados
+                        if (empty($attr['id']) || in_array($attr['id'], $ignoredAttrs)) {
+                            continue;
+                        }
+
+                        // Pular atributos com valores inválidos/nulos
+                        if (empty($attr['value_id']) && empty($attr['value_name'])) {
+                            continue;
+                        }
+
+                        // Se tem value_id, DEVE ter value_name também
+                        if (!empty($attr['value_id'])) {
+                            $valueName = $attr['value_name'];
+
+                            // Se value_name está vazio/null, buscar na lista de values
+                            if (empty($valueName) && !empty($attr['values'])) {
+                                foreach ($attr['values'] as $value) {
+                                    if ($value['id'] === $attr['value_id']) {
+                                        $valueName = $value['name'];
+                                        break;
+                                    }
                                 }
                             }
-                        }
-                        
-                        // CORREÇÃO: Filtrar atributos com value_name contendo vírgula (múltiplos valores)
-                        // Esses causam erro "invalid.item.attribute.values" no ML API
-                        if (!empty($valueName) && str_contains($valueName, ',')) {
-                            Log::warning('Atributo ignorado - value_name contém vírgula (múltiplos valores)', [
-                                'attr_id' => $attr['id'],
-                                'attr_name' => $attr['name'],
-                                'value_id' => $attr['value_id'],
-                                'value_name' => $valueName,
-                            ]);
-                            continue;
-                        }
-                        
-                        // Só adicionar se conseguiu o value_name
-                        if (!empty($valueName)) {
+
+                            // CORREÇÃO: Filtrar atributos com value_name contendo vírgula (múltiplos valores)
+                            if (!empty($valueName) && str_contains($valueName, ',')) {
+                                Log::warning('Atributo ignorado - value_name contém vírgula (múltiplos valores)', [
+                                    'attr_id' => $attr['id'],
+                                    'value_name' => $valueName,
+                                ]);
+                                continue;
+                            }
+
+                            if (!empty($valueName)) {
+                                $attributes[$attr['id']] = [
+                                    'id' => $attr['id'],
+                                    'value_id' => $attr['value_id'],
+                                    'value_name' => $valueName,
+                                ];
+                            }
+                        } elseif (!empty($attr['value_name'])) {
+                            // Atributos do tipo texto (sem value_id) — filtrar vírgulas
+                            if (str_contains($attr['value_name'], ',')) {
+                                continue;
+                            }
                             $attributes[$attr['id']] = [
                                 'id' => $attr['id'],
-                                'value_id' => $attr['value_id'],
-                                'value_name' => $valueName,
-                            ];
-                            
-                            Log::info('Atributo preparado para envio', [
-                                'attr_id' => $attr['id'],
-                                'value_id' => $attr['value_id'],
-                                'value_name' => $valueName,
-                            ]);
-                        } else {
-                            Log::warning('Atributo ignorado - value_name não encontrado', [
-                                'attr_id' => $attr['id'],
-                                'attr_name' => $attr['name'],
-                                'value_id' => $attr['value_id'],
-                                'values_count' => !empty($attr['values']) ? count($attr['values']) : 0,
-                            ]);
-                        }
-                    } elseif (!empty($attr['value_name'])) {
-                        // Atributos do tipo texto (sem value_id)
-                        // CORREÇÃO: Também filtrar atributos texto com vírgula
-                        if (str_contains($attr['value_name'], ',')) {
-                            Log::warning('Atributo texto ignorado - contém vírgula', [
-                                'attr_id' => $attr['id'],
                                 'value_name' => $attr['value_name'],
-                            ]);
-                            continue;
+                            ];
                         }
-                        $attributes[$attr['id']] = [
-                            'id' => $attr['id'],
-                            'value_name' => $attr['value_name'],
-                        ];
                     }
+
+                    Log::info('Enviando atributos do catálogo (modo cópia)', [
+                        'attributes_count' => count($attributes),
+                    ]);
                 }
+
                 $publishData['attributes'] = array_values($attributes);
-                
-                Log::info('Enviando atributos do catálogo', [
-                    'attributes_count' => count($attributes),
-                    'attributes' => $attributes,
-                    'link_to_catalog' => $this->linkToCatalog
-                ]);
             } elseif (!empty($this->selectedAttributes)) {
                 // Atributos preenchidos manualmente
                 $publishData['attributes'] = $this->selectedAttributes;
@@ -1038,6 +1038,18 @@ class PublishProduct extends Component
             
             if ($this->useCatalogPictures && !empty($this->selectedPictures)) {
                 $publishData['pictures'] = array_map(fn($url) => ['source' => $url], $this->selectedPictures);
+            }
+
+            // Variações de produto
+            if ($this->hasVariations && !empty($this->variations)) {
+                $variationsPayload = $this->buildVariationsPayload();
+                if (!empty($variationsPayload)) {
+                    $publishData['variations'] = $variationsPayload;
+                    // Quando há variações, o available_quantity da raiz deve ser 0
+                    $publishData['available_quantity'] = 0;
+                    // Preço da raiz pode ser 0 para itens com variações (o prices virão nas variações)
+                    Log::info('PublishProduct: Publicação com variações', ['count' => count($variationsPayload)]);
+                }
             }
             
             $result = $productService->publishProduct(
@@ -1172,6 +1184,125 @@ class PublishProduct extends Component
         }
         
         return 'Produto sem título';
+    }
+
+    // ---------------------------------------------------------------
+    // Variações
+    // ---------------------------------------------------------------
+
+    /**
+     * Liga/desliga o modo variações.
+     */
+    public function toggleVariations(): void
+    {
+        $this->hasVariations = !$this->hasVariations;
+        if ($this->hasVariations && empty($this->variations)) {
+            $this->addVariation();
+        }
+    }
+
+    /**
+     * Adiciona uma variação em branco.
+     */
+    public function addVariation(): void
+    {
+        $attrCount = max(1, count($this->variationAttributeNames));
+        $combinations = [];
+        for ($i = 0; $i < $attrCount; $i++) {
+            $combinations[] = [
+                'name'       => $this->variationAttributeNames[$i] ?? '',
+                'value_name' => '',
+            ];
+        }
+
+        $this->variations[] = [
+            'attribute_combinations' => $combinations,
+            'price'                  => $this->publishPrice,
+            'available_quantity'     => max(1, $this->publishQuantity),
+        ];
+    }
+
+    /**
+     * Remove uma variação pelo índice.
+     */
+    public function removeVariation(int $index): void
+    {
+        array_splice($this->variations, $index, 1);
+        $this->variations = array_values($this->variations);
+    }
+
+    /**
+     * Adiciona um nome de atributo de variação (coluna na tabela).
+     */
+    public function addVariationAttribute(): void
+    {
+        $this->variationAttributeNames[] = '';
+        // Adicionar coluna em todas as variações existentes
+        foreach ($this->variations as &$var) {
+            $var['attribute_combinations'][] = ['name' => '', 'value_name' => ''];
+        }
+        unset($var);
+    }
+
+    /**
+     * Remove um atributo de variação (coluna) pelo índice.
+     */
+    public function removeVariationAttribute(int $index): void
+    {
+        array_splice($this->variationAttributeNames, $index, 1);
+        $this->variationAttributeNames = array_values($this->variationAttributeNames);
+        foreach ($this->variations as &$var) {
+            array_splice($var['attribute_combinations'], $index, 1);
+            $var['attribute_combinations'] = array_values($var['attribute_combinations']);
+        }
+        unset($var);
+    }
+
+    /**
+     * Sincroniza o nome de um atributo para todas as variações.
+     */
+    public function updatedVariationAttributeNames($value, $key): void
+    {
+        $index = (int) $key;
+        foreach ($this->variations as &$var) {
+            if (isset($var['attribute_combinations'][$index])) {
+                $var['attribute_combinations'][$index]['name'] = $value;
+            }
+        }
+        unset($var);
+    }
+
+    /**
+     * Prepara o array de variações para envio na API do ML.
+     *
+     * @return array  Array formatted for ML API 'variations' key.
+     */
+    protected function buildVariationsPayload(): array
+    {
+        $result = [];
+        foreach ($this->variations as $var) {
+            $combinations = [];
+            foreach ($var['attribute_combinations'] ?? [] as $comb) {
+                $name  = trim($comb['name']       ?? '');
+                $value = trim($comb['value_name'] ?? '');
+                if ($name !== '' && $value !== '') {
+                    $combinations[] = ['name' => $name, 'value_name' => $value];
+                }
+            }
+            if (empty($combinations)) {
+                continue; // Pular variação sem combinações definidas
+            }
+            $entry = [
+                'attribute_combinations' => $combinations,
+                'available_quantity'     => max(0, (int) ($var['available_quantity'] ?? 0)),
+            ];
+            $varPrice = (float) ($var['price'] ?? 0);
+            if ($varPrice > 0) {
+                $entry['price'] = $varPrice;
+            }
+            $result[] = $entry;
+        }
+        return $result;
     }
 
     public function render()

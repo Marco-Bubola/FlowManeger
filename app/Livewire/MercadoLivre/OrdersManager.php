@@ -23,10 +23,15 @@ class OrdersManager extends Component
     // Detalhes do pedido selecionado
     public ?array $selectedOrder = null;
     public bool $showDetailsModal = false;
-    
+
+    // UI moderno
+    public bool $showFiltersModal = false;
+    public bool $tipsOpen = false;
+    public string $viewMode = 'cards';
+
     // Paginação
     public int $perPage = 20;
-    
+
     // Dados
     public array $orders = [];
     public array $paging = [];
@@ -191,6 +196,37 @@ class OrdersManager extends Component
     {
         $this->showDetailsModal = false;
         $this->selectedOrder = null;
+    }
+
+    /**
+     * Estatísticas computadas dos pedidos carregados
+     */
+    public function getStats(): array
+    {
+        $total   = count($this->orders);
+        $paid    = 0;
+        $processing = 0;
+        $cancelled  = 0;
+        $fulfilled  = 0;
+        $totalRevenue = 0.0;
+
+        foreach ($this->orders as $order) {
+            $status = $order['status'] ?? '';
+            $amount = (float)($order['total_amount'] ?? 0);
+            if (in_array($status, ['paid', 'fulfilled', 'confirmed'])) {
+                $paid++;
+                $totalRevenue += $amount;
+            } elseif (in_array($status, ['payment_required', 'payment_in_process'])) {
+                $processing++;
+            } elseif ($status === 'cancelled') {
+                $cancelled++;
+            }
+            if ($status === 'fulfilled') {
+                $fulfilled++;
+            }
+        }
+
+        return compact('total', 'paid', 'processing', 'cancelled', 'fulfilled', 'totalRevenue');
     }
 
     /**

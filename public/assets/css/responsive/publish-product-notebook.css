@@ -1,20 +1,33 @@
 /* publish-product — Notebook (1025-1440px) */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .publish-product-page .grid.lg\:grid-cols-3 {
+    /* Step 1: sidebar fixo em 300px, main cresce */
+    .publish-product-page .pp-s1-sidebar {
+        width: 300px !important;
+        flex-shrink: 0;
+    }
+    /* 3 colunas na grade de notebooks */
+    .publish-product-page .pp-products-grid {
         grid-template-columns: repeat(3, 1fr) !important;
     }
 }
-/* publish-product — Notebook low-height (max-height 780px) */
+
+/* Notebook low-height (max-height 780px) */
 @media (min-width: 1025px) and (max-height: 780px) {
     .publish-product-page {
-        /* Reduce vertical gap on small height notebooks */
         gap: .75rem;
     }
-    /* Loading overlay — compact for low-height screens */
+    /* Loading overlay compacto */
     .publish-product-page .fixed.inset-0 .flex-col.items-center {
         gap: .875rem !important;
     }
     .publish-product-page .fixed.inset-0 .grid.sm\:grid-cols-4 {
-        display: none; /* hide skeleton cards on very low height */
+        display: none;
+    }
+    /* Reduz altura do header e footer para ganhar espaço */
+    .publish-product-page .pp-s1-header {
+        padding-block: .75rem !important;
+    }
+    .publish-product-page .pp-s1-footer {
+        padding-block: .5rem !important;
     }
 }
