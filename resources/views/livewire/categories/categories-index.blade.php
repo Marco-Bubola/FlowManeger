@@ -1,10 +1,12 @@
-<div id="categories-root" class="categories-index-page mobile-393-base">
+<div id="categories-root" class="categories-index-page mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/categories-index-ultrawide.css') }}">
+
+    <x-loading-overlay message="Carregando categorias..." />
 
     <div class="w-full ">
 
