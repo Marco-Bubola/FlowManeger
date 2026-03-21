@@ -1,10 +1,11 @@
-<div class="dashboard-cashbook-page w-full h-full bg-slate-900 text-white mobile-393-base">
+<div class="dashboard-cashbook-page w-full h-full bg-slate-900 text-white mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-cashbook-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-cashbook-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-cashbook-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-cashbook-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-cashbook-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-cashbook-ultrawide.css') }}">
+    <x-loading-overlay message="Carregando..." />
     <div class="flex h-full">
         <!-- Main Content -->
         <div class="flex-1 flex flex-col overflow-y-auto">
