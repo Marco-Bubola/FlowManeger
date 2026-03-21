@@ -233,7 +233,7 @@ class PublishProduct extends Component
     // Publicação
     // -------------------------------------------------------------------------
 
-    public function publish(): void
+    public function publish()
     {
         if (!$this->isConnected) {
             $this->notifyError('Shopee não está conectada.');
