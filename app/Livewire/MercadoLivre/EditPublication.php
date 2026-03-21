@@ -251,7 +251,7 @@ class EditPublication extends Component
     public function syncPublication()
     {
         try {
-            $syncService = new MlStockSyncService();
+            $syncService = app(MlStockSyncService::class);
             $result = $syncService->syncQuantityToMercadoLivre($this->publication);
             
             if ($result['success']) {
