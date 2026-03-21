@@ -1,4 +1,4 @@
-<div class="dashboard-clientes-page min-h-screen w-full bg-slate-50 dark:bg-slate-950 mobile-393-base">
+<div class="dashboard-clientes-page min-h-screen w-full bg-slate-50 dark:bg-slate-950 mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/dashboard-clientes-ipad-portrait.css') }}">
