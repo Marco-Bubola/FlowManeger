@@ -45,9 +45,9 @@ return new class extends Migration
             $table->timestamp('ship_by_date')->nullable();
 
             // Integração interna
-            $table->foreignId('imported_to_sale_id')->nullable()
-                ->constrained('sales')->nullOnDelete()
+            $table->integer('imported_to_sale_id')->nullable()
                 ->comment('Venda interna gerada a partir deste pedido');
+            $table->foreign('imported_to_sale_id')->references('id')->on('sales')->nullOnDelete();
             $table->enum('sync_status', ['pending', 'synced', 'error'])->default('pending');
             $table->text('error_message')->nullable();
 
