@@ -2144,27 +2144,40 @@
 
 /* ── Outer publication card ─────────────────────────────────────── */
 .pub-publication-card {
-    min-height: 0 !important; /* deixa altura ser determinada pelo conteúdo */
+    min-height: 0 !important;
     height: auto !important;
 }
 
-/* ── Bloco do carousel (envolve todos os slides) ─────────────────── */
+/* ── Bloco do carousel (frame visual ao redor do mini product card) ── */
 .pub-publication-card .pub-product-carousel {
     position: relative;
-    overflow: visible; /* permite o category-icon-wrapper (-32px) aparecer */
+    overflow: visible;
     flex: 0 0 auto;
+    min-height: 200px; /* evita colapso durante inicialização do Alpine.js */
+    padding: 8px 8px 0;
+    background: rgba(100, 80, 200, 0.04);
+}
+.dark .pub-publication-card .pub-product-carousel {
+    background: rgba(255, 255, 255, 0.03);
 }
 
-/* ── Slide de produto ────────────────────────────────────────────── */
+/* ── Slide de produto (mini-card visual separado) ────────────────── */
 .pub-publication-card .pub-product-carousel .pub-product-slide {
     position: relative;
     width: 100%;
+    border-radius: 1.1em 1.1em 0 0;
+    border: 1.5px solid var(--card-border, #b39ddb);
+    border-bottom: none;
+    overflow: visible;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
 }
 
-/* ── Imagem dentro do carousel: sem border-radius superior (carousel já tem) ── */
+/* ── Área da imagem no mini-card ─────────────────────────────────── */
 .pub-publication-card .pub-product-carousel .pub-product-slide .pub-img-area {
-    border-top-left-radius: 1.7em !important;
-    border-top-right-radius: 1.7em !important;
+    border-top-left-radius: 1.1em !important;
+    border-top-right-radius: 1.1em !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
 }
 
 /* ── Setas de navegação do carousel ─────────────────────────────── */
