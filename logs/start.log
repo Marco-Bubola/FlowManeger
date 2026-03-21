@@ -3368,3 +3368,451 @@ Aguardando servidor estar pronto em http://127.0.0.1:8000...
 [2026-03-21 20:48:21] [Vite] [2m17:48:21[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Shopee\PublishProduct.php[22m
 [2026-03-21 20:48:23] [Laravel Server]   PHP Fatal error:  A void function must not return a value in C:\projetos\FlowManeger\app\Livewire\Shopee\PublishProduct.php on line 285
 [2026-03-21 20:48:24] [Laravel Server]   2026-03-21 17:47:34[2026-03-21 20:48:24] [Laravel Server]  /products/529/edit ...................................................................... ~ 49s
+[2026-03-21 20:49:22] [Laravel Server]   2026-03-21 17:48:22[2026-03-21 20:49:22] [Laravel Server]  .........................................................................................[2026-03-21 20:49:22] [Laravel Server]  ~ 59s
+[2026-03-21 20:49:42] [Vite] [2m17:49:42[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Shopee\Settings.php[22m
+[2026-03-21 20:49:42] [Vite] [2m17:49:42[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mconfig/services.php[22m
+[2m17:49:42[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Shopee\PublishProduct.php[22m
+[2m17:49:42[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Shopee\PublicationsList.php[22m
+[2026-03-21 20:49:43] [Laravel Server]   PHP Fatal error:  A void function must not return a value in C:\projetos\FlowManeger\app\Livewire\Shopee\PublishProduct.php on line 285
+[2026-03-21 20:49:44] [Laravel Server]   2026-03-21 17:49:43[2026-03-21 20:49:44] [Laravel Server]  /products/529/edit[2026-03-21 20:49:44] [Laravel Server]  .......................................................................[2026-03-21 20:49:44] [Laravel Server]  ~ 1s
+[2026-03-21 20:51:29] [Vite] [2m17:51:29[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\components\layouts\app\sidebar.blade.php[22m
+[2026-03-21 20:51:29] [Vite] [2m17:51:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/components/layouts/app/sidebar.blade.php[22m
+[2026-03-21 20:51:30] [Laravel Server]   2026-03-21 17:49:43[2026-03-21 20:51:30] [Laravel Server]  ......................................................................................[2026-03-21 20:51:30] [Laravel Server]  ~ 1m 47s
+[2026-03-21 20:51:31] [Laravel Server]   PHP Fatal error:  A void function must not return a value in C:\projetos\FlowManeger\app\Livewire\Shopee\PublishProduct.php on line 285
+[2026-03-21 20:51:31] [Laravel Server]   2026-03-21 17:51:30[2026-03-21 20:51:31] [Laravel Server]  /products/529/edit[2026-03-21 20:51:31] [Laravel Server]  ....................................................................... ~ 1s
+[2026-03-21 20:51:40] [Vite] [2m17:51:40[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.env.example[22m
+[2026-03-21 20:51:41] [Laravel Server]   PHP Fatal error:  A void function must not return a value in C:\projetos\FlowManeger\app\Livewire\Shopee\PublishProduct.php on line 285
+[2026-03-21 20:51:41] [Laravel Server]   2026-03-21 17:51:30 /products/529/edit ...................................................................... ~ 11s
+[2026-03-21 21:08:04] [Laravel Server]   2026-03-21 17:51:41[2026-03-21 21:08:04] [Laravel Server]  ..................................................................................... ~ 16m 22s
+[2026-03-21 21:08:22] [Vite] [2m18:08:22[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Shopee\PublishProduct.php[22m
+[2026-03-21 21:08:37] [Laravel Server]   2026-03-21 18:08:23[2026-03-21 21:08:37] [Laravel Server]  /products/529/edit ...................................................................... ~ 13s
+  2026-03-21 18:08:23 /assets/css/flatpickr-custom.css ........................................................ ~ 13s
+  2026-03-21 18:08:37 /assets/css/flow-theme.css ........................................................... ~ 0.80ms
+  2026-03-21 18:08:37 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 1.35ms
+  2026-03-21 18:08:37 /assets/css/responsive/tabbar.css?v=1774003207 ....................................... ~ 1.70ms
+  2026-03-21 18:08:37 /assets/css/responsive/responsive-mobile.css ......................................... ~ 1.31ms
+  2026-03-21 18:08:37 /assets/css/responsive/responsive-iphone.css ......................................... ~ 1.74ms
+  2026-03-21 18:08:37 /assets/css/responsive/responsive-ipad.css ........................................... ~ 0.03ms
+  2026-03-21 18:08:37 /assets/css/responsive/responsive-notebook.css ....................................... ~ 0.04ms
+  2026-03-21 18:08:37 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 0.34ms
+  2026-03-21 18:08:37 /assets/css/responsive/responsive-ultrawide.css ...................................... ~ 0.03ms
+  2026-03-21 18:08:37 /assets/img/banks/inter.png .......................................................... ~ 0.03ms
+  2026-03-21 18:08:37 /assets/img/banks/nubank.svg .........................................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.03ms
+  2026-03-21 18:08:37 /assets/img/Criar.svg ................................................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.05ms
+  2026-03-21 18:08:37 /assets/css/icon-category.css[2026-03-21 21:08:37] [Laravel Server]  ........................................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.22ms
+  2026-03-21 18:08:37 /assets/css/icon-overrides.css[2026-03-21 21:08:37] [Laravel Server]  .......................................................[2026-03-21 21:08:37] [Laravel Server]  ~ 1.27ms
+[2026-03-21 21:08:37] [Laravel Server]   2026-03-21 18:08:37[2026-03-21 21:08:37] [Laravel Server]  /assets/css/responsive/product-form-mobile.css .......................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.17ms
+[2026-03-21 21:08:37] [Laravel Server]   2026-03-21 18:08:37[2026-03-21 21:08:37] [Laravel Server]  /assets/css/responsive/product-form-iphone15.css .....................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.77ms
+[2026-03-21 21:08:37] [Laravel Server]   2026-03-21 18:08:37[2026-03-21 21:08:37] [Laravel Server]  /assets/css/responsive/product-form-ipad-portrait.css ................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.12ms
+[2026-03-21 21:08:37] [Laravel Server]   2026-03-21 18:08:37[2026-03-21 21:08:37] [Laravel Server]  /assets/css/responsive/product-form-ipad-landscape.css[2026-03-21 21:08:37] [Laravel Server]  ...............................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.09ms
+[2026-03-21 21:08:37] [Laravel Server]   2026-03-21 18:08:37 /assets/css/responsive/product-form-notebook.css[2026-03-21 21:08:37] [Laravel Server]  .....................................[2026-03-21 21:08:37] [Laravel Server]  ~ 1.07ms
+  2026-03-21 18:08:37[2026-03-21 21:08:37] [Laravel Server]  /assets/css/responsive/product-form-ultrawide.css[2026-03-21 21:08:37] [Laravel Server]  ....................................[2026-03-21 21:08:37] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:08:38] [Laravel Server]   2026-03-21 18:08:38[2026-03-21 21:08:38] [Laravel Server]  /storage/products/Y4byWG8SZLKhI5HZC2iKHmpjLSWU9aYy7DpcvpgN.webp ...................... ~ 0.08ms
+[2026-03-21 21:08:39] [Laravel Server]   2026-03-21 18:08:38[2026-03-21 21:08:39] [Laravel Server]  /favicon.svg[2026-03-21 21:08:39] [Laravel Server]  .........................................................................[2026-03-21 21:08:39] [Laravel Server]  ~ 1.04ms
+[2026-03-21 21:08:39] [Laravel Server]   2026-03-21 18:08:38 /favicon.ico .........................................................................[2026-03-21 21:08:39] [Laravel Server]  ~ 0.29ms
+[2026-03-21 21:08:41] [Laravel Server]   2026-03-21 18:08:39[2026-03-21 21:08:41] [Laravel Server]  /dashboard/main[2026-03-21 21:08:41] [Laravel Server]  ..........................................................................[2026-03-21 21:08:41] [Laravel Server]  ~ 1s
+[2026-03-21 21:08:45] [Laravel Server]   2026-03-21 18:08:41[2026-03-21 21:08:45] [Laravel Server]  /achievements[2026-03-21 21:08:45] [Laravel Server]  ............................................................................ ~ 3s
+[2026-03-21 21:08:46] [Laravel Server]   2026-03-21 18:08:41[2026-03-21 21:08:46] [Laravel Server]  /daily-habits ............................................................................ ~ 5s
+[2026-03-21 21:08:49] [Laravel Server]   2026-03-21 18:08:45[2026-03-21 21:08:49] [Laravel Server]  /products ................................................................................ ~ 3s
+[2026-03-21 21:08:50] [Laravel Server]   2026-03-21 18:08:46[2026-03-21 21:08:50] [Laravel Server]  /shopee/publications ..................................................................... ~ 3s
+[2026-03-21 21:08:51] [Laravel Server]   2026-03-21 18:08:48[2026-03-21 21:08:51] [Laravel Server]  /mercadolivre/products ...................................................................[2026-03-21 21:08:51] [Laravel Server]  ~ 2s
+[2026-03-21 21:08:52] [Laravel Server]   2026-03-21 18:08:49[2026-03-21 21:08:52] [Laravel Server]  /shopee/settings[2026-03-21 21:08:52] [Laravel Server]  .........................................................................[2026-03-21 21:08:52] [Laravel Server]  ~ 2s
+[2026-03-21 21:08:53] [Laravel Server]   2026-03-21 18:08:51[2026-03-21 21:08:53] [Laravel Server]  /categories[2026-03-21 21:08:53] [Laravel Server]  .............................................................................. ~ 2s
+[2026-03-21 21:08:55] [Laravel Server]   2026-03-21 18:08:51[2026-03-21 21:08:55] [Laravel Server]  /sales[2026-03-21 21:08:55] [Laravel Server]  ...................................................................................[2026-03-21 21:08:55] [Laravel Server]  ~ 3s
+[2026-03-21 21:08:55] [Laravel Server]   2026-03-21 18:08:55 /assets/css/icon-category.css[2026-03-21 21:08:55] [Laravel Server]  ........................................................[2026-03-21 21:08:55] [Laravel Server]  ~ 0.26ms
+  2026-03-21 18:08:55 /assets/css/icon-overrides.css .......................................................[2026-03-21 21:08:55] [Laravel Server]  ~ 5.38ms
+  2026-03-21 18:08:55 /assets/css/responsive/product-form-mobile.css .......................................[2026-03-21 21:08:55] [Laravel Server]  ~ 6.72ms
+  2026-03-21 18:08:55 /assets/css/responsive/product-form-iphone15.css[2026-03-21 21:08:55] [Laravel Server]  ..................................... ~ 7.70ms
+[2026-03-21 21:08:55] [Laravel Server]   2026-03-21 18:08:55[2026-03-21 21:08:55] [Laravel Server]  /assets/css/responsive/product-form-ipad-portrait.css[2026-03-21 21:08:55] [Laravel Server]  ...............................[2026-03-21 21:08:55] [Laravel Server]  ~ 15.53ms
+  2026-03-21 18:08:55 /assets/css/responsive/product-form-ipad-landscape.css[2026-03-21 21:08:55] [Laravel Server]  .............................. ~ 16.35ms
+[2026-03-21 21:08:55] [Laravel Server]   2026-03-21 18:08:55 /assets/css/responsive/product-form-notebook.css[2026-03-21 21:08:55] [Laravel Server]  .....................................[2026-03-21 21:08:55] [Laravel Server]  ~ 0.22ms
+  2026-03-21 18:08:55 /assets/css/responsive/product-form-ultrawide.css[2026-03-21 21:08:55] [Laravel Server]  .................................... ~ 1.99ms
+[2026-03-21 21:08:57] [Laravel Server]   2026-03-21 18:08:56[2026-03-21 21:08:57] [Laravel Server]  /dashboard/sales[2026-03-21 21:08:57] [Laravel Server]  ......................................................................... ~ 1s
+[2026-03-21 21:08:58] [Laravel Server]   2026-03-21 18:08:57[2026-03-21 21:08:58] [Laravel Server]  /consortiums[2026-03-21 21:08:58] [Laravel Server]  .............................................................................[2026-03-21 21:08:58] [Laravel Server]  ~ 1s
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /products/529/edit .................................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 517.43ms
+  2026-03-21 18:08:59 /assets/css/flatpickr-custom.css ................................................... ~ 518.93ms
+  2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/flow-theme.css ...........................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 0.73ms
+  2026-03-21 18:08:59 /assets/css/responsive/responsive-mobile.css ......................................... ~ 4.09ms
+  2026-03-21 18:08:59 /assets/css/responsive/tabbar.css?v=1774003207 ....................................... ~ 4.49ms
+  2026-03-21 18:08:59 /assets/css/responsive/sidebar.css?v=1773879672 ......................................[2026-03-21 21:08:59] [Laravel Server]  ~ 5.28ms
+  2026-03-21 18:08:59 /assets/css/responsive/responsive-iphone.css ........................................ ~ 16.08ms
+  2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/responsive/responsive-ipad.css[2026-03-21 21:08:59] [Laravel Server]  ...........................................[2026-03-21 21:08:59] [Laravel Server]  ~ 0.33ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/responsive/responsive-notebook.css[2026-03-21 21:08:59] [Laravel Server]  .......................................[2026-03-21 21:08:59] [Laravel Server]  ~ 0.94ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59 /assets/css/responsive/responsive-fullhd.css[2026-03-21 21:08:59] [Laravel Server]  ........................................ ~ 13.74ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/responsive/responsive-ultrawide.css[2026-03-21 21:08:59] [Laravel Server]  .....................................[2026-03-21 21:08:59] [Laravel Server]  ~ 19.01ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/img/banks/inter.png[2026-03-21 21:08:59] [Laravel Server]  ..........................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 0.37ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/img/banks/nubank.svg[2026-03-21 21:08:59] [Laravel Server]  .........................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 5.20ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/icon-category.css[2026-03-21 21:08:59] [Laravel Server]  .......................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 10.93ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59 /assets/img/Criar.svg[2026-03-21 21:08:59] [Laravel Server]  ...............................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 14.09ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/icon-overrides.css[2026-03-21 21:08:59] [Laravel Server]  .......................................................[2026-03-21 21:08:59] [Laravel Server]  ~ 1.12ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/responsive/product-form-mobile.css[2026-03-21 21:08:59] [Laravel Server]  .......................................[2026-03-21 21:08:59] [Laravel Server]  ~ 5.37ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/responsive/product-form-iphone15.css ..................................... ~ 0.25ms
+[2026-03-21 21:08:59] [Laravel Server]   2026-03-21 18:08:59 /assets/css/responsive/product-form-ipad-portrait.css ............................... ~ 12.08ms
+  2026-03-21 18:08:59 /assets/css/responsive/product-form-ipad-landscape.css ............................... ~ 0.46ms
+  2026-03-21 18:08:59 /assets/css/responsive/product-form-notebook.css ..................................... ~ 0.91ms
+  2026-03-21 18:08:59[2026-03-21 21:08:59] [Laravel Server]  /assets/css/responsive/product-form-ultrawide.css .................................... ~ 2.08ms
+  2026-03-21 18:08:59 /storage/products/Y4byWG8SZLKhI5HZC2iKHmpjLSWU9aYy7DpcvpgN.webp ...................... ~ 0.04ms
+  2026-03-21 18:08:59 /favicon.svg ......................................................................... ~ 0.05ms
+[2026-03-21 21:09:01] [Laravel Server]   2026-03-21 18:08:59[2026-03-21 21:09:01] [Laravel Server]  /dashboard/cashbook[2026-03-21 21:09:01] [Laravel Server]  ......................................................................[2026-03-21 21:09:01] [Laravel Server]  ~ 1s
+[2026-03-21 21:09:02] [Laravel Server]   2026-03-21 18:09:01[2026-03-21 21:09:02] [Laravel Server]  /dashboard/main .................................................................... ~ 515.51ms
+[2026-03-21 21:09:03] [Laravel Server]   2026-03-21 18:09:01[2026-03-21 21:09:03] [Laravel Server]  /banks[2026-03-21 21:09:03] [Laravel Server]  ................................................................................... ~ 2s
+  2026-03-21 18:09:01[2026-03-21 21:09:03] [Laravel Server]  /consortiums .............................................................................[2026-03-21 21:09:03] [Laravel Server]  ~ 1s
+[2026-03-21 21:09:03] [Laravel Server]   2026-03-21 18:09:01 /favicon.ico[2026-03-21 21:09:03] [Laravel Server]  ............................................................................. ~ 2s
+[2026-03-21 21:09:04] [Laravel Server]   2026-03-21 18:09:03 /products[2026-03-21 21:09:04] [Laravel Server]  ..........................................................................[2026-03-21 21:09:04] [Laravel Server]  ~ 511.41ms
+[2026-03-21 21:09:05] [Laravel Server]   2026-03-21 18:09:03[2026-03-21 21:09:05] [Laravel Server]  /clients .................................................................................[2026-03-21 21:09:05] [Laravel Server]  ~ 2s
+[2026-03-21 21:09:05] [Laravel Server]   2026-03-21 18:09:03 /mercadolivre/products[2026-03-21 21:09:05] [Laravel Server]  ...................................................................[2026-03-21 21:09:05] [Laravel Server]  ~ 1s
+[2026-03-21 21:09:06] [Laravel Server]   2026-03-21 18:09:05[2026-03-21 21:09:06] [Laravel Server]  /sales[2026-03-21 21:09:06] [Laravel Server]  .............................................................................[2026-03-21 21:09:06] [Laravel Server]  ~ 540.08ms
+[2026-03-21 21:09:10] [Laravel Server]   2026-03-21 18:09:05[2026-03-21 21:09:10] [Laravel Server]  /mercadolivre/reputation[2026-03-21 21:09:10] [Laravel Server]  ................................................................. ~ 5s
+[2026-03-21 21:09:12] [Laravel Server]   2026-03-21 18:09:06[2026-03-21 21:09:12] [Laravel Server]  /mercadolivre/questions[2026-03-21 21:09:12] [Laravel Server]  .................................................................. ~ 6s
+[2026-03-21 21:09:18] [Laravel Server]   2026-03-21 18:09:10[2026-03-21 21:09:18] [Laravel Server]  /mercadolivre/mediations .................................................................[2026-03-21 21:09:18] [Laravel Server]  ~ 8s
+[2026-03-21 21:09:22] [Vite] [2m18:09:22[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdatabase/migrations/2026_03_21_000003_create_shopee_publications_table.php[22m
+[2026-03-21 21:09:25] [Laravel Server]   2026-03-21 18:09:12[2026-03-21 21:09:25] [Laravel Server]  /mercadolivre/promotions ................................................................ ~ 12s
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:18[2026-03-21 21:09:27] [Laravel Server]  /mercadolivre/settings ...................................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 8s
+  2026-03-21 18:09:25 /assets/css/produtos.css[2026-03-21 21:09:27] [Laravel Server]  .................................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 1s
+  2026-03-21 18:09:26 /assets/css/produtos-extra.css ....................................................... ~ 1.58ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:26 /assets/css/responsive/product-integration-mobile.css ................................ ~ 2.23ms
+  2026-03-21 18:09:26 /assets/css/icon-category.css ........................................................ ~ 2.54ms
+  2026-03-21 18:09:26 /assets/css/icon-overrides.css .......................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 3.02ms
+  2026-03-21 18:09:26 /assets/css/responsive/product-integration-iphone15.css .............................. ~ 2.14ms
+  2026-03-21 18:09:26 /assets/css/responsive/product-integration-ipad-portrait.css ......................... ~ 0.14ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:26[2026-03-21 21:09:27] [Laravel Server]  /mercadolivre/products ............................................................. ~ 507.62ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:26 /assets/css/responsive/product-integration-ipad-landscape.css ...................... ~ 508.23ms
+  2026-03-21 18:09:26 /assets/css/responsive/product-integration-notebook.css ............................ ~ 508.43ms
+  2026-03-21 18:09:26 /assets/css/responsive/product-integration-ultrawide.css ........................... ~ 508.66ms
+  2026-03-21 18:09:26 /storage/products/product_69889b40210ff.webp ....................................... ~ 508.85ms
+  2026-03-21 18:09:27 /storage/products/product_69889c788a192.webp ......................................... ~ 1.05ms
+  2026-03-21 18:09:27 /storage/products/product_69889b402de39.webp ......................................... ~ 0.05ms
+  2026-03-21 18:09:27 /assets/css/flatpickr-custom.css ..................................................... ~ 0.39ms
+  2026-03-21 18:09:27 /assets/css/flow-theme.css ........................................................... ~ 0.78ms
+  2026-03-21 18:09:27 /assets/css/produtos.css[2026-03-21 21:09:27] [Laravel Server]  .............................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.97ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/produtos-extra.css[2026-03-21 21:09:27] [Laravel Server]  .......................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 2.61ms
+  2026-03-21 18:09:27 /assets/css/responsive/sidebar.css?v=1773879672[2026-03-21 21:09:27] [Laravel Server]  ......................................[2026-03-21 21:09:27] [Laravel Server]  ~ 4.95ms
+  2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/tabbar.css?v=1774003207[2026-03-21 21:09:27] [Laravel Server]  .......................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.40ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/responsive-mobile.css .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.57ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/responsive-iphone.css[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.29ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/responsive-ipad.css[2026-03-21 21:09:27] [Laravel Server]  ...........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 1.21ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/responsive-notebook.css[2026-03-21 21:09:27] [Laravel Server]  ....................................... ~ 8.20ms
+  2026-03-21 18:09:27 /assets/css/responsive/responsive-fullhd.css .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 9.20ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /assets/css/responsive/responsive-ultrawide.css[2026-03-21 21:09:27] [Laravel Server]  ......................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.30ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /assets/img/banks/inter.png[2026-03-21 21:09:27] [Laravel Server]  ..........................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/img/banks/nubank.svg[2026-03-21 21:09:27] [Laravel Server]  .........................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.34ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /assets/css/icon-category.css[2026-03-21 21:09:27] [Laravel Server]  ........................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.08ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/img/Criar.svg[2026-03-21 21:09:27] [Laravel Server]  ................................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 2.32ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/icon-overrides.css[2026-03-21 21:09:27] [Laravel Server]  .......................................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.08ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /assets/css/responsive/product-integration-mobile.css ................................ ~ 0.08ms
+  2026-03-21 18:09:27 /assets/css/responsive/product-integration-iphone15.css[2026-03-21 21:09:27] [Laravel Server]  ..............................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.06ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/product-integration-ipad-landscape.css[2026-03-21 21:09:27] [Laravel Server]  ........................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.08ms
+  2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/product-integration-ipad-portrait.css[2026-03-21 21:09:27] [Laravel Server]  .........................[2026-03-21 21:09:27] [Laravel Server]  ~ 1.21ms
+  2026-03-21 18:09:27 /assets/css/responsive/product-integration-notebook.css[2026-03-21 21:09:27] [Laravel Server]  ..............................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.07ms
+  2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /assets/css/responsive/product-integration-ultrawide.css[2026-03-21 21:09:27] [Laravel Server]  ............................. ~ 0.81ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /storage/products/product_696ebfa073c69.webp .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.53ms
+  2026-03-21 18:09:27 /storage/products/product_696ebfa0702a9.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.60ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /storage/products/product_69889c7891470.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.32ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /storage/products/product_69889c786ffb7.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.13ms
+  2026-03-21 18:09:27 /storage/products/product_69889c788e07e.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /storage/products/product_69889c788a192.webp ......................................... ~ 0.05ms
+  2026-03-21 18:09:27 /storage/products/product_69889c7886847.jpeg[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.04ms
+  2026-03-21 18:09:27 /storage/products/product_69889c7883358.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /storage/products/product_69889c787f7d1.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.36ms
+  2026-03-21 18:09:27 /storage/products/product_69889c787c255.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.04ms
+  2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /storage/products/product_69889c78789d3.webp ......................................... ~ 0.12ms
+  2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /storage/products/product_69889c78691bb.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /storage/products/product_69889b40443ca.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.09ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:27] [Laravel Server]  /storage/products/product_69889b403c07b.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.55ms
+[2026-03-21 21:09:27] [Laravel Server]   2026-03-21 18:09:27 /storage/products/product_69889b4038e71.webp[2026-03-21 21:09:27] [Laravel Server]  .........................................[2026-03-21 21:09:27] [Laravel Server]  ~ 0.07ms
+[2026-03-21 21:09:28] [Laravel Server]   2026-03-21 18:09:27[2026-03-21 21:09:28] [Laravel Server]  /storage/products/product_69889b40358bb.webp[2026-03-21 21:09:28] [Laravel Server]  .......................................[2026-03-21 21:09:28] [Laravel Server]  ~ 510.06ms
+  2026-03-21 18:09:27 /storage/products/product_69889b4031c10.webp ......................................... ~ 0.45ms
+  2026-03-21 18:09:27 /storage/products/product_69889b402de39.webp ......................................... ~ 0.03ms
+  2026-03-21 18:09:27 /storage/products/product_69889b4029c9e.jpeg .........................................[2026-03-21 21:09:28] [Laravel Server]  ~ 0.09ms
+  2026-03-21 18:09:27 /storage/products/product_69889b40210ff.webp ......................................... ~ 0.05ms
+[2026-03-21 21:09:29] [Laravel Server]   2026-03-21 18:09:28[2026-03-21 21:09:29] [Laravel Server]  /favicon.svg[2026-03-21 21:09:29] [Laravel Server]  .........................................................................[2026-03-21 21:09:29] [Laravel Server]  ~ 0.14ms
+[2026-03-21 21:09:29] [Laravel Server]   2026-03-21 18:09:28 /favicon.ico ......................................................................... ~ 0.25ms
+[2026-03-21 21:09:39] [Laravel Server]   2026-03-21 18:09:38[2026-03-21 21:09:39] [Laravel Server]  /cofrinhos[2026-03-21 21:09:39] [Laravel Server]  ...............................................................................[2026-03-21 21:09:39] [Laravel Server]  ~ 1s
+[2026-03-21 21:09:57] [Vite] [2m18:09:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdatabase/migrations/2026_03_21_000004_create_shopee_orders_table.php[22m
+[2026-03-21 21:09:59] [Laravel Server]   2026-03-21 18:09:58[2026-03-21 21:09:59] [Laravel Server]  /mercadolivre/products ............................................................. ~ 529.08ms
+[2026-03-21 21:09:59] [Laravel Server]   2026-03-21 18:09:58[2026-03-21 21:09:59] [Laravel Server]  /assets/css/flatpickr-custom.css ......................................................... ~ 1s
+  2026-03-21 18:09:59 /assets/css/flow-theme.css ........................................................... ~ 0.08ms
+  2026-03-21 18:09:59 /assets/css/produtos.css ............................................................. ~ 1.16ms
+  2026-03-21 18:09:59 /assets/css/produtos-extra.css ....................................................... ~ 0.06ms
+  2026-03-21 18:09:59 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.05ms
+  2026-03-21 18:09:59 /assets/css/responsive/tabbar.css?v=1774003207 ....................................... ~ 0.05ms
+  2026-03-21 18:09:59 /assets/css/responsive/responsive-mobile.css ......................................... ~ 0.04ms
+  2026-03-21 18:09:59 /assets/css/responsive/responsive-iphone.css ......................................... ~ 0.05ms
+  2026-03-21 18:09:59 /assets/css/responsive/responsive-ipad.css ........................................... ~ 0.04ms
+  2026-03-21 18:09:59 /assets/css/responsive/responsive-notebook.css ....................................... ~ 0.04ms
+  2026-03-21 18:09:59 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 0.29ms
+  2026-03-21 18:09:59 /assets/css/responsive/responsive-ultrawide.css ...................................... ~ 0.04ms
+  2026-03-21 18:09:59 /assets/img/banks/inter.png .......................................................... ~ 0.06ms
+  2026-03-21 18:09:59 /assets/img/banks/nubank.svg ......................................................... ~ 5.00ms
+  2026-03-21 18:09:59 /assets/css/icon-category.css ........................................................ ~ 0.04ms
+  2026-03-21 18:09:59 /assets/img/Criar.svg ................................................................ ~ 1.66ms
+  2026-03-21 18:09:59 /assets/css/icon-overrides.css ....................................................... ~ 0.05ms
+  2026-03-21 18:09:59 /assets/css/responsive/product-integration-mobile.css ................................ ~ 0.05ms
+  2026-03-21 18:09:59 /assets/css/responsive/product-integration-iphone15.css .............................. ~ 0.77ms
+  2026-03-21 18:09:59 /assets/css/responsive/product-integration-ipad-portrait.css ......................... ~ 0.05ms
+  2026-03-21 18:09:59 /assets/css/responsive/product-integration-ipad-landscape.css ........................ ~ 0.79ms
+  2026-03-21 18:09:59 /assets/css/responsive/product-integration-notebook.css .............................. ~ 0.65ms
+  2026-03-21 18:09:59 /assets/css/responsive/product-integration-ultrawide.css ............................. ~ 0.92ms
+  2026-03-21 18:09:59 /storage/products/product_696ebfa073c69.webp ......................................... ~ 0.05ms
+  2026-03-21 18:09:59[2026-03-21 21:09:59] [Laravel Server]  /storage/products/product_696ebfa0702a9.webp ......................................... ~ 0.41ms
+[2026-03-21 21:10:00] [Laravel Server]   2026-03-21 18:10:00[2026-03-21 21:10:00] [Laravel Server]  /storage/products/product_69889c7891470.webp[2026-03-21 21:10:00] [Laravel Server]  ......................................... ~ 0.34ms
+  2026-03-21 18:10:00 /storage/products/product_69889c786ffb7.webp .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 0.19ms
+  2026-03-21 18:10:00 /storage/products/product_69889c788e07e.webp .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 0.04ms
+  2026-03-21 18:10:00 /storage/products/product_69889c788a192.webp[2026-03-21 21:10:00] [Laravel Server]  ......................................... ~ 0.04ms
+  2026-03-21 18:10:00 /storage/products/product_69889c7886847.jpeg[2026-03-21 21:10:00] [Laravel Server]  .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 0.05ms
+  2026-03-21 18:10:00 /storage/products/product_69889c7883358.webp ......................................... ~ 0.42ms
+  2026-03-21 18:10:00 /storage/products/product_69889c787f7d1.webp ......................................... ~ 0.05ms
+[2026-03-21 21:10:00] [Laravel Server]   2026-03-21 18:10:00 /storage/products/product_69889c787c255.webp ......................................... ~ 0.46ms
+  2026-03-21 18:10:00 /storage/products/product_69889c78789d3.webp ......................................... ~ 1.89ms
+  2026-03-21 18:10:00 /storage/products/product_69889c78691bb.webp ......................................... ~ 0.50ms
+  2026-03-21 18:10:00 /storage/products/product_69889b40443ca.webp[2026-03-21 21:10:00] [Laravel Server]  ......................................... ~ 0.09ms
+  2026-03-21 18:10:00 /storage/products/product_69889b4038e71.webp .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 6.15ms
+[2026-03-21 21:10:00] [Laravel Server]   2026-03-21 18:10:00 /storage/products/product_69889b403c07b.webp .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 7.99ms
+[2026-03-21 21:10:00] [Laravel Server]   2026-03-21 18:10:00 /storage/products/product_69889b40358bb.webp .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 0.07ms
+[2026-03-21 21:10:00] [Laravel Server]   2026-03-21 18:10:00[2026-03-21 21:10:00] [Laravel Server]  /storage/products/product_69889b4031c10.webp[2026-03-21 21:10:00] [Laravel Server]  .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 3.81ms
+[2026-03-21 21:10:00] [Laravel Server]   2026-03-21 18:10:00[2026-03-21 21:10:00] [Laravel Server]  /storage/products/product_69889b402de39.webp[2026-03-21 21:10:00] [Laravel Server]  .........................................[2026-03-21 21:10:00] [Laravel Server]  ~ 0.72ms
+[2026-03-21 21:10:01] [Laravel Server]   2026-03-21 18:10:00 /storage/products/product_69889b4029c9e.jpeg[2026-03-21 21:10:01] [Laravel Server]  ......................................... ~ 0.09ms
+[2026-03-21 21:10:01] [Laravel Server]   2026-03-21 18:10:00 /storage/products/product_69889b40210ff.webp ......................................... ~ 0.71ms
+  2026-03-21 18:10:00 /favicon.svg[2026-03-21 21:10:01] [Laravel Server]  .........................................................................[2026-03-21 21:10:01] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:10:01] [Laravel Server]   2026-03-21 18:10:00[2026-03-21 21:10:01] [Laravel Server]  /favicon.ico[2026-03-21 21:10:01] [Laravel Server]  ......................................................................... ~ 2.57ms
+[2026-03-21 21:10:34] [Vite] [2m18:10:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdatabase/migrations/2026_03_21_000003_create_shopee_publications_table.php[22m
+[2026-03-21 21:10:34] [Vite] [2m18:10:34[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Shopee\PublishProduct.php[22m
+[2m18:10:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Shopee/PublishProduct.php[22m
+[2m18:10:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdatabase/migrations/2026_03_21_000004_create_shopee_orders_table.php[22m
+[2m18:10:34[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\components\layouts\app\sidebar.blade.php[22m
+[2m18:10:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/components/layouts/app/sidebar.blade.php[22m
+[2m18:10:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2m.env.example[22m
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35 /mercadolivre/products[2026-03-21 21:10:36] [Laravel Server]  .............................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 513.61ms
+  2026-03-21 18:10:35 /assets/css/flatpickr-custom.css[2026-03-21 21:10:36] [Laravel Server]  ...................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 514.19ms
+  2026-03-21 18:10:35 /assets/css/flow-theme.css[2026-03-21 21:10:36] [Laravel Server]  ...........................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35 /assets/css/produtos.css[2026-03-21 21:10:36] [Laravel Server]  .............................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/produtos-extra.css ....................................................... ~ 2.15ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35 /assets/css/responsive/sidebar.css?v=1773879672[2026-03-21 21:10:36] [Laravel Server]  ...................................... ~ 3.15ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/tabbar.css?v=1774003207 .......................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.09ms
+  2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/responsive-mobile.css[2026-03-21 21:10:36] [Laravel Server]  .........................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.62ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/responsive-iphone.css[2026-03-21 21:10:36] [Laravel Server]  .........................................[2026-03-21 21:10:36] [Laravel Server]  ~ 1.46ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/responsive-ipad.css ...........................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.05ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/responsive-notebook.css[2026-03-21 21:10:36] [Laravel Server]  .......................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.82ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/responsive-fullhd.css[2026-03-21 21:10:36] [Laravel Server]  .........................................[2026-03-21 21:10:36] [Laravel Server]  ~ 2.97ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/responsive-ultrawide.css ......................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.23ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/img/banks/inter.png[2026-03-21 21:10:36] [Laravel Server]  ..........................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.14ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/img/banks/nubank.svg[2026-03-21 21:10:36] [Laravel Server]  .........................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 1.03ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/icon-category.css[2026-03-21 21:10:36] [Laravel Server]  ........................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.53ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/img/Criar.svg[2026-03-21 21:10:36] [Laravel Server]  ................................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 6.07ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/icon-overrides.css[2026-03-21 21:10:36] [Laravel Server]  .......................................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.09ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/product-integration-mobile.css[2026-03-21 21:10:36] [Laravel Server]  ................................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.24ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/product-integration-iphone15.css[2026-03-21 21:10:36] [Laravel Server]  ..............................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.43ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/product-integration-ipad-portrait.css[2026-03-21 21:10:36] [Laravel Server]  .........................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.97ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35[2026-03-21 21:10:36] [Laravel Server]  /assets/css/responsive/product-integration-ipad-landscape.css ........................ ~ 0.16ms
+  2026-03-21 18:10:35 /assets/css/responsive/product-integration-notebook.css[2026-03-21 21:10:36] [Laravel Server]  ..............................[2026-03-21 21:10:36] [Laravel Server]  ~ 0.11ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:35 /assets/css/responsive/product-integration-ultrawide.css ............................. ~ 1.19ms
+  2026-03-21 18:10:35 /storage/products/product_696ebfa073c69.webp ......................................... ~ 0.11ms
+  2026-03-21 18:10:35 /storage/products/product_696ebfa0702a9.webp ......................................... ~ 0.03ms
+[2026-03-21 21:10:36] [Laravel Server]   2026-03-21 18:10:36[2026-03-21 21:10:36] [Laravel Server]  /storage/products/product_69889c7891470.webp ......................................... ~ 0.43ms
+  2026-03-21 18:10:36 /storage/products/product_69889c786ffb7.webp ......................................... ~ 0.05ms
+  2026-03-21 18:10:36 /storage/products/product_69889c788e07e.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:36 /storage/products/product_69889c788a192.webp ......................................... ~ 0.07ms
+  2026-03-21 18:10:36 /storage/products/product_69889c7886847.jpeg ......................................... ~ 0.11ms
+  2026-03-21 18:10:36 /storage/products/product_69889c7883358.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:36 /storage/products/product_69889c787f7d1.webp ......................................... ~ 2.53ms
+  2026-03-21 18:10:36 /storage/products/product_69889c787c255.webp ......................................... ~ 0.10ms
+  2026-03-21 18:10:36 /storage/products/product_69889c78789d3.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:36 /storage/products/product_69889c78691bb.webp ......................................... ~ 0.09ms
+  2026-03-21 18:10:36[2026-03-21 21:10:36] [Laravel Server]  /storage/products/product_69889b40443ca.webp ......................................... ~ 0.26ms
+  2026-03-21 18:10:36 /storage/products/product_69889b403c07b.webp ......................................... ~ 0.27ms
+  2026-03-21 18:10:36 /storage/products/product_69889b4038e71.webp ......................................... ~ 0.06ms
+  2026-03-21 18:10:36 /storage/products/product_69889b40358bb.webp ......................................... ~ 0.05ms
+  2026-03-21 18:10:36 /storage/products/product_69889b4031c10.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:36 /storage/products/product_69889b402de39.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:36 /storage/products/product_69889b4029c9e.jpeg ......................................... ~ 4.54ms
+  2026-03-21 18:10:36 /storage/products/product_69889b40210ff.webp ......................................... ~ 1.75ms
+[2026-03-21 21:10:37] [Laravel Server]   2026-03-21 18:10:36[2026-03-21 21:10:37] [Laravel Server]  /favicon.svg ......................................................................... ~ 1.44ms
+  2026-03-21 18:10:36 /favicon.ico .........................................................................[2026-03-21 21:10:37] [Laravel Server]  ~ 0.05ms
+[2026-03-21 21:10:57] [Vite] [2m18:10:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdatabase/migrations/2026_03_21_000003_create_shopee_publications_table.php[22m
+[2026-03-21 21:10:58] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:58] [Laravel Server]  /mercadolivre/products ............................................................... ~ 0.07ms
+  2026-03-21 18:10:58 /assets/css/flatpickr-custom.css .....................................................[2026-03-21 21:10:58] [Laravel Server]  ~ 0.04ms
+  2026-03-21 18:10:58 /assets/css/flow-theme.css[2026-03-21 21:10:58] [Laravel Server]  ...........................................................[2026-03-21 21:10:58] [Laravel Server]  ~ 0.14ms
+  2026-03-21 18:10:58 /assets/css/produtos.css ............................................................. ~ 1.93ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/produtos-extra.css[2026-03-21 21:10:59] [Laravel Server]  .......................................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.13ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/sidebar.css?v=1773879672[2026-03-21 21:10:59] [Laravel Server]  ......................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.04ms
+  2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/tabbar.css?v=1774003207[2026-03-21 21:10:59] [Laravel Server]  .......................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.10ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/responsive-mobile.css[2026-03-21 21:10:59] [Laravel Server]  .........................................[2026-03-21 21:10:59] [Laravel Server]  ~ 1.47ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/responsive-iphone.css[2026-03-21 21:10:59] [Laravel Server]  .........................................[2026-03-21 21:10:59] [Laravel Server]  ~ 2.62ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/responsive-ipad.css[2026-03-21 21:10:59] [Laravel Server]  ...........................................[2026-03-21 21:10:59] [Laravel Server]  ~ 4.01ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/responsive-notebook.css[2026-03-21 21:10:59] [Laravel Server]  .......................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.33ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/responsive-fullhd.css[2026-03-21 21:10:59] [Laravel Server]  .........................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.11ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58 /assets/css/responsive/responsive-ultrawide.css[2026-03-21 21:10:59] [Laravel Server]  ......................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.51ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/img/banks/inter.png[2026-03-21 21:10:59] [Laravel Server]  ..........................................................[2026-03-21 21:10:59] [Laravel Server]  ~ 1.64ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/img/banks/nubank.svg[2026-03-21 21:10:59] [Laravel Server]  .........................................................[2026-03-21 21:10:59] [Laravel Server]  ~ 4.97ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/icon-category.css[2026-03-21 21:10:59] [Laravel Server]  ........................................................[2026-03-21 21:10:59] [Laravel Server]  ~ 1.43ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/img/Criar.svg[2026-03-21 21:10:59] [Laravel Server]  ................................................................[2026-03-21 21:10:59] [Laravel Server]  ~ 4.12ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58 /assets/css/icon-overrides.css .......................................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.07ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/product-integration-mobile.css[2026-03-21 21:10:59] [Laravel Server]  ................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.97ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/product-integration-iphone15.css[2026-03-21 21:10:59] [Laravel Server]  ..............................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.05ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/product-integration-ipad-portrait.css .........................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.49ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/product-integration-ipad-landscape.css ........................[2026-03-21 21:10:59] [Laravel Server]  ~ 1.40ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/product-integration-notebook.css .............................. ~ 5.65ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /assets/css/responsive/product-integration-ultrawide.css[2026-03-21 21:10:59] [Laravel Server]  .............................[2026-03-21 21:10:59] [Laravel Server]  ~ 6.21ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /storage/products/product_696ebfa073c69.webp[2026-03-21 21:10:59] [Laravel Server]  .........................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.07ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:58[2026-03-21 21:10:59] [Laravel Server]  /storage/products/product_696ebfa0702a9.webp .........................................[2026-03-21 21:10:59] [Laravel Server]  ~ 0.46ms
+[2026-03-21 21:10:59] [Laravel Server]   2026-03-21 18:10:59[2026-03-21 21:10:59] [Laravel Server]  /storage/products/product_69889c7891470.webp ......................................... ~ 0.12ms
+  2026-03-21 18:10:59 /storage/products/product_69889c786ffb7.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:59 /storage/products/product_69889c788e07e.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889c788a192.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889c7886847.jpeg ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889c7883358.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889c787f7d1.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889c787c255.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:59 /storage/products/product_69889c78789d3.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889c78691bb.webp ......................................... ~ 0.03ms
+  2026-03-21 18:10:59 /storage/products/product_69889b40443ca.webp ......................................... ~ 0.04ms
+  2026-03-21 18:10:59 /storage/products/product_69889b403c07b.webp[2026-03-21 21:10:59] [Laravel Server]  ......................................... ~ 0.38ms
+  2026-03-21 18:10:59 /storage/products/product_69889b4038e71.webp[2026-03-21 21:10:59] [Laravel Server]  ......................................... ~ 0.07ms
+  2026-03-21 18:10:59 /storage/products/product_69889b40358bb.webp ......................................... ~ 1.82ms
+  2026-03-21 18:10:59 /storage/products/product_69889b4031c10.webp ......................................... ~ 2.20ms
+  2026-03-21 18:10:59 /storage/products/product_69889b402de39.webp ......................................... ~ 0.06ms
+  2026-03-21 18:10:59 /storage/products/product_69889b4029c9e.jpeg ......................................... ~ 0.43ms
+  2026-03-21 18:10:59 /storage/products/product_69889b40210ff.webp ......................................... ~ 0.03ms
+[2026-03-21 21:11:00] [Laravel Server]   2026-03-21 18:10:59[2026-03-21 21:11:00] [Laravel Server]  /favicon.svg[2026-03-21 21:11:00] [Laravel Server]  .........................................................................[2026-03-21 21:11:00] [Laravel Server]  ~ 0.27ms
+[2026-03-21 21:11:00] [Laravel Server]   2026-03-21 18:11:00 /favicon.ico .........................................................................[2026-03-21 21:11:00] [Laravel Server]  ~ 1.06ms
+[2026-03-21 21:11:19] [Vite] [2m18:11:19[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdatabase/migrations/2026_03_21_000004_create_shopee_orders_table.php[22m
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:20[2026-03-21 21:11:21] [Laravel Server]  /mercadolivre/products .............................................................[2026-03-21 21:11:21] [Laravel Server]  ~ 510.84ms
+  2026-03-21 18:11:20 /assets/css/flatpickr-custom.css[2026-03-21 21:11:21] [Laravel Server]  ..................................................... ~ 0.05ms
+  2026-03-21 18:11:20 /assets/css/flow-theme.css ........................................................... ~ 0.05ms
+  2026-03-21 18:11:20 /assets/css/produtos.css ............................................................. ~ 0.04ms
+  2026-03-21 18:11:20 /assets/css/produtos-extra.css ....................................................... ~ 0.05ms
+  2026-03-21 18:11:20 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.04ms
+  2026-03-21 18:11:20 /assets/css/responsive/tabbar.css?v=1774003207 ....................................... ~ 0.04ms
+  2026-03-21 18:11:20 /assets/css/responsive/responsive-mobile.css ......................................... ~ 0.04ms
+  2026-03-21 18:11:20 /assets/css/responsive/responsive-iphone.css ......................................... ~ 0.03ms
+  2026-03-21 18:11:20 /assets/css/responsive/responsive-ipad.css ........................................... ~ 0.13ms
+  2026-03-21 18:11:20 /assets/css/responsive/responsive-notebook.css ....................................... ~ 0.05ms
+  2026-03-21 18:11:21 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 0.04ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21 /assets/css/responsive/responsive-ultrawide.css[2026-03-21 21:11:21] [Laravel Server]  ......................................[2026-03-21 21:11:21] [Laravel Server]  ~ 0.31ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/img/banks/inter.png[2026-03-21 21:11:21] [Laravel Server]  ..........................................................[2026-03-21 21:11:21] [Laravel Server]  ~ 0.40ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21 /assets/img/banks/nubank.svg .........................................................[2026-03-21 21:11:21] [Laravel Server]  ~ 1.92ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/css/icon-category.css ........................................................[2026-03-21 21:11:21] [Laravel Server]  ~ 0.52ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/img/Criar.svg[2026-03-21 21:11:21] [Laravel Server]  ................................................................[2026-03-21 21:11:21] [Laravel Server]  ~ 3.53ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/css/icon-overrides.css[2026-03-21 21:11:21] [Laravel Server]  .......................................................[2026-03-21 21:11:21] [Laravel Server]  ~ 1.86ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/css/responsive/product-integration-mobile.css[2026-03-21 21:11:21] [Laravel Server]  ................................[2026-03-21 21:11:21] [Laravel Server]  ~ 1.21ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/css/responsive/product-integration-iphone15.css ..............................[2026-03-21 21:11:21] [Laravel Server]  ~ 0.06ms
+[2026-03-21 21:11:21] [Laravel Server]   2026-03-21 18:11:21[2026-03-21 21:11:21] [Laravel Server]  /assets/css/responsive/product-integration-ipad-portrait.css ......................... ~ 0.08ms
+  2026-03-21 18:11:21 /assets/css/responsive/product-integration-ipad-landscape.css ........................ ~ 0.34ms
+  2026-03-21 18:11:21 /assets/css/responsive/product-integration-notebook.css .............................. ~ 0.16ms
+  2026-03-21 18:11:21 /assets/css/responsive/product-integration-ultrawide.css ............................. ~ 0.04ms
+  2026-03-21 18:11:21 /storage/products/product_696ebfa073c69.webp ......................................... ~ 0.05ms
+  2026-03-21 18:11:21 /storage/products/product_696ebfa0702a9.webp ......................................... ~ 0.54ms
+[2026-03-21 21:11:22] [Laravel Server]   2026-03-21 18:11:22[2026-03-21 21:11:22] [Laravel Server]  /storage/products/product_69889c7891470.webp ......................................... ~ 0.12ms
+  2026-03-21 18:11:22 /storage/products/product_69889c786ffb7.webp[2026-03-21 21:11:22] [Laravel Server]  ......................................... ~ 0.04ms
+  2026-03-21 18:11:22 /storage/products/product_69889c788e07e.webp ......................................... ~ 0.05ms
+  2026-03-21 18:11:22 /storage/products/product_69889c788a192.webp ......................................... ~ 0.09ms
+  2026-03-21 18:11:22 /storage/products/product_69889c7886847.jpeg ......................................... ~ 0.41ms
+  2026-03-21 18:11:22 /storage/products/product_69889c7883358.webp ......................................... ~ 4.12ms
+  2026-03-21 18:11:22 /storage/products/product_69889c787f7d1.webp .........................................[2026-03-21 21:11:22] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:11:22] [Laravel Server]   2026-03-21 18:11:22 /storage/products/product_69889c787c255.webp ......................................... ~ 0.08ms
+  2026-03-21 18:11:22 /storage/products/product_69889c78789d3.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:22 /storage/products/product_69889c78691bb.webp ......................................... ~ 0.07ms
+  2026-03-21 18:11:22 /storage/products/product_69889b40443ca.webp ......................................... ~ 1.92ms
+  2026-03-21 18:11:22 /storage/products/product_69889b403c07b.webp .........................................[2026-03-21 21:11:22] [Laravel Server]  ~ 2.75ms
+[2026-03-21 21:11:22] [Laravel Server]   2026-03-21 18:11:22 /storage/products/product_69889b4038e71.webp ......................................... ~ 0.08ms
+  2026-03-21 18:11:22 /storage/products/product_69889b40358bb.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:22 /storage/products/product_69889b4031c10.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:22 /storage/products/product_69889b402de39.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:22 /storage/products/product_69889b4029c9e.jpeg ......................................... ~ 0.03ms
+  2026-03-21 18:11:22 /storage/products/product_69889b40210ff.webp ......................................... ~ 1.72ms
+  2026-03-21 18:11:22 /favicon.svg ......................................................................... ~ 0.28ms
+  2026-03-21 18:11:22 /favicon.ico ......................................................................... ~ 0.05ms
+[2026-03-21 21:11:31] [Vite] [2m18:11:31[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mdrop_shopee2.php[22m
+[2026-03-21 21:11:32] [Laravel Server]   2026-03-21 18:11:32[2026-03-21 21:11:32] [Laravel Server]  /mercadolivre/products ............................................................. ~ 531.14ms
+  2026-03-21 18:11:32 /assets/css/flatpickr-custom.css ...................................................[2026-03-21 21:11:32] [Laravel Server]  ~ 532.94ms
+[2026-03-21 21:11:32] [Laravel Server]   2026-03-21 18:11:32 /assets/css/flow-theme.css[2026-03-21 21:11:32] [Laravel Server]  ...........................................................[2026-03-21 21:11:32] [Laravel Server]  ~ 0.09ms
+[2026-03-21 21:11:33] [Laravel Server]   2026-03-21 18:11:32 /assets/css/produtos.css[2026-03-21 21:11:33] [Laravel Server]  ............................................................. ~ 0.08ms
+  2026-03-21 18:11:32 /assets/css/produtos-extra.css ....................................................... ~ 0.06ms
+  2026-03-21 18:11:32 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.56ms
+  2026-03-21 18:11:32 /assets/css/responsive/tabbar.css?v=1774003207 ....................................... ~ 0.03ms
+  2026-03-21 18:11:32 /assets/css/responsive/responsive-mobile.css ......................................... ~ 0.75ms
+  2026-03-21 18:11:32 /assets/css/responsive/responsive-iphone.css ......................................... ~ 0.05ms
+  2026-03-21 18:11:32 /assets/css/responsive/responsive-ipad.css ........................................... ~ 0.19ms
+  2026-03-21 18:11:32 /assets/css/responsive/responsive-notebook.css[2026-03-21 21:11:33] [Laravel Server]  ....................................... ~ 2.13ms
+  2026-03-21 18:11:32 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 3.39ms
+  2026-03-21 18:11:32 /assets/css/responsive/responsive-ultrawide.css ...................................... ~ 0.10ms
+  2026-03-21 18:11:32 /assets/img/banks/inter.png[2026-03-21 21:11:33] [Laravel Server]  .......................................................... ~ 0.17ms
+  2026-03-21 18:11:32 /assets/img/banks/nubank.svg ......................................................... ~ 5.33ms
+  2026-03-21 18:11:32 /assets/img/Criar.svg[2026-03-21 21:11:33] [Laravel Server]  ................................................................[2026-03-21 21:11:33] [Laravel Server]  ~ 0.07ms
+[2026-03-21 21:11:33] [Laravel Server]   2026-03-21 18:11:32[2026-03-21 21:11:33] [Laravel Server]  /assets/css/icon-category.css[2026-03-21 21:11:33] [Laravel Server]  ........................................................[2026-03-21 21:11:33] [Laravel Server]  ~ 2.53ms
+[2026-03-21 21:11:33] [Laravel Server]   2026-03-21 18:11:32[2026-03-21 21:11:33] [Laravel Server]  /assets/css/icon-overrides.css[2026-03-21 21:11:33] [Laravel Server]  .......................................................[2026-03-21 21:11:33] [Laravel Server]  ~ 0.10ms
+  2026-03-21 18:11:32 /assets/css/responsive/product-integration-mobile.css ................................ ~ 0.09ms
+  2026-03-21 18:11:32 /assets/css/responsive/product-integration-iphone15.css .............................. ~ 0.67ms
+  2026-03-21 18:11:32 /assets/css/responsive/product-integration-ipad-portrait.css ......................... ~ 0.06ms
+  2026-03-21 18:11:32 /assets/css/responsive/product-integration-ipad-landscape.css ........................ ~ 0.38ms
+  2026-03-21 18:11:33 /assets/css/responsive/product-integration-notebook.css .............................. ~ 0.04ms
+  2026-03-21 18:11:33 /assets/css/responsive/product-integration-ultrawide.css ............................. ~ 0.03ms
+  2026-03-21 18:11:33 /storage/products/product_696ebfa073c69.webp ......................................... ~ 0.05ms
+  2026-03-21 18:11:33 /storage/products/product_696ebfa0702a9.webp .........................................[2026-03-21 21:11:33] [Laravel Server]  ~ 0.81ms
+[2026-03-21 21:11:34] [Laravel Server]   2026-03-21 18:11:34[2026-03-21 21:11:34] [Laravel Server]  /storage/products/product_69889c7891470.webp ......................................... ~ 0.11ms
+  2026-03-21 18:11:34 /storage/products/product_69889c786ffb7.webp ......................................... ~ 0.38ms
+  2026-03-21 18:11:34 /storage/products/product_69889c788e07e.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:34 /storage/products/product_69889c788a192.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:34 /storage/products/product_69889c7886847.jpeg ......................................... ~ 0.04ms
+  2026-03-21 18:11:34 /storage/products/product_69889c7883358.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:34 /storage/products/product_69889c787f7d1.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:34 /storage/products/product_69889c787c255.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:34 /storage/products/product_69889c78789d3.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:34 /storage/products/product_69889c78691bb.webp ......................................... ~ 0.06ms
+  2026-03-21 18:11:34 /storage/products/product_69889b40443ca.webp ......................................... ~ 0.41ms
+  2026-03-21 18:11:34 /storage/products/product_69889b403c07b.webp ......................................... ~ 0.71ms
+  2026-03-21 18:11:34 /storage/products/product_69889b4038e71.webp ......................................... ~ 0.05ms
+  2026-03-21 18:11:34 /storage/products/product_69889b40358bb.webp ......................................... ~ 0.35ms
+  2026-03-21 18:11:34 /storage/products/product_69889b4031c10.webp ......................................... ~ 0.65ms
+  2026-03-21 18:11:34 /storage/products/product_69889b402de39.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:34 /storage/products/product_69889b4029c9e.jpeg ......................................... ~ 0.04ms
+  2026-03-21 18:11:34 /storage/products/product_69889b40210ff.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:34 /favicon.svg ......................................................................... ~ 0.03ms
+  2026-03-21 18:11:34 /favicon.ico ......................................................................... ~ 0.04ms
+[2026-03-21 21:11:57] [Vite] [2m18:11:57[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Http/Controllers/Shopee/AuthController.php[22m
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /mercadolivre/products[2026-03-21 21:11:59] [Laravel Server]  .............................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 501.14ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /assets/css/flatpickr-custom.css[2026-03-21 21:11:59] [Laravel Server]  ...................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 502.39ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/flow-theme.css[2026-03-21 21:11:59] [Laravel Server]  ...........................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.15ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /assets/css/produtos.css[2026-03-21 21:11:59] [Laravel Server]  .............................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 1.07ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/produtos-extra.css .......................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.09ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /assets/css/responsive/sidebar.css?v=1773879672[2026-03-21 21:11:59] [Laravel Server]  ......................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.84ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /assets/css/responsive/tabbar.css?v=1774003207[2026-03-21 21:11:59] [Laravel Server]  .......................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.15ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/responsive-mobile.css[2026-03-21 21:11:59] [Laravel Server]  .........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 1.76ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/responsive-iphone.css[2026-03-21 21:11:59] [Laravel Server]  .........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 3.02ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/responsive-ipad.css[2026-03-21 21:11:59] [Laravel Server]  ...........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 5.44ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/responsive-notebook.css[2026-03-21 21:11:59] [Laravel Server]  .......................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.10ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/responsive-fullhd.css[2026-03-21 21:11:59] [Laravel Server]  .........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 1.60ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/responsive-ultrawide.css[2026-03-21 21:11:59] [Laravel Server]  ......................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.14ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/img/banks/inter.png[2026-03-21 21:11:59] [Laravel Server]  ..........................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.59ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/img/banks/nubank.svg[2026-03-21 21:11:59] [Laravel Server]  .........................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 7.13ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/icon-category.css[2026-03-21 21:11:59] [Laravel Server]  ........................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.08ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /assets/img/Criar.svg[2026-03-21 21:11:59] [Laravel Server]  ................................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 1.30ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/icon-overrides.css[2026-03-21 21:11:59] [Laravel Server]  .......................................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.53ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/product-integration-mobile.css[2026-03-21 21:11:59] [Laravel Server]  ................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.19ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/product-integration-iphone15.css ..............................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.45ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/product-integration-ipad-portrait.css[2026-03-21 21:11:59] [Laravel Server]  .........................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.59ms
+  2026-03-21 18:11:58 /assets/css/responsive/product-integration-ipad-landscape.css[2026-03-21 21:11:59] [Laravel Server]  ........................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.78ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58 /assets/css/responsive/product-integration-notebook.css[2026-03-21 21:11:59] [Laravel Server]  ..............................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /assets/css/responsive/product-integration-ultrawide.css .............................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.53ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:58[2026-03-21 21:11:59] [Laravel Server]  /storage/products/product_696ebfa073c69.webp[2026-03-21 21:11:59] [Laravel Server]  .........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.32ms
+  2026-03-21 18:11:58 /storage/products/product_696ebfa0702a9.webp[2026-03-21 21:11:59] [Laravel Server]  .........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.04ms
+[2026-03-21 21:11:59] [Laravel Server]   2026-03-21 18:11:59[2026-03-21 21:11:59] [Laravel Server]  /storage/products/product_69889c7891470.webp ......................................... ~ 0.08ms
+  2026-03-21 18:11:59 /storage/products/product_69889c786ffb7.webp .........................................[2026-03-21 21:11:59] [Laravel Server]  ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889c788e07e.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:59 /storage/products/product_69889c788a192.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:59 /storage/products/product_69889c7886847.jpeg ......................................... ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889c7883358.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:59 /storage/products/product_69889c787f7d1.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889c787c255.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889c78789d3.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889c78691bb.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889b40443ca.webp ......................................... ~ 0.03ms
+  2026-03-21 18:11:59 /storage/products/product_69889b403c07b.webp ......................................... ~ 0.04ms
+  2026-03-21 18:11:59 /storage/products/product_69889b4038e71.webp ......................................... ~ 0.48ms
+[2026-03-21 21:12:00] [Laravel Server]   2026-03-21 18:11:59[2026-03-21 21:12:00] [Laravel Server]  /storage/products/product_69889b40358bb.webp .........................................[2026-03-21 21:12:00] [Laravel Server]  ~ 0.30ms
+  2026-03-21 18:11:59 /storage/products/product_69889b4031c10.webp .........................................[2026-03-21 21:12:00] [Laravel Server]  ~ 0.34ms
+  2026-03-21 18:11:59 /storage/products/product_69889b402de39.webp ......................................... ~ 0.09ms
+  2026-03-21 18:11:59 /storage/products/product_69889b4029c9e.jpeg[2026-03-21 21:12:00] [Laravel Server]  ......................................... ~ 0.07ms
+  2026-03-21 18:11:59 /storage/products/product_69889b40210ff.webp[2026-03-21 21:12:00] [Laravel Server]  .........................................[2026-03-21 21:12:00] [Laravel Server]  ~ 0.08ms
+  2026-03-21 18:11:59 /favicon.svg[2026-03-21 21:12:00] [Laravel Server]  ......................................................................... ~ 0.07ms
+  2026-03-21 18:11:59 /favicon.ico[2026-03-21 21:12:00] [Laravel Server]  .........................................................................[2026-03-21 21:12:00] [Laravel Server]  ~ 0.06ms
