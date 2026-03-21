@@ -1,6 +1,5 @@
 @push('styles')
 <style>
-.reputation-header-bg{background:linear-gradient(135deg,rgba(255,255,255,.82) 0%,rgba(254,243,199,.90) 40%,rgba(251,191,36,.50) 100%);}
 .rep-bar-bg{background:#f1f5f9;}
 .dark .rep-bar-bg{background:#1e293b;}
 .skel-r{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 50%,#f1f5f9 75%);background-size:200% 100%;animation:skel-r 1.4s infinite;}
@@ -14,53 +13,54 @@
     {{-- ============================================================
          HEADER
     ============================================================ --}}
-    <div class="reputation-header-bg border-b border-amber-200/60 dark:border-amber-700/30 px-4 sm:px-6 py-5 mb-5
-                dark:bg-gradient-to-br dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
-        <div class="max-w-5xl mx-auto">
-            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-3">
-                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 transition-colors">Início</a>
-                <i class="bi bi-chevron-right text-[10px]"></i>
-                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 transition-colors">Mercado Livre</a>
-                <i class="bi bi-chevron-right text-[10px]"></i>
+    <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
+                dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
+                backdrop-blur-xl border border-amber-100/60 dark:border-amber-900/30
+                rounded-3xl shadow-2xl mb-6 mx-4 sm:mx-6">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
+        <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
+        <div class="relative max-w-5xl mx-auto px-6 sm:px-8 py-6">
+            <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
+                <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
+                    <i class="bi bi-house-fill text-[11px]"></i> Início
+                </a>
+                <i class="bi bi-chevron-right text-[9px]"></i>
+                <a href="{{ route('mercadolivre.products') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors">Mercado Livre</a>
+                <i class="bi bi-chevron-right text-[9px]"></i>
                 <span class="text-amber-700 dark:text-amber-400 font-semibold">Reputação</span>
             </nav>
 
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="relative w-14 h-14 flex-shrink-0">
-                        <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500
-                                    flex items-center justify-center shadow-lg shadow-amber-400/40">
-                            <i class="bi bi-star-fill text-2xl text-white"></i>
-                        </div>
-                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-gradient-to-br from-yellow-300 to-amber-500
-                                    flex items-center justify-center shadow ring-2 ring-white dark:ring-slate-900">
-                            <span class="text-white font-black text-[9px] leading-none">ML</span>
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+                <div class="flex items-start gap-5">
+                    <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 rounded-2xl shadow-xl shadow-amber-500/30 flex-shrink-0">
+                        <i class="bi bi-star-fill text-white text-3xl"></i>
+                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50 pointer-events-none"></div>
+                        <div class="absolute -bottom-1.5 -right-1.5 w-6 h-6 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-md ring-2 ring-amber-100 dark:ring-slate-700">
+                            <span class="text-amber-600 dark:text-amber-400 font-black text-[8px] leading-none">ML</span>
                         </div>
                     </div>
                     <div>
-                        <h1 class="text-xl sm:text-2xl font-black tracking-tight
-                                   bg-gradient-to-r from-slate-800 via-amber-700 to-yellow-700
-                                   dark:from-white dark:via-amber-400 dark:to-yellow-300
-                                   bg-clip-text text-transparent leading-tight">
+                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
                             Reputação & Métricas
                         </h1>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Desempenho do vendedor no Mercado Livre</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Desempenho do vendedor no Mercado Livre</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <button wire:click="loadData" title="Atualizar"
-                            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl
-                                   bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
+                <div class="flex items-center gap-2 flex-wrap">
+                    <button wire:click="loadData"
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                                   bg-white/70 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
                                    text-sm font-semibold text-slate-600 dark:text-slate-300
                                    hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
                         <i class="bi bi-arrow-clockwise" wire:loading.class="animate-spin" wire:target="loadData"></i>
+                        Atualizar
                     </button>
                     <button @click="tipsOpen = true"
-                            class="inline-flex items-center gap-2 px-3 py-2 rounded-xl
-                                   bg-white/80 dark:bg-slate-800 border border-amber-200 dark:border-slate-600
-                                   text-sm font-semibold text-slate-600 dark:text-slate-300
-                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all shadow-sm">
-                        <i class="bi bi-lightbulb-fill text-amber-500"></i> Dicas
+                            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl
+                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white text-sm font-bold
+                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600 transition-all">
+                        <i class="bi bi-lightbulb-fill"></i> Dicas
                     </button>
                 </div>
             </div>
