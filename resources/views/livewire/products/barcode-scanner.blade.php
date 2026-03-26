@@ -1008,12 +1008,18 @@
                         this._html5QrCode = new Html5Qrcode('camera-scanner-viewport');
 
                         var config = {
-                            fps: 10,
+                            fps: 20,
                             qrbox: function(vw, vh) {
-                                var size = Math.min(vw, vh);
-                                return { width: Math.floor(size * 0.8), height: Math.floor(size * 0.4) };
+                                // Caixa generosa para leitura de 1D barcodes em qualquer orientação
+                                var minDim = Math.min(vw, vh);
+                                var maxDim = Math.max(vw, vh);
+                                return {
+                                    width:  Math.floor(maxDim * 0.75),
+                                    height: Math.floor(minDim * 0.40)
+                                };
                             },
-                            aspectRatio: window.innerHeight / window.innerWidth,
+                            // NÃO definir aspectRatio — no mobile portrait (innerH/innerW ≈ 2.16)
+                            // isso força constraint inválido e quebra a detecção silenciosamente
                             formatsToSupport: [
                                 Html5QrcodeSupportedFormats.EAN_13,
                                 Html5QrcodeSupportedFormats.EAN_8,
@@ -1024,7 +1030,19 @@
                                 Html5QrcodeSupportedFormats.CODE_93,
                                 Html5QrcodeSupportedFormats.ITF,
                                 Html5QrcodeSupportedFormats.QR_CODE,
+                                Html5QrcodeSupportedFormats.DATA_MATRIX,
                             ],
+                            // Usa o BarcodeDetector nativo do browser (Chrome/Edge/Safari 17+)
+                            // muito mais rápido e preciso do que o ZXing em WASM
+                            experimentalFeatures: {
+                                useBarCodeDetectorIfSupported: true
+                            },
+                            rememberLastUsedCamera: true,
+                            videoConstraints: {
+                                facingMode: this.cameraFacing,
+                                width:  { ideal: 1280 },
+                                height: { ideal: 720 }
+                            },
                         };
 
                         var self = this;
@@ -1032,7 +1050,7 @@
                             { facingMode: this.cameraFacing },
                             config,
                             function(decodedText) { self.onCameraCodeDetected(decodedText); },
-                            function() {}
+                            function() {} // suppress per-frame errors
                         );
 
                         this.cameraActive = true;
@@ -1119,23 +1137,32 @@
                     this.imageResult = null;
 
                     try {
-                        var result = await Html5Qrcode.scanFileV2(this._imageFile, true);
+                        // scanFileV2 retorna Html5QrcodeResult com .decodedText
+                        var result = await Html5Qrcode.scanFileV2(this._imageFile, false);
+                        var code = (result && (result.decodedText || (result.result && result.result.text))) || null;
 
-                        if (result && result.decodedText) {
-                            this.imageResult = 'Código encontrado: ' + result.decodedText;
+                        if (code) {
+                            this.imageResult = 'Código encontrado: ' + code;
                             this.imageResultSuccess = true;
                             this.playBeep();
-
-                            this.$wire.set('barcodeInput', result.decodedText).then(() => {
+                            this.$wire.set('barcodeInput', code).then(() => {
                                 this.$wire.searchBarcode();
                             });
                         } else {
-                            this.imageResult = 'Nenhum código detectado.';
+                            this.imageResult = 'Nenhum código detectado. Tente com a imagem mais nítida.';
                             this.imageResultSuccess = false;
                         }
                     } catch (err) {
                         console.warn('Image scan error:', err);
-                        this.imageResult = 'Nenhum código detectado. Tente outra imagem.';
+                        // html5-qrcode rejeita a Promise com mensagem de texto quando não acha código
+                        var errMsg = (typeof err === 'string') ? err : (err && err.message) ? err.message : '';
+                        if (errMsg.toLowerCase().includes('no multiformat readers') ||
+                            errMsg.toLowerCase().includes('no barcode or qr code detected') ||
+                            errMsg.toLowerCase().includes('code not found')) {
+                            this.imageResult = 'Código não encontrado. Tente uma foto mais próxima e nítida.';
+                        } else {
+                            this.imageResult = 'Erro ao analisar imagem. Tente outro formato.';
+                        }
                         this.imageResultSuccess = false;
                     }
 
