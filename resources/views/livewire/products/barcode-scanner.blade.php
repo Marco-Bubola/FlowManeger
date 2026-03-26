@@ -697,8 +697,10 @@
                             @if(count($linkCandidates) > 0)
                             <div class="link-candidates-grid grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3 max-h-[780px] overflow-y-auto pr-1">
                                 @foreach($linkCandidates as $candidate)
-                                @php($isFeatured = $loop->first && count($linkCandidates) > 2)
-                                @php($spanClass = $isFeatured ? 'sm:col-span-2 2xl:col-span-2' : (($loop->iteration % 5 === 0) ? '2xl:col-span-2' : ''))
+                                @php
+                                    $isFeatured = $loop->first && count($linkCandidates) > 2;
+                                    $spanClass = $isFeatured ? 'sm:col-span-2 2xl:col-span-2' : (($loop->iteration % 5 === 0) ? '2xl:col-span-2' : '');
+                                @endphp
                                 <article class="group relative overflow-hidden rounded-[26px] border border-slate-200/70 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/80 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/10 {{ $spanClass }}">
                                     <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style="background:linear-gradient(135deg,rgba(6,182,212,.05),rgba(59,130,246,.03),transparent)"></div>
                                     <div class="relative {{ $isFeatured ? 'h-40' : 'h-28' }} overflow-hidden bg-gradient-to-br from-slate-100 via-cyan-50 to-blue-50 dark:from-slate-800 dark:via-cyan-950/20 dark:to-slate-900">
