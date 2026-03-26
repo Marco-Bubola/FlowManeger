@@ -10,17 +10,19 @@
 <div class="reputation-page min-h-screen"
      x-data="{ tipsOpen: @entangle('tipsOpen') }">
 
+    <x-loading-overlay message="Carregando reputação..." />
+
     {{-- ============================================================
          HEADER
     ============================================================ --}}
     <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
                 dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border border-amber-100/60 dark:border-amber-900/30
-                rounded-3xl shadow-2xl mb-6 mx-4 sm:mx-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
+                shadow-2xl mb-6">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative max-w-5xl mx-auto px-6 sm:px-8 py-6">
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
             <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
                 <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
                     <i class="bi bi-house-fill text-[11px]"></i> Início
@@ -41,7 +43,7 @@
                         </div>
                     </div>
                     <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
+                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
                             Reputação & Métricas
                         </h1>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Desempenho do vendedor no Mercado Livre</p>
@@ -67,7 +69,7 @@
         </div>
     </div>
 
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 pb-10">
+    <div class="w-full px-4 sm:px-6 lg:px-8 pb-10">
 
         @if($errorMessage)
             <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 mb-6">
