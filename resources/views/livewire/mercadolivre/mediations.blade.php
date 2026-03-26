@@ -13,17 +13,19 @@
          showFiltersModal:@entangle('showFiltersModal')
      }">
 
+    <x-loading-overlay message="Carregando mediações..." />
+
     {{-- ============================================================
          HEADER
     ============================================================ --}}
     <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
                 dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border border-amber-100/60 dark:border-amber-900/30
-                rounded-3xl shadow-2xl mb-6 mx-4 sm:mx-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
+                shadow-2xl mb-6">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative max-w-6xl mx-auto px-6 sm:px-8 py-6">
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
             <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
                 <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
                     <i class="bi bi-house-fill text-[11px]"></i> Início
@@ -44,7 +46,7 @@
                         </div>
                     </div>
                     <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
+                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
                             Mediações & Devoluções
                         </h1>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -88,7 +90,7 @@
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
+    <div class="w-full px-4 sm:px-6 lg:px-8 pb-10">
 
         @if($errorMessage)
             <div class="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700/40 mb-6">
@@ -110,12 +112,43 @@
                 @endfor
             </div>
         @elseif(count($claims) === 0)
-            <div class="flex flex-col items-center justify-center py-24 text-center">
-                <div class="w-20 h-20 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mb-4">
-                    <i class="bi bi-shield-check text-4xl text-amber-300 dark:text-amber-600"></i>
+            <div class="flex flex-col items-center justify-center py-16 sm:py-24">
+                <div class="relative mb-6">
+                    <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-emerald-400/20 via-teal-300/15 to-green-300/10
+                                dark:from-emerald-900/30 dark:via-emerald-800/20 dark:to-teal-900/10
+                                border border-emerald-200/60 dark:border-emerald-700/30
+                                flex items-center justify-center shadow-xl">
+                        <i class="bi bi-shield-check text-5xl text-emerald-400 dark:text-emerald-500"></i>
+                    </div>
+                    <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500
+                                flex items-center justify-center shadow-lg">
+                        <i class="bi bi-check-lg text-white text-sm"></i>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">Nenhuma mediação encontrada</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400">{{ $statusFilter === 'opened' ? 'Você não tem disputas abertas — ótimo sinal!' : 'Sem registros para o filtro selecionado.' }}</p>
+                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
+                    {{ $statusFilter === 'opened' ? 'Tudo tranquilo!' : 'Nenhuma mediação encontrada' }}
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
+                    {{ $statusFilter === 'opened'
+                        ? 'Excelente! Você não tem disputas abertas no momento. Continue oferecendo uma ótima experiência de compra.'
+                        : 'Sem registros de mediação para o filtro selecionado. Tente outro filtro.' }}
+                </p>
+                @if($statusFilter === 'opened')
+                    <div class="flex flex-wrap gap-2 justify-center">
+                        <span class="px-4 py-2 rounded-2xl text-sm font-bold bg-emerald-50 dark:bg-emerald-900/20
+                                     text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-700/30">
+                            <i class="bi bi-trophy-fill mr-2"></i>Vendedor em conformidade
+                        </span>
+                    </div>
+                @else
+                    <button wire:click="$set('statusFilter', 'opened')"
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
+                                   bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
+                                   shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
+                                   transition-all duration-200 active:scale-95">
+                        <i class="bi bi-funnel-fill"></i> Ver Abertas
+                    </button>
+                @endif
             </div>
         @else
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
