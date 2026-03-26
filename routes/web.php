@@ -16,6 +16,7 @@ use App\Livewire\Products\CreateKit;
 use App\Livewire\Products\EditKit;
 use App\Livewire\Products\UploadProducts;
 use App\Livewire\Products\ShowProduct;
+use App\Livewire\Products\BarcodeScanner;
 
 // Importar componentes Livewire de clientes
 use App\Livewire\Clients\ClientsIndex;
@@ -167,6 +168,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/kit/create', CreateKit::class)->name('products.kit.create');
     Route::get('/products/kit/{kit}/edit', EditKit::class)->name('products.kit.edit');
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
+    Route::get('/products/barcode-scanner', BarcodeScanner::class)->name('products.barcode-scanner');
 
     // Manter rotas que ainda usam controller para funcionalidades específicas
     // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');
