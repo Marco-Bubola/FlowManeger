@@ -15,17 +15,19 @@
          showAnswerModal: @entangle('showAnswerModal'),
      }">
 
+    <x-loading-overlay message="Carregando perguntas..." />
+
     {{-- ============================================================
          HEADER – AMBER / ML
     ============================================================ --}}
     <div class="relative overflow-hidden bg-gradient-to-r from-white/85 via-amber-50/90 to-yellow-50/80
                 dark:from-slate-800/90 dark:via-amber-900/10 dark:to-slate-800/30
-                backdrop-blur-xl border border-amber-100/60 dark:border-amber-900/30
-                rounded-3xl shadow-2xl mb-6 mx-4 sm:mx-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
+                backdrop-blur-xl border-b border-amber-100/60 dark:border-amber-900/30
+                shadow-2xl mb-6">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
         <div class="absolute top-0 right-0 w-52 h-52 bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10 rounded-full transform translate-x-20 -translate-y-20 pointer-events-none"></div>
         <div class="absolute bottom-0 left-0 w-40 h-40 bg-gradient-to-tr from-amber-300/15 via-yellow-300/10 to-orange-200/10 rounded-full transform -translate-x-12 translate-y-12 pointer-events-none"></div>
-        <div class="relative max-w-screen-xl mx-auto px-6 sm:px-8 py-6">
+        <div class="relative w-full px-4 sm:px-6 lg:px-8 py-6">
 
             <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-4">
                 <a href="{{ route('dashboard') }}" class="hover:text-amber-600 dark:hover:text-amber-400 transition-colors flex items-center gap-1">
@@ -48,7 +50,7 @@
                         </div>
                     </div>
                     <div>
-                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
+                        <h1 class="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-slate-800 via-amber-700 to-orange-600 dark:from-amber-200 dark:via-amber-300 dark:to-yellow-300 bg-clip-text text-transparent leading-tight">
                             Perguntas do ML
                         </h1>
                         <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -151,7 +153,7 @@
     </div>
     {{-- /HEADER --}}
 
-    <div class="max-w-screen-xl mx-auto px-4 sm:px-6 pb-8">
+    <div class="w-full px-4 sm:px-6 lg:px-8 pb-8">
 
         {{-- LOADING SKELETONS --}}
         @if($loading)
@@ -170,20 +172,45 @@
 
         {{-- EMPTY --}}
         @elseif(count($questions) === 0)
-            <div class="flex flex-col items-center justify-center py-20 text-center">
-                <div class="w-20 h-20 rounded-full bg-amber-50 dark:bg-amber-900/20 flex items-center justify-center mb-4">
-                    <i class="bi bi-chat-dots text-4xl text-amber-300 dark:text-amber-600"></i>
+            <div class="flex flex-col items-center justify-center py-16 sm:py-24">
+                <div class="relative mb-6">
+                    <div class="w-28 h-28 rounded-3xl bg-gradient-to-br from-amber-400/20 via-yellow-300/15 to-orange-300/10
+                                dark:from-amber-900/30 dark:via-amber-800/20 dark:to-orange-900/10
+                                border border-amber-200/60 dark:border-amber-700/30
+                                flex items-center justify-center shadow-xl">
+                        <i class="bi bi-chat-dots-fill text-5xl text-amber-400 dark:text-amber-500"></i>
+                    </div>
+                    <div class="absolute -top-2 -right-2 w-8 h-8 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500
+                                flex items-center justify-center shadow-lg">
+                        <i class="bi bi-{{ $statusFilter === 'UNANSWERED' ? 'check-lg' : 'search' }} text-white text-xs"></i>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-1">Nenhuma pergunta encontrada</h3>
-                <p class="text-sm text-slate-500 dark:text-slate-400 mb-6 max-w-xs">
-                    {{ $statusFilter === 'UNANSWERED' ? 'Ótimo! Não há perguntas pendentes.' : 'Sem perguntas para este filtro.' }}
+                <h3 class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-white mb-2 text-center">
+                    {{ $statusFilter === 'UNANSWERED' ? 'Tudo em dia!' : 'Nenhuma pergunta encontrada' }}
+                </h3>
+                <p class="text-sm text-slate-500 dark:text-slate-400 mb-8 max-w-sm text-center leading-relaxed">
+                    {{ $statusFilter === 'UNANSWERED'
+                        ? 'Parabéns! Você respondeu todas as perguntas dos compradores. Continue assim para manter sua reputação.'
+                        : 'Nenhuma pergunta encontrada para o filtro atual. Tente outro status ou limpe os filtros.' }}
                 </p>
-                @if($itemIdFilter || $statusFilter !== 'UNANSWERED')
-                    <button wire:click="clearFilters"
-                            class="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-sm transition-all shadow">
-                        <i class="bi bi-x-circle-fill mr-2"></i> Limpar Filtros
+                <div class="flex flex-wrap gap-3 justify-center">
+                    @if($itemIdFilter || $statusFilter !== 'UNANSWERED')
+                        <button wire:click="clearFilters"
+                                class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
+                                       bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
+                                       shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
+                                       transition-all duration-200 active:scale-95">
+                            <i class="bi bi-x-circle-fill"></i> Limpar Filtros
+                        </button>
+                    @endif
+                    <button wire:click="loadQuestions"
+                            class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
+                                   bg-white dark:bg-slate-800 border border-amber-200 dark:border-slate-600
+                                   text-slate-700 dark:text-slate-300 font-semibold text-sm
+                                   hover:bg-amber-50 dark:hover:bg-slate-700 transition-all duration-200">
+                        <i class="bi bi-arrow-clockwise"></i> Atualizar
                     </button>
-                @endif
+                </div>
             </div>
 
         {{-- QUESTIONS LIST --}}
