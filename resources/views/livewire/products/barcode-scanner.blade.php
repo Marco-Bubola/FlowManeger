@@ -138,54 +138,86 @@
     </x-modern-header>
 
     {{-- ========== MAIN CONTENT ========== --}}
-    <div class="px-2 sm:px-4 lg:px-6 pb-8">
-        <div class="max-w-7xl mx-auto grid grid-cols-1 xl:grid-cols-3 gap-5">
+    <div class="w-full px-2 sm:px-3 lg:px-4 xl:px-6 pb-10">
 
-            {{-- ========== LEFT COLUMN (2/3) ========== --}}
-            <div class="xl:col-span-2 space-y-4">
+        <div class="w-full space-y-4">
 
-                {{-- Mode Selector (Blueprint Grid) --}}
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05]" style="background-image: linear-gradient(rgba(99,102,241,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4">
-                        <p class="text-[10px] font-bold text-indigo-500/60 dark:text-indigo-400/60 uppercase tracking-[0.2em] mb-3 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                            MODO DE OPERAÇÃO
-                        </p>
-                        <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                            @foreach([
-                                ['mode' => 'consulta', 'icon' => 'fas fa-search', 'label' => 'Consultar', 'color' => 'blue'],
-                                ['mode' => 'preco', 'icon' => 'fas fa-tag', 'label' => 'Ver Preço', 'color' => 'pink'],
-                                ['mode' => 'estoque', 'icon' => 'fas fa-boxes-stacked', 'label' => 'Estoque', 'color' => 'emerald'],
-                                ['mode' => 'inventario', 'icon' => 'fas fa-clipboard-list', 'label' => 'Inventário', 'color' => 'orange'],
-                                ['mode' => 'venda', 'icon' => 'fas fa-cart-shopping', 'label' => 'Venda', 'color' => 'purple'],
-                                ['mode' => 'vincular', 'icon' => 'fas fa-link', 'label' => 'Vincular', 'color' => 'cyan'],
-                            ] as $m)
-                            <button wire:click="setMode('{{ $m['mode'] }}')" class="group flex flex-col items-center gap-1.5 px-2 py-3 rounded-xl border-2 transition-all duration-200 text-sm font-semibold {{ $activeMode === $m['mode'] ? 'border-'.$m['color'].'-500 bg-'.$m['color'].'-50 dark:bg-'.$m['color'].'-900/30 text-'.$m['color'].'-700 dark:text-'.$m['color'].'-300 shadow-md shadow-'.$m['color'].'-500/20 scale-[1.02]' : 'border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 hover:border-'.$m['color'].'-300 hover:text-'.$m['color'].'-500 hover:bg-'.$m['color'].'-50/50 dark:hover:bg-'.$m['color'].'-900/20' }}">
-                                <i class="{{ $m['icon'] }} text-lg"></i>
-                                <span class="text-[10px] sm:text-xs text-center leading-tight">{{ $m['label'] }}</span>
-                            </button>
-                            @endforeach
-                        </div>
+            {{-- ═══ ZONA A — MODO DE OPERAÇÃO ═══ --}}
+            <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.028;"></div>
+                <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-slate-200/50 dark:border-slate-700/50 rounded-br-xl" style="background:linear-gradient(to right,rgba(99,102,241,.07),transparent)">
+                    <span class="text-[9px] font-black tracking-[0.3em] text-indigo-500/50 dark:text-indigo-400/40 uppercase">ZONA A · MODO DE OPERAÇÃO</span>
+                </div>
+                <div class="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-slate-300/30 dark:border-slate-600/30 rounded-tr pointer-events-none"></div>
+                <div class="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-slate-300/30 dark:border-slate-600/30 rounded-bl pointer-events-none"></div>
+
+                <div class="relative p-4 sm:p-5 pt-9">
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                        @foreach([
+                            ['mode' => 'consulta',  'icon' => 'fas fa-search',         'label' => 'Consultar',  'color' => 'blue'],
+                            ['mode' => 'preco',      'icon' => 'fas fa-tag',             'label' => 'Ver Preço',  'color' => 'pink'],
+                            ['mode' => 'estoque',    'icon' => 'fas fa-boxes-stacked',   'label' => 'Estoque',    'color' => 'emerald'],
+                            ['mode' => 'inventario', 'icon' => 'fas fa-clipboard-list',  'label' => 'Inventário', 'color' => 'orange'],
+                            ['mode' => 'venda',      'icon' => 'fas fa-cart-shopping',   'label' => 'Venda',      'color' => 'purple'],
+                            ['mode' => 'vincular',   'icon' => 'fas fa-link',            'label' => 'Vincular',   'color' => 'cyan'],
+                        ] as $m)
+                        <button wire:click="setMode('{{ $m['mode'] }}')"
+                            class="group relative overflow-hidden rounded-2xl border-2 p-3 sm:p-4 text-center transition-all duration-300
+                                {{ $activeMode === $m['mode']
+                                    ? 'border-'.$m['color'].'-400 dark:border-'.$m['color'].'-600 shadow-lg shadow-'.$m['color'].'-500/20 scale-[1.03]'
+                                    : 'border-slate-200/80 dark:border-slate-700/80 hover:border-'.$m['color'].'-300 dark:hover:border-'.$m['color'].'-700 hover:scale-[1.02]' }}">
+                            @if($activeMode === $m['mode'])
+                            <div class="absolute inset-0 bg-gradient-to-br from-{{ $m['color'] }}-500/12 to-{{ $m['color'] }}-400/5 dark:from-{{ $m['color'] }}-500/18 dark:to-{{ $m['color'] }}-400/5"></div>
+                            <div class="absolute top-2 right-2">
+                                <span class="relative flex h-2 w-2">
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-{{ $m['color'] }}-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-{{ $m['color'] }}-500"></span>
+                                </span>
+                            </div>
+                            @endif
+                            <div class="relative w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl flex items-center justify-center mb-2 transition-all duration-300
+                                {{ $activeMode === $m['mode']
+                                    ? 'bg-gradient-to-br from-'.$m['color'].'-500 to-'.$m['color'].'-600 text-white shadow-lg shadow-'.$m['color'].'-500/30'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 group-hover:bg-'.$m['color'].'-50 dark:group-hover:bg-'.$m['color'].'-900/20 group-hover:text-'.$m['color'].'-500' }}">
+                                <i class="{{ $m['icon'] }} text-base sm:text-lg"></i>
+                            </div>
+                            <p class="relative text-[10px] sm:text-xs font-bold leading-tight
+                                {{ $activeMode === $m['mode']
+                                    ? 'text-'.$m['color'].'-700 dark:text-'.$m['color'].'-300'
+                                    : 'text-slate-500 dark:text-slate-400' }}">{{ $m['label'] }}</p>
+                        </button>
+                        @endforeach
                     </div>
                 </div>
+            </div>
 
-                {{-- Scan Input Area (Blueprint Style) --}}
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02] dark:opacity-[0.04]" style="background-image: linear-gradient(rgba(99,102,241,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4 sm:p-5">
+            {{-- ═══ MAIN GRID ═══ --}}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+
+                {{-- ─────────── MAIN COLUMN ─────────── --}}
+                <div class="lg:col-span-2 space-y-4">
+
+                {{-- ═══ ZONA B — SCANNER ═══ --}}
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.028;"></div>
+                    <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-slate-200/50 dark:border-slate-700/50 rounded-br-xl" style="background:linear-gradient(to right,rgba(99,102,241,.07),transparent)">
+                        <span class="text-[9px] font-black tracking-[0.3em] text-indigo-500/50 dark:text-indigo-400/40 uppercase">ZONA B · SCANNER DE ENTRADA</span>
+                    </div>
+                    <div class="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-slate-300/30 dark:border-slate-600/30 rounded-tr pointer-events-none"></div>
+                    <div class="absolute bottom-2 left-2 w-5 h-5 border-b-2 border-l-2 border-slate-300/30 dark:border-slate-600/30 rounded-bl pointer-events-none"></div>
+                    <div class="relative p-4 sm:p-6 pt-9">
 
                         {{-- Tab switcher --}}
-                        <div class="flex items-center gap-1 mb-4 p-1 bg-slate-100/80 dark:bg-slate-900/60 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                            <button @click="setScanMode('manual')" :class="scanMode === 'manual' ? 'bg-white dark:bg-slate-700 shadow-md text-indigo-600 dark:text-indigo-300 border-indigo-200 dark:border-indigo-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 border-transparent'" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 border">
+                        <div class="flex items-center gap-1 mb-5 p-1 bg-slate-100/80 dark:bg-slate-800/60 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+                            <button @click="setScanMode('manual')" :class="scanMode === 'manual' ? 'bg-white dark:bg-slate-700 shadow-md text-indigo-600 dark:text-indigo-300 scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200">
                                 <i class="fas fa-keyboard"></i>
                                 <span>Digitar</span>
                             </button>
-                            <button @click="setScanMode('camera')" :class="scanMode === 'camera' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 border-transparent' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 border-transparent'" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 border">
+                            <button @click="setScanMode('camera')" :class="scanMode === 'camera' ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200">
                                 <i class="fas fa-camera"></i>
                                 <span>Câmera</span>
                             </button>
-                            <button @click="setScanMode('image')" :class="scanMode === 'image' ? 'bg-white dark:bg-slate-700 shadow-md text-purple-600 dark:text-purple-300 border-purple-200 dark:border-purple-700' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 border-transparent'" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg text-xs sm:text-sm font-bold transition-all duration-200 border">
+                            <button @click="setScanMode('image')" :class="scanMode === 'image' ? 'bg-white dark:bg-slate-700 shadow-md text-purple-600 dark:text-purple-300 scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'" class="flex-1 flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200">
                                 <i class="fas fa-image"></i>
                                 <span>Imagem</span>
                             </button>
@@ -193,32 +225,41 @@
 
                         {{-- MODE: MANUAL --}}
                         <div x-show="scanMode === 'manual'" x-transition.opacity.duration.200ms>
-                            <div class="flex items-center gap-2 mb-3">
-                                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                                <p class="text-[10px] font-bold text-indigo-500/70 dark:text-indigo-400/70 uppercase tracking-[0.15em]">ENTRADA MANUAL / LEITOR USB</p>
-                            </div>
                             <form wire:submit.prevent="searchBarcode" class="flex flex-col sm:flex-row gap-3">
                                 <div class="flex-1 relative group">
-                                    <div class="absolute inset-y-0 left-3.5 flex items-center pointer-events-none">
-                                        <i class="fas fa-barcode text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors"></i>
+                                    <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                        <i class="fas fa-barcode text-slate-300 dark:text-slate-600 group-focus-within:text-indigo-500 transition-colors text-xl"></i>
                                     </div>
-                                    <input id="barcode-input" type="text" wire:model="barcodeInput" placeholder="Ex: 7891234567890" autocomplete="off" autofocus class="w-full pl-11 pr-4 py-3.5 rounded-xl border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white text-base sm:text-lg font-mono tracking-wider focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all duration-200 placeholder:text-slate-300 dark:placeholder:text-slate-600" />
+                                    <input id="barcode-input" type="text" wire:model="barcodeInput" placeholder="Ex: 7891234567890" autocomplete="off" autofocus class="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-white text-xl font-mono tracking-widest focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all placeholder:text-slate-300 dark:placeholder:text-slate-600 shadow-sm" />
                                 </div>
-                                <button type="submit" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:shadow-xl hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2" wire:loading.attr="disabled" wire:target="searchBarcode">
+                                <button type="submit" class="px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold shadow-xl shadow-indigo-500/30 transition-all hover:shadow-2xl hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2 min-w-[130px]" wire:loading.attr="disabled" wire:target="searchBarcode">
                                     <i wire:loading.remove wire:target="searchBarcode" class="fas fa-search"></i>
                                     <i wire:loading wire:target="searchBarcode" class="fas fa-spinner fa-spin"></i>
-                                    <span>Buscar</span>
+                                    <span wire:loading.remove wire:target="searchBarcode">Buscar</span>
+                                    <span wire:loading wire:target="searchBarcode" class="text-sm">Buscando...</span>
                                 </button>
                             </form>
+                            <div class="mt-4 flex items-center gap-3">
+                                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                                <span class="text-[10px] text-slate-400 font-semibold uppercase tracking-widest">ou use leitor USB</span>
+                                <div class="flex-1 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent"></div>
+                            </div>
+                            <div class="mt-2 flex items-center justify-center gap-2 text-xs text-slate-400 dark:text-slate-500">
+                                <i class="fas fa-usb text-indigo-400/50"></i>
+                                <span>Conecte o leitor USB e leia diretamente no campo</span>
+                            </div>
                         </div>
 
-                        {{-- MODE: CAMERA (loading state only - fullscreen opens automatically) --}}
-                        <div x-show="scanMode === 'camera'" x-transition.opacity.duration.200ms class="flex flex-col items-center justify-center py-8 gap-3">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center animate-pulse">
-                                <i class="fas fa-camera text-2xl text-indigo-500/80"></i>
+                        {{-- MODE: CAMERA (loading state — fullscreen opens automatically) --}}
+                        <div x-show="scanMode === 'camera'" x-transition.opacity.duration.200ms class="flex flex-col items-center justify-center py-14 gap-4">
+                            <div class="relative w-20 h-20 rounded-3xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
+                                <i class="fas fa-camera text-3xl text-indigo-500/80 animate-pulse"></i>
+                                <div class="absolute inset-0 rounded-3xl border-2 border-dashed border-indigo-300/40 dark:border-indigo-600/40 animate-spin" style="animation-duration:8s"></div>
                             </div>
-                            <p class="text-sm text-slate-400 dark:text-slate-500 font-medium">Câmera aberta em tela cheia</p>
-                            <p class="text-[10px] text-slate-400/60">Toque em voltar para fechar</p>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Câmera ativa em tela cheia</p>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1">Pressione o botão voltar para fechar</p>
+                            </div>
                         </div>
 
                         {{-- MODE: IMAGE --}}
@@ -292,126 +333,149 @@
 
                         {{-- Qty input for inventory/sale --}}
                         @if(in_array($activeMode, ['inventario', 'venda']))
-                        <div class="mt-3 flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700">
-                            <i class="fas fa-hashtag text-slate-400 text-sm"></i>
-                            <span class="text-xs text-slate-500 font-medium whitespace-nowrap">Qtd.:</span>
+                        <div class="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                            <i class="fas fa-hashtag text-slate-400"></i>
+                            <span class="text-xs text-slate-500 font-semibold whitespace-nowrap">Quantidade:</span>
                             @if($activeMode === 'inventario')
-                            <input type="number" wire:model="inventoryQtyInput" min="1" class="w-20 px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-white text-center font-bold" />
+                            <input type="number" wire:model="inventoryQtyInput" min="1" class="w-24 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-center font-black" />
                             @else
-                            <input type="number" wire:model="saleQtyInput" min="1" class="w-20 px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-white text-center font-bold" />
+                            <input type="number" wire:model="saleQtyInput" min="1" class="w-24 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-center font-black" />
                             @endif
                         </div>
                         @endif
                     </div>
                 </div>
 
-                {{-- ========== FOUND PRODUCT ========== --}}
+                {{-- ═══ ZONA D — PRODUTO ENCONTRADO ═══ --}}
                 @if($foundProduct)
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border-2 border-emerald-400/50 dark:border-emerald-600/50 shadow-lg shadow-emerald-500/5 overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(16,185,129,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4 sm:p-5">
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                            <p class="text-[10px] font-bold text-emerald-500/70 uppercase tracking-[0.15em]">PRODUTO ENCONTRADO</p>
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border-2 border-emerald-400/50 dark:border-emerald-600/50 shadow-2xl shadow-emerald-500/10 overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(16,185,129,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                    {{-- Hero banner --}}
+                    <div class="relative h-28 sm:h-36 overflow-hidden" style="background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(20,184,166,.08) 50%,transparent 100%)">
+                        <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full" style="background:radial-gradient(circle,rgba(16,185,129,.12) 0%,transparent 70%)"></div>
+                        <div class="absolute -bottom-8 right-32 w-32 h-32 rounded-full" style="background:radial-gradient(circle,rgba(20,184,166,.08) 0%,transparent 70%)"></div>
+                        <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-emerald-300/30 dark:border-emerald-700/30 rounded-br-xl bg-emerald-500/10">
+                            <span class="text-[9px] font-black tracking-[0.3em] text-emerald-600/60 dark:text-emerald-400/50 uppercase">ZONA D · PRODUTO ENCONTRADO</span>
                         </div>
-                        <div class="flex flex-col sm:flex-row items-start gap-4">
-                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-700 flex items-center justify-center border border-slate-200 dark:border-slate-600">
-                                @if($foundProduct['image'])
-                                <img src="{{ asset('storage/' . $foundProduct['image']) }}" alt="{{ $foundProduct['name'] }}" class="w-full h-full object-cover" />
-                                @else
-                                <i class="fas fa-image text-3xl text-slate-300 dark:text-slate-600"></i>
-                                @endif
+                        <div class="absolute bottom-4 left-5 right-24 sm:right-32">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                                <span class="text-[9px] font-black text-emerald-600/80 dark:text-emerald-400/70 uppercase tracking-widest">Encontrado</span>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-start justify-between gap-2 flex-wrap">
-                                    <h2 class="text-lg font-black text-slate-800 dark:text-white leading-tight">{{ $foundProduct['name'] }}</h2>
-                                    <a href="{{ route('products.edit', $foundProduct['id']) }}" class="text-xs text-indigo-600 dark:text-indigo-400 font-semibold hover:underline flex items-center gap-1">
-                                        <i class="fas fa-pen-to-square"></i> Editar
-                                    </a>
-                                </div>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                    <i class="fas fa-folder text-xs mr-1"></i>{{ $foundProduct['category_name'] }}
-                                    @if($foundProduct['brand']) · <i class="fas fa-building text-xs mr-1"></i>{{ $foundProduct['brand'] }} @endif
-                                    @if($foundProduct['model']) {{ $foundProduct['model'] }} @endif
-                                </p>
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3">
-                                    <div class="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                                        <p class="text-[10px] text-slate-400 uppercase">Custo</p>
-                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-300">R$ {{ number_format($foundProduct['price'], 2, ',', '.') }}</p>
-                                    </div>
-                                    <div class="text-center p-2 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
-                                        <p class="text-[10px] text-emerald-600 uppercase">Venda</p>
-                                        <p class="text-lg font-black text-emerald-600 dark:text-emerald-400">R$ {{ number_format($foundProduct['price_sale'], 2, ',', '.') }}</p>
-                                    </div>
-                                    <div class="text-center p-2 rounded-lg {{ $foundProduct['stock_quantity'] > 0 ? 'bg-blue-50 dark:bg-blue-900/20' : 'bg-red-50 dark:bg-red-900/20' }}">
-                                        <p class="text-[10px] {{ $foundProduct['stock_quantity'] > 0 ? 'text-blue-600' : 'text-red-500' }} uppercase">Estoque</p>
-                                        <p class="text-lg font-black {{ $foundProduct['stock_quantity'] > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500' }}">{{ $foundProduct['stock_quantity'] }}</p>
-                                    </div>
-                                    <div class="text-center p-2 rounded-lg bg-slate-50 dark:bg-slate-900/50">
-                                        <p class="text-[10px] text-slate-400 uppercase">Status</p>
-                                        <span class="px-2 py-0.5 rounded-full text-xs font-bold {{ $foundProduct['status'] === 'active' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400' }}">
-                                            {{ $foundProduct['status'] === 'active' ? 'Ativo' : ucfirst($foundProduct['status'] ?? '—') }}
-                                        </span>
-                                    </div>
-                                </div>
-                                @if($foundProduct['barcode'])
-                                <p class="text-xs text-slate-400 mt-2 font-mono"><i class="fas fa-barcode mr-1"></i>{{ $foundProduct['barcode'] }}</p>
-                                @else
-                                <p class="text-xs text-amber-500 mt-2 font-semibold"><i class="fas fa-exclamation-triangle mr-1"></i>Sem código de barras</p>
-                                @endif
+                            <h2 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white leading-tight truncate">{{ $foundProduct['name'] }}</h2>
+                        </div>
+                        <div class="absolute right-4 top-4 w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-white/80 dark:border-slate-700 shadow-2xl shadow-black/20 bg-white dark:bg-slate-800 flex items-center justify-center">
+                            @if($foundProduct['image'])
+                            <img src="{{ asset('storage/' . $foundProduct['image']) }}" alt="{{ $foundProduct['name'] }}" class="w-full h-full object-cover" />
+                            @else
+                            <i class="fas fa-image text-3xl text-slate-300 dark:text-slate-600"></i>
+                            @endif
+                        </div>
+                    </div>
+                    <div class="relative p-4 sm:p-5">
+                        {{-- Meta badges --}}
+                        <div class="flex items-center gap-2 flex-wrap mb-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                <i class="fas fa-folder text-xs text-slate-400"></i>{{ $foundProduct['category_name'] }}
+                            </span>
+                            @if($foundProduct['brand'])
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                                <i class="fas fa-building text-xs text-slate-400"></i>{{ $foundProduct['brand'] }}
+                            </span>
+                            @endif
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold {{ $foundProduct['status'] === 'active' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400' }}">
+                                <i class="fas fa-circle text-[8px]"></i>{{ $foundProduct['status'] === 'active' ? 'Ativo' : ucfirst($foundProduct['status'] ?? '—') }}
+                            </span>
+                            <a href="{{ route('products.edit', $foundProduct['id']) }}" class="ml-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all hover:scale-105">
+                                <i class="fas fa-pen-to-square text-xs"></i> Editar
+                            </a>
+                        </div>
+                        {{-- Price + stock grid (modern cards) --}}
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                            <div class="rounded-2xl p-3.5 text-center bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40">
+                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">Custo</p>
+                                <p class="text-sm font-black text-slate-700 dark:text-slate-300">R$ {{ number_format($foundProduct['price'], 2, ',', '.') }}</p>
                             </div>
+                            <div class="rounded-2xl p-3.5 text-center shadow-lg shadow-emerald-500/25 relative overflow-hidden" style="background:linear-gradient(135deg,#10b981,#0d9488)">
+                                <div class="absolute inset-0 opacity-10" style="background-image:radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:16px 16px"></div>
+                                <p class="relative text-[9px] text-emerald-100 uppercase font-black tracking-wider mb-1">Venda</p>
+                                <p class="relative text-xl font-black text-white">R$ {{ number_format($foundProduct['price_sale'], 2, ',', '.') }}</p>
+                            </div>
+                            <div class="rounded-2xl p-3.5 text-center border {{ $foundProduct['stock_quantity'] > 0 ? 'bg-blue-50/80 dark:bg-blue-900/15 border-blue-200/60 dark:border-blue-800/40' : 'bg-red-50 dark:bg-red-900/20 border-red-200/60 dark:border-red-800/40' }}">
+                                <p class="text-[9px] {{ $foundProduct['stock_quantity'] > 0 ? 'text-blue-500' : 'text-red-500' }} uppercase font-black tracking-wider mb-1">Estoque</p>
+                                <p class="text-xl font-black {{ $foundProduct['stock_quantity'] > 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-500' }}">{{ $foundProduct['stock_quantity'] }}</p>
+                            </div>
+                            @if($foundProduct['barcode'])
+                            <div class="rounded-2xl p-3.5 text-center bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/40">
+                                <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">EAN</p>
+                                <p class="text-xs font-black text-slate-600 dark:text-slate-400 font-mono">{{ Str::limit($foundProduct['barcode'], 13) }}</p>
+                            </div>
+                            @else
+                            <div class="rounded-2xl p-3.5 text-center bg-amber-50 dark:bg-amber-900/20 border border-amber-200/60 dark:border-amber-800/40">
+                                <i class="fas fa-exclamation-triangle text-amber-500 text-sm mb-1"></i>
+                                <p class="text-[9px] text-amber-600 font-black">Sem código</p>
+                            </div>
+                            @endif
                         </div>
 
                         @if($activeMode === 'preco')
-                        <div class="mt-4 p-4 rounded-xl bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20 border border-pink-200 dark:border-pink-800 text-center">
-                            <p class="text-xs text-pink-600 dark:text-pink-400 font-semibold mb-1"><i class="fas fa-tag mr-1"></i>Preço de Venda</p>
-                            <p class="text-4xl sm:text-5xl font-black text-pink-600 dark:text-pink-400">R$ {{ number_format($foundProduct['price_sale'], 2, ',', '.') }}</p>
+                        <div class="relative p-6 rounded-2xl overflow-hidden text-center shadow-xl shadow-pink-500/20" style="background:linear-gradient(135deg,#ec4899,#f43f5e,#ef4444)">
+                            <div class="absolute inset-0 opacity-15" style="background-image:radial-gradient(circle,white 1px,transparent 1px);background-size:24px 24px"></div>
+                            <p class="relative text-pink-100 text-xs font-black uppercase tracking-widest mb-2"><i class="fas fa-tag mr-1.5"></i>Preço de Venda</p>
+                            <p class="relative text-5xl sm:text-6xl font-black text-white tracking-tight">R$ {{ number_format($foundProduct['price_sale'], 2, ',', '.') }}</p>
                             @if($foundProduct['price'] != $foundProduct['price_sale'])
-                            <p class="text-sm text-slate-500 mt-1">Custo: R$ {{ number_format($foundProduct['price'], 2, ',', '.') }} — Margem: {{ $foundProduct['price'] > 0 ? number_format((($foundProduct['price_sale'] - $foundProduct['price']) / $foundProduct['price']) * 100, 1) : '∞' }}%</p>
+                            <p class="relative text-sm text-pink-100/80 mt-2">Custo: R$ {{ number_format($foundProduct['price'], 2, ',', '.') }} &nbsp;·&nbsp; Margem: {{ $foundProduct['price'] > 0 ? number_format((($foundProduct['price_sale'] - $foundProduct['price']) / $foundProduct['price']) * 100, 1) : '∞' }}%</p>
                             @endif
                         </div>
                         @endif
 
                         @if($activeMode === 'estoque')
-                        <div class="mt-4 p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-                            <p class="text-sm font-bold text-emerald-700 dark:text-emerald-400 mb-3"><i class="fas fa-boxes-stacked mr-2"></i>Atualizar Estoque</p>
+                        <div class="p-4 rounded-2xl bg-emerald-50/80 dark:bg-emerald-900/20 border border-emerald-200/60 dark:border-emerald-800/40">
+                            <p class="text-xs font-black text-emerald-700 dark:text-emerald-400 mb-3 flex items-center gap-2"><i class="fas fa-boxes-stacked"></i>Atualizar Estoque</p>
                             <div class="flex items-center gap-3 flex-wrap">
-                                <select wire:model="stockOperation" class="px-3 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500/20">
+                                <select wire:model="stockOperation" class="px-3 py-2.5 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-white font-medium focus:ring-2 focus:ring-emerald-500/20">
                                     <option value="add">Adicionar (+)</option>
                                     <option value="remove">Remover (−)</option>
                                     <option value="set">Definir valor</option>
                                 </select>
                                 @if($stockOperation === 'set')
-                                <input type="number" wire:model="stockSetValue" min="0" class="w-24 px-3 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-sm text-center font-bold" />
+                                <input type="number" wire:model="stockSetValue" min="0" class="w-24 px-3 py-2.5 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-sm text-center font-black" />
                                 @else
-                                <input type="number" wire:model="stockDelta" min="1" class="w-24 px-3 py-2 rounded-lg border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-sm text-center font-bold" />
+                                <input type="number" wire:model="stockDelta" min="1" class="w-24 px-3 py-2.5 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-800 text-sm text-center font-black" />
                                 @endif
-                                <button wire:click="updateStock" wire:loading.attr="disabled" wire:target="updateStock" class="px-5 py-2 rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-md transition-all hover:scale-105 flex items-center gap-2">
+                                <button wire:click="updateStock" wire:loading.attr="disabled" wire:target="updateStock" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold text-sm shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 flex items-center gap-2">
                                     <i wire:loading.remove wire:target="updateStock" class="fas fa-check"></i>
                                     <i wire:loading wire:target="updateStock" class="fas fa-spinner fa-spin"></i>
                                     Salvar
                                 </button>
                             </div>
-                            <p class="text-xs text-emerald-600 dark:text-emerald-500 mt-2">Estoque atual: <strong>{{ $foundProduct['stock_quantity'] }} un.</strong></p>
+                            <p class="text-xs text-emerald-600 dark:text-emerald-500 mt-2.5 font-semibold"><i class="fas fa-info-circle mr-1"></i>Estoque atual: <strong class="font-black">{{ $foundProduct['stock_quantity'] }} un.</strong></p>
                         </div>
                         @endif
                     </div>
                 </div>
                 @endif
 
-                {{-- ========== ONLINE RESULT ========== --}}
+                {{-- ═══ ZONA E — RESULTADO ONLINE ═══ --}}
                 @if($onlineResult)
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border-2 border-blue-400/50 dark:border-blue-600/50 shadow-lg shadow-blue-500/5 overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(59,130,246,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4 sm:p-5">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                                <p class="text-[10px] font-bold text-blue-500/70 uppercase tracking-[0.15em]">INFORMAÇÕES ONLINE</p>
-                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{{ $onlineResult['source'] }}</span>
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border-2 border-blue-400/40 dark:border-blue-600/40 shadow-xl shadow-blue-500/8 overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(59,130,246,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                    <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-blue-300/30 dark:border-blue-700/30 rounded-br-xl" style="background:linear-gradient(to right,rgba(59,130,246,.07),transparent)">
+                        <span class="text-[9px] font-black tracking-[0.3em] text-blue-500/60 dark:text-blue-400/50 uppercase">ZONA E · DADOS ONLINE</span>
+                    </div>
+                    <div class="relative p-4 sm:p-5 pt-9">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+                                    <i class="fas fa-globe text-white text-sm"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-black text-slate-800 dark:text-white">Informações Online</p>
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{{ $onlineResult['source'] }}</span>
+                                </div>
                             </div>
                             @if($foundProduct)
-                            <button wire:click="applyOnlineData" wire:loading.attr="disabled" wire:target="applyOnlineData" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-lg shadow-md transition-all hover:scale-105 flex items-center gap-1.5">
+                            <button wire:click="applyOnlineData" wire:loading.attr="disabled" wire:target="applyOnlineData" class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 rounded-xl shadow-lg shadow-blue-500/25 transition-all hover:scale-105 flex items-center gap-1.5">
                                 <i wire:loading.remove wire:target="applyOnlineData" class="fas fa-download"></i>
                                 <i wire:loading wire:target="applyOnlineData" class="fas fa-spinner fa-spin"></i>
                                 Aplicar
@@ -420,34 +484,34 @@
                         </div>
                         <div class="flex flex-col sm:flex-row items-start gap-4">
                             @if($onlineResult['image_url'])
-                            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-700 border border-blue-200 dark:border-blue-800">
+                            <div class="w-24 h-24 rounded-2xl overflow-hidden flex-shrink-0 bg-slate-100 dark:bg-slate-700 border-2 border-blue-200 dark:border-blue-800 shadow-lg">
                                 <img src="{{ $onlineResult['image_url'] }}" alt="Produto" class="w-full h-full object-contain" />
                             </div>
                             @endif
-                            <div class="flex-1 min-w-0 space-y-2">
+                            <div class="flex-1 min-w-0 space-y-3">
                                 @if($onlineResult['name'])
                                 <div>
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold">Nome</p>
-                                    <p class="text-sm font-semibold text-slate-800 dark:text-white">{{ $onlineResult['name'] }}</p>
+                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider">Nome</p>
+                                    <p class="text-sm font-bold text-slate-800 dark:text-white">{{ $onlineResult['name'] }}</p>
                                 </div>
                                 @endif
-                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                                     @if($onlineResult['brand'])
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 uppercase font-bold"><i class="fas fa-building mr-1"></i>Marca</p>
-                                        <p class="text-sm text-slate-700 dark:text-slate-300">{{ $onlineResult['brand'] }}</p>
+                                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-200/50 dark:border-slate-700/40">
+                                        <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-0.5"><i class="fas fa-building mr-1"></i>Marca</p>
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $onlineResult['brand'] }}</p>
                                     </div>
                                     @endif
                                     @if($onlineResult['categories'])
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 uppercase font-bold"><i class="fas fa-folder mr-1"></i>Categorias</p>
+                                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-200/50 dark:border-slate-700/40">
+                                        <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-0.5"><i class="fas fa-folder mr-1"></i>Categoria</p>
                                         <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-2">{{ $onlineResult['categories'] }}</p>
                                     </div>
                                     @endif
                                     @if($onlineResult['quantity'])
-                                    <div>
-                                        <p class="text-[10px] text-slate-400 uppercase font-bold"><i class="fas fa-weight-hanging mr-1"></i>Quantidade</p>
-                                        <p class="text-sm text-slate-700 dark:text-slate-300">{{ $onlineResult['quantity'] }}</p>
+                                    <div class="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-200/50 dark:border-slate-700/40">
+                                        <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-0.5"><i class="fas fa-weight-hanging mr-1"></i>Qtd.</p>
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-300">{{ $onlineResult['quantity'] }}</p>
                                     </div>
                                     @endif
                                     @if($onlineResult['countries'])
@@ -465,27 +529,27 @@
                                 </div>
                                 @if($onlineResult['description'])
                                 <div>
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold">Descrição</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{{ $onlineResult['description'] }}</p>
+                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider">Descrição</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mt-0.5">{{ $onlineResult['description'] }}</p>
                                 </div>
                                 @endif
                                 @if($onlineResult['ingredients'])
                                 <div>
-                                    <p class="text-[10px] text-slate-400 uppercase font-bold">Ingredientes</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">{{ $onlineResult['ingredients'] }}</p>
+                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider">Ingredientes</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3 mt-0.5">{{ $onlineResult['ingredients'] }}</p>
                                 </div>
                                 @endif
                                 <p class="text-[10px] text-slate-400 font-mono"><i class="fas fa-barcode mr-1"></i>{{ $onlineResult['barcode'] }}</p>
                             </div>
                         </div>
                         @if(!$foundProduct)
-                        <div class="mt-4 p-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                            <p class="text-xs font-semibold text-amber-700 dark:text-amber-400 mb-2"><i class="fas fa-lightbulb mr-1"></i>Produto não cadastrado.</p>
+                        <div class="mt-4 p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                            <p class="text-xs font-bold text-amber-700 dark:text-amber-400 mb-2"><i class="fas fa-lightbulb mr-1"></i>Produto não cadastrado localmente.</p>
                             <div class="flex flex-wrap gap-2">
-                                <a href="{{ route('products.create') }}" class="px-3 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg shadow-md hover:scale-105 transition-all flex items-center gap-1.5">
+                                <a href="{{ route('products.create') }}" class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg hover:scale-105 transition-all flex items-center gap-1.5">
                                     <i class="fas fa-plus"></i> Cadastrar
                                 </a>
-                                <button wire:click="setMode('vincular')" class="px-3 py-1.5 text-xs font-bold text-cyan-700 bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 rounded-lg transition-all flex items-center gap-1.5">
+                                <button wire:click="setMode('vincular')" class="px-4 py-2 text-xs font-bold text-cyan-700 bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 rounded-xl transition-all flex items-center gap-1.5">
                                     <i class="fas fa-link"></i> Vincular
                                 </button>
                             </div>
@@ -496,7 +560,7 @@
                 @endif
 
                 @if($onlineError)
-                <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm p-4">
+                <div class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm p-4">
                     <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
                         <i class="fas fa-globe text-slate-400"></i>
                         <span>{{ $onlineError }}</span>
@@ -507,29 +571,38 @@
                 </div>
                 @endif
 
-                {{-- ========== LINK MODE ========== --}}
+                {{-- ═══ ZONA F — VINCULAR ═══ --}}
                 @if($activeMode === 'vincular')
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-lg shadow-cyan-500/5 overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(6,182,212,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4 sm:p-5">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="w-1.5 h-1.5 rounded-full bg-cyan-500"></span>
-                            <h3 class="font-black text-slate-800 dark:text-white text-sm">Vincular Código</h3>
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-xl shadow-cyan-500/8 overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(6,182,212,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                    <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-cyan-300/30 dark:border-cyan-700/30 rounded-br-xl" style="background:linear-gradient(to right,rgba(6,182,212,.07),transparent)">
+                        <span class="text-[9px] font-black tracking-[0.3em] text-cyan-500/60 dark:text-cyan-400/50 uppercase">ZONA F · VINCULAR CÓDIGO</span>
+                    </div>
+                    <div class="relative p-4 sm:p-5 pt-9">
+                        <div class="flex items-center gap-3 mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                                <i class="fas fa-link text-white"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-black text-slate-800 dark:text-white text-sm">Vincular Código de Barras</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Escaneie e selecione o produto para vincular</p>
+                            </div>
                         </div>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">Escaneie o código e selecione o produto para vincular.</p>
 
                         @if($lastScannedBarcode)
-                        <div class="mb-4 p-3 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 flex items-center gap-3">
-                            <i class="fas fa-barcode text-cyan-600 dark:text-cyan-400 text-xl"></i>
+                        <div class="mb-4 p-4 rounded-2xl border border-cyan-200 dark:border-cyan-800 flex items-center gap-3" style="background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(59,130,246,.06))">
+                            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
+                                <i class="fas fa-barcode text-white text-lg"></i>
+                            </div>
                             <div>
-                                <p class="text-[10px] text-cyan-600 dark:text-cyan-400 uppercase font-bold">Código escaneado</p>
-                                <p class="text-lg font-black font-mono text-slate-800 dark:text-white">{{ $lastScannedBarcode }}</p>
+                                <p class="text-[9px] text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider">Código escaneado</p>
+                                <p class="text-xl font-black font-mono text-slate-800 dark:text-white">{{ $lastScannedBarcode }}</p>
                             </div>
                         </div>
                         @else
-                        <div class="mb-4 p-4 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-center">
-                            <i class="fas fa-arrow-up text-slate-400 text-xl mb-2"></i>
-                            <p class="text-sm text-slate-500 dark:text-slate-400">Escaneie um código primeiro</p>
+                        <div class="mb-4 p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border-2 border-dashed border-slate-200 dark:border-slate-700 text-center">
+                            <i class="fas fa-barcode text-slate-300 dark:text-slate-600 text-3xl mb-2"></i>
+                            <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Escaneie um código primeiro</p>
                         </div>
                         @endif
 
@@ -606,24 +679,29 @@
                 </div>
                 @endif
 
-                {{-- ========== INVENTORY PANEL ========== --}}
+                {{-- ═══ ZONA G — INVENTÁRIO ═══ --}}
                 @if($activeMode === 'inventario' && count($inventoryItems) > 0)
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-orange-300/60 dark:border-orange-700/60 shadow-sm overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(249,115,22,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4 sm:p-5">
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-orange-300/60 dark:border-orange-700/60 shadow-lg overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(249,115,22,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                    <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-orange-300/30 dark:border-orange-700/30 rounded-br-xl" style="background:linear-gradient(to right,rgba(249,115,22,.07),transparent)">
+                        <span class="text-[9px] font-black tracking-[0.3em] text-orange-500/60 dark:text-orange-400/50 uppercase">ZONA G · INVENTÁRIO</span>
+                    </div>
+                    <div class="relative p-4 sm:p-5 pt-9">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                                    <i class="fas fa-clipboard-list text-white text-sm"></i>
+                                </div>
                                 <div>
-                                    <h3 class="font-black text-slate-800 dark:text-white text-sm">Inventário</h3>
+                                    <h3 class="font-black text-slate-800 dark:text-white text-sm">Inventário em Andamento</h3>
                                     <p class="text-xs text-slate-500">{{ count($inventoryItems) }} produto(s)</p>
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button wire:click="clearInventory" wire:confirm="Limpar inventário?" class="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-lg transition-all flex items-center gap-1">
-                                    <i class="fas fa-trash-can"></i> Limpar
+                                <button wire:click="clearInventory" wire:confirm="Limpar inventário?" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-xl transition-all flex items-center gap-1">
+                                    <i class="fas fa-trash-can"></i>
                                 </button>
-                                <button wire:click="applyInventory" wire:confirm="Aplicar ao estoque?" wire:loading.attr="disabled" wire:target="applyInventory" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-600 rounded-lg shadow-md transition-all hover:scale-105 flex items-center gap-1">
+                                <button wire:click="applyInventory" wire:confirm="Aplicar ao estoque?" wire:loading.attr="disabled" wire:target="applyInventory" class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl shadow-lg shadow-orange-500/25 transition-all hover:scale-105 flex items-center gap-1.5">
                                     <i wire:loading.remove wire:target="applyInventory" class="fas fa-check"></i>
                                     <i wire:loading wire:target="applyInventory" class="fas fa-spinner fa-spin"></i>
                                     Aplicar
@@ -632,13 +710,13 @@
                         </div>
                         <div class="space-y-2 max-h-64 overflow-y-auto">
                             @foreach($inventoryItems as $bcode => $item)
-                            <div class="flex items-center gap-3 py-2 px-3 rounded-xl bg-orange-50/60 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30">
+                            <div class="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-orange-50/60 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-900/30">
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">{{ $item['product']['name'] }}</p>
-                                    <p class="text-[10px] text-slate-500 font-mono"><i class="fas fa-barcode mr-1"></i>{{ $bcode }}</p>
+                                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate">{{ $item['product']['name'] }}</p>
+                                    <p class="text-[10px] text-slate-500 font-mono mt-0.5"><i class="fas fa-barcode mr-1"></i>{{ $bcode }}</p>
                                 </div>
-                                <input type="number" min="0" value="{{ $item['qty'] }}" wire:change="updateInventoryQty('{{ $bcode }}', $event.target.value)" class="w-20 px-2 py-1 rounded-lg border border-orange-300 dark:border-orange-700 bg-white dark:bg-slate-800 text-sm text-center font-bold" />
-                                <span class="text-xs text-slate-400">un.</span>
+                                <input type="number" min="0" value="{{ $item['qty'] }}" wire:change="updateInventoryQty('{{ $bcode }}', $event.target.value)" class="w-20 px-2 py-1.5 rounded-xl border border-orange-300 dark:border-orange-700 bg-white dark:bg-slate-800 text-sm text-center font-black" />
+                                <span class="text-xs text-slate-400 font-medium">un.</span>
                                 <button wire:click="removeFromInventory('{{ $bcode }}')" class="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all">
                                     <i class="fas fa-xmark"></i>
                                 </button>
@@ -649,149 +727,196 @@
                 </div>
                 @endif
 
-                {{-- ========== SALE PANEL ========== --}}
+                {{-- ═══ ZONA H — VENDA ═══ --}}
                 @if($activeMode === 'venda' && count($saleItems) > 0)
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-purple-300/60 dark:border-purple-700/60 shadow-sm overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(168,85,247,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,.5) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4 sm:p-5">
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-purple-300/60 dark:border-purple-700/60 shadow-lg overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(168,85,247,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                    <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-purple-300/30 dark:border-purple-700/30 rounded-br-xl" style="background:linear-gradient(to right,rgba(168,85,247,.07),transparent)">
+                        <span class="text-[9px] font-black tracking-[0.3em] text-purple-500/60 dark:text-purple-400/50 uppercase">ZONA H · VENDA RÁPIDA</span>
+                    </div>
+                    <div class="relative p-4 sm:p-5 pt-9">
                         <div class="flex items-center justify-between mb-4">
-                            <div class="flex items-center gap-2">
-                                <span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                    <i class="fas fa-cart-shopping text-white text-sm"></i>
+                                </div>
                                 <div>
-                                    <h3 class="font-black text-slate-800 dark:text-white text-sm">Venda</h3>
+                                    <h3 class="font-black text-slate-800 dark:text-white text-sm">Itens da Venda</h3>
                                     <p class="text-xs text-slate-500">{{ $this->saleItemsCount }} item(s) · <strong class="text-purple-600 dark:text-purple-400">R$ {{ number_format($this->saleTotal, 2, ',', '.') }}</strong></p>
                                 </div>
                             </div>
                             <div class="flex gap-2">
-                                <button wire:click="clearSale" wire:confirm="Limpar venda?" class="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-lg transition-all flex items-center gap-1">
+                                <button wire:click="clearSale" wire:confirm="Limpar venda?" class="px-3 py-2 text-xs font-bold text-red-600 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 rounded-xl transition-all">
                                     <i class="fas fa-trash-can"></i>
                                 </button>
-                                <a href="{{ route('sales.create') }}" class="px-4 py-1.5 text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-lg shadow-md transition-all hover:scale-105 flex items-center gap-1">
-                                    <i class="fas fa-arrow-right"></i> Ir para Venda
+                                <a href="{{ route('sales.create') }}" class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl shadow-lg shadow-purple-500/25 transition-all hover:scale-105 flex items-center gap-1.5">
+                                    <i class="fas fa-arrow-right"></i> Venda
                                 </a>
                             </div>
                         </div>
                         <div class="space-y-2 max-h-64 overflow-y-auto">
                             @foreach($saleItems as $bcode => $item)
-                            <div class="flex items-center gap-3 py-2 px-3 rounded-xl bg-purple-50/60 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30">
+                            <div class="flex items-center gap-3 py-2.5 px-3 rounded-xl bg-purple-50/60 dark:bg-purple-900/10 border border-purple-100 dark:border-purple-900/30">
                                 <div class="flex-1 min-w-0">
-                                    <p class="text-sm font-semibold text-slate-800 dark:text-white truncate">{{ $item['product']['name'] }}</p>
-                                    <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold">R$ {{ number_format($item['product']['price_sale'], 2, ',', '.') }}</p>
+                                    <p class="text-sm font-bold text-slate-800 dark:text-white truncate">{{ $item['product']['name'] }}</p>
+                                    <p class="text-xs text-emerald-600 dark:text-emerald-400 font-bold mt-0.5">R$ {{ number_format($item['product']['price_sale'], 2, ',', '.') }}</p>
                                 </div>
                                 <div class="flex items-center gap-1">
-                                    <button wire:click="updateSaleQty('{{ $bcode }}', {{ $item['qty'] - 1 }})" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all font-bold text-sm">−</button>
-                                    <span class="w-8 text-center font-bold text-sm text-slate-800 dark:text-white">{{ $item['qty'] }}</span>
-                                    <button wire:click="updateSaleQty('{{ $bcode }}', {{ $item['qty'] + 1 }})" class="w-7 h-7 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all font-bold text-sm">+</button>
+                                    <button wire:click="updateSaleQty('{{ $bcode }}', {{ $item['qty'] - 1 }})" class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 transition-all font-bold text-sm text-slate-600 dark:text-slate-300">−</button>
+                                    <span class="w-8 text-center font-black text-sm text-slate-800 dark:text-white">{{ $item['qty'] }}</span>
+                                    <button wire:click="updateSaleQty('{{ $bcode }}', {{ $item['qty'] + 1 }})" class="w-8 h-8 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 transition-all font-bold text-sm text-slate-600 dark:text-slate-300">+</button>
                                 </div>
-                                <p class="text-sm font-black text-purple-600 dark:text-purple-400 w-24 text-right">R$ {{ number_format($item['product']['price_sale'] * $item['qty'], 2, ',', '.') }}</p>
+                                <p class="text-sm font-black text-purple-600 dark:text-purple-400 w-20 text-right">R$ {{ number_format($item['product']['price_sale'] * $item['qty'], 2, ',', '.') }}</p>
                                 <button wire:click="removeFromSale('{{ $bcode }}')" class="w-7 h-7 flex items-center justify-center rounded-lg text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 transition-all">
                                     <i class="fas fa-xmark"></i>
                                 </button>
                             </div>
                             @endforeach
                         </div>
-                        <div class="mt-4 pt-4 border-t border-purple-200 dark:border-purple-800 flex justify-between items-center">
-                            <span class="text-slate-600 dark:text-slate-400 font-medium"><i class="fas fa-receipt mr-1"></i>Total</span>
-                            <span class="text-2xl font-black text-purple-600 dark:text-purple-400">R$ {{ number_format($this->saleTotal, 2, ',', '.') }}</span>
+                        <div class="mt-4 pt-4 border-t border-purple-200 dark:border-purple-800/60 flex justify-between items-center">
+                            <span class="text-sm font-bold text-slate-600 dark:text-slate-400"><i class="fas fa-receipt mr-1.5 text-purple-500"></i>Total da Venda</span>
+                            <span class="text-3xl font-black text-purple-600 dark:text-purple-400">R$ {{ number_format($this->saleTotal, 2, ',', '.') }}</span>
                         </div>
                     </div>
                 </div>
                 @endif
-            </div>
+                </div>{{-- end main column --}}
 
-            {{-- ========== RIGHT COLUMN (1/3) ========== --}}
-            <div class="space-y-4">
+                {{-- ─────────── SIDEBAR (right 1/3) ─────────── --}}
+                <div class="space-y-4">
 
-                {{-- Guide --}}
-                <div class="relative bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 dark:from-indigo-500/15 dark:via-purple-500/15 dark:to-pink-500/15 rounded-2xl border border-indigo-200/50 dark:border-indigo-700/50 overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.03]" style="background-image: linear-gradient(rgba(99,102,241,.5) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.5) 1px, transparent 1px); background-size: 16px 16px;"></div>
-                    <div class="relative p-4">
-                        <p class="text-[10px] font-bold text-indigo-500/70 dark:text-indigo-400/70 uppercase tracking-[0.15em] mb-3 flex items-center gap-1.5">
-                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
-                            COMO USAR
-                        </p>
-                        <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-400">
-                            <li class="flex items-start gap-2">
-                                <span class="w-5 h-5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">1</span>
-                                <span>Selecione o <strong>modo</strong></span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="w-5 h-5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">2</span>
-                                <span>Escolha como ler:</span>
-                            </li>
-                        </ul>
-                        <div class="ml-7 mt-1 space-y-1 text-[10px] text-slate-500">
-                            <p><i class="fas fa-keyboard text-slate-400 w-3.5 text-center mr-1"></i><strong>Digitar</strong> — Leitor USB ou teclado</p>
-                            <p><i class="fas fa-camera text-indigo-500 w-3.5 text-center mr-1"></i><strong>Câmera</strong> — Abre tela cheia automática</p>
-                            <p><i class="fas fa-image text-purple-500 w-3.5 text-center mr-1"></i><strong>Imagem</strong> — Envie foto com código</p>
+                    {{-- ═══ ZONA S1 — ESTATÍSTICAS ═══ --}}
+                    @php $stats = $this->stats; @endphp
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.028;"></div>
+                        <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-slate-200/50 dark:border-slate-700/50 rounded-br-xl" style="background:linear-gradient(to right,rgba(99,102,241,.06),transparent)">
+                            <span class="text-[9px] font-black tracking-[0.3em] text-indigo-500/50 dark:text-indigo-400/40 uppercase">ZONA S1 · ESTATÍSTICAS</span>
                         </div>
-                        <ul class="space-y-2 text-xs text-slate-600 dark:text-slate-400 mt-2">
-                            <li class="flex items-start gap-2">
-                                <span class="w-5 h-5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">3</span>
-                                <span>Busca <strong>local</strong> + <strong>online</strong> automática</span>
-                            </li>
-                            <li class="flex items-start gap-2">
-                                <span class="w-5 h-5 rounded-md bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-[10px] font-bold flex items-center justify-center flex-shrink-0 mt-0.5">4</span>
-                                <span>Execute a <strong>ação</strong> do modo</span>
-                            </li>
-                        </ul>
-                        <div class="mt-3 pt-3 border-t border-indigo-200/40 dark:border-indigo-800/40">
-                            <p class="text-[10px] text-indigo-500 dark:text-indigo-400 font-bold mb-1.5 uppercase tracking-wider">Modos</p>
-                            <ul class="text-[10px] text-slate-500 space-y-1">
-                                <li><i class="fas fa-search text-blue-500 w-3.5 text-center mr-1"></i><strong>Consultar</strong> — Dados completos</li>
-                                <li><i class="fas fa-tag text-pink-500 w-3.5 text-center mr-1"></i><strong>Ver Preço</strong> — Preço + margem</li>
-                                <li><i class="fas fa-boxes-stacked text-emerald-500 w-3.5 text-center mr-1"></i><strong>Estoque</strong> — Gerenciar</li>
-                                <li><i class="fas fa-clipboard-list text-orange-500 w-3.5 text-center mr-1"></i><strong>Inventário</strong> — Contagem</li>
-                                <li><i class="fas fa-cart-shopping text-purple-500 w-3.5 text-center mr-1"></i><strong>Venda</strong> — Lista</li>
-                                <li><i class="fas fa-link text-cyan-500 w-3.5 text-center mr-1"></i><strong>Vincular</strong> — Associar</li>
-                            </ul>
+                        <div class="relative p-4 pt-9">
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div class="rounded-2xl p-3.5 text-center border border-slate-200/60 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-800/60">
+                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">Total</p>
+                                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">{{ $stats['total'] }}</p>
+                                </div>
+                                <div class="rounded-2xl p-3.5 text-center border border-emerald-200/60 dark:border-emerald-800/40" style="background:linear-gradient(135deg,rgb(240,253,244),rgb(209,250,229))">
+                                    <p class="text-[9px] text-emerald-600 uppercase font-black tracking-wider mb-1">Com Código</p>
+                                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['with_barcode'] }}</p>
+                                </div>
+                                <div class="rounded-2xl p-3.5 text-center border border-amber-200/60 dark:border-amber-800/40" style="background:linear-gradient(135deg,rgb(255,251,235),rgb(254,243,199))">
+                                    <p class="text-[9px] text-amber-600 uppercase font-black tracking-wider mb-1">Sem Código</p>
+                                    <p class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ $stats['without_barcode'] }}</p>
+                                </div>
+                                <div class="rounded-2xl p-3.5 text-center border border-indigo-200/60 dark:border-indigo-800/40" style="background:linear-gradient(135deg,rgb(238,242,255),rgb(224,231,255))">
+                                    <p class="text-[9px] text-indigo-600 uppercase font-black tracking-wider mb-1">Cobertura</p>
+                                    <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $stats['percentage'] }}%</p>
+                                </div>
+                            </div>
+                            <div class="mt-3.5 h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700" style="width: {{ $stats['percentage'] }}%"></div>
+                            </div>
+                            <p class="text-[9px] text-center text-slate-400 mt-1.5 font-semibold">{{ $stats['with_barcode'] }} de {{ $stats['total'] }} com código</p>
                         </div>
                     </div>
-                </div>
 
-                {{-- History --}}
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
-                    <div class="absolute inset-0 opacity-[0.02]" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px;"></div>
-                    <div class="relative p-4">
-                        <div class="flex items-center justify-between mb-3">
-                            <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.15em] flex items-center gap-1.5">
-                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
-                                HISTÓRICO
-                            </p>
-                            @if(count($scanHistory) > 0)
-                            <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1"><i class="fas fa-trash-can"></i> Limpar</button>
+                    {{-- ═══ ZONA S2 — GUIA RÁPIDO ═══ --}}
+                    <div class="relative backdrop-blur-md rounded-2xl border border-indigo-200/50 dark:border-indigo-700/50 shadow-lg overflow-hidden" style="background:linear-gradient(135deg,rgba(99,102,241,.05),rgba(168,85,247,.04),rgba(236,72,153,.03))">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 16px 16px; opacity: 0.03;"></div>
+                        <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-indigo-300/20 dark:border-indigo-700/30 rounded-br-xl" style="background:linear-gradient(to right,rgba(99,102,241,.08),transparent)">
+                            <span class="text-[9px] font-black tracking-[0.3em] text-indigo-500/50 dark:text-indigo-400/40 uppercase">ZONA S2 · GUIA RÁPIDO</span>
+                        </div>
+                        <div class="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-indigo-300/20 dark:border-indigo-600/20 rounded-tr pointer-events-none"></div>
+                        <div class="relative p-4 pt-9">
+                            <div class="space-y-3">
+                                <div class="flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-indigo-500/30">1</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Selecione o modo</p>
+                                        <p class="text-[10px] text-slate-400">Consultar, Preço, Estoque...</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-indigo-500/30">2</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Escolha a entrada</p>
+                                        <div class="mt-1 space-y-0.5">
+                                            <p class="text-[10px] text-slate-400"><i class="fas fa-keyboard text-slate-400 w-3 mr-1"></i><strong>Digitar</strong> — USB/teclado</p>
+                                            <p class="text-[10px] text-slate-400"><i class="fas fa-camera text-indigo-500 w-3 mr-1"></i><strong>Câmera</strong> — Tela cheia auto</p>
+                                            <p class="text-[10px] text-slate-400"><i class="fas fa-image text-purple-500 w-3 mr-1"></i><strong>Imagem</strong> — Upload foto</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start gap-2.5">
+                                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-indigo-500/30">3</div>
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Resultados automáticos</p>
+                                        <p class="text-[10px] text-slate-400">Busca local + online simultânea</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-indigo-200/40 dark:border-indigo-800/40">
+                                <p class="text-[9px] text-indigo-500 dark:text-indigo-400 font-black mb-2 uppercase tracking-widest">6 Modos</p>
+                                <div class="grid grid-cols-2 gap-1">
+                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-search text-blue-500 w-3"></i><strong>Consultar</strong></p>
+                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-tag text-pink-500 w-3"></i><strong>Ver Preço</strong></p>
+                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-boxes-stacked text-emerald-500 w-3"></i><strong>Estoque</strong></p>
+                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-clipboard-list text-orange-500 w-3"></i><strong>Inventário</strong></p>
+                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-cart-shopping text-purple-500 w-3"></i><strong>Venda</strong></p>
+                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-link text-cyan-500 w-3"></i><strong>Vincular</strong></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- ═══ ZONA S3 — HISTÓRICO ═══ --}}
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
+                        <div class="absolute top-0 left-0 px-3 py-1.5 border-b border-r border-slate-200/50 dark:border-slate-700/50 rounded-br-xl" style="background:linear-gradient(to right,rgba(100,116,139,.05),transparent)">
+                            <span class="text-[9px] font-black tracking-[0.3em] text-slate-400/60 dark:text-slate-500/50 uppercase">ZONA S3 · HISTÓRICO</span>
+                        </div>
+                        <div class="relative p-4 pt-9">
+                            <div class="flex items-center justify-between mb-3">
+                                @if(count($scanHistory) > 0)
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">{{ count($scanHistory) }} leitura(s)</span>
+                                <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1">
+                                    <i class="fas fa-trash-can"></i> Limpar
+                                </button>
+                                @endif
+                            </div>
+                            @if(count($scanHistory) === 0)
+                            <div class="text-center py-10">
+                                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-3">
+                                    <i class="fas fa-list-check text-2xl text-slate-300 dark:text-slate-600"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
+                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
+                            </div>
+                            @else
+                            <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                                @foreach($scanHistory as $entry)
+                                <div class="flex items-start gap-2.5 p-2.5 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
+                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
+                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[10px]"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        @if($entry['found'])
+                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
+                                        @else
+                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
+                                        @endif
+                                        <p class="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{{ $entry['code'] }}</p>
+                                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $entry['scanned_at'] }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
                             @endif
                         </div>
-                        @if(count($scanHistory) === 0)
-                        <div class="text-center py-8 text-slate-400 dark:text-slate-600">
-                            <i class="fas fa-list-check text-2xl mb-2 opacity-30"></i>
-                            <p class="text-xs">Nenhuma leitura</p>
-                        </div>
-                        @else
-                        <div class="space-y-1.5 max-h-80 overflow-y-auto pr-1">
-                            @foreach($scanHistory as $entry)
-                            <div class="flex items-center gap-2 px-3 py-2 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100/80 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100/80 dark:border-red-900/30' }}">
-                                <div class="w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 {{ $entry['found'] ? 'bg-emerald-500' : 'bg-red-500' }}">
-                                    <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[8px]"></i>
-                                </div>
-                                <div class="flex-1 min-w-0">
-                                    @if($entry['found'])
-                                    <p class="text-[11px] font-semibold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
-                                    @else
-                                    <p class="text-[11px] font-semibold text-red-600 dark:text-red-400">Não encontrado</p>
-                                    @endif
-                                    <p class="text-[9px] text-slate-400 font-mono truncate">{{ $entry['code'] }}</p>
-                                </div>
-                                <span class="text-[9px] text-slate-400 flex-shrink-0">{{ $entry['scanned_at'] }}</span>
-                            </div>
-                            @endforeach
-                        </div>
-                        @endif
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
+                </div>{{-- end sidebar --}}
+            </div>{{-- end main grid --}}
+        </div>{{-- end content wrapper --}}
+    </div>{{-- end main wrapper --}}
 
     {{-- ========== STYLES ========== --}}
     <style>
