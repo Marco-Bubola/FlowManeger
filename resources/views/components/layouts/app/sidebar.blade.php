@@ -319,7 +319,17 @@
                                     <div class="{{ Request::is('products') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
 
-                                                                <a href="{{ url('clients') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('clients') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                                                <a href="{{ route('products.barcode-scanner') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/barcode-scanner') ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 text-indigo-600 dark:text-indigo-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/barcode-scanner') ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : '' }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h2M4 10h2M4 14h2M4 18h2M8 6h2M8 18h2M12 6h2M12 18h2M16 6h8M16 10h8M16 14h8M16 18h8"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Scanner de Barras</span>
+                                    <div class="{{ Request::is('products/barcode-scanner') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ url('clients') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('clients') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('clients') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -1101,7 +1111,8 @@
 
         <!-- Toggle Script -->
         <script>
-            const TABLET_NAV_PREF_KEY = 'flowmanager:tablet-nav-mode';
+            window.TABLET_NAV_PREF_KEY = window.TABLET_NAV_PREF_KEY || 'flowmanager:tablet-nav-mode';
+            var TABLET_NAV_PREF_KEY = window.TABLET_NAV_PREF_KEY;
 
             function getTabletNavMode() {
                 const mode = localStorage.getItem(TABLET_NAV_PREF_KEY);
@@ -1228,6 +1239,13 @@
             }
 
             function initSidebar() {
+                if (window.__flowmanagerSidebarInitialized) {
+                    applyTabletNavMode();
+                    return;
+                }
+
+                window.__flowmanagerSidebarInitialized = true;
+
                 const toggle = document.getElementById('sidebarToggle');
                 const sidebar = document.getElementById('modernSidebar');
 
@@ -1286,7 +1304,7 @@
             });
 
             document.addEventListener('DOMContentLoaded', initSidebar);
-            document.addEventListener('livewire:navigate.hoverd', initSidebar);
+            document.addEventListener('livewire:navigated', initSidebar);
             // Fechar sheets ANTES da navegação (garante que não persistam na próxima página)
             document.addEventListener('livewire:navigate.hover', function() {
                 closeFabSheet();
