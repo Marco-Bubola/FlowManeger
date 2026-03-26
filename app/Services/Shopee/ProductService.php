@@ -248,6 +248,35 @@ class ProductService extends ShopeeService
         }
     }
 
+    /**
+     * Busca os canais de logística habilitados para a loja.
+     * Endpoint: GET /api/v2/logistics/get_channel_list
+     *
+     * @param int $userId
+     * @return array Lista de canais com logistic_id, logistic_name, enabled
+     */
+    public function getLogisticsChannels(int $userId): array
+    {
+        try {
+            $token    = $this->getActiveToken($userId);
+            $path     = '/api/v2/logistics/get_channel_list';
+            $response = $this->get($path, [], $token);
+
+            if (!empty($response['error'])) {
+                throw new Exception($response['message'] ?? $response['error']);
+            }
+
+            return $response['response']['logistics_channel_list'] ?? [];
+
+        } catch (Exception $e) {
+            Log::warning('ShopeeProductService: erro ao buscar canais de logística', [
+                'user_id' => $userId,
+                'error'   => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
+
     // =========================================================================
     // Helpers internos
     // =========================================================================
@@ -267,21 +296,34 @@ class ProductService extends ShopeeService
             'description'      => $publication->description ?? '',
             'item_name'        => $publication->title,
             'item_status'      => 'NORMAL',
-            'item_sku'         => 'FLW-' . $publication->id,
+            'item_sku'         => 'FLW-' . $publication->user_id . '-' . $publication->id,
             'condition'        => $publication->condition ?? 'NEW',
             'days_to_ship'     => $publication->days_to_ship,
             'category_id'      => (int) $publication->shopee_category_id,
             'image'            => ['image_url_list' => array_column($pictures, 'url')],
-            'weight'           => round($publication->weight_grams / 1000, 3), // Shopee usa KG
-            'logistic_info'    => [
-                [
-                    'logistic_id'   => 0, // preenchido via configuração da loja
-                    'enabled'       => true,
-                    'size_id'       => 0,
-                    'is_free'       => false,
-                ],
-            ],
+            'weight'           => round(max(1, $publication->weight_grams) / 1000, 3), // Shopee usa KG
         ];
+
+        // Buscar canais de logística reais da loja (obrigatório — logistic_id não pode ser 0)
+        $logisticChannels = $this->getLogisticsChannels($publication->user_id);
+        if (!empty($logisticChannels)) {
+            $payload['logistic_info'] = collect($logisticChannels)
+                ->filter(fn($ch) => ($ch['enabled'] ?? false))
+                ->map(fn($ch) => [
+                    'logistic_id' => (int) $ch['logistic_id'],
+                    'enabled'     => true,
+                    'is_free'     => false,
+                ])
+                ->values()
+                ->toArray();
+        } else {
+            // Fallback: sem logística configurada — a Shopee retornará erro descritivo
+            Log::warning('ShopeeProductService: nenhum canal de logística encontrado para a loja', [
+                'user_id'          => $publication->user_id,
+                'publication_id'   => $publication->id,
+            ]);
+            $payload['logistic_info'] = [];
+        }
 
         // Dimensões (opcional mas recomendado)
         if ($publication->length_cm && $publication->width_cm && $publication->height_cm) {
