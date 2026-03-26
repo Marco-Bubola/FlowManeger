@@ -650,6 +650,17 @@
                 <span>Produtos</span>
             </a>
 
+            <!-- Scanner de Barras -->
+            <a href="{{ route('products.barcode-scanner') }}" wire:navigate.hover
+               class="mobile-tab-item {{ Request::is('products/barcode-scanner') ? 'is-active' : '' }}">
+                <div class="tab-icon">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h2M4 10h2M4 14h2M4 18h2M8 6h2M8 18h2M12 6h2M12 18h2M16 6h8M16 10h8M16 14h8M16 18h8"></path>
+                    </svg>
+                </div>
+                <span>Scanner</span>
+            </a>
+
             <!-- ML: visível somente no iPad (768px+) -->
             <a href="{{ route('mercadolivre.products') }}" wire:navigate.hover
                class="mobile-tab-item tab-ipad-only {{ Request::is('mercadolivre*') ? 'is-active' : '' }}">
@@ -953,6 +964,12 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
                         </div>
                         <span class="more-app-label">Produtos</span>
+                    </a>
+                    <a href="{{ route('products.barcode-scanner') }}" class="more-app-card {{ Request::is('products/barcode-scanner') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#6366f1,#4f46e5)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h2M4 10h2M4 14h2M4 18h2M8 6h2M8 18h2M12 6h2M12 18h2M16 6h8M16 10h8M16 14h8M16 18h8"></path></svg>
+                        </div>
+                        <span class="more-app-label">Scanner</span>
                     </a>
                     <a href="{{ url('categories') }}" class="more-app-card {{ Request::is('categories*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
