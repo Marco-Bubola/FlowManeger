@@ -44,6 +44,7 @@ class BarcodeScanner extends Component
     public ?array $onlineResult = null;
     public bool $onlineLoading = false;
     public ?string $onlineError = null;
+    public array $onlineDebug = [];
 
     // --- Modo Vincular ---
     public string $linkSearchTerm = '';
@@ -87,6 +88,7 @@ class BarcodeScanner extends Component
 
         $this->onlineResult = null;
         $this->onlineError = null;
+        $this->onlineDebug = [];
         $this->lastScannedBarcode = $code;
         $this->scanCount++;
         $this->detectedFormat = $this->detectBarcodeFormat($code);
@@ -157,22 +159,50 @@ class BarcodeScanner extends Component
         $this->onlineLoading = true;
         $this->onlineResult = null;
         $this->onlineError = null;
+        $this->onlineDebug = [];
+
+        $client = Http::acceptJson()
+            ->withHeaders([
+                'User-Agent' => 'FlowManager/1.0 BarcodeScanner',
+            ])
+            ->timeout(12)
+            ->connectTimeout(6);
 
         try {
-            // 1) Open Food Facts (gratuito, sem API key)
-            $response = Http::timeout(8)
-                ->connectTimeout(5)
-                ->get("https://world.openfoodfacts.org/api/v2/product/{$barcode}.json");
+            $sources = [
+                ['label' => 'Open Food Facts', 'url' => "https://world.openfoodfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
+                ['label' => 'Open Beauty Facts', 'url' => "https://world.openbeautyfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
+                ['label' => 'Open Products Facts', 'url' => "https://world.openproductsfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
+                ['label' => 'UPC Item DB', 'url' => 'https://api.upcitemdb.com/prod/trial/lookup', 'type' => 'upc-item-db'],
+            ];
 
-            if ($response->successful()) {
+            foreach ($sources as $source) {
+                $this->onlineDebug[] = 'Consultando ' . $source['label'];
+
+                $response = $source['type'] === 'upc-item-db'
+                    ? $client->get($source['url'], ['upc' => $barcode])
+                    : $client->get($source['url']);
+
+                $this->onlineDebug[] = $source['label'] . ' respondeu HTTP ' . $response->status();
+
+                if (! $response->successful()) {
+                    continue;
+                }
+
                 $data = $response->json();
-                if (($data['status'] ?? 0) == 1 && isset($data['product'])) {
+
+                if ($source['type'] === 'open-facts') {
+                    if (($data['status'] ?? 0) !== 1 || empty($data['product'])) {
+                        $this->onlineDebug[] = $source['label'] . ' não encontrou produto para o GTIN.';
+                        continue;
+                    }
+
                     $p = $data['product'];
                     $this->onlineResult = [
-                        'source'      => 'Open Food Facts',
+                        'source'      => $source['label'],
                         'name'        => $p['product_name'] ?? $p['product_name_pt'] ?? $p['product_name_en'] ?? null,
                         'brand'       => $p['brands'] ?? null,
-                        'description' => $p['generic_name'] ?? $p['generic_name_pt'] ?? null,
+                        'description' => $p['generic_name'] ?? $p['generic_name_pt'] ?? $p['generic_name_en'] ?? null,
                         'categories'  => $p['categories'] ?? null,
                         'image_url'   => $p['image_front_url'] ?? $p['image_url'] ?? null,
                         'barcode'     => $barcode,
@@ -185,24 +215,14 @@ class BarcodeScanner extends Component
                             'image_front_url', 'countries', 'stores', 'labels',
                         ])),
                     ];
-                    $this->onlineLoading = false;
+                    $this->onlineDebug[] = 'Produto encontrado em ' . $source['label'];
                     return;
                 }
-            }
 
-            // 2) Cosmos / UPC Database (Open API - gratuita)
-            $response2 = Http::timeout(8)
-                ->connectTimeout(5)
-                ->get("https://api.upcitemdb.com/prod/trial/lookup", [
-                    'upc' => $barcode,
-                ]);
-
-            if ($response2->successful()) {
-                $data2 = $response2->json();
-                if (($data2['code'] ?? '') === 'OK' && !empty($data2['items'])) {
-                    $item = $data2['items'][0];
+                if (($data['code'] ?? '') === 'OK' && !empty($data['items'])) {
+                    $item = $data['items'][0];
                     $this->onlineResult = [
-                        'source'      => 'UPC Item DB',
+                        'source'      => $source['label'],
                         'name'        => $item['title'] ?? null,
                         'brand'       => $item['brand'] ?? null,
                         'description' => $item['description'] ?? null,
@@ -217,21 +237,29 @@ class BarcodeScanner extends Component
                             'title', 'brand', 'category', 'size', 'color', 'weight',
                         ])),
                     ];
-                    $this->onlineLoading = false;
+                    $this->onlineDebug[] = 'Produto encontrado em ' . $source['label'];
                     return;
                 }
+
+                $this->onlineDebug[] = $source['label'] . ' não retornou itens válidos.';
             }
 
-            $this->onlineError = 'Produto não encontrado em nenhuma base de dados online.';
+            Log::info('BarcodeScanner: busca online sem resultado', [
+                'barcode' => $barcode,
+                'debug' => $this->onlineDebug,
+            ]);
+
+            $this->onlineError = 'Nenhuma base online retornou dados para este código.';
         } catch (\Throwable $e) {
             Log::warning('BarcodeScanner: erro na busca online', [
                 'barcode' => $barcode,
                 'error'   => $e->getMessage(),
+                'debug'   => $this->onlineDebug,
             ]);
             $this->onlineError = 'Erro ao consultar bases online. Tente novamente.';
+        } finally {
+            $this->onlineLoading = false;
         }
-
-        $this->onlineLoading = false;
     }
 
     // -------------------------------------------------
@@ -630,6 +658,7 @@ class BarcodeScanner extends Component
 
             if ($mode === 'vincular') {
                 $this->loadProductsWithoutBarcode();
+                $this->searchLinkCandidates();
             }
         }
     }
