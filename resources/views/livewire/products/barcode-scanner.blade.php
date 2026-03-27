@@ -58,6 +58,18 @@
             </div>
         </div>
 
+        {{-- Flash overlay ao tirar foto --}}
+        <div x-show="photoSnapping"
+             class="absolute inset-0 bg-white pointer-events-none z-10"
+             x-transition:enter="transition duration-75"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-90"
+             x-transition:leave="transition duration-300"
+             x-transition:leave-start="opacity-90"
+             x-transition:leave-end="opacity-0"
+             style="display:none">
+        </div>
+
         {{-- Bottom bar --}}
         <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/80 to-transparent safe-area-bottom">
             <div x-show="lastCameraScan" x-transition class="mb-4 mx-auto max-w-sm">
@@ -81,8 +93,22 @@
                     </button>
                 </div>
             </div>
-            <p class="text-center text-white/50 text-xs" x-show="!lastCameraScan && !cameraError">
-                <i class="fas fa-barcode mr-1"></i> Posicione o código de barras dentro da área
+
+            {{-- Botão Tirar Foto --}}
+            <div class="flex flex-col items-center gap-2 mb-3">
+                <button @click="snapPhoto()"
+                    :disabled="!cameraActive || photoSnapping"
+                    class="w-18 h-18 relative group flex items-center justify-center transition-all active:scale-90 disabled:opacity-40"
+                    title="Tirar foto para ler o código">
+                    <span class="block w-16 h-16 rounded-full border-4 border-white/60 flex items-center justify-center shadow-2xl">
+                        <span class="block w-12 h-12 rounded-full bg-white group-active:bg-slate-200 transition-colors shadow-inner"></span>
+                    </span>
+                </button>
+                <p class="text-white/60 text-[10px] font-semibold tracking-wider uppercase">Tirar foto</p>
+            </div>
+
+            <p class="text-center text-white/40 text-xs" x-show="!lastCameraScan && !cameraError">
+                <i class="fas fa-barcode mr-1"></i> Aponte para o código ou tire uma foto
             </p>
         </div>
     </div>
@@ -695,64 +721,67 @@
                             </div>
 
                             @if(count($linkCandidates) > 0)
-                            <div class="link-candidates-grid grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 gap-3 max-h-[780px] overflow-y-auto pr-1">
+                            <div class="link-candidates-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 max-h-[780px] overflow-y-auto pr-1">
                                 @foreach($linkCandidates as $candidate)
-                                @php
-                                    $isFeatured = $loop->first && count($linkCandidates) > 2;
-                                    $spanClass = $isFeatured ? 'sm:col-span-2 2xl:col-span-2' : (($loop->iteration % 5 === 0) ? '2xl:col-span-2' : '');
-                                @endphp
-                                <article class="group relative overflow-hidden rounded-[26px] border border-slate-200/70 dark:border-slate-700/70 bg-white/90 dark:bg-slate-900/80 shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/10 {{ $spanClass }}">
-                                    <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity" style="background:linear-gradient(135deg,rgba(6,182,212,.05),rgba(59,130,246,.03),transparent)"></div>
-                                    <div class="relative {{ $isFeatured ? 'h-40' : 'h-28' }} overflow-hidden bg-gradient-to-br from-slate-100 via-cyan-50 to-blue-50 dark:from-slate-800 dark:via-cyan-950/20 dark:to-slate-900">
-                                        @if($candidate['image'])
-                                        <img src="{{ asset('storage/' . $candidate['image']) }}" alt="{{ $candidate['name'] }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                                        @else
-                                        <div class="w-full h-full flex items-center justify-center text-slate-300 dark:text-slate-600">
-                                            <i class="fas fa-box-open text-3xl"></i>
+                                <div class="product-card-modern">
+
+                                    <!-- Botão vincular flutuante -->
+                                    @if($lastScannedBarcode)
+                                    <div class="btn-action-group">
+                                        <button wire:click="linkBarcodeToProduct({{ $candidate['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $candidate['name'] }}'?" class="btn btn-primary" title="Vincular código">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </button>
+                                    </div>
+                                    @endif
+
+                                    <!-- Área da imagem com badges -->
+                                    <div class="product-img-area">
+                                        <img src="{{ $candidate['image'] ? asset('storage/' . $candidate['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $candidate['name'] }}">
+
+                                        @if(!$candidate['barcode'])
+                                        <div class="out-of-stock">
+                                            <i class="bi bi-upc"></i> Sem Código
                                         </div>
                                         @endif
-                                        <div class="absolute top-2 left-2 inline-flex items-center gap-1 rounded-full bg-white/92 dark:bg-slate-900/90 px-2.5 py-1 text-[10px] font-black text-slate-600 dark:text-slate-300 shadow">
-                                            <i class="fas fa-hashtag text-cyan-500"></i>{{ $candidate['product_code'] ?? '—' }}
-                                        </div>
-                                        <div class="absolute top-2 right-2 inline-flex items-center gap-1 rounded-full {{ $candidate['barcode'] ? 'bg-emerald-500/90 text-white' : 'bg-amber-500/90 text-white' }} px-2.5 py-1 text-[10px] font-black shadow">
-                                            <i class="fas {{ $candidate['barcode'] ? 'fa-barcode' : 'fa-triangle-exclamation' }}"></i>
-                                            {{ $candidate['barcode'] ? 'Com código' : 'Sem código' }}
-                                        </div>
-                                        <div class="absolute bottom-2 left-2 inline-flex items-center gap-1 rounded-full bg-slate-900/75 px-2.5 py-1 text-[10px] font-black text-white shadow">
-                                            <i class="fas fa-boxes-stacked text-cyan-300"></i>{{ $candidate['stock_quantity'] ?? 0 }} un.
+
+                                        <!-- Código do produto -->
+                                        <span class="badge-product-code" title="Código do Produto">
+                                            <i class="bi bi-upc-scan"></i> {{ $candidate['product_code'] ?? '—' }}
+                                        </span>
+
+                                        <!-- Quantidade em estoque -->
+                                        <span class="badge-quantity" title="Quantidade em Estoque">
+                                            <i class="bi bi-stack"></i> {{ $candidate['stock_quantity'] ?? 0 }}
+                                        </span>
+
+                                        <!-- Ícone da categoria -->
+                                        <div class="category-icon-wrapper">
+                                            <i class="{{ $candidate['category_icon'] ?? 'bi bi-box' }} category-icon"></i>
                                         </div>
                                     </div>
-                                    <div class="relative p-3.5">
-                                        <div class="flex items-start justify-between gap-2 mb-2">
-                                            <h4 class="font-black text-slate-800 dark:text-white leading-tight {{ $isFeatured ? 'text-sm sm:text-base line-clamp-2' : 'text-sm line-clamp-2' }}">{{ $candidate['name'] }}</h4>
-                                            @if($lastScannedBarcode)
-                                            <button wire:click="linkBarcodeToProduct({{ $candidate['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $candidate['name'] }}'?" class="w-9 h-9 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20 flex items-center justify-center transition-all hover:scale-105 flex-shrink-0" title="Vincular">
-                                                <i class="fas fa-link text-xs"></i>
-                                            </button>
-                                            @endif
+
+                                    <!-- Conteúdo -->
+                                    <div class="card-body">
+                                        <div class="product-title" title="{{ $candidate['name'] }}">
+                                            {{ ucwords($candidate['name']) }}
                                         </div>
-                                        <div class="flex items-center gap-2 flex-wrap mb-3 min-h-[20px]">
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-300">
-                                                <i class="fas fa-folder text-cyan-500"></i>{{ $candidate['category_name'] ?? 'Sem categoria' }}
-                                            </span>
-                                            @if(!empty($candidate['brand']))
-                                            <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-500 dark:text-slate-300">
-                                                <i class="fas fa-building text-indigo-500"></i>{{ $candidate['brand'] }}
-                                            </span>
-                                            @endif
-                                        </div>
-                                        <div class="grid {{ $isFeatured ? 'grid-cols-2' : 'grid-cols-1 sm:grid-cols-2' }} gap-2">
-                                            <div class="rounded-2xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 px-3 py-2 border border-slate-200/60 dark:border-slate-700/60">
-                                                <p class="text-[9px] uppercase tracking-wider font-black text-slate-400 mb-1">Custo</p>
-                                                <p class="text-xs font-black text-slate-700 dark:text-slate-300">R$ {{ number_format($candidate['price'], 2, ',', '.') }}</p>
-                                            </div>
-                                            <div class="rounded-2xl bg-gradient-to-r from-cyan-500 to-blue-600 px-3 py-2 border border-cyan-400/40 shadow-lg shadow-cyan-500/15">
-                                                <p class="text-[9px] uppercase tracking-wider font-black text-cyan-100 mb-1">Venda</p>
-                                                <p class="text-xs font-black text-white">R$ {{ number_format($candidate['price_sale'], 2, ',', '.') }}</p>
+
+                                        <!-- Área de preços -->
+                                        <div class="price-area mt-3">
+                                            <div class="flex flex-col gap-2">
+                                                <span class="badge-price" title="Preço de Custo">
+                                                    <i class="bi bi-tag"></i>
+                                                    R$ {{ number_format($candidate['price'], 2, ',', '.') }}
+                                                </span>
+                                                <span class="badge-price-sale" title="Preço de Venda">
+                                                    <i class="bi bi-currency-dollar"></i>
+                                                    R$ {{ number_format($candidate['price_sale'], 2, ',', '.') }}
+                                                </span>
                                             </div>
                                         </div>
                                     </div>
-                                </article>
+
+                                </div>
                                 @endforeach
                             </div>
                             @elseif(!empty($linkSearchTerm))
@@ -761,30 +790,66 @@
 
                             @if(count($productsWithoutBarcode) > 0 && empty($linkSearchTerm))
                             <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
-                                <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="fas fa-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto pr-1">
+                                <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="bi bi-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 max-h-[520px] overflow-y-auto pr-1">
                                     @foreach($productsWithoutBarcode as $noBarcodeProduct)
-                                    <article class="rounded-[22px] border border-amber-200/60 dark:border-amber-800/40 bg-amber-50/60 dark:bg-amber-900/10 overflow-hidden shadow-sm">
-                                        <div class="h-24 overflow-hidden bg-gradient-to-br from-amber-100 to-orange-50 dark:from-amber-900/30 dark:to-slate-900 flex items-center justify-center">
-                                            @if($noBarcodeProduct['image'])
-                                            <img src="{{ asset('storage/' . $noBarcodeProduct['image']) }}" alt="{{ $noBarcodeProduct['name'] }}" class="w-full h-full object-cover" />
-                                            @else
-                                            <i class="fas fa-box text-slate-400 text-xl"></i>
-                                            @endif
+                                    <div class="product-card-modern">
+
+                                        <!-- Botão vincular flutuante -->
+                                        @if($lastScannedBarcode)
+                                        <div class="btn-action-group">
+                                            <button wire:click="linkBarcodeToProduct({{ $noBarcodeProduct['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $noBarcodeProduct['name'] }}'?" class="btn btn-primary" title="Vincular código">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </button>
                                         </div>
-                                        <div class="p-3 space-y-2">
-                                            <p class="text-sm font-black text-slate-800 dark:text-white line-clamp-2">{{ $noBarcodeProduct['name'] }}</p>
-                                            <p class="text-[10px] font-mono text-slate-400">{{ $noBarcodeProduct['product_code'] ?? '—' }}</p>
-                                            <div class="flex items-center justify-between gap-2">
-                                                <span class="text-xs font-black text-emerald-600 dark:text-emerald-400">R$ {{ number_format($noBarcodeProduct['price_sale'], 2, ',', '.') }}</span>
-                                                @if($lastScannedBarcode)
-                                                <button wire:click="linkBarcodeToProduct({{ $noBarcodeProduct['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $noBarcodeProduct['name'] }}'?" class="px-3 py-1.5 text-[10px] font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl shadow-md transition-all hover:scale-105 flex items-center gap-1">
-                                                    <i class="fas fa-link"></i> Vincular
-                                                </button>
-                                                @endif
+                                        @endif
+
+                                        <!-- Área da imagem com badges -->
+                                        <div class="product-img-area">
+                                            <img src="{{ $noBarcodeProduct['image'] ? asset('storage/' . $noBarcodeProduct['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $noBarcodeProduct['name'] }}">
+
+                                            <div class="out-of-stock">
+                                                <i class="bi bi-upc"></i> Sem Código
+                                            </div>
+
+                                            <!-- Código do produto -->
+                                            <span class="badge-product-code" title="Código do Produto">
+                                                <i class="bi bi-upc-scan"></i> {{ $noBarcodeProduct['product_code'] ?? '—' }}
+                                            </span>
+
+                                            <!-- Quantidade em estoque -->
+                                            <span class="badge-quantity" title="Quantidade em Estoque">
+                                                <i class="bi bi-stack"></i> {{ $noBarcodeProduct['stock_quantity'] ?? 0 }}
+                                            </span>
+
+                                            <!-- Ícone da categoria -->
+                                            <div class="category-icon-wrapper">
+                                                <i class="{{ $noBarcodeProduct['category_icon'] ?? 'bi bi-box' }} category-icon"></i>
                                             </div>
                                         </div>
-                                    </article>
+
+                                        <!-- Conteúdo -->
+                                        <div class="card-body">
+                                            <div class="product-title" title="{{ $noBarcodeProduct['name'] }}">
+                                                {{ ucwords($noBarcodeProduct['name']) }}
+                                            </div>
+
+                                            <!-- Área de preços -->
+                                            <div class="price-area mt-3">
+                                                <div class="flex flex-col gap-2">
+                                                    <span class="badge-price" title="Preço de Custo">
+                                                        <i class="bi bi-tag"></i>
+                                                        R$ {{ number_format($noBarcodeProduct['price'], 2, ',', '.') }}
+                                                    </span>
+                                                    <span class="badge-price-sale" title="Preço de Venda">
+                                                        <i class="bi bi-currency-dollar"></i>
+                                                        R$ {{ number_format($noBarcodeProduct['price_sale'], 2, ',', '.') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
                                     @endforeach
                                 </div>
                             </div>
@@ -1069,7 +1134,7 @@
 
     {{-- ========== CDN: html5-qrcode ========== --}}
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
 
     <script>
         function barcodeScanner() {
@@ -1095,6 +1160,7 @@
                 cameraFacing: 'environment',
                 _html5QrCode: null,
                 _scanCooldown: false,
+                photoSnapping: false,
 
                 // Image
                 imagePreview: null,
@@ -1136,9 +1202,8 @@
                             this._html5QrCode = null;
                         }
 
-                        await new Promise(function(r) {
-                            setTimeout(r, 150);
-                        });
+                        // Aguarda o browser pintar o elemento com dimensões reais
+                        await new Promise(function(r) { setTimeout(r, 350); });
 
                         var viewport = document.getElementById('camera-scanner-viewport');
                         if (!viewport) {
@@ -1146,22 +1211,12 @@
                             return;
                         }
 
-                        this._html5QrCode = new Html5Qrcode('camera-scanner-viewport');
+                        this._html5QrCode = new Html5Qrcode('camera-scanner-viewport', { verbose: false });
 
-                        var config = {
-                            fps: 20,
-                            qrbox: function(vw, vh) {
-                                // Caixa generosa para leitura de 1D barcodes em qualquer orientação
-                                var minDim = Math.min(vw, vh);
-                                var maxDim = Math.max(vw, vh);
-                                return {
-                                    width: Math.floor(maxDim * 0.75),
-                                    height: Math.floor(minDim * 0.40)
-                                };
-                            },
-                            // NÃO definir aspectRatio — no mobile portrait (innerH/innerW ≈ 2.16)
-                            // isso força constraint inválido e quebra a detecção silenciosamente
-                            formatsToSupport: [
+                        // Formatos suportados — com guarda para quando o enum ainda não carregou
+                        var fmts = [];
+                        if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+                            fmts = [
                                 Html5QrcodeSupportedFormats.EAN_13,
                                 Html5QrcodeSupportedFormats.EAN_8,
                                 Html5QrcodeSupportedFormats.UPC_A,
@@ -1172,21 +1227,30 @@
                                 Html5QrcodeSupportedFormats.ITF,
                                 Html5QrcodeSupportedFormats.QR_CODE,
                                 Html5QrcodeSupportedFormats.DATA_MATRIX,
-                            ],
-                            // Usa o BarcodeDetector nativo do browser (Chrome/Edge/Safari 17+)
-                            // muito mais rápido e preciso do que o ZXing em WASM
-                            experimentalFeatures: {
-                                useBarCodeDetectorIfSupported: true
+                            ];
+                        }
+
+                        var config = {
+                            fps: 15,
+                            // qrbox: NUNCA usar largura > vw nem altura > vh
+                            // maxDim*0.75 em portrait (360×800) daria 600px > 360px → falha silenciosa
+                            qrbox: function(vw, vh) {
+                                var short = Math.min(vw, vh);
+                                return {
+                                    width: Math.floor(short * 0.85),
+                                    height: Math.floor(short * 0.42)
+                                };
                             },
                             rememberLastUsedCamera: true,
-                            // videoConstraints não usar aqui pois facingMode já é passado
-                            // no 1º arg de start() — duplicar causa OverconstrainedError em alguns browsers
                         };
 
+                        if (fmts.length) {
+                            config.formatsToSupport = fmts;
+                        }
+
                         var self = this;
-                        await this._html5QrCode.start({
-                                facingMode: this.cameraFacing
-                            },
+                        await this._html5QrCode.start(
+                            { facingMode: this.cameraFacing },
                             config,
                             function(decodedText) {
                                 self.onCameraCodeDetected(decodedText);
@@ -1248,6 +1312,48 @@
                     this.$wire.set('barcodeInput', code).then(() => {
                         this.$wire.searchBarcode();
                     });
+                },
+
+                // ------ TIRAR FOTO DA CÂMERA ------
+                async snapPhoto() {
+                    if (this.photoSnapping || !this.cameraActive) return;
+                    this.photoSnapping = true;
+
+                    // Efeito flash — aguarda render
+                    await new Promise(function(r) { setTimeout(r, 80); });
+
+                    // Captura frame do vídeo renderizado pelo html5-qrcode
+                    var video = document.querySelector('#camera-scanner-viewport video');
+                    if (!video || !video.videoWidth || !video.videoHeight) {
+                        this.showToast('Câmera não está pronta, aguarde.', 'warning');
+                        this.photoSnapping = false;
+                        return;
+                    }
+
+                    var canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(video, 0, 0);
+
+                    var blob = await new Promise(function(resolve) {
+                        canvas.toBlob(resolve, 'image/jpeg', 0.92);
+                    });
+
+                    this.photoSnapping = false;
+
+                    if (!blob) {
+                        this.showToast('Falha ao capturar a foto.', 'error');
+                        return;
+                    }
+
+                    var file = new File([blob], 'foto-camera-' + Date.now() + '.jpg', { type: 'image/jpeg' });
+
+                    // Para a câmera e envia para o modo imagem para análise
+                    await this.stopCamera();
+                    this.scanMode = 'image';
+                    this.loadImageFile(file);
+                    this.showToast('Foto capturada! Analisando código...', 'info');
                 },
 
                 // ------ IMAGE ------
