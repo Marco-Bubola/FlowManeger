@@ -1455,13 +1455,13 @@
                 onCameraCodeDetected(code) {
                     if (this._scanCooldown) return;
                     this._scanCooldown = true;
-                    var self = this;
-                    setTimeout(function() {
-                        self._scanCooldown = false;
-                    }, 1500);
 
                     this.lastCameraScan = code;
                     this.playBeep();
+
+                    // Fecha a câmera imediatamente e volta para o modo manual
+                    this.stopCamera();
+                    this.scanMode = 'manual';
 
                     this.$wire.set('barcodeInput', code).then(() => {
                         this.$wire.searchBarcode();
