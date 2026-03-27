@@ -1172,6 +1172,13 @@
         .safe-area-bottom {
             padding-bottom: env(safe-area-inset-bottom, 0px);
         }
+
+        /* Oculta tab bar e FAB durante a câmera fullscreen */
+        body.camera-active .mobile-bottom-tabbar,
+        body.camera-active #mobileFabSheet,
+        body.camera-active #mobileMoreSheet {
+            display: none !important;
+        }
     </style>
 
     {{-- ========== CDN: html5-qrcode ========== --}}
@@ -1208,6 +1215,7 @@
                 _video: null,
                 _scanLoopId: null,
                 _barcodeDetector: null,
+                _scanCanvas: null,
 
                 // Image
                 imagePreview: null,
@@ -1221,15 +1229,18 @@
                 setScanMode(mode) {
                     if (this.scanMode === 'camera' && mode !== 'camera') {
                         this.stopCamera();
+                        document.body.classList.remove('camera-active');
                     }
                     this.scanMode = mode;
                     if (mode === 'manual') {
+                        document.body.classList.remove('camera-active');
                         this.$nextTick(() => {
                             var input = document.getElementById('barcode-input');
                             if (input) input.focus();
                         });
                     }
                     if (mode === 'camera') {
+                        document.body.classList.add('camera-active');
                         this.$nextTick(() => {
                             this.startCamera();
                         });
@@ -1293,6 +1304,18 @@
                         });
                         await video.play();
 
+                        // Tenta aplicar zoom 2.5x (iOS 17+, Chrome Android)
+                        try {
+                            var track = this._stream.getVideoTracks()[0];
+                            if (track) {
+                                var caps = track.getCapabilities ? track.getCapabilities() : {};
+                                if (caps.zoom) {
+                                    var zoomVal = Math.min(2.5, caps.zoom.max || 2.5);
+                                    await track.applyConstraints({ advanced: [{ zoom: zoomVal }] });
+                                }
+                            }
+                        } catch (ze) { /* zoom não suportado neste dispositivo */ }
+
                         // Inicializa BarcodeDetector nativo (iOS 17+, Chrome/Edge)
                         this._barcodeDetector = null;
                         if ('BarcodeDetector' in window) {
@@ -1353,25 +1376,32 @@
                     var video = this._video;
                     if (!video || !video.videoWidth || !video.videoHeight || this._scanCooldown) return;
 
+                    // Reutiliza canvas persistente para evitar alloc a cada frame
+                    if (!this._scanCanvas) {
+                        this._scanCanvas = document.createElement('canvas');
+                    }
+                    var canvas = this._scanCanvas;
+                    // Redimensiona somente quando necessário
+                    if (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight) {
+                        canvas.width  = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                    }
+                    var ctx = canvas.getContext('2d', { willReadFrequently: true });
+                    ctx.drawImage(video, 0, 0);
+
                     if (this._barcodeDetector) {
                         // BarcodeDetector nativo — iOS 17+, Chrome
-                        createImageBitmap(video).then(function(bitmap) {
-                            return self._barcodeDetector.detect(bitmap).then(function(results) {
-                                if (bitmap.close) bitmap.close();
-                                if (results && results.length > 0 && results[0].rawValue) {
-                                    self.onCameraCodeDetected(results[0].rawValue);
-                                }
-                            });
+                        // Usar canvas (não video nem ImageBitmap) é mais confiável no iOS WKWebView
+                        this._barcodeDetector.detect(canvas).then(function(results) {
+                            if (results && results.length > 0 && results[0].rawValue) {
+                                self.onCameraCodeDetected(results[0].rawValue);
+                            }
                         }).catch(function() {});
                         return;
                     }
 
                     // Fallback: Quagga2 (browsers sem BarcodeDetector)
                     if (window.Quagga && window.Quagga.decodeSingle) {
-                        var canvas = document.createElement('canvas');
-                        canvas.width  = video.videoWidth;
-                        canvas.height = video.videoHeight;
-                        canvas.getContext('2d').drawImage(video, 0, 0);
                         canvas.toBlob(function(blob) {
                             if (!blob) return;
                             var url = URL.createObjectURL(blob);
@@ -1403,12 +1433,14 @@
                     }
                     this._video = null;
                     this._barcodeDetector = null;
+                    this._scanCanvas = null;
                 },
 
                 async stopCamera() {
                     this._stopStream();
                     var viewport = document.getElementById('camera-scanner-viewport');
                     if (viewport) viewport.innerHTML = '';
+                    document.body.classList.remove('camera-active');
                     this.cameraActive = false;
                 },
 
