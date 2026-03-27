@@ -72,15 +72,25 @@
 
         {{-- Bottom bar --}}
         <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/80 to-transparent safe-area-bottom">
-            <div x-show="lastCameraScan" x-transition class="mb-4 mx-auto max-w-sm">
-                <div class="bg-emerald-500/90 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center gap-3">
-                    <i class="fas fa-circle-check text-white text-lg"></i>
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[10px] text-emerald-100 uppercase font-bold tracking-wider">Detectado</p>
-                        <p class="text-white font-black font-mono text-base truncate" x-text="lastCameraScan"></p>
+
+            {{-- Banner de CONFIRMAÇÃO (aparece após detectar código) --}}
+            <div x-show="pendingCode" x-transition class="mb-4 mx-auto max-w-sm">
+                <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl px-4 py-3 border border-emerald-500/50 shadow-2xl">
+                    <p class="text-[10px] text-emerald-400 uppercase font-black tracking-widest mb-1 text-center">Código detectado</p>
+                    <p class="text-white font-black font-mono text-xl text-center tracking-wider mb-3" x-text="pendingCode"></p>
+                    <div class="flex gap-2">
+                        <button @click="confirmCode()"
+                            class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-black text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+                            <i class="fas fa-check"></i> Confirmar
+                        </button>
+                        <button @click="rejectCode()"
+                            class="flex-1 py-3 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-bold text-sm transition-all flex items-center justify-center gap-2">
+                            <i class="fas fa-camera"></i> Continuar
+                        </button>
                     </div>
                 </div>
             </div>
+
             <div x-show="cameraError" x-transition class="mb-4 mx-auto max-w-sm">
                 <div class="bg-red-500/90 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center gap-3">
                     <i class="fas fa-circle-exclamation text-white text-lg"></i>
@@ -137,10 +147,10 @@
                     </div>
                 </div>
 
-                <p class="text-center text-white/40 text-xs" x-show="!lastCameraScan && !cameraError && cameraActive">
+                <p class="text-center text-white/40 text-xs" x-show="!pendingCode && !cameraError && cameraActive">
                     <i class="fas fa-barcode mr-1"></i> Aponte para o código ou pressione o obturador
                 </p>
-                <p class="text-center text-amber-300/80 text-xs" x-show="!cameraActive && !cameraError">
+                <p class="text-center text-amber-300/80 text-xs" x-show="!cameraActive && !cameraError && !pendingCode">
                     <i class="fas fa-spinner fa-spin mr-1"></i> Iniciando câmera...
                 </p>
             </div>
@@ -1206,6 +1216,7 @@
                 cameraActive: false,
                 cameraError: null,
                 lastCameraScan: null,
+                pendingCode: null,
                 cameraFacing: 'environment',
                 _html5QrCode: null,
                 _scanCooldown: false,
@@ -1442,6 +1453,8 @@
                     if (viewport) viewport.innerHTML = '';
                     document.body.classList.remove('camera-active');
                     this.cameraActive = false;
+                    this.pendingCode = null;
+                    this._scanCooldown = false;
                 },
 
                 async toggleCameraFacing() {
@@ -1457,15 +1470,29 @@
                     this._scanCooldown = true;
 
                     this.lastCameraScan = code;
+                    this.pendingCode = code;
                     this.playBeep();
+                    // Não fecha a câmera ainda — aguarda confirmação do usuário
+                },
 
-                    // Fecha a câmera imediatamente e volta para o modo manual
+                // Usuário confirmou o código detectado
+                confirmCode() {
+                    var code = this.pendingCode;
+                    if (!code) return;
+                    this.pendingCode = null;
+                    this._scanCooldown = false;
                     this.stopCamera();
                     this.scanMode = 'manual';
-
                     this.$wire.set('barcodeInput', code).then(() => {
                         this.$wire.searchBarcode();
                     });
+                },
+
+                // Usuário rejeitou e quer continuar escaneando
+                rejectCode() {
+                    this.pendingCode = null;
+                    this.lastCameraScan = null;
+                    this._scanCooldown = false;
                 },
 
                 // ------ TIRAR FOTO DA CÂMERA ------
