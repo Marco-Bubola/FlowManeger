@@ -630,6 +630,7 @@ class BarcodeScanner extends Component
             'brand'          => $product->brand,
             'model'          => $product->model,
             'category_name'  => $product->category?->name ?? '—',
+            'category_icon'  => $product->category?->icone ?? 'bi bi-box',
             'image'          => $product->image,
             'condition'      => $product->condition,
             'weight_grams'   => $product->weight_grams,
