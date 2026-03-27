@@ -94,23 +94,65 @@
                 </div>
             </div>
 
-            {{-- Botão Tirar Foto --}}
-            <div class="flex flex-col items-center gap-2 mb-3">
-                <button @click="snapPhoto()"
-                    :disabled="!cameraActive || photoSnapping"
-                    class="w-18 h-18 relative group flex items-center justify-center transition-all active:scale-90 disabled:opacity-40"
-                    title="Tirar foto para ler o código">
-                    <span class="block w-16 h-16 rounded-full border-4 border-white/60 flex items-center justify-center shadow-2xl">
-                        <span class="block w-12 h-12 rounded-full bg-white group-active:bg-slate-200 transition-colors shadow-inner"></span>
-                    </span>
-                </button>
-                <p class="text-white/60 text-[10px] font-semibold tracking-wider uppercase">Tirar foto</p>
-            </div>
+            {{-- Botões da parte inferior --}}
+            <div class="flex flex-col items-center gap-3 mb-2">
 
-            <p class="text-center text-white/40 text-xs" x-show="!lastCameraScan && !cameraError">
-                <i class="fas fa-barcode mr-1"></i> Aponte para o código ou tire uma foto
-            </p>
+                {{-- Linha com: galeria | obturador | câmera nativa --}}
+                <div class="flex items-end justify-center gap-8">
+
+                    {{-- Botão: Câmera nativa iOS (abre app câmera do sistema) --}}
+                    <div class="flex flex-col items-center gap-1">
+                        <label for="native-camera-input"
+                            class="flex items-center justify-center rounded-2xl bg-white/15 backdrop-blur-md text-white transition-all active:scale-90 cursor-pointer hover:bg-white/25"
+                            style="width:2.75rem;height:2.75rem"
+                            title="Abrir câmera nativa">
+                            <i class="fas fa-camera-viewfinder text-base"></i>
+                        </label>
+                        <p class="text-white/50 text-[9px] font-semibold tracking-wide uppercase">Foto iOS</p>
+                    </div>
+
+                    {{-- Botão obturador principal --}}
+                    <div class="flex flex-col items-center gap-1">
+                        <button @click="snapPhoto()"
+                            :disabled="photoSnapping"
+                            class="flex items-center justify-center rounded-full border-4 border-white/70 shadow-2xl transition-all active:scale-90 disabled:opacity-50"
+                            style="width:4.5rem;height:4.5rem"
+                            title="Tirar foto do código">
+                            <span class="block rounded-full bg-white transition-colors"
+                                :class="photoSnapping ? 'bg-slate-300 animate-pulse' : 'bg-white group-active:bg-slate-200'"
+                                style="width:3.25rem;height:3.25rem"></span>
+                        </button>
+                        <p class="text-white/60 text-[10px] font-semibold tracking-wider uppercase">Tirar foto</p>
+                    </div>
+
+                    {{-- Botão: retornar ao modo manual --}}
+                    <div class="flex flex-col items-center gap-1">
+                        <button @click="setScanMode('manual')"
+                            class="flex items-center justify-center rounded-2xl bg-white/15 backdrop-blur-md text-white transition-all active:scale-90 hover:bg-white/25"
+                            style="width:2.75rem;height:2.75rem"
+                            title="Voltar ao modo manual">
+                            <i class="fas fa-keyboard text-base"></i>
+                        </button>
+                        <p class="text-white/50 text-[9px] font-semibold tracking-wide uppercase">Digitar</p>
+                    </div>
+                </div>
+
+                <p class="text-center text-white/40 text-xs" x-show="!lastCameraScan && !cameraError && cameraActive">
+                    <i class="fas fa-barcode mr-1"></i> Aponte para o código ou pressione o obturador
+                </p>
+                <p class="text-center text-amber-300/80 text-xs" x-show="!cameraActive && !cameraError">
+                    <i class="fas fa-spinner fa-spin mr-1"></i> Iniciando câmera...
+                </p>
+            </div>
         </div>
+
+        {{-- Input nativo para câmera iOS (capture=environment) — abre app câmera do iPhone --}}
+        <input id="native-camera-input"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            @change="handleNativeCameraPhoto($event)"
+            class="hidden" />
     </div>
 
     {{-- ========== HEADER ========== --}}
@@ -1161,6 +1203,11 @@
                 _html5QrCode: null,
                 _scanCooldown: false,
                 photoSnapping: false,
+                // getUserMedia direto (substitui html5-qrcode para live scan)
+                _stream: null,
+                _video: null,
+                _scanLoopId: null,
+                _barcodeDetector: null,
 
                 // Image
                 imagePreview: null,
@@ -1189,104 +1236,179 @@
                     }
                 },
 
-                // ------ CAMERA ------
+                // ------ CAMERA (getUserMedia direto + BarcodeDetector nativo) ------
                 async startCamera() {
                     this.cameraError = null;
                     this.lastCameraScan = null;
+                    this._stopStream();
+
+                    // Aguarda o elemento estar visível e com dimensões reais
+                    await new Promise(function(r) { setTimeout(r, 400); });
 
                     try {
-                        if (this._html5QrCode) {
-                            try {
-                                await this._html5QrCode.stop();
-                            } catch (e) {}
-                            this._html5QrCode = null;
-                        }
-
-                        // Aguarda o browser pintar o elemento com dimensões reais
-                        await new Promise(function(r) { setTimeout(r, 350); });
-
-                        var viewport = document.getElementById('camera-scanner-viewport');
-                        if (!viewport) {
-                            this.cameraError = 'Viewport da câmera não encontrado. Tente novamente.';
+                        // Verifica suporte a getUserMedia
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                            this.cameraError = 'Seu browser não suporta acesso à câmera. No iOS use Safari.';
                             return;
                         }
 
-                        this._html5QrCode = new Html5Qrcode('camera-scanner-viewport', { verbose: false });
-
-                        // Formatos suportados — com guarda para quando o enum ainda não carregou
-                        var fmts = [];
-                        if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
-                            fmts = [
-                                Html5QrcodeSupportedFormats.EAN_13,
-                                Html5QrcodeSupportedFormats.EAN_8,
-                                Html5QrcodeSupportedFormats.UPC_A,
-                                Html5QrcodeSupportedFormats.UPC_E,
-                                Html5QrcodeSupportedFormats.CODE_128,
-                                Html5QrcodeSupportedFormats.CODE_39,
-                                Html5QrcodeSupportedFormats.CODE_93,
-                                Html5QrcodeSupportedFormats.ITF,
-                                Html5QrcodeSupportedFormats.QR_CODE,
-                                Html5QrcodeSupportedFormats.DATA_MATRIX,
-                            ];
-                        }
-
-                        var config = {
-                            fps: 15,
-                            // qrbox: NUNCA usar largura > vw nem altura > vh
-                            // maxDim*0.75 em portrait (360×800) daria 600px > 360px → falha silenciosa
-                            qrbox: function(vw, vh) {
-                                var short = Math.min(vw, vh);
-                                return {
-                                    width: Math.floor(short * 0.85),
-                                    height: Math.floor(short * 0.42)
-                                };
-                            },
-                            rememberLastUsedCamera: true,
+                        var constraints = {
+                            audio: false,
+                            video: {
+                                facingMode: this.cameraFacing === 'environment'
+                                    ? { ideal: 'environment' }
+                                    : { ideal: 'user' },
+                                width:  { ideal: 1280 },
+                                height: { ideal: 720 }
+                            }
                         };
 
-                        if (fmts.length) {
-                            config.formatsToSupport = fmts;
+                        this._stream = await navigator.mediaDevices.getUserMedia(constraints);
+
+                        var viewport = document.getElementById('camera-scanner-viewport');
+                        if (!viewport) {
+                            this.cameraError = 'Viewport da câmera não encontrado.';
+                            this._stopStream();
+                            return;
                         }
 
-                        var self = this;
-                        await this._html5QrCode.start(
-                            { facingMode: this.cameraFacing },
-                            config,
-                            function(decodedText) {
-                                self.onCameraCodeDetected(decodedText);
-                            },
-                            function() {} // suppress per-frame errors
-                        );
+                        viewport.innerHTML = '';
+
+                        var video = document.createElement('video');
+                        // CRÍTICO para iOS Safari — sem estes atributos o vídeo não toca inline
+                        video.setAttribute('autoplay', '');
+                        video.setAttribute('muted', '');
+                        video.setAttribute('playsinline', '');
+                        video.setAttribute('webkit-playsinline', '');
+                        video.muted = true;
+                        video.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+                        video.srcObject = this._stream;
+                        viewport.appendChild(video);
+                        this._video = video;
+
+                        // Aguarda metadados e inicia playback
+                        await new Promise(function(resolve) {
+                            video.addEventListener('loadedmetadata', resolve, { once: true });
+                            setTimeout(resolve, 3000); // failsafe
+                        });
+                        await video.play();
+
+                        // Inicializa BarcodeDetector nativo (iOS 17+, Chrome/Edge)
+                        this._barcodeDetector = null;
+                        if ('BarcodeDetector' in window) {
+                            try {
+                                this._barcodeDetector = new BarcodeDetector({
+                                    formats: ['ean_13','ean_8','upc_a','upc_e','code_128',
+                                              'code_39','code_93','itf','qr_code','data_matrix']
+                                });
+                            } catch (e) { this._barcodeDetector = null; }
+                        }
 
                         this.cameraActive = true;
+                        this._startScanLoop();
+
                     } catch (err) {
                         console.error('Camera error:', err);
-                        var msg = 'Não foi possível acessar a câmera.';
-                        // err pode ser um Error object (com .name e .message) ou uma string
-                        var errName = (err && err.name) ? err.name : '';
-                        var errMsg = (err && err.message) ? err.message : (typeof err === 'string' ? err : '');
+                        this._stopStream();
+                        var errName = (err && err.name)    ? err.name    : '';
+                        var errMsg  = (err && err.message) ? err.message : (typeof err === 'string' ? err : '');
                         var combined = errName + ' ' + errMsg;
-                        if (combined.includes('NotAllowedError') || combined.includes('Permission') || combined.includes('denied')) {
-                            msg = 'Permissão negada. Permita o acesso à câmera nas configurações do browser.';
-                        } else if (combined.includes('NotFoundError') || combined.includes('device not found') || combined.includes('DevicesNotFoundError')) {
-                            msg = 'Nenhuma câmera encontrada. Verifique se a câmera está conectada e permitida.';
-                        } else if (combined.includes('NotReadableError') || combined.includes('Could not start') || combined.includes('TrackStartError')) {
-                            msg = 'A câmera está em uso por outro aplicativo. Feche-o e tente novamente.';
-                        } else if (combined.includes('OverconstrainedError')) {
-                            msg = 'Configuração de câmera não suportada. Tente recarregar a página.';
+                        var msg = 'Não foi possível acessar a câmera.';
+                        if (combined.match(/NotAllowed|Permission|denied/i)) {
+                            msg = 'Permissão negada. Permita a câmera nas configurações do Safari/browser.';
+                        } else if (combined.match(/NotFound|DevicesNotFound|device not found/i)) {
+                            msg = 'Nenhuma câmera encontrada neste dispositivo.';
+                        } else if (combined.match(/NotReadable|Could not start|TrackStart/i)) {
+                            msg = 'Câmera em uso por outro app. Feche-o e tente novamente.';
+                        } else if (combined.match(/Overconstrained/i)) {
+                            msg = 'Configuração de câmera não suportada. Recarregue e tente novamente.';
+                        } else if (combined.match(/https|secure|security/i)) {
+                            msg = 'A câmera exige HTTPS. Acesse o app via https://';
                         }
                         this.cameraError = msg;
                         this.cameraActive = false;
                     }
                 },
 
-                async stopCamera() {
-                    if (this._html5QrCode) {
-                        try {
-                            await this._html5QrCode.stop();
-                        } catch (e) {}
-                        this._html5QrCode = null;
+                // Loop de detecção contínua via RAF
+                _startScanLoop() {
+                    var self = this;
+                    var lastScan = 0;
+                    var INTERVAL_MS = 350; // escaneia ~3x por segundo
+
+                    function loop() {
+                        if (!self.cameraActive || !self._video) return;
+                        var now = Date.now();
+                        if (now - lastScan >= INTERVAL_MS) {
+                            lastScan = now;
+                            self._scanFrame();
+                        }
+                        self._scanLoopId = requestAnimationFrame(loop);
                     }
+                    self._scanLoopId = requestAnimationFrame(loop);
+                },
+
+                _scanFrame() {
+                    var self = this;
+                    var video = this._video;
+                    if (!video || !video.videoWidth || !video.videoHeight || this._scanCooldown) return;
+
+                    if (this._barcodeDetector) {
+                        // BarcodeDetector nativo — iOS 17+, Chrome
+                        createImageBitmap(video).then(function(bitmap) {
+                            return self._barcodeDetector.detect(bitmap).then(function(results) {
+                                if (bitmap.close) bitmap.close();
+                                if (results && results.length > 0 && results[0].rawValue) {
+                                    self.onCameraCodeDetected(results[0].rawValue);
+                                }
+                            });
+                        }).catch(function() {});
+                        return;
+                    }
+
+                    // Fallback: Quagga2 (browsers sem BarcodeDetector)
+                    if (window.Quagga && window.Quagga.decodeSingle) {
+                        var canvas = document.createElement('canvas');
+                        canvas.width  = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        canvas.getContext('2d').drawImage(video, 0, 0);
+                        canvas.toBlob(function(blob) {
+                            if (!blob) return;
+                            var url = URL.createObjectURL(blob);
+                            window.Quagga.decodeSingle({
+                                src: url,
+                                numOfWorkers: 0,
+                                locate: true,
+                                inputStream: { size: 800 },
+                                decoder: { readers: ['ean_reader','ean_8_reader','upc_reader',
+                                    'upc_e_reader','code_128_reader','code_39_reader'] }
+                            }, function(result) {
+                                URL.revokeObjectURL(url);
+                                if (result && result.codeResult && result.codeResult.code) {
+                                    self.onCameraCodeDetected(result.codeResult.code);
+                                }
+                            });
+                        }, 'image/jpeg', 0.85);
+                    }
+                },
+
+                _stopStream() {
+                    if (this._scanLoopId) {
+                        cancelAnimationFrame(this._scanLoopId);
+                        this._scanLoopId = null;
+                    }
+                    if (this._stream) {
+                        this._stream.getTracks().forEach(function(t) { t.stop(); });
+                        this._stream = null;
+                    }
+                    this._video = null;
+                    this._barcodeDetector = null;
+                },
+
+                async stopCamera() {
+                    this._stopStream();
+                    var viewport = document.getElementById('camera-scanner-viewport');
+                    if (viewport) viewport.innerHTML = '';
                     this.cameraActive = false;
                 },
 
@@ -1316,25 +1438,23 @@
 
                 // ------ TIRAR FOTO DA CÂMERA ------
                 async snapPhoto() {
-                    if (this.photoSnapping || !this.cameraActive) return;
-                    this.photoSnapping = true;
-
-                    // Efeito flash — aguarda render
-                    await new Promise(function(r) { setTimeout(r, 80); });
-
-                    // Captura frame do vídeo renderizado pelo html5-qrcode
-                    var video = document.querySelector('#camera-scanner-viewport video');
-                    if (!video || !video.videoWidth || !video.videoHeight) {
-                        this.showToast('Câmera não está pronta, aguarde.', 'warning');
-                        this.photoSnapping = false;
+                    // Se câmera não está ativa, abre câmera nativa do iOS via input file
+                    if (!this.cameraActive || !this._video || !this._video.videoWidth) {
+                        var nativeInput = document.getElementById('native-camera-input');
+                        if (nativeInput) nativeInput.click();
                         return;
                     }
 
+                    this.photoSnapping = true;
+
+                    // Efeito flash — aguarda render do overlay branco
+                    await new Promise(function(r) { setTimeout(r, 80); });
+
+                    var video = this._video;
                     var canvas = document.createElement('canvas');
-                    canvas.width = video.videoWidth;
+                    canvas.width  = video.videoWidth;
                     canvas.height = video.videoHeight;
-                    var ctx = canvas.getContext('2d');
-                    ctx.drawImage(video, 0, 0);
+                    canvas.getContext('2d').drawImage(video, 0, 0);
 
                     var blob = await new Promise(function(resolve) {
                         canvas.toBlob(resolve, 'image/jpeg', 0.92);
@@ -1343,17 +1463,30 @@
                     this.photoSnapping = false;
 
                     if (!blob) {
-                        this.showToast('Falha ao capturar a foto.', 'error');
+                        // fallback: abre câmera nativa
+                        var ni = document.getElementById('native-camera-input');
+                        if (ni) ni.click();
                         return;
                     }
 
                     var file = new File([blob], 'foto-camera-' + Date.now() + '.jpg', { type: 'image/jpeg' });
-
-                    // Para a câmera e envia para o modo imagem para análise
                     await this.stopCamera();
                     this.scanMode = 'image';
                     this.loadImageFile(file);
                     this.showToast('Foto capturada! Analisando código...', 'info');
+                },
+
+                // Chamado quando usuário tira foto via câmera nativa (input file capture)
+                handleNativeCameraPhoto(event) {
+                    var file = event.target.files && event.target.files[0];
+                    event.target.value = '';
+                    if (!file) return;
+                    this.stopCamera();
+                    this.scanMode = 'image';
+                    this.$nextTick(() => {
+                        this.loadImageFile(file);
+                        this.showToast('Foto carregada! Analisando código...', 'info');
+                    });
                 },
 
                 // ------ IMAGE ------
@@ -1739,7 +1872,7 @@
                 },
 
                 destroy() {
-                    this.stopCamera();
+                    this._stopStream();
                 },
             };
         }
