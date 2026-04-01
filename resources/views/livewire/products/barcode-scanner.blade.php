@@ -1,3 +1,90 @@
+@push('styles')
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <style>
+        /* ── Cards compactos para seção Vincular ─────────────────── */
+        .vincular-grid .product-card-modern {
+            min-height: 0;
+            border-radius: 0.85em;
+        }
+        .vincular-grid .product-img-area {
+            min-height: 64px;
+            height: 64px;
+            border-top-left-radius: 0.75em;
+            border-top-right-radius: 0.75em;
+        }
+        .vincular-grid .product-img {
+            border-top-left-radius: 0.75em;
+            border-top-right-radius: 0.75em;
+        }
+        .vincular-grid .badge-product-code {
+            font-size: 0.58em;
+            padding: 0.08em 0.45em;
+        }
+        .vincular-grid .badge-quantity {
+            font-size: 0.56em;
+            padding: 0.06em 0.38em;
+        }
+        .vincular-grid .no-barcode-badge {
+            position: absolute;
+            top: 0.3em;
+            right: 0.3em;
+            background: rgba(245,158,11,0.92);
+            color: #fff;
+            font-size: 0.55em;
+            font-weight: 800;
+            padding: 0.1em 0.4em;
+            border-radius: 0.5em;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            gap: 0.2em;
+        }
+        .vincular-grid .category-icon-wrapper {
+            width: 22px;
+            height: 22px;
+            bottom: -11px;
+            border-width: 2px;
+        }
+        .vincular-grid .category-icon {
+            font-size: 0.7em;
+        }
+        .vincular-grid .card-body {
+            padding: 0.9em 0.35em 0.5em 0.35em;
+            gap: 0.04em;
+            min-height: 0;
+        }
+        .vincular-grid .product-title {
+            font-size: 0.61em;
+            letter-spacing: 0.02em;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+        }
+        .vincular-grid .price-area {
+            margin-top: 0.2em;
+            min-height: 0;
+        }
+        .vincular-grid .badge-price,
+        .vincular-grid .badge-price-sale {
+            font-size: 0.6em;
+            padding: 0.1em 0.45em;
+        }
+        .vincular-grid .btn-action-group {
+            top: 0.25rem;
+            right: 0.25rem;
+            flex-direction: row;
+            gap: 0.15rem;
+        }
+        .vincular-grid .btn-action-group .btn {
+            width: 22px;
+            height: 22px;
+            font-size: 0.65em;
+            border-radius: 0.4em;
+            padding: 0;
+        }
+    </style>
+@endpush
+
 <div
     x-data="barcodeScanner()"
     x-on:show-toast.window="showToast($event.detail.message, $event.detail.type)"
@@ -16,6 +103,180 @@
             <template x-if="toastType === 'warning'"><i class="fas fa-triangle-exclamation text-lg"></i></template>
             <template x-if="toastType === 'info'"><i class="fas fa-circle-info text-lg"></i></template>
             <span x-text="toastMsg" class="text-sm font-semibold"></span>
+        </div>
+    </div>
+
+    {{-- ========== MODAL DE DICAS ========== --}}
+    <div x-show="showTipsModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4"
+         style="background-color:rgba(15,23,42,.5);backdrop-filter:blur(14px);display:none">
+
+        <div @click.outside="showTipsModal = false; tipStep = 1"
+             class="relative bg-white dark:bg-slate-800 rounded-[28px] shadow-2xl w-full max-w-2xl max-h-[88vh] overflow-hidden border border-slate-200/50 dark:border-slate-700/50"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100">
+
+            {{-- Cabeçalho gradiente --}}
+            <div class="relative overflow-hidden px-5 py-5 sm:px-6" style="background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899)">
+                <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full" style="background:radial-gradient(circle,rgba(255,255,255,.12) 0%,transparent 70%)"></div>
+                <button @click="showTipsModal = false; tipStep = 1"
+                        class="absolute top-3 right-3 w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all active:scale-90">
+                    <i class="fas fa-xmark"></i>
+                </button>
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-lightbulb text-white text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-white/70 font-black uppercase tracking-widest">Guia do Scanner</p>
+                        <h2 class="text-xl font-black text-white">Dicas de uso</h2>
+                    </div>
+                </div>
+                <div class="flex gap-1.5">
+                    <template x-for="s in tipTotal" :key="s">
+                        <div class="flex-1 h-1.5 rounded-full overflow-hidden bg-white/20">
+                            <div class="h-full bg-white rounded-full transition-all duration-500" :style="tipStep >= s ? 'width:100%' : 'width:0%'"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            {{-- Conteúdo --}}
+            <div class="overflow-y-auto max-h-[calc(88vh-220px)] p-5 sm:p-6">
+
+                {{-- Passo 1 --}}
+                <div x-show="tipStep === 1"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-x-6"
+                     x-transition:enter-end="opacity-100 translate-x-0">
+                    <div class="text-center mb-5">
+                        <div class="inline-flex w-16 h-16 items-center justify-center rounded-3xl shadow-xl mb-3" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                            <i class="fas fa-sliders text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-800 dark:text-white">Passo 1 — Escolha o Modo</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Define como o código lido vai agir no sistema</p>
+                    </div>
+                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                        @foreach([
+                            ['icon'=>'fas fa-search','color'=>'blue','name'=>'Consultar','desc'=>'Exibe dados completos do produto'],
+                            ['icon'=>'fas fa-tag','color'=>'pink','name'=>'Ver Preço','desc'=>'Mostra custo e preço de venda em destaque'],
+                            ['icon'=>'fas fa-boxes-stacked','color'=>'emerald','name'=>'Estoque','desc'=>'Atualiza o saldo de estoque do item'],
+                            ['icon'=>'fas fa-clipboard-list','color'=>'orange','name'=>'Inventário','desc'=>'Acumula itens para lançamento em lote'],
+                            ['icon'=>'fas fa-cart-shopping','color'=>'purple','name'=>'Venda','desc'=>'Monta lista de itens para nova venda'],
+                            ['icon'=>'fas fa-link','color'=>'cyan','name'=>'Vincular','desc'=>'Associa EAN a produto já cadastrado'],
+                        ] as $tip)
+                        <div class="rounded-2xl border border-slate-200 dark:border-slate-700 p-3 bg-slate-50/80 dark:bg-slate-900/40 flex flex-col gap-1.5">
+                            <i class="{{ $tip['icon'] }} text-{{ $tip['color'] }}-500 text-lg"></i>
+                            <p class="text-xs font-black text-slate-800 dark:text-white">{{ $tip['name'] }}</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-relaxed">{{ $tip['desc'] }}</p>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+
+                {{-- Passo 2 --}}
+                <div x-show="tipStep === 2"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-x-6"
+                     x-transition:enter-end="opacity-100 translate-x-0">
+                    <div class="text-center mb-5">
+                        <div class="inline-flex w-16 h-16 items-center justify-center rounded-3xl shadow-xl mb-3" style="background:linear-gradient(135deg,#8b5cf6,#ec4899)">
+                            <i class="fas fa-keyboard text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-800 dark:text-white">Passo 2 — Entrada do Código</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">Escolha como o código vai entrar no scanner</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-start gap-3 p-4 rounded-2xl border border-indigo-200/60 dark:border-indigo-800/40 bg-indigo-50/60 dark:bg-indigo-900/15">
+                            <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 shadow flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-keyboard text-indigo-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-slate-800 dark:text-white">Digitar / Leitor USB</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Conecte o leitor USB e leia direto no campo — ou digite o EAN manualmente.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-4 rounded-2xl border border-purple-200/60 dark:border-purple-800/40 bg-purple-50/60 dark:bg-purple-900/15">
+                            <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 shadow flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-camera text-purple-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-slate-800 dark:text-white">Câmera (tela cheia)</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Abre câmera em fullscreen com BarcodeDetector nativo + Quagga2 como fallback. Funciona em iOS 17+ via Safari.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start gap-3 p-4 rounded-2xl border border-pink-200/60 dark:border-pink-800/40 bg-pink-50/60 dark:bg-pink-900/15">
+                            <div class="w-9 h-9 rounded-xl bg-white dark:bg-slate-800 shadow flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-image text-pink-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-black text-slate-800 dark:text-white">Upload de Imagem</p>
+                                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">Faça upload ou arraste uma foto. O sistema tenta múltiplas variantes para maximizar a detecção.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Passo 3 --}}
+                <div x-show="tipStep === 3"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 translate-x-6"
+                     x-transition:enter-end="opacity-100 translate-x-0">
+                    <div class="text-center mb-5">
+                        <div class="inline-flex w-16 h-16 items-center justify-center rounded-3xl shadow-xl mb-3" style="background:linear-gradient(135deg,#10b981,#0d9488)">
+                            <i class="fas fa-circle-check text-white text-2xl"></i>
+                        </div>
+                        <h3 class="text-lg font-black text-slate-800 dark:text-white">Passo 3 — Resultados</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">O que acontece após a leitura</p>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="p-4 rounded-2xl border border-emerald-200/60 dark:border-emerald-800/40 bg-emerald-50/70 dark:bg-emerald-900/15">
+                            <p class="text-xs font-black text-emerald-700 dark:text-emerald-400 mb-2"><i class="fas fa-database mr-1.5"></i>Busca Local Instantânea</p>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400">O produto aparece em destaque com dados completos, imagem, preços e estoque.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl border border-blue-200/60 dark:border-blue-800/40 bg-blue-50/70 dark:bg-blue-900/15">
+                            <p class="text-xs font-black text-blue-700 dark:text-blue-400 mb-2"><i class="fas fa-globe mr-1.5"></i>Busca Online Automática</p>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400">Consulta Open Food Facts, Beauty Facts e UPC DB. Permite aplicar dados ao produto local.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl border border-cyan-200/60 dark:border-cyan-800/40 bg-cyan-50/70 dark:bg-cyan-900/15">
+                            <p class="text-xs font-black text-cyan-700 dark:text-cyan-400 mb-2"><i class="fas fa-link mr-1.5"></i>Modo Vincular</p>
+                            <p class="text-[11px] text-slate-600 dark:text-slate-400">Não achou? Mude para <strong>Vincular</strong> e selecione o produto correto no grid para associar o código.</p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-700 border border-indigo-200/50">
+                            <div class="flex items-center gap-3">
+                                <i class="fas fa-heart text-pink-500 text-xl"></i>
+                                <div>
+                                    <p class="text-sm font-black text-slate-800 dark:text-white">Tudo pronto!</p>
+                                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Consulte o histórico na barra lateral para revisitar leituras anteriores.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Rodapé --}}
+            <div class="bg-slate-50 dark:bg-slate-900/60 px-5 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
+                <button @click="tipStep > 1 ? tipStep-- : null" :class="tipStep === 1 ? 'opacity-30 pointer-events-none' : 'hover:bg-slate-200 dark:hover:bg-slate-700'" class="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 transition-all flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i> Anterior
+                </button>
+                <div class="flex gap-1.5">
+                    <template x-for="s in tipTotal" :key="s">
+                        <button @click="tipStep = s" class="w-2.5 h-2.5 rounded-full transition-all" :class="tipStep === s ? 'bg-indigo-500 scale-125' : 'bg-slate-300 dark:bg-slate-600'"></button>
+                    </template>
+                </div>
+                <button @click="tipStep < tipTotal ? tipStep++ : (showTipsModal = false, tipStep = 1)" class="px-4 py-2.5 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 flex items-center gap-2" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                    <span x-text="tipStep < tipTotal ? 'Próximo' : 'Fechar'"></span>
+                    <i :class="tipStep < tipTotal ? 'fas fa-arrow-right' : 'fas fa-check'"></i>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -178,6 +439,10 @@
         gradient="from-indigo-500 via-purple-500 to-pink-500"
         iconBg="from-indigo-500 via-purple-500 to-pink-500">
         <x-slot name="actions">
+            <button @click="showTipsModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border border-slate-200 dark:border-slate-600 text-amber-600 dark:text-amber-400 text-sm font-semibold hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm" title="Dicas de uso">
+                <i class="fas fa-lightbulb"></i>
+                <span class="hidden sm:inline">Dicas</span>
+            </button>
             <a href="{{ route('products.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm">
                 <i class="fas fa-list text-indigo-500"></i>
                 <span class="hidden sm:inline">Ver Produtos</span>
@@ -223,19 +488,16 @@
             {{-- ═══ MODO DE OPERAÇÃO ═══ --}}
             <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-xl overflow-hidden">
                 <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.028;"></div>
-
-                <div class="relative p-4 sm:p-5">
-                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
-                        <div>
-                            <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Fluxo de operação</p>
-                            <h3 class="text-lg sm:text-xl font-black text-slate-800 dark:text-white">Escolha como esta leitura vai entrar no sistema</h3>
-                        </div>
-                        <div class="inline-flex items-center gap-2 self-start rounded-2xl border border-indigo-200/60 dark:border-indigo-800/50 bg-indigo-50/70 dark:bg-indigo-900/20 px-3 py-2 text-[11px] font-bold text-indigo-600 dark:text-indigo-300">
-                            <span class="h-2 w-2 rounded-full bg-indigo-500"></span>
-                            Layout operacional do scanner
-                        </div>
+                <div class="relative px-3 py-3 sm:px-5 sm:py-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse flex-shrink-0"></span>
+                        <p class="text-[9px] font-black tracking-[0.22em] text-indigo-500/60 dark:text-indigo-400/60 uppercase">Modo de leitura</p>
+                        <div class="flex-1 h-px bg-gradient-to-r from-slate-200 dark:from-slate-700 to-transparent"></div>
+                        <span class="hidden sm:flex items-center gap-1 text-[9px] font-semibold text-slate-400 dark:text-slate-500">
+                            Ativo: <strong class="text-indigo-600 dark:text-indigo-300 ml-1 capitalize">{{ $activeMode }}</strong>
+                        </span>
                     </div>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-3">
+                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
                         @foreach([
                         ['mode' => 'consulta', 'icon' => 'fas fa-search', 'label' => 'Consultar', 'color' => 'blue'],
                         ['mode' => 'preco', 'icon' => 'fas fa-tag', 'label' => 'Ver Preço', 'color' => 'pink'],
@@ -245,7 +507,7 @@
                         ['mode' => 'vincular', 'icon' => 'fas fa-link', 'label' => 'Vincular', 'color' => 'cyan'],
                         ] as $m)
                         <button wire:click="setMode('{{ $m['mode'] }}')"
-                            class="group relative overflow-hidden rounded-2xl border-2 p-3 sm:p-4 text-center transition-all duration-300
+                            class="group relative overflow-hidden rounded-2xl border-2 p-2.5 text-center transition-all duration-300
                                 {{ $activeMode === $m['mode']
                                     ? 'border-'.$m['color'].'-400 dark:border-'.$m['color'].'-600 shadow-lg shadow-'.$m['color'].'-500/20 scale-[1.03]'
                                     : 'border-slate-200/80 dark:border-slate-700/80 hover:border-'.$m['color'].'-300 dark:hover:border-'.$m['color'].'-700 hover:scale-[1.02]' }}">
@@ -258,13 +520,13 @@
                                 </span>
                             </div>
                             @endif
-                            <div class="relative w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-xl flex items-center justify-center mb-2 transition-all duration-300
+                            <div class="relative w-9 h-9 sm:w-10 sm:h-10 mx-auto rounded-xl flex items-center justify-center mb-1.5 transition-all duration-300
                                 {{ $activeMode === $m['mode']
                                     ? 'bg-gradient-to-br from-'.$m['color'].'-500 to-'.$m['color'].'-600 text-white shadow-lg shadow-'.$m['color'].'-500/30'
                                     : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 group-hover:bg-'.$m['color'].'-50 dark:group-hover:bg-'.$m['color'].'-900/20 group-hover:text-'.$m['color'].'-500' }}">
-                                <i class="{{ $m['icon'] }} text-base sm:text-lg"></i>
+                                <i class="{{ $m['icon'] }} text-sm"></i>
                             </div>
-                            <p class="relative text-[10px] sm:text-xs font-bold leading-tight
+                            <p class="relative text-[9px] sm:text-[10px] font-black leading-tight
                                 {{ $activeMode === $m['mode']
                                     ? 'text-'.$m['color'].'-700 dark:text-'.$m['color'].'-300'
                                     : 'text-slate-500 dark:text-slate-400' }}">{{ $m['label'] }}</p>
@@ -274,25 +536,28 @@
                 </div>
             </div>
 
-            {{-- ═══ MAIN GRID ═══ --}}
+            {{-- ═══ WORKSPACE: Scanner (esq.) + Painel (dir. sticky) ═══ --}}
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
 
-                {{-- ─────────── MAIN COLUMN ─────────── --}}
-                <div class="lg:col-span-8 space-y-4">
+                {{-- ─────────── SCANNER ─────────── --}}
+                <div class="lg:col-span-7">
 
                     {{-- ═══ SCANNER ═══ --}}
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-xl overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.028;"></div>
-                        <div class="relative p-4 sm:p-6">
-                            <div class="flex flex-col gap-3 mb-5 sm:flex-row sm:items-center sm:justify-between">
-                                <div>
-                                    <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Entrada principal</p>
-                                    <h3 class="text-lg sm:text-xl font-black text-slate-800 dark:text-white">Scanner inteligente para leitura por código</h3>
+                        <div class="relative p-4 sm:p-5">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="w-9 h-9 rounded-xl flex-shrink-0 flex items-center justify-center shadow-md" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                                    <i class="fas fa-barcode text-white text-sm"></i>
                                 </div>
-                                <div class="inline-flex items-center gap-2 self-start rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-white/80 dark:bg-slate-800/70 px-3 py-2 text-[11px] font-bold text-slate-500 dark:text-slate-300">
-                                    <i class="fas fa-wave-square text-indigo-500"></i>
-                                    USB, câmera e imagem
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[10px] font-black tracking-[0.2em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Entrada principal</p>
+                                    <h3 class="text-sm sm:text-base font-black text-slate-800 dark:text-white leading-tight">Scanner inteligente</h3>
                                 </div>
+                                <span class="hidden sm:flex items-center gap-1.5 text-[9px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1">
+                                    <i class="fas fa-wave-square text-indigo-400"></i>
+                                    USB · Câmera · Imagem
+                                </span>
                             </div>
 
                             {{-- Tab switcher --}}
@@ -452,17 +717,134 @@
                         </div>
                     </div>
 
-                    {{-- ═══ PRODUTO ENCONTRADO ═══ --}}
-                    @if($foundProduct)
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-emerald-400/50 dark:border-emerald-600/50 shadow-2xl shadow-emerald-500/10 overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(16,185,129,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
-                        {{-- Hero banner --}}
-                        <div class="relative h-28 sm:h-36 overflow-hidden" style="background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(20,184,166,.08) 50%,transparent 100%)">
-                            <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full" style="background:radial-gradient(circle,rgba(16,185,129,.12) 0%,transparent 70%)"></div>
-                            <div class="absolute -bottom-8 right-32 w-32 h-32 rounded-full" style="background:radial-gradient(circle,rgba(20,184,166,.08) 0%,transparent 70%)"></div>
-                            <div class="absolute bottom-4 left-5 right-24 sm:right-32">
-                                <div class="flex items-center gap-2 mb-1">
-                                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                </div>{{-- end scanner col-span-7 --}}
+
+                {{-- ─────────── PAINEL DIREITO: Stats + Dicas + Histórico (sticky) ─────────── --}}
+                <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-4">
+
+                    {{-- ═══ ESTATÍSTICAS ═══ --}}
+                    @php $stats = $this->stats; @endphp
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.028;"></div>
+                        <div class="relative p-4">
+                            <div class="mb-4">
+                                <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Visão geral</p>
+                                <h3 class="text-base font-black text-slate-800 dark:text-white">Pulso do cadastro</h3>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div class="rounded-2xl p-3.5 text-center border border-slate-200/60 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-800/60">
+                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">Total</p>
+                                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">{{ $stats['total'] }}</p>
+                                </div>
+                                <div class="rounded-2xl p-3.5 text-center border border-emerald-200/60 dark:border-emerald-800/40" style="background:linear-gradient(135deg,rgb(240,253,244),rgb(209,250,229))">
+                                    <p class="text-[9px] text-emerald-600 uppercase font-black tracking-wider mb-1">Com Código</p>
+                                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['with_barcode'] }}</p>
+                                </div>
+                                <div class="rounded-2xl p-3.5 text-center border border-amber-200/60 dark:border-amber-800/40" style="background:linear-gradient(135deg,rgb(255,251,235),rgb(254,243,199))">
+                                    <p class="text-[9px] text-amber-600 uppercase font-black tracking-wider mb-1">Sem Código</p>
+                                    <p class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ $stats['without_barcode'] }}</p>
+                                </div>
+                                <div class="rounded-2xl p-3.5 text-center border border-indigo-200/60 dark:border-indigo-800/40" style="background:linear-gradient(135deg,rgb(238,242,255),rgb(224,231,255))">
+                                    <p class="text-[9px] text-indigo-600 uppercase font-black tracking-wider mb-1">Cobertura</p>
+                                    <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $stats['percentage'] }}%</p>
+                                </div>
+                            </div>
+                            <div class="mt-3.5 h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                                <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700" style="width: {{ $stats['percentage'] }}%"></div>
+                            </div>
+                            <p class="text-[9px] text-center text-slate-400 mt-1.5 font-semibold">{{ $stats['with_barcode'] }} de {{ $stats['total'] }} com código</p>
+                        </div>
+                    </div>
+
+                    {{-- ═══ ACESSO RÁPIDO DICAS ═══ --}}
+                    <button @click="showTipsModal = true"
+                            class="w-full flex items-center gap-3 p-4 rounded-[22px] border border-indigo-200/60 dark:border-indigo-700/60 transition-all hover:scale-[1.02] hover:shadow-lg active:scale-95 text-left"
+                            style="background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(168,85,247,.04))">
+                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
+                            <i class="fas fa-lightbulb text-white"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-black text-indigo-700 dark:text-indigo-300">Guia de uso · 3 passos</p>
+                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Modos, entradas e resultados</p>
+                        </div>
+                        <i class="fas fa-arrow-right text-indigo-400 text-xs"></i>
+                    </button>
+
+                    {{-- ═══ HISTÓRICO ═══ --}}
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
+                        <div class="relative p-4">
+                            <div class="mb-4 flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-[11px] font-black tracking-[0.22em] text-slate-500/70 dark:text-slate-400/70 uppercase">Linha do tempo</p>
+                                    <h3 class="text-base font-black text-slate-800 dark:text-white">Últimas leituras</h3>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-3">
+                                @if(count($scanHistory) > 0)
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">{{ count($scanHistory) }} leitura(s)</span>
+                                <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1">
+                                    <i class="fas fa-trash-can"></i> Limpar
+                                </button>
+                                @endif
+                            </div>
+                            @if(count($scanHistory) === 0)
+                            <div class="text-center py-10">
+                                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-3">
+                                    <i class="fas fa-list-check text-2xl text-slate-300 dark:text-slate-600"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
+                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
+                            </div>
+                            @else
+                            <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                                @foreach($scanHistory as $entry)
+                                <div class="flex items-start gap-2.5 p-2.5 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
+                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
+                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[10px]"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        @if($entry['found'])
+                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
+                                        @else
+                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
+                                        @endif
+                                        <p class="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{{ $entry['code'] }}</p>
+                                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $entry['scanned_at'] }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                </div>{{-- end sidebar --}}
+            </div>{{-- end workspace grid --}}
+
+            {{-- ═══════════════════════════════════════════════════════════════
+                 ZONA DE RESULTADOS: Produto Encontrado + Resultado Online
+                 (2 colunas lado a lado quando ambos existem)
+            ═══════════════════════════════════════════════════════════════ --}}
+            @php
+                $hasFoundProduct = (bool) $foundProduct;
+                $hasOnlineData   = $onlineLoading || $onlineResult || $onlineError;
+            @endphp
+            @if($hasFoundProduct || $hasOnlineData)
+            <div class="grid grid-cols-1 {{ $hasFoundProduct && $hasOnlineData ? 'lg:grid-cols-2' : '' }} gap-4 items-start">
+
+                {{-- ─── PRODUTO ENCONTRADO ─── --}}
+                @if($foundProduct)
+                <div>
+                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-emerald-400/50 dark:border-emerald-600/50 shadow-2xl shadow-emerald-500/10 overflow-hidden">
+                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(16,185,129,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                    {{-- Hero banner --}}
+                    <div class="relative h-28 sm:h-36 overflow-hidden" style="background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(20,184,166,.08) 50%,transparent 100%)">
+                        <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full" style="background:radial-gradient(circle,rgba(16,185,129,.12) 0%,transparent 70%)"></div>
+                        <div class="absolute -bottom-8 right-32 w-32 h-32 rounded-full" style="background:radial-gradient(circle,rgba(20,184,166,.08) 0%,transparent 70%)"></div>
+                        <div class="absolute bottom-4 left-5 right-24 sm:right-32">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
                                     <span class="text-[9px] font-black text-emerald-600/80 dark:text-emerald-400/70 uppercase tracking-widest">Encontrado</span>
                                 </div>
                                 <h2 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white leading-tight truncate">{{ $foundProduct['name'] }}</h2>
@@ -557,10 +939,13 @@
                             @endif
                         </div>
                     </div>
-                    @endif
+                </div>{{-- end product col --}}
+                @endif{{-- end $foundProduct --}}
 
-                    {{-- ═══ RESULTADO ONLINE ═══ --}}
-                    @if($onlineLoading)
+                {{-- ─── RESULTADO ONLINE ─── --}}
+                @if($onlineLoading || $onlineResult || $onlineError)
+                <div>
+                @if($onlineLoading)
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-blue-200/60 dark:border-blue-700/50 shadow-lg overflow-hidden">
                         <div class="relative p-4 sm:p-5 flex items-center gap-4">
                             <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -724,10 +1109,14 @@
                         </div>
                         @endif
                     </div>
-                    @endif
+                    @endif{{-- end $onlineError --}}
+                </div>{{-- end online col --}}
+                @endif{{-- end $hasOnlineData --}}
+            </div>{{-- end results grid --}}
+            @endif{{-- end results zone --}}
 
-                    {{-- ═══ VINCULAR ═══ --}}
-                    @if($activeMode === 'vincular')
+            {{-- ═══ VINCULAR (largura total) ═══ --}}
+            @if($activeMode === 'vincular')
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-xl shadow-cyan-500/8 overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(6,182,212,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
                         <div class="relative p-4 sm:p-5 space-y-4">
@@ -773,7 +1162,7 @@
                             </div>
 
                             @if(count($linkCandidates) > 0)
-                            <div class="link-candidates-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 max-h-[780px] overflow-y-auto pr-1">
+                            <div class="link-candidates-grid vincular-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 max-h-[66vh] overflow-y-auto pr-1">
                                 @foreach($linkCandidates as $candidate)
                                 <div class="product-card-modern">
 
@@ -788,12 +1177,10 @@
 
                                     <!-- Área da imagem com badges -->
                                     <div class="product-img-area">
-                                        <img src="{{ $candidate['image'] ? asset('storage/' . $candidate['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $candidate['name'] }}">
+                                        <img src="{{ $candidate['image'] ? asset('storage/products/' . $candidate['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $candidate['name'] }}">
 
                                         @if(!$candidate['barcode'])
-                                        <div class="out-of-stock">
-                                            <i class="bi bi-upc"></i> Sem Código
-                                        </div>
+                                        <span class="no-barcode-badge"><i class="bi bi-upc"></i> s/cod</span>
                                         @endif
 
                                         <!-- Código do produto -->
@@ -843,7 +1230,7 @@
                             @if(count($productsWithoutBarcode) > 0 && empty($linkSearchTerm))
                             <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
                                 <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="bi bi-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 max-h-[520px] overflow-y-auto pr-1">
+                                <div class="vincular-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 max-h-[56vh] overflow-y-auto pr-1">
                                     @foreach($productsWithoutBarcode as $noBarcodeProduct)
                                     <div class="product-card-modern">
 
@@ -858,11 +1245,9 @@
 
                                         <!-- Área da imagem com badges -->
                                         <div class="product-img-area">
-                                            <img src="{{ $noBarcodeProduct['image'] ? asset('storage/' . $noBarcodeProduct['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $noBarcodeProduct['name'] }}">
+                                            <img src="{{ $noBarcodeProduct['image'] ? asset('storage/products/' . $noBarcodeProduct['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $noBarcodeProduct['name'] }}">
 
-                                            <div class="out-of-stock">
-                                                <i class="bi bi-upc"></i> Sem Código
-                                            </div>
+                                            <span class="no-barcode-badge"><i class="bi bi-upc"></i> s/cod</span>
 
                                             <!-- Código do produto -->
                                             <span class="badge-product-code" title="Código do Produto">
@@ -1005,146 +1390,6 @@
                         </div>
                     </div>
                     @endif
-                </div>{{-- end main column --}}
-
-                {{-- ─────────── SIDEBAR (right 1/3) ─────────── --}}
-                <div class="lg:col-span-4 space-y-4 lg:sticky lg:top-4">
-
-                    {{-- ═══ ESTATÍSTICAS ═══ --}}
-                    @php $stats = $this->stats; @endphp
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.028;"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4">
-                                <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Visão geral</p>
-                                <h3 class="text-base font-black text-slate-800 dark:text-white">Pulso do cadastro</h3>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <div class="rounded-2xl p-3.5 text-center border border-slate-200/60 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-800/60">
-                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">Total</p>
-                                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">{{ $stats['total'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-emerald-200/60 dark:border-emerald-800/40" style="background:linear-gradient(135deg,rgb(240,253,244),rgb(209,250,229))">
-                                    <p class="text-[9px] text-emerald-600 uppercase font-black tracking-wider mb-1">Com Código</p>
-                                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['with_barcode'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-amber-200/60 dark:border-amber-800/40" style="background:linear-gradient(135deg,rgb(255,251,235),rgb(254,243,199))">
-                                    <p class="text-[9px] text-amber-600 uppercase font-black tracking-wider mb-1">Sem Código</p>
-                                    <p class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ $stats['without_barcode'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-indigo-200/60 dark:border-indigo-800/40" style="background:linear-gradient(135deg,rgb(238,242,255),rgb(224,231,255))">
-                                    <p class="text-[9px] text-indigo-600 uppercase font-black tracking-wider mb-1">Cobertura</p>
-                                    <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $stats['percentage'] }}%</p>
-                                </div>
-                            </div>
-                            <div class="mt-3.5 h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700" style="width: {{ $stats['percentage'] }}%"></div>
-                            </div>
-                            <p class="text-[9px] text-center text-slate-400 mt-1.5 font-semibold">{{ $stats['with_barcode'] }} de {{ $stats['total'] }} com código</p>
-                        </div>
-                    </div>
-
-                    {{-- ═══ GUIA RÁPIDO ═══ --}}
-                    <div class="relative backdrop-blur-md rounded-[28px] border border-indigo-200/50 dark:border-indigo-700/50 shadow-lg overflow-hidden" style="background:linear-gradient(135deg,rgba(99,102,241,.05),rgba(168,85,247,.04),rgba(236,72,153,.03))">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 16px 16px; opacity: 0.03;"></div>
-                        <div class="absolute top-2 right-2 w-5 h-5 border-t-2 border-r-2 border-indigo-300/20 dark:border-indigo-600/20 rounded-tr pointer-events-none"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4">
-                                <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Roteiro</p>
-                                <h3 class="text-base font-black text-slate-800 dark:text-white">Como percorrer a leitura</h3>
-                            </div>
-                            <div class="space-y-3">
-                                <div class="flex items-start gap-2.5">
-                                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-indigo-500/30">1</div>
-                                    <div>
-                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Selecione o modo</p>
-                                        <p class="text-[10px] text-slate-400">Consultar, Preço, Estoque...</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-2.5">
-                                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-indigo-500/30">2</div>
-                                    <div>
-                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Escolha a entrada</p>
-                                        <div class="mt-1 space-y-0.5">
-                                            <p class="text-[10px] text-slate-400"><i class="fas fa-keyboard text-slate-400 w-3 mr-1"></i><strong>Digitar</strong> — USB/teclado</p>
-                                            <p class="text-[10px] text-slate-400"><i class="fas fa-camera text-indigo-500 w-3 mr-1"></i><strong>Câmera</strong> — Tela cheia auto</p>
-                                            <p class="text-[10px] text-slate-400"><i class="fas fa-image text-purple-500 w-3 mr-1"></i><strong>Imagem</strong> — Upload foto</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex items-start gap-2.5">
-                                    <div class="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white text-[10px] font-black flex items-center justify-center flex-shrink-0 mt-0.5 shadow-md shadow-indigo-500/30">3</div>
-                                    <div>
-                                        <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Resultados automáticos</p>
-                                        <p class="text-[10px] text-slate-400">Busca local + online simultânea</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="mt-4 pt-3 border-t border-indigo-200/40 dark:border-indigo-800/40">
-                                <p class="text-[9px] text-indigo-500 dark:text-indigo-400 font-black mb-2 uppercase tracking-widest">6 Modos</p>
-                                <div class="grid grid-cols-2 gap-1">
-                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-search text-blue-500 w-3"></i><strong>Consultar</strong></p>
-                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-tag text-pink-500 w-3"></i><strong>Ver Preço</strong></p>
-                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-boxes-stacked text-emerald-500 w-3"></i><strong>Estoque</strong></p>
-                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-clipboard-list text-orange-500 w-3"></i><strong>Inventário</strong></p>
-                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-cart-shopping text-purple-500 w-3"></i><strong>Venda</strong></p>
-                                    <p class="text-[10px] text-slate-500 flex items-center gap-1"><i class="fas fa-link text-cyan-500 w-3"></i><strong>Vincular</strong></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- ═══ HISTÓRICO ═══ --}}
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-[11px] font-black tracking-[0.22em] text-slate-500/70 dark:text-slate-400/70 uppercase">Linha do tempo</p>
-                                    <h3 class="text-base font-black text-slate-800 dark:text-white">Últimas leituras</h3>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-3">
-                                @if(count($scanHistory) > 0)
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">{{ count($scanHistory) }} leitura(s)</span>
-                                <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1">
-                                    <i class="fas fa-trash-can"></i> Limpar
-                                </button>
-                                @endif
-                            </div>
-                            @if(count($scanHistory) === 0)
-                            <div class="text-center py-10">
-                                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-3">
-                                    <i class="fas fa-list-check text-2xl text-slate-300 dark:text-slate-600"></i>
-                                </div>
-                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
-                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
-                            </div>
-                            @else
-                            <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                                @foreach($scanHistory as $entry)
-                                <div class="flex items-start gap-2.5 p-2.5 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
-                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
-                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[10px]"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        @if($entry['found'])
-                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
-                                        @else
-                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
-                                        @endif
-                                        <p class="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{{ $entry['code'] }}</p>
-                                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $entry['scanned_at'] }}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-
-                </div>{{-- end sidebar --}}
-            </div>{{-- end main grid --}}
         </div>{{-- end content wrapper --}}
     </div>{{-- end main wrapper --}}
 
@@ -1208,6 +1453,11 @@
                     this.toastVisible = true;
                     setTimeout(() => this.toastVisible = false, 3500);
                 },
+
+                // Tips modal
+                showTipsModal: false,
+                tipStep: 1,
+                tipTotal: 3,
 
                 // Scan mode
                 scanMode: 'manual',
