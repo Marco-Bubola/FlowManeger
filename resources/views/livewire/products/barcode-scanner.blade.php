@@ -724,52 +724,7 @@
 
                     {{-- ═══ ESTATÍSTICAS ═══ --}}
                     @php $stats = $this->stats; @endphp
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.028;"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4">
-                                <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Visão geral</p>
-                                <h3 class="text-base font-black text-slate-800 dark:text-white">Pulso do cadastro</h3>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <div class="rounded-2xl p-3.5 text-center border border-slate-200/60 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-800/60">
-                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">Total</p>
-                                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">{{ $stats['total'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-emerald-200/60 dark:border-emerald-800/40" style="background:linear-gradient(135deg,rgb(240,253,244),rgb(209,250,229))">
-                                    <p class="text-[9px] text-emerald-600 uppercase font-black tracking-wider mb-1">Com Código</p>
-                                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['with_barcode'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-amber-200/60 dark:border-amber-800/40" style="background:linear-gradient(135deg,rgb(255,251,235),rgb(254,243,199))">
-                                    <p class="text-[9px] text-amber-600 uppercase font-black tracking-wider mb-1">Sem Código</p>
-                                    <p class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ $stats['without_barcode'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-indigo-200/60 dark:border-indigo-800/40" style="background:linear-gradient(135deg,rgb(238,242,255),rgb(224,231,255))">
-                                    <p class="text-[9px] text-indigo-600 uppercase font-black tracking-wider mb-1">Cobertura</p>
-                                    <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $stats['percentage'] }}%</p>
-                                </div>
-                            </div>
-                            <div class="mt-3.5 h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700" style="width: {{ $stats['percentage'] }}%"></div>
-                            </div>
-                            <p class="text-[9px] text-center text-slate-400 mt-1.5 font-semibold">{{ $stats['with_barcode'] }} de {{ $stats['total'] }} com código</p>
-                        </div>
-                    </div>
-
-                    {{-- ═══ ACESSO RÁPIDO DICAS ═══ --}}
-                    <button @click="showTipsModal = true"
-                            class="w-full flex items-center gap-3 p-4 rounded-[22px] border border-indigo-200/60 dark:border-indigo-700/60 transition-all hover:scale-[1.02] hover:shadow-lg active:scale-95 text-left"
-                            style="background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(168,85,247,.04))">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                            <i class="fas fa-lightbulb text-white"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black text-indigo-700 dark:text-indigo-300">Guia de uso · 3 passos</p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Modos, entradas e resultados</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-indigo-400 text-xs"></i>
-                    </button>
-
+                    
                     {{-- ═══ HISTÓRICO ═══ --}}
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>

@@ -70,6 +70,8 @@ class BarcodeScanner extends Component
     {
         $this->activeMode = 'consulta';
         $this->loadProductsWithoutBarcode();
+        // Restaura histórico da session para persistir entre recargas de página
+        $this->scanHistory = session('barcode_scan_history', []);
     }
 
     // -------------------------------------------------
@@ -117,8 +119,11 @@ class BarcodeScanner extends Component
             $this->stockSetValue = $this->foundProduct['stock_quantity'] ?? 0;
             $this->barcodeInput = '';
 
-            // Busca online em background para enriquecer dados
-            $this->searchOnline($code);
+            // Dispara busca online em request separado (não bloqueia salvamento do histórico)
+            $this->onlineLoading = true;
+            $this->onlineResult  = null;
+            $this->onlineError   = null;
+            $this->dispatch('trigger-online-search', code: $code);
             return;
         }
 
@@ -128,8 +133,11 @@ class BarcodeScanner extends Component
         $this->searchStatus = 'error';
         $this->addScanHistory($code, null);
 
-        // Busca online automaticamente
-        $this->searchOnline($code);
+        // Dispara busca online em request separado
+        $this->onlineLoading = true;
+        $this->onlineResult  = null;
+        $this->onlineError   = null;
+        $this->dispatch('trigger-online-search', code: $code);
 
         // Se no modo vincular, busca candidatos
         if ($this->activeMode === 'vincular') {
@@ -241,7 +249,14 @@ class BarcodeScanner extends Component
                     return;
                 }
 
-                $this->onlineDebug[] = $source['label'] . ' não retornou itens válidos.';
+                $itemCode = $data['code'] ?? '';
+                $detailMsg = match (true) {
+                    $itemCode === 'LIMIT_REACHED'  => 'limite diário de consultas atingido (trial)',
+                    $itemCode === 'ITEM_NOT_FOUND' => 'item não encontrado na base',
+                    $itemCode === 'INVALID_UPC'    => 'UPC inválido ou não reconhecido',
+                    default                        => 'não retornou itens válidos (code: ' . ($itemCode ?: 'desconhecido') . ')',
+                };
+                $this->onlineDebug[] = $source['label'] . ' — ' . $detailMsg . '.';
             }
 
             Log::info('BarcodeScanner: busca online sem resultado', [
@@ -603,12 +618,16 @@ class BarcodeScanner extends Component
             'found'      => $product !== null,
         ]);
 
-        $this->scanHistory = array_slice($this->scanHistory, 0, 15);
+        $this->scanHistory = array_slice($this->scanHistory, 0, 20);
+
+        // Persiste no session para sobreviver a recargas de página
+        session(['barcode_scan_history' => $this->scanHistory]);
     }
 
     public function clearHistory(): void
     {
         $this->scanHistory = [];
+        session()->forget('barcode_scan_history');
     }
 
     // -------------------------------------------------
