@@ -12,6 +12,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('shopee_sync_logs')) {
+            return;
+        }
+
         Schema::create('shopee_sync_logs', function (Blueprint $table) {
             $table->id();
 
