@@ -841,3 +841,27 @@ Verifique o log completo em: C:\projetos\FlowManeger\logs\start.log
   2026-03-27 19:35:23 /storage/products/product_691a656346e37.png .......................................... ~ 2.05ms
   2026-03-27 19:35:23 /storage/products/UVPv8jyA5KbYxvT2iFO6GPztyTgiysunKOUd3eE4.png .......................[2026-03-27 22:35:24] [Laravel Server]  ~ 0.09ms
   2026-03-27 19:35:23 /storage/products/RmKYjFzPM9FcbXTxCgdL0iIMfSGEI73IMFHyumYh.png ....................... ~ 0.98ms
+[2026-04-01 23:03:34] [Vite] [2m20:03:34[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\products\barcode-scanner.blade.php[22m
+[2026-04-01 23:03:34] [Vite] [2m20:03:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/products/barcode-scanner.blade.php[22m
+[2m20:03:34[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Products\BarcodeScanner.php[22m
+[2m20:03:34[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Products/BarcodeScanner.php[22m
+[2026-04-01 23:03:38] [Laravel Server]   2026-04-01 20:03:36[2026-04-01 23:03:38] [Laravel Server]  /products/barcode-scanner ................................................................ ~ 2s
+  2026-04-01 20:03:36 /assets/css/flatpickr-custom.css ......................................................... ~ 2s
+  2026-04-01 20:03:37 /assets/css/flow-theme.css ........................................................... ~ 0.19ms
+  2026-04-01 20:03:38 /assets/css/produtos.css ............................................................. ~ 0.19ms
+  2026-04-01 20:03:38 /assets/css/produtos-extra.css ....................................................... ~ 0.04ms
+  2026-04-01 20:03:38 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.04ms
+  2026-04-01 20:03:38 /assets/css/responsive/tabbar.css?v=1774485778 ....................................... ~ 0.03ms
+  2026-04-01 20:03:38 /assets/css/responsive/responsive-mobile.css ......................................... ~ 0.05ms
+  2026-04-01 20:03:38 /assets/css/responsive/responsive-iphone.css ......................................... ~ 6.84ms
+  2026-04-01 20:03:38 /assets/css/responsive/responsive-ipad.css ........................................... ~ 0.74ms
+  2026-04-01 20:03:38 /assets/css/responsive/responsive-notebook.css ....................................... ~ 0.03ms
+  2026-04-01 20:03:38 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 0.03ms
+  2026-04-01 20:03:38 /assets/css/responsive/responsive-ultrawide.css ...................................... ~ 0.03ms
+  2026-04-01 20:03:38 /assets/img/banks/inter.png .......................................................... ~ 0.05ms
+  2026-04-01 20:03:38 /assets/img/banks/nubank.svg ......................................................... ~ 0.50ms
+  2026-04-01 20:03:38 /assets/img/Criar.svg ................................................................ ~ 0.07ms
+  2026-04-01 20:03:38 /assets/css/icon-category.css ........................................................[2026-04-01 23:03:38] [Laravel Server]  ~ 0.09ms
+  2026-04-01 20:03:38 /assets/css/icon-overrides.css ....................................................... ~ 0.05ms
+[2026-04-01 23:03:41] [Laravel Server]   2026-04-01 20:03:40[2026-04-01 23:03:41] [Laravel Server]  /favicon.svg ......................................................................... ~ 0.07ms
+  2026-04-01 20:03:41 /favicon.ico ......................................................................... ~ 0.06ms
