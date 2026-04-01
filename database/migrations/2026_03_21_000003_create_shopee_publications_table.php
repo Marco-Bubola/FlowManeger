@@ -17,6 +17,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('shopee_publications')) {
+            return;
+        }
+
         Schema::create('shopee_publications', function (Blueprint $table) {
             $table->id();
 
@@ -65,34 +69,36 @@ return new class extends Migration
             $table->index(['sync_status']);
         });
 
-        // Tabela pivot: publicação Shopee ↔ produtos internos
-        Schema::create('shopee_publication_products', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('shopee_publication_id');
-            $table->foreign('shopee_publication_id')->references('id')->on('shopee_publications')->onDelete('cascade');
-            $table->integer('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+        if (! Schema::hasTable('shopee_publication_products')) {
+            // Tabela pivot: publicação Shopee ↔ produtos internos
+            Schema::create('shopee_publication_products', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('shopee_publication_id');
+                $table->foreign('shopee_publication_id')->references('id')->on('shopee_publications')->onDelete('cascade');
+                $table->integer('product_id');
+                $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
 
-            // ID do modelo/variação Shopee para este produto
-            $table->string('shopee_model_id')->nullable()
-                ->comment('Model ID da variação na Shopee (hierarquia item → model)');
-            $table->string('shopee_model_sku')->nullable()
-                ->comment('SKU do modelo na Shopee');
+                // ID do modelo/variação Shopee para este produto
+                $table->string('shopee_model_id')->nullable()
+                    ->comment('Model ID da variação na Shopee (hierarquia item → model)');
+                $table->string('shopee_model_sku')->nullable()
+                    ->comment('SKU do modelo na Shopee');
 
-            // Mapeamento de variação (cor, tamanho, etc.)
-            $table->json('variation_attributes')->nullable()
-                ->comment('Ex: {"name":"Cor","value_name":"Azul"}');
+                // Mapeamento de variação (cor, tamanho, etc.)
+                $table->json('variation_attributes')->nullable()
+                    ->comment('Ex: {"name":"Cor","value_name":"Azul"}');
 
-            $table->unsignedInteger('quantity')->default(1)
-                ->comment('Quantidade deste produto na publicação');
-            $table->decimal('unit_cost', 12, 2)->nullable();
-            $table->unsignedTinyInteger('sort_order')->default(0);
+                $table->unsignedInteger('quantity')->default(1)
+                    ->comment('Quantidade deste produto na publicação');
+                $table->decimal('unit_cost', 12, 2)->nullable();
+                $table->unsignedTinyInteger('sort_order')->default(0);
 
-            $table->timestamps();
+                $table->timestamps();
 
-            $table->unique(['shopee_publication_id', 'product_id', 'shopee_model_id'],
-                'shopee_pub_product_model_unique');
-        });
+                $table->unique(['shopee_publication_id', 'product_id', 'shopee_model_id'],
+                    'shopee_pub_product_model_unique');
+            });
+        }
     }
 
     public function down(): void
