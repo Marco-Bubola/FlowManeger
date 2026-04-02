@@ -1,10 +1,126 @@
 /* Invoices Index — Mobile (<=767px) */
 @media (max-width: 767px) {
-    .invoices-index-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
-    .invoices-index-page .grid.lg\:grid-cols-4 { grid-template-columns: 1fr !important; }
-    .invoices-index-page .grid.grid-cols-7 { grid-template-columns: repeat(7, 1fr) !important; font-size: 0.7rem !important; }
-    .invoices-index-page .grid.lg\:grid-cols-4 > :first-child { display: none; }
-}
-@media (min-width: 540px) and (max-width: 767px) {
-    .invoices-index-page .grid.lg\:grid-cols-4 > :first-child { display: block; }
+    .invoices-index-page {
+        padding: 0.75rem 0.75rem calc(88px + env(safe-area-inset-bottom));
+    }
+
+    .invoices-index-page .invoices-layout {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .invoices-index-page .invoices-sidebar,
+    .invoices-index-page .invoices-main {
+        min-width: 0;
+    }
+
+    .invoices-index-page .invoices-calendar-panel,
+    .invoices-index-page .invoices-chart-panel,
+    .invoices-index-page .category-group > div {
+        border-radius: 1.5rem !important;
+    }
+
+    .invoices-index-page .grid.grid-cols-7 {
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 0.25rem !important;
+    }
+
+    .invoices-index-page .grid.grid-cols-7 > div {
+        min-width: 0;
+    }
+
+    .invoices-index-page .invoices-calendar-panel .relative.px-5.py-4.backdrop-blur-sm > .flex.items-center.justify-between.gap-2 {
+        flex-wrap: wrap;
+    }
+
+    .invoices-index-page .invoices-calendar-panel select {
+        min-width: 0;
+        height: 2.75rem;
+    }
+
+    .invoices-index-page .invoices-chart-canvas-wrap {
+        min-height: 220px;
+        padding: 0 0.75rem 0.75rem;
+    }
+
+    .invoices-index-page .invoices-chart-canvas {
+        height: 220px !important;
+        min-height: 220px;
+    }
+
+    .invoices-index-page .invoices-cards-scroll,
+    .invoices-index-page .invoices-list-scroll {
+        max-height: none !important;
+        overflow: visible !important;
+        padding-right: 0 !important;
+    }
+
+    .invoices-index-page .category-group {
+        margin-bottom: 1rem !important;
+    }
+
+    .invoices-index-page .category-group .relative.px-6.py-5.backdrop-blur-sm .flex.items-center.justify-between {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .invoices-index-page .category-group .flex.items-center.gap-4.flex-1 {
+        align-items: flex-start;
+    }
+
+    .invoices-index-page .category-group .flex.items-center.gap-4.text-sm {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .invoices-index-page .category-toggle-btn {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .invoices-index-page .invoice-category-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.875rem !important;
+    }
+
+    .invoices-index-page .invoice-card {
+        transform: none !important;
+    }
+
+    .invoices-index-page .card-actions {
+        max-height: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+        margin-top: 0.75rem !important;
+        padding-top: 0.75rem !important;
+        overflow: visible !important;
+    }
+
+    .invoices-index-page .card-actions > div {
+        flex-wrap: wrap;
+    }
+
+    .invoices-index-page .invoices-list-scroll .p-6 > .flex.items-center.justify-between {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+    }
+
+    .invoices-index-page .invoices-list-scroll .flex.items-center.space-x-4 {
+        align-items: flex-start;
+    }
+
+    .invoices-index-page .invoices-list-scroll .flex.items-center.space-x-4.text-sm {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .invoices-index-page .invoices-list-scroll .flex.items-center.space-x-4:last-child {
+        justify-content: space-between;
+    }
+
+    .invoices-index-page .fixed .w-96 {
+        width: min(92vw, 24rem) !important;
+    }
 }
