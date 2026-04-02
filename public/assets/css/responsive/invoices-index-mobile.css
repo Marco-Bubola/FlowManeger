@@ -1,7 +1,7 @@
 /* Invoices Index — Mobile (<=767px) */
 @media (max-width: 767px) {
     .invoices-index-page {
-        padding: 0.75rem 0.75rem calc(88px + env(safe-area-inset-bottom));
+        padding: 0.25rem 0.25rem calc(88px + env(safe-area-inset-bottom));
     }
 
     .invoices-index-page .invoices-layout {
@@ -26,6 +26,36 @@
         border-radius: 1.5rem !important;
     }
 
+    .invoices-index-page .invoice-header-component {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .invoices-index-page .invoice-header-component .relative.px-4.py-4.md\:px-5.lg\:px-6 {
+        padding: 0.9rem !important;
+    }
+
+    .invoices-index-page .invoice-header-component .flex.w-full.xl\:w-auto.items-start.sm\:items-center.gap-3.md\:gap-4.min-w-0 {
+        align-items: flex-start !important;
+    }
+
+    .invoices-index-page .invoice-header-component .flex.flex-wrap.items-center.gap-x-4.gap-y-3.md\:gap-x-5.rounded-2xl {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .invoices-index-page .invoice-header-component .flex.flex-col.gap-3.w-full.xl\:w-auto {
+        width: 100%;
+    }
+
+    .invoices-index-page .invoice-header-component .flex.items-center.gap-3.flex-wrap.xl\:flex-nowrap {
+        width: 100%;
+    }
+
+    .invoices-index-page .invoice-header-component .flex.items-center.gap-3.flex-wrap.xl\:flex-nowrap > a,
+    .invoices-index-page .invoice-header-component .flex.items-center.gap-3.flex-wrap.xl\:flex-nowrap > div {
+        flex: 1 1 100%;
+    }
+
     .invoices-index-page .grid.grid-cols-7 {
         grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
         gap: 0.25rem !important;
@@ -42,6 +72,11 @@
     .invoices-index-page .invoices-calendar-panel select {
         min-width: 0;
         height: 2.75rem;
+    }
+
+    .invoices-index-page .invoices-calendar-panel .relative.px-5.py-4.backdrop-blur-sm,
+    .invoices-index-page .invoices-chart-panel .relative.px-6.py-5.backdrop-blur-sm {
+        padding: 0.9rem !important;
     }
 
     .invoices-index-page .invoices-chart-canvas-wrap {
