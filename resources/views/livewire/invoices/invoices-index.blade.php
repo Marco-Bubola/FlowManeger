@@ -319,7 +319,7 @@
                                         $catCount = count($group['invoices']);
                                     @endphp
 
-                                    <div class="category-group mb-8 transform transition-all duration-500 expanded"
+                                    <div class="category-group mb-8 transform transition-all duration-500 collapsed"
                                         wire:key="invoice-category-{{ $catId }}"
                                         data-category-id="{{ $catId }}">
                                         <!-- Card moderno com glassmorphism e cores da categoria -->
@@ -390,17 +390,17 @@
                                                     <button type="button"
                                                         class="category-toggle-btn flex items-center gap-3 px-4 py-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent"
                                                         data-category-id="{{ $catId }}"
-                                                        data-expanded="true"
-                                                        aria-expanded="true"
+                                                        data-expanded="false"
+                                                        aria-expanded="false"
                                                         style="--cat-color: {{ $catColor }};"
                                                         aria-label="Alternar visibilidade da categoria {{ $catName }}">
 
-                                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 toggle-label">Ocultar</span>
+                                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 toggle-label">Mostrar</span>
 
                                                         <!-- Toggle Switch -->
                                                          <div class="relative w-11 h-6 rounded-full transition-colors duration-300 toggle-switch"
                                                              style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%); --cat-color: {{ $catColor }};">
-                                                            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb" style="transform: translateX(20px);"></div>
+                                                            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb" style="transform: translateX(0);"></div>
                                                         </div>
                                                     </button>
                                                 </div>
@@ -686,7 +686,7 @@
                 (function () {
                     'use strict';
 
-                    var STORAGE_KEY = 'invoices-category-visibility';
+                    var STORAGE_KEY = 'invoices-category-visibility-v2';
                     var stateCache = null;
 
                     function readState() {
@@ -764,7 +764,7 @@
 
                             var expanded = Object.prototype.hasOwnProperty.call(savedState, categoryId)
                                 ? Boolean(savedState[categoryId])
-                                : true;
+                                : false;
 
                             setExpandedState(categoryId, expanded);
                         });
@@ -1027,9 +1027,18 @@
             margin-inline: auto;
         }
 
+        .invoices-layout {
+            display: grid;
+            align-items: start;
+        }
+
         .invoices-sidebar,
         .invoices-main {
             min-width: 0;
+        }
+
+        .invoices-main {
+            align-self: start;
         }
 
         .invoices-chart-canvas-wrap {
