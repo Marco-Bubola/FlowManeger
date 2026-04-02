@@ -1,4 +1,4 @@
-<div class="invoices-index-page w-full mobile-393-base relative">
+<div class="invoices-index-page w-full min-h-screen app-viewport-fit mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-portrait.css') }}">
@@ -9,13 +9,13 @@
     <x-loading-overlay message="Carregando faturas..." />
 
     <!-- Main Content Layout -->
-    <div class="w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+    <div class="w-full invoices-shell">
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 invoices-layout">
 
             <!-- Left Column - Calendar & Chart (25% - 1 col) -->
-            <div class="lg:col-span-1 space-y-3">
+            <div class="lg:col-span-1 space-y-3 invoices-sidebar">
                 <!-- Calendar - Modernizado -->
-                <div class="relative  rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                <div class="relative rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 invoices-calendar-panel"
                     style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%); border: 2px solid rgba(59, 130, 246, 0.2);">
 
                     <!-- Efeito de brilho decorativo -->
@@ -186,7 +186,7 @@
                 </div>
 
                 <!-- Chart Section - Modernizado -->
-                <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
+                <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1 invoices-chart-panel"
                     style="background: linear-gradient(135deg, rgba(139, 92, 246, 0.08) 0%, rgba(59, 130, 246, 0.05) 100%); border: 2px solid rgba(139, 92, 246, 0.2);">
 
                     <!-- Efeito de brilho decorativo -->
@@ -223,7 +223,7 @@
                     </div>
 
                     <!-- Categories Chart -->
-                    <div class="">
+                    <div class="invoices-chart-body">
                         @php
                             $categoriesChartData = collect($categoriesData ?? [])
                                 ->map(function ($c) use ($invoicesByCategory) {
@@ -246,8 +246,8 @@
                         @endphp
 
                         @if (count($categoriesChartData) > 0)
-                            <div>
-                                <div id="apex-pie" class="w-full" style="height: 240px;"></div>
+                            <div class="invoices-chart-canvas-wrap">
+                                <div id="apex-pie" wire:ignore class="w-full invoices-chart-canvas" style="height: 240px;"></div>
                                 <script type="application/json" id="categories-data">@json($categoriesChartData)</script>
                             </div>
                         @else
@@ -272,7 +272,7 @@
             </div>
 
             <!-- Transactions Section -->
-            <div class="lg:col-span-3 space-y-3">
+            <div class="lg:col-span-3 space-y-3 invoices-main">
                 <!-- Header moderno consistente -->
                 <x-invoice-header
                     :total-transactions="$totalTransactions ?? 0"
@@ -300,12 +300,12 @@
                 </x-invoice-header>
 
                 <!-- Transactions List -->
-                <div class="space-y-3">
+                <div class="space-y-3 transactions-section">
                     <!-- Transactions Content -->
                     @if ($invoices && count($invoices) > 0)
                         @if ($viewMode === 'cards')
                             <!-- Cards View -->
-                            <div class="cards-scroll max-h-[50vh] lg:max-h-[60vh] overflow-auto pr-2">
+                            <div class="cards-scroll invoices-cards-scroll max-h-[50vh] lg:max-h-[60vh] overflow-auto pr-2">
 
 
                                 @foreach ($invoicesByCategory as $group)
@@ -320,6 +320,7 @@
                                     @endphp
 
                                     <div class="category-group mb-8 transform transition-all duration-500 expanded"
+                                        wire:key="invoice-category-{{ $catId }}"
                                         data-category-id="{{ $catId }}">
                                         <!-- Card moderno com glassmorphism e cores da categoria -->
                                         <div class="relative overflow-hidden rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
@@ -390,6 +391,7 @@
                                                         class="category-toggle-btn flex items-center gap-3 px-4 py-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent"
                                                         data-category-id="{{ $catId }}"
                                                         data-expanded="true"
+                                                        aria-expanded="true"
                                                         style="--cat-color: {{ $catColor }};"
                                                         aria-label="Alternar visibilidade da categoria {{ $catName }}">
 
@@ -409,7 +411,7 @@
                                                 class="group-invoices-wrapper overflow-hidden transition-all duration-500">
                                                 <div class="px-6 pb-6">
                                                     <div
-                                                        class="group-invoices grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ultrawind:grid-cols-6 gap-5">
+                                                        class="group-invoices invoice-category-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ultrawind:grid-cols-6 gap-5">
                                                         @foreach ($group['invoices'] as $invoice)
                                                             @php
                                                                 $value = abs(
@@ -555,7 +557,7 @@
                             </div>
                         @else
                             <!-- List View -->
-                            <div class="cards-scroll max-h-[70vh] lg:max-h-[82vh] overflow-auto pr-2">
+                            <div class="cards-scroll invoices-list-scroll max-h-[70vh] lg:max-h-[82vh] overflow-auto pr-2">
                                 <div
                                     class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl overflow-hidden">
                                     <div class="divide-y divide-gray-200/50 dark:divide-gray-700/50">
@@ -681,82 +683,131 @@
             <!-- Debug panel removed -->
 
             <script>
-                (function(){
+                (function () {
                     'use strict';
 
-                    function writeDebug(msg){
-                        // debug removed - noop
+                    var STORAGE_KEY = 'invoices-category-visibility';
+                    var stateCache = null;
+
+                    function readState() {
+                        if (stateCache) {
+                            return stateCache;
+                        }
+
+                        try {
+                            stateCache = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || '{}');
+                        } catch (error) {
+                            stateCache = {};
+                        }
+
+                        return stateCache;
                     }
 
-                    function toggleCategoryByButton(btn){
-                        if(!btn) return;
-                        var categoryId = btn.getAttribute('data-category-id');
-                        if(!categoryId) return writeDebug('no categoryId');
-                        var group = document.querySelector('.category-group[data-category-id="' + categoryId + '"]');
-                        if(!group) return writeDebug('group not found for ' + categoryId);
-                        var wrapper = group.querySelector('.group-invoices-wrapper');
-                        var thumb = btn.querySelector('.toggle-thumb');
-                        var label = btn.querySelector('.toggle-label');
-
-                        var isExpanded = group.classList.contains('expanded');
-                        writeDebug('toggleCategory: cat=' + categoryId + ' expanded=' + isExpanded);
-
-                        if(isExpanded){
-                            // collapse
-                            group.classList.remove('expanded');
-                            group.classList.add('collapsed');
-                            if(wrapper){ wrapper.style.maxHeight = '0px'; wrapper.style.opacity = '0'; }
-                            if(thumb) thumb.style.transform = 'translateX(0)';
-                            if(label) label.textContent = 'Oculto';
-                            btn.setAttribute('data-expanded','false');
-                            writeDebug('collapsed ' + categoryId);
-                        }else{
-                            // expand
-                            group.classList.add('expanded');
-                            group.classList.remove('collapsed');
-                            if(wrapper){
-                                // set to scrollHeight to animate, then remove inline maxHeight after transition
-                                var h = wrapper.scrollHeight || wrapper.querySelector('.group-invoices')?.scrollHeight || 400;
-                                wrapper.style.maxHeight = h + 'px';
-                                wrapper.style.opacity = '1';
-                                setTimeout(function(){ try{ wrapper.style.maxHeight = null; }catch(e){} }, 520);
-                            }
-                            if(thumb) thumb.style.transform = 'translateX(20px)';
-                            if(label) label.textContent = 'Mostrar';
-                            btn.setAttribute('data-expanded','true');
-                            writeDebug('expanded ' + categoryId);
+                    function saveState() {
+                        try {
+                            window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(readState()));
+                        } catch (error) {
+                            // noop
                         }
                     }
 
-                    // Delegated click handler ensures it works after Livewire re-renders
-                    document.addEventListener('click', function(e){
-                        var btn = e.target.closest('.category-toggle-btn');
-                        if(!btn) return;
-                        e.preventDefault();
-                        e.stopPropagation();
-                        toggleCategoryByButton(btn);
-                    }, true);
+                    function setExpandedState(categoryId, expanded) {
+                        var group = document.querySelector('.category-group[data-category-id="' + categoryId + '"]');
+                        var button = document.querySelector('.category-toggle-btn[data-category-id="' + categoryId + '"]');
 
-                    // Initialize default expanded state on load
-                    function initStates(){
-                        document.querySelectorAll('.category-group').forEach(function(g){
-                            var wrapper = g.querySelector('.group-invoices-wrapper');
-                            if(g.classList.contains('expanded')){
-                                if(wrapper){ wrapper.style.maxHeight = (wrapper.scrollHeight || 400) + 'px'; wrapper.style.opacity = '1'; }
-                            }else{
-                                if(wrapper){ wrapper.style.maxHeight = '0px'; wrapper.style.opacity = '0'; }
+                        if (!group || !button) {
+                            return;
+                        }
+
+                        var wrapper = group.querySelector('.group-invoices-wrapper');
+                        var thumb = button.querySelector('.toggle-thumb');
+                        var label = button.querySelector('.toggle-label');
+                        var content = group.querySelector('.group-invoices');
+                        var contentHeight = content ? content.scrollHeight : 400;
+
+                        group.classList.toggle('expanded', expanded);
+                        group.classList.toggle('collapsed', !expanded);
+                        button.setAttribute('data-expanded', expanded ? 'true' : 'false');
+                        button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+
+                        if (label) {
+                            label.textContent = expanded ? 'Ocultar' : 'Mostrar';
+                        }
+
+                        if (thumb) {
+                            thumb.style.transform = expanded ? 'translateX(20px)' : 'translateX(0)';
+                        }
+
+                        if (wrapper) {
+                            wrapper.style.opacity = expanded ? '1' : '0';
+                            wrapper.style.maxHeight = expanded ? contentHeight + 'px' : '0px';
+
+                            if (expanded) {
+                                window.setTimeout(function () {
+                                    if (group.classList.contains('expanded')) {
+                                        wrapper.style.maxHeight = 'none';
+                                    }
+                                }, 520);
                             }
-                        });
-                        writeDebug('initStates done');
+                        }
                     }
 
-                    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initStates);
-                    else initStates();
+                    function syncAllCategories() {
+                        var savedState = readState();
 
-                    if(window.Livewire){
-                        document.addEventListener('livewire:update', initStates);
-                        document.addEventListener('livewire:load', initStates);
-                        if(typeof Livewire.hook === 'function') Livewire.hook('message.processed', initStates);
+                        document.querySelectorAll('.category-group').forEach(function (group) {
+                            var categoryId = group.getAttribute('data-category-id');
+
+                            if (!categoryId) {
+                                return;
+                            }
+
+                            var expanded = Object.prototype.hasOwnProperty.call(savedState, categoryId)
+                                ? Boolean(savedState[categoryId])
+                                : true;
+
+                            setExpandedState(categoryId, expanded);
+                        });
+                    }
+
+                    function handleToggleClick(event) {
+                        var button = event.target.closest('.category-toggle-btn');
+
+                        if (!button) {
+                            return;
+                        }
+
+                        event.preventDefault();
+                        event.stopPropagation();
+
+                        var categoryId = button.getAttribute('data-category-id');
+                        var expanded = button.getAttribute('data-expanded') === 'true';
+
+                        readState()[categoryId] = !expanded;
+                        saveState();
+                        setExpandedState(categoryId, !expanded);
+                    }
+
+                    if (!window.__invoicesCategoryToggleBound) {
+                        document.addEventListener('click', handleToggleClick, true);
+                        window.__invoicesCategoryToggleBound = true;
+                    }
+
+                    if (document.readyState === 'loading') {
+                        document.addEventListener('DOMContentLoaded', syncAllCategories, { once: true });
+                    } else {
+                        syncAllCategories();
+                    }
+
+                    document.addEventListener('livewire:update', syncAllCategories);
+                    document.addEventListener('livewire:load', syncAllCategories);
+                    document.addEventListener('livewire:navigated', syncAllCategories);
+
+                    if (window.Livewire && typeof window.Livewire.hook === 'function' && !window.__invoicesCategoryHookBound) {
+                        window.Livewire.hook('message.processed', function () {
+                            window.setTimeout(syncAllCategories, 30);
+                        });
+                        window.__invoicesCategoryHookBound = true;
                     }
                 })();
             </script>
@@ -963,8 +1014,32 @@
             padding: 2px;
         }
 
-        .gradient-border>div {
+        .gradient-border > div {
             border-radius: calc(1rem - 2px);
+        }
+
+        .invoices-index-page {
+            padding: clamp(0.85rem, 1vw + 0.75rem, 1.5rem);
+        }
+
+        .invoices-shell {
+            width: min(100%, 1920px);
+            margin-inline: auto;
+        }
+
+        .invoices-sidebar,
+        .invoices-main {
+            min-width: 0;
+        }
+
+        .invoices-chart-canvas-wrap {
+            position: relative;
+            min-height: 240px;
+            padding: 0 1rem 1rem;
+        }
+
+        .invoices-chart-canvas {
+            min-height: 240px;
         }
 
         /* Invoice Card Interactions */
@@ -1076,6 +1151,7 @@
             transform: rotate(180deg);
         }
 
+        .category-group {
             animation: slideInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             opacity: 0;
         }
@@ -1148,31 +1224,35 @@
     </style>
     <!-- Include ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts" onload="window.__apexChartsLoaded = true;"></script>
+    <script src="{{ asset('js/invoices-charts.js') }}?v=20260401"></script>
 
     <!-- JavaScript for Enhanced Interactions -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Add keyboard navigation for calendar
-            document.addEventListener('keydown', function(e) {
-                if (e.ctrlKey && e.key === 'n') {
-                    e.preventDefault();
-                    @if ($bankId)
-                        window.location.href = '{{ route('invoices.create', ['bankId' => $bankId]) }}';
-                    @endif
-                }
+        function initializeInvoicesIndexPage() {
+            if (!window.__invoicesIndexBindingsAttached) {
+                // Add keyboard navigation for calendar
+                document.addEventListener('keydown', function(e) {
+                    if (e.ctrlKey && e.key === 'n') {
+                        e.preventDefault();
+                        @if ($bankId)
+                            window.location.href = '{{ route('invoices.create', ['bankId' => $bankId]) }}';
+                        @endif
+                    }
 
-                // ESC para limpar filtro
-                if (e.key === 'Escape' && @this.selectedDate) {
-                    @this.clearDateFilter();
-                }
+                    // ESC para limpar filtro
+                    if (e.key === 'Escape' && @this.selectedDate) {
+                        @this.clearDateFilter();
+                    }
 
-                // Ctrl+R para recarregar dados
-                if (e.ctrlKey && e.key === 'r') {
-                    e.preventDefault();
-                    @this.loadData();
-                    showNotification('🔄 Dados atualizados!', 'success');
-                }
-            });
+                    // Ctrl+R para recarregar dados
+                    if (e.ctrlKey && e.key === 'r') {
+                        e.preventDefault();
+                        @this.loadData();
+                        showNotification('🔄 Dados atualizados!', 'success');
+                    }
+                });
+                window.__invoicesIndexBindingsAttached = true;
+            }
 
             // Add tooltips to calendar days
             const calendarDays = document.querySelectorAll('.calendar-day');
@@ -1193,25 +1273,15 @@
                 window.__categoriesChartData = [];
             }
 
-            // Carrega o script de inicialização do gráfico (arquivo externo) - aguarda ApexCharts
-            (function loadChartsScript() {
-                function tryLoad() {
-                    if (typeof ApexCharts !== 'undefined' || window.__apexChartsLoaded) {
-                        var s = document.createElement('script');
-                        s.src = '/js/invoices-charts.js?v=' + Date.now();
-                        s.async = false;
-                        document.head.appendChild(s);
-                    } else {
-                        setTimeout(tryLoad, 100);
-                    }
-                }
-                tryLoad();
-            })();
+            if (typeof window.renderInvoicesDonut === 'function') {
+                window.setTimeout(window.renderInvoicesDonut, 80);
+            }
 
             // File upload handler (guarded)
             (function() {
                 const fileUploadEl = document.getElementById('fileUpload');
-                if (!fileUploadEl) return;
+                if (!fileUploadEl || fileUploadEl.dataset.bound === 'true') return;
+                fileUploadEl.dataset.bound = 'true';
                 fileUploadEl.addEventListener('change', function(e) {
                     const file = e.target.files[0];
                     if (file) {
@@ -1237,39 +1307,60 @@
             }
 
             // Print styles
-            const style = document.createElement('style');
-            style.textContent = `
-                @media print {
-                    .no-print { display: none !important; }
-                    body { background: white !important; }
-                    .bg-gradient-to-br { background: white !important; }
-                    .backdrop-blur-xl { backdrop-filter: none !important; }
-                    .shadow-xl { box-shadow: none !important; }
-                    .floating-animation { display: none !important; }
-                }
-            `;
-            document.head.appendChild(style);
-        });
+            if (!document.getElementById('invoices-print-styles')) {
+                const style = document.createElement('style');
+                style.id = 'invoices-print-styles';
+                style.textContent = `
+                    @media print {
+                        .no-print { display: none !important; }
+                        body { background: white !important; }
+                        .bg-gradient-to-br { background: white !important; }
+                        .backdrop-blur-xl { backdrop-filter: none !important; }
+                        .shadow-xl { box-shadow: none !important; }
+                        .floating-animation { display: none !important; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        if (!window.__invoicesIndexPageInitialized) {
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializeInvoicesIndexPage, { once: true });
+            } else {
+                initializeInvoicesIndexPage();
+            }
+
+            document.addEventListener('livewire:navigated', initializeInvoicesIndexPage);
+            window.__invoicesIndexPageInitialized = true;
+        }
 
         // Card expansion functionality
         function toggleCardExpansion(card) {
             const isExpanded = card.classList.contains('expanded');
             const expandIcon = card.querySelector('.expand-icon');
-            const cardDetails = card.querySelector('.card-details');
 
             if (isExpanded) {
                 // Collapse
                 card.classList.remove('expanded');
-                expandIcon.style.transform = 'rotate(0deg)';
+                if (expandIcon) {
+                    expandIcon.style.transform = 'rotate(0deg)';
+                }
             } else {
                 // Expand
                 card.classList.add('expanded');
-                expandIcon.style.transform = 'rotate(180deg)';
+                if (expandIcon) {
+                    expandIcon.style.transform = 'rotate(180deg)';
+                }
             }
         }
 
         // Enhanced UX for date filtering (without Livewire dependency)
         document.addEventListener('livewire:load', function() {
+            if (!window.livewire || typeof window.livewire.on !== 'function') {
+                return;
+            }
+
             window.livewire.on('dateFiltered', () => {
                 // Add animation when date is filtered
                 const transactionsSection = document.querySelector('.transactions-section');
