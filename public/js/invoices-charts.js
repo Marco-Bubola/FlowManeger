@@ -1,4 +1,13 @@
 (function(){
+    if(window.__invoicesChartsBooted){
+        if(typeof window.renderInvoicesDonut === 'function'){
+            window.setTimeout(window.renderInvoicesDonut, 50);
+        }
+        return;
+    }
+
+    window.__invoicesChartsBooted = true;
+
     // invoices-charts.js
     // invoices-charts.js
     // Inicializa e reinicializa o donut ApexCharts a partir de window.__categoriesChartData
@@ -221,6 +230,11 @@
             return;
         }
 
+        const container = document.querySelector('#apex-pie');
+        if(!container){
+            return;
+        }
+
         safeRender();
     }
 
@@ -230,6 +244,18 @@
     } else {
         document.addEventListener('DOMContentLoaded', safeRenderWrapper);
     }
+
+    window.addEventListener('resize', function(){
+        setTimeout(safeRenderWrapper, 120);
+    });
+
+    document.addEventListener('livewire:navigated', function(){
+        setTimeout(safeRenderWrapper, 80);
+    });
+
+    window.addEventListener('pageshow', function(){
+        setTimeout(safeRenderWrapper, 80);
+    });
 
     // Re-render after Livewire updates (works when Livewire is present)
     if(window.Livewire && typeof window.Livewire.hook === 'function'){
