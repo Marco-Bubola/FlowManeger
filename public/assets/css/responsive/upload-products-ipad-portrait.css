@@ -1,15 +1,133 @@
 /* Upload Products - iPad Portrait (768-1024px, orientação retrato) */
+/* Sidebar oculta em tablet → disponível ≈ 768 – 48px (p-6×2) – 12px (page padding) ≈ 708px
+   products-preview-grid: md:grid-cols-4 → 4 colunas ≈ 165px/card — OK */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+
     .upload-products-page {
+        padding-inline: 0.75rem;
         padding-bottom: calc(80px + env(safe-area-inset-bottom));
     }
 
-    .upload-products-page h1.text-3xl,
-    .upload-products-page h1.text-2xl {
-        font-size: 1.45rem !important;
+    .upload-page-header {
+        margin-bottom: 1rem !important;
     }
 
-    .upload-products-page .grid.grid-cols-1.md\:grid-cols-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    .upload-header-inner {
+        padding: 1rem 1.25rem !important;
+    }
+
+    .upload-header-title {
+        font-size: 1.4rem !important;
+    }
+
+    .upload-header-main .space-y-2 > p {
+        font-size: 0.82rem !important;
+    }
+
+    .upload-header-actions > button,
+    .upload-header-actions > a {
+        padding: 0.45rem 0.85rem !important;
+        font-size: 0.78rem !important;
+    }
+
+    /* Layout 2 colunas mantido */
+    .upload-main-grid {
+        gap: 1rem !important;
+    }
+
+    /* Drop zone proporcional */
+    .upload-drop-zone {
+        height: auto !important;
+        min-height: 380px !important;
+    }
+
+    /* History grid – 1 coluna */
+    .upload-history-grid {
+        grid-template-columns: 1fr !important;
+        max-height: 520px !important;
+        gap: 0.75rem !important;
+    }
+
+    .upload-history-header .w-12.h-12 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+
+    .upload-history-header h3 { font-size: 1rem !important; }
+
+    .upload-card-header { padding: 0.75rem 0.9rem !important; }
+    .upload-card-body   { padding: 0.75rem 0.9rem !important; }
+
+    .upload-card-header .w-14.h-14 {
+        width: 2.6rem !important;
+        height: 2.6rem !important;
+    }
+    .upload-card-header .w-14.h-14 i { font-size: 1.15rem !important; }
+
+    .upload-card-stats p.text-2xl { font-size: 1.15rem !important; }
+    .upload-card-stats .relative.bg-gradient-to-br.rounded-xl.p-3 {
+        padding: 0.5rem 0.25rem !important;
+    }
+
+    .upload-card-body .flex.items-center.gap-2 > button,
+    .upload-card-body .flex.items-center.gap-2 > a {
+        padding: 0.32rem 0.55rem !important;
+        font-size: 0.68rem !important;
+    }
+
+    /* ── Products grid: 3 colunas (portrait estreito) ── */
+    .upload-products-page .products-preview-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area {
+        height: 190px !important;
+        min-height: 190px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area .product-img {
+        border-radius: 0.85rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        border-radius: 1rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .card-body {
+        padding: 2.6em 0.8em 1.9em 0.8em !important;
+        min-height: 115px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-title {
+        font-size: 0.88em !important;
+        letter-spacing: 0.04em !important;
+        line-height: 1.2 !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-product-code,
+    .upload-products-page .products-preview-grid .badge-quantity {
+        font-size: 0.65em !important;
+        padding: 0.1em 0.5em !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-price,
+    .upload-products-page .products-preview-grid .badge-price-sale {
+        font-size: 0.76em !important;
+    }
+
+    .upload-products-page .products-preview-grid .category-icon-wrapper {
+        width: 48px !important;
+        height: 48px !important;
+        bottom: -24px !important;
+    }
+
+    .upload-products-page .products-preview-grid .btn-action-group button {
+        padding: 0.28rem 0.45rem !important;
     }
 }
