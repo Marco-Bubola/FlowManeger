@@ -73,7 +73,7 @@
     }
 
     .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .product-title {
-        font-size: 0.76em !important;
+        font-size: 0.72em !important;
         line-height: 1.12 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -81,7 +81,7 @@
     }
 
     .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.74em !important;
+        font-size: 0.70em !important;
         line-height: 1.1 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -148,5 +148,32 @@
 
     .sales-create-page.mobile-393-base .create-sale-selected-item {
         padding: 0.64rem !important;
+    }
+}
+
+/* ── Dropdowns do painel de resumo — iPhone 15 ──────────── */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .sales-create-page.mobile-393-base .summary-dropdown-menu {
+        font-size: 0.82rem;
+        max-height: 210px;
+    }
+
+    .sales-create-page.mobile-393-base .summary-dropdown-menu button {
+        font-size: 0.8rem !important;
+        padding: 0.5rem 0.68rem !important;
+        gap: 0.5rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .summary-dropdown-menu .w-8.h-8 {
+        width: 1.65rem !important;
+        height: 1.65rem !important;
+        min-width: 1.65rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    .sales-create-page.mobile-393-base .summary-dropdown-menu input[type="text"] {
+        font-size: 0.78rem !important;
+        padding-top: 0.36rem !important;
+        padding-bottom: 0.36rem !important;
     }
 }
