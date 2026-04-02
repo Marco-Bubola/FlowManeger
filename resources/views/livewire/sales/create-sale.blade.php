@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ultrawide.css') }}">
+    {{-- Remove o padding do flux:main para que o create-sale use todo o espaço disponível --}}
+    <style>
+        [data-flux-main]:has(.sales-create-page) {
+            padding: 0 !important;
+        }
+    </style>
 
     <!-- Header Modernizado -->
     <x-sales-header
@@ -109,7 +115,7 @@
                     class="w-full flex flex-col lg:flex-row gap-4 lg:h-[75vh] create-sale-step-products-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-full lg:w-3/4 flex flex-col create-sale-products-pane">
+                    <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col create-sale-products-pane">
                         <!-- Header com Controles -->
                         <div class="p-2  ">
 
@@ -147,7 +153,7 @@
                         </div>
 
                         <!-- Grid de Produtos com Scroll -->
-                        <div class="flex-1 p-3 sm:p-6 overflow-y-auto min-h-0">
+                        <div class="flex-1 p-2 sm:p-3 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
                             <!-- Estado vazio -->
                             <div class="flex flex-col items-center justify-center h-full">
@@ -287,7 +293,7 @@
                                         </div>
                                     </button>
                                     <!-- Dropdown -->
-                                    <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="absolute z-50 w-full mt-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                    <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[220px] w-full mt-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-60 overflow-auto">
                                         <div class="p-2 border-b border-slate-100 dark:border-zinc-700">
                                             <div class="relative">
                                                 <span class="absolute inset-y-0 left-3 flex items-center text-slate-400"><i class="bi bi-search"></i></span>
@@ -346,7 +352,7 @@
                                          x-transition:leave-start="opacity-100 scale-100"
                                          x-transition:leave-end="opacity-0 scale-95"
                                          @click.away="open = false"
-                                         class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1">
+                                         class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[160px] w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1">
                                         <button @click="$wire.set('tipo_pagamento', 'a_vista'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'a_vista' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
                                             @if($tipo_pagamento === 'a_vista') <i class="bi bi-check-circle-fill text-green-500"></i> @endif
                                             <span>À Vista</span>
@@ -384,7 +390,7 @@
                                              x-transition:leave-start="opacity-100 scale-100"
                                              x-transition:leave-end="opacity-0 scale-95"
                                              @click.away="open = false"
-                                             class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1 max-h-40 overflow-y-auto">
+                                             class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[110px] w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1 max-h-40 overflow-y-auto">
                                             @for($i = 1; $i <= 12; $i++)
                                                 <button @click="$wire.set('parcelas', {{ $i }}); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/20 {{ $parcelas == $i ? 'bg-amber-100 dark:bg-amber-900/50' : '' }}">
                                                     @if($parcelas == $i) <i class="bi bi-check-circle-fill text-amber-500"></i> @endif
@@ -542,7 +548,7 @@
                 class="w-full flex flex-col lg:flex-row lg:max-h-screen overflow-y-auto lg:overflow-hidden create-sale-step-review-shell">
 
                 <!-- Coluna Esquerda: Informações do Cliente e Total (2/5 da tela) -->
-                <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-5 flex flex-col gap-3 sm:gap-4 create-sale-review-info-pane">
+                <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 create-sale-review-info-pane">
                     <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center sm:text-left mb-1 sm:mb-4 create-sale-review-title">
                         <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                         Resumo da Venda
@@ -666,7 +672,7 @@
                 </div>
 
                 <!-- Coluna Direita: Lista de Produtos (3/5 da tela) -->
-                <div class="w-full lg:w-3/5 bg-green-50 dark:bg-green-900/20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 p-4 sm:p-8 create-sale-review-products-pane">
+                <div class="w-full lg:w-3/5 bg-green-50 dark:bg-green-900/20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 p-3 sm:p-5 create-sale-review-products-pane">
                     <h3 class="text-xl sm:text-2xl font-bold text-green-800 dark:text-green-200 mb-4 sm:mb-6 create-sale-review-products-title">
                         <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($products) }})
                     </h3>
