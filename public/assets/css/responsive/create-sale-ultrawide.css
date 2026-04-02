@@ -228,14 +228,11 @@
     }
 }
 
-/* ── BLOCO 2: 1536px+ (6 colunas — Full HD 1920×1080 e acima) ── */
-@media (min-width: 1536px) {
+/* ── BLOCO 2: 1536–1919px (6 colunas — Full HD 1920×1080) ── */
+@media (min-width: 1536px) and (max-width: 1919px) {
 
     /* ── CONTAINER ────────────────────────────────────────── */
     .sales-create-page {
-        max-width: 1920px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
         padding-bottom: 2.5rem !important;
         padding-inline: 1.75rem !important;
     }
@@ -570,6 +567,298 @@
         font-size: 0.95rem !important;
         padding: 0.75rem 1.25rem !important;
         border-radius: 1rem !important;
+    }
+}
+
+/* ── BLOCO 3: 1920–2497px (7 colunas — 2K / WQHD 2560×1440) ─ */
+@media (min-width: 1920px) and (max-width: 2497px) {
+
+    .sales-create-page {
+        padding-bottom: 2.5rem !important;
+        padding-inline: 2rem !important;
+    }
+
+    .create-sale-step-products-shell {
+        gap: 2rem !important;
+        height: calc(100dvh - 140px) !important;
+    }
+
+    .sales-create-page .create-sale-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+    }
+
+    .sales-create-page .create-sale-summary-pane {
+        width: 22% !important;
+        flex-shrink: 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+    }
+
+    .create-sale-products-controls input {
+        font-size: 1.05rem !important;
+        padding: 0.85rem 1.15rem 0.85rem 3rem !important;
+        border-radius: 0.95rem !important;
+    }
+
+    .sales-create-page .create-sale-products-pane > div.overflow-y-auto {
+        padding: 0.75rem !important;
+    }
+
+    /* ── STEP GRID — 7 colunas ─────────────────────────────── */
+    .sales-create-page .products-step-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern {
+        border-radius: 1.35rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-img-area {
+        height: 190px !important;
+        min-height: 190px !important;
+        border-top-left-radius: 1.35rem !important;
+        border-top-right-radius: 1.35rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .card-body {
+        padding: 2.6em 0.82em 2.1em 0.82em !important;
+        gap: 0.2em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-title {
+        font-size: 0.84em !important;
+        line-height: 1.22 !important;
+        -webkit-line-clamp: 2 !important;
+        display: -webkit-box !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        min-height: 2.1em !important;
+        max-height: 2.8em !important;
+        text-align: center !important;
+        letter-spacing: 0.055em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .price-area {
+        position: static !important;
+        margin-top: 0.16em !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.2em !important;
+        flex-wrap: wrap !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .badge-product-code,
+    .sales-create-page .products-step-grid .product-card-modern .badge-quantity,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price-sale {
+        font-size: 0.68em !important;
+        padding: 0.15em 0.52em !important;
+        border-width: 1.5px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon-wrapper {
+        width: 54px !important;
+        height: 54px !important;
+        bottom: -26px !important;
+        border-width: 4px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon {
+        font-size: 1.85em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group {
+        top: 0.55em !important;
+        right: 0.55em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group > div {
+        width: 1.55rem !important;
+        height: 1.55rem !important;
+    }
+
+    /* ── PAINEL RESUMO ─────────────────────────────────────── */
+    .sales-create-page .create-sale-summary-card {
+        padding: 1rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-info-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.6rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-info-grid > div {
+        padding: 0.6rem 0.7rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-info-grid > div label {
+        font-size: 0.72rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-info-grid > div .text-sm {
+        font-size: 0.92rem !important;
+    }
+
+    .sales-create-page .create-sale-summary-card .text-2xl {
+        font-size: 1.5rem !important;
+    }
+
+    /* ── STEP 2: REVISÃO — 7 colunas ──────────────────────── */
+    .sales-create-page .create-sale-review-info-pane {
+        width: 30% !important;
+        padding: 1.1rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-pane {
+        width: 70% !important;
+        padding: 1.1rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid {
+        grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-img-area {
+        height: 175px !important;
+        min-height: 175px !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .card-body {
+        padding: 2.45em 0.75em 1.95em 0.75em !important;
+        gap: 0.18em !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
+        font-size: 0.81em !important;
+        line-height: 1.2 !important;
+        -webkit-line-clamp: 2 !important;
+        display: -webkit-box !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        text-align: center !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-product-code,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-quantity,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.65em !important;
+        padding: 0.13em 0.5em !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .category-icon-wrapper {
+        width: 50px !important;
+        height: 50px !important;
+        bottom: -24px !important;
+    }
+}
+
+/* ── BLOCO 4: 2498px+ (8 colunas — 4K/ultra-ultrawide) ────── */
+@media (min-width: 2498px) {
+
+    .sales-create-page {
+        padding-bottom: 3rem !important;
+        padding-inline: 2.5rem !important;
+    }
+
+    .create-sale-step-products-shell {
+        gap: 2.25rem !important;
+        height: calc(100dvh - 150px) !important;
+    }
+
+    .sales-create-page .create-sale-summary-pane {
+        width: 20% !important;
+    }
+
+    .create-sale-products-controls input {
+        font-size: 1.1rem !important;
+        padding: 0.9rem 1.2rem 0.9rem 3.1rem !important;
+    }
+
+    .sales-create-page .create-sale-products-pane > div.overflow-y-auto {
+        padding: 0.85rem !important;
+    }
+
+    /* ── STEP GRID — 8 colunas ─────────────────────────────── */
+    .sales-create-page .products-step-grid {
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+        gap: 0.7rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-img-area {
+        height: 215px !important;
+        min-height: 215px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .card-body {
+        padding: 2.9em 0.9em 2.35em 0.9em !important;
+        gap: 0.24em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-title {
+        font-size: 0.90em !important;
+        letter-spacing: 0.06em !important;
+        min-height: 2.25em !important;
+        max-height: 3em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .badge-product-code,
+    .sales-create-page .products-step-grid .product-card-modern .badge-quantity,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price-sale {
+        font-size: 0.72em !important;
+        padding: 0.17em 0.58em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon-wrapper {
+        width: 60px !important;
+        height: 60px !important;
+        bottom: -29px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group > div {
+        width: 1.65rem !important;
+        height: 1.65rem !important;
+    }
+
+    /* ── STEP 2: REVISÃO — 8 colunas ──────────────────────── */
+    .sales-create-page .create-sale-review-products-grid {
+        grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-img-area {
+        height: 200px !important;
+        min-height: 200px !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .card-body {
+        padding: 2.7em 0.82em 2.2em 0.82em !important;
+        gap: 0.2em !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
+        font-size: 0.86em !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-product-code,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-quantity,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.68em !important;
+        padding: 0.14em 0.52em !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .category-icon-wrapper {
+        width: 55px !important;
+        height: 55px !important;
+        bottom: -27px !important;
     }
 }
 
