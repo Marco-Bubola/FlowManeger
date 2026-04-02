@@ -860,7 +860,7 @@
                             </div>
 
                             @if(count($linkCandidates) > 0)
-                            <div class="link-candidates-grid vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[66vh] overflow-y-auto pr-1">
+                            <div class="link-candidates-grid vincular-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 ultrawind:grid-cols-5 gap-3 max-h-[66vh] overflow-y-auto pr-1">
                                 @foreach($linkCandidates as $candidate)
                                 <div class="product-card-modern">
 
@@ -925,10 +925,8 @@
                             <p class="text-sm text-slate-400 text-center py-4">Nenhum resultado para "{{ $linkSearchTerm }}"</p>
                             @endif
 
-                            @if(count($productsWithoutBarcode) > 0 && empty($linkSearchTerm))
-                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
-                                <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="bi bi-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
-                                <div class="vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[56vh] overflow-y-auto pr-1">
+                            @if(count($productsWithoutBarcode) > 0 && count($linkCandidates) === 0 && empty($linkSearchTerm))
+                            <div class="vincular-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 ultrawind:grid-cols-5 gap-3 max-h-[66vh] overflow-y-auto pr-1">
                                     @foreach($productsWithoutBarcode as $noBarcodeProduct)
                                     <div class="product-card-modern">
 
@@ -987,101 +985,68 @@
                                     </div>
                                     @endforeach
                                 </div>
-                            </div>
                             @endif
                         </div>
                     </div>
                     @elseif($onlineLoading || $onlineResult || $onlineError || $foundProduct || $searchMessage)
-                    {{-- ##RESULT_PLACEHOLDER## --}}
-                    @else
-                    {{-- ##PLACEHOLDER_CARD## --}}
+                    {{-- Search message --}}
+                    @if($searchMessage)
+                    @if($searchStatus === 'error')
+                    <div class="mt-4 rounded-[22px] overflow-hidden border-2 border-red-200/70 dark:border-red-800/50 shadow-lg">
+                        {{-- Cabeçalho da mensagem --}}
+                        <div class="px-4 py-3 flex items-center gap-3" style="background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(220,38,38,.06))">
+                            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center flex-shrink-0 shadow-md shadow-red-500/25">
+                                <i class="fas fa-circle-exclamation text-white text-sm"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-[10px] font-black tracking-[0.18em] text-red-500/70 uppercase">Produto não encontrado</p>
+                                <p class="text-sm font-bold text-slate-800 dark:text-white leading-tight">{{ $searchMessage }}</p>
+                            </div>
+                        </div>
+                        {{-- CTA vincular --}}
+                        @if($activeMode !== 'vincular')
+                        <div class="px-4 py-5 bg-white/90 dark:bg-slate-800/80 border-t border-red-100 dark:border-red-900/30">
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mb-4 flex items-center gap-1.5">
+                                <i class="fas fa-lightbulb text-amber-400"></i>
+                                Este código ainda não está associado a nenhum produto. Deseja vincular?
+                            </p>
+                            <div class="flex flex-col gap-2.5">
+                                <button wire:click="setMode('vincular')"
+                                        class="w-full flex items-center justify-center gap-3 px-5 py-4 rounded-2xl font-black text-base text-white shadow-xl shadow-cyan-500/40 transition-all hover:scale-[1.02] hover:shadow-2xl hover:shadow-cyan-500/30 active:scale-95 relative overflow-hidden"
+                                        style="background:linear-gradient(135deg,#06b6d4,#3b82f6)">
+                                    <div class="absolute inset-0 opacity-20" style="background-image:radial-gradient(circle at 80% 20%,white 1px,transparent 1px);background-size:18px 18px"></div>
+                                    <i class="fas fa-link text-lg relative"></i>
+                                    <span class="relative">Vincular código a produto existente</span>
+                                    <i class="fas fa-arrow-right ml-auto relative opacity-70"></i>
+                                </button>
+                                <a href="{{ route('products.create') }}"
+                                   class="w-full flex items-center justify-center gap-2.5 px-5 py-3 rounded-2xl font-bold text-sm bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all hover:scale-[1.01] border border-slate-200 dark:border-slate-600">
+                                    <i class="fas fa-plus text-indigo-500"></i>
+                                    Cadastrar novo produto
+                                </a>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                    @elseif($searchStatus === 'warning')
+                    <div class="mt-3 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800">
+                        <i class="fas fa-triangle-exclamation flex-shrink-0"></i>
+                        <span>{{ $searchMessage }}</span>
+                    </div>
+                    @endif
                     @endif
 
-                    {{-- ##QTY_INVENTORY_SALE_PLACEHOLDER## --}}
-
-                </div>{{-- end result col --}}
-
-                {{-- ─────────── HISTÓRICO (≈ 1/4 da tela) ─────────── --}}
-                <div class="md:col-span-12 lg:col-span-3">
-
-                    {{-- ═══ ESTATÍSTICAS ═══ --}}
-                    
-
-                    {{-- ═══ HISTÓRICO ═══ --}}
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-[11px] font-black tracking-[0.22em] text-slate-500/70 dark:text-slate-400/70 uppercase">Linha do tempo</p>
-                                    <h3 class="text-base font-black text-slate-800 dark:text-white">Últimas leituras</h3>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-3">
-                                @if(count($scanHistory) > 0)
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">{{ count($scanHistory) }} leitura(s)</span>
-                                <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1">
-                                    <i class="fas fa-trash-can"></i> Limpar
-                                </button>
-                                @endif
-                            </div>
-                            @if(count($scanHistory) === 0)
-                            <div class="text-center py-10">
-                                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-3">
-                                    <i class="fas fa-list-check text-2xl text-slate-300 dark:text-slate-600"></i>
-                                </div>
-                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
-                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
-                            </div>
-                            @else
-                            <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                                @foreach($scanHistory as $entry)
-                                <div class="flex items-start gap-2.5 p-2.5 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
-                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
-                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[10px]"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        @if($entry['found'])
-                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
-                                        @else
-                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
-                                        @endif
-                                        <p class="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{{ $entry['code'] }}</p>
-                                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $entry['scanned_at'] }}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-
-                </div>{{-- end sidebar --}}
-            </div>{{-- end workspace grid --}}
-
-            {{-- ═══════════════════════════════════════════════════════════════
-                 ZONA DE RESULTADOS: Produto Encontrado + Resultado Online
-                 (2 colunas lado a lado quando ambos existem)
-            ═══════════════════════════════════════════════════════════════ --}}
-            @php
-                $hasFoundProduct = (bool) $foundProduct;
-                $hasOnlineData   = $onlineLoading || $onlineResult || $onlineError;
-            @endphp
-            @if($hasFoundProduct || $hasOnlineData)
-            <div class="grid grid-cols-1 {{ $hasFoundProduct && $hasOnlineData ? 'lg:grid-cols-2' : '' }} gap-4 items-start">
-
-                {{-- ─── PRODUTO ENCONTRADO ─── --}}
-                @if($foundProduct)
-                <div>
-                <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-emerald-400/50 dark:border-emerald-600/50 shadow-2xl shadow-emerald-500/10 overflow-hidden">
-                    <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(16,185,129,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
-                    {{-- Hero banner --}}
-                    <div class="relative h-28 sm:h-36 overflow-hidden" style="background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(20,184,166,.08) 50%,transparent 100%)">
-                        <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full" style="background:radial-gradient(circle,rgba(16,185,129,.12) 0%,transparent 70%)"></div>
-                        <div class="absolute -bottom-8 right-32 w-32 h-32 rounded-full" style="background:radial-gradient(circle,rgba(20,184,166,.08) 0%,transparent 70%)"></div>
-                        <div class="absolute bottom-4 left-5 right-24 sm:right-32">
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                    {{-- Found product --}}
+                    @if($foundProduct)
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-emerald-400/50 dark:border-emerald-600/50 shadow-2xl shadow-emerald-500/10 overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(16,185,129,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                        {{-- Hero banner --}}
+                        <div class="relative h-28 sm:h-36 overflow-hidden" style="background:linear-gradient(135deg,rgba(16,185,129,.15) 0%,rgba(20,184,166,.08) 50%,transparent 100%)">
+                            <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full" style="background:radial-gradient(circle,rgba(16,185,129,.12) 0%,transparent 70%)"></div>
+                            <div class="absolute -bottom-8 right-32 w-32 h-32 rounded-full" style="background:radial-gradient(circle,rgba(20,184,166,.08) 0%,transparent 70%)"></div>
+                            <div class="absolute bottom-4 left-5 right-24 sm:right-32">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
                                     <span class="text-[9px] font-black text-emerald-600/80 dark:text-emerald-400/70 uppercase tracking-widest">Encontrado</span>
                                 </div>
                                 <h2 class="text-xl sm:text-2xl font-black text-slate-800 dark:text-white leading-tight truncate">{{ $foundProduct['name'] }}</h2>
@@ -1176,13 +1141,10 @@
                             @endif
                         </div>
                     </div>
-                </div>{{-- end product col --}}
-                @endif{{-- end $foundProduct --}}
+                    @endif
 
-                {{-- ─── RESULTADO ONLINE ─── --}}
-                @if($onlineLoading || $onlineResult || $onlineError)
-                <div>
-                @if($onlineLoading)
+                    {{-- Online loading --}}
+                    @if($onlineLoading)
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-blue-200/60 dark:border-blue-700/50 shadow-lg overflow-hidden">
                         <div class="relative p-4 sm:p-5 flex items-center gap-4">
                             <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
@@ -1198,6 +1160,7 @@
                     </div>
                     @endif
 
+                    {{-- Online result --}}
                     @if($onlineResult)
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-blue-400/40 dark:border-blue-600/40 shadow-xl shadow-blue-500/8 overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(59,130,246,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(59,130,246,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
@@ -1334,12 +1297,12 @@
                                     @endif
                                 </div>
                             </div>
-                            </div>
                             @endif
                         </div>
                     </div>
                     @endif
 
+                    {{-- Online error --}}
                     @if($onlineError)
                     <div class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
                         {{-- Cabeçalho do erro --}}
@@ -1386,193 +1349,41 @@
                         </details>
                         @endif
                     </div>
-                    @endif{{-- end $onlineError --}}
-                </div>{{-- end online col --}}
-                @endif{{-- end $hasOnlineData --}}
-            </div>{{-- end results grid --}}
-            @endif{{-- end results zone --}}
-
-            {{-- ═══ VINCULAR (largura total) ═══ --}}
-            @if($activeMode === 'vincular')
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-xl shadow-cyan-500/8 overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(6,182,212,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
-                        <div class="relative p-4 sm:p-5 space-y-4">
-                            <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                                        <i class="fas fa-link text-white"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[11px] font-black tracking-[0.18em] text-cyan-500/70 dark:text-cyan-400/70 uppercase">Vinculação inteligente</p>
-                                        <h3 class="font-black text-slate-800 dark:text-white text-base">Escolha o produto correto para receber o código</h3>
-                                        <p class="text-xs text-slate-500 dark:text-slate-400">Grid compacto inspirado no índice de produtos</p>
-                                    </div>
-                                </div>
-                                <div class="inline-flex items-center gap-2 rounded-2xl border border-cyan-200/60 dark:border-cyan-800/40 bg-cyan-50/70 dark:bg-cyan-900/20 px-3 py-2 text-[11px] font-bold text-cyan-700 dark:text-cyan-300 self-start">
-                                    <i class="fas fa-grid-2"></i>
-                                    {{ count($linkCandidates) > 0 ? count($linkCandidates) : count($productsWithoutBarcode) }} opções visíveis
-                                </div>
+                    @endif
+                    @else
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                        <div class="relative flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
+                            <div class="w-20 h-20 rounded-[28px] bg-gradient-to-br from-indigo-500/15 to-purple-500/15 flex items-center justify-center mb-2 shadow-inner">
+                                <i class="fas fa-barcode text-4xl text-indigo-300 dark:text-indigo-600"></i>
                             </div>
-
-                            @if($lastScannedBarcode)
-                            <div class="p-4 rounded-[24px] border border-cyan-200 dark:border-cyan-800 flex items-center gap-3" style="background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(59,130,246,.06))">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
-                                    <i class="fas fa-barcode text-white text-lg"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <p class="text-[9px] text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider">Código escaneado</p>
-                                    <p class="text-lg sm:text-xl font-black font-mono text-slate-800 dark:text-white break-all">{{ $lastScannedBarcode }}</p>
-                                </div>
+                            <div>
+                                <p class="text-[11px] font-black tracking-[0.22em] text-slate-400 uppercase mb-1">Resultado</p>
+                                <h3 class="text-lg font-black text-slate-600 dark:text-slate-300">Aguardando leitura</h3>
+                                <p class="text-xs text-slate-400 dark:text-slate-500 mt-1.5 max-w-xs">Escaneie ou digite um código de barras para ver as informações do produto aqui</p>
                             </div>
-                            @else
-                            <div class="p-5 rounded-[24px] bg-slate-50 dark:bg-slate-800/60 border-2 border-dashed border-slate-200 dark:border-slate-700 text-center">
-                                <i class="fas fa-barcode text-slate-300 dark:text-slate-600 text-3xl mb-2"></i>
-                                <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Escaneie um código primeiro</p>
+                            <div class="flex items-center gap-2 mt-2">
+                                <span class="h-1.5 w-1.5 rounded-full bg-indigo-300 dark:bg-indigo-700 animate-pulse"></span>
+                                <span class="text-[10px] text-slate-300 dark:text-slate-600 font-medium">Modo: {{ match($activeMode) { 'consulta' => 'Consultar', 'preco' => 'Ver Preço', 'estoque' => 'Estoque', 'inventario' => 'Inventário', 'venda' => 'Venda', 'vincular' => 'Vincular', default => $activeMode } }}</span>
                             </div>
-                            @endif
-
-                            <div class="relative">
-                                <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                    <i class="fas fa-search text-slate-400 text-sm"></i>
-                                </div>
-                                <input type="text" wire:model.live.debounce.300ms="linkSearchTerm" placeholder="Buscar produto..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all placeholder:text-slate-400" />
-                            </div>
-
-                            @if(count($linkCandidates) > 0)
-                            <div class="link-candidates-grid vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[66vh] overflow-y-auto pr-1">
-                                @foreach($linkCandidates as $candidate)
-                                <div class="product-card-modern">
-
-                                    <!-- Botão vincular flutuante -->
-                                    @if($lastScannedBarcode)
-                                    <div class="btn-action-group">
-                                        <button wire:click="linkBarcodeToProduct({{ $candidate['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $candidate['name'] }}'?" class="btn btn-primary" title="Vincular código">
-                                            <i class="bi bi-link-45deg"></i>
-                                        </button>
-                                    </div>
-                                    @endif
-
-                                    <!-- Área da imagem com badges -->
-                                    <div class="product-img-area">
-                                        <img src="{{ $candidate['image'] ? asset('storage/products/' . $candidate['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $candidate['name'] }}">
-
-                                        @if(!$candidate['barcode'])
-                                        <span class="no-barcode-badge"><i class="bi bi-upc"></i> s/cod</span>
-                                        @endif
-
-                                        <!-- Código do produto -->
-                                        <span class="badge-product-code" title="Código do Produto">
-                                            <i class="bi bi-upc-scan"></i> {{ $candidate['product_code'] ?? '—' }}
-                                        </span>
-
-                                        <!-- Quantidade em estoque -->
-                                        <span class="badge-quantity" title="Quantidade em Estoque">
-                                            <i class="bi bi-stack"></i> {{ $candidate['stock_quantity'] ?? 0 }}
-                                        </span>
-
-                                        <!-- Ícone da categoria -->
-                                        <div class="category-icon-wrapper">
-                                            <i class="{{ $candidate['category_icon'] ?? 'bi bi-box' }} category-icon"></i>
-                                        </div>
-                                    </div>
-
-                                    <!-- Conteúdo -->
-                                    <div class="card-body">
-                                        <div class="product-title" title="{{ $candidate['name'] }}">
-                                            {{ ucwords($candidate['name']) }}
-                                        </div>
-
-                                        <!-- Área de preços -->
-                                        <div class="price-area mt-3">
-                                            <div class="flex flex-col gap-2">
-                                                <span class="badge-price" title="Preço de Custo">
-                                                    <i class="bi bi-tag"></i>
-                                                    R$ {{ number_format($candidate['price'], 2, ',', '.') }}
-                                                </span>
-                                                <span class="badge-price-sale" title="Preço de Venda">
-                                                    <i class="bi bi-currency-dollar"></i>
-                                                    R$ {{ number_format($candidate['price_sale'], 2, ',', '.') }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-                                @endforeach
-                            </div>
-                            @elseif(!empty($linkSearchTerm))
-                            <p class="text-sm text-slate-400 text-center py-4">Nenhum resultado para "{{ $linkSearchTerm }}"</p>
-                            @endif
-
-                            @if(count($productsWithoutBarcode) > 0 && empty($linkSearchTerm))
-                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
-                                <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="bi bi-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
-                                <div class="vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[56vh] overflow-y-auto pr-1">
-                                    @foreach($productsWithoutBarcode as $noBarcodeProduct)
-                                    <div class="product-card-modern">
-
-                                        <!-- Botão vincular flutuante -->
-                                        @if($lastScannedBarcode)
-                                        <div class="btn-action-group">
-                                            <button wire:click="linkBarcodeToProduct({{ $noBarcodeProduct['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $noBarcodeProduct['name'] }}'?" class="btn btn-primary" title="Vincular código">
-                                                <i class="bi bi-link-45deg"></i>
-                                            </button>
-                                        </div>
-                                        @endif
-
-                                        <!-- Área da imagem com badges -->
-                                        <div class="product-img-area">
-                                            <img src="{{ $noBarcodeProduct['image'] ? asset('storage/products/' . $noBarcodeProduct['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $noBarcodeProduct['name'] }}">
-
-                                            <span class="no-barcode-badge"><i class="bi bi-upc"></i> s/cod</span>
-
-                                            <!-- Código do produto -->
-                                            <span class="badge-product-code" title="Código do Produto">
-                                                <i class="bi bi-upc-scan"></i> {{ $noBarcodeProduct['product_code'] ?? '—' }}
-                                            </span>
-
-                                            <!-- Quantidade em estoque -->
-                                            <span class="badge-quantity" title="Quantidade em Estoque">
-                                                <i class="bi bi-stack"></i> {{ $noBarcodeProduct['stock_quantity'] ?? 0 }}
-                                            </span>
-
-                                            <!-- Ícone da categoria -->
-                                            <div class="category-icon-wrapper">
-                                                <i class="{{ $noBarcodeProduct['category_icon'] ?? 'bi bi-box' }} category-icon"></i>
-                                            </div>
-                                        </div>
-
-                                        <!-- Conteúdo -->
-                                        <div class="card-body">
-                                            <div class="product-title" title="{{ $noBarcodeProduct['name'] }}">
-                                                {{ ucwords($noBarcodeProduct['name']) }}
-                                            </div>
-
-                                            <!-- Área de preços -->
-                                            <div class="price-area mt-3">
-                                                <div class="flex flex-col gap-2">
-                                                    <span class="badge-price" title="Preço de Custo">
-                                                        <i class="bi bi-tag"></i>
-                                                        R$ {{ number_format($noBarcodeProduct['price'], 2, ',', '.') }}
-                                                    </span>
-                                                    <span class="badge-price-sale" title="Preço de Venda">
-                                                        <i class="bi bi-currency-dollar"></i>
-                                                        R$ {{ number_format($noBarcodeProduct['price_sale'], 2, ',', '.') }}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
                         </div>
                     </div>
                     @endif
 
-                    {{-- ═══ INVENTÁRIO ═══ --}}
+                    {{-- Qty input for inventory/sale --}}
+                    @if(in_array($activeMode, ['inventario', 'venda']))
+                    <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                        <i class="fas fa-hashtag text-slate-400"></i>
+                        <span class="text-xs text-slate-500 font-semibold whitespace-nowrap">Quantidade:</span>
+                        @if($activeMode === 'inventario')
+                        <input type="number" wire:model="inventoryQtyInput" min="1" class="w-24 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-center font-black" />
+                        @else
+                        <input type="number" wire:model="saleQtyInput" min="1" class="w-24 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-center font-black" />
+                        @endif
+                    </div>
+                    @endif
+
+                    {{-- Inventory list --}}
                     @if($activeMode === 'inventario' && count($inventoryItems) > 0)
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-orange-300/60 dark:border-orange-700/60 shadow-lg overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(249,115,22,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(249,115,22,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
@@ -1617,7 +1428,7 @@
                     </div>
                     @endif
 
-                    {{-- ═══ VENDA ═══ --}}
+                    {{-- Sale list --}}
                     @if($activeMode === 'venda' && count($saleItems) > 0)
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-purple-300/60 dark:border-purple-700/60 shadow-lg overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(168,85,247,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(168,85,247,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
@@ -1667,6 +1478,66 @@
                         </div>
                     </div>
                     @endif
+
+                </div>{{-- end result col --}}
+
+                {{-- ─────────── HISTÓRICO (≈ 1/4 da tela) ─────────── --}}
+                <div class="md:col-span-12 lg:col-span-3">
+
+                    {{-- ═══ ESTATÍSTICAS ═══ --}}
+                    
+
+                    {{-- ═══ HISTÓRICO ═══ --}}
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
+                        <div class="relative p-4">
+                            <div class="mb-4 flex items-center justify-between gap-3">
+                                <div>
+                                    <p class="text-[11px] font-black tracking-[0.22em] text-slate-500/70 dark:text-slate-400/70 uppercase">Linha do tempo</p>
+                                    <h3 class="text-base font-black text-slate-800 dark:text-white">Últimas leituras</h3>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between mb-3">
+                                @if(count($scanHistory) > 0)
+                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">{{ count($scanHistory) }} leitura(s)</span>
+                                <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1">
+                                    <i class="fas fa-trash-can"></i> Limpar
+                                </button>
+                                @endif
+                            </div>
+                            @if(count($scanHistory) === 0)
+                            <div class="text-center py-10">
+                                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-3">
+                                    <i class="fas fa-list-check text-2xl text-slate-300 dark:text-slate-600"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
+                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
+                            </div>
+                            @else
+                            <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
+                                @foreach($scanHistory as $entry)
+                                <div class="flex items-start gap-2.5 p-2.5 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
+                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
+                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[10px]"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        @if($entry['found'])
+                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
+                                        @else
+                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
+                                        @endif
+                                        <p class="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{{ $entry['code'] }}</p>
+                                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $entry['scanned_at'] }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+
+                </div>{{-- end history col --}}
+            </div>{{-- end workspace grid --}}
         </div>{{-- end content wrapper --}}
     </div>{{-- end main wrapper --}}
 
