@@ -2,38 +2,38 @@
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     <style>
-        /* ── Cards compactos para seção Vincular ─────────────────── */
+        /* ── Cards para seção Vincular (proporcionais, responsivos) ────────── */
         .vincular-grid .product-card-modern {
             min-height: 0;
-            border-radius: 0.85em;
+            border-radius: 1em;
         }
         .vincular-grid .product-img-area {
-            min-height: 64px;
-            height: 64px;
-            border-top-left-radius: 0.75em;
-            border-top-right-radius: 0.75em;
+            min-height: 96px;
+            height: 96px;
+            border-top-left-radius: 0.9em;
+            border-top-right-radius: 0.9em;
         }
         .vincular-grid .product-img {
-            border-top-left-radius: 0.75em;
-            border-top-right-radius: 0.75em;
+            border-top-left-radius: 0.9em;
+            border-top-right-radius: 0.9em;
         }
         .vincular-grid .badge-product-code {
-            font-size: 0.58em;
-            padding: 0.08em 0.45em;
+            font-size: 0.6em;
+            padding: 0.1em 0.5em;
         }
         .vincular-grid .badge-quantity {
-            font-size: 0.56em;
-            padding: 0.06em 0.38em;
+            font-size: 0.58em;
+            padding: 0.08em 0.42em;
         }
         .vincular-grid .no-barcode-badge {
             position: absolute;
-            top: 0.3em;
-            right: 0.3em;
+            top: 0.35em;
+            right: 0.35em;
             background: rgba(245,158,11,0.92);
             color: #fff;
-            font-size: 0.55em;
+            font-size: 0.58em;
             font-weight: 800;
-            padding: 0.1em 0.4em;
+            padding: 0.12em 0.45em;
             border-radius: 0.5em;
             z-index: 3;
             display: flex;
@@ -41,46 +41,56 @@
             gap: 0.2em;
         }
         .vincular-grid .category-icon-wrapper {
-            width: 22px;
-            height: 22px;
-            bottom: -11px;
+            width: 26px;
+            height: 26px;
+            bottom: -13px;
             border-width: 2px;
         }
         .vincular-grid .category-icon {
-            font-size: 0.7em;
+            font-size: 0.75em;
         }
         .vincular-grid .card-body {
-            padding: 0.9em 0.35em 0.5em 0.35em;
-            gap: 0.04em;
+            padding: 1em 0.5em 0.6em 0.5em;
+            gap: 0.08em;
             min-height: 0;
         }
         .vincular-grid .product-title {
-            font-size: 0.61em;
+            font-size: 0.7em;
             letter-spacing: 0.02em;
             -webkit-line-clamp: 2;
             line-clamp: 2;
         }
         .vincular-grid .price-area {
-            margin-top: 0.2em;
+            margin-top: 0.3em;
             min-height: 0;
         }
         .vincular-grid .badge-price,
         .vincular-grid .badge-price-sale {
-            font-size: 0.6em;
-            padding: 0.1em 0.45em;
+            font-size: 0.64em;
+            padding: 0.12em 0.5em;
         }
         .vincular-grid .btn-action-group {
-            top: 0.25rem;
-            right: 0.25rem;
+            top: 0.3rem;
+            right: 0.3rem;
             flex-direction: row;
-            gap: 0.15rem;
+            gap: 0.18rem;
         }
         .vincular-grid .btn-action-group .btn {
-            width: 22px;
-            height: 22px;
-            font-size: 0.65em;
-            border-radius: 0.4em;
+            width: 26px;
+            height: 26px;
+            font-size: 0.7em;
+            border-radius: 0.45em;
             padding: 0;
+        }
+        /* iPhone (max col-2) - cards um pouco maiores */
+        @media (max-width: 639px) {
+            .vincular-grid .product-img-area {
+                min-height: 120px;
+                height: 120px;
+            }
+            .vincular-grid .product-title { font-size: 0.75em; }
+            .vincular-grid .badge-price,
+            .vincular-grid .badge-price-sale { font-size: 0.68em; }
         }
     </style>
 @endpush
@@ -280,6 +290,82 @@
         </div>
     </div>
 
+    {{-- ========== MODAL: LOG DA ANÁLISE ========== --}}
+    <div x-show="showLogModal"
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4"
+         style="background-color:rgba(15,23,42,.6);backdrop-filter:blur(14px);display:none">
+        <div class="relative bg-white dark:bg-slate-800 rounded-[28px] shadow-2xl w-full max-w-xl max-h-[80vh] flex flex-col border border-slate-200/50 dark:border-slate-700/50 overflow-hidden"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             @click.outside="showLogModal = false">
+            {{-- Cabeçalho --}}
+            <div class="relative overflow-hidden px-5 py-4 flex-shrink-0" style="background:linear-gradient(135deg,#6366f1,#4f46e5,#7c3aed)">
+                <div class="absolute -top-10 -right-10 w-40 h-40 rounded-full" style="background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 70%)"></div>
+                <button @click="showLogModal = false" class="absolute top-3 right-3 w-9 h-9 rounded-xl bg-white/20 hover:bg-white/30 flex items-center justify-center text-white transition-all active:scale-90">
+                    <i class="fas fa-xmark"></i>
+                </button>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                        <i class="fas fa-list-check text-white text-lg"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] text-white/70 font-black uppercase tracking-widest">Scanner por Imagem</p>
+                        <h2 class="text-lg font-black text-white">Log da análise</h2>
+                    </div>
+                    <div class="ml-auto flex items-center gap-2">
+                        <span class="px-2.5 py-1 rounded-full bg-white/20 text-white text-[11px] font-bold" x-text="imageDebugLogs.length + ' linhas'"></span>
+                    </div>
+                </div>
+            </div>
+            {{-- Conteúdo scrollável --}}
+            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-1.5 bg-slate-50 dark:bg-slate-900/40">
+                {{-- Banner de resultado --}}
+                <div x-show="imageResult" class="mb-3 px-4 py-3 rounded-2xl flex items-center gap-3 shadow-sm"
+                     :class="imageResultSuccess
+                        ? 'bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800'
+                        : 'bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800'">
+                    <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0"
+                         :class="imageResultSuccess ? 'bg-emerald-500' : 'bg-red-500'">
+                        <i :class="imageResultSuccess ? 'fas fa-barcode' : 'fas fa-xmark'" class="text-white text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-wider"
+                           :class="imageResultSuccess ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'"
+                           x-text="imageResultSuccess ? 'Código detectado com sucesso' : 'Nenhum código detectado'"></p>
+                        <p class="text-sm font-mono font-black"
+                           :class="imageResultSuccess ? 'text-emerald-800 dark:text-emerald-300' : 'text-red-700 dark:text-red-400'"
+                           x-text="imageResult"></p>
+                    </div>
+                </div>
+                <template x-for="(log, index) in imageDebugLogs" :key="index">
+                    <div class="flex items-start gap-2.5 py-2 px-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 shadow-sm">
+                        <span class="mt-1.5 h-2 w-2 rounded-full bg-indigo-500 flex-shrink-0"></span>
+                        <span class="font-mono text-xs text-slate-700 dark:text-slate-300 leading-relaxed" x-text="log"></span>
+                    </div>
+                </template>
+                <div x-show="!imageDebugLogs.length" class="text-center py-8 text-slate-400 text-sm">
+                    Nenhum log disponível
+                </div>
+            </div>
+            {{-- Rodapé --}}
+            <div class="flex-shrink-0 px-5 py-3 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center gap-3 bg-white dark:bg-slate-800">
+                <button @click="imageDebugLogs = []; showLogModal = false" type="button" class="px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-xs font-bold hover:bg-red-100 transition-all flex items-center gap-1.5">
+                    <i class="fas fa-trash-can"></i> Limpar log
+                </button>
+                <button @click="showLogModal = false" type="button" class="px-5 py-2 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fas fa-check"></i> Fechar
+                </button>
+            </div>
+        </div>
+    </div>
+
     {{-- ========== FULLSCREEN CAMERA MODAL ========== --}}
     <div x-show="scanMode === 'camera'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0" class="fixed inset-0 z-50 bg-black" style="display:none">
         {{-- Camera viewport --}}
@@ -439,6 +525,74 @@
         gradient="from-indigo-500 via-purple-500 to-pink-500"
         iconBg="from-indigo-500 via-purple-500 to-pink-500">
         <x-slot name="actions">
+            {{-- ══ MODO DE LEITURA: Dropdown compacto no header ══ --}}
+            @php
+            $modeHeaderMap = [
+                'consulta'   => ['icon' => 'fas fa-search',         'label' => 'Consultar',  'color' => 'blue',    'desc' => 'Exibe dados completos do produto'],
+                'preco'      => ['icon' => 'fas fa-tag',             'label' => 'Ver Preço',  'color' => 'pink',    'desc' => 'Mostra custo e preço de venda'],
+                'estoque'    => ['icon' => 'fas fa-boxes-stacked',   'label' => 'Estoque',    'color' => 'emerald', 'desc' => 'Atualiza o saldo de estoque'],
+                'inventario' => ['icon' => 'fas fa-clipboard-list',  'label' => 'Inventário', 'color' => 'orange',  'desc' => 'Acumula itens para lançamento em lote'],
+                'venda'      => ['icon' => 'fas fa-cart-shopping',   'label' => 'Venda',      'color' => 'purple',  'desc' => 'Monta lista de itens para nova venda'],
+                'vincular'   => ['icon' => 'fas fa-link',            'label' => 'Vincular',   'color' => 'cyan',    'desc' => 'Associa EAN a produto já cadastrado'],
+            ];
+            $chm = $modeHeaderMap[$activeMode] ?? $modeHeaderMap['consulta'];
+            @endphp
+            <div class="relative" @keydown.escape.window="modeOpen = false" @click.outside="modeOpen = false">
+                <button @click="modeOpen = !modeOpen" type="button"
+                        class="inline-flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border border-slate-200 dark:border-slate-600 text-sm font-semibold hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm"
+                        :class="modeOpen ? 'ring-2 ring-indigo-400/50 border-indigo-300 dark:border-indigo-600' : ''">
+                    <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 bg-gradient-to-br from-{{ $chm['color'] }}-500 to-{{ $chm['color'] }}-600">
+                        <i class="{{ $chm['icon'] }} text-white text-[10px]"></i>
+                    </div>
+                    <span class="hidden md:inline text-slate-700 dark:text-slate-200">{{ $chm['label'] }}</span>
+                    <span class="inline md:hidden text-[10px] font-black uppercase tracking-wide text-{{ $chm['color'] }}-600 dark:text-{{ $chm['color'] }}-400">Modo</span>
+                    <i class="fas fa-chevron-down text-slate-400 text-[11px] transition-transform duration-200" :class="modeOpen ? 'rotate-180' : ''"></i>
+                </button>
+                {{-- Painel dropdown --}}
+                <div x-show="modeOpen"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95 -translate-y-1"
+                     x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave="transition ease-in duration-150"
+                     x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                     x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
+                     class="absolute right-0 top-[calc(100%+8px)] z-[100] w-72 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xl shadow-slate-900/20 overflow-hidden"
+                     style="display:none">
+                    <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                        <p class="text-[9px] font-black tracking-[0.2em] text-slate-400 uppercase">Modo de leitura</p>
+                    </div>
+                    <div class="p-1.5 space-y-0.5">
+                        @foreach($modeHeaderMap as $modeId => $m)
+                        <button wire:click="setMode('{{ $modeId }}')"
+                                @click="modeOpen = false"
+                                type="button"
+                                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition-all border
+                                    {{ $activeMode === $modeId
+                                        ? 'bg-'.$m['color'].'-50/80 dark:bg-'.$m['color'].'-900/20 border-'.$m['color'].'-200/60 dark:border-'.$m['color'].'-800/50'
+                                        : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/60' }}">
+                            <div class="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm
+                                {{ $activeMode === $modeId
+                                    ? 'bg-gradient-to-br from-'.$m['color'].'-500 to-'.$m['color'].'-600'
+                                    : 'bg-slate-100 dark:bg-slate-700' }}">
+                                <i class="{{ $m['icon'] }} text-xs {{ $activeMode === $modeId ? 'text-white' : 'text-slate-500 dark:text-slate-400' }}"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold leading-tight
+                                    {{ $activeMode === $modeId ? 'text-'.$m['color'].'-700 dark:text-'.$m['color'].'-300' : 'text-slate-700 dark:text-slate-200' }}">{{ $m['label'] }}</p>
+                                <p class="text-[10px] text-slate-400 dark:text-slate-500 truncate">{{ $m['desc'] }}</p>
+                            </div>
+                            @if($activeMode === $modeId)
+                            <span class="relative flex h-2 w-2 flex-shrink-0">
+                                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-{{ $m['color'] }}-400 opacity-75"></span>
+                                <span class="relative inline-flex rounded-full h-2 w-2 bg-{{ $m['color'] }}-500"></span>
+                            </span>
+                            @endif
+                        </button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
             <button @click="showTipsModal = true" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border border-slate-200 dark:border-slate-600 text-amber-600 dark:text-amber-400 text-sm font-semibold hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm" title="Dicas de uso">
                 <i class="fas fa-lightbulb"></i>
                 <span class="hidden sm:inline">Dicas</span>
@@ -485,62 +639,12 @@
 
         <div class="w-full space-y-4">
 
-            {{-- ═══ MODO DE OPERAÇÃO ═══ --}}
-            <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-xl overflow-hidden">
-                <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.028;"></div>
-                <div class="relative px-3 py-3 sm:px-5 sm:py-4">
-                    <div class="flex items-center gap-2 mb-3">
-                        <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse flex-shrink-0"></span>
-                        <p class="text-[9px] font-black tracking-[0.22em] text-indigo-500/60 dark:text-indigo-400/60 uppercase">Modo de leitura</p>
-                        <div class="flex-1 h-px bg-gradient-to-r from-slate-200 dark:from-slate-700 to-transparent"></div>
-                        <span class="hidden sm:flex items-center gap-1 text-[9px] font-semibold text-slate-400 dark:text-slate-500">
-                            Ativo: <strong class="text-indigo-600 dark:text-indigo-300 ml-1 capitalize">{{ $activeMode }}</strong>
-                        </span>
-                    </div>
-                    <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                        @foreach([
-                        ['mode' => 'consulta', 'icon' => 'fas fa-search', 'label' => 'Consultar', 'color' => 'blue'],
-                        ['mode' => 'preco', 'icon' => 'fas fa-tag', 'label' => 'Ver Preço', 'color' => 'pink'],
-                        ['mode' => 'estoque', 'icon' => 'fas fa-boxes-stacked', 'label' => 'Estoque', 'color' => 'emerald'],
-                        ['mode' => 'inventario', 'icon' => 'fas fa-clipboard-list', 'label' => 'Inventário', 'color' => 'orange'],
-                        ['mode' => 'venda', 'icon' => 'fas fa-cart-shopping', 'label' => 'Venda', 'color' => 'purple'],
-                        ['mode' => 'vincular', 'icon' => 'fas fa-link', 'label' => 'Vincular', 'color' => 'cyan'],
-                        ] as $m)
-                        <button wire:click="setMode('{{ $m['mode'] }}')"
-                            class="group relative overflow-hidden rounded-2xl border-2 p-2.5 text-center transition-all duration-300
-                                {{ $activeMode === $m['mode']
-                                    ? 'border-'.$m['color'].'-400 dark:border-'.$m['color'].'-600 shadow-lg shadow-'.$m['color'].'-500/20 scale-[1.03]'
-                                    : 'border-slate-200/80 dark:border-slate-700/80 hover:border-'.$m['color'].'-300 dark:hover:border-'.$m['color'].'-700 hover:scale-[1.02]' }}">
-                            @if($activeMode === $m['mode'])
-                            <div class="absolute inset-0 bg-gradient-to-br from-{{ $m['color'] }}-500/12 to-{{ $m['color'] }}-400/5 dark:from-{{ $m['color'] }}-500/18 dark:to-{{ $m['color'] }}-400/5"></div>
-                            <div class="absolute top-2 right-2">
-                                <span class="relative flex h-2 w-2">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-{{ $m['color'] }}-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-2 w-2 bg-{{ $m['color'] }}-500"></span>
-                                </span>
-                            </div>
-                            @endif
-                            <div class="relative w-9 h-9 sm:w-10 sm:h-10 mx-auto rounded-xl flex items-center justify-center mb-1.5 transition-all duration-300
-                                {{ $activeMode === $m['mode']
-                                    ? 'bg-gradient-to-br from-'.$m['color'].'-500 to-'.$m['color'].'-600 text-white shadow-lg shadow-'.$m['color'].'-500/30'
-                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 group-hover:bg-'.$m['color'].'-50 dark:group-hover:bg-'.$m['color'].'-900/20 group-hover:text-'.$m['color'].'-500' }}">
-                                <i class="{{ $m['icon'] }} text-sm"></i>
-                            </div>
-                            <p class="relative text-[9px] sm:text-[10px] font-black leading-tight
-                                {{ $activeMode === $m['mode']
-                                    ? 'text-'.$m['color'].'-700 dark:text-'.$m['color'].'-300'
-                                    : 'text-slate-500 dark:text-slate-400' }}">{{ $m['label'] }}</p>
-                        </button>
-                        @endforeach
-                    </div>
-                </div>
-            </div>
 
-            {{-- ═══ WORKSPACE: Scanner (esq.) + Painel (dir. sticky) ═══ --}}
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+            {{-- ═══ WORKSPACE: Scanner (esq. 1/4) + Painel (dir. 3/4 sticky) ═══ --}}
+            <div class="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-4 items-start">
 
-                {{-- ─────────── SCANNER ─────────── --}}
-                <div class="lg:col-span-7">
+                {{-- ─────────── SCANNER (≈ 1/4 da tela) ─────────── --}}
+                <div class="md:col-span-5 lg:col-span-3">
 
                     {{-- ═══ SCANNER ═══ --}}
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-xl overflow-hidden">
@@ -554,10 +658,37 @@
                                     <p class="text-[10px] font-black tracking-[0.2em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Entrada principal</p>
                                     <h3 class="text-sm sm:text-base font-black text-slate-800 dark:text-white leading-tight">Scanner inteligente</h3>
                                 </div>
-                                <span class="hidden sm:flex items-center gap-1.5 text-[9px] font-bold text-slate-400 border border-slate-200 dark:border-slate-700 rounded-xl px-2 py-1">
-                                    <i class="fas fa-wave-square text-indigo-400"></i>
-                                    USB · Câmera · Imagem
-                                </span>
+                                <div class="hidden sm:flex items-center gap-1.5">
+                                    <span class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[10px] font-bold border
+                                        {{ match($activeMode) {
+                                            'consulta'   => 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200/60 dark:border-blue-800/50',
+                                            'preco'      => 'bg-pink-50 dark:bg-pink-900/20 text-pink-700 dark:text-pink-300 border-pink-200/60 dark:border-pink-800/50',
+                                            'estoque'    => 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200/60 dark:border-emerald-800/50',
+                                            'inventario' => 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 border-orange-200/60 dark:border-orange-800/50',
+                                            'venda'      => 'bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border-purple-200/60 dark:border-purple-800/50',
+                                            'vincular'   => 'bg-cyan-50 dark:bg-cyan-900/20 text-cyan-700 dark:text-cyan-300 border-cyan-200/60 dark:border-cyan-800/50',
+                                            default      => 'bg-slate-50 text-slate-500 border-slate-200',
+                                        } }}">
+                                        <i class="{{ match($activeMode) {
+                                            'consulta'   => 'fas fa-search',
+                                            'preco'      => 'fas fa-tag',
+                                            'estoque'    => 'fas fa-boxes-stacked',
+                                            'inventario' => 'fas fa-clipboard-list',
+                                            'venda'      => 'fas fa-cart-shopping',
+                                            'vincular'   => 'fas fa-link',
+                                            default      => 'fas fa-circle',
+                                        } }}"></i>
+                                        {{ match($activeMode) {
+                                            'consulta'   => 'Consultar',
+                                            'preco'      => 'Ver Preço',
+                                            'estoque'    => 'Estoque',
+                                            'inventario' => 'Inventário',
+                                            'venda'      => 'Venda',
+                                            'vincular'   => 'Vincular',
+                                            default      => $activeMode,
+                                        } }}
+                                    </span>
+                                </div>
                             </div>
 
                             {{-- Tab switcher --}}
@@ -665,110 +796,26 @@
                                     </div>
                                 </div>
 
-                                <div x-show="imageDebugLogs.length" x-transition class="mt-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/70 overflow-hidden">
-                                    <div class="px-3 py-2 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between gap-3">
-                                        <div class="flex items-center gap-2">
-                                            <i class="fas fa-list-check text-indigo-500 text-xs"></i>
-                                            <p class="text-[11px] font-black tracking-[0.18em] uppercase text-slate-500 dark:text-slate-400">Log da análise</p>
-                                        </div>
-                                        <button @click="imageDebugLogs = []" type="button" class="text-[10px] font-bold text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">Limpar</button>
-                                    </div>
-                                    <div class="max-h-56 overflow-y-auto px-3 py-2 space-y-1.5">
-                                        <template x-for="(log, index) in imageDebugLogs" :key="index">
-                                            <div class="text-[11px] font-mono leading-relaxed flex items-start gap-2">
-                                                <span class="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500 flex-shrink-0"></span>
-                                                <span class="text-slate-600 dark:text-slate-300" x-text="log"></span>
-                                            </div>
-                                        </template>
-                                    </div>
+                                <div x-show="imageDebugLogs.length" x-transition class="mt-3">
+                                    <button @click="showLogModal = true" type="button"
+                                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50/70 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all hover:scale-[1.01]">
+                                        <i class="fas fa-list-check"></i>
+                                        <span>Ver Log da análise</span>
+                                        <span class="ml-auto px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-[10px] font-black" x-text="imageDebugLogs.length + ' linhas'"></span>
+                                    </button>
                                 </div>
                             </div>
 
-                            {{-- Search message --}}
-                            @if($searchMessage)
-                            <div class="mt-3 flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium
-                            {{ $searchStatus === 'error' ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-800' : '' }}
-                            {{ $searchStatus === 'warning' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-800' : '' }}">
-                                @if($searchStatus === 'error')
-                                <i class="fas fa-circle-exclamation flex-shrink-0"></i>
-                                <span>{{ $searchMessage }}</span>
-                                @if($activeMode !== 'vincular')
-                                <button wire:click="setMode('vincular')" class="ml-auto text-xs underline font-bold whitespace-nowrap text-cyan-600 dark:text-cyan-400">Vincular →</button>
-                                @endif
-                                @elseif($searchStatus === 'warning')
-                                <i class="fas fa-triangle-exclamation flex-shrink-0"></i>
-                                <span>{{ $searchMessage }}</span>
-                                @endif
-                            </div>
-                            @endif
-
-                            {{-- Qty input for inventory/sale --}}
-                            @if(in_array($activeMode, ['inventario', 'venda']))
-                            <div class="mt-4 flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
-                                <i class="fas fa-hashtag text-slate-400"></i>
-                                <span class="text-xs text-slate-500 font-semibold whitespace-nowrap">Quantidade:</span>
-                                @if($activeMode === 'inventario')
-                                <input type="number" wire:model="inventoryQtyInput" min="1" class="w-24 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-center font-black" />
-                                @else
-                                <input type="number" wire:model="saleQtyInput" min="1" class="w-24 px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-sm text-center font-black" />
-                                @endif
-                            </div>
-                            @endif
                         </div>
                     </div>
 
-                </div>{{-- end scanner col-span-7 --}}
+                </div>{{-- end scanner col-span-4 --}}
 
-                {{-- ─────────── PAINEL DIREITO: Stats + Dicas + Histórico (sticky) ─────────── --}}
-                <div class="lg:col-span-5 space-y-4 lg:sticky lg:top-4">
+                {{-- ─────────── PAINEL DIREITO: Stats + Histórico (sticky, ≈ 3/4 da tela) ─────────── --}}
+                <div class="lg:col-span-8 space-y-4 lg:sticky lg:top-4">
 
                     {{-- ═══ ESTATÍSTICAS ═══ --}}
-                    @php $stats = $this->stats; @endphp
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.028;"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4">
-                                <p class="text-[11px] font-black tracking-[0.22em] text-indigo-500/70 dark:text-indigo-400/70 uppercase">Visão geral</p>
-                                <h3 class="text-base font-black text-slate-800 dark:text-white">Pulso do cadastro</h3>
-                            </div>
-                            <div class="grid grid-cols-2 gap-2.5">
-                                <div class="rounded-2xl p-3.5 text-center border border-slate-200/60 dark:border-slate-700/40 bg-slate-50 dark:bg-slate-800/60">
-                                    <p class="text-[9px] text-slate-400 uppercase font-black tracking-wider mb-1">Total</p>
-                                    <p class="text-2xl font-black text-slate-700 dark:text-slate-200">{{ $stats['total'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-emerald-200/60 dark:border-emerald-800/40" style="background:linear-gradient(135deg,rgb(240,253,244),rgb(209,250,229))">
-                                    <p class="text-[9px] text-emerald-600 uppercase font-black tracking-wider mb-1">Com Código</p>
-                                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['with_barcode'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-amber-200/60 dark:border-amber-800/40" style="background:linear-gradient(135deg,rgb(255,251,235),rgb(254,243,199))">
-                                    <p class="text-[9px] text-amber-600 uppercase font-black tracking-wider mb-1">Sem Código</p>
-                                    <p class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ $stats['without_barcode'] }}</p>
-                                </div>
-                                <div class="rounded-2xl p-3.5 text-center border border-indigo-200/60 dark:border-indigo-800/40" style="background:linear-gradient(135deg,rgb(238,242,255),rgb(224,231,255))">
-                                    <p class="text-[9px] text-indigo-600 uppercase font-black tracking-wider mb-1">Cobertura</p>
-                                    <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $stats['percentage'] }}%</p>
-                                </div>
-                            </div>
-                            <div class="mt-3.5 h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                <div class="h-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-full transition-all duration-700" style="width: {{ $stats['percentage'] }}%"></div>
-                            </div>
-                            <p class="text-[9px] text-center text-slate-400 mt-1.5 font-semibold">{{ $stats['with_barcode'] }} de {{ $stats['total'] }} com código</p>
-                        </div>
-                    </div>
-
-                    {{-- ═══ ACESSO RÁPIDO DICAS ═══ --}}
-                    <button @click="showTipsModal = true"
-                            class="w-full flex items-center gap-3 p-4 rounded-[22px] border border-indigo-200/60 dark:border-indigo-700/60 transition-all hover:scale-[1.02] hover:shadow-lg active:scale-95 text-left"
-                            style="background:linear-gradient(135deg,rgba(99,102,241,.06),rgba(168,85,247,.04))">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md" style="background:linear-gradient(135deg,#6366f1,#8b5cf6)">
-                            <i class="fas fa-lightbulb text-white"></i>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-black text-indigo-700 dark:text-indigo-300">Guia de uso · 3 passos</p>
-                            <p class="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Modos, entradas e resultados</p>
-                        </div>
-                        <i class="fas fa-arrow-right text-indigo-400 text-xs"></i>
-                    </button>
+                    
 
                     {{-- ═══ HISTÓRICO ═══ --}}
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
@@ -1071,16 +1118,32 @@
                             @endif
 
                             @if(!$foundProduct)
-                            <div class="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-                                <p class="text-xs font-bold text-amber-700 dark:text-amber-400 mb-2"><i class="fas fa-lightbulb mr-1"></i>Produto não cadastrado localmente.</p>
-                                <div class="flex flex-wrap gap-2">
-                                    <a href="{{ route('products.create') }}" class="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg hover:scale-105 transition-all flex items-center gap-1.5">
-                                        <i class="fas fa-plus"></i> Cadastrar
-                                    </a>
-                                    <button wire:click="setMode('vincular')" class="px-4 py-2 text-xs font-bold text-cyan-700 bg-cyan-100 hover:bg-cyan-200 dark:bg-cyan-900/30 dark:text-cyan-400 rounded-xl transition-all flex items-center gap-1.5">
-                                        <i class="fas fa-link"></i> Vincular
-                                    </button>
+                            <div class="rounded-2xl overflow-hidden border border-amber-200/80 dark:border-amber-800/60 shadow-md">
+                                <div class="p-4 flex items-center gap-3" style="background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(234,179,8,.06))">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center flex-shrink-0 shadow-md shadow-amber-500/25">
+                                        <i class="fas fa-lightbulb text-white text-sm"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-black text-amber-700 dark:text-amber-400 uppercase tracking-wider">Produto não cadastrado</p>
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Encontrado online mas não está no seu catálogo</p>
+                                    </div>
                                 </div>
+                                <div class="p-4 bg-white/90 dark:bg-slate-800/80 border-t border-amber-100 dark:border-amber-900/30 flex flex-col sm:flex-row gap-2">
+                                    <a href="{{ route('products.create') }}"
+                                       class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm text-white shadow-lg shadow-indigo-500/25 hover:scale-[1.02] transition-all"
+                                       style="background:linear-gradient(135deg,#6366f1,#7c3aed)">
+                                        <i class="fas fa-plus"></i>
+                                        Cadastrar produto
+                                    </a>
+                                    @if($activeMode !== 'vincular')
+                                    <button wire:click="setMode('vincular')"
+                                            class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl font-bold text-sm text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-900/30 hover:bg-cyan-100 dark:hover:bg-cyan-900/40 transition-all border border-cyan-200 dark:border-cyan-800">
+                                        <i class="fas fa-link"></i>
+                                        Vincular a produto existente
+                                    </button>
+                                    @endif
+                                </div>
+                            </div>
                             </div>
                             @endif
                         </div>
@@ -1088,25 +1151,49 @@
                     @endif
 
                     @if($onlineError)
-                    <div class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm p-4 space-y-3">
-                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-                            <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 min-w-0">
-                                <i class="fas fa-globe text-slate-400"></i>
-                                <span>{{ $onlineError }}</span>
+                    <div class="bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-sm overflow-hidden">
+                        {{-- Cabeçalho do erro --}}
+                        <div class="p-4 flex items-start gap-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-globe-slash text-slate-400 text-lg"></i>
                             </div>
-                            <button wire:click="searchOnline('{{ $lastScannedBarcode }}')" class="sm:ml-auto text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1 self-start">
-                                <i class="fas fa-redo"></i> Tentar novamente
-                            </button>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-bold text-slate-700 dark:text-slate-200">{{ $onlineError }}</p>
+                                <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+                                    As bases consultadas (Open Food Facts, Open Beauty Facts, Open Products Facts e UPC Item DB) são gratuitas e focadas em produtos alimentícios e de beleza internacionais.
+                                    <strong class="text-amber-600 dark:text-amber-400">Produtos locais, artesanais ou fabricantes menores frequentemente não constam nessas bases.</strong>
+                                </p>
+                            </div>
                         </div>
+                        {{-- Ações --}}
+                        <div class="px-4 pb-4 flex flex-wrap gap-2">
+                            <button wire:click="searchOnline('{{ $lastScannedBarcode }}')" wire:loading.attr="disabled" wire:target="searchOnline" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold hover:bg-indigo-100 dark:hover:bg-indigo-900/30 transition-all">
+                                <i wire:loading.remove wire:target="searchOnline" class="fas fa-rotate-right"></i>
+                                <i wire:loading wire:target="searchOnline" class="fas fa-spinner fa-spin"></i>
+                                Tentar novamente
+                            </button>
+                            @if($activeMode !== 'vincular')
+                            <button wire:click="setMode('vincular')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-all">
+                                <i class="fas fa-link"></i> Vincular manualmente
+                            </button>
+                            @endif
+                        </div>
+                        {{-- Fontes consultadas (colapsável) --}}
                         @if(!empty($onlineDebug))
-                        <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700/70 bg-slate-50/80 dark:bg-slate-800/60 p-3">
-                            <p class="text-[10px] font-black tracking-[0.18em] uppercase text-slate-500/70 dark:text-slate-400/70 mb-2">Fontes consultadas</p>
-                            <div class="space-y-1 max-h-40 overflow-y-auto">
+                        <details class="group">
+                            <summary class="cursor-pointer px-4 py-2.5 border-t border-slate-100 dark:border-slate-700/70 flex items-center gap-2 text-[10px] font-black tracking-[0.15em] uppercase text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors list-none select-none">
+                                <i class="fas fa-chevron-right text-[9px] transition-transform group-open:rotate-90"></i>
+                                Fontes consultadas ({{ count($onlineDebug) }} linhas)
+                            </summary>
+                            <div class="px-4 pb-4 pt-2 space-y-1 max-h-44 overflow-y-auto bg-slate-50/80 dark:bg-slate-800/40">
                                 @foreach($onlineDebug as $debugLine)
-                                <p class="text-[11px] font-mono text-slate-600 dark:text-slate-300">• {{ $debugLine }}</p>
+                                <div class="flex items-start gap-2">
+                                    <span class="mt-1.5 h-1.5 w-1.5 rounded-full bg-slate-400 flex-shrink-0"></span>
+                                    <p class="text-[11px] font-mono text-slate-600 dark:text-slate-300 leading-relaxed">{{ $debugLine }}</p>
+                                </div>
                                 @endforeach
                             </div>
-                        </div>
+                        </details>
                         @endif
                     </div>
                     @endif{{-- end $onlineError --}}
@@ -1162,7 +1249,7 @@
                             </div>
 
                             @if(count($linkCandidates) > 0)
-                            <div class="link-candidates-grid vincular-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 max-h-[66vh] overflow-y-auto pr-1">
+                            <div class="link-candidates-grid vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[66vh] overflow-y-auto pr-1">
                                 @foreach($linkCandidates as $candidate)
                                 <div class="product-card-modern">
 
@@ -1230,7 +1317,7 @@
                             @if(count($productsWithoutBarcode) > 0 && empty($linkSearchTerm))
                             <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
                                 <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="bi bi-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
-                                <div class="vincular-grid grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 max-h-[56vh] overflow-y-auto pr-1">
+                                <div class="vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[56vh] overflow-y-auto pr-1">
                                     @foreach($productsWithoutBarcode as $noBarcodeProduct)
                                     <div class="product-card-modern">
 
@@ -1485,6 +1572,8 @@
                 imageResult: null,
                 imageResultSuccess: false,
                 imageDebugLogs: [],
+                showLogModal: false,
+                modeOpen: false,
                 _imageFile: null,
 
                 setScanMode(mode) {
