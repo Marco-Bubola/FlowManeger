@@ -1,21 +1,80 @@
-/* Upload Products - iPhone 15 (380-430px, altura >= 780px) */
+/* Upload Products - iPhone 15 Pro / Plus (380-430px, altura >= 780px) */
+/* Refinamentos sobre o mobile base */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+
     .upload-products-page {
+        padding-inline: 0.6rem;
         padding-bottom: calc(90px + env(safe-area-inset-bottom));
     }
 
-    .upload-products-page .px-8.py-4,
-    .upload-products-page .px-6.py-4 {
-        padding: 0.75rem 0.85rem !important;
+    .upload-header-inner {
+        padding: 0.75rem 0.9rem !important;
     }
 
-    .upload-products-page h1.text-3xl,
-    .upload-products-page h1.text-2xl {
-        font-size: 1.2rem !important;
+    .upload-header-title {
+        font-size: 1.1rem !important;
     }
 
-    .upload-products-page .inline-flex.items-center.px-5.py-2\.5 {
-        padding: 0.5rem 0.85rem !important;
-        font-size: 0.82rem !important;
+    .upload-header-actions > button,
+    .upload-header-actions > a {
+        padding: 0.42rem 0.75rem !important;
+        font-size: 0.74rem !important;
     }
+
+    /* Drop zone mais alto pois há mais altura de tela */
+    .upload-drop-zone {
+        min-height: 270px !important;
+    }
+
+    .upload-drop-zone .bi-cloud-arrow-up { font-size: 4.5rem !important; }
+    .upload-drop-zone .bi-file-earmark-pdf.text-9xl { font-size: 4.5rem !important; }
+    .upload-drop-zone h3.text-2xl { font-size: 1rem !important; }
+
+    /* Cards histórico um pouco mais espaçados */
+    .upload-card-header { padding: 0.7rem 0.85rem !important; }
+    .upload-card-body { padding: 0.65rem 0.85rem !important; }
+    .upload-card-stats .relative.bg-gradient-to-br.rounded-xl.p-3 {
+        padding: 0.45rem 0.2rem !important;
+    }
+    .upload-card-stats p.text-2xl { font-size: 1.1rem !important; }
+
+    /* Products count chip */
+    .upload-products-count-chip .inline-flex {
+        font-size: 0.65rem !important;
+        padding: 0.18rem 0.55rem !important;
+    }
+}
+
+/* ── Products Preview Grid – iPhone 15 (380-430px) ── */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+
+    .upload-products-page .products-preview-grid {
+        gap: 0.55rem !important;
+    }
+
+    .upload-products-page .product-card-modern .product-img-area {
+        min-height: 135px !important;
+        height: 135px !important;
+    }
+    .upload-products-page .product-card-modern .product-img {
+        height: 135px !important;
+        max-height: 135px !important;
+    }
+
+    .upload-products-page .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .upload-products-page .product-card-modern .category-icon-wrapper {
+        width: 34px !important;
+        height: 34px !important;
+        bottom: -17px !important;
+    }
+    .upload-products-page .product-card-modern .category-icon { font-size: 1.05rem !important; }
+
+    .upload-products-page .product-card-modern .card-body {
+        padding: 1.35em 0.45rem 1.6rem 0.45rem !important;
+    }
+    .upload-products-page .product-card-modern .product-title { font-size: 0.72em !important; }
 }
