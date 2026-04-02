@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 class BarcodeScanner extends Component
 {
@@ -88,9 +89,10 @@ class BarcodeScanner extends Component
             return;
         }
 
-        $this->onlineResult = null;
-        $this->onlineError = null;
-        $this->onlineDebug = [];
+        $this->onlineResult  = null;
+        $this->onlineError   = null;
+        $this->onlineDebug   = [];
+        $this->onlineLoading = true; // spinner imediato — 2º request chega logo em seguida
         $this->lastScannedBarcode = $code;
         $this->scanCount++;
         $this->detectedFormat = $this->detectBarcodeFormat($code);
@@ -119,8 +121,8 @@ class BarcodeScanner extends Component
             $this->stockSetValue = $this->foundProduct['stock_quantity'] ?? 0;
             $this->barcodeInput = '';
 
-            // Busca online em background para enriquecer dados
-            $this->searchOnline($code);
+            // Busca online em segundo request (assíncrono) — não bloqueia o histórico
+            $this->dispatch('do-online-search', code: $code)->self();
             return;
         }
 
@@ -130,8 +132,8 @@ class BarcodeScanner extends Component
         $this->searchStatus = 'error';
         $this->addScanHistory($code, null);
 
-        // Busca online automaticamente
-        $this->searchOnline($code);
+        // Busca online no segundo request (assíncrono) — histórico salvo imediatamente
+        $this->dispatch('do-online-search', code: $code)->self();
 
         // Se no modo vincular, busca candidatos
         if ($this->activeMode === 'vincular') {
@@ -145,6 +147,7 @@ class BarcodeScanner extends Component
     // Busca Online — Open Food Facts + Cosmos API
     // -------------------------------------------------
 
+    #[On('do-online-search')]
     public function searchOnline(?string $code = null): void
     {
         $barcode = $code ?? trim($this->barcodeInput);
@@ -176,6 +179,7 @@ class BarcodeScanner extends Component
                 ['label' => 'Open Food Facts', 'url' => "https://world.openfoodfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Beauty Facts', 'url' => "https://world.openbeautyfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Products Facts', 'url' => "https://world.openproductsfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
+                ['label' => 'Mercado Livre', 'url' => "https://api.mercadolibre.com/sites/MLB/search?gtin={$barcode}&limit=5", 'type' => 'mercadolivre'],
                 ['label' => 'UPC Item DB', 'url' => 'https://api.upcitemdb.com/prod/trial/lookup', 'type' => 'upc-item-db'],
             ];
 
@@ -220,6 +224,37 @@ class BarcodeScanner extends Component
                     ];
                     $this->onlineDebug[] = 'Produto encontrado em ' . $source['label'];
                     return;
+                }
+
+                if ($source['type'] === 'mercadolivre') {
+                    $results = $data['results'] ?? [];
+                    if (count($results) > 0) {
+                        $item    = $results[0];
+                        $thumb   = str_replace('-I.jpg', '-O.jpg', $item['thumbnail'] ?? '');
+                        $this->onlineResult = [
+                            'source'      => 'Mercado Livre',
+                            'barcode'     => $barcode,
+                            'name'        => $item['title'] ?? null,
+                            'brand'       => null,
+                            'description' => 'Encontrado no Mercado Livre · Preço: R$ ' . number_format($item['price'] ?? 0, 2, ',', '.') . ' · Vendedor: ' . ($item['seller']['nickname'] ?? '—'),
+                            'categories'  => null,
+                            'image_url'   => $thumb ?: null,
+                            'quantity'    => null,
+                            'countries'   => 'Brasil',
+                            'ingredients' => null,
+                            'nutriscore'  => null,
+                            'raw_data'    => [
+                                'title'     => $item['title'] ?? null,
+                                'price'     => $item['price'] ?? null,
+                                'permalink' => $item['permalink'] ?? null,
+                                'seller'    => $item['seller']['nickname'] ?? null,
+                            ],
+                        ];
+                        $this->onlineDebug[] = 'Produto encontrado no Mercado Livre: ' . ($item['title'] ?? '');
+                        return;
+                    }
+                    $this->onlineDebug[] = 'Mercado Livre não encontrou produtos para este GTIN.';
+                    continue;
                 }
 
                 if (($data['code'] ?? '') === 'OK' && !empty($data['items'])) {
