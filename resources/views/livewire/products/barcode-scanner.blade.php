@@ -809,10 +809,200 @@
                         </div>
                     </div>
 
-                </div>{{-- end scanner col-span-4 --}}
+                </div>{{-- end scanner col --}}
 
-                {{-- ─────────── PAINEL DIREITO: Stats + Histórico (sticky, ≈ 3/4 da tela) ─────────── --}}
-                <div class="lg:col-span-8 space-y-4 lg:sticky lg:top-4">
+                {{-- ─────────── RESULTADO / VINCULAR (≈ 1/2 da tela) ─────────── --}}
+                <div class="md:col-span-7 lg:col-span-6 space-y-4">
+
+                    @if($activeMode === 'vincular')
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-xl shadow-cyan-500/8 overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(6,182,212,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(6,182,212,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
+                        <div class="relative p-4 sm:p-5 space-y-4">
+                            <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                                        <i class="fas fa-link text-white"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[11px] font-black tracking-[0.18em] text-cyan-500/70 dark:text-cyan-400/70 uppercase">Vinculação inteligente</p>
+                                        <h3 class="font-black text-slate-800 dark:text-white text-base">Escolha o produto correto para receber o código</h3>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Grid compacto inspirado no índice de produtos</p>
+                                    </div>
+                                </div>
+                                <div class="inline-flex items-center gap-2 rounded-2xl border border-cyan-200/60 dark:border-cyan-800/40 bg-cyan-50/70 dark:bg-cyan-900/20 px-3 py-2 text-[11px] font-bold text-cyan-700 dark:text-cyan-300 self-start">
+                                    <i class="fas fa-grid-2"></i>
+                                    {{ count($linkCandidates) > 0 ? count($linkCandidates) : count($productsWithoutBarcode) }} opções visíveis
+                                </div>
+                            </div>
+
+                            @if($lastScannedBarcode)
+                            <div class="p-4 rounded-[24px] border border-cyan-200 dark:border-cyan-800 flex items-center gap-3" style="background:linear-gradient(135deg,rgba(6,182,212,.08),rgba(59,130,246,.06))">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 flex-shrink-0">
+                                    <i class="fas fa-barcode text-white text-lg"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="text-[9px] text-cyan-600 dark:text-cyan-400 uppercase font-black tracking-wider">Código escaneado</p>
+                                    <p class="text-lg sm:text-xl font-black font-mono text-slate-800 dark:text-white break-all">{{ $lastScannedBarcode }}</p>
+                                </div>
+                            </div>
+                            @else
+                            <div class="p-5 rounded-[24px] bg-slate-50 dark:bg-slate-800/60 border-2 border-dashed border-slate-200 dark:border-slate-700 text-center">
+                                <i class="fas fa-barcode text-slate-300 dark:text-slate-600 text-3xl mb-2"></i>
+                                <p class="text-sm text-slate-500 dark:text-slate-400 font-semibold">Escaneie um código primeiro</p>
+                            </div>
+                            @endif
+
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-slate-400 text-sm"></i>
+                                </div>
+                                <input type="text" wire:model.live.debounce.300ms="linkSearchTerm" placeholder="Buscar produto..." class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-800 dark:text-white focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all placeholder:text-slate-400" />
+                            </div>
+
+                            @if(count($linkCandidates) > 0)
+                            <div class="link-candidates-grid vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[66vh] overflow-y-auto pr-1">
+                                @foreach($linkCandidates as $candidate)
+                                <div class="product-card-modern">
+
+                                    <!-- Botão vincular flutuante -->
+                                    @if($lastScannedBarcode)
+                                    <div class="btn-action-group">
+                                        <button wire:click="linkBarcodeToProduct({{ $candidate['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $candidate['name'] }}'?" class="btn btn-primary" title="Vincular código">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </button>
+                                    </div>
+                                    @endif
+
+                                    <!-- Área da imagem com badges -->
+                                    <div class="product-img-area">
+                                        <img src="{{ $candidate['image'] ? asset('storage/products/' . $candidate['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $candidate['name'] }}">
+
+                                        @if(!$candidate['barcode'])
+                                        <span class="no-barcode-badge"><i class="bi bi-upc"></i> s/cod</span>
+                                        @endif
+
+                                        <!-- Código do produto -->
+                                        <span class="badge-product-code" title="Código do Produto">
+                                            <i class="bi bi-upc-scan"></i> {{ $candidate['product_code'] ?? '—' }}
+                                        </span>
+
+                                        <!-- Quantidade em estoque -->
+                                        <span class="badge-quantity" title="Quantidade em Estoque">
+                                            <i class="bi bi-stack"></i> {{ $candidate['stock_quantity'] ?? 0 }}
+                                        </span>
+
+                                        <!-- Ícone da categoria -->
+                                        <div class="category-icon-wrapper">
+                                            <i class="{{ $candidate['category_icon'] ?? 'bi bi-box' }} category-icon"></i>
+                                        </div>
+                                    </div>
+
+                                    <!-- Conteúdo -->
+                                    <div class="card-body">
+                                        <div class="product-title" title="{{ $candidate['name'] }}">
+                                            {{ ucwords($candidate['name']) }}
+                                        </div>
+
+                                        <!-- Área de preços -->
+                                        <div class="price-area mt-3">
+                                            <div class="flex flex-col gap-2">
+                                                <span class="badge-price" title="Preço de Custo">
+                                                    <i class="bi bi-tag"></i>
+                                                    R$ {{ number_format($candidate['price'], 2, ',', '.') }}
+                                                </span>
+                                                <span class="badge-price-sale" title="Preço de Venda">
+                                                    <i class="bi bi-currency-dollar"></i>
+                                                    R$ {{ number_format($candidate['price_sale'], 2, ',', '.') }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                @endforeach
+                            </div>
+                            @elseif(!empty($linkSearchTerm))
+                            <p class="text-sm text-slate-400 text-center py-4">Nenhum resultado para "{{ $linkSearchTerm }}"</p>
+                            @endif
+
+                            @if(count($productsWithoutBarcode) > 0 && empty($linkSearchTerm))
+                            <div class="pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                                <p class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider"><i class="bi bi-exclamation-triangle mr-1"></i>Sem Código ({{ count($productsWithoutBarcode) }})</p>
+                                <div class="vincular-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 ultrawind:grid-cols-8 gap-3 max-h-[56vh] overflow-y-auto pr-1">
+                                    @foreach($productsWithoutBarcode as $noBarcodeProduct)
+                                    <div class="product-card-modern">
+
+                                        <!-- Botão vincular flutuante -->
+                                        @if($lastScannedBarcode)
+                                        <div class="btn-action-group">
+                                            <button wire:click="linkBarcodeToProduct({{ $noBarcodeProduct['id'] }})" wire:confirm="Vincular {{ $lastScannedBarcode }} a '{{ $noBarcodeProduct['name'] }}'?" class="btn btn-primary" title="Vincular código">
+                                                <i class="bi bi-link-45deg"></i>
+                                            </button>
+                                        </div>
+                                        @endif
+
+                                        <!-- Área da imagem com badges -->
+                                        <div class="product-img-area">
+                                            <img src="{{ $noBarcodeProduct['image'] ? asset('storage/products/' . $noBarcodeProduct['image']) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $noBarcodeProduct['name'] }}">
+
+                                            <span class="no-barcode-badge"><i class="bi bi-upc"></i> s/cod</span>
+
+                                            <!-- Código do produto -->
+                                            <span class="badge-product-code" title="Código do Produto">
+                                                <i class="bi bi-upc-scan"></i> {{ $noBarcodeProduct['product_code'] ?? '—' }}
+                                            </span>
+
+                                            <!-- Quantidade em estoque -->
+                                            <span class="badge-quantity" title="Quantidade em Estoque">
+                                                <i class="bi bi-stack"></i> {{ $noBarcodeProduct['stock_quantity'] ?? 0 }}
+                                            </span>
+
+                                            <!-- Ícone da categoria -->
+                                            <div class="category-icon-wrapper">
+                                                <i class="{{ $noBarcodeProduct['category_icon'] ?? 'bi bi-box' }} category-icon"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Conteúdo -->
+                                        <div class="card-body">
+                                            <div class="product-title" title="{{ $noBarcodeProduct['name'] }}">
+                                                {{ ucwords($noBarcodeProduct['name']) }}
+                                            </div>
+
+                                            <!-- Área de preços -->
+                                            <div class="price-area mt-3">
+                                                <div class="flex flex-col gap-2">
+                                                    <span class="badge-price" title="Preço de Custo">
+                                                        <i class="bi bi-tag"></i>
+                                                        R$ {{ number_format($noBarcodeProduct['price'], 2, ',', '.') }}
+                                                    </span>
+                                                    <span class="badge-price-sale" title="Preço de Venda">
+                                                        <i class="bi bi-currency-dollar"></i>
+                                                        R$ {{ number_format($noBarcodeProduct['price_sale'], 2, ',', '.') }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    @elseif($onlineLoading || $onlineResult || $onlineError || $foundProduct || $searchMessage)
+                    {{-- ##RESULT_PLACEHOLDER## --}}
+                    @else
+                    {{-- ##PLACEHOLDER_CARD## --}}
+                    @endif
+
+                    {{-- ##QTY_INVENTORY_SALE_PLACEHOLDER## --}}
+
+                </div>{{-- end result col --}}
+
+                {{-- ─────────── HISTÓRICO (≈ 1/4 da tela) ─────────── --}}
+                <div class="md:col-span-12 lg:col-span-3">
 
                     {{-- ═══ ESTATÍSTICAS ═══ --}}
                     
