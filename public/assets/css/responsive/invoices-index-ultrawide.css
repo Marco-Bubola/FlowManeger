@@ -1,4 +1,49 @@
 /* Invoices Index — Ultrawide */
-@media (min-width: 1441px) {
-    .invoices-index-page { margin-inline: auto; }
+@media (min-width: 1601px) {
+    .invoices-index-page {
+        padding-inline: 1.5rem !important;
+    }
+
+    .invoices-index-page .invoices-shell {
+        width: min(100%, 2320px) !important;
+    }
+
+    .invoices-index-page .invoices-layout {
+        grid-template-columns: minmax(360px, 420px) minmax(0, 1fr) !important;
+        gap: 1.5rem !important;
+        align-items: start;
+    }
+
+    .invoices-index-page .invoices-sidebar {
+        position: sticky;
+        top: 1.25rem;
+    }
+
+    .invoices-index-page .invoices-chart-canvas-wrap {
+        min-height: 300px !important;
+    }
+
+    .invoices-index-page .invoices-chart-canvas {
+        height: 300px !important;
+        min-height: 300px !important;
+    }
+
+    .invoices-index-page .invoice-category-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 1.25rem !important;
+    }
+
+    .invoices-index-page .invoices-cards-scroll {
+        max-height: calc(100vh - 18rem) !important;
+    }
+
+    .invoices-index-page .invoices-list-scroll {
+        max-height: calc(100vh - 14rem) !important;
+    }
+}
+
+@media (min-width: 2200px) {
+    .invoices-index-page .invoice-category-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+    }
 }
