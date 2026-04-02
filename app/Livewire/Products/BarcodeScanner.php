@@ -70,6 +70,8 @@ class BarcodeScanner extends Component
     {
         $this->activeMode = 'consulta';
         $this->loadProductsWithoutBarcode();
+        // Carrega histórico persistido na session (sobrevive a timeouts e refreshes)
+        $this->scanHistory = session('barcode_scan_history_' . auth()->id(), []);
     }
 
     // -------------------------------------------------
@@ -170,6 +172,7 @@ class BarcodeScanner extends Component
 
         try {
             $sources = [
+                ['label' => 'Open Food Facts (BR)', 'url' => "https://br.openfoodfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Food Facts', 'url' => "https://world.openfoodfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Beauty Facts', 'url' => "https://world.openbeautyfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Products Facts', 'url' => "https://world.openproductsfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
@@ -241,7 +244,14 @@ class BarcodeScanner extends Component
                     return;
                 }
 
-                $this->onlineDebug[] = $source['label'] . ' não retornou itens válidos.';
+                $upcCode = $data['code'] ?? '';
+                if ($upcCode === 'OVER_LIMIT') {
+                    $this->onlineDebug[] = $source['label'] . ' limite de consultas diárias atingido (trial: 100/dia).';
+                } elseif ($upcCode === 'INVALID_UPC') {
+                    $this->onlineDebug[] = $source['label'] . ' código UPC inválido para esta API.';
+                } else {
+                    $this->onlineDebug[] = $source['label'] . ' não retornou itens válidos.';
+                }
             }
 
             Log::info('BarcodeScanner: busca online sem resultado', [
@@ -249,7 +259,7 @@ class BarcodeScanner extends Component
                 'debug' => $this->onlineDebug,
             ]);
 
-            $this->onlineError = 'Nenhuma base online retornou dados para este código.';
+            $this->onlineError = 'Produto não encontrado nas bases internacionais. Produtos brasileiros frequentemente não estão cadastrados nessas bases. Cadastre manualmente ou vincule ao produto local.';
         } catch (\Throwable $e) {
             Log::warning('BarcodeScanner: erro na busca online', [
                 'barcode' => $barcode,
@@ -604,11 +614,15 @@ class BarcodeScanner extends Component
         ]);
 
         $this->scanHistory = array_slice($this->scanHistory, 0, 15);
+
+        // Persiste na session para sobreviver a timeouts e re-renders
+        session(['barcode_scan_history_' . auth()->id() => $this->scanHistory]);
     }
 
     public function clearHistory(): void
     {
         $this->scanHistory = [];
+        session()->forget('barcode_scan_history_' . auth()->id());
     }
 
     // -------------------------------------------------
