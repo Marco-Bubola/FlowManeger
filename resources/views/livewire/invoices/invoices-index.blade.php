@@ -85,11 +85,6 @@
                             </button>
                         </div>
 
-                        <!-- Bot\u00e3o de Dicas -->
-                        <button wire:click="toggleTips"
-                            class="p-2 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-200 transform hover:scale-105">
-                            <i class="bi bi-lightbulb text-sm"></i>
-                        </button>
                     </div>
 
                     <!-- Conteúdo do calendário -->
@@ -284,6 +279,14 @@
                     :view-mode="$viewMode"
                     :invoices-count="count($invoices)"
                     :show-quick-actions="true">
+
+                    <x-slot name="extraActions">
+                        <button wire:click="toggleTips"
+                            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-200">
+                            <i class="bi bi-lightbulb text-sm"></i>
+                            <span class="text-xs font-black uppercase tracking-wide">Dicas</span>
+                        </button>
+                    </x-slot>
 
                     <!-- Breadcrumb -->
                     <x-slot name="breadcrumb">
@@ -1019,12 +1022,13 @@
         }
 
         .invoices-index-page {
-            padding: clamp(0.85rem, 1vw + 0.75rem, 1.5rem);
+            padding: 0.35rem;
         }
 
         .invoices-shell {
-            width: min(100%, 1920px);
-            margin-inline: auto;
+            width: 100%;
+            max-width: none;
+            margin-inline: 0;
         }
 
         .invoices-layout {
@@ -1039,6 +1043,18 @@
 
         .invoices-main {
             align-self: start;
+        }
+
+        .invoices-calendar-panel .relative.px-5.py-4.backdrop-blur-sm {
+            padding: 1rem;
+        }
+
+        .invoices-calendar-panel .flex.items-center.gap-3.mb-4 {
+            margin-bottom: 0.85rem;
+        }
+
+        .invoices-chart-panel .relative.px-6.py-5.backdrop-blur-sm {
+            padding: 1rem 1rem 0.85rem;
         }
 
         .invoices-chart-canvas-wrap {
