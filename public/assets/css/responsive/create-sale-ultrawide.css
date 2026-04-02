@@ -5,16 +5,9 @@
    ============================================================ */
 
 /* ── BLOCO 1: 1441–1535px (5 colunas) ───────────────────── */
-@media (min-width: 1441px) and (max-width: 1535px) {
+@media (min-width: 1441px)  {
 
-    /* ── CONTAINER ────────────────────────────────────────── */
-    .sales-create-page {
-        max-width: 1800px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        padding-bottom: 2.5rem !important;
-        padding-inline: 1.5rem !important;
-    }
+   
 
     /* ── HEADER ───────────────────────────────────────────── */
     .sales-create-page .relative.overflow-hidden.rounded-3xl {
@@ -49,6 +42,17 @@
         gap: 1.5rem !important;
     }
 
+    /* Painel de produtos: flex-1 | Painel de resumo: 25% fixo */
+    .sales-create-page .create-sale-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+    }
+
+    .sales-create-page .create-sale-summary-pane {
+        width: 25% !important;
+        flex-shrink: 0 !important;
+    }
+
     /* Controls */
     .create-sale-products-controls {
         gap: 1rem !important;
@@ -57,6 +61,20 @@
         font-size: 0.95rem !important;
         padding: 0.75rem 1rem 0.75rem 2.75rem !important;
         border-radius: 0.875rem !important;
+    }
+
+    /* Painel scroll da área de produtos */
+    .sales-create-page .create-sale-products-pane > div.overflow-y-auto {
+        padding: 0.65rem !important;
+    }
+
+    /* Painéis de revisão (step 2) */
+    .sales-create-page .create-sale-review-info-pane {
+        padding: 1rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-pane {
+        padding: 1rem !important;
     }
 
     /* ── STEP GRID — 5 colunas (~257px cada) ──────────────── */
@@ -85,7 +103,7 @@
     }
 
     .sales-create-page .products-step-grid .product-card-modern .product-title {
-        font-size: 0.93em !important;
+        font-size: 0.87em !important;
         line-height: 1.25 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -165,7 +183,7 @@
     }
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.84em !important;
+        font-size: 0.79em !important;
         line-height: 1.22 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -256,9 +274,17 @@
         height: calc(100dvh - 140px) !important;
     }
 
-    /* Painéis com altura total */
-    .sales-create-page .create-sale-products-pane,
+    /* Painel de produtos: flex-1 (fill) | Painel de resumo: 24% fixo */
+    .sales-create-page .create-sale-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        height: 100% !important;
+        min-height: 0 !important;
+    }
+
     .sales-create-page .create-sale-summary-pane {
+        width: 24% !important;
+        flex-shrink: 0 !important;
         height: 100% !important;
         min-height: 0 !important;
     }
@@ -299,7 +325,7 @@
     }
 
     .sales-create-page .products-step-grid .product-card-modern .product-title {
-        font-size: 0.84em !important;
+        font-size: 0.79em !important;
         line-height: 1.22 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -483,7 +509,7 @@
     }
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.82em !important;
+        font-size: 0.77em !important;
         line-height: 1.2 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -544,5 +570,60 @@
         font-size: 0.95rem !important;
         padding: 0.75rem 1.25rem !important;
         border-radius: 1rem !important;
+    }
+}
+
+/* ── Dropdowns do painel de resumo — Ultrawide 1441–1535px ─ */
+@media (min-width: 1441px) {
+    .sales-create-page .summary-dropdown-menu {
+        font-size: 0.9rem;
+    }
+
+    .sales-create-page .summary-dropdown-menu button {
+        font-size: 0.88rem !important;
+        padding: 0.5rem 0.76rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .w-8.h-8 {
+        width: 1.95rem !important;
+        height: 1.95rem !important;
+        min-width: 1.95rem !important;
+        font-size: 0.84rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu input[type="text"] {
+        font-size: 0.86rem !important;
+        padding-top: 0.42rem !important;
+        padding-bottom: 0.42rem !important;
+    }
+}
+
+/* ── Dropdowns do painel de resumo — FHD 1536px+ ──────────── */
+@media (min-width: 1536px) {
+    .sales-create-page .summary-dropdown-menu {
+        font-size: 0.88rem;
+        /* No FHD o info-grid é 2 colunas — cada célula ~190px.
+           min-w-[220px] é adequado: estende um pouco além da célula
+           mas permanece dentro do painel de resumo */
+    }
+
+    .sales-create-page .summary-dropdown-menu button {
+        font-size: 0.86rem !important;
+        padding: 0.48rem 0.72rem !important;
+        gap: 0.55rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .w-8.h-8 {
+        width: 1.9rem !important;
+        height: 1.9rem !important;
+        min-width: 1.9rem !important;
+        font-size: 0.82rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu input[type="text"] {
+        font-size: 0.84rem !important;
+        padding-top: 0.4rem !important;
+        padding-bottom: 0.4rem !important;
     }
 }
