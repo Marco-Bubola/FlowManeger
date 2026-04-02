@@ -1,11 +1,112 @@
 /* Upload Products - iPad Landscape (768-1366px, orientação paisagem) */
+/* Sidebar oculta → disponível ≈ largura – 48px (p-6×2) – 12px (page padding)
+   lg:grid-cols-5 default → mas vamos usar 4 cols para cards não ficarem apertados */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .upload-products-page h1.text-3xl,
-    .upload-products-page h1.text-2xl {
-        font-size: 1.55rem !important;
+
+    .upload-products-page {
+        padding-inline: 0.75rem;
     }
 
-    .upload-products-page .grid.grid-cols-1.md\:grid-cols-2 {
+    .upload-header-title {
+        font-size: 1.5rem !important;
+    }
+
+    .upload-header-inner {
+        padding: 1rem 1.5rem !important;
+    }
+
+    /* Layout principal: 2 colunas */
+    .upload-main-grid {
+        gap: 1.25rem !important;
+    }
+
+    /* Drop zone */
+    .upload-drop-zone {
+        height: auto !important;
+        min-height: 420px !important;
+    }
+
+    /* History grid: 2 colunas */
+    .upload-history-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        max-height: 480px !important;
+        gap: 0.75rem !important;
+    }
+
+    .upload-card-header { padding: 0.8rem 0.95rem !important; }
+    .upload-card-body   { padding: 0.8rem 0.95rem !important; }
+
+    .upload-card-header .w-14.h-14 {
+        width: 2.8rem !important;
+        height: 2.8rem !important;
+    }
+
+    .upload-card-header h4 { font-size: 0.8rem !important; }
+
+    .upload-card-stats p.text-2xl { font-size: 1.1rem !important; }
+    .upload-card-stats .relative.bg-gradient-to-br.rounded-xl.p-3 {
+        padding: 0.5rem 0.2rem !important;
+    }
+
+    .upload-card-body .flex.items-center.gap-2 > button,
+    .upload-card-body .flex.items-center.gap-2 > a {
+        padding: 0.32rem 0.55rem !important;
+        font-size: 0.68rem !important;
+    }
+
+    /* ── Products grid: 4 colunas em landscape ── */
+    .upload-products-page .products-preview-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.7rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area {
+        height: 195px !important;
+        min-height: 195px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area .product-img {
+        border-radius: 0.9rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        border-radius: 1.1rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .card-body {
+        padding: 2.6em 0.8em 1.9em 0.8em !important;
+        min-height: 120px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-title {
+        font-size: 0.9em !important;
+        letter-spacing: 0.04em !important;
+        line-height: 1.25 !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-product-code,
+    .upload-products-page .products-preview-grid .badge-quantity {
+        font-size: 0.68em !important;
+        padding: 0.1em 0.55em !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-price,
+    .upload-products-page .products-preview-grid .badge-price-sale {
+        font-size: 0.8em !important;
+    }
+
+    .upload-products-page .products-preview-grid .category-icon-wrapper {
+        width: 50px !important;
+        height: 50px !important;
+        bottom: -25px !important;
+    }
+
+    .upload-products-page .products-preview-grid .btn-action-group button {
+        padding: 0.28rem 0.5rem !important;
     }
 }
