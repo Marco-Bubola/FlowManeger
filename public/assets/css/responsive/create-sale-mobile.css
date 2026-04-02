@@ -117,7 +117,7 @@
     }
 
     .sales-create-page .products-mobile-compact-grid .product-card-modern .product-title {
-        font-size: 0.74em !important;
+        font-size: 0.70em !important;
         line-height: 1.12 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -125,7 +125,7 @@
     }
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.72em !important;
+        font-size: 0.68em !important;
         line-height: 1.1 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -249,5 +249,37 @@
     .sales-create-page .create-sale-review-total-footer span:last-child {
         font-size: 1.2rem !important;
         line-height: 1.1 !important;
+    }
+}
+
+/* ── Dropdowns do painel de resumo — Mobile ─────────────── */
+@media (max-width: 767.98px) {
+    .sales-create-page .summary-dropdown-menu {
+        font-size: 0.84rem;
+        max-height: 220px;
+    }
+
+    .sales-create-page .summary-dropdown-menu button {
+        font-size: 0.82rem !important;
+        padding: 0.52rem 0.72rem !important;
+        gap: 0.55rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .w-8.h-8 {
+        width: 1.7rem !important;
+        height: 1.7rem !important;
+        min-width: 1.7rem !important;
+        font-size: 0.75rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu input[type="text"] {
+        font-size: 0.8rem !important;
+        padding-top: 0.38rem !important;
+        padding-bottom: 0.38rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .px-4.py-2 {
+        font-size: 0.8rem !important;
+        padding: 0.48rem 0.7rem !important;
     }
 }
