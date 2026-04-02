@@ -1,4 +1,4 @@
-<div class="invoices-index-page w-full min-h-screen app-viewport-fit mobile-393-base relative">
+<div class="invoices-index-page w-full app-viewport-fit mobile-393-base relative">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-portrait.css') }}">
@@ -59,21 +59,57 @@
                                         d="M15 19l-7-7 7-7"></path>
                                 </svg>
                             </button>
-                            <div class="flex items-center gap-2 flex-1">
-                                <select wire:model.live="month"
-                                    class="flex-1 rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
-                                    @foreach (range(1, 12) as $m)
-                                        <option value="{{ $m }}">
-                                            {{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMM') }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                                <select wire:model.live="year"
-                                    class="rounded-xl border-0 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg text-gray-900 dark:text-white text-sm font-semibold shadow-md focus:ring-2 focus:ring-blue-500 transition-all">
-                                    @foreach (range(now()->year - 5, now()->year + 2) as $y)
-                                        <option value="{{ $y }}">{{ $y }}</option>
-                                    @endforeach
-                                </select>
+                            <div class="flex items-center gap-2 flex-1 invoices-period-controls">
+
+                                {{-- Custom Month Dropdown --}}
+                                <div class="inv-cs flex-1 relative">
+                                    <select wire:model.live="month" id="inv-month-native" class="inv-cs-native" aria-label="Mês">
+                                        @foreach (range(1, 12) as $m)
+                                            <option value="{{ $m }}">{{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMM') }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="inv-cs-trigger" data-cs-for="inv-month-native" aria-haspopup="listbox" aria-expanded="false" aria-label="Selecionar mês">
+                                        <span class="inv-cs-val">{{ \Carbon\Carbon::create()->month($month)->locale('pt_BR')->isoFormat('MMMM') }}</span>
+                                        <svg class="inv-cs-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                    <div class="inv-cs-panel" role="listbox" aria-label="Selecionar mês" hidden>
+                                        @foreach (range(1, 12) as $m)
+                                            <button type="button" role="option"
+                                                class="inv-cs-opt {{ $month == $m ? 'inv-cs-opt--active' : '' }}"
+                                                data-cs-val="{{ $m }}" data-cs-for="inv-month-native"
+                                                aria-selected="{{ $month == $m ? 'true' : 'false' }}">
+                                                <span class="inv-cs-num">{{ str_pad($m, 2, '0', STR_PAD_LEFT) }}</span>
+                                                <span class="inv-cs-lbl">{{ \Carbon\Carbon::create()->month($m)->locale('pt_BR')->isoFormat('MMMM') }}</span>
+                                                @if($month == $m)<svg class="inv-cs-chk" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>@endif
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
+                                {{-- Custom Year Dropdown --}}
+                                <div class="inv-cs inv-cs--year relative">
+                                    <select wire:model.live="year" id="inv-year-native" class="inv-cs-native" aria-label="Ano">
+                                        @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                            <option value="{{ $y }}">{{ $y }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="inv-cs-trigger" data-cs-for="inv-year-native" aria-haspopup="listbox" aria-expanded="false" aria-label="Selecionar ano">
+                                        <span class="inv-cs-val">{{ $year }}</span>
+                                        <svg class="inv-cs-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M5 7.5L10 12.5L15 7.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    </button>
+                                    <div class="inv-cs-panel" role="listbox" aria-label="Selecionar ano" hidden>
+                                        @foreach (range(now()->year - 5, now()->year + 2) as $y)
+                                            <button type="button" role="option"
+                                                class="inv-cs-opt {{ $year == $y ? 'inv-cs-opt--active' : '' }}"
+                                                data-cs-val="{{ $y }}" data-cs-for="inv-year-native"
+                                                aria-selected="{{ $year == $y ? 'true' : 'false' }}">
+                                                <span class="inv-cs-lbl">{{ $y }}</span>
+                                                @if($year == $y)<svg class="inv-cs-chk" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10l4 4 8-8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>@endif
+                                            </button>
+                                        @endforeach
+                                    </div>
+                                </div>
+
                             </div>
                             <button wire:click="nextMonth"
                                 class="p-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-md hover:shadow-lg text-gray-700 dark:text-gray-300 transition-all duration-200 transform hover:scale-105 border border-white/20 dark:border-gray-700/30">
@@ -817,60 +853,75 @@
                     @else
                         <!-- Empty State -->
                         <div
-                            class="bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl p-12 text-center">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-br from-gray-300 to-gray-400 rounded-3xl flex items-center justify-center mx-auto mb-6">
-                                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                    </path>
-                                </svg>
+                            class="invoices-empty-state bg-white/70 dark:bg-gray-800/70 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-gray-700/30 shadow-xl p-12 text-center">
+                            <div class="invoices-empty-state-inner">
+                                <div class="invoices-empty-kicker inline-flex items-center justify-center gap-2 mb-4 px-4 py-2 rounded-full text-xs font-black uppercase tracking-[0.22em] text-indigo-700 dark:text-indigo-200 bg-indigo-500/10 border border-indigo-400/20">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a5 5 0 00-10 0v2m-2 0h14a2 2 0 012 2v7a2 2 0 01-2 2H5a2 2 0 01-2-2v-7a2 2 0 012-2z"></path>
+                                    </svg>
+                                    Painel vazio
+                                </div>
+                                <div
+                                    class="invoices-empty-hero w-24 h-24 bg-gradient-to-br from-slate-200 via-slate-100 to-slate-300 dark:from-slate-600 dark:via-slate-500 dark:to-slate-700 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-slate-900/10 dark:shadow-black/20">
+                                    <svg class="w-11 h-11 text-white/95" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <h3 class="invoices-empty-title text-2xl font-black text-gray-900 dark:text-white mb-3">Nenhuma transação encontrada</h3>
+                                <p class="invoices-empty-copy text-gray-600 dark:text-gray-400 mb-4 max-w-xl mx-auto">
+                                    @if ($selectedDate)
+                                        Não há transações registradas para o dia {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}.
+                                    @else
+                                        Seu painel está pronto para começar. Crie uma nova transação ou envie um CSV para preencher este período com rapidez.
+                                    @endif
+                                </p>
+
+                                <div class="invoices-empty-highlights flex flex-wrap items-center justify-center gap-2 mb-8">
+                                    <span class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-sm font-semibold border border-white/30 dark:border-slate-600/40">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                                        Crie manualmente
+                                    </span>
+                                    <span class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-sm font-semibold border border-white/30 dark:border-slate-600/40">
+                                        <span class="w-2.5 h-2.5 rounded-full bg-blue-400"></span>
+                                        Importe em lote
+                                    </span>
+                                    @if ($selectedDate)
+                                        <span class="inline-flex items-center gap-2 px-3 py-2 rounded-2xl bg-white/70 dark:bg-slate-700/60 text-slate-600 dark:text-slate-300 text-sm font-semibold border border-white/30 dark:border-slate-600/40">
+                                            <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                                            Filtro ativo
+                                        </span>
+                                    @endif
+                                </div>
                             </div>
-                            <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-4">💳 Nenhuma transação
-                                encontrada</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mb-8 max-w-md mx-auto">
-                                @if ($selectedDate)
-                                    Não há transações registradas para o dia
-                                    {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}.
-                                @else
-                                    Comece criando sua primeira transação para organizar suas finanças.
-                                @endif
-                            </p>
 
                             @if ($bankId)
-                                <div
-                                    class="flex flex-col sm:flex-row items-center justify-center space-y-3 sm:space-y-0 sm:space-x-4">
+                                <div class="invoices-empty-actions flex flex-col sm:flex-row items-center justify-center gap-3">
                                     <a href="{{ route('invoices.create', ['bankId' => $bankId]) }}"
-                                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold rounded-xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                        class="invoices-empty-action invoices-empty-action-primary inline-flex items-center justify-center px-6 py-3.5 bg-gradient-to-r from-purple-500 to-pink-600 text-white font-bold rounded-2xl hover:from-purple-600 hover:to-pink-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                                         </svg>
-                                        � Nova Despesa
+                                        Nova Despesa
                                     </a>
 
                                     <a href="{{ route('invoices.upload', ['bankId' => $bankId]) }}"
-                                        class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
-                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
-                                            viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
-                                            </path>
+                                        class="invoices-empty-action invoices-empty-action-secondary inline-flex items-center justify-center px-6 py-3.5 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold rounded-2xl hover:from-blue-600 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
                                         </svg>
-                                        📊 Upload CSV
+                                        Upload CSV
                                     </a>
 
                                     @if ($selectedDate)
                                         <button wire:click="clearDateSelection"
-                                            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg">
-                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor"
-                                                viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M6 18L18 6M6 6l12 12"></path>
+                                            class="invoices-empty-action inline-flex items-center justify-center px-6 py-3.5 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-2xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg">
+                                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                             </svg>
-                                            🔄 Limpar Filtro
+                                            Limpar Filtro
                                         </button>
                                     @endif
                                 </div>
@@ -1047,6 +1098,166 @@
 
         .invoices-calendar-panel .relative.px-5.py-4.backdrop-blur-sm {
             padding: 1rem;
+        }
+
+        /* ── Período controls base ── */
+        .invoices-period-controls { min-width: 0; }
+
+        /* ── Custom Period Select ── */
+        .inv-cs { position: relative; min-width: 0; }
+        .inv-cs--year { flex: 0 0 7.5rem; }
+
+        /* Hidden native select (Livewire target) */
+        .inv-cs-native {
+            position: absolute; opacity: 0; pointer-events: none;
+            width: 0; height: 0; overflow: hidden; border: 0; padding: 0;
+        }
+
+        /* Trigger button */
+        .inv-cs-trigger {
+            display: flex; align-items: center; justify-content: space-between;
+            gap: 0.5rem; width: 100%; min-height: 2.9rem;
+            padding: 0.72rem 0.95rem; border-radius: 1rem;
+            border: 1.5px solid rgba(255,255,255,0.28);
+            background: linear-gradient(135deg, rgba(255,255,255,0.97) 0%, rgba(239,246,255,0.95) 100%);
+            color: rgb(15,23,42); font-size: 0.8rem; font-weight: 800;
+            letter-spacing: 0.05em; text-transform: uppercase;
+            box-shadow: 0 6px 20px rgba(59,130,246,.1), 0 2px 6px rgba(0,0,0,.04);
+            cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent;
+            transition: border-color .2s, box-shadow .2s, transform .2s;
+        }
+        .dark .inv-cs-trigger {
+            background: linear-gradient(135deg, rgba(30,41,59,0.97) 0%, rgba(51,65,85,0.95) 100%);
+            color: rgb(248,250,252); border-color: rgba(148,163,184,0.22);
+            box-shadow: 0 6px 20px rgba(15,23,42,.3);
+        }
+        .inv-cs-trigger:hover, .inv-cs-trigger[aria-expanded="true"] {
+            border-color: rgba(99,102,241,.55);
+            box-shadow: 0 8px 24px rgba(99,102,241,.22), 0 2px 6px rgba(0,0,0,.06);
+            transform: translateY(-1px);
+        }
+        .inv-cs-val {
+            flex: 1; overflow: hidden; text-overflow: ellipsis;
+            white-space: nowrap; text-align: left;
+        }
+        .inv-cs-chevron {
+            width: 1rem; height: 1rem; flex-shrink: 0; color: rgb(99,102,241);
+            transition: transform .28s cubic-bezier(.4,0,.2,1);
+        }
+        .dark .inv-cs-chevron { color: rgb(165,180,252); }
+        .inv-cs-trigger[aria-expanded="true"] .inv-cs-chevron { transform: rotate(180deg); }
+
+        /* Dropdown panel */
+        .inv-cs-panel {
+            position: absolute; top: calc(100% + .45rem); left: 0; z-index: 9999;
+            min-width: 100%; max-height: 15rem; overflow-y: auto; overflow-x: hidden;
+            border-radius: 1.25rem; padding: .45rem;
+            display: flex; flex-direction: column; gap: .15rem;
+            background: rgba(255,255,255,0.99);
+            backdrop-filter: blur(24px) saturate(1.6);
+            -webkit-backdrop-filter: blur(24px) saturate(1.6);
+            border: 1.5px solid rgba(99,102,241,.22);
+            box-shadow: 0 24px 64px rgba(99,102,241,.18), 0 8px 24px rgba(0,0,0,.08),
+                        inset 0 1px 0 rgba(255,255,255,.8);
+            transform-origin: top center;
+            animation: inv-cs-open .2s cubic-bezier(.34,1.56,.64,1) both;
+        }
+        .dark .inv-cs-panel {
+            background: rgba(15,23,42,0.99);
+            border-color: rgba(99,102,241,.28);
+            box-shadow: 0 24px 64px rgba(99,102,241,.22), 0 8px 24px rgba(0,0,0,.45),
+                        inset 0 1px 0 rgba(255,255,255,.04);
+        }
+        .inv-cs-panel[hidden] { display: none !important; }
+        @keyframes inv-cs-open {
+            from { opacity:0; transform: scaleY(.82) translateY(-6px); }
+            to   { opacity:1; transform: scaleY(1)   translateY(0); }
+        }
+        .inv-cs-panel::-webkit-scrollbar { width: 5px; }
+        .inv-cs-panel::-webkit-scrollbar-track { background: transparent; }
+        .inv-cs-panel::-webkit-scrollbar-thumb {
+            background: rgba(99,102,241,.22); border-radius: 999px;
+        }
+        .dark .inv-cs-panel::-webkit-scrollbar-thumb { background: rgba(165,180,252,.15); }
+
+        /* Options */
+        .inv-cs-opt {
+            display: flex; align-items: center; gap: .55rem;
+            width: 100%; padding: .56rem .8rem; border-radius: .8rem;
+            font-size: .82rem; font-weight: 600; color: rgb(30,41,59);
+            text-align: left; cursor: pointer; background: transparent;
+            border: 1px solid transparent; white-space: nowrap;
+            transition: background .14s, color .14s, transform .14s;
+        }
+        .dark .inv-cs-opt { color: rgb(203,213,225); }
+        .inv-cs-opt:hover {
+            background: linear-gradient(135deg, rgba(99,102,241,.1) 0%, rgba(139,92,246,.07) 100%);
+            border-color: rgba(99,102,241,.2); color: rgb(79,70,229);
+            transform: translateX(2px);
+        }
+        .dark .inv-cs-opt:hover {
+            background: linear-gradient(135deg, rgba(99,102,241,.18) 0%, rgba(139,92,246,.12) 100%);
+            color: rgb(165,180,252);
+        }
+        .inv-cs-opt--active {
+            background: linear-gradient(135deg, rgba(99,102,241,.14) 0%, rgba(139,92,246,.1) 100%);
+            border-color: rgba(99,102,241,.28); color: rgb(67,56,202); font-weight: 800;
+        }
+        .dark .inv-cs-opt--active {
+            background: linear-gradient(135deg, rgba(99,102,241,.25) 0%, rgba(139,92,246,.18) 100%);
+            border-color: rgba(99,102,241,.4); color: rgb(165,180,252);
+        }
+        .inv-cs-num {
+            font-size: .7rem; font-weight: 700; color: rgb(148,163,184);
+            min-width: 1.3rem; font-variant-numeric: tabular-nums;
+        }
+        .dark .inv-cs-num { color: rgb(71,85,105); }
+        .inv-cs-lbl { flex: 1; text-transform: capitalize; }
+        .inv-cs-chk { width: 1rem; height: 1rem; color: rgb(99,102,241); flex-shrink: 0; margin-left: auto; }
+        .dark .inv-cs-chk { color: rgb(165,180,252); }
+
+        .invoices-empty-state {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .invoices-empty-state::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top right, rgba(99, 102, 241, 0.14), transparent 34%),
+                radial-gradient(circle at bottom left, rgba(236, 72, 153, 0.12), transparent 32%);
+            pointer-events: none;
+        }
+
+        .invoices-empty-state-inner,
+        .invoices-empty-actions {
+            position: relative;
+            z-index: 1;
+        }
+
+        .invoices-empty-state-inner {
+            max-width: 48rem;
+            margin: 0 auto;
+        }
+
+        .invoices-empty-title {
+            line-height: 1.08;
+            letter-spacing: -0.02em;
+        }
+
+        .invoices-empty-copy {
+            font-size: 1rem;
+            line-height: 1.7;
+        }
+
+        .invoices-empty-actions {
+            gap: 0.85rem;
+        }
+
+        .invoices-empty-action {
+            min-width: 13.5rem;
         }
 
         .invoices-calendar-panel .flex.items-center.gap-3.mb-4 {
@@ -1473,5 +1684,77 @@
                 e.target.style.transform = 'scale(1)';
             }
         });
+
+        // ── Custom Calendar Period Selects (event delegation — survives Livewire morphing) ──
+        (function () {
+            'use strict';
+
+            function closePanels(except) {
+                document.querySelectorAll('.inv-cs-panel:not([hidden])').forEach(function (p) {
+                    if (p === except) return;
+                    p.hidden = true;
+                    var t = p.parentElement && p.parentElement.querySelector('.inv-cs-trigger');
+                    if (t) t.setAttribute('aria-expanded', 'false');
+                });
+            }
+
+            if (!window.__invCsBound) {
+                window.__invCsBound = true;
+
+                document.addEventListener('click', function (e) {
+                    // Trigger click → open/close panel
+                    var trigger = e.target.closest('.inv-cs-trigger');
+                    if (trigger) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var wrap  = trigger.closest('.inv-cs');
+                        var panel = wrap && wrap.querySelector('.inv-cs-panel');
+                        if (!panel) return;
+                        var isOpen = !panel.hidden;
+                        closePanels();
+                        if (!isOpen) {
+                            panel.hidden = false;
+                            trigger.setAttribute('aria-expanded', 'true');
+                            var active = panel.querySelector('.inv-cs-opt--active');
+                            if (active) setTimeout(function () { active.scrollIntoView({ block: 'nearest' }); }, 30);
+                        }
+                        return;
+                    }
+
+                    // Option click → update native select + close
+                    var opt = e.target.closest('.inv-cs-opt');
+                    if (opt) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        var val      = opt.dataset.csVal;
+                        var nativeEl = document.getElementById(opt.dataset.csFor);
+                        var wrap2    = opt.closest('.inv-cs');
+                        var trigger2 = wrap2 && wrap2.querySelector('.inv-cs-trigger');
+                        var valEl    = trigger2 && trigger2.querySelector('.inv-cs-val');
+
+                        if (nativeEl && nativeEl.value !== val) {
+                            nativeEl.value = val;
+                            // Update trigger label immediately (Livewire will confirm on re-render)
+                            if (valEl) {
+                                var sel = nativeEl.querySelector('option[value="' + val + '"]');
+                                if (sel) valEl.textContent = sel.text;
+                            }
+                            // Dispatch change so Livewire wire:model.live fires
+                            nativeEl.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                        closePanels();
+                        return;
+                    }
+
+                    // Click outside → close
+                    if (!e.target.closest('.inv-cs')) closePanels();
+                }, true);
+
+                // ESC closes panel
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closePanels();
+                });
+            }
+        })();
     </script>
 </div>
