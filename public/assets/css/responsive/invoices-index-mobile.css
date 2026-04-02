@@ -11,6 +11,12 @@
 
     .invoices-index-page .invoices-sidebar,
     .invoices-index-page .invoices-main {
+        grid-column: 1 / -1 !important;
+        grid-row: auto !important;
+    }
+
+    .invoices-index-page .invoices-sidebar,
+    .invoices-index-page .invoices-main {
         min-width: 0;
     }
 
