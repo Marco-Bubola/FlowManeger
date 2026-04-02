@@ -101,6 +101,22 @@
         font-size: 1.5em !important;
     }
 
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-product-code,
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-quantity,
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-price,
+    .sales-create-page.mobile-393-base .products-mobile-compact-grid .product-card-modern .badge-price-sale {
+        font-size: 0.67em !important;
+        padding: 0.15em 0.44em !important;
+    }
+
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .badge-product-code,
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .badge-quantity,
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .badge-price,
+    .sales-create-page.mobile-393-base .create-sale-review-products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.65em !important;
+        padding: 0.14em 0.42em !important;
+    }
+
     .sales-create-page.mobile-393-base .create-sale-selected-list {
         max-height: 380px;
     }
