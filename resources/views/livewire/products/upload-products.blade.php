@@ -142,10 +142,10 @@
     @endif
 
     <!-- Conteúdo Principal -->
-    <div class="">
+    <div class="upload-main-content">
         @if(!$showProductsTable)
             <!-- Layout 2 Colunas: Upload + Histórico -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="upload-main-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 <!-- Coluna Esquerda: Upload de Arquivo -->
                 <div class="space-y-6">
