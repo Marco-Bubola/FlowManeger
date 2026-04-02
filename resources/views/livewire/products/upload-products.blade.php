@@ -46,7 +46,9 @@
     @else
     <x-upload-header-original
         title="Produtos Extraídos"
-
+        description="Revise e edite os produtos antes de salvar"
+        :show-products-info="true"
+        :products-count="count($productsUpload ?? [])"
         :back-route="null">
         <x-slot name="actions">
             <!-- Botão Desfazer (se houver produtos removidos) -->
@@ -148,9 +150,9 @@
             <div class="upload-main-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 <!-- Coluna Esquerda: Upload de Arquivo -->
-                <div class="space-y-6">
+                <div class="upload-left-col space-y-6">
                     <div class="flex items-center justify-center w-full">
-                        <label for="pdf_file" class="group relative flex flex-col items-center justify-center w-full h-[600px] border-3 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl cursor-pointer
+                        <label for="pdf_file" class="upload-drop-zone group relative flex flex-col items-center justify-center w-full h-[600px] border-3 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl cursor-pointer
                                bg-gradient-to-br from-white/80 via-purple-50/50 to-indigo-50/30
                                dark:from-slate-800/80 dark:via-purple-900/20 dark:to-indigo-900/10
                                hover:from-purple-50/80 hover:via-indigo-50/60 hover:to-purple-50/40
@@ -263,8 +265,8 @@
                 </div>
 
                 <!-- Coluna Direita: Histórico de Uploads -->
-                <div class="space-y-6">
-                    <div class="flex items-center justify-between mb-4">
+                <div class="upload-history-section space-y-4">
+                    <div class="upload-history-header flex items-center justify-between mb-4">
                         <div class="flex items-center gap-3">
                             <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
                                 <i class="bi bi-clock-history text-white text-xl"></i>
@@ -282,13 +284,13 @@
                     </div>
 
                     <!-- Cards do Histórico -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[690px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div class="upload-history-grid grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[690px] overflow-y-auto pr-2 custom-scrollbar">
                         @forelse($uploadHistory as $upload)
                         @php $badge = $upload->status_badge; @endphp
-                        <div class="group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden">
+                        <div class="upload-history-card group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden">
 
                             <!-- Header com Gradiente -->
-                            <div class="relative bg-gradient-to-br from-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-500 via-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-600 to-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-700 p-4">
+                            <div class="upload-card-header relative bg-gradient-to-br from-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-500 via-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-600 to-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-700 p-4">
                                 <!-- Pattern decorativo -->
                                 <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
                                 <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
@@ -324,9 +326,9 @@
                             </div>
 
                             <!-- Corpo do Card -->
-                            <div class="p-4">
+                            <div class="upload-card-body p-4">
                                 <!-- Estatísticas -->
-                                <div class="grid grid-cols-3 gap-2 mb-4">
+                                <div class="upload-card-stats grid grid-cols-3 gap-2 mb-4">
                                     <div class="relative group/stat">
                                         <div class="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-xl opacity-50 group-hover/stat:opacity-100 transition-opacity"></div>
                                         <div class="relative bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700/80 dark:to-slate-700/60 rounded-xl p-3 text-center border border-slate-300/50 dark:border-slate-600/50">
