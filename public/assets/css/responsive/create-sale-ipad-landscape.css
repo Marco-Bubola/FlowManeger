@@ -182,7 +182,15 @@
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+    }
+
+    /* Scroll container separado para não cortar o dropdown */
+    .sales-create-page .create-sale-selected-list {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 
     /* Busca/filtro */
@@ -228,7 +236,7 @@
 
     /* Título */
     .sales-create-page .products-step-grid .product-card-modern .product-title {
-        font-size: 0.65em !important;
+        font-size: 0.61em !important;
         line-height: 1.2 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -650,7 +658,7 @@
     }
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.63em !important;
+        font-size: 0.59em !important;
         line-height: 1.18 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -717,5 +725,44 @@
         -webkit-background-clip: text !important;
         background-clip: text !important;
         color: transparent !important;
+    }
+}
+
+/* ── Dropdowns do painel de resumo — iPad Landscape ─────── */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    /* Painel de 28% — o mais estreito de todos os tablets */
+    .sales-create-page .summary-dropdown-menu {
+        font-size: 0.74rem;
+        max-height: 180px !important;
+        /* garante que o dropdown não ultrapasse a janela */
+        min-width: 170px !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu button {
+        font-size: 0.72rem !important;
+        padding: 0.38rem 0.54rem !important;
+        gap: 0.4rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .w-8.h-8 {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+        min-width: 1.5rem !important;
+        font-size: 0.66rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu input[type="text"] {
+        font-size: 0.72rem !important;
+        padding-top: 0.3rem !important;
+        padding-bottom: 0.3rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .px-4.py-2 {
+        font-size: 0.72rem !important;
+        padding: 0.4rem 0.55rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .p-2 {
+        padding: 0.28rem !important;
     }
 }
