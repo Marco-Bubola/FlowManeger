@@ -4,7 +4,7 @@
    Bloco 2 (1280–1440px): espaços maiores, tipografia maior
    ============================================================ */
 
-/* ── BLOCO 1: 1025–1279px ─────────────────────────────────── */
+/* ── BLOCO 1: 1025–1279px (4 colunas) ────────────────────── */
 @media (min-width: 1025px) and (max-width: 1279px) {
 
     .sales-create-page {
@@ -25,9 +25,6 @@
     .create-sale-step-products-shell {
         gap: 1rem !important;
     }
-    .create-sale-products-pane {
-        /* w-3/4 já ativo */
-    }
 
     /* Controls de pesquisa */
     .create-sale-products-controls {
@@ -37,9 +34,84 @@
         font-size: 0.875rem !important;
         padding: 0.625rem 0.75rem 0.625rem 2.375rem !important;
     }
+
+    /* ── GRID CARDS — 4 colunas (~220px cada) ──────────────── */
+    .sales-create-page .products-step-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+        border-radius: 1.1rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-img-area {
+        height: 175px !important;
+        min-height: 175px !important;
+        border-top-left-radius: 1.1rem !important;
+        border-top-right-radius: 1.1rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .card-body {
+        padding: 2.5em 0.75em 2em 0.75em !important;
+        gap: 0.2em !important;
+        min-height: 0 !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-title {
+        font-size: 0.88em !important;
+        line-height: 1.22 !important;
+        line-clamp: 2 !important;
+        -webkit-line-clamp: 2 !important;
+        display: -webkit-box !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        min-height: 2.1em !important;
+        max-height: 2.8em !important;
+        text-align: center !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .price-area {
+        position: static !important;
+        margin-top: 0.15em !important;
+        min-height: 1.6em !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.2em !important;
+        flex-wrap: wrap !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .badge-product-code,
+    .sales-create-page .products-step-grid .product-card-modern .badge-quantity,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price-sale {
+        font-size: 0.68em !important;
+        padding: 0.14em 0.5em !important;
+        border-width: 1.5px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon-wrapper {
+        width: 50px !important;
+        height: 50px !important;
+        bottom: -24px !important;
+        border-width: 3px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon {
+        font-size: 1.75em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group {
+        top: 0.55em !important;
+        right: 0.55em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group > div {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+    }
 }
 
-/* ── BLOCO 2: 1280–1440px ─────────────────────────────────── */
+/* ── BLOCO 2: 1280–1440px (5 colunas) ────────────────────── */
 @media (min-width: 1280px) and (max-width: 1440px) {
 
     .sales-create-page {
@@ -69,5 +141,80 @@
         font-size: 0.9rem !important;
         padding: 0.6875rem 0.875rem 0.6875rem 2.5rem !important;
         border-radius: 0.75rem !important;
+    }
+
+    /* ── GRID CARDS — 5 colunas (~175px cada) ──────────────── */
+    .sales-create-page .products-step-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+        border-radius: 1rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-img-area {
+        height: 155px !important;
+        min-height: 155px !important;
+        border-top-left-radius: 1rem !important;
+        border-top-right-radius: 1rem !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .card-body {
+        padding: 2.2em 0.65em 1.85em 0.65em !important;
+        gap: 0.15em !important;
+        min-height: 0 !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .product-title {
+        font-size: 0.80em !important;
+        line-height: 1.2 !important;
+        line-clamp: 2 !important;
+        -webkit-line-clamp: 2 !important;
+        display: -webkit-box !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        min-height: 1.92em !important;
+        max-height: 2.6em !important;
+        text-align: center !important;
+        letter-spacing: 0.04em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .price-area {
+        position: static !important;
+        margin-top: 0.12em !important;
+        min-height: 1.48em !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.15em !important;
+        flex-wrap: wrap !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .badge-product-code,
+    .sales-create-page .products-step-grid .product-card-modern .badge-quantity,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price,
+    .sales-create-page .products-step-grid .product-card-modern .badge-price-sale {
+        font-size: 0.60em !important;
+        padding: 0.12em 0.42em !important;
+        border-width: 1.5px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon-wrapper {
+        width: 44px !important;
+        height: 44px !important;
+        bottom: -21px !important;
+        border-width: 3px !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .category-icon {
+        font-size: 1.55em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group {
+        top: 0.45em !important;
+        right: 0.45em !important;
+    }
+
+    .sales-create-page .products-step-grid .product-card-modern .btn-action-group > div {
+        width: 1.35rem !important;
+        height: 1.35rem !important;
     }
 }
