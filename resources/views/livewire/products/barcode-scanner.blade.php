@@ -1025,6 +1025,26 @@
                                     Cadastrar novo produto
                                 </a>
                             </div>
+                            {{-- Buscar online --}}
+                            @if($lastScannedBarcode)
+                            <div class="mt-3 pt-3 border-t border-red-100 dark:border-red-900/30">
+                                <p class="text-[10px] font-black tracking-[0.15em] uppercase text-slate-400 dark:text-slate-500 mb-2">Pesquisar online</p>
+                                <div class="flex flex-wrap gap-2">
+                                    <a href="https://www.google.com/search?q={{ urlencode($lastScannedBarcode) }}+produto" target="_blank" rel="noopener noreferrer"
+                                       class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all shadow-sm">
+                                        <i class="fab fa-google text-blue-500"></i> Google
+                                    </a>
+                                    <a href="https://lista.mercadolivre.com.br/{{ $lastScannedBarcode }}" target="_blank" rel="noopener noreferrer"
+                                       class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all shadow-sm">
+                                        <i class="fas fa-shopping-bag text-yellow-500"></i> Mercado Livre
+                                    </a>
+                                    <a href="https://www.buscape.com.br/search?q={{ urlencode($lastScannedBarcode) }}" target="_blank" rel="noopener noreferrer"
+                                       class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all shadow-sm">
+                                        <i class="fas fa-tag text-orange-500"></i> Buscapé
+                                    </a>
+                                </div>
+                            </div>
+                            @endif
                         </div>
                         @endif
                     </div>
@@ -1256,6 +1276,21 @@
                                         <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">{{ $onlineResult['ingredients'] }}</p>
                                     </div>
                                     @endif
+
+                                    @if(!empty($onlineResult['link'] ?? null))
+                                    <a href="{{ $onlineResult['link'] }}" target="_blank" rel="noopener"
+                                       class="flex items-center gap-2.5 px-4 py-3 rounded-2xl font-bold text-sm transition-all hover:scale-[1.01] border border-yellow-300/60 dark:border-yellow-700/40 hover:shadow-lg"
+                                       style="background:linear-gradient(135deg,rgba(255,213,0,.15),rgba(255,165,0,.08))">
+                                        <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0" style="background:linear-gradient(135deg,#FFE600,#FFB300)">
+                                            <i class="fas fa-shopping-bag text-[11px] text-yellow-900"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-[10px] text-yellow-700 dark:text-yellow-400 font-black uppercase tracking-wide">Ver no Mercado Livre</p>
+                                            <p class="text-[10px] text-slate-400 truncate">{{ $onlineResult['link'] }}</p>
+                                        </div>
+                                        <i class="fas fa-arrow-up-right-from-square text-yellow-600 dark:text-yellow-400 text-xs flex-shrink-0"></i>
+                                    </a>
+                                    @endif
                                 </div>
                             </div>
 
@@ -1329,6 +1364,23 @@
                             <button wire:click="setMode('vincular')" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-50 dark:bg-cyan-900/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold hover:bg-cyan-100 dark:hover:bg-cyan-900/30 transition-all">
                                 <i class="fas fa-link"></i> Vincular manualmente
                             </button>
+                            @endif
+                            @if($lastScannedBarcode)
+                            <div class="w-full pt-2 mt-1 border-t border-slate-100 dark:border-slate-700/70 flex flex-wrap gap-2">
+                                <span class="w-full text-[10px] font-black tracking-[0.15em] uppercase text-slate-400 dark:text-slate-500">Pesquisar online</span>
+                                <a href="https://www.google.com/search?q={{ urlencode($lastScannedBarcode) }}+produto" target="_blank" rel="noopener noreferrer"
+                                   class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-sm">
+                                    <i class="fab fa-google text-blue-500"></i> Google
+                                </a>
+                                <a href="https://lista.mercadolivre.com.br/{{ $lastScannedBarcode }}" target="_blank" rel="noopener noreferrer"
+                                   class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-sm">
+                                    <i class="fas fa-shopping-bag text-yellow-500"></i> Mercado Livre
+                                </a>
+                                <a href="https://www.buscape.com.br/search?q={{ urlencode($lastScannedBarcode) }}" target="_blank" rel="noopener noreferrer"
+                                   class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shadow-sm">
+                                    <i class="fas fa-tag text-orange-500"></i> Buscapé
+                                </a>
+                            </div>
                             @endif
                         </div>
                         {{-- Fontes consultadas (colapsável) --}}
