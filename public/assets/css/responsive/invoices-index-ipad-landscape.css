@@ -1,13 +1,17 @@
 /* Invoices Index — iPad Landscape */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
     .invoices-index-page {
-        padding-inline: 1.1rem !important;
+        padding-inline: 0.4rem !important;
     }
 
     .invoices-index-page .invoices-layout {
-        grid-template-columns: minmax(300px, 360px) minmax(0, 1fr) !important;
-        gap: 1rem !important;
+        grid-template-columns: minmax(280px, 340px) minmax(0, 1fr) !important;
+        gap: 0.7rem !important;
         align-items: start;
+    }
+
+    .invoices-index-page .invoice-header-component .relative.px-4.py-4.md\:px-5.lg\:px-6 {
+        padding: 1rem !important;
     }
 
     .invoices-index-page .invoices-sidebar {
