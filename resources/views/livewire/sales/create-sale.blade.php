@@ -106,10 +106,10 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[80vh] create-sale-step-products-shell">
+                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[75vh] create-sale-step-products-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-full lg:w-3/4 flex flex-col lg:h-full min-h-0 create-sale-products-pane">
+                    <div class="w-full lg:w-3/4 flex flex-col create-sale-products-pane">
                         <!-- Header com Controles -->
                         <div class="p-2  ">
 
@@ -177,7 +177,7 @@
                             </div>
                             @else
                             <!-- Grid de Cards de Produtos usando o mesmo estilo da página de produtos -->
-                            <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 products-step-grid products-mobile-compact-grid">
+                            <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 sm:gap-3 lg:gap-4 products-step-grid products-mobile-compact-grid">
                                 @foreach($this->getFilteredProducts() as $product)
                                 @php
                                     $isSelected = in_array($product->id, $selectedProducts);
