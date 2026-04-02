@@ -59,7 +59,12 @@
         border-radius: 0.875rem !important;
     }
 
-    /* ── GRID CARDS — 5 colunas (~257px cada) ──────────────── */
+    /* ── STEP GRID — 5 colunas (~257px cada) ──────────────── */
+    .sales-create-page .products-step-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
+    }
+
     .sales-create-page .products-step-grid .product-card-modern {
         min-height: 0 !important;
         height: auto !important;
@@ -132,6 +137,76 @@
     .sales-create-page .products-step-grid .product-card-modern .btn-action-group > div {
         width: 1.7rem !important;
         height: 1.7rem !important;
+    }
+
+    /* ── REVIEW GRID — 4 colunas (~206px cada) ─────────────── */
+    .sales-create-page .create-sale-review-products-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.58rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+        border-radius: 1.3rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-img-area {
+        height: 165px !important;
+        min-height: 165px !important;
+        border-top-left-radius: 1.3rem !important;
+        border-top-right-radius: 1.3rem !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .card-body {
+        padding: 2.55em 0.82em 2.05em 0.82em !important;
+        gap: 0.22em !important;
+        min-height: 0 !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
+        font-size: 0.84em !important;
+        line-height: 1.22 !important;
+        line-clamp: 2 !important;
+        -webkit-line-clamp: 2 !important;
+        display: -webkit-box !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+        min-height: 2em !important;
+        max-height: 2.7em !important;
+        text-align: center !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .price-area {
+        position: static !important;
+        margin-top: 0.15em !important;
+        min-height: 1.65em !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.2em !important;
+        flex-wrap: wrap !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-product-code,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-quantity,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price,
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-price-sale {
+        font-size: 0.66em !important;
+        padding: 0.14em 0.52em !important;
+        border-width: 1.5px !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .category-icon-wrapper {
+        width: 52px !important;
+        height: 52px !important;
+        bottom: -25px !important;
+        border-width: 3.5px !important;
+    }
+
+    .sales-create-page .create-sale-review-products-grid .product-card-modern .category-icon {
+        font-size: 1.82em !important;
     }
 }
 
