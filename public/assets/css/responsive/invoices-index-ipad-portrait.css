@@ -1,7 +1,7 @@
 /* Invoices Index — iPad Portrait */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
     .invoices-index-page {
-        padding: 1rem 1rem calc(88px + env(safe-area-inset-bottom)) !important;
+        padding: 0.35rem 0.4rem calc(88px + env(safe-area-inset-bottom)) !important;
     }
 
     .invoices-index-page .invoices-shell {
@@ -9,9 +9,13 @@
     }
 
     .invoices-index-page .invoices-layout {
-        grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) !important;
-        gap: 1rem !important;
+        grid-template-columns: minmax(250px, 300px) minmax(0, 1fr) !important;
+        gap: 0.6rem !important;
         align-items: start;
+    }
+
+    .invoices-index-page .invoice-header-component .relative.px-4.py-4.md\:px-5.lg\:px-6 {
+        padding: 1rem !important;
     }
 
     .invoices-index-page .invoices-sidebar {
