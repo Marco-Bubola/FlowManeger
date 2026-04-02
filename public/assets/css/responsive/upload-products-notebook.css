@@ -1,17 +1,177 @@
-/* Upload Products - Notebook (1025-1440px) */
+/* Upload Products - Notebook (1025px – 1440px) */
 
-/* 1025-1279px */
+/* ══════════════════════════════════════════════════
+   1025–1279px: notebook pequeno / monitor compacto
+   Sidebar 240px + p-8 64px ≈ 721px disponível
+   → 4 colunas ≈ 165px/card
+   ══════════════════════════════════════════════════ */
 @media (min-width: 1025px) and (max-width: 1279px) {
-    .upload-products-page h1.text-3xl,
-    .upload-products-page h1.text-2xl {
-        font-size: 1.6rem !important;
+
+    .upload-header-title {
+        font-size: 1.55rem !important;
+    }
+
+    .upload-header-inner {
+        padding: 1rem 1.5rem !important;
+    }
+
+    .upload-drop-zone {
+        height: auto !important;
+        min-height: 460px !important;
+    }
+
+    .upload-history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        max-height: 530px !important;
+        gap: 0.85rem !important;
+    }
+
+    .upload-card-header { padding: 0.85rem 1rem !important; }
+    .upload-card-body   { padding: 0.85rem 1rem !important; }
+
+    /* ── Products grid: 4 colunas ── */
+    .upload-products-page .products-preview-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.7rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area {
+        height: 185px !important;
+        min-height: 185px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area .product-img {
+        border-radius: 0.9rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        border-radius: 1.1rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .card-body {
+        padding: 2.5em 0.75em 1.8em 0.75em !important;
+        min-height: 120px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-title {
+        font-size: 0.9em !important;
+        letter-spacing: 0.04em !important;
+        line-height: 1.25 !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-product-code,
+    .upload-products-page .products-preview-grid .badge-quantity {
+        font-size: 0.68em !important;
+        padding: 0.1em 0.55em !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-price,
+    .upload-products-page .products-preview-grid .badge-price-sale {
+        font-size: 0.78em !important;
+        padding: 0.13em 0.75em !important;
+    }
+
+    .upload-products-page .products-preview-grid .category-icon-wrapper {
+        width: 48px !important;
+        height: 48px !important;
+        bottom: -24px !important;
+    }
+
+    .upload-products-page .products-preview-grid .category-icon {
+        font-size: 1.9em !important;
+    }
+
+    .upload-products-page .products-preview-grid .btn-action-group {
+        gap: 0.3rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .btn-action-group button {
+        padding: 0.28rem 0.5rem !important;
     }
 }
 
-/* 1280-1440px */
+/* ══════════════════════════════════════════════════
+   1280–1440px: notebook padrão / monitor HD
+   Sidebar 240px + p-8 64px ≈ 976px disponível
+   → 5 colunas ≈ 182px/card
+   ══════════════════════════════════════════════════ */
 @media (min-width: 1280px) and (max-width: 1440px) {
-    .upload-products-page h1.text-3xl,
-    .upload-products-page h1.text-2xl {
-        font-size: 1.75rem !important;
+
+    .upload-header-title {
+        font-size: 1.7rem !important;
+    }
+
+    .upload-drop-zone {
+        height: auto !important;
+        min-height: 500px !important;
+    }
+
+    .upload-history-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        max-height: 560px !important;
+        gap: 1rem !important;
+    }
+
+    /* ── Products grid: 5 colunas ── */
+    .upload-products-page .products-preview-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area {
+        height: 195px !important;
+        min-height: 195px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-img-area .product-img {
+        border-radius: 1rem !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-card-modern {
+        border-radius: 1.2rem !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .upload-products-page .products-preview-grid .card-body {
+        padding: 2.6em 0.8em 1.9em 0.8em !important;
+        min-height: 130px !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-title {
+        font-size: 0.92em !important;
+        letter-spacing: 0.05em !important;
+        line-height: 1.25 !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-product-code,
+    .upload-products-page .products-preview-grid .badge-quantity {
+        font-size: 0.7em !important;
+        padding: 0.12em 0.6em !important;
+    }
+
+    .upload-products-page .products-preview-grid .badge-price,
+    .upload-products-page .products-preview-grid .badge-price-sale {
+        font-size: 0.82em !important;
+    }
+
+    .upload-products-page .products-preview-grid .category-icon-wrapper {
+        width: 52px !important;
+        height: 52px !important;
+        bottom: -26px !important;
+    }
+
+    .upload-products-page .products-preview-grid .category-icon {
+        font-size: 2.1em !important;
+    }
+
+    .upload-products-page .products-preview-grid .btn-action-group button {
+        padding: 0.3rem 0.52rem !important;
     }
 }
