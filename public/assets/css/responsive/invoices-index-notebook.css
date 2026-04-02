@@ -1,4 +1,40 @@
-/* Invoices Index — Notebook */
-@media (min-width: 1025px) and (max-width: 1440px) {
-    .invoices-index-page .grid.lg\:grid-cols-4 { grid-template-columns: 1fr 3fr !important; }
+/* Invoices Index — Desktop / Notebook */
+@media (min-width: 1025px) and (max-width: 1600px) {
+    .invoices-index-page .invoices-shell {
+        width: min(100%, 1540px) !important;
+    }
+
+    .invoices-index-page .invoices-layout {
+        grid-template-columns: minmax(320px, 360px) minmax(0, 1fr) !important;
+        gap: 1.25rem !important;
+        align-items: start;
+    }
+
+    .invoices-index-page .invoices-sidebar {
+        position: sticky;
+        top: 1rem;
+    }
+
+    .invoices-index-page .invoices-chart-canvas {
+        height: 260px !important;
+        min-height: 260px !important;
+    }
+
+    .invoices-index-page .invoice-category-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+
+    .invoices-index-page .invoices-cards-scroll {
+        max-height: calc(100vh - 17rem) !important;
+    }
+
+    .invoices-index-page .invoices-list-scroll {
+        max-height: calc(100vh - 13rem) !important;
+    }
+}
+
+@media (min-width: 1280px) and (max-width: 1600px) {
+    .invoices-index-page .invoice-category-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    }
 }
