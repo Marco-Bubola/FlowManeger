@@ -191,7 +191,15 @@
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
-        overflow: hidden !important;
+        overflow: visible !important;
+    }
+
+    /* Scroll container separado para não clicar o dropdown */
+    .sales-create-page .create-sale-selected-list {
+        flex: 1 1 0 !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 
     /* Barra de busca/filtro */
@@ -236,7 +244,7 @@
 
     /* Título do produto */
     .sales-create-page .products-step-grid .product-card-modern .product-title {
-        font-size: 0.72em !important;
+        font-size: 0.67em !important;
         line-height: 1.22 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -669,7 +677,7 @@
     }
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.7em !important;
+        font-size: 0.65em !important;
         line-height: 1.22 !important;
         line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
@@ -736,5 +744,41 @@
         -webkit-background-clip: text !important;
         background-clip: text !important;
         color: transparent !important;
+    }
+}
+
+/* ── Dropdowns do painel de resumo — iPad Portrait ──────── */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .sales-create-page .summary-dropdown-menu {
+        font-size: 0.78rem;
+        max-height: 200px !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu button {
+        font-size: 0.76rem !important;
+        padding: 0.44rem 0.6rem !important;
+        gap: 0.45rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .w-8.h-8 {
+        width: 1.6rem !important;
+        height: 1.6rem !important;
+        min-width: 1.6rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu input[type="text"] {
+        font-size: 0.75rem !important;
+        padding-top: 0.34rem !important;
+        padding-bottom: 0.34rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .px-4.py-2 {
+        font-size: 0.75rem !important;
+        padding: 0.44rem 0.62rem !important;
+    }
+
+    .sales-create-page .summary-dropdown-menu .p-2 {
+        padding: 0.32rem !important;
     }
 }
