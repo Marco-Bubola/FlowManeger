@@ -727,6 +727,221 @@
     color: #fff;
     border: 2px solid var(--card-accent);
 }
+
+/* ═══════════════════════════════════════════════════
+   Products Preview Grid – dentro da Upload Page
+   Overrides globais: remove min-height fixo, ajusta
+   imagem e proporções base para visualização de preview
+   ═══════════════════════════════════════════════════ */
+
+/* Remove min-height fixo de 420px nos cards de preview */
+.upload-products-page .product-card-modern {
+    min-height: 0 !important;
+    height: auto !important;
+}
+
+/* Imagem base proporcional (será sobrescrita por breakpoint) */
+.upload-products-page .product-card-modern .product-img-area {
+    min-height: 200px !important;
+    height: 200px !important;
+}
+
+.upload-products-page .product-card-modern .product-img {
+    height: 200px !important;
+    max-height: 200px !important;
+}
+
+/* Ícone de categoria proporcional */
+.upload-products-page .product-card-modern .category-icon-wrapper {
+    width: 46px !important;
+    height: 46px !important;
+    bottom: -23px !important;
+}
+.upload-products-page .product-card-modern .category-icon {
+    font-size: 1.5rem !important;
+}
+
+/* Card body mais compacto */
+.upload-products-page .product-card-modern .card-body {
+    padding: 1.7em 0.65rem 0.5rem 0.65rem !important;
+    gap: 0.15em !important;
+    min-height: 0 !important;
+}
+
+/* Título mais compacto */
+.upload-products-page .product-card-modern .product-title {
+    font-size: 0.88em !important;
+    letter-spacing: 0.04em !important;
+    line-height: 1.15 !important;
+}
+
+/* Preços menores */
+.upload-products-page .product-card-modern .badge-price,
+.upload-products-page .product-card-modern .badge-price-sale {
+    font-size: 0.82em !important;
+    padding: 0.15em 0.45em !important;
+}
+
+/* Botões de ação no preview - proporcionais */
+.upload-products-page .product-card-modern .btn-action-group {
+    gap: 0.35rem !important;
+}
+
+/* Header do products-preview: sem padding excessivo */
+.upload-products-page .products-preview-header {
+    padding: 0 0.25rem 0.75rem 0.25rem !important;
+}
+
+/* Grid: gap menor no mobile, gap-4 base */
+.upload-products-page .products-preview-grid {
+    gap: 0.85rem !important;
+}
+
+/* ═══════════════════════════════════════════════════
+   Upload History Cards – Modern Enhancement
+   ═══════════════════════════════════════════════════ */
+
+/* Card principal: sombra suave + borda animada no hover */
+.upload-history-card {
+    transition: transform 0.28s cubic-bezier(.22,.68,0,1.2),
+                box-shadow 0.28s ease,
+                border-color 0.2s ease !important;
+    will-change: transform;
+}
+.upload-history-card:hover {
+    transform: translateY(-3px) !important;
+    box-shadow: 0 12px 36px -6px rgba(139,92,246,0.22),
+                0 4px 12px -2px rgba(99,102,241,0.12) !important;
+}
+
+/* Card header: linha de acento + pattern melhorado */
+.upload-card-header {
+    position: relative;
+}
+.upload-card-header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.1));
+}
+
+/* Ícone do tipo de arquivo: anel pulsante no hover */
+.upload-card-header .w-14.h-14 {
+    transition: transform 0.3s cubic-bezier(.22,.68,0,1.4),
+                box-shadow 0.3s ease !important;
+}
+.upload-history-card:hover .upload-card-header .w-14.h-14 {
+    transform: scale(1.12) !important;
+    box-shadow: 0 0 0 4px rgba(255,255,255,0.25),
+                0 4px 16px rgba(0,0,0,0.2) !important;
+}
+
+/* Stats: glow no hover + transição do pseudo-overlay */
+.upload-card-stats .relative.group\/stat > div:last-child {
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+.upload-card-stats .relative.group\/stat:hover > div:last-child {
+    transform: scale(1.04);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* Números das stats: gradiente de texto */
+.upload-card-stats .relative.bg-gradient-to-br.from-slate-100 p.text-2xl {
+    background: linear-gradient(135deg, #334155, #475569);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.upload-card-stats .relative.bg-gradient-to-br.from-green-100 p.text-2xl {
+    background: linear-gradient(135deg, #15803d, #16a34a);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.upload-card-stats .relative.bg-gradient-to-br.from-blue-100 p.text-2xl {
+    background: linear-gradient(135deg, #1d4ed8, #2563eb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Ícones das stats: tamanho ligeiramente maior + sombra de cor */
+.upload-card-stats i.bi-box-seam { filter: drop-shadow(0 1px 3px rgba(100,116,139,0.3)); }
+.upload-card-stats i.bi-plus-circle { filter: drop-shadow(0 1px 3px rgba(22,163,74,0.4)); }
+.upload-card-stats i.bi-arrow-repeat { filter: drop-shadow(0 1px 3px rgba(37,99,235,0.4)); }
+
+/* Botão Detalhes: ícone com rotação suave */
+.upload-card-body .group\/btn i {
+    transition: transform 0.25s cubic-bezier(.22,.68,0,1.4) !important;
+}
+.upload-card-body .group\/btn:hover i {
+    transform: scale(1.2) rotate(8deg) !important;
+}
+
+/* Indicador de barra colorida no lado esquerdo de cada card */
+.upload-history-card::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 9999px 0 0 9999px;
+    background: linear-gradient(180deg, #8b5cf6, #6366f1);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.upload-history-card:hover::before {
+    opacity: 1;
+}
+
+/* Estado vazio do histórico: melhor visual */
+.upload-history-grid > .flex.flex-col.items-center.justify-center .w-20.h-20 {
+    transition: transform 0.3s ease;
+}
+.upload-history-grid > .flex.flex-col.items-center.justify-center:hover .w-20.h-20 {
+    transform: scale(1.08);
+}
+
+/* Badge de status no header do card: letras maiores legíveis */
+.upload-card-header span.inline-flex.items-center {
+    letter-spacing: 0.02em;
+    font-weight: 700 !important;
+    backdrop-filter: blur(4px);
+}
+
+/* Linha de separação footer: gradiente */
+.upload-card-body > .flex.items-center.justify-between {
+    border-image: linear-gradient(90deg, transparent, rgba(148,163,184,0.4), transparent) 1 !important;
+}
+
+/* Drop zone: brilho de borda animado */
+@keyframes upload-border-glow {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(139,92,246,0); }
+    50%       { box-shadow: 0 0 20px 4px rgba(139,92,246,0.12); }
+}
+.upload-drop-zone:hover {
+    animation: upload-border-glow 2s ease-in-out infinite;
+}
+
+/* Scrollbar do grid de histórico */
+.upload-history-grid::-webkit-scrollbar {
+    width: 5px;
+}
+.upload-history-grid::-webkit-scrollbar-track {
+    background: rgba(241,245,249,0.5);
+    border-radius: 9999px;
+}
+.upload-history-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #8b5cf6, #6366f1);
+    border-radius: 9999px;
+}
+.dark .upload-history-grid::-webkit-scrollbar-track {
+    background: rgba(30,41,59,0.5);
+}
 .product-card-modern .btn-action-group .btn-success {
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     color: #fff;
