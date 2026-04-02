@@ -14,7 +14,7 @@
 
 <!-- Header Moderno para Invoices (estilo consistente com cashbook) -->
 <div
-    class="relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-pink-50/80 dark:from-slate-800/90 dark:via-purple-900/30 dark:to-pink-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-4">
+    class="invoice-header-component relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-pink-50/80 dark:from-slate-800/90 dark:via-purple-900/30 dark:to-pink-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-4">
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
     <div
         class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 via-pink-400/20 to-rose-400/20 rounded-full transform translate-x-12 -translate-y-12">
@@ -23,17 +23,17 @@
         class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-8 translate-y-8">
     </div>
 
-    <div class="relative px-6 py-4">
+    <div class="relative px-4 py-4 md:px-5 lg:px-6">
         <!-- Breadcrumb -->
         @if(isset($breadcrumb))
             {{ $breadcrumb }}
         @endif
 
         <!-- Top Section: Title + Bank Logo + Métricas + Actions -->
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
-            <div class="flex items-center gap-4">
+        <div class="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-4">
+            <div class="flex w-full xl:w-auto items-start sm:items-center gap-3 md:gap-4 min-w-0">
                 <!-- Botão Voltar -->
-                <a href="{{ route('banks.index') }}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-150 mr-2 focus:outline-none focus:ring-2 focus:ring-purple-300 group shadow-none">
+                <a href="{{ route('banks.index') }}" class="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all duration-150 mr-1 md:mr-2 focus:outline-none focus:ring-2 focus:ring-purple-300 group shadow-none shrink-0">
                     <i class="fas fa-arrow-left text-lg group-hover:-translate-x-1 transition-transform"></i>
                 </a>
                 <!-- Logo do Banco (se disponível) -->
@@ -58,9 +58,9 @@
                         elseif(Str::contains($bankKey, 'bb') || Str::contains($bankKey, 'banco-do-brasil')) $bankKey = 'bb';
                         $gradient = $cardColors[$bankKey] ?? 'from-purple-200 via-pink-200 to-blue-200';
                     @endphp
-                    <div class="relative flex items-center justify-center w-24 h-24 min-w-24 min-h-24 max-w-24 max-h-24 rounded-2xl shadow-xl overflow-visible">
+                    <div class="relative flex items-center justify-center w-16 h-16 min-w-16 min-h-16 max-w-16 max-h-16 md:w-20 md:h-20 md:min-w-20 md:min-h-20 md:max-w-20 md:max-h-20 lg:w-24 lg:h-24 lg:min-w-24 lg:min-h-24 lg:max-w-24 lg:max-h-24 rounded-2xl shadow-xl overflow-visible shrink-0">
                         <span class="absolute inset-0 rounded-2xl pointer-events-none border-4 border-transparent bg-clip-padding z-0 {{ 'bg-gradient-to-br ' . $gradient }}"></span>
-                        <div class="relative w-[88px] h-[88px] bg-white/80 dark:bg-slate-800/80 rounded-2xl flex items-center justify-center overflow-hidden z-10">
+                        <div class="relative w-[58px] h-[58px] md:w-[74px] md:h-[74px] lg:w-[88px] lg:h-[88px] bg-white/80 dark:bg-slate-800/80 rounded-2xl flex items-center justify-center overflow-hidden z-10">
                             @php
                                 $icone = $bank->caminho_icone;
                                 $isFullUrl = Str::startsWith($icone, ['http', 'https', '/assets', 'assets']);
@@ -72,17 +72,17 @@
                         </div>
                     </div>
                 @else
-                    <div class="relative flex items-center justify-center w-24 h-24 min-w-24 min-h-24 max-w-24 max-h-24 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl shadow-md shadow-purple-400/20">
-                        <i class="fas fa-university text-white text-3xl"></i>
+                    <div class="relative flex items-center justify-center w-16 h-16 min-w-16 min-h-16 max-w-16 max-h-16 md:w-20 md:h-20 md:min-w-20 md:min-h-20 md:max-w-20 md:max-h-20 lg:w-24 lg:h-24 lg:min-w-24 lg:min-h-24 lg:max-w-24 lg:max-h-24 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl shadow-md shadow-purple-400/20 shrink-0">
+                        <i class="fas fa-university text-white text-xl md:text-2xl lg:text-3xl"></i>
                     </div>
                 @endif
 
-                <div class="space-y-1 ml-2">
-                    <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight tracking-tight drop-shadow-sm">
+                <div class="space-y-1 min-w-0 flex-1 ml-1 md:ml-2">
+                    <h1 class="text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight tracking-tight drop-shadow-sm">
                         {{ $title }}
                     </h1>
                     <div class="flex items-center gap-2 flex-wrap mt-0.5">
-                        <p class="text-base font-medium text-slate-600 dark:text-slate-400">{{ $description }}</p>
+                        <p class="text-sm md:text-base font-medium text-slate-600 dark:text-slate-400">{{ $description }}</p>
                         @if($bank)
                             <span class="text-sm px-2 py-0.5 rounded-md bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-blue-700 dark:text-blue-300 font-semibold border border-blue-300/30 dark:border-blue-500/30 shadow-sm">
                                 {{ $bank->name ?? 'Banco' }}
@@ -105,37 +105,37 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3 lg:gap-6 flex-wrap">
+            <div class="flex w-full xl:w-auto items-stretch xl:items-center gap-3 lg:gap-5 flex-wrap xl:justify-end">
                 <!-- Lado Direito: Métricas Financeiras -->
-                <div class="flex items-center gap-4">
+                <div class="flex flex-wrap items-center gap-x-4 gap-y-3 md:gap-x-5 rounded-2xl bg-white/35 dark:bg-slate-900/20 px-3 py-2.5">
                     <!-- Despesas -->
                     <div class="flex flex-col items-end">
                         <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Despesas</span>
-                        <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600">
+                        <span class="text-xl md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600">
                             R$ {{ number_format($totalExpenses, 2, ',', '.') }}
                         </span>
                         <span class="text-xs text-slate-500 dark:text-slate-400">Total do mês</span>
                     </div>
 
                     <!-- Divider -->
-                    <div class="h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+                    <div class="hidden md:block h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
 
                     <!-- Transações -->
                     <div class="flex flex-col items-end">
                         <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Transações</span>
-                        <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400">
+                        <span class="text-xl md:text-2xl font-black text-indigo-600 dark:text-indigo-400">
                             {{ $totalTransactions }}
                         </span>
                         <span class="text-xs text-slate-500 dark:text-slate-400">Quantidade</span>
                     </div>
 
                     <!-- Divider -->
-                    <div class="h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+                    <div class="hidden md:block h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
 
                     <!-- Média -->
                     <div class="flex flex-col items-end">
                         <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Média</span>
-                        <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+                        <span class="text-xl md:text-2xl font-black text-emerald-600 dark:text-emerald-400">
                             R$ {{ number_format($average, 2, ',', '.') }}
                         </span>
                         <span class="text-xs text-slate-500 dark:text-slate-400">Por transação</span>
@@ -143,13 +143,19 @@
                 </div>
 
                 <!-- Divider vertical entre métricas e actions -->
-                <div class="hidden lg:block h-16 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
+                <div class="hidden xl:block h-16 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
 
                 <!-- Quick Actions Container -->
                 @if ($showQuickActions && $bankId)
-                    <div class="flex flex-col gap-3">
+                    <div class="flex flex-col gap-3 w-full xl:w-auto">
+                        @if(isset($extraActions))
+                            <div class="flex items-center justify-start xl:justify-end gap-2">
+                                {{ $extraActions }}
+                            </div>
+                        @endif
+
                         <!-- Botões Nova e Upload -->
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-3 flex-wrap xl:flex-nowrap">
                             <!-- Botão Nova Fatura - Ultra Moderno -->
                             <a href="{{ route('invoices.create', ['bankId' => $bankId]) }}"
                                 class="group relative inline-flex items-center justify-center gap-2.5 px-5 py-3 overflow-hidden rounded-2xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-emerald-400/50">
