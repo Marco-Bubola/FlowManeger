@@ -1,6 +1,42 @@
 /* Invoices Index — iPhone 15 */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
-    .invoices-index-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
-    .invoices-index-page .grid.lg\:grid-cols-4 { grid-template-columns: 1fr !important; }
-    .invoices-index-page .grid.grid-cols-7 { font-size: 0.65rem !important; }
+    .invoices-index-page {
+        padding-inline: 0.875rem !important;
+        padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .invoices-index-page .invoices-calendar-panel .text-xl,
+    .invoices-index-page .invoices-chart-panel .text-2xl,
+    .invoices-index-page .category-group .text-2xl {
+        font-size: 1.2rem !important;
+        line-height: 1.35 !important;
+    }
+
+    .invoices-index-page .grid.grid-cols-7 {
+        font-size: 0.68rem !important;
+    }
+
+    .invoices-index-page .grid.grid-cols-7 > div {
+        min-height: 2.5rem !important;
+        padding: 0.35rem !important;
+    }
+
+    .invoices-index-page .invoices-chart-canvas-wrap {
+        min-height: 210px !important;
+    }
+
+    .invoices-index-page .invoices-chart-canvas {
+        height: 210px !important;
+        min-height: 210px !important;
+    }
+
+    .invoices-index-page .invoice-card .p-4.pt-5.pb-3 {
+        padding: 1rem 0.9rem 0.9rem !important;
+    }
+
+    .invoices-index-page .card-actions a,
+    .invoices-index-page .card-actions button {
+        flex: 1 1 calc(50% - 0.5rem);
+        justify-content: center;
+    }
 }
