@@ -30,28 +30,14 @@
     ];
 @endphp
 
-<div class="space-y-6">
-    <div class=" p-8">
-        <div class="flex items-center justify-between mb-6">
-
-            <div class="flex items-center space-x-4">
-                <span class="text-sm text-neutral-500 dark:text-neutral-400">
-                    @php
-                        $totalQuantity = !empty($products) ? array_sum(array_column($products, 'stock_quantity')) : 0;
-                    @endphp
-                    {{ $totalQuantity }} produtos encontrados
-                </span>
-            </div>
-        </div>
-
-        @if(!empty($products) && count($products) > 0)
-            <!-- Grid de Cards de Produtos - até 8 por linha em telas ultrawide -->
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-5 2xl:grid-cols-8 ultrawind:grid-cols-8 gap-6">
+<div class="products-preview-container space-y-6">
+    @if(!empty($products) && count($products) > 0)
+        <!-- Grid de Cards de Produtos - até 8 por linha em telas ultrawide -->
+        <div class="products-preview-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-4">
                 @foreach($products as $index => $product)
                     <div class="product-card-modern"
                          x-data="{ dropdownOpen: false }"
-                         :class="{ 'dropdown-open': dropdownOpen }"
-                         style="min-height: 420px;">
+                         :class="{ 'dropdown-open': dropdownOpen }">
                         <!-- Botões de ação modernos -->
                         <div class="btn-action-group flex gap-2 mb-3">
                             <button type="button"
@@ -163,6 +149,9 @@
                                 open: false,
                                 search: '',
                                 selectedId: {{ $product['category_id'] ?? 1 }},
+                                dropdownTop: 0,
+                                dropdownLeft: 0,
+                                dropdownWidth: 0,
                                 categories: {{ Js::from($categories->map(function($cat) use ($iconMap) {
                                     return [
                                         'id' => $cat->id_category,
@@ -179,18 +168,30 @@
                                         c.name.toLowerCase().includes(this.search.toLowerCase())
                                     );
                                 },
+                                openDropdown() {
+                                    const rect = this.$refs.dropdownTrigger.getBoundingClientRect();
+                                    this.dropdownTop = rect.bottom + 4;
+                                    this.dropdownLeft = rect.left;
+                                    this.dropdownWidth = rect.width;
+                                    this.open = true;
+                                    this.$parent.dropdownOpen = true;
+                                },
+                                closeDropdown() {
+                                    this.open = false;
+                                    this.$parent.dropdownOpen = false;
+                                },
                                 selectCategory(cat) {
                                     this.selectedId = cat.id;
-                                    this.open = false;
+                                    this.closeDropdown();
                                     this.search = '';
                                     $wire.set('productsUpload.{{ $index }}.category_id', cat.id);
                                     document.getElementById('category-icon-{{ $index }}').className = cat.icon + ' category-icon';
-                                    this.$parent.dropdownOpen = false;
                                 }
                             }">
-                                <div class="relative w-full max-w-xs">
+                                <div class="relative w-full max-w-xs" x-ref="dropdownAnchor">
                                     <button type="button"
-                                            @click="open = !open; $parent.dropdownOpen = open"
+                                            x-ref="dropdownTrigger"
+                                            @click="open ? closeDropdown() : openDropdown()"
                                             class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-purple-200 bg-white dark:bg-slate-700 dark:border-purple-700 text-slate-700 dark:text-slate-200 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-400/20 focus:outline-none transition-all duration-200 text-xs">
                                         <span class="flex items-center gap-2 overflow-hidden">
                                             <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0"></i>
@@ -199,33 +200,41 @@
                                         <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200 flex-shrink-0" :class="{ 'rotate-180': open }"></i>
                                     </button>
 
-                                    <div x-show="open"
-                                         x-transition
-                                         @click.away="open = false; $parent.dropdownOpen = false"
-                                         class="absolute z-[9999] w-full mt-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
-                                        <!-- Search -->
-                                        <div class="p-2 border-b border-slate-200 dark:border-slate-700">
-                                            <input type="text"
-                                                   x-model="search"
-                                                   @click.stop
-                                                   placeholder="Pesquisar..."
-                                                   class="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
-                                        </div>
-                                        <!-- Options -->
-                                        <div class="overflow-y-auto max-h-44">
-                                            <template x-for="cat in filteredCategories" :key="cat.id">
-                                                <button type="button"
-                                                        @click="selectCategory(cat)"
-                                                        class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
-                                                    <i :class="cat.icon" class="text-purple-500 text-xs"></i>
-                                                    <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="cat.name"></span>
-                                                </button>
-                                            </template>
-                                            <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 text-center">
-                                                Nenhuma categoria encontrada
+                                    <template x-teleport="body">
+                                        <div x-show="open"
+                                             x-transition:enter="transition ease-out duration-150"
+                                             x-transition:enter-start="opacity-0 scale-95"
+                                             x-transition:enter-end="opacity-100 scale-100"
+                                             x-transition:leave="transition ease-in duration-100"
+                                             x-transition:leave-start="opacity-100 scale-100"
+                                             x-transition:leave-end="opacity-0 scale-95"
+                                             @click.away="closeDropdown()"
+                                             :style="`position:fixed; z-index:2147483647; width:${dropdownWidth}px; top:${dropdownTop}px; left:${dropdownLeft}px`"
+                                             class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
+                                            <!-- Search -->
+                                            <div class="p-2 border-b border-slate-200 dark:border-slate-700">
+                                                <input type="text"
+                                                       x-model="search"
+                                                       @click.stop
+                                                       placeholder="Pesquisar..."
+                                                       class="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
+                                            </div>
+                                            <!-- Options -->
+                                            <div class="overflow-y-auto max-h-44">
+                                                <template x-for="cat in filteredCategories" :key="cat.id">
+                                                    <button type="button"
+                                                            @click="selectCategory(cat)"
+                                                            class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
+                                                        <i :class="cat.icon" class="text-purple-500 text-xs"></i>
+                                                        <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="cat.name"></span>
+                                                    </button>
+                                                </template>
+                                                <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 text-center">
+                                                    Nenhuma categoria encontrada
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </template>
                                 </div>
                             </div>
                         </div>
@@ -252,9 +261,7 @@
                         </div>
                     </div>
                 @endforeach
-            </div>
+        </div>
 
-
-        @endif
-    </div>
+    @endif
 </div>
