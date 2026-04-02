@@ -15,8 +15,19 @@
     }
 
     .invoices-index-page .invoices-sidebar {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+    }
+
+    .invoices-index-page .invoices-sidebar {
         position: sticky;
         top: 1.25rem;
+    }
+
+    .invoices-index-page .invoices-main {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        align-self: start !important;
     }
 
     .invoices-index-page .invoices-chart-canvas-wrap {
