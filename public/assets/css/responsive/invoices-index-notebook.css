@@ -1,13 +1,22 @@
 /* Invoices Index — Desktop / Notebook */
 @media (min-width: 1025px) and (max-width: 1600px) {
     .invoices-index-page .invoices-shell {
-        width: min(100%, 1540px) !important;
+        width: 100% !important;
     }
 
     .invoices-index-page .invoices-layout {
-        grid-template-columns: minmax(320px, 360px) minmax(0, 1fr) !important;
-        gap: 1.25rem !important;
+        grid-template-columns: minmax(290px, 340px) minmax(0, 1fr) !important;
+        gap: 0.8rem !important;
         align-items: start;
+    }
+
+    .invoices-index-page {
+        padding-inline: 0.45rem !important;
+    }
+
+    .invoices-index-page .invoice-header-component .relative.px-4.py-4.md\:px-5.lg\:px-6 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
     }
 
     .invoices-index-page .invoices-sidebar {
