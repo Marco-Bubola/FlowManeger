@@ -1,3 +1,20 @@
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .dashboard-cashbook-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .dashboard-cashbook-page {
+        min-height: 100dvh;
+        height: auto;
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .dashboard-cashbook-page .max-w-\[1880px\] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .dashboard-cashbook-page #financeFlowChart,
+    .dashboard-cashbook-page #periodComparisonChart,
+    .dashboard-cashbook-page #bankShareChart,
+    .dashboard-cashbook-page #invoiceDailyChart,
+    .dashboard-cashbook-page #categorySpendChart {
+        height: 300px !important;
+    }
 }
