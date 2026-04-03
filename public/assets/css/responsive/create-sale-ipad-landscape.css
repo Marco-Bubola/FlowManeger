@@ -159,36 +159,43 @@
     /* ── STEP PRODUTOS ──────────────────────────────────── */
     .sales-create-page .create-sale-step-products-shell {
         flex-direction: row !important;
-        align-items: stretch !important;
+        align-items: flex-start !important;
         gap: 0.7rem !important;
-        height: calc(100dvh - 100px) !important;
+        height: auto !important;
+        min-height: 0 !important;
         margin-top: 0.5rem;
     }
 
-    /* Painel esquerdo — produtos (maior porque há mais colunas) */
+    /* Painel esquerdo — produtos no landscape (mais colunas) */
     .sales-create-page .create-sale-products-pane {
-        width: 72% !important;
-        height: 100% !important;
-        min-height: 0 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        overflow: hidden !important;
-    }
-
-    /* Painel direito — resumo + selecionados */
-    .sales-create-page .create-sale-summary-pane {
-        width: 28% !important;
-        height: 100% !important;
+        width: 68% !important;
+        height: auto !important;
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: visible !important;
     }
 
-    /* Scroll container separado para não cortar o dropdown */
-    .sales-create-page .create-sale-selected-list {
-        flex: 1 1 0 !important;
+    /* Área de scroll dos cards — usa boa parte da altura disponível */
+    .sales-create-page .create-sale-products-pane > div.overflow-y-auto {
+        max-height: min(68vh, 48rem) !important;
+        overflow-y: auto !important;
+    }
+
+    /* Painel direito — resumo + selecionados */
+    .sales-create-page .create-sale-summary-pane {
+        width: 32% !important;
+        height: auto !important;
         min-height: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+    }
+
+    /* Lista de selecionados proporcional */
+    .sales-create-page .create-sale-selected-list {
+        min-height: clamp(14rem, 24vh, 20rem) !important;
+        max-height: min(38vh, 24rem) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
     }
@@ -336,8 +343,6 @@
 
     /* ── LISTA DE PRODUTOS SELECIONADOS ─────────────────── */
     .sales-create-page .create-sale-selected-list {
-        flex: 1 1 0 !important;
-        min-height: 0 !important;
         overflow-y: auto !important;
         padding: 0.22rem 0.06rem !important;
     }
@@ -356,8 +361,7 @@
     }
 
     /* Imagem */
-    .sales-create-page .create-sale-selected-item .flex-shrink-0 img,
-    .sales-create-page .create-sale-selected-item .w-12 {
+    .sales-create-page .create-sale-selected-item .create-sale-selected-thumb {
         width: 2rem !important;
         height: 2rem !important;
         min-width: 2rem !important;
@@ -366,7 +370,7 @@
 
     .sales-create-page .create-sale-selected-item > .flex {
         gap: 0.45rem !important;
-        align-items: center !important;
+        align-items: flex-start !important;
     }
 
     /* Nome */
