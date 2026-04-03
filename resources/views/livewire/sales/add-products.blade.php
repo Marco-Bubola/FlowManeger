@@ -21,6 +21,7 @@
         .product-card-modern {
             cursor: pointer;
             user-select: none;
+            position: relative;
         }
 
         .product-card-modern:hover {
@@ -29,6 +30,43 @@
 
         .product-card-modern.selected:hover {
             transform: translateY(-2px) scale(1.02);
+        }
+
+        /* Badge de quantidade selecionada */
+        .selected-qty-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            min-width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, #059669, #10b981);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 700;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 5px;
+            box-shadow: 0 2px 6px rgba(16,185,129,0.5);
+            z-index: 10;
+            border: 2px solid white;
+        }
+
+        /* Sort button ativo */
+        .sort-btn-active {
+            color: #059669;
+            font-weight: 600;
+        }
+
+        /* Input com erro de estoque */
+        .stock-exceeded {
+            border-color: #ef4444 !important;
+            background: #fef2f2 !important;
+        }
+
+        .dark .stock-exceeded {
+            background: rgba(239,68,68,0.15) !important;
         }
     </style>
 
@@ -44,21 +82,41 @@
         <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col add-products-pane">
             <!-- Header com Controles -->
             <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
-                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                    <i class="bi bi-box text-emerald-600 dark:text-emerald-400 mr-3"></i>
-                    Selecionar Produtos
-                </h2>
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        <i class="bi bi-box text-emerald-600 dark:text-emerald-400 mr-3"></i>
+                        Selecionar Produtos
+                    </h2>
+                    <div class="flex items-center gap-2">
+                        @if($filteredProducts->isNotEmpty())
+                        <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-700 px-2 py-1 rounded-lg">
+                            {{ $filteredProducts->count() }} {{ $filteredProducts->count() === 1 ? 'produto' : 'produtos' }}
+                        </span>
+                        @endif
+                        @if(count($newProducts) > 0 && $this->hasSelectedProducts())
+                        <span class="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 px-2 py-1 rounded-lg">
+                            <i class="bi bi-check-circle-fill mr-1"></i>{{ count(array_filter($newProducts, fn($p) => !empty($p['product_id']))) }} selecionados
+                        </span>
+                        @endif
+                    </div>
+                </div>
 
                 <!-- Controles de pesquisa e filtro -->
-                <div class="flex flex-col md:flex-row gap-4">
-                    <!-- Campo de pesquisa -->
+                <div class="flex flex-col md:flex-row gap-3">
+                    <!-- Campo de pesquisa com botão de limpar -->
                     <div class="flex-1">
                         <div class="relative">
                             <i class="bi bi-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
                             <input type="text"
                                 wire:model.live.debounce.300ms="searchTerm"
-                                placeholder="Buscar produtos por nome, código ou categoria..."
-                                class="w-full pl-12 pr-4 py-3 border border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                                placeholder="Buscar por nome, código ou categoria..."
+                                class="w-full pl-12 pr-10 py-3 border border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                            @if($searchTerm)
+                            <button type="button" wire:click="$set('searchTerm', '')"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                                <i class="bi bi-x-circle-fill text-base"></i>
+                            </button>
+                            @endif
                         </div>
                     </div>
 
@@ -66,14 +124,42 @@
                     <div class="flex items-center">
                         <select wire:model.live="selectedCategory"
                                 class="px-4 py-3 border border-gray-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200">
-                            <option value="">
-                                <i class="bi bi-funnel mr-2"></i>
-                                Todas as categorias
-                            </option>
+                            <option value="">Todas as categorias</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
                             @endforeach
                         </select>
+                    </div>
+
+                    <!-- Ordenação -->
+                    <div class="flex items-center gap-1 bg-gray-100 dark:bg-zinc-700 rounded-xl px-2 py-1">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 mr-1 whitespace-nowrap">
+                            <i class="bi bi-sort-alpha-down mr-1"></i>Ordenar:
+                        </span>
+                        <button type="button"
+                                wire:click="setSortBy('name')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $sortBy === 'name' ? 'bg-white dark:bg-zinc-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700' }}">
+                            Nome
+                            @if($sortBy === 'name')
+                                <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }} ml-0.5"></i>
+                            @endif
+                        </button>
+                        <button type="button"
+                                wire:click="setSortBy('price_sale')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $sortBy === 'price_sale' ? 'bg-white dark:bg-zinc-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700' }}">
+                            Preço
+                            @if($sortBy === 'price_sale')
+                                <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }} ml-0.5"></i>
+                            @endif
+                        </button>
+                        <button type="button"
+                                wire:click="setSortBy('stock_quantity')"
+                                class="px-3 py-1.5 rounded-lg text-xs font-medium transition-colors {{ $sortBy === 'stock_quantity' ? 'bg-white dark:bg-zinc-600 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700' }}">
+                            Estoque
+                            @if($sortBy === 'stock_quantity')
+                                <i class="bi bi-arrow-{{ $sortDirection === 'asc' ? 'up' : 'down' }} ml-0.5"></i>
+                            @endif
+                        </button>
                     </div>
                 </div>
             </div>
@@ -107,12 +193,18 @@
                         @foreach($filteredProducts as $product)
                             @php
                                 $isSelected = $this->isProductSelected($product->id);
+                                $selectedQty = $isSelected ? $this->getSelectedQuantity($product->id) : 0;
                             @endphp
 
                             <!-- Produto com CSS customizado mantido -->
                             <div class="product-card-modern {{ $isSelected ? 'selected' : '' }}"
                                  wire:click="toggleProduct({{ $product->id }})"
                                  wire:key="product-{{ $product->id }}">
+
+                                <!-- Badge de quantidade selecionada -->
+                                @if($isSelected)
+                                <div class="selected-qty-badge">{{ $selectedQty }}x</div>
+                                @endif
 
                                 <!-- Toggle de seleção estilizado -->
                                 <div class="btn-action-group flex gap-2">
