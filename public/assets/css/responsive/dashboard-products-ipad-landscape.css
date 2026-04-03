@@ -1,3 +1,21 @@
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .dashboard-products-page { }
+    .dashboard-products-page .dashboard-products-shell {
+        padding-inline: 1.35rem !important;
+    }
+
+    .dashboard-products-page .products-chart-lg {
+        min-height: 290px !important;
+    }
+
+    .dashboard-products-page .products-chart-md {
+        min-height: 250px !important;
+    }
+
+    .dashboard-products-page .xl\:col-span-8 {
+        grid-column: span 12 / span 12 !important;
+    }
+
+    .dashboard-products-page .xl\:col-span-4 {
+        grid-column: span 6 / span 6 !important;
+    }
 }
