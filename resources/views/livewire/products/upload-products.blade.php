@@ -15,17 +15,17 @@
     @if(!$showProductsTable)
     <x-upload-header-original
         title="Upload de Produtos"
-        description="Importe produtos através de arquivo PDF ou CSV"
+        description="Importe produtos atrav├®s de arquivo PDF ou CSV"
         :back-route="route('products.index')">
         <x-slot name="actions">
-            <!-- Botão Dicas -->
+            <!-- Bot├úo Dicas -->
             <button wire:click="toggleTips"
                     class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm">
                 <i class="bi bi-lightbulb-fill mr-2 group-hover:scale-110 transition-transform duration-200"></i>
                 Dicas
             </button>
 
-            <!-- Botão Processar Arquivo -->
+            <!-- Bot├úo Processar Arquivo -->
             @if($pdf_file)
             <button wire:click="processUpload"
                     wire:loading.attr="disabled"
@@ -45,13 +45,13 @@
     </x-upload-header-original>
     @else
     <x-upload-header-original
-        title="Produtos Extraídos"
+        title="Produtos Extra├¡dos"
         description="Revise e edite os produtos antes de salvar"
         :show-products-info="true"
         :products-count="count($productsUpload ?? [])"
         :back-route="null">
         <x-slot name="actions">
-            <!-- Botão Desfazer (se houver produtos removidos) -->
+            <!-- Bot├úo Desfazer (se houver produtos removidos) -->
             @if(!empty($removedProducts))
             <button wire:click="undoRemove"
                     class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-yellow-300 backdrop-blur-sm">
@@ -60,7 +60,7 @@
             </button>
             @endif
 
-            <!-- Botão Validar Duplicatas -->
+            <!-- Bot├úo Validar Duplicatas -->
             <button wire:click="checkDuplicates"
                     class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm">
                 <i class="bi bi-shield-check mr-2 group-hover:scale-110 transition-transform duration-200"></i>
@@ -101,7 +101,7 @@
                     {{ count($duplicates) }} produto(s) duplicado(s) encontrado(s)
                 </h3>
                 <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                    <p>Escolha uma ação para cada produto duplicado abaixo:</p>
+                    <p>Escolha uma a├º├úo para cada produto duplicado abaixo:</p>
                 </div>
                 <div class="mt-4 space-y-3">
                     @foreach($duplicates as $index => $duplicate)
@@ -112,7 +112,7 @@
                                     {{ $duplicate['product']['name'] ?? 'Produto sem nome' }}
                                 </p>
                                 <p class="text-sm text-slate-500 dark:text-slate-400">
-                                    Código: {{ $duplicate['product']['product_code'] }} |
+                                    C├│digo: {{ $duplicate['product']['product_code'] }} |
                                     Estoque atual: {{ $duplicate['existing']->stock_quantity }} |
                                     Nova quantidade: {{ $duplicate['product']['stock_quantity'] }}
                                 </p>
@@ -143,117 +143,168 @@
     </div>
     @endif
 
-    <!-- Conteúdo Principal -->
+    <!-- Conte├║do Principal -->
     <div class="upload-main-content">
         @if(!$showProductsTable)
-            <!-- Layout 2 Colunas: Upload + Histórico -->
             <div class="upload-main-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-                <!-- Coluna Esquerda: Upload de Arquivo -->
                 <div class="upload-left-col space-y-6">
-                    <div class="flex items-center justify-center w-full">
-                        <label for="pdf_file" class="upload-drop-zone group relative flex flex-col items-center justify-center w-full h-[600px] border-3 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl cursor-pointer
-                               bg-gradient-to-br from-white/80 via-purple-50/50 to-indigo-50/30
-                               dark:from-slate-800/80 dark:via-purple-900/20 dark:to-indigo-900/10
-                               hover:from-purple-50/80 hover:via-indigo-50/60 hover:to-purple-50/40
-                               dark:hover:from-slate-700/80 dark:hover:via-purple-900/30 dark:hover:to-indigo-900/20
-                               backdrop-blur-xl transition-all duration-500 ease-out
-                               hover:border-purple-400 dark:hover:border-purple-500
-                               hover:shadow-2xl hover:shadow-purple-500/20
-                               transform hover:scale-[1.02]">
+                    <div class="upload-stage-shell relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-br from-white via-indigo-50/70 to-sky-50/80 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-[0_24px_80px_-32px_rgba(79,70,229,0.35)]">
+                        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.14),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.12),transparent_30%)]"></div>
+                        <div class="relative p-4 sm:p-5 lg:p-6 space-y-5">
+                            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                                <div class="space-y-2">
+                                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 dark:border-indigo-500/30 bg-white/70 dark:bg-slate-800/70 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300 shadow-sm backdrop-blur-sm">
+                                        <i class="bi bi-stars text-sky-500"></i>
+                                        Central de Importacao
+                                    </span>
+                                    <div>
+                                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Envie, processe e revise em um fluxo so</h3>
+                                        <p class="text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 max-w-2xl">Interface repaginada para importar arquivos com clareza, feedback visual imediato e leitura confortavel em qualquer dispositivo.</p>
+                                    </div>
+                                </div>
 
-                            <!-- Efeito de brilho animado -->
-                            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-3xl animate-pulse"></div>
-
-                            <!-- Partículas flutuantes -->
-                            <div class="absolute inset-0 overflow-hidden rounded-3xl">
-                                <div class="absolute w-2 h-2 bg-purple-400/30 rounded-full animate-float" style="top: 20%; left: 15%; animation-delay: 0.2s;"></div>
-                                <div class="absolute w-1 h-1 bg-indigo-400/40 rounded-full animate-float" style="top: 60%; right: 20%; animation-delay: 0.8s;"></div>
-                                <div class="absolute w-3 h-3 bg-purple-300/20 rounded-full animate-float" style="bottom: 30%; left: 30%; animation-delay: 1.2s;"></div>
+                                <div class="upload-stage-badges grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                    <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Formatos</p>
+                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">PDF e CSV</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Limite</p>
+                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Ate 2 MB</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm col-span-2 sm:col-span-1">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Leitura</p>
+                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Revisao assistida</p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div class="relative flex flex-col items-center justify-center px-10 py-10 z-10">
-                                @if($pdf_file)
-                                    <!-- Preview do Arquivo com Efeitos -->
-                                    <div class="relative group/file w-full h-full flex flex-col items-center justify-center">
-                                        <div class="relative">
-                                            <i class="bi bi-file-earmark-pdf text-9xl text-red-500 group-hover:scale-110 transition-transform duration-500"></i>
+                            <div class="flex items-center justify-center w-full">
+                                <label for="pdf_file" class="upload-drop-zone upload-drop-zone-premium group relative flex flex-col items-center justify-center w-full min-h-[560px] border-3 border-dashed border-slate-300/80 dark:border-slate-600 rounded-[2rem] cursor-pointer bg-gradient-to-br from-white/90 via-indigo-50/70 to-sky-50/60 dark:from-slate-800/90 dark:via-indigo-950/25 dark:to-sky-950/10 hover:from-white hover:via-indigo-50/80 hover:to-sky-50/70 dark:hover:from-slate-800 dark:hover:via-indigo-900/25 dark:hover:to-sky-900/20 backdrop-blur-xl transition-all duration-500 ease-out hover:border-indigo-400 dark:hover:border-indigo-400/70 hover:shadow-2xl hover:shadow-indigo-500/20 transform hover:scale-[1.01]">
+                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[2rem] animate-pulse"></div>
+                                    <div class="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-70"></div>
 
-                                            <!-- Badge de sucesso animado -->
-                                            <div class="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 text-white rounded-full p-3 shadow-2xl shadow-green-500/40 animate-bounce">
-                                                <i class="bi bi-check-lg text-lg font-bold"></i>
-                                                <div class="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30"></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="mt-8 text-center space-y-4">
-                                            <h3 class="text-2xl font-bold text-slate-700 dark:text-slate-200">
-                                                {{ $pdf_file->getClientOriginalName() }}
-                                            </h3>
-                                            <p class="text-lg text-slate-500 dark:text-slate-400">
-                                                Tamanho: {{ round($pdf_file->getSize() / 1024, 2) }} KB
-                                            </p>
-
-                                            <!-- Mensagem de alterar arquivo -->
-                                            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
-                                                <p class="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
-                                                    <i class="bi bi-arrow-repeat text-purple-500 text-lg"></i>
-                                                    Clique para alterar arquivo
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <!-- Overlay com ícone de edição -->
-                                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl flex items-center justify-center backdrop-blur-sm">
-                                            <i class="bi bi-arrow-repeat text-white text-4xl"></i>
-                                        </div>
+                                    <div class="absolute inset-0 overflow-hidden rounded-[2rem]">
+                                        <div class="absolute w-2 h-2 bg-purple-400/30 rounded-full animate-float" style="top: 20%; left: 15%; animation-delay: 0.2s;"></div>
+                                        <div class="absolute w-1 h-1 bg-indigo-400/40 rounded-full animate-float" style="top: 60%; right: 20%; animation-delay: 0.8s;"></div>
+                                        <div class="absolute w-3 h-3 bg-sky-300/20 rounded-full animate-float" style="bottom: 30%; left: 30%; animation-delay: 1.2s;"></div>
+                                        <div class="absolute top-10 right-12 h-20 w-20 rounded-full bg-indigo-400/10 blur-2xl"></div>
+                                        <div class="absolute bottom-12 left-10 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl"></div>
                                     </div>
-                                @else
-                                    <!-- Estado vazio com animações -->
-                                    <div class="text-center space-y-8">
-                                        <div class="relative">
-                                            <!-- Ícone principal com efeitos -->
-                                            <div class="relative">
-                                                <i class="bi bi-cloud-arrow-up text-9xl text-slate-300 dark:text-slate-600 group-hover:text-purple-400 dark:group-hover:text-purple-500 transition-all duration-500 transform group-hover:scale-110"></i>
 
-                                                <!-- Ícone de PDF flutuante -->
-                                                <div class="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-full flex items-center justify-center shadow-lg animate-bounce group-hover:scale-125 transition-transform duration-300">
-                                                    <i class="bi bi-file-earmark-pdf text-white text-xl font-bold"></i>
+                                    <div class="relative flex flex-col items-center justify-center px-10 py-10 z-10">
+                                        @if($pdf_file)
+                                            <div class="relative group/file w-full h-full flex flex-col items-center justify-center">
+                                                <div class="relative">
+                                                    <i class="bi bi-file-earmark-pdf text-9xl text-red-500 group-hover:scale-110 transition-transform duration-500"></i>
+                                                    <div class="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 text-white rounded-full p-3 shadow-2xl shadow-green-500/40 animate-bounce">
+                                                        <i class="bi bi-check-lg text-lg font-bold"></i>
+                                                        <div class="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30"></div>
+                                                    </div>
                                                 </div>
 
-                                                <!-- Círculos decorativos -->
-                                                <div class="absolute -top-4 -left-4 w-6 h-6 bg-purple-400/30 rounded-full animate-pulse"></div>
-                                                <div class="absolute -bottom-6 left-8 w-4 h-4 bg-indigo-400/40 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
-                                            </div>
-                                        </div>
-
-                                        <div class="space-y-4">
-                                            <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-700 via-purple-600 to-indigo-600 dark:from-slate-300 dark:via-purple-400 dark:to-indigo-400 bg-clip-text text-transparent group-hover:from-purple-600 group-hover:to-indigo-600 transition-all duration-500">
-                                                <i class="bi bi-file-earmark-arrow-up mr-3"></i>
-                                                Upload de Produtos
-                                            </h3>
-                                            <p class="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
-                                                <span class="font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">Clique ou arraste seu arquivo aqui</span>
-                                            </p>
-
-                                            <!-- Tags informativos melhorados -->
-                                            <div class="flex items-center justify-center space-x-6 pt-4">
-                                                <div class="flex items-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200/50 dark:border-slate-600/50 group-hover:scale-105 transition-transform duration-300">
-                                                    <i class="bi bi-file-earmark-pdf text-red-500 mr-3 text-lg"></i>
-                                                    <span class="text-sm font-bold text-slate-600 dark:text-slate-300">PDF, CSV</span>
+                                                <div class="mt-8 text-center space-y-4">
+                                                    <h3 class="text-2xl font-bold text-slate-700 dark:text-slate-200">
+                                                        {{ $pdf_file->getClientOriginalName() }}
+                                                    </h3>
+                                                    <p class="text-lg text-slate-500 dark:text-slate-400">
+                                                        Tamanho: {{ round($pdf_file->getSize() / 1024, 2) }} KB
+                                                    </p>
+                                                    <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
+                                                        <p class="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
+                                                            <i class="bi bi-arrow-repeat text-purple-500 text-lg"></i>
+                                                            Clique para trocar o arquivo
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                                <div class="flex items-center bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm px-4 py-3 rounded-xl shadow-lg border border-slate-200/50 dark:border-slate-600/50 group-hover:scale-105 transition-transform duration-300">
-                                                    <i class="bi bi-hdd text-emerald-500 mr-3 text-lg"></i>
-                                                    <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Máx. 2MB</span>
+
+                                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[2rem] flex items-center justify-center backdrop-blur-sm">
+                                                    <i class="bi bi-arrow-repeat text-white text-4xl"></i>
                                                 </div>
                                             </div>
-                                        </div>
+                                        @else
+                                            <div class="text-center space-y-8">
+                                                <div class="relative">
+                                                    <div class="relative">
+                                                        <i class="bi bi-cloud-arrow-up text-9xl text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 dark:group-hover:text-indigo-400 transition-all duration-500 transform group-hover:scale-110"></i>
+                                                        <div class="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r from-indigo-500 to-sky-500 rounded-full flex items-center justify-center shadow-lg animate-bounce group-hover:scale-125 transition-transform duration-300">
+                                                            <i class="bi bi-file-earmark-pdf text-white text-xl font-bold"></i>
+                                                        </div>
+                                                        <div class="absolute -top-4 -left-4 w-6 h-6 bg-indigo-400/30 rounded-full animate-pulse"></div>
+                                                        <div class="absolute -bottom-6 left-8 w-4 h-4 bg-sky-400/40 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="space-y-4">
+                                                    <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-700 via-indigo-600 to-sky-600 dark:from-slate-300 dark:via-indigo-300 dark:to-sky-300 bg-clip-text text-transparent transition-all duration-500">
+                                                        <i class="bi bi-file-earmark-arrow-up mr-3"></i>
+                                                        Upload de Produtos
+                                                    </h3>
+                                                    <p class="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-xl mx-auto">
+                                                        <span class="font-bold bg-gradient-to-r from-indigo-600 to-sky-600 bg-clip-text text-transparent">Clique ou arraste seu arquivo aqui</span>
+                                                        para iniciar uma importacao mais limpa, rapida e pronta para revisao.
+                                                    </p>
+
+                                                    <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
+                                                        <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
+                                                            <i class="bi bi-file-earmark-pdf text-red-500 mr-3 text-lg"></i>
+                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">PDF, CSV</span>
+                                                        </div>
+                                                        <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
+                                                            <i class="bi bi-hdd text-emerald-500 mr-3 text-lg"></i>
+                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Max. 2MB</span>
+                                                        </div>
+                                                        <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
+                                                            <i class="bi bi-shield-check text-indigo-500 mr-3 text-lg"></i>
+                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Validacao guiada</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endif
                                     </div>
-                                @endif
+
+                                    <input wire:model="pdf_file" id="pdf_file" name="pdf_file" type="file" class="hidden" accept=".pdf,.csv">
+                                </label>
                             </div>
 
-                            <input wire:model="pdf_file" id="pdf_file" name="pdf_file" type="file" class="hidden" accept=".pdf,.csv">
-                        </label>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-lg">
+                                            <i class="bi bi-upload"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">1. Envio</p>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Selecione o arquivo</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white flex items-center justify-center shadow-lg">
+                                            <i class="bi bi-cpu"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">2. Processamento</p>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Extracao e leitura</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-lg">
+                                            <i class="bi bi-check2-square"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">3. Revisao</p>
+                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Ajuste antes de salvar</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     @error('pdf_file')
@@ -264,30 +315,57 @@
                     @enderror
                 </div>
 
-                <!-- Coluna Direita: Histórico de Uploads -->
                 <div class="upload-history-section space-y-4">
-                    <div class="upload-history-header flex items-center justify-between mb-4">
-                        <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-                                <i class="bi bi-clock-history text-white text-xl"></i>
-                            </div>
-                            <div>
-                                <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200">Histórico de Uploads</h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-400">Últimos envios realizados</p>
-                            </div>
-                        </div>
-                        @if(!empty($uploadHistory))
-                        <span class="px-3 py-1.5 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold rounded-full shadow-lg">
-                            {{ count($uploadHistory) }}
-                        </span>
-                        @endif
-                    </div>
+                    <div class="upload-history-shell relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 shadow-[0_28px_90px_-38px_rgba(15,23,42,0.8)]">
+                        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.22),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(20,184,166,0.12),transparent_24%)]"></div>
+                        <div class="relative p-4 sm:p-5 lg:p-6 space-y-5">
+                            <div class="upload-history-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 via-violet-500 to-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                                        <i class="bi bi-clock-history text-white text-xl"></i>
+                                    </div>
+                                    <div>
+                                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                                            <h3 class="text-xl font-black text-white">Historico de Uploads</h3>
+                                            <span class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">Timeline</span>
+                                        </div>
+                                        <p class="text-sm text-slate-300">Uploads recentes com navegacao paginada e leitura mais limpa.</p>
+                                    </div>
+                                </div>
 
-                    <!-- Cards do Histórico -->
-                    <div class="upload-history-grid grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[690px] overflow-y-auto pr-2 custom-scrollbar">
-                        @forelse($uploadHistory as $upload)
-                        @php $badge = $upload->status_badge; @endphp
-                        <div class="upload-history-card group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden">
+                                <div class="flex flex-wrap items-center gap-2.5">
+                                    <div class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-white shadow-lg backdrop-blur-sm">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Registros</p>
+                                        <p class="text-sm font-extrabold">{{ $uploadHistory->total() }}</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-white shadow-lg backdrop-blur-sm">
+                                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Pagina</p>
+                                        <p class="text-sm font-extrabold">{{ $uploadHistory->currentPage() }}/{{ max($uploadHistory->lastPage(), 1) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @if($uploadHistory->total() > 0)
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm shadow-lg">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Exibindo</p>
+                                    <p class="mt-1 text-sm font-extrabold text-white">{{ $uploadHistory->firstItem() }} a {{ $uploadHistory->lastItem() }}</p>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm shadow-lg">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Por pagina</p>
+                                    <p class="mt-1 text-sm font-extrabold text-white">{{ $historyPerPage }} cards</p>
+                                </div>
+                                <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm shadow-lg">
+                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</p>
+                                    <p class="mt-1 text-sm font-extrabold text-emerald-300">Leitura em tempo real</p>
+                                </div>
+                            </div>
+                            @endif
+
+                            <div class="upload-history-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                                @forelse($uploadHistory as $upload)
+                                @php $badge = $upload->status_badge; @endphp
+                                <div class="upload-history-card group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden">
 
                             <!-- Header com Gradiente -->
                             <div class="upload-card-header relative bg-gradient-to-br from-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-500 via-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-600 to-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-700 p-4">
@@ -310,7 +388,7 @@
                                                     <i class="bi bi-calendar3"></i>
                                                     {{ $upload->created_at->format('d/m/Y') }}
                                                 </span>
-                                                <span>•</span>
+                                                <span>ÔÇó</span>
                                                 <span class="flex items-center gap-1">
                                                     <i class="bi bi-clock"></i>
                                                     {{ $upload->created_at->format('H:i') }}
@@ -327,7 +405,7 @@
 
                             <!-- Corpo do Card -->
                             <div class="upload-card-body p-4">
-                                <!-- Estatísticas -->
+                                <!-- Estat├¡sticas -->
                                 <div class="upload-card-stats grid grid-cols-3 gap-2 mb-4">
                                     <div class="relative group/stat">
                                         <div class="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-xl opacity-50 group-hover/stat:opacity-100 transition-opacity"></div>
@@ -357,7 +435,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Footer com Ações -->
+                                <!-- Footer com A├º├Áes -->
                                 <div class="flex items-center justify-between pt-3 border-t-2 border-slate-200 dark:border-slate-700">
                                     <div class="flex flex-col gap-1">
                                         <span class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
@@ -372,9 +450,9 @@
                                         @endif
                                     </div>
 
-                                    <!-- Botões de Ação -->
+                                    <!-- Bot├Áes de A├º├úo -->
                                     <div class="flex items-center gap-2">
-                                        <!-- Botão Ver Detalhes -->
+                                        <!-- Bot├úo Ver Detalhes -->
                                         <button wire:click="showUploadDetails({{ $upload->id }})"
                                             class="group/btn inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/50 hover:scale-105">
                                             <i class="bi bi-info-circle text-base group-hover/btn:rotate-12 transition-transform"></i>
@@ -382,7 +460,7 @@
                                         </button>
 
                                         @if($upload->file_type === 'pdf' && $upload->file_path)
-                                        <!-- Botão Abrir PDF -->
+                                        <!-- Bot├úo Abrir PDF -->
                                         <a href="{{ Storage::url($upload->file_path) }}"
                                            target="_blank"
                                            class="group/btn inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
@@ -391,7 +469,7 @@
                                         </a>
                                         @endif
 
-                                        <!-- Botão Excluir -->
+                                        <!-- Bot├úo Excluir -->
                                         <button wire:click="confirmDeleteUpload({{ $upload->id }})"
                                             class="group/btn inline-flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-red-500 via-rose-600 to-pink-600 hover:from-red-600 hover:via-rose-700 hover:to-pink-700 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
                                             <i class="bi bi-trash text-base group-hover/btn:rotate-12 transition-transform"></i>
@@ -400,16 +478,52 @@
                                 </div>
                             </div>
 
-                        </div>
-                        @empty
-                        <div class="flex flex-col items-center justify-center py-16 px-6 bg-gradient-to-br from-slate-50 to-purple-50/30 dark:from-slate-800/50 dark:to-purple-900/10 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700">
-                            <div class="w-20 h-20 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mb-4">
-                                <i class="bi bi-inbox text-4xl text-purple-400 dark:text-purple-500"></i>
+                                </div>
+                                @empty
+                                <div class="md:col-span-2 flex flex-col items-center justify-center py-16 px-6 bg-gradient-to-br from-slate-50 to-purple-50/30 dark:from-slate-800/50 dark:to-purple-900/10 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700">
+                                    <div class="w-20 h-20 bg-gradient-to-br from-purple-100 to-indigo-100 dark:from-purple-900/30 dark:to-indigo-900/30 rounded-full flex items-center justify-center mb-4">
+                                        <i class="bi bi-inbox text-4xl text-purple-400 dark:text-purple-500"></i>
+                                    </div>
+                                    <h4 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Nenhum upload realizado</h4>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Envie seu primeiro arquivo para ver o historico aqui</p>
+                                </div>
+                                @endforelse
                             </div>
-                            <h4 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Nenhum upload realizado</h4>
-                            <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Envie seu primeiro arquivo para ver o histórico aqui</p>
+
+                            @if($uploadHistory->hasPages())
+                            <div class="upload-history-pagination flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="text-sm text-slate-300">
+                                    Mostrando <span class="font-black text-white">{{ $uploadHistory->firstItem() }}</span> a <span class="font-black text-white">{{ $uploadHistory->lastItem() }}</span> de <span class="font-black text-white">{{ $uploadHistory->total() }}</span> uploads.
+                                </div>
+
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <button type="button"
+                                            wire:click="previousPage('historyPage')"
+                                            @disabled($uploadHistory->onFirstPage())
+                                            class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40">
+                                        <i class="bi bi-arrow-left"></i>
+                                        Anterior
+                                    </button>
+
+                                    @foreach($uploadHistory->getUrlRange(max(1, $uploadHistory->currentPage() - 1), min($uploadHistory->lastPage(), $uploadHistory->currentPage() + 1)) as $page => $url)
+                                    <button type="button"
+                                            wire:click="gotoPage({{ $page }}, 'historyPage')"
+                                            class="inline-flex h-11 min-w-11 items-center justify-center rounded-2xl border px-3 text-sm font-black transition-all {{ $page === $uploadHistory->currentPage() ? 'border-sky-400/60 bg-gradient-to-r from-indigo-500 to-sky-500 text-white shadow-lg shadow-sky-500/30' : 'border-white/10 bg-white/10 text-slate-200 hover:bg-white/15' }}">
+                                        {{ $page }}
+                                    </button>
+                                    @endforeach
+
+                                    <button type="button"
+                                            wire:click="nextPage('historyPage')"
+                                            @disabled(!$uploadHistory->hasMorePages())
+                                            class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40">
+                                        Proxima
+                                        <i class="bi bi-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            @endif
                         </div>
-                        @endforelse
                     </div>
                 </div>
 
@@ -417,7 +531,7 @@
         @else
 
 
-            <!-- Tabela de Produtos Extraídos -->
+            <!-- Tabela de Produtos Extra├¡dos -->
             <x-products-preview-original
                 :products="$productsUpload ?? []"
                 :categories="$categories ?? []"
@@ -526,11 +640,11 @@
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
-                                        <span>Texto legível e bem organizado</span>
+                                        <span>Texto leg├¡vel e bem organizado</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
-                                        <span>Máximo de 2MB por arquivo</span>
+                                        <span>M├íximo de 2MB por arquivo</span>
                                     </li>
                                 </ul>
                             </div>
@@ -544,11 +658,11 @@
                                 <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
-                                        <span>Colunas: código, nome, preço, estoque</span>
+                                        <span>Colunas: c├│digo, nome, pre├ºo, estoque</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
-                                        <span>Separado por vírgula ou ponto e vírgula</span>
+                                        <span>Separado por v├¡rgula ou ponto e v├¡rgula</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
@@ -559,7 +673,7 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: Faça o Upload -->
+                    <!-- Step 2: Fa├ºa o Upload -->
                     <div x-show="currentStep === 2"
                          x-transition:enter="transition ease-out duration-300 delay-75"
                          x-transition:enter-start="opacity-0 translate-x-8"
@@ -572,8 +686,8 @@
                             <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-blue-100 dark:ring-blue-900/30">
                                 <i class="bi bi-cloud-upload text-white text-5xl"></i>
                             </div>
-                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Faça o Upload</h4>
-                            <p class="text-lg text-slate-600 dark:text-slate-400">Envie seu arquivo de forma simples e rápida</p>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Fa├ºa o Upload</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Envie seu arquivo de forma simples e r├ípida</p>
                         </div>
                         <div class="space-y-6">
                             <div class="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl border-2 border-dashed border-blue-300 dark:border-blue-700">
@@ -590,7 +704,7 @@
                                     <div class="flex items-center gap-3">
                                         <i class="bi bi-shield-check text-3xl text-green-500"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Validação Automática</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Valida├º├úo Autom├ítica</p>
                                             <p class="text-xs text-slate-600 dark:text-slate-400">Formato verificado</p>
                                         </div>
                                     </div>
@@ -599,8 +713,8 @@
                                     <div class="flex items-center gap-3">
                                         <i class="bi bi-lightning-charge text-3xl text-yellow-500"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Processamento Rápido</p>
-                                            <p class="text-xs text-slate-600 dark:text-slate-400">Análise inteligente</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Processamento R├ípido</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">An├ílise inteligente</p>
                                         </div>
                                     </div>
                                 </div>
@@ -640,8 +754,8 @@
                                         <i class="bi bi-exclamation-triangle text-white text-2xl"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Detecção de Duplicados</h5>
-                                        <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">Produtos que já existem no sistema serão marcados automaticamente</p>
+                                        <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Detec├º├úo de Duplicados</h5>
+                                        <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">Produtos que j├í existem no sistema ser├úo marcados automaticamente</p>
                                         <div class="flex flex-wrap gap-2">
                                             <span class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-semibold">Somar Estoque</span>
                                             <span class="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-xs font-semibold">Substituir</span>
@@ -653,8 +767,8 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
                                     <i class="bi bi-pencil-square text-3xl text-blue-500 mb-3"></i>
-                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Edição Rápida</h6>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Ajuste categorias, preços e estoque</p>
+                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Edi├º├úo R├ípida</h6>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Ajuste categorias, pre├ºos e estoque</p>
                                 </div>
                                 <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
                                     <i class="bi bi-trash text-3xl text-red-500 mb-3"></i>
@@ -679,7 +793,7 @@
                                 <i class="bi bi-stars text-white text-5xl"></i>
                             </div>
                             <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">IA Categoriza Automaticamente</h4>
-                            <p class="text-lg text-slate-600 dark:text-slate-400">Inteligência artificial trabalhando para você</p>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Intelig├¬ncia artificial trabalhando para voc├¬</p>
                         </div>
                         <div class="space-y-6">
                             <div class="p-8 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl border-2 border-green-200 dark:border-green-700">
@@ -689,29 +803,29 @@
                                     </div>
                                     <div class="flex-1">
                                         <h5 class="text-2xl font-bold text-slate-800 dark:text-white">Sistema Inteligente</h5>
-                                        <p class="text-sm text-slate-600 dark:text-slate-400">Análise automática de produtos</p>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">An├ílise autom├ítica de produtos</p>
                                     </div>
                                 </div>
                                 <div class="space-y-4">
                                     <div class="flex items-start gap-3">
                                         <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white">Análise de Nome e Código</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Sistema identifica padrões nos produtos</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white">An├ílise de Nome e C├│digo</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Sistema identifica padr├Áes nos produtos</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white">Aprendizado Contínuo</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Aprendizado Cont├¡nuo</p>
                                             <p class="text-sm text-slate-600 dark:text-slate-400">Melhora com cada upload realizado</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white">Sugestões Precisas</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Categorias sugeridas baseadas no histórico</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Sugest├Áes Precisas</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Categorias sugeridas baseadas no hist├│rico</p>
                                         </div>
                                     </div>
                                 </div>
@@ -720,7 +834,7 @@
                                 <div class="flex items-start gap-3">
                                     <i class="bi bi-info-circle text-2xl text-blue-600"></i>
                                     <p class="text-sm text-slate-700 dark:text-slate-300">
-                                        <strong>Dica:</strong> Você sempre pode revisar e modificar as categorias sugeridas antes de salvar.
+                                        <strong>Dica:</strong> Voc├¬ sempre pode revisar e modificar as categorias sugeridas antes de salvar.
                                     </p>
                                 </div>
                             </div>
@@ -761,7 +875,7 @@
                                         <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
                                         <div>
                                             <p class="font-semibold text-slate-800 dark:text-white">Verifique Dados</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Preços e estoques corretos</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Pre├ºos e estoques corretos</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
@@ -775,7 +889,7 @@
                                         <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
                                         <div>
                                             <p class="font-semibold text-slate-800 dark:text-white">Salve no Sistema</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Histórico registrado</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Hist├│rico registrado</p>
                                         </div>
                                     </div>
                                 </div>
@@ -783,7 +897,7 @@
                             <div class="grid grid-cols-3 gap-4">
                                 <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
                                     <i class="bi bi-clock-history text-3xl text-indigo-500 mb-2"></i>
-                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Histórico Salvo</p>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Hist├│rico Salvo</p>
                                     <p class="text-xs text-slate-600 dark:text-slate-400">Acesso posterior</p>
                                 </div>
                                 <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
@@ -794,14 +908,14 @@
                                 <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
                                     <i class="bi bi-trash text-3xl text-indigo-500 mb-2"></i>
                                     <p class="font-semibold text-slate-800 dark:text-white text-sm">Excluir Uploads</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400">Gerenciar histórico</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Gerenciar hist├│rico</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer com Navegação -->
+                <!-- Footer com Navega├º├úo -->
                 <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-10 py-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
                     <button @click="prevStep()"
                             x-show="currentStep > 1"
@@ -824,7 +938,7 @@
 
                     <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
                             class="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-600 hover:via-indigo-700 hover:to-purple-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <span x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir!'" class="text-lg"></span>
+                        <span x-text="currentStep < totalSteps ? 'Pr├│ximo' : 'Concluir!'" class="text-lg"></span>
                         <i class="bi text-xl" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-lg'"></i>
                     </button>
                 </div>
@@ -875,9 +989,9 @@
                         </button>
                     </div>
 
-                    <!-- Conteúdo do Modal -->
+                    <!-- Conte├║do do Modal -->
                     <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <!-- Estatísticas -->
+                        <!-- Estat├¡sticas -->
                         <div class="grid grid-cols-4 gap-4 mb-6">
                             <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
                                 <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->total_products }}</div>
@@ -905,12 +1019,12 @@
                                 $summaryUpdated = $selectedUpload->summary['updated'] ?? [];
                                 $summarySkipped = $selectedUpload->summary['skipped'] ?? [];
 
-                                // Se forem números (formato antigo), criar arrays vazios
+                                // Se forem n├║meros (formato antigo), criar arrays vazios
                                 $created = is_array($summaryCreated) ? $summaryCreated : [];
                                 $updated = is_array($summaryUpdated) ? $summaryUpdated : [];
                                 $skipped = is_array($summarySkipped) ? $summarySkipped : [];
 
-                                // Flag para saber se é formato antigo
+                                // Flag para saber se ├® formato antigo
                                 $isOldFormat = !is_array($summaryCreated) || !is_array($summaryUpdated) || !is_array($summarySkipped);
                             @endphp
 
@@ -921,8 +1035,8 @@
                                         <i class="bi bi-info-circle-fill text-yellow-600 dark:text-yellow-400 text-xl flex-shrink-0 mt-0.5"></i>
                                         <div class="text-sm text-gray-800 dark:text-gray-200">
                                             <p class="font-bold mb-1">Upload Antigo</p>
-                                            <p>Este upload foi criado com uma versão anterior do sistema. Os detalhes dos produtos não estão disponíveis, mas você pode ver os totais acima.</p>
-                                            <p class="mt-2 text-xs">Faça um novo upload para ver todos os detalhes dos produtos.</p>
+                                            <p>Este upload foi criado com uma vers├úo anterior do sistema. Os detalhes dos produtos n├úo est├úo dispon├¡veis, mas voc├¬ pode ver os totais acima.</p>
+                                            <p class="mt-2 text-xs">Fa├ºa um novo upload para ver todos os detalhes dos produtos.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -942,7 +1056,7 @@
                                                     {{ $item['name'] ?? 'N/A' }}
                                                 </div>
                                                 <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                    Código: {{ $item['code'] ?? 'N/A' }}
+                                                    C├│digo: {{ $item['code'] ?? 'N/A' }}
                                                 </div>
                                                 @if(isset($item['price']))
                                                     <div class="text-xs text-green-600 dark:text-green-400 font-semibold mt-1">
@@ -974,7 +1088,7 @@
                                                     {{ $item['name'] ?? 'N/A' }}
                                                 </div>
                                                 <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                    Código: {{ $item['code'] ?? 'N/A' }}
+                                                    C├│digo: {{ $item['code'] ?? 'N/A' }}
                                                 </div>
                                                 @if(isset($item['price']))
                                                     <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">
@@ -1007,11 +1121,11 @@
                                                 </div>
                                                 @if(isset($item['code']))
                                                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                        Código: {{ $item['code'] }}
+                                                        C├│digo: {{ $item['code'] }}
                                                     </div>
                                                 @endif
                                                 <div class="text-xs text-orange-600 dark:text-orange-400 mt-1 italic">
-                                                    {{ $item['reason'] ?? 'Não especificado' }}
+                                                    {{ $item['reason'] ?? 'N├úo especificado' }}
                                                 </div>
                                             </div>
                                         @endforeach
@@ -1030,7 +1144,7 @@
         </div>
     @endif
 
-    <!-- Modal de Confirmação de Exclusão -->
+    <!-- Modal de Confirma├º├úo de Exclus├úo -->
     <div x-data="{
         show: false,
         init() {
@@ -1071,7 +1185,7 @@
                     <div class="relative bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 px-8 py-6">
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-4">
-                                <!-- Ícone animado -->
+                                <!-- ├ìcone animado -->
                                 <div class="relative">
                                     <div class="absolute inset-0 bg-white/30 rounded-xl animate-ping"></div>
                                     <div class="relative w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
@@ -1079,8 +1193,8 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 class="text-xl font-bold text-white mb-1">Confirmar Exclusão</h3>
-                                    <p class="text-sm text-white/80">Esta ação não pode ser desfeita</p>
+                                    <h3 class="text-xl font-bold text-white mb-1">Confirmar Exclus├úo</h3>
+                                    <p class="text-sm text-white/80">Esta a├º├úo n├úo pode ser desfeita</p>
                                 </div>
                             </div>
                             <button @click="show = false"
@@ -1090,16 +1204,16 @@
                         </div>
                     </div>
 
-                    <!-- Conteúdo -->
+                    <!-- Conte├║do -->
                     <div class="relative p-8">
                         <!-- Alerta visual -->
                         <div class="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-600 dark:border-red-500 rounded-lg p-4 mb-6">
                             <div class="flex gap-3">
                                 <i class="bi bi-info-circle-fill text-red-600 dark:text-red-400 text-xl flex-shrink-0 mt-0.5"></i>
                                 <div class="text-sm text-gray-800 dark:text-gray-200">
-                                    <p class="font-bold mb-1">O que será excluído:</p>
+                                    <p class="font-bold mb-1">O que ser├í exclu├¡do:</p>
                                     <ul class="list-disc list-inside space-y-1">
-                                        <li>Histórico de upload</li>
+                                        <li>Hist├│rico de upload</li>
                                         <li>Arquivo PDF/CSV associado</li>
                                         <li>Dados de produtos importados</li>
                                     </ul>
@@ -1108,10 +1222,10 @@
                         </div>
 
                         <p class="text-gray-700 dark:text-gray-300 text-center mb-8 font-medium">
-                            Deseja realmente continuar com a exclusão?
+                            Deseja realmente continuar com a exclus├úo?
                         </p>
 
-                        <!-- Botões Modernos -->
+                        <!-- Bot├Áes Modernos -->
                         <div class="grid grid-cols-2 gap-4">
                             <button @click="show = false" type="button"
                                 class="group relative px-6 py-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden">
@@ -1136,9 +1250,9 @@
         </div>
     </div>
 
-    <!-- CSS personalizado para badges editáveis -->
+    <!-- CSS personalizado para badges edit├íveis -->
     <style>
-        /* Animação float para partículas */
+        /* Anima├º├úo float para part├¡culas */
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             33% { transform: translateY(-10px) rotate(1deg); }
@@ -1177,14 +1291,14 @@
             justify-content: flex-start;
         }
 
-        /* Reduzir espaçamento entre status e valores */
+        /* Reduzir espa├ºamento entre status e valores */
         .product-card-modern .card-body {
             padding: 0.8em 1em 0.5em 1em !important;
             min-height: auto !important;
             gap: 0.3em !important;
         }
 
-        /* Corrigir imagem para não sair do quadrado */
+        /* Corrigir imagem para n├úo sair do quadrado */
         .product-card-modern .product-img-area {
             position: relative;
             overflow: visible !important;
@@ -1200,20 +1314,20 @@
             border-top-right-radius: 1.2em;
         }
 
-        /* Corrigir categoria não sendo cortada */
+        /* Corrigir categoria n├úo sendo cortada */
         .product-card-modern .category-icon-wrapper {
             z-index: 10 !important;
             position: absolute !important;
         }
 
-        /* Grupo de botões de ação */
+        /* Grupo de bot├Áes de a├º├úo */
         .btn-action-group {
             display: flex;
             gap: 0.25rem;
             flex-wrap: wrap;
         }
 
-        /* Botão de copiar nome (verde) */
+        /* Bot├úo de copiar nome (verde) */
         .btn-success {
             background-color: #10b981;
             border-color: #10b981;
@@ -1231,7 +1345,7 @@
             transform: scale(0.95);
         }
 
-        /* Botão de copiar código (azul) */
+        /* Bot├úo de copiar c├│digo (azul) */
         .btn-info {
             background-color: #3b82f6;
             border-color: #3b82f6;
@@ -1249,7 +1363,7 @@
             transform: scale(0.95);
         }
 
-        /* Animação de sucesso ao copiar */
+        /* Anima├º├úo de sucesso ao copiar */
         @keyframes copySuccess {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -1261,7 +1375,7 @@
             animation: copySuccess 0.4s ease-in-out;
         }
 
-        /* Inputs editáveis em badges */
+        /* Inputs edit├íveis em badges */
         .editable-badge input {
             transition: all 0.2s ease;
             min-width: 60px;
@@ -1288,7 +1402,7 @@
             border-radius: 4px;
         }
 
-        /* Inputs de preço */
+        /* Inputs de pre├ºo */
         .editable-price-badge {
             display: flex !important;
             align-items: center !important;
@@ -1321,7 +1435,7 @@
             border-radius: 4px;
         }
 
-        /* Título do produto editável */
+        /* T├¡tulo do produto edit├ível */
         .product-title-editable input {
             transition: all 0.2s ease;
             background: transparent;
@@ -1408,7 +1522,7 @@
             opacity: 0.6;
         }
 
-        /* Animação de foco */
+        /* Anima├º├úo de foco */
         @keyframes focusGlow {
             0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
             70% { box-shadow: 0 0 0 6px rgba(147, 51, 234, 0); }
@@ -1438,7 +1552,7 @@
 
     <!-- Script para upload de imagens (detecta produtos automaticamente) -->
     <script>
-        // Função para atualizar ícone da categoria
+        // Fun├º├úo para atualizar ├¡cone da categoria
         function updateCategoryIcon(productIndex, selectElement) {
             const selectedOption = selectElement.options[selectElement.selectedIndex];
             const iconClass = selectedOption.getAttribute('data-icon') || 'bi bi-box-seam';
@@ -1453,11 +1567,11 @@
             }
         }
 
-        // Função para limpar e copiar apenas o nome do produto
+        // Fun├º├úo para limpar e copiar apenas o nome do produto
         function copyProductName(index, name) {
             let productName = name || 'Sem nome';
 
-            // Limpeza: remover / ( ) - e colapsar múltiplos espaços
+            // Limpeza: remover / ( ) - e colapsar m├║ltiplos espa├ºos
             try {
                 productName = productName.replace(/[\/(\)\-]/g, '');
                 productName = productName.replace(/\s+/g, ' ').trim();
@@ -1479,17 +1593,17 @@
             }
         }
 
-        // Função para copiar apenas o código do produto
+        // Fun├º├úo para copiar apenas o c├│digo do produto
         function copyProductCode(index, code) {
-            // Remover pontos do código antes de copiar
-            const productCode = (code || 'Sem código').replace(/\./g, '');
+            // Remover pontos do c├│digo antes de copiar
+            const productCode = (code || 'Sem c├│digo').replace(/\./g, '');
 
             // Tentar usar a API moderna do clipboard
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(productCode).then(() => {
-                    showCopySuccess(index, 'Código copiado!', 'code');
+                    showCopySuccess(index, 'C├│digo copiado!', 'code');
                 }).catch(err => {
-                    console.error('Erro ao copiar código:', err);
+                    console.error('Erro ao copiar c├│digo:', err);
                     fallbackCopy(productCode, index, 'code');
                 });
             } else {
@@ -1498,14 +1612,14 @@
             }
         }
 
-        // Função para copiar informações do produto (mantida para compatibilidade)
+        // Fun├º├úo para copiar informa├º├Áes do produto (mantida para compatibilidade)
         function copyProductInfo(index, name, code) {
-            const productInfo = `Nome: ${name || 'Sem nome'}\nCódigo: ${code || 'Sem código'}`;
+            const productInfo = `Nome: ${name || 'Sem nome'}\nC├│digo: ${code || 'Sem c├│digo'}`;
 
             // Tentar usar a API moderna do clipboard
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(productInfo).then(() => {
-                    showCopySuccess(index, 'Informações copiadas!', 'info');
+                    showCopySuccess(index, 'Informa├º├Áes copiadas!', 'info');
                 }).catch(err => {
                     console.error('Erro ao copiar:', err);
                     fallbackCopy(productInfo, index, 'info');
@@ -1516,7 +1630,7 @@
             }
         }
 
-        // Função de fallback para copiar
+        // Fun├º├úo de fallback para copiar
         function fallbackCopy(text, index, type) {
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -1530,7 +1644,7 @@
             try {
                 document.execCommand('copy');
                 const message = type === 'name' ? 'Nome copiado!' :
-                               type === 'code' ? 'Código copiado!' : 'Informações copiadas!';
+                               type === 'code' ? 'C├│digo copiado!' : 'Informa├º├Áes copiadas!';
                 showCopySuccess(index, message, type);
             } catch (err) {
                 console.error('Erro ao copiar:', err);
@@ -1540,7 +1654,7 @@
             }
         }
 
-        // Função para mostrar sucesso na cópia
+        // Fun├º├úo para mostrar sucesso na c├│pia
         function showCopySuccess(index, message, type) {
             let copyButton;
 
@@ -1557,7 +1671,7 @@
                 const originalTitle = copyButton.title;
                 copyButton.title = message;
 
-                // Mudar ícone temporariamente
+                // Mudar ├¡cone temporariamente
                 const icon = copyButton.querySelector('i');
                 if (icon) {
                     const originalClass = icon.className;
@@ -1575,7 +1689,7 @@
             showToast(message, 'success');
         }
 
-        // Função para mostrar erro na cópia
+        // Fun├º├úo para mostrar erro na c├│pia
         function showCopyError(index, message, type) {
             let copyButton;
 
@@ -1591,7 +1705,7 @@
                 copyButton.title = message;
                 setTimeout(() => {
                     copyButton.title = type === 'name' ? 'Copiar nome' :
-                                     type === 'code' ? 'Copiar código' : 'Copiar nome e código';
+                                     type === 'code' ? 'Copiar c├│digo' : 'Copiar nome e c├│digo';
                 }, 2000);
             }
 
@@ -1599,7 +1713,7 @@
             showToast(message, 'error');
         }
 
-        // Função para mostrar toast
+        // Fun├º├úo para mostrar toast
         function showToast(message, type) {
             // Remover toast anterior se existir
             const existingToast = document.getElementById('copy-toast');
@@ -1629,7 +1743,7 @@
                 toast.style.transform = 'translateX(0)';
             }, 100);
 
-            // Remover após 3 segundos
+            // Remover ap├│s 3 segundos
             setTimeout(() => {
                 toast.style.transform = 'translateX(100%)';
                 setTimeout(() => {
@@ -1643,19 +1757,19 @@
         // Adicionar atalho de teclado Ctrl+C para copiar produto focado
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'c') {
-                // Verificar se o foco está em um input de produto
+                // Verificar se o foco est├í em um input de produto
                 const activeElement = document.activeElement;
                 if (activeElement && activeElement.tagName === 'INPUT') {
                     const productInput = activeElement.closest('.product-card-modern');
                     if (productInput) {
-                        // Encontrar o índice do produto
+                        // Encontrar o ├¡ndice do produto
                         const allCards = document.querySelectorAll('.product-card-modern');
                         const productIndex = Array.from(allCards).indexOf(productInput);
 
                         if (productIndex !== -1) {
                             e.preventDefault();
 
-                            // Verificar qual tipo de input está focado
+                            // Verificar qual tipo de input est├í focado
                             const wireModel = activeElement.getAttribute('wire:model.lazy');
 
                             if (wireModel && wireModel.includes('name')) {
@@ -1663,16 +1777,16 @@
                                 const name = activeElement.value || 'Sem nome';
                                 copyProductName(productIndex, name);
                             } else if (wireModel && wireModel.includes('product_code')) {
-                                // Copiar apenas o código
-                                const code = activeElement.value || 'Sem código';
+                                // Copiar apenas o c├│digo
+                                const code = activeElement.value || 'Sem c├│digo';
                                 copyProductCode(productIndex, code);
                             } else {
-                                // Copiar informações gerais
+                                // Copiar informa├º├Áes gerais
                                 const nameInput = productInput.querySelector('input[wire\\:model*="name"]');
                                 const codeInput = productInput.querySelector('input[wire\\:model*="product_code"]');
 
                                 const name = nameInput ? nameInput.value : 'Sem nome';
-                                const code = codeInput ? codeInput.value : 'Sem código';
+                                const code = codeInput ? codeInput.value : 'Sem c├│digo';
 
                                 copyProductInfo(productIndex, name, code);
                             }
@@ -1689,9 +1803,9 @@
         let systemInitialized = false;
 
         function initUploadSystem() {
-            console.log('Verificando se há produtos para inicializar...');
+            console.log('Verificando se h├í produtos para inicializar...');
 
-            // Debug: listar todos os elementos disponíveis
+            // Debug: listar todos os elementos dispon├¡veis
             const allElements = document.querySelectorAll('*[id*="product"]');
             console.log('Elementos com "product" no ID:', allElements.length);
             allElements.forEach(el => console.log('- Elemento encontrado:', el.id, el.tagName));
@@ -1705,11 +1819,11 @@
 
             if (productCards.length === 0 || imageInputs.length === 0) {
                 console.log('Nenhum produto encontrado. Aguardando...');
-                return false; // Não inicializar ainda
+                return false; // N├úo inicializar ainda
             }
 
             if (systemInitialized) {
-                console.log('Sistema já foi inicializado, pulando...');
+                console.log('Sistema j├í foi inicializado, pulando...');
                 return true;
             }
 
@@ -1740,7 +1854,7 @@
 
                     console.log('Arquivo:', file.name, 'Tamanho:', file.size);
 
-                    // Validações básicas
+                    // Valida├º├Áes b├ísicas
                     if (!file.type.startsWith('image/')) {
                         alert('Selecione apenas arquivos de imagem');
                         event.target.value = '';
@@ -1748,7 +1862,7 @@
                     }
 
                     if (file.size > 5 * 1024 * 1024) { // 5MB
-                        alert('Arquivo muito grande! Máximo 5MB');
+                        alert('Arquivo muito grande! M├íximo 5MB');
                         event.target.value = '';
                         return;
                     }
@@ -1766,7 +1880,7 @@
                             imgElement.src = base64;
                             console.log('Imagem atualizada!');
 
-                            // Chamar método Livewire
+                            // Chamar m├®todo Livewire
                             if (window.Livewire) {
                                 try {
                                     const component = window.Livewire.find('{{ $this->getId() }}');
@@ -1779,7 +1893,7 @@
                                 }
                             }
                         } else {
-                            console.error('Imagem não encontrada:', 'product-image-' + productIndex);
+                            console.error('Imagem n├úo encontrada:', 'product-image-' + productIndex);
                         }
                     };
 
@@ -1798,20 +1912,20 @@
 
             systemInitialized = true;
             console.log('=== SISTEMA DE UPLOAD INICIALIZADO COM SUCESSO ===');
-            return true; // Inicialização bem-sucedida
+            return true; // Inicializa├º├úo bem-sucedida
         }
 
-        // Função para verificar produtos periodicamente
+        // Fun├º├úo para verificar produtos periodicamente
         function checkForProducts() {
-            console.log('Verificação periódica de produtos...');
+            console.log('Verifica├º├úo peri├│dica de produtos...');
             const success = initUploadSystem();
             if (success) {
-                console.log('Produtos detectados na verificação periódica!');
+                console.log('Produtos detectados na verifica├º├úo peri├│dica!');
                 clearInterval(productCheckInterval);
             }
         }
 
-        // Observer para detectar mudanças no DOM
+        // Observer para detectar mudan├ºas no DOM
         const observer = new MutationObserver(function(mutations) {
             let shouldCheck = false;
             mutations.forEach(function(mutation) {
@@ -1821,7 +1935,7 @@
                             node.id && node.id.includes('product') ||
                             node.querySelector && node.querySelector('[id*="product"]')
                         )) {
-                            console.log('Mudança detectada no DOM com produtos');
+                            console.log('Mudan├ºa detectada no DOM com produtos');
                             shouldCheck = true;
                         }
                     });
@@ -1833,7 +1947,7 @@
             }
         });
 
-        // Iniciar observação do DOM
+        // Iniciar observa├º├úo do DOM
         observer.observe(document.body, {
             childList: true,
             subtree: true
@@ -1860,13 +1974,13 @@
             setTimeout(initUploadSystem, 100);
         });
 
-        // Verificação periódica (como fallback)
+        // Verifica├º├úo peri├│dica (como fallback)
         const productCheckInterval = setInterval(checkForProducts, 2000);
 
-        // Parar verificação após 30 segundos
+        // Parar verifica├º├úo ap├│s 30 segundos
         setTimeout(function() {
             if (!systemInitialized) {
-                console.log('Timeout: Parando verificação de produtos');
+                console.log('Timeout: Parando verifica├º├úo de produtos');
                 clearInterval(productCheckInterval);
             }
         }, 30000);
@@ -1878,14 +1992,14 @@
                 return;
             }
 
-            // Tentar inicializar, mas não forçar se não há produtos
+            // Tentar inicializar, mas n├úo for├ºar se n├úo h├í produtos
             initUploadSystem();
         }
 
-        // Inicialização inicial
+        // Inicializa├º├úo inicial
         tryInitialize();
 
-        console.log('Sistema de detecção de produtos configurado');
+        console.log('Sistema de detec├º├úo de produtos configurado');
     </script>
 
     <!-- Toast Notification System -->
@@ -1904,7 +2018,7 @@
             const container = document.getElementById('toast-container');
             if (!container) return;
 
-            // Cores e ícones por tipo
+            // Cores e ├¡cones por tipo
             const config = {
                 success: {
                     bg: 'bg-gradient-to-r from-green-500 to-green-600',
@@ -1949,13 +2063,13 @@
 
             container.appendChild(toast);
 
-            // Animação de entrada
+            // Anima├º├úo de entrada
             setTimeout(() => {
                 toast.style.opacity = '1';
                 toast.style.transform = 'translateX(0)';
             }, 10);
 
-            // Auto-remover após duração
+            // Auto-remover ap├│s dura├º├úo
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(400px)';
