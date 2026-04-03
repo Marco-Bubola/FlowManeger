@@ -4,4 +4,7 @@
     .dashboard-index-page .xl\:col-span-8 { grid-column: span 8 !important; }
     .dashboard-index-page .xl\:col-span-4 { grid-column: span 4 !important; }
     .dashboard-index-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .dashboard-index-page .dashboard-chart-lg { min-height: 310px !important; }
+    .dashboard-index-page .dashboard-chart-md { min-height: 260px !important; }
+    .dashboard-index-page .lg\:min-w-\[320px\] { min-width: 300px !important; }
 }
