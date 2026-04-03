@@ -13,12 +13,16 @@
     --sale-amber: #d97706;
     --sale-surface: rgba(255, 255, 255, 0.84);
     --sale-border: rgba(148, 163, 184, 0.22);
+    /* Variáveis para o sticky header full-bleed (compensam o padding da página) */
+    --cs-page-px: 0.85rem;
+    --cs-page-pt: 0.85rem;
     background:
         radial-gradient(circle at top left, rgba(79, 70, 229, 0.08), transparent 28%),
         radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.08), transparent 24%),
         linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.98));
     padding: 0.85rem;
-    overflow-x: hidden;
+    /* clip ao invés de hidden: não cria scroll-container, preserva position:sticky nos filhos */
+    overflow-x: clip;
 }
 
 .dark .sales-create-page {
@@ -29,6 +33,35 @@
         radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.16), transparent 24%),
         linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.96));
 }
+
+/* ── Sticky Header — wrapper flutuante ──────────────────────── */
+.sales-create-page .create-sale-sticky-header {
+    /* Full-bleed: compensar o padding da página para a faixa ir de borda a borda.
+       margin-inline usa var(--cs-page-px) que é redefinido em cada breakpoint,
+       fazendo o header ajustar automaticamente sem nenhum overflow lateral.       */
+    margin-top: -0.85rem;
+    margin-inline: calc(-1 * var(--cs-page-px));
+    margin-bottom: 0.75rem;
+    padding-top: 0.85rem;
+    padding-inline: var(--cs-page-px);
+    padding-bottom: 0.65rem;
+
+    position: sticky;
+    top: 0;
+    z-index: 50;
+
+    background: rgba(248, 250, 252, 0.88);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(226, 232, 240, 0.55);
+    transition: box-shadow 0.2s ease;
+}
+
+.dark .sales-create-page .create-sale-sticky-header {
+    background: rgba(2, 6, 23, 0.88);
+    border-bottom-color: rgba(71, 85, 105, 0.38);
+}
+
 
 /* ── Header — pills e botão próximo ─────────────────────────── */
 .sales-create-page .create-header-stat-pill {
@@ -396,7 +429,7 @@
 
 .sales-create-page .create-sale-selected-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: 4.5rem 1fr 5.5rem;
     gap: 0.5rem;
     margin-top: 0;
 }
@@ -642,11 +675,12 @@
     }
 }
 
-/* ── Desktop ≥ 1024px: layout fluido — sem restrição de viewport ── */
+/* ── Desktop ≥ 1024px: layout fluido com painel lateral sticky ── */
 @media (min-width: 1024px) {
     /* Shell — altura automática, sem corte de conteúdo */
     .sales-create-page .create-sale-step-products-shell {
         height: auto;
+        align-items: flex-start; /* permite que cada filho tenha sua própria altura */
     }
 
     /* Painel esquerdo: min-width:0 evita overflow horizontal no flex */
@@ -654,15 +688,26 @@
         min-width: 0;
     }
 
-    /* Painel direito: overflow:visible — dropdowns (position:absolute) funcionam */
-    .sales-create-page .create-sale-summary-pane {
-        overflow: visible;
+    /* Página rola no desktop — remove scroll interno do grid de produtos */
+    .sales-create-page .create-sale-products-pane > .overflow-y-auto {
+        overflow: visible !important;
         min-height: 0;
     }
 
-    /* Lista de selecionados — altura natural, scrolla se necessário */
+    /* Painel lateral (resumo) — sticky abaixo do header fixo */
+    .sales-create-page .create-sale-summary-pane {
+        position: sticky;
+        top: 5.25rem; /* altura aproximada do sticky header + folga */
+        align-self: flex-start; /* crítico: sem isso, sticky não funciona em flex */
+        overflow: visible; /* overflow:visible preserva dropdowns position:absolute */
+        min-height: 0;
+        /* A lista de selecionados interna que scrolla, não o painel todo */
+    }
+
+    /* Lista de selecionados — scroll interno com teto de altura */
     .sales-create-page .create-sale-selected-list {
-        min-height: 10rem;
+        max-height: clamp(12rem, calc(100vh - 26rem), 55vh);
+        min-height: 8rem;
         overflow-y: auto;
     }
 }
