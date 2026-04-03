@@ -129,19 +129,9 @@
         min-height: 2.25rem !important;
     }
 
-    /* Pill de stats — altura e espaçamento proporcionais ao header compacto */
+    /* Pill de stats — ocultar no iPad (info redundante com painel lateral) */
     .sales-create-page .create-header-stat-pill {
-        min-height: 1.85rem !important;
-        padding: 0.28rem 0.55rem !important;
-        gap: 0.3rem !important;
-        border-radius: 0.65rem !important;
-    }
-    .sales-create-page .create-header-stat-pill i {
-        font-size: 0.82rem !important;
-    }
-    .sales-create-page .create-header-stat-pill strong {
-        font-size: 0.8rem !important;
-        line-height: 1.1 !important;
+        display: none !important;
     }
     /* Oculta a meta-line do botão ("Complete cliente...") — muito texto para o iPads */
     .sales-create-page .create-header-next-meta {
@@ -362,9 +352,7 @@
         font-size: 0.85rem !important;
     }
     .sales-create-page .create-sale-summary-title-wrap p {
-        font-size: 0.6rem !important;
-        line-height: 1.25 !important;
-        margin-top: 0.08rem !important;
+        display: none !important;
     }
     .sales-create-page .create-sale-summary-status {
         padding: 0.2rem 0.42rem !important;
@@ -375,6 +363,7 @@
 
     /* St cells do resumo — padding compacto */
     .sales-create-page .create-sale-summary-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 0.32rem !important;
         margin-bottom: 0.45rem !important;
     }
