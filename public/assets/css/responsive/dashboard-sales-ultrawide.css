@@ -1,3 +1,26 @@
 @media (min-width: 1441px) {
-    .dashboard-sales-page { margin: 0 auto; }
+    .dashboard-sales-page {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 auto;
+    }
+
+    .dashboard-sales-page .dashboard-sales-shell {
+        width: min(100%, 2360px) !important;
+        max-width: calc(100vw - 24px) !important;
+        padding-inline: clamp(10px, 0.8vw, 18px) !important;
+        margin-inline: auto !important;
+    }
+
+    .dashboard-sales-page .sales-chart-lg {
+        min-height: 330px !important;
+    }
+
+    .dashboard-sales-page .sales-chart-md {
+        min-height: 250px !important;
+    }
+
+    .dashboard-sales-page .xl\:col-span-4.grid {
+        align-content: start !important;
+    }
 }
