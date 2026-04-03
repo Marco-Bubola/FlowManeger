@@ -118,6 +118,26 @@
         grid-template-columns: repeat(3, 1fr) !important;
     }
 
+    .sales-index-page .sale-card-actions {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+        padding-top: 0.75rem !important;
+    }
+
+    .sales-index-page .sale-card-action-chip {
+        min-height: 2.85rem !important;
+        padding: 0.5rem 0.6rem !important;
+    }
+
+    .sales-index-page .sale-card-action-icon {
+        width: 1.85rem !important;
+        height: 1.85rem !important;
+    }
+
+    .sales-index-page .sale-card-action-text {
+        font-size: 0.7rem !important;
+    }
+
     /* ── PAGINAÇÃO ────────────────────────────────────────── */
     .sales-pagination-shell {
         padding: 1rem 1.25rem !important;
