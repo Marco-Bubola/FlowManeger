@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Product;
 use App\Models\SaleItem;
 use App\Models\VendaParcela;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
@@ -188,6 +189,12 @@ class CreateSale extends Component
 
             $this->validate();
 
+            $saleTimestamp = Carbon::parse($this->sale_date)->setTime(
+                (int) now()->format('H'),
+                (int) now()->format('i'),
+                (int) now()->format('s')
+            );
+
             // Verificar estoque para produtos do tipo 'simples' e para componentes de 'kit'.
             foreach ($this->products as $item) {
                 $product = Product::find($item['product_id']);
@@ -230,7 +237,7 @@ class CreateSale extends Component
         $totalPrice = $this->getTotalPrice();
 
         // Fazer as alterações em transação para garantir atomicidade entre criação da venda e atualização do estoque
-        DB::transaction(function () use ($totalPrice) {
+        DB::transaction(function () use ($totalPrice, $saleTimestamp) {
             // Criar a venda
             $sale = Sale::create([
                 'client_id' => $this->client_id,
@@ -240,6 +247,12 @@ class CreateSale extends Component
                 'tipo_pagamento' => $this->tipo_pagamento,
                 'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->parcelas : 1,
             ]);
+
+            $sale->timestamps = false;
+            $sale->created_at = $saleTimestamp;
+            $sale->updated_at = $saleTimestamp;
+            $sale->save();
+            $sale->timestamps = true;
 
             // Criar os itens da venda e atualizar estoque apenas para 'simples'.
             foreach ($this->products as $item) {
@@ -280,7 +293,7 @@ class CreateSale extends Component
 
             // Gerar parcelas se for parcelado
             if ($sale->tipo_pagamento === 'parcelado' && $sale->parcelas > 1) {
-                $this->gerarParcelasVenda($sale);
+                $this->gerarParcelasVenda($sale, $saleTimestamp->copy()->startOfDay());
             }
         });
 
@@ -297,17 +310,26 @@ class CreateSale extends Component
         }
     }
 
-    private function gerarParcelasVenda($sale)
+    private function gerarParcelasVenda($sale, Carbon $baseDate)
     {
-        $valorParcela = round($sale->total_price / $sale->parcelas, 2);
-        $dataPrimeira = now();
+        $installmentCount = max(1, (int) $sale->parcelas);
+        $totalCents = (int) round(((float) $sale->total_price) * 100);
+        $baseInstallmentCents = intdiv($totalCents, $installmentCount);
+        $remainingCents = $totalCents % $installmentCount;
 
-        for ($i = 1; $i <= $sale->parcelas; $i++) {
-            $dataVencimento = $dataPrimeira->copy()->addMonths($i - 1);
+        for ($i = 1; $i <= $installmentCount; $i++) {
+            $installmentCents = $baseInstallmentCents;
+
+            if ($i === $installmentCount) {
+                $installmentCents += $remainingCents;
+            }
+
+            $dataVencimento = $baseDate->copy()->addMonths($i - 1);
+
             VendaParcela::create([
                 'sale_id' => $sale->id,
                 'numero_parcela' => $i,
-                'valor' => $valorParcela,
+                'valor' => $installmentCents / 100,
                 'data_vencimento' => $dataVencimento->format('Y-m-d'),
                 'status' => 'pendente',
             ]);
@@ -385,9 +407,19 @@ class CreateSale extends Component
 
     public function updateProductQuantity($productId, $quantity)
     {
+        $quantity = max(1, (int) $quantity);
+
+        $selectedProduct = $this->availableProducts instanceof Collection
+            ? $this->availableProducts->firstWhere('id', (int) $productId)
+            : null;
+
+        if ($selectedProduct && ($selectedProduct->tipo ?? 'simples') === 'simples') {
+            $quantity = min($quantity, max(1, (int) $selectedProduct->stock_quantity));
+        }
+
         foreach ($this->products as $index => $product) {
             if ($product['product_id'] == $productId) {
-                $this->products[$index]['quantity'] = max(1, intval($quantity));
+                $this->products[$index]['quantity'] = $quantity;
                 break;
             }
         }
@@ -397,7 +429,7 @@ class CreateSale extends Component
     {
         foreach ($this->products as $index => $product) {
             if ($product['product_id'] == $productId) {
-                $this->products[$index]['unit_price'] = max(0, floatval($price));
+                $this->products[$index]['unit_price'] = round(max(0, (float) $price), 2);
                 break;
             }
         }
