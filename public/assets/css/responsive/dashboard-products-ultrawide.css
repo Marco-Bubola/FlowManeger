@@ -1,3 +1,17 @@
 @media (min-width: 1441px) {
-    .dashboard-products-page { margin: 0 auto; }
+    .dashboard-products-page {
+        margin: 0 auto;
+    }
+
+    .dashboard-products-page .dashboard-products-shell {
+        width: min(100%, 1760px) !important;
+    }
+
+    .dashboard-products-page .products-chart-lg {
+        min-height: 340px !important;
+    }
+
+    .dashboard-products-page .products-chart-md {
+        min-height: 320px !important;
+    }
 }
