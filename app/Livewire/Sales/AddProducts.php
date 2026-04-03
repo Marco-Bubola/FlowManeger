@@ -17,6 +17,8 @@ class AddProducts extends Component
     public $searchTerm = '';
     public $selectedCategory = '';
     public $categories = [];
+    public $sortBy = 'name';
+    public $sortDirection = 'asc';
 
     public function mount(Sale $sale)
     {
@@ -113,6 +115,31 @@ class AddProducts extends Component
             }
         }
         return false;
+    }
+
+    public function getSelectedQuantity($productId)
+    {
+        foreach ($this->newProducts as $item) {
+            if ($item['product_id'] == $productId) {
+                return $item['quantity'];
+            }
+        }
+        return 0;
+    }
+
+    public function clearAllProducts()
+    {
+        $this->resetNewProducts();
+    }
+
+    public function setSortBy($field)
+    {
+        if ($this->sortBy === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+        } else {
+            $this->sortBy = $field;
+            $this->sortDirection = 'asc';
+        }
     }
 
     public function hasSelectedProducts()
@@ -272,7 +299,7 @@ class AddProducts extends Component
 
         return $query->where('stock_quantity', '>', 0)
                     ->with('category')
-                    ->orderBy('name')
+                    ->orderBy($this->sortBy, $this->sortDirection)
                     ->get();
     }
 
