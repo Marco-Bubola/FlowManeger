@@ -1,5 +1,5 @@
 {{-- Grid de 6 KPIs Principais --}}
-<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
+<div class="dashboard-kpi-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
 
     {{-- 1. Saldo em Caixa --}}
     <div class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-2xl shadow-lg border border-green-200 dark:border-green-800 p-5 hover:shadow-2xl transition-all duration-300 overflow-hidden hover:scale-105">
