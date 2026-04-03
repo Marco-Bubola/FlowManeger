@@ -1,3 +1,11 @@
 @media (min-width: 1441px) {
-    .dashboard-cashbook-page { margin: 0 auto; }
+    .dashboard-cashbook-page {
+        min-height: 100dvh;
+        height: auto;
+        margin: 0 auto;
+    }
+
+    .dashboard-cashbook-page .max-w-\[1880px\] {
+        max-width: 1680px;
+    }
 }
