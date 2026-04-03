@@ -7,6 +7,7 @@
 
     /* ── PAGE ────────────────────────────────────────────── */
     .sales-create-page {
+        --cs-page-px: 0.9rem;
         padding-inline: 0.9rem;
         padding-bottom: calc(72px + env(safe-area-inset-bottom));
     }
@@ -191,8 +192,9 @@
         overflow-y: auto !important;
     }
 
-    /* Painel direito — resumo + selecionados */
+    /* Painel direito — resumo + selecionados: sem sticky no portrait (layout 62/38) */
     .sales-create-page .create-sale-summary-pane {
+        position: static !important; /* cancela sticky do desktop */
         width: 38% !important;
         height: auto !important;
         min-height: 0 !important;
