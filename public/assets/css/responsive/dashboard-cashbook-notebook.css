@@ -1,3 +1,15 @@
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .dashboard-cashbook-page { }
+    .dashboard-cashbook-page {
+        min-height: 100dvh;
+        height: auto;
+    }
+
+    .dashboard-cashbook-page .max-w-\[1880px\] {
+        max-width: 1320px;
+    }
+
+    .dashboard-cashbook-page #financeFlowChart,
+    .dashboard-cashbook-page #periodComparisonChart {
+        height: 320px !important;
+    }
 }
