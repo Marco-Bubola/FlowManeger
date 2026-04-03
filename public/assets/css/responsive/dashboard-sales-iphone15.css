@@ -1,3 +1,19 @@
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .dashboard-sales-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); }
+
+    .dashboard-sales-page .dashboard-sales-shell {
+        padding-inline: 0.85rem !important;
+    }
+
+    .dashboard-sales-page .sales-chart-lg {
+        min-height: 235px !important;
+    }
+
+    .dashboard-sales-page .sales-chart-md {
+        min-height: 210px !important;
+    }
+
+    .dashboard-sales-page .text-2xl.font-black {
+        font-size: 1.1rem !important;
+    }
 }
