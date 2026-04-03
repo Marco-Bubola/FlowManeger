@@ -187,6 +187,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Export de relatórios (CSV/XLSX)
     Route::get('/reports/vendas/export', [\App\Http\Controllers\ReportExportController::class, 'exportVendas'])->name('reports.vendas.export');
+    Route::get('/reports/dashboard-cashbook/export', [\App\Http\Controllers\ReportExportController::class, 'exportDashboardCashbook'])->name('reports.dashboard-cashbook.export');
+    Route::get('/reports/dashboard-banks/export', [\App\Http\Controllers\ReportExportController::class, 'exportDashboardBanks'])->name('reports.dashboard-banks.export');
+    Route::get('/reports/dashboard-products/export', [\App\Http\Controllers\ReportExportController::class, 'exportDashboardProducts'])->name('reports.dashboard-products.export');
 
     // Manter algumas rotas específicas do controller antigo se necessário
     // Route::get('/sales/{id}/export', [SaleController::class, 'export'])->name('sales.export');
