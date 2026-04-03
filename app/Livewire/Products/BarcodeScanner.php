@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Models\Category;
+use App\Services\MercadoLivre\ProductService as MlProductService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
@@ -179,24 +180,74 @@ class BarcodeScanner extends Component
                 ['label' => 'Open Food Facts', 'url' => "https://world.openfoodfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Beauty Facts', 'url' => "https://world.openbeautyfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
                 ['label' => 'Open Products Facts', 'url' => "https://world.openproductsfacts.org/api/v0/product/{$barcode}.json", 'type' => 'open-facts'],
-                ['label' => 'Mercado Livre', 'url' => "https://api.mercadolibre.com/sites/MLB/search?q={$barcode}&limit=5", 'type' => 'mercadolivre'],
                 ['label' => 'UPC Item DB', 'url' => 'https://api.upcitemdb.com/prod/trial/lookup', 'type' => 'upc-item-db'],
             ];
+
+            // ── Mercado Livre Catalog (usa mesmo endpoint de "publicar no ML") ──
+            try {
+                $this->onlineDebug[] = 'Consultando Mercado Livre — Catálogo';
+                $mlService    = app(MlProductService::class);
+                $mlCatalog    = $mlService->searchCatalogByBarcode($barcode, Auth::id());
+                $mlResults    = $mlCatalog['results'] ?? [];
+                $this->onlineDebug[] = 'ML Catálogo retornou ' . count($mlResults) . ' resultado(s).';
+
+                if (!empty($mlResults)) {
+                    $item  = $mlResults[0];
+                    $name  = $item['name'] ?? $item['title'] ?? null;
+                    $brand = null;
+
+                    foreach ($item['attributes'] ?? [] as $attr) {
+                        if (strtolower($attr['id'] ?? '') === 'brand') {
+                            $brand = $attr['value_name'] ?? null;
+                            break;
+                        }
+                    }
+
+                    // Imagem HD: pictures > thumbnail
+                    $image = null;
+                    if (!empty($item['pictures'][0])) {
+                        $p     = $item['pictures'][0];
+                        $image = str_replace('-I.', '-O.', $p['secure_url'] ?? $p['url'] ?? null);
+                    }
+                    $image ??= str_replace(['-I.jpg', '-I.webp'], ['-O.jpg', '-O.webp'], $item['thumbnail'] ?? '');
+
+                    $catalogId = $item['id'] ?? null;
+                    $permalink = $catalogId ? "https://www.mercadolivre.com.br/p/{$catalogId}" : null;
+                    $price     = $item['price'] ?? $item['buy_box']['price'] ?? null;
+
+                    $this->onlineResult = [
+                        'source'      => 'Mercado Livre — Catálogo',
+                        'barcode'     => $barcode,
+                        'name'        => $name,
+                        'brand'       => $brand,
+                        'description' => $price ? 'A partir de R$ ' . number_format((float)$price, 2, ',', '.') : null,
+                        'categories'  => null,
+                        'image_url'   => $image ?: null,
+                        'quantity'    => null,
+                        'countries'   => 'Brasil',
+                        'ingredients' => null,
+                        'nutriscore'  => null,
+                        'link'        => $permalink,
+                        'raw_data'    => [
+                            'name'       => $name,
+                            'catalog_id' => $catalogId,
+                            'price'      => $price ? 'R$ ' . number_format((float)$price, 2, ',', '.') : '—',
+                            'permalink'  => $permalink,
+                        ],
+                    ];
+                    $this->onlineDebug[] = 'Produto encontrado no catálogo ML: ' . ($name ?? '—');
+                    return;
+                }
+            } catch (\Throwable $mlEx) {
+                $this->onlineDebug[] = 'ML Catálogo erro: ' . $mlEx->getMessage();
+            }
 
             foreach ($sources as $source) {
                 $this->onlineDebug[] = 'Consultando ' . $source['label'];
 
                 $response = match($source['type']) {
-                    'upc-item-db'  => $client->get($source['url'], ['upc' => $barcode]),
-                    'mercadolivre' => Http::acceptJson()
-                        ->withHeaders([
-                            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                            'Accept'     => 'application/json',
-                        ])
-                        ->timeout(10)
-                        ->connectTimeout(5)
-                        ->get($source['url']),
-                    default        => $client->get($source['url']),
+                    'upc-item-db' => $client->get($source['url'], ['upc' => $barcode]),
+                    default       => $client->get($source['url']),
                 };
 
                 $this->onlineDebug[] = $source['label'] . ' respondeu HTTP ' . $response->status();
@@ -233,81 +284,6 @@ class BarcodeScanner extends Component
                         ])),
                     ];
                     $this->onlineDebug[] = 'Produto encontrado em ' . $source['label'];
-                    return;
-                }
-
-                if ($source['type'] === 'mercadolivre') {
-                    $results = $data['results'] ?? [];
-                    $total   = $data['paging']['total'] ?? 0;
-                    $this->onlineDebug[] = 'Mercado Livre retornou ' . $total . ' anúncio(s) para o código.';
-
-                    if (count($results) === 0) {
-                        $this->onlineDebug[] = 'Mercado Livre: nenhum anúncio encontrado para este código.';
-                        continue;
-                    }
-
-                    $item      = $results[0];
-                    $catalogId = $item['catalog_product_id'] ?? null;
-                    $mlClient  = Http::acceptJson()
-                        ->withHeaders([
-                            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-                            'Accept'     => 'application/json',
-                        ])->timeout(8)->connectTimeout(4);
-
-                    $name      = $item['title'] ?? null;
-                    $brand     = null;
-                    $image     = str_replace(['-I.jpg', '-I.webp'], ['-O.jpg', '-O.webp'], $item['thumbnail'] ?? '');
-                    $isCatalog = false;
-
-                    // Etapa 2: buscar produto do catálogo para dados enriquecidos (nome, marca, imagem HD)
-                    if ($catalogId) {
-                        $this->onlineDebug[] = 'Buscando catálogo ML: ' . $catalogId;
-                        $catResp = $mlClient->get("https://api.mercadolibre.com/products/{$catalogId}");
-
-                        if ($catResp->successful()) {
-                            $cat   = $catResp->json();
-                            $name  = $cat['name'] ?? $name;
-                            $isCatalog = true;
-                            $this->onlineDebug[] = 'Catálogo ML encontrado: ' . ($name ?? '—');
-
-                            foreach ($cat['attributes'] ?? [] as $attr) {
-                                if (strtolower($attr['id'] ?? '') === 'brand') {
-                                    $brand = $attr['value_name'] ?? null;
-                                    break;
-                                }
-                            }
-
-                            if (!empty($cat['pictures'])) {
-                                $image = str_replace('-I.', '-O.', $cat['pictures'][0]['url'] ?? $image);
-                            }
-                        } else {
-                            $this->onlineDebug[] = 'Catálogo ML respondeu HTTP ' . $catResp->status() . ' (usando dados do anúncio).';
-                        }
-                    }
-
-                    $this->onlineResult = [
-                        'source'      => $isCatalog ? 'Mercado Livre — Catálogo' : 'Mercado Livre',
-                        'barcode'     => $barcode,
-                        'name'        => $name,
-                        'brand'       => $brand,
-                        'description' => 'Preço: R$ ' . number_format($item['price'] ?? 0, 2, ',', '.') . ' · ' . $total . ' anúncio(s) encontrado(s) no ML',
-                        'categories'  => null,
-                        'image_url'   => $image ?: null,
-                        'quantity'    => null,
-                        'countries'   => 'Brasil',
-                        'ingredients' => null,
-                        'nutriscore'  => null,
-                        'link'        => $item['permalink'] ?? null,
-                        'raw_data'    => [
-                            'title'       => $name,
-                            'price'       => 'R$ ' . number_format($item['price'] ?? 0, 2, ',', '.'),
-                            'permalink'   => $item['permalink'] ?? null,
-                            'seller'      => $item['seller']['nickname'] ?? null,
-                            'catalog_id'  => $catalogId,
-                            'total_anuncios' => $total,
-                        ],
-                    ];
-                    $this->onlineDebug[] = ($isCatalog ? '[CATÁLOGO] ' : '') . ($name ?? '—') . ' · R$ ' . number_format($item['price'] ?? 0, 2, ',', '.');
                     return;
                 }
 
@@ -753,13 +729,17 @@ class BarcodeScanner extends Component
         $validModes = ['consulta', 'estoque', 'inventario', 'venda', 'preco', 'vincular'];
         if (in_array($mode, $validModes)) {
             $this->activeMode = $mode;
-            $this->foundProduct = null;
-            $this->searchMessage = null;
             $this->barcodeInput = '';
-            $this->onlineResult = null;
-            $this->onlineError = null;
             $this->linkCandidates = [];
             $this->linkSearchTerm = '';
+
+            // Preserve search results when switching to vincular so they stay visible alongside the grid
+            if ($mode !== 'vincular') {
+                $this->foundProduct = null;
+                $this->searchMessage = null;
+                $this->onlineResult = null;
+                $this->onlineError = null;
+            }
 
             if ($mode === 'vincular') {
                 $this->loadProductsWithoutBarcode();
