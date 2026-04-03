@@ -1,3 +1,43 @@
 @media (max-width: 767px) {
-    .dashboard-sales-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .dashboard-sales-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    .dashboard-sales-page .dashboard-sales-shell {
+        padding-inline: 0.9rem !important;
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .dashboard-sales-page .sales-chart-lg {
+        min-height: 250px !important;
+    }
+
+    .dashboard-sales-page .sales-chart-md {
+        min-height: 220px !important;
+    }
+
+    .dashboard-sales-page .grid.lg\:grid-cols-4,
+    .dashboard-sales-page .grid.lg\:grid-cols-2,
+    .dashboard-sales-page .grid.xl\:grid-cols-12 {
+        grid-template-columns: 1fr !important;
+    }
+
+    .dashboard-sales-page .rounded-\[28px\],
+    .dashboard-sales-page .rounded-\[24px\] {
+        border-radius: 20px !important;
+    }
+
+    .dashboard-sales-page .p-5,
+    .dashboard-sales-page .p-4 {
+        padding: 0.9rem !important;
+    }
+
+    .dashboard-sales-page .text-2xl.font-black {
+        font-size: 1.2rem !important;
+    }
+
+    .dashboard-sales-page h1.text-3xl.font-black {
+        font-size: 1.9rem !important;
+    }
 }
