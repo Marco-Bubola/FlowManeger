@@ -38,10 +38,6 @@
     }
 
     /* ── STEP 1: SPLIT LAYOUT ─────────────────────────────── */
-    .create-sale-step-products-shell {
-        gap: 1.5rem !important;
-    }
-
     /* Painel de produtos: flex-1 | Painel de resumo: 25% fixo */
     .sales-create-page .create-sale-products-pane {
         flex: 1 1 0% !important;
@@ -49,6 +45,7 @@
     }
 
     .sales-create-page .create-sale-summary-pane {
+        top: 6rem;       /* header maior no ultrawide */
         width: 25% !important;
         flex-shrink: 0 !important;
     }
@@ -233,6 +230,7 @@
 
     /* ── CONTAINER ────────────────────────────────────────── */
     .sales-create-page {
+        --cs-page-px: 1.75rem;
         padding-bottom: 2.5rem !important;
         padding-inline: 1.75rem !important;
     }
@@ -569,6 +567,7 @@
 @media (min-width: 1920px) and (max-width: 2497px) {
 
     .sales-create-page {
+        --cs-page-px: 2rem;
         padding-bottom: 2.5rem !important;
         padding-inline: 2rem !important;
     }
@@ -755,6 +754,7 @@
 @media (min-width: 2498px) {
 
     .sales-create-page {
+        --cs-page-px: 2.5rem;
         padding-bottom: 3rem !important;
         padding-inline: 2.5rem !important;
     }
