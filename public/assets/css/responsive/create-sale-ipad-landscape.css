@@ -121,6 +121,25 @@
         font-size: 0.7rem !important;
         border-radius: 0.55rem !important;
         white-space: nowrap !important;
+        min-height: 2.2rem !important;
+    }
+
+    /* Pill de stats — proporcional ao header landscape */
+    .sales-create-page .create-header-stat-pill {
+        min-height: 1.8rem !important;
+        padding: 0.26rem 0.52rem !important;
+        gap: 0.28rem !important;
+        border-radius: 0.6rem !important;
+    }
+    .sales-create-page .create-header-stat-pill i {
+        font-size: 0.8rem !important;
+    }
+    .sales-create-page .create-header-stat-pill strong {
+        font-size: 0.78rem !important;
+        line-height: 1.1 !important;
+    }
+    .sales-create-page .create-header-next-meta {
+        display: none !important;
     }
 
     /* Steppers */
@@ -177,10 +196,10 @@
         overflow: visible !important;
     }
 
-    /* Área de scroll dos cards — usa boa parte da altura disponível */
+    /* Página rola livremente no landscape — remove scroll interno do grid de produtos */
     .sales-create-page .create-sale-products-pane > div.overflow-y-auto {
-        max-height: min(68vh, 48rem) !important;
-        overflow-y: auto !important;
+        overflow: visible !important;
+        max-height: none !important;
     }
 
     /* Painel direito — resumo + selecionados: sticky ajustado para header compacto */
@@ -310,6 +329,53 @@
     }
 
     .sales-create-page .create-sale-summary-card h3 {
+        font-size: 0.8rem !important;
+    }
+
+    /* Topbar — compactar no landscape */
+    .sales-create-page .create-sale-summary-topbar {
+        gap: 0.48rem !important;
+        margin-bottom: 0.48rem !important;
+        align-items: center !important;
+    }
+    .sales-create-page .create-sale-summary-title-wrap {
+        gap: 0.48rem !important;
+    }
+    .sales-create-page .create-sale-summary-icon {
+        width: 1.9rem !important;
+        height: 1.9rem !important;
+        min-width: 1.9rem !important;
+        border-radius: 0.52rem !important;
+    }
+    .sales-create-page .create-sale-summary-icon i {
+        font-size: 0.88rem !important;
+    }
+    .sales-create-page .create-sale-summary-title-wrap p {
+        font-size: 0.62rem !important;
+        line-height: 1.25 !important;
+        margin-top: 0.08rem !important;
+    }
+    .sales-create-page .create-sale-summary-status {
+        padding: 0.22rem 0.44rem !important;
+        font-size: 0.58rem !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Stat cells do resumo */
+    .sales-create-page .create-sale-summary-stats {
+        gap: 0.34rem !important;
+        margin-bottom: 0.48rem !important;
+    }
+    .sales-create-page .create-sale-summary-stat {
+        padding: 0.4rem 0.48rem !important;
+        border-radius: 0.72rem !important;
+    }
+    .sales-create-page .create-sale-summary-stat-label {
+        font-size: 0.53rem !important;
+        margin-bottom: 0.1rem !important;
+    }
+    .sales-create-page .create-sale-summary-stat-value {
         font-size: 0.8rem !important;
     }
 
