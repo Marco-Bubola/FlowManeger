@@ -1,7 +1,8 @@
-<div x-data="{ currentStep: 1, completedSteps: [], init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; }); } }" x-init="init()" class="sales-create-page mobile-393-base">
+<div x-data="{ currentStep: @entangle('currentStep').live }" class="sales-create-page mobile-393-base app-viewport-fit  w-full">
     <!-- CSS base + responsivo modular por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/create-sale.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-portrait.css') }}">
@@ -18,7 +19,7 @@
     <!-- Header Modernizado -->
     <x-sales-header
         title="Nova Venda"
-        description="Registre uma nova venda no sistema seguindo os passos"
+        description="Monte a venda com cliente, itens e fechamento em um fluxo rapido, seguro e proporcional em qualquer tela"
         :back-route="route('sales.index')"
         :current-step="$currentStep ?? 1"
         :steps="[
@@ -50,6 +51,22 @@
             </div>
         </x-slot>
         <x-slot name="actions">
+            <span class="create-header-stat-pill hidden md:inline-flex">
+                <i class="bi bi-box-seam text-indigo-500"></i>
+                <span class="text-left leading-tight">
+                    <strong class="block text-sm font-extrabold text-slate-900 dark:text-white">{{ count($selectedProducts) }}</strong>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">itens ativos</span>
+                </span>
+            </span>
+
+            <span class="create-header-stat-pill hidden xl:inline-flex">
+                <i class="bi bi-cash-coin text-emerald-500"></i>
+                <span class="text-left leading-tight">
+                    <strong class="block text-sm font-extrabold text-slate-900 dark:text-white">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</strong>
+                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">total parcial</span>
+                </span>
+            </span>
+
             <button wire:click="toggleTips" type="button"
                 class="create-header-action p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
                 <i class="bi bi-lightbulb"></i>
@@ -77,7 +94,7 @@
             <button
                 type="button"
                 @if($canProceed)
-                    @click="window.dispatchEvent(new CustomEvent('gotoStep', { detail: 2 }))"
+                    @click="currentStep = 2"
                 @endif
                 title="{{ $tooltip }}"
                 @if(!$canProceed) disabled @endif
@@ -90,11 +107,16 @@
                     }}
                 "
             >
-                <span class="flex items-center gap-2">
-                    <span class="hidden sm:inline">Ir para Resumo</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
+                <span class="create-header-next-content">
+                    <span class="create-header-next-copy">
+                        <span class="create-header-next-label">Ir para Resumo</span>
+                        <span class="create-header-next-meta">{{ $canProceed ? 'Conferir cliente, parcelas e total antes de salvar' : 'Complete cliente e produtos para liberar a revisao' }}</span>
+                    </span>
+                    <span class="create-header-next-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </span>
                 </span>
             </button>
         </x-slot>
@@ -112,7 +134,7 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[75vh] create-sale-step-products-shell">
+                    class="w-full flex flex-col lg:flex-row gap-4 create-sale-step-products-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
                     <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col create-sale-products-pane">
@@ -264,15 +286,47 @@
                 </div>
 
                 <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) -->
-                <div class="w-full lg:w-1/4 flex flex-col lg:h-[80vh] create-sale-summary-pane">
+                <div class="w-full lg:w-1/4 flex flex-col create-sale-summary-pane">
                     <!-- Painel de Resumo da Venda Modernizado -->
                     <div class="p-4 create-sale-summary-card">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                <i class="bi bi-receipt text-indigo-500"></i>
-                                <span>Resumo da Venda</span>
-                            </h3>
-                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-1 rounded-full dark:bg-blue-900 dark:text-blue-300 transition-all duration-300">Orçamento</span>
+                        @php
+                            $selectedItemsCount = count($selectedProducts);
+                            $selectedUnitsCount = collect($products)->sum('quantity');
+                            $averageItemTicket = $selectedUnitsCount > 0 ? $this->getTotalPrice() / $selectedUnitsCount : 0;
+                            $summaryReady = $client_id && $selectedItemsCount > 0;
+                        @endphp
+
+                        <div class="create-sale-summary-topbar">
+                            <div class="create-sale-summary-title-wrap">
+                                <span class="create-sale-summary-icon">
+                                    <i class="bi bi-receipt text-2xl"></i>
+                                </span>
+                                <div>
+                                    <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                                        <span>Resumo da Venda</span>
+                                    </h3>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400">Painel vivo com cliente, pagamento e totais antes da confirmacao final.</p>
+                                </div>
+                            </div>
+                            <span class="create-sale-summary-status">
+                                <i class="bi {{ $summaryReady ? 'bi-check2-circle' : 'bi-hourglass-split' }}"></i>
+                                {{ $summaryReady ? 'Pronto para revisar' : 'Em montagem' }}
+                            </span>
+                        </div>
+
+                        <div class="create-sale-summary-stats">
+                            <div class="create-sale-summary-stat">
+                                <span class="create-sale-summary-stat-label">Produtos</span>
+                                <span class="create-sale-summary-stat-value">{{ $selectedItemsCount }}</span>
+                            </div>
+                            <div class="create-sale-summary-stat">
+                                <span class="create-sale-summary-stat-label">Unidades</span>
+                                <span class="create-sale-summary-stat-value">{{ $selectedUnitsCount }}</span>
+                            </div>
+                            <div class="create-sale-summary-stat">
+                                <span class="create-sale-summary-stat-label">Modo</span>
+                                <span class="create-sale-summary-stat-value">{{ $tipo_pagamento === 'a_vista' ? 'Vista' : 'Parcelado' }}</span>
+                            </div>
                         </div>
 
                         <!-- Grid de Informações 2x2 -->
@@ -410,10 +464,19 @@
                             </div>
                         </div>
 
-                        <!-- Total Geral -->
                         @if(!empty($selectedProducts))
-                        <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/50">
-                            <div class="flex justify-between items-center">
+                        <div class="create-sale-total-panel">
+                            <div class="create-sale-total-grid">
+                                <div class="create-sale-total-metric">
+                                    <span class="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Ticket medio por unidade</span>
+                                    <strong class="mt-1 block text-base text-slate-900 dark:text-white">R$ {{ number_format($averageItemTicket, 2, ',', '.') }}</strong>
+                                </div>
+                                <div class="create-sale-total-metric">
+                                    <span class="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Parcelas atuais</span>
+                                    <strong class="mt-1 block text-base text-slate-900 dark:text-white">{{ $tipo_pagamento === 'parcelado' ? $parcelas . 'x' : '1x' }}</strong>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center gap-4">
                                 <span class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><i class="bi bi-currency-dollar"></i>Valor Total</span>
                                 <span class="text-2xl font-bold text-green-500">
                                     R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
@@ -422,13 +485,23 @@
                         </div>
                         @endif
 
+                        @if(!$summaryReady)
+                            <div class="create-sale-summary-alert">
+                                <p class="text-sm font-bold flex items-center gap-2"><i class="bi bi-exclamation-circle"></i>Faltando para liberar o resumo</p>
+                                <ul>
+                                    @if(empty($client_id))<li>Selecionar o cliente da venda.</li>@endif
+                                    @if($selectedItemsCount === 0)<li>Adicionar pelo menos um produto ao carrinho.</li>@endif
+                                </ul>
+                            </div>
+                        @endif
+
                         @php
                             $canProceedMobile = count($selectedProducts) > 0 && $client_id;
                         @endphp
                         <button
                             type="button"
                             @if($canProceedMobile)
-                                @click="window.dispatchEvent(new CustomEvent('gotoStep', { detail: 2 }))"
+                                @click="currentStep = 2"
                             @endif
                             @if(!$canProceedMobile) disabled @endif
                             class="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-all duration-300
@@ -447,12 +520,15 @@
                     <!-- Lista de produtos selecionados com scroll -->
                     <div class="flex-1 overflow-y-auto create-sale-selected-list">
                         @if(empty($selectedProducts))
-                        <div class="p-3 text-center">
-                            <div class="text-gray-400 mb-2">
+                        <div class="p-4 text-center create-sale-selected-empty">
+                            <div class="text-gray-400 mb-3">
                                 <i class="bi bi-cart-x text-2xl"></i>
                             </div>
-                            <p class="text-gray-500 dark:text-gray-500 text-xs">
-                                Clique nos produtos à esquerda para adicioná-los
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                Seu carrinho ainda esta vazio
+                            </p>
+                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
+                                Clique nos produtos da esquerda para montar uma venda mais rapido.
                             </p>
                         </div>
                         @else
@@ -463,71 +539,84 @@
                                 @endphp
 
                                 @if($selectedProduct)
-                                {{-- Card de produto selecionado com UI/UX moderno --}}
-                                <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group create-sale-selected-item">
-                                    <div class="flex items-center gap-4">
-                                        {{-- Imagem --}}
-                                        <div class="flex-shrink-0">
+                                {{-- Card de produto selecionado — redesign moderno --}}
+                                <div class="group create-sale-selected-item" wire:key="selected-product-{{ $selectedProduct->id }}">
+
+                                    {{-- Cabeçalho: thumbnail + info + botão remover --}}
+                                    <div class="flex items-start gap-2.5">
+
+                                        {{-- Thumbnail com badge de tipo --}}
+                                        <div class="relative shrink-0">
                                             <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
                                                  alt="{{ $selectedProduct->name }}"
-                                                 class="w-12 h-12 rounded-lg object-cover border border-slate-200 dark:border-slate-600">
+                                                 class="create-sale-selected-thumb border border-white/40 dark:border-slate-700/50">
+                                            <span class="csi-type-badge {{ ($selectedProduct->tipo ?? 'simples') === 'kit' ? 'bg-violet-500' : 'bg-indigo-500' }}">
+                                                <i class="bi {{ ($selectedProduct->tipo ?? 'simples') === 'kit' ? 'bi-boxes' : 'bi-box' }} text-white" style="font-size:7px"></i>
+                                            </span>
                                         </div>
 
-                                        {{-- Informações do Produto --}}
+                                        {{-- Informações do produto --}}
                                         <div class="flex-1 min-w-0">
-                                            <div class="flex justify-between items-start">
-                                                <h4 class="font-bold text-slate-800 dark:text-white truncate" title="{{ $selectedProduct->name }}">
-                                                    {{ $selectedProduct->name }}
-                                                </h4>
-                                                <button type="button"
-                                                        wire:click="toggleProduct({{ $selectedProduct->id }})"
-                                                        class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors -mt-1 -mr-1">
-                                                    <i class="bi bi-trash-fill"></i>
-                                                </button>
-                                            </div>
-
-                                            {{-- Preço de Custo --}}
-                                            <div class="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                <i class="bi bi-tag mr-1.5"></i>
-                                                <span>Custo: R$ {{ number_format($selectedProduct->price, 2, ',', '.') }}</span>
+                                            <h4 class="text-sm font-bold text-slate-800 dark:text-white leading-tight truncate" title="{{ $selectedProduct->name }}">
+                                                {{ $selectedProduct->name }}
+                                            </h4>
+                                            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                                                <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">#{{ $selectedProduct->product_code }}</span>
+                                                @if(($selectedProduct->tipo ?? 'simples') === 'simples')
+                                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 inline-flex items-center gap-0.5">
+                                                        <i class="bi bi-stack text-[9px]"></i>Est.{{ $selectedProduct->stock_quantity }}
+                                                    </span>
+                                                @endif
+                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 inline-flex items-center gap-0.5">
+                                                    <i class="bi bi-tag text-[9px]"></i>R${{ number_format($selectedProduct->price, 2, ',', '.') }}
+                                                </span>
                                             </div>
                                         </div>
+
+                                        {{-- Botão remover --}}
+                                        <button type="button"
+                                                wire:click.stop="toggleProduct({{ $selectedProduct->id }})"
+                                                class="create-sale-remove-btn shrink-0 mt-0.5"
+                                                title="Remover item">
+                                            <i class="bi bi-x-lg text-xs"></i>
+                                        </button>
                                     </div>
 
-                                    {{-- Controles e Preços --}}
-                                    <div class="mt-4 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
-                                        {{-- Controle de Quantidade --}}
-                                        <div class="flex items-center gap-2">
-                                             <label for="quantity-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Qtd:</label>
-                                             <input type="number" id="quantity-{{ $selectedProduct->id }}"
-                                                 wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
-                                                 value="{{ $productItem['quantity'] }}"
-                                                 min="1"
-                                                 @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
-                                                    max="{{ $selectedProduct->stock_quantity }}"
-                                                 @endif
-                                                 class="w-20 h-8 text-center text-sm border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                                    {{-- Separador decorativo --}}
+                                    <div class="my-2 h-px bg-gradient-to-r from-transparent via-slate-200/80 dark:via-slate-700/50 to-transparent"></div>
+
+                                    {{-- Linha de controles: quantidade | preço de venda | subtotal --}}
+                                    <div class="create-sale-selected-grid">
+
+                                        <div class="create-sale-selected-field">
+                                            <label for="quantity-{{ $selectedProduct->id }}">Qtd</label>
+                                            <input type="number"
+                                                   id="quantity-{{ $selectedProduct->id }}"
+                                                   wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
+                                                   value="{{ $productItem['quantity'] }}"
+                                                   min="1"
+                                                   @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
+                                                       max="{{ $selectedProduct->stock_quantity }}"
+                                                   @endif
+                                                   class="text-center">
                                         </div>
 
-                                        {{-- Preço de venda (editável) --}}
-                                        <div class="w-full sm:w-auto">
-                                            <label for="price-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Preço Venda</label>
+                                        <div class="create-sale-selected-field">
+                                            <label for="price-{{ $selectedProduct->id }}">Preço</label>
                                             <div class="relative">
-                                                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-slate-400">R$</span>
-                                                <input type="number" id="price-{{ $selectedProduct->id }}"
-                                                   wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
-                                                   value="{{ number_format($productItem['unit_price'], 2, '.', '') }}"
-                                                   step="0.01" min="0"
-                                                   class="w-full sm:w-28 h-8 font-semibold text-green-600 dark:text-green-400 border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 pl-7 pr-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+                                                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-slate-400 dark:text-slate-500 pointer-events-none">R$</span>
+                                                <input type="number"
+                                                       id="price-{{ $selectedProduct->id }}"
+                                                       wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
+                                                       value="{{ number_format($productItem['unit_price'], 2, '.', '') }}"
+                                                       step="0.01" min="0"
+                                                       class="pl-6 text-green-600 dark:text-green-400">
                                             </div>
                                         </div>
 
-                                        {{-- Subtotal --}}
-                                        <div class="text-left sm:text-right">
-                                            <span class="text-xs text-slate-500 dark:text-slate-400">Subtotal</span>
-                                            <p class="font-bold text-slate-800 dark:text-white">
-                                                R$ {{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}
-                                            </p>
+                                        <div class="create-sale-selected-subtotal">
+                                            <span class="csi-total-label">Total</span>
+                                            <span class="csi-total-value">R$&nbsp;{{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -545,7 +634,7 @@
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
-                class="w-full flex flex-col lg:flex-row lg:max-h-screen overflow-y-auto lg:overflow-hidden create-sale-step-review-shell">
+                class="w-full flex flex-col lg:flex-row overflow-y-auto create-sale-step-review-shell">
 
                 <!-- Coluna Esquerda: Informações do Cliente e Total (2/5 da tela) -->
                 <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-4 flex flex-col gap-3 sm:gap-4 create-sale-review-info-pane">
@@ -553,6 +642,12 @@
                         <i class="bi bi-check-circle text-green-600 dark:text-green-400 mr-2"></i>
                         Resumo da Venda
                     </h2>
+
+                    <div class="flex flex-wrap gap-2 mb-1">
+                        <span class="create-sale-mini-pill"><i class="bi bi-person"></i>{{ $selectedClient->name ?? 'Cliente pendente' }}</span>
+                        <span class="create-sale-mini-pill"><i class="bi bi-box-seam"></i>{{ count($products) }} produto(s)</span>
+                        <span class="create-sale-mini-pill"><i class="bi bi-calendar3"></i>{{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}</span>
+                    </div>
 
                     <!-- Informações do Cliente -->
                     <div class="bg-blue-50 dark:bg-blue-900/20 p-3 sm:p-4 rounded-lg border-l-4 border-blue-500 create-sale-review-client-card">
@@ -612,8 +707,8 @@
                                 </div>
                                 <div class="text-xs text-indigo-500 dark:text-indigo-400 mt-2">
                                     <i class="bi bi-info-circle mr-1"></i>
-                                    Parcelas mensais de {{ \Carbon\Carbon::now()->format('d/m/Y') }}
-                                    até {{ \Carbon\Carbon::now()->addMonths($parcelas - 1)->format('d/m/Y') }}
+                                    Parcelas mensais de {{ \Carbon\Carbon::parse($sale_date)->format('d/m/Y') }}
+                                    até {{ \Carbon\Carbon::parse($sale_date)->addMonths($parcelas - 1)->format('d/m/Y') }}
                                 </div>
                             </div>
                         </div>
@@ -789,15 +884,14 @@
         nextStep() { if (this.currentStep < this.totalSteps) this.currentStep++; },
         prevStep() { if (this.currentStep > 1) this.currentStep--; }
     }" x-show="$wire.showTipsModal" x-cloak
-        class="fixed inset-0 z-[9999] flex items-center justify-center p-4"
-        style="background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(12px);">
+        class="fixed inset-0 z-[9999] flex items-center justify-center p-4 create-sale-tips-overlay">
 
         <div @click.away="if(currentStep === totalSteps) $wire.toggleTips()"
-            class="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden border border-slate-200/50 dark:border-slate-700/50"
+            class="create-sale-tips-modal w-full max-w-3xl max-h-[92vh]"
             x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 scale-95">
 
             <!-- Header -->
-            <div class="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-700 px-6 py-5 text-white">
+            <div class="create-sale-tips-header text-white">
                 <button @click="$wire.toggleTips()" class="absolute top-3 right-3 p-2 hover:bg-white/20 rounded-lg">
                     <i class="bi bi-x-lg text-lg"></i>
                 </button>
@@ -818,18 +912,18 @@
             </div>
 
             <!-- Content -->
-            <div class="overflow-y-auto max-h-[calc(85vh-200px)] p-6">
+            <div class="overflow-y-auto create-sale-tips-scroll">
                 <!-- Step 1: Selecionar Cliente -->
                 <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8">
                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-xl mb-4">
+                        <div class="create-sale-tips-step-icon inline-flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 mb-4">
                             <i class="bi bi-person-plus text-4xl text-white"></i>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Passo 1: Cliente</h3>
                         <p class="text-slate-600 dark:text-slate-300">Selecione ou busque o cliente para esta venda</p>
                     </div>
                     <div class="space-y-4">
-                        <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50">
+                        <div class="p-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50 create-sale-tips-card">
                             <h4 class="font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-2"><i class="bi bi-search text-blue-500"></i>Busca de Cliente</h4>
                             <ul class="space-y-2 text-sm">
                                 <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-check-circle-fill text-green-500"></i>Digite o nome do cliente na barra de busca</li>
@@ -837,7 +931,7 @@
                                 <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-check-circle-fill text-green-500"></i>Cliente é obrigatório para prosseguir</li>
                             </ul>
                         </div>
-                        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700">
+                        <div class="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-700 create-sale-tips-card">
                             <p class="text-sm text-slate-700 dark:text-slate-300"><i class="bi bi-lightbulb-fill text-amber-500 mr-2"></i><strong>Dica:</strong> Você pode cadastrar novos clientes no menu "Clientes" antes de criar a venda</p>
                         </div>
                     </div>
@@ -846,14 +940,14 @@
                 <!-- Step 2: Adicionar Produtos -->
                 <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8">
                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-purple-500 to-pink-600 rounded-3xl shadow-xl mb-4">
+                        <div class="create-sale-tips-step-icon inline-flex items-center justify-center bg-gradient-to-br from-purple-500 to-pink-600 mb-4">
                             <i class="bi bi-box-seam text-4xl text-white"></i>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Passo 2: Produtos</h3>
                         <p class="text-slate-600 dark:text-slate-300">Adicione produtos à venda e defina quantidades</p>
                     </div>
                     <div class="space-y-4">
-                        <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50">
+                        <div class="p-5 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-purple-200/50 create-sale-tips-card">
                             <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-plus-square text-purple-500 mr-2"></i>Adicionando Produtos</h4>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                                 <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-purple-600 mb-1">1. Buscar</div><p class="text-slate-600 dark:text-slate-400">Use a busca para filtrar produtos</p></div>
@@ -862,7 +956,7 @@
                                 <div class="p-3 bg-white dark:bg-slate-800 rounded-lg"><div class="font-semibold text-orange-600 mb-1">4. Preço</div><p class="text-slate-600 dark:text-slate-400">Ajuste o preço se necessário</p></div>
                             </div>
                         </div>
-                        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700">
+                        <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-200 dark:border-green-700 create-sale-tips-card">
                             <p class="text-sm text-slate-700 dark:text-slate-300"><i class="bi bi-info-circle-fill text-green-500 mr-2"></i>O sistema verifica automaticamente o estoque disponível antes de adicionar</p>
                         </div>
                     </div>
@@ -871,21 +965,21 @@
                 <!-- Step 3: Resumo e Finalização -->
                 <div x-show="currentStep === 3" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8">
                     <div class="text-center mb-6">
-                        <div class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl shadow-xl mb-4">
+                        <div class="create-sale-tips-step-icon inline-flex items-center justify-center bg-gradient-to-br from-green-500 to-emerald-600 mb-4">
                             <i class="bi bi-check-circle text-4xl text-white"></i>
                         </div>
                         <h3 class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Passo 3: Finalizar</h3>
                         <p class="text-slate-600 dark:text-slate-300">Revise tudo e complete a venda</p>
                     </div>
                     <div class="space-y-4">
-                        <div class="p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50">
+                        <div class="p-5 bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-blue-200/50 create-sale-tips-card">
                             <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-cash text-blue-500 mr-2"></i>Formas de Pagamento</h4>
                             <ul class="space-y-2 text-sm">
                                 <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-credit-card text-blue-500"></i><strong>À Vista:</strong> Pagamento imediato</li>
                                 <li class="flex items-center gap-2 text-slate-600 dark:text-slate-300"><i class="bi bi-calendar-range text-purple-500"></i><strong>Parcelado:</strong> Defina número de parcelas</li>
                             </ul>
                         </div>
-                        <div class="p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50">
+                        <div class="p-5 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50 create-sale-tips-card">
                             <h4 class="font-bold text-slate-800 dark:text-white mb-3"><i class="bi bi-list-check text-green-500 mr-2"></i>Checklist Final</h4>
                             <div class="space-y-2">
                                 <label class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg text-sm"><input type="checkbox" class="w-4 h-4 text-green-600 rounded"><span class="text-slate-700 dark:text-slate-300">Cliente selecionado corretamente</span></label>
@@ -894,7 +988,7 @@
                                 <label class="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-lg text-sm"><input type="checkbox" class="w-4 h-4 text-green-600 rounded"><span class="text-slate-700 dark:text-slate-300">Valores estão corretos</span></label>
                             </div>
                         </div>
-                        <div class="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-slate-700 dark:to-slate-600 rounded-xl border-2 border-amber-300">
+                        <div class="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-slate-700 dark:to-slate-600 rounded-xl border-2 border-amber-300 create-sale-tips-card">
                             <div class="flex items-center gap-3"><i class="bi bi-emoji-smile-fill text-2xl text-amber-500"></i><div><h4 class="text-base font-bold text-slate-800 dark:text-white">Tudo Pronto!</h4><p class="text-sm text-slate-600 dark:text-slate-300">Clique em "Finalizar Venda" para concluir</p></div></div>
                         </div>
                     </div>
@@ -902,7 +996,7 @@
             </div>
 
             <!-- Footer -->
-            <div class="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 border-t border-slate-200 dark:border-slate-700">
+            <div class="create-sale-tips-footer">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <button @click="prevStep()" x-show="currentStep > 1" class="flex items-center gap-2 px-5 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-xl font-semibold transition-all hover:scale-105"><i class="bi bi-arrow-left"></i>Anterior</button>
                     <div x-show="currentStep === 1"></div>
