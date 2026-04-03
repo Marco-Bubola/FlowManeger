@@ -1,3 +1,42 @@
 @media (max-width: 767px) {
-    .dashboard-banks-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .dashboard-banks-page {
+        min-height: 100dvh;
+        height: auto;
+    }
+
+    .dashboard-banks-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    .dashboard-banks-page .max-w-\[1780px\] {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .dashboard-banks-page .text-3xl {
+        font-size: 1.65rem;
+        line-height: 1.2;
+    }
+
+    .dashboard-banks-page .text-2xl {
+        font-size: 1.25rem;
+    }
+
+    .dashboard-banks-page .rounded-\[30px\],
+    .dashboard-banks-page .rounded-\[28px\],
+    .dashboard-banks-page .rounded-\[26px\] {
+        border-radius: 22px;
+    }
+
+    .dashboard-banks-page #banksTrendChart,
+    .dashboard-banks-page #banksRankingChart,
+    .dashboard-banks-page #banksCategoryChart,
+    .dashboard-banks-page #banksCycleChart {
+        min-height: 260px;
+        height: 260px !important;
+    }
+
+    .dashboard-banks-page .xl\:w-\[620px\] {
+        width: 100% !important;
+    }
 }
