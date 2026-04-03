@@ -632,6 +632,7 @@
     .sales-create-page .products-step-grid .product-card-modern .product-title {
         font-size: 0.84em !important;
         line-height: 1.22 !important;
+        line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
         display: -webkit-box !important;
         -webkit-box-orient: vertical !important;
@@ -737,6 +738,7 @@
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
         font-size: 0.81em !important;
         line-height: 1.2 !important;
+        line-clamp: 2 !important;
         -webkit-line-clamp: 2 !important;
         display: -webkit-box !important;
         -webkit-box-orient: vertical !important;
@@ -803,6 +805,7 @@
 
     .sales-create-page .products-step-grid .product-card-modern .product-title {
         font-size: 0.90em !important;
+        line-clamp: 2 !important;
         letter-spacing: 0.06em !important;
         min-height: 2.25em !important;
         max-height: 3em !important;
@@ -845,6 +848,7 @@
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .product-title {
         font-size: 0.86em !important;
+        line-clamp: 2 !important;
     }
 
     .sales-create-page .create-sale-review-products-grid .product-card-modern .badge-product-code,
@@ -915,4 +919,425 @@
         padding-top: 0.4rem !important;
         padding-bottom: 0.4rem !important;
     }
+}
+
+/* ── CREATE SALE — PALETA LIGHT MODE GLOBAL ──────────────── */
+html:not(.dark) .sales-create-page {
+    --cs-bg: #f4f7ff;
+    --cs-surface: rgba(255, 255, 255, 0.94);
+    --cs-surface-strong: #ffffff;
+    --cs-border: rgba(99, 102, 241, 0.16);
+    --cs-border-strong: rgba(99, 102, 241, 0.24);
+    --cs-shadow: rgba(79, 70, 229, 0.12);
+    --cs-shadow-soft: rgba(148, 163, 184, 0.12);
+    --cs-title: #0f172a;
+    --cs-text: #334155;
+    --cs-muted: #64748b;
+    --cs-indigo: #4f46e5;
+    --cs-violet: #7c3aed;
+    --cs-sky: #0284c7;
+    --cs-emerald: #059669;
+    --cs-amber: #d97706;
+    color: var(--cs-text);
+    background:
+        radial-gradient(circle at top left, rgba(99, 102, 241, 0.10), transparent 32%),
+        radial-gradient(circle at top right, rgba(168, 85, 247, 0.08), transparent 28%),
+        linear-gradient(180deg, #f8fbff 0%, #f4f7ff 46%, #eef6ff 100%);
+    border-radius: 1.5rem;
+}
+
+html:not(.dark) .sales-create-page .sales-create-header,
+html:not(.dark) .sales-create-page .relative.overflow-hidden.rounded-3xl {
+    background: linear-gradient(135deg,
+        rgba(255, 255, 255, 0.96) 0%,
+        rgba(238, 242, 255, 0.96) 42%,
+        rgba(245, 243, 255, 0.94) 100%) !important;
+    border: 1px solid rgba(165, 180, 252, 0.28) !important;
+    box-shadow:
+        0 10px 30px rgba(99, 102, 241, 0.10),
+        0 3px 10px rgba(148, 163, 184, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html:not(.dark) .sales-create-page .sales-create-header::before,
+html:not(.dark) .sales-create-page .relative.overflow-hidden.rounded-3xl::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg,
+        transparent 0%,
+        #6366f1 22%,
+        #8b5cf6 50%,
+        #ec4899 78%,
+        transparent 100%);
+    pointer-events: none;
+}
+
+html:not(.dark) .sales-create-page .sales-create-header-title {
+    background: linear-gradient(95deg, #0f172a 0%, #4338ca 50%, #7c3aed 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+html:not(.dark) .sales-create-page .sales-create-header-subtitle,
+html:not(.dark) .sales-create-page .sales-create-header .text-slate-600,
+html:not(.dark) .sales-create-page .sales-create-header .text-slate-800 {
+    color: var(--cs-muted) !important;
+}
+
+html:not(.dark) .sales-create-page .create-header-step-badge {
+    background: rgba(99, 102, 241, 0.10) !important;
+    color: #4338ca !important;
+    border: 1px solid rgba(99, 102, 241, 0.16) !important;
+}
+
+html:not(.dark) .sales-create-page .create-header-action {
+    box-shadow: 0 10px 22px rgba(245, 158, 11, 0.22) !important;
+}
+
+html:not(.dark) .sales-create-page .create-header-next-btn:not([disabled]) {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 55%, #a855f7 100%) !important;
+    border: 1px solid rgba(99, 102, 241, 0.20) !important;
+    box-shadow: 0 12px 28px rgba(79, 70, 229, 0.24) !important;
+}
+
+html:not(.dark) .sales-create-page .create-header-next-btn[disabled] {
+    background: rgba(148, 163, 184, 0.24) !important;
+    color: #64748b !important;
+    border: 1px solid rgba(148, 163, 184, 0.18) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-products-controls input[type="text"] {
+    background: rgba(255, 255, 255, 0.94) !important;
+    border-color: rgba(148, 163, 184, 0.24) !important;
+    color: var(--cs-title) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-products-controls input[type="text"]:focus,
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid input:focus,
+html:not(.dark) .sales-create-page .create-sale-selected-item input:focus,
+html:not(.dark) .sales-create-page .summary-dropdown-menu input[type="text"]:focus {
+    border-color: rgba(99, 102, 241, 0.38) !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.12) !important;
+}
+
+html:not(.dark) .sales-create-page .toggle-filter-track {
+    background: linear-gradient(135deg, rgba(226, 232, 240, 0.95), rgba(191, 219, 254, 0.72));
+    box-shadow: inset 0 2px 6px rgba(148, 163, 184, 0.18);
+}
+
+html:not(.dark) .sales-create-page .toggle-filter-input:checked + .toggle-filter-track {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.26);
+}
+
+html:not(.dark) .sales-create-page .toggle-filter-text {
+    color: var(--cs-text) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(246, 248, 255, 0.98) 100%) !important;
+    border: 1px solid rgba(165, 180, 252, 0.24) !important;
+    box-shadow:
+        0 12px 30px rgba(99, 102, 241, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern:hover {
+    border-color: rgba(99, 102, 241, 0.32) !important;
+    box-shadow:
+        0 16px 36px rgba(99, 102, 241, 0.13),
+        0 6px 16px rgba(148, 163, 184, 0.10) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern.selected {
+    border-color: rgba(79, 70, 229, 0.44) !important;
+    box-shadow:
+        0 18px 38px rgba(79, 70, 229, 0.18),
+        0 0 0 3px rgba(99, 102, 241, 0.10) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .product-img-area {
+    background:
+        radial-gradient(circle at top left, rgba(99, 102, 241, 0.16), transparent 38%),
+        linear-gradient(180deg, #eef2ff 0%, #f8fbff 100%) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .card-body {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.88) 0%, rgba(248, 250, 255, 0.98) 100%) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .product-title {
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .badge-product-code {
+    background: rgba(15, 23, 42, 0.72) !important;
+    color: #f8fafc !important;
+    border-color: rgba(15, 23, 42, 0.18) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .badge-quantity {
+    background: rgba(16, 185, 129, 0.12) !important;
+    color: #047857 !important;
+    border-color: rgba(16, 185, 129, 0.18) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .badge-price {
+    background: rgba(245, 158, 11, 0.12) !important;
+    color: #b45309 !important;
+    border-color: rgba(245, 158, 11, 0.18) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .badge-price-sale {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.12)) !important;
+    color: #5b21b6 !important;
+    border-color: rgba(99, 102, 241, 0.18) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .category-icon-wrapper {
+    background: linear-gradient(135deg, #ffffff 0%, #eef2ff 100%) !important;
+    border-color: rgba(129, 140, 248, 0.22) !important;
+    box-shadow: 0 10px 20px rgba(99, 102, 241, 0.12) !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .category-icon {
+    color: #6366f1 !important;
+}
+
+html:not(.dark) .sales-create-page .product-card-modern .btn-action-group > div {
+    box-shadow: 0 8px 18px rgba(99, 102, 241, 0.14) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-card,
+html:not(.dark) .sales-create-page .create-sale-review-info-pane,
+html:not(.dark) .sales-create-page .create-sale-review-products-pane,
+html:not(.dark) .sales-create-page .create-sale-review-total-footer {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 248, 255, 0.96) 100%) !important;
+    border: 1px solid rgba(165, 180, 252, 0.22) !important;
+    box-shadow:
+        0 14px 34px rgba(99, 102, 241, 0.10),
+        0 4px 12px rgba(148, 163, 184, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+    backdrop-filter: blur(16px) !important;
+    -webkit-backdrop-filter: blur(16px) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-card h3,
+html:not(.dark) .sales-create-page .create-sale-review-products-title,
+html:not(.dark) .sales-create-page .create-sale-review-total-footer span:first-child {
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.95) 100%) !important;
+    border: 1px solid rgba(148, 163, 184, 0.16) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(1) {
+    background: linear-gradient(135deg, rgba(239, 246, 255, 0.98) 0%, rgba(238, 242, 255, 0.96) 100%) !important;
+    border-color: rgba(96, 165, 250, 0.22) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(2) {
+    background: linear-gradient(135deg, rgba(245, 243, 255, 0.98) 0%, rgba(238, 242, 255, 0.96) 100%) !important;
+    border-color: rgba(139, 92, 246, 0.22) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(3) {
+    background: linear-gradient(135deg, rgba(236, 253, 245, 0.98) 0%, rgba(240, 253, 250, 0.96) 100%) !important;
+    border-color: rgba(16, 185, 129, 0.22) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(4) {
+    background: linear-gradient(135deg, rgba(255, 251, 235, 0.98) 0%, rgba(255, 247, 237, 0.96) 100%) !important;
+    border-color: rgba(245, 158, 11, 0.22) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid label,
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid .text-xs {
+    color: var(--cs-muted) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid .text-sm,
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid input,
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid span:not(.text-xs) {
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(1) i {
+    color: #2563eb !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(2) i {
+    color: #7c3aed !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(3) i {
+    color: #059669 !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-info-grid > div:nth-child(4) i {
+    color: #d97706 !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-card .bg-blue-100,
+html:not(.dark) .sales-create-page .create-sale-summary-card .dark\:bg-blue-900\/40 {
+    background: rgba(59, 130, 246, 0.10) !important;
+    color: #1d4ed8 !important;
+    border: 1px solid rgba(59, 130, 246, 0.14) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-summary-card .text-2xl,
+html:not(.dark) .sales-create-page .create-sale-review-total-footer span:last-child {
+    background: linear-gradient(90deg, #047857 0%, #10b981 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-selected-list > div {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.18) 100%);
+    border-radius: 1rem;
+}
+
+html:not(.dark) .sales-create-page .create-sale-selected-item {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 255, 0.98) 100%) !important;
+    border: 1px solid rgba(165, 180, 252, 0.18) !important;
+    box-shadow: 0 10px 24px rgba(99, 102, 241, 0.08) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-selected-item:hover {
+    border-color: rgba(99, 102, 241, 0.28) !important;
+    box-shadow: 0 14px 30px rgba(99, 102, 241, 0.12) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-selected-item h4,
+html:not(.dark) .sales-create-page .create-sale-selected-item p.font-bold {
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-selected-item .text-xs,
+html:not(.dark) .sales-create-page .create-sale-selected-item label {
+    color: var(--cs-muted) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-selected-item input[type="number"] {
+    background: rgba(255, 255, 255, 0.96) !important;
+    border-color: rgba(148, 163, 184, 0.24) !important;
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .summary-dropdown-menu {
+    background: rgba(255, 255, 255, 0.98) !important;
+    border: 1px solid rgba(165, 180, 252, 0.24) !important;
+    box-shadow:
+        0 18px 36px rgba(99, 102, 241, 0.12),
+        0 8px 18px rgba(148, 163, 184, 0.10) !important;
+    backdrop-filter: blur(18px) !important;
+    -webkit-backdrop-filter: blur(18px) !important;
+}
+
+html:not(.dark) .sales-create-page .summary-dropdown-menu button,
+html:not(.dark) .sales-create-page .summary-dropdown-menu .px-4.py-2 {
+    color: var(--cs-text) !important;
+}
+
+html:not(.dark) .sales-create-page .summary-dropdown-menu button:hover {
+    background: rgba(99, 102, 241, 0.08) !important;
+    color: #312e81 !important;
+}
+
+html:not(.dark) .sales-create-page .summary-dropdown-menu .w-8.h-8 {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 18px rgba(99, 102, 241, 0.22) !important;
+}
+
+html:not(.dark) .sales-create-page .summary-dropdown-menu input[type="text"] {
+    background: #f8fbff !important;
+    border: 1px solid rgba(148, 163, 184, 0.20) !important;
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-title {
+    background: linear-gradient(95deg, #0f172a 0%, #4338ca 50%, #059669 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-title i {
+    color: #059669 !important;
+    -webkit-text-fill-color: #059669 !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-client-card {
+    background: linear-gradient(135deg, rgba(239, 246, 255, 0.98) 0%, rgba(238, 242, 255, 0.98) 100%) !important;
+    border: 1px solid rgba(96, 165, 250, 0.18) !important;
+    border-left: 4px solid #3b82f6 !important;
+    box-shadow: 0 10px 22px rgba(59, 130, 246, 0.10) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-client-card h3,
+html:not(.dark) .sales-create-page .create-sale-review-client-card .text-xs {
+    color: #2563eb !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-client-card .text-sm {
+    color: var(--cs-title) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-total-card {
+    background: linear-gradient(135deg, rgba(238, 242, 255, 0.98) 0%, rgba(245, 243, 255, 0.98) 100%) !important;
+    border: 1px solid rgba(129, 140, 248, 0.18) !important;
+    border-left: 4px solid #6366f1 !important;
+    box-shadow: 0 12px 26px rgba(99, 102, 241, 0.11) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-total-card h3,
+html:not(.dark) .sales-create-page .create-sale-review-total-card .text-lg,
+html:not(.dark) .sales-create-page .create-sale-review-total-card .text-sm {
+    color: #4338ca !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-total-card .bg-white,
+html:not(.dark) .sales-create-page .create-sale-review-total-card [class*="bg-indigo-800"],
+html:not(.dark) .sales-create-page .create-sale-review-total-card [class*="bg-green-800"] {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border: 1px solid rgba(165, 180, 252, 0.16) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-total-card .rounded-full {
+    background: rgba(99, 102, 241, 0.10) !important;
+    border: 1px solid rgba(99, 102, 241, 0.16) !important;
+    color: #4338ca !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-total-card .text-2xl,
+html:not(.dark) .sales-create-page .create-sale-review-total-card .text-3xl {
+    background: linear-gradient(90deg, #4338ca 0%, #7c3aed 55%, #059669 100%) !important;
+    -webkit-background-clip: text !important;
+    background-clip: text !important;
+    color: transparent !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-actions button:first-child {
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%) !important;
+    color: #475569 !important;
+    border: 1px solid rgba(148, 163, 184, 0.22) !important;
+    box-shadow: 0 10px 20px rgba(148, 163, 184, 0.10) !important;
+}
+
+html:not(.dark) .sales-create-page .create-sale-review-actions button:last-child {
+    background: linear-gradient(135deg, #10b981 0%, #059669 55%, #047857 100%) !important;
+    border: 1px solid rgba(16, 185, 129, 0.24) !important;
+    box-shadow: 0 14px 28px rgba(16, 185, 129, 0.24) !important;
 }
