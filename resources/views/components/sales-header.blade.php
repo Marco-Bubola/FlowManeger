@@ -7,13 +7,13 @@
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="sales-create-header relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg ">
-    <!-- Efeito de brilho sutil -->
-    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
+<div class="sales-create-header relative overflow-hidden border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(238,242,255,0.88),rgba(224,231,255,0.92))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl rounded-[28px] shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
+    <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_30%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.24),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.16),transparent_30%)]"></div>
+    <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent dark:via-slate-400/30"></div>
 
-    <!-- Background decorativo (reduzido) -->
-    <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
-    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
+    <!-- Background decorativo -->
+    <div class="absolute -top-10 right-8 h-32 w-32 rounded-full bg-indigo-400/20 blur-2xl"></div>
+    <div class="absolute -bottom-8 left-0 h-28 w-28 rounded-full bg-emerald-400/15 blur-2xl"></div>
 
     <div class="sales-create-header-inner relative px-3 sm:px-6 py-4">
         <div class="sales-create-header-main flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -21,16 +21,16 @@
                 @if($backRoute)
                 <!-- Botão voltar compacto -->
                 <a href="{{ $backRoute }}"
-                    class="group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-700 hover:from-blue-50 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-200 shadow-sm border border-white/40 dark:border-slate-600/40 backdrop-blur-sm shrink-0">
-                    <i class="bi bi-arrow-left text-lg text-blue-600 dark:text-blue-400 group-hover:scale-110 transition-transform duration-150"></i>
-                    <div class="absolute inset-0 rounded-lg bg-blue-500/8 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                    class="group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 shadow-sm border border-slate-200/70 dark:border-slate-700/70 backdrop-blur-sm shrink-0">
+                    <i class="bi bi-arrow-left text-lg text-indigo-600 dark:text-indigo-300 group-hover:-translate-x-0.5 transition-transform duration-150"></i>
+                    <div class="absolute inset-0 rounded-xl bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                 </a>
                 @endif
 
                 <!-- Ícone principal e título (compacto) -->
-                <div class="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-lg shadow-md shadow-purple-500/15 shrink-0">
+                <div class="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-500 shadow-lg shadow-indigo-500/20 shrink-0">
                     <i class="bi bi-plus-circle text-white text-2xl"></i>
-                    <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-white/20 to-transparent opacity-40"></div>
+                    <div class="absolute inset-[1px] rounded-2xl border border-white/25"></div>
                 </div>
 
                 <div class="space-y-1 min-w-0">
@@ -40,8 +40,11 @@
                     <h1 class="sales-create-header-title text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent truncate">
                         {{ $title }}
                     </h1>
-                    <p class="sales-create-header-subtitle text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
-                        💼 {!! $description !!}
+                    <p class="sales-create-header-subtitle flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
+                        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300 shrink-0">
+                            <i class="bi bi-stars text-[11px]"></i>
+                        </span>
+                        <span>{!! $description !!}</span>
                     </p>
                 </div>
             </div>
