@@ -11,11 +11,12 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 use Smalot\PdfParser\Parser;
 
 class UploadProducts extends Component
 {
-    use WithFileUploads;
+    use WithFileUploads, WithPagination;
 
     public $pdf_file;
     public $productsUpload = [];
@@ -29,12 +30,12 @@ class UploadProducts extends Component
     public $bulkCategoryId = null; // Categoria para edição em massa
     public $bulkStatus = null; // Status para edição em massa
     public $showHistory = false; // Controle para exibir histórico
-    public $uploadHistory = []; // Histórico de uploads
     public $currentUploadId = null; // ID do upload atual
     public $showTipsModal = false; // Controle para exibir modal de dicas
     public $showDetailsModal = false; // Controle para exibir modal de detalhes
     public $selectedUpload = null; // Upload selecionado para visualização
     public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
+    public $historyPerPage = 6; // Quantidade de cards por página no histórico
 
     public function mount()
     {
@@ -43,10 +44,7 @@ class UploadProducts extends Component
 
     public function loadUploadHistory()
     {
-        $this->uploadHistory = ProductUploadHistory::forUser(Auth::id())
-            ->orderBy('created_at', 'desc')
-            ->limit(10)
-            ->get();
+        $this->resetPage('historyPage');
     }
 
     public function toggleHistory()
@@ -1054,8 +1052,13 @@ class UploadProducts extends Component
             ->orderBy('name')
             ->get();
 
+        $uploadHistory = ProductUploadHistory::forUser(Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->paginate($this->historyPerPage, ['*'], 'historyPage');
+
         return view('livewire.products.upload-products', [
-            'categories' => $categories
+            'categories' => $categories,
+            'uploadHistory' => $uploadHistory,
         ]);
     }
 }
