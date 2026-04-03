@@ -189,10 +189,22 @@
         font-size: 0.9rem !important;
     }
     /* ações */
-    .sale-card-actions a,
-    .sale-card-actions button {
-        font-size: 0.72rem !important;
-        padding: 0.375rem 0.625rem !important;
+    .sales-index-page .sale-card-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+        padding-top: 0.7rem !important;
+    }
+    .sales-index-page .sale-card-action-chip {
+        min-height: 2.85rem !important;
+        padding: 0.5rem 0.6rem !important;
+        gap: 0.5rem !important;
+    }
+    .sales-index-page .sale-card-action-icon {
+        width: 1.8rem !important;
+        height: 1.8rem !important;
+    }
+    .sales-index-page .sale-card-action-text {
+        font-size: 0.7rem !important;
     }
 
     /* ── PAGINAÇÃO INFERIOR ───────────────────────────────── */
