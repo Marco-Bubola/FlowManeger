@@ -6,4 +6,11 @@
     .dashboard-index-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
     .dashboard-index-page .xl\:col-span-8 { grid-column: span 4 !important; }
     .dashboard-index-page .xl\:col-span-4 { grid-column: span 2 !important; }
+    .dashboard-index-page .sm\:grid-cols-4 { grid-template-columns: repeat(2, 1fr) !important; }
+    .dashboard-index-page .sm\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .dashboard-index-page .dashboard-chart-lg { min-height: 280px !important; }
+    .dashboard-index-page .dashboard-chart-md { min-height: 250px !important; }
+    .dashboard-index-page .lg\:w-auto,
+    .dashboard-index-page .sm\:min-w-\[280px\],
+    .dashboard-index-page .sm\:min-w-\[250px\] { min-width: 100% !important; width: 100% !important; }
 }
