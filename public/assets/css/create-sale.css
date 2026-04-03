@@ -1,0 +1,761 @@
+/* ================================================================
+   Create Sale — Estilos base do componente
+   Carregado antes dos arquivos responsivos de dispositivo.
+   Não contém media queries de breakpoint específico de dispositivo:
+   essas estão em responsive/create-sale-*.css
+   ================================================================ */
+
+/* ── Variáveis e fundo da página ────────────────────────────── */
+.sales-create-page {
+    --sale-indigo: #4f46e5;
+    --sale-sky: #0284c7;
+    --sale-emerald: #059669;
+    --sale-amber: #d97706;
+    --sale-surface: rgba(255, 255, 255, 0.84);
+    --sale-border: rgba(148, 163, 184, 0.22);
+    background:
+        radial-gradient(circle at top left, rgba(79, 70, 229, 0.08), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.08), transparent 24%),
+        linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.98));
+    padding: 0.85rem;
+    overflow-x: hidden;
+}
+
+.dark .sales-create-page {
+    --sale-surface: rgba(15, 23, 42, 0.84);
+    --sale-border: rgba(71, 85, 105, 0.35);
+    background:
+        radial-gradient(circle at top left, rgba(79, 70, 229, 0.18), transparent 26%),
+        radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.16), transparent 24%),
+        linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.96));
+}
+
+/* ── Header — pills e botão próximo ─────────────────────────── */
+.sales-create-page .create-header-stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 2.55rem;
+    padding: 0.5rem 0.82rem;
+    border-radius: 0.95rem;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    color: #334155;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+    backdrop-filter: blur(18px);
+}
+
+.dark .sales-create-page .create-header-stat-pill {
+    background: rgba(15, 23, 42, 0.68);
+    border-color: rgba(71, 85, 105, 0.38);
+    color: #e2e8f0;
+}
+
+.sales-create-page .create-header-next-btn {
+    min-height: 3rem;
+    padding: 0.5rem 0.82rem !important;
+    border-radius: 1rem !important;
+    border: 1px solid rgba(99, 102, 241, 0.2) !important;
+    box-shadow: 0 18px 40px rgba(79, 70, 229, 0.18);
+}
+
+.sales-create-page .create-header-next-content {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+}
+
+.sales-create-page .create-header-next-copy {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.05;
+}
+
+.sales-create-page .create-header-next-label {
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+
+.sales-create-page .create-header-next-meta {
+    font-size: 0.65rem;
+    opacity: 0.82;
+    margin-top: 0.15rem;
+    white-space: nowrap;
+}
+
+.sales-create-page .create-header-next-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+}
+
+/* ── Layout principal — shells de step ──────────────────────── */
+.sales-create-page .create-sale-step-products-shell,
+.sales-create-page .create-sale-step-review-shell {
+    gap: 0.9rem;
+    align-items: flex-start;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+}
+
+.sales-create-page .create-sale-products-pane,
+.sales-create-page .create-sale-summary-pane,
+.sales-create-page .create-sale-review-info-pane,
+.sales-create-page .create-sale-review-products-pane {
+    position: relative;
+    min-height: 0;
+    height: auto;
+}
+
+.sales-create-page .create-sale-summary-pane {
+    gap: 0.75rem;
+}
+
+.sales-create-page .create-sale-products-pane > .overflow-y-auto,
+.sales-create-page .create-sale-selected-list,
+.sales-create-page .create-sale-review-products-grid {
+    scrollbar-gutter: stable;
+}
+
+/* ── Painéis de fundo (cards) ───────────────────────────────── */
+.sales-create-page .create-sale-summary-card,
+.sales-create-page .create-sale-review-info-pane,
+.sales-create-page .create-sale-review-products-pane,
+.sales-create-page .create-sale-review-total-footer {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.82));
+    border: 1px solid var(--sale-border);
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.1);
+    backdrop-filter: blur(20px);
+}
+
+.dark .sales-create-page .create-sale-summary-card,
+.dark .sales-create-page .create-sale-review-info-pane,
+.dark .sales-create-page .create-sale-review-products-pane,
+.dark .sales-create-page .create-sale-review-total-footer {
+    background: linear-gradient(160deg, rgba(15, 23, 42, 0.88), rgba(30, 41, 59, 0.82));
+    box-shadow: 0 24px 48px rgba(2, 6, 23, 0.28);
+}
+
+.sales-create-page .create-sale-summary-card {
+    border-radius: 1.3rem;
+    /* overflow: visible — intencional: dropdowns (position:absolute) precisam escapar */
+    overflow: visible;
+    animation: sale-rise-in 0.45s ease-out;
+}
+
+.sales-create-page .create-sale-summary-card h3,
+.sales-create-page .create-sale-review-title {
+    letter-spacing: -0.01em;
+}
+
+/* ── Topbar e ícone do Resumo ───────────────────────────────── */
+.sales-create-page .create-sale-summary-topbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.8rem;
+    margin-bottom: 0.85rem;
+}
+
+.sales-create-page .create-sale-summary-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-width: 0;
+}
+
+.sales-create-page .create-sale-summary-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 0.85rem;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.18), rgba(2, 132, 199, 0.2));
+    color: var(--sale-indigo);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.dark .sales-create-page .create-sale-summary-icon {
+    color: #c7d2fe;
+    background: linear-gradient(135deg, rgba(79, 70, 229, 0.28), rgba(2, 132, 199, 0.22));
+}
+
+.sales-create-page .create-sale-summary-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.38rem 0.68rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, rgba(219, 234, 254, 0.92), rgba(224, 231, 255, 0.84));
+    color: #1d4ed8;
+    border: 1px solid rgba(59, 130, 246, 0.18);
+}
+
+.dark .sales-create-page .create-sale-summary-status {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.92), rgba(49, 46, 129, 0.55));
+    color: #c7d2fe;
+    border-color: rgba(99, 102, 241, 0.24);
+}
+
+/* ── Stats do resumo ────────────────────────────────────────── */
+.sales-create-page .create-sale-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+    margin-bottom: 0.85rem;
+}
+
+.sales-create-page .create-sale-summary-stat {
+    padding: 0.72rem 0.78rem;
+    border-radius: 1rem;
+    background: rgba(248, 250, 252, 0.88);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+
+.dark .sales-create-page .create-sale-summary-stat {
+    background: rgba(15, 23, 42, 0.7);
+    border-color: rgba(71, 85, 105, 0.32);
+}
+
+.sales-create-page .create-sale-summary-stat-label {
+    display: block;
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.28rem;
+}
+
+.sales-create-page .create-sale-summary-stat-value {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.dark .sales-create-page .create-sale-summary-stat-value {
+    color: #f8fafc;
+}
+
+/* ── Grid info (2×2) e total ────────────────────────────────── */
+.sales-create-page .create-sale-summary-info-grid > div {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    border-radius: 0.95rem;
+}
+
+.dark .sales-create-page .create-sale-summary-info-grid > div {
+    border-color: rgba(71, 85, 105, 0.32);
+    box-shadow: none;
+}
+
+.sales-create-page .create-sale-total-panel {
+    margin-top: 0.9rem;
+    padding: 0.9rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.04), rgba(79, 70, 229, 0.08), rgba(5, 150, 105, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.14);
+}
+
+.dark .sales-create-page .create-sale-total-panel {
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.84), rgba(49, 46, 129, 0.32), rgba(6, 78, 59, 0.24));
+    border-color: rgba(99, 102, 241, 0.18);
+}
+
+.sales-create-page .create-sale-total-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-bottom: 0.7rem;
+}
+
+.sales-create-page .create-sale-total-metric {
+    padding: 0.68rem 0.75rem;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.dark .sales-create-page .create-sale-total-metric {
+    background: rgba(15, 23, 42, 0.58);
+}
+
+/* ── Alerta de pendência ─────────────────────────────────────── */
+.sales-create-page .create-sale-summary-alert {
+    margin-top: 0.8rem;
+    padding: 0.8rem 0.9rem;
+    border-radius: 0.95rem;
+    background: rgba(255, 247, 237, 0.95);
+    border: 1px solid rgba(251, 191, 36, 0.22);
+    color: #9a3412;
+}
+
+.dark .sales-create-page .create-sale-summary-alert {
+    background: rgba(69, 26, 3, 0.28);
+    border-color: rgba(245, 158, 11, 0.24);
+    color: #fdba74;
+}
+
+.sales-create-page .create-sale-summary-alert ul {
+    margin-top: 0.35rem;
+    padding-left: 1rem;
+    font-size: 0.75rem;
+    line-height: 1.35;
+}
+
+/* ── Produtos selecionados ──────────────────────────────────── */
+.sales-create-page .create-sale-selected-empty,
+.sales-create-page .create-sale-selected-item {
+    border-radius: 1.15rem;
+    border: 1px solid var(--sale-border);
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.84));
+    box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+}
+
+.dark .sales-create-page .create-sale-selected-empty,
+.dark .sales-create-page .create-sale-selected-item {
+    background: linear-gradient(165deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.82));
+    box-shadow: 0 18px 38px rgba(2, 6, 23, 0.24);
+}
+
+.sales-create-page .create-sale-selected-item {
+    padding: 0.75rem;
+    margin-bottom: 0.55rem;
+    animation: sale-rise-in 0.42s ease-out;
+}
+
+.sales-create-page .create-sale-selected-item h4 {
+    font-size: 0.88rem;
+    line-height: 1.25;
+}
+
+.sales-create-page .create-sale-selected-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.72rem;
+}
+
+.sales-create-page .create-sale-selected-thumb {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    object-fit: cover;
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.1);
+    flex-shrink: 0;
+}
+
+.sales-create-page .create-sale-mini-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.24rem 0.48rem;
+    border-radius: 999px;
+    font-size: 0.63rem;
+    font-weight: 700;
+    color: #475569;
+    background: rgba(241, 245, 249, 0.92);
+    border: 1px solid rgba(203, 213, 225, 0.9);
+}
+
+.dark .sales-create-page .create-sale-mini-pill {
+    color: #e2e8f0;
+    background: rgba(30, 41, 59, 0.9);
+    border-color: rgba(71, 85, 105, 0.38);
+}
+
+.sales-create-page .create-sale-remove-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.8rem;
+    height: 1.8rem;
+    border-radius: 999px;
+    color: #94a3b8;
+    background: rgba(248, 250, 252, 0.92);
+    transition: all 0.2s ease;
+}
+
+.sales-create-page .create-sale-remove-btn:hover {
+    background: rgba(254, 226, 226, 0.95);
+    color: #dc2626;
+    transform: scale(1.04);
+}
+
+.sales-create-page .create-sale-selected-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 0;
+}
+
+.sales-create-page .create-sale-selected-field {
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.85rem;
+    background: rgba(248, 250, 252, 0.86);
+    border: 1px solid rgba(226, 232, 240, 0.88);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.dark .sales-create-page .create-sale-selected-field {
+    background: rgba(15, 23, 42, 0.68);
+    border-color: rgba(71, 85, 105, 0.34);
+}
+
+.sales-create-page .create-sale-selected-subtotal {
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.85rem;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.09), rgba(5, 150, 105, 0.14));
+    border: 1px solid rgba(16, 185, 129, 0.22);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.dark .sales-create-page .create-sale-selected-subtotal {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(5, 150, 105, 0.08));
+    border-color: rgba(16, 185, 129, 0.18);
+}
+
+.sales-create-page .create-sale-summary-info-grid label,
+.sales-create-page .create-sale-selected-field label {
+    font-size: 0.65rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #94a3b8;
+    line-height: 1;
+}
+
+.sales-create-page .create-sale-selected-subtotal .csi-total-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: #10b981;
+    line-height: 1;
+}
+
+.dark .sales-create-page .create-sale-selected-subtotal .csi-total-label {
+    color: #34d399;
+}
+
+.sales-create-page .create-sale-selected-field input[type="number"] {
+    width: 100% !important;
+    min-height: 2rem;
+    border-radius: 0.7rem;
+    border: 1px solid rgba(203, 213, 225, 0.85);
+    background: rgba(255, 255, 255, 0.9);
+    color: #0f172a;
+    font-weight: 700;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    padding: 0 0.4rem;
+}
+
+.sales-create-page .create-sale-selected-field input[type="number"]:focus {
+    border-color: rgba(99, 102, 241, 0.55);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.11);
+    outline: none;
+    background: rgba(255, 255, 255, 0.98);
+}
+
+.dark .sales-create-page .create-sale-selected-field input[type="number"] {
+    border-color: rgba(71, 85, 105, 0.5);
+    background: rgba(15, 23, 42, 0.65);
+    color: #f8fafc;
+}
+
+.dark .sales-create-page .create-sale-selected-field input[type="number"]:focus {
+    border-color: rgba(99, 102, 241, 0.55);
+    background: rgba(15, 23, 42, 0.88);
+}
+
+.sales-create-page .create-sale-selected-subtotal .csi-total-value {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: #059669;
+}
+
+.dark .sales-create-page .create-sale-selected-subtotal .csi-total-value {
+    color: #34d399;
+}
+
+/* Badge de tipo do produto no card selecionado */
+.sales-create-page .csi-type-badge {
+    position: absolute;
+    bottom: -0.3rem;
+    right: -0.3rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark .sales-create-page .csi-type-badge {
+    border-color: rgba(15, 23, 42, 0.5);
+}
+
+/* ── Revisão / step 2 ───────────────────────────────────────── */
+.sales-create-page .create-sale-review-info-pane,
+.sales-create-page .create-sale-review-products-pane {
+    border-radius: 1.35rem;
+    animation: sale-rise-in 0.48s ease-out;
+}
+
+.sales-create-page .create-sale-review-client-card,
+.sales-create-page .create-sale-review-total-card {
+    border-radius: 1.05rem;
+    border-left-width: 0 !important;
+    border: 1px solid rgba(99, 102, 241, 0.14);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.sales-create-page .create-sale-review-actions button {
+    border-radius: 1.3rem !important;
+}
+
+/* ── Modal de dicas ─────────────────────────────────────────── */
+.sales-create-page .create-sale-tips-overlay {
+    background: rgba(15, 23, 42, 0.46);
+    backdrop-filter: blur(14px);
+}
+
+.sales-create-page .create-sale-tips-modal {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1.7rem;
+    border: 1px solid rgba(226, 232, 240, 0.65);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.96));
+    box-shadow: 0 32px 80px rgba(15, 23, 42, 0.24);
+}
+
+.dark .sales-create-page .create-sale-tips-modal {
+    border-color: rgba(71, 85, 105, 0.42);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.96));
+    box-shadow: 0 32px 80px rgba(2, 6, 23, 0.44);
+}
+
+.sales-create-page .create-sale-tips-header {
+    position: relative;
+    overflow: hidden;
+    padding: 1.25rem 1.3rem 1rem;
+    background: linear-gradient(135deg, #4338ca 0%, #6d28d9 48%, #db2777 100%);
+}
+
+.sales-create-page .create-sale-tips-header::after {
+    content: '';
+    position: absolute;
+    inset: auto -2rem -2.8rem auto;
+    width: 8rem;
+    height: 8rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.14);
+    filter: blur(4px);
+}
+
+.sales-create-page .create-sale-tips-scroll {
+    max-height: min(70vh, 42rem);
+    padding: 1.25rem;
+    overflow-y: auto;
+}
+
+.sales-create-page .create-sale-tips-step-icon {
+    width: 4.25rem;
+    height: 4.25rem;
+    border-radius: 1.4rem;
+    box-shadow: 0 18px 36px rgba(79, 70, 229, 0.22);
+    animation: sale-soft-float 3.6s ease-in-out infinite;
+}
+
+.sales-create-page .create-sale-tips-card {
+    border-radius: 1.15rem;
+}
+
+.sales-create-page .create-sale-tips-footer {
+    padding: 1rem 1.25rem;
+    border-top: 1px solid rgba(226, 232, 240, 0.7);
+    background: rgba(248, 250, 252, 0.84);
+    backdrop-filter: blur(12px);
+}
+
+.dark .sales-create-page .create-sale-tips-footer {
+    border-top-color: rgba(71, 85, 105, 0.42);
+    background: rgba(15, 23, 42, 0.72);
+}
+
+/* ── Keyframes ──────────────────────────────────────────────── */
+@keyframes sale-rise-in {
+    from {
+        opacity: 0;
+        transform: translateY(16px) scale(0.985);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes sale-soft-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+
+/* ── Tablets e acima (≥ 768px) — configuração base non-mobile ─ */
+@media (min-width: 768px) {
+    /* Summary card: pode encolher mas não cresce além do natural */
+    .sales-create-page .create-sale-summary-card {
+        flex: 0 1 auto;
+    }
+
+    /* Lista de selecionados: mínimo visível em tablet */
+    .sales-create-page .create-sale-selected-list {
+        min-height: clamp(12rem, 20vh, 18rem);
+        overflow-y: auto;
+    }
+
+    /* Modal tips */
+    .sales-create-page .create-sale-tips-scroll {
+        max-height: min(72vh, 38rem);
+        padding: 1rem;
+    }
+}
+
+/* ── Desktop ≥ 1024px: layout fluido — sem restrição de viewport ── */
+@media (min-width: 1024px) {
+    /* Shell — altura automática, sem corte de conteúdo */
+    .sales-create-page .create-sale-step-products-shell {
+        height: auto;
+    }
+
+    /* Painel esquerdo: min-width:0 evita overflow horizontal no flex */
+    .sales-create-page .create-sale-products-pane {
+        min-width: 0;
+    }
+
+    /* Painel direito: overflow:visible — dropdowns (position:absolute) funcionam */
+    .sales-create-page .create-sale-summary-pane {
+        overflow: visible;
+        min-height: 0;
+    }
+
+    /* Lista de selecionados — altura natural, scrolla se necessário */
+    .sales-create-page .create-sale-selected-list {
+        min-height: 10rem;
+        overflow-y: auto;
+    }
+}
+
+/* ── Breakpoint geral: ≤ 1024px (grid 2 colunas para stat cells) */
+@media (max-width: 1024px) {
+    .sales-create-page .create-sale-summary-stats,
+    .sales-create-page .create-sale-total-grid,
+    .sales-create-page .create-sale-selected-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ── Mobile (≤ 767.98px) — scroll livre, sem teto de altura ── */
+@media (max-width: 767.98px) {
+    .sales-create-page {
+        padding: 0.6rem;
+    }
+
+    .sales-create-page .create-sale-step-products-shell,
+    .sales-create-page .create-sale-step-review-shell,
+    .sales-create-page .create-sale-products-pane > .overflow-y-auto,
+    .sales-create-page .create-sale-selected-list,
+    .sales-create-page .create-sale-review-products-grid {
+        max-height: none !important;
+        overflow: visible !important;
+    }
+
+    .sales-create-page .create-header-stat-pill {
+        min-height: 2.3rem;
+        padding: 0.42rem 0.72rem;
+        border-radius: 0.85rem;
+    }
+
+    .sales-create-page .create-header-next-meta {
+        display: none;
+    }
+
+    .sales-create-page .create-sale-summary-topbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .sales-create-page .create-sale-summary-stats,
+    .sales-create-page .create-sale-total-grid,
+    .sales-create-page .create-sale-selected-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sales-create-page .create-sale-selected-head {
+        gap: 0.7rem;
+    }
+
+    .sales-create-page .create-sale-selected-thumb {
+        width: 2.75rem;
+        height: 2.75rem;
+    }
+
+    .sales-create-page .create-sale-summary-card {
+        padding: 0.82rem;
+    }
+
+    .sales-create-page .create-sale-selected-item {
+        padding: 0.72rem;
+    }
+
+    .sales-create-page .create-sale-selected-item h4 {
+        font-size: 0.88rem;
+    }
+
+    .sales-create-page .create-sale-summary-stat-value {
+        font-size: 0.86rem;
+    }
+
+    .sales-create-page .create-sale-tips-modal {
+        border-radius: 1.25rem;
+    }
+
+    .sales-create-page .create-sale-tips-header {
+        padding: 1rem 1rem 0.9rem;
+    }
+
+    .sales-create-page .create-sale-tips-scroll {
+        padding: 0.95rem;
+    }
+
+    .sales-create-page .create-sale-tips-step-icon {
+        width: 3.6rem;
+        height: 3.6rem;
+        border-radius: 1.1rem;
+    }
+
+    .sales-create-page .create-sale-tips-footer {
+        padding: 0.9rem 1rem;
+    }
+}
