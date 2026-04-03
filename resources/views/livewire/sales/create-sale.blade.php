@@ -16,7 +16,8 @@
         }
     </style>
 
-    <!-- Header Modernizado -->
+    <!-- Header Flutuante / Sticky -->
+    <div class="create-sale-sticky-header">
     <x-sales-header
         title="Nova Venda"
         description="Monte a venda com cliente, itens e fechamento em um fluxo rapido, seguro e proporcional em qualquer tela"
@@ -121,6 +122,7 @@
             </button>
         </x-slot>
     </x-sales-header>
+    </div>{{-- /.create-sale-sticky-header --}}
 
     <!-- Conteúdo Principal -->
     <div class="">
