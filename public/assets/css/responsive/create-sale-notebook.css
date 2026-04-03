@@ -8,6 +8,7 @@
 @media (min-width: 1025px) and (max-width: 1279px) {
 
     .sales-create-page {
+        --cs-page-px: 1rem;
         padding-bottom: 2rem !important;
         padding-inline: 1rem !important;
     }
@@ -21,6 +22,7 @@
         padding: 0.875rem 1.5rem !important;
     }
 
+    /* Ajuste do sticky-top — header mais compacto no notebook (~4.5rem) */
     .create-sale-step-products-shell {
         gap: 1rem !important;
     }
@@ -32,6 +34,7 @@
     }
 
     .sales-create-page .create-sale-summary-pane {
+        top: 4.5rem;       /* sticky header compacto no notebook */
         width: 26% !important;
         flex-shrink: 0 !important;
     }
@@ -213,6 +216,7 @@
 @media (min-width: 1280px) and (max-width: 1440px) {
 
     .sales-create-page {
+        --cs-page-px: 1.25rem;
         padding-bottom: 2rem !important;
         padding-inline: 1.25rem !important;
     }
@@ -226,6 +230,7 @@
         padding: 1rem 1.75rem !important;
     }
 
+    /* Ajuste do sticky-top — header mais compacto no notebook (~4.5rem) */
     .create-sale-step-products-shell {
         gap: 1.25rem !important;
     }
@@ -237,6 +242,7 @@
     }
 
     .sales-create-page .create-sale-summary-pane {
+        top: 4.5rem;       /* sticky header compacto no notebook */
         width: 25% !important;
         flex-shrink: 0 !important;
     }
