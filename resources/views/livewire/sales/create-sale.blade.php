@@ -374,15 +374,134 @@
                                 @error('client_id') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                             </div>
 
-                            <!-- Bloco Data -->
-                            <div class="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl shadow-sm">
-                                <div class="flex items-center gap-2">
-                                    <i class="bi bi-calendar-fill text-purple-500 text-lg"></i>
-                                    <div>
-                                        <label class="text-[10px] font-medium text-purple-800 dark:text-purple-200">Data</label>
-                                        <input type="date" wire:model="sale_date" class="w-full min-h-[44px] p-0 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent border-0 focus:ring-0">
+                            <!-- Bloco Data — Custom DatePicker -->
+                            <div class="relative p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl shadow-sm"
+                                 x-data="{
+                                     open: false,
+                                     sel: '{{ $sale_date ?? date('Y-m-d') }}',
+                                     vy: 0, vm: 0,
+                                     wdays: ['D','S','T','Q','Q','S','S'],
+                                     init() {
+                                         let d = this.sel ? new Date(this.sel + 'T12:00:00') : new Date();
+                                         this.vy = d.getFullYear();
+                                         this.vm = d.getMonth();
+                                     },
+                                     get mname() {
+                                         return new Date(this.vy, this.vm, 1)
+                                             .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                                     },
+                                     get dim() { return new Date(this.vy, this.vm + 1, 0).getDate(); },
+                                     get fdow() { return new Date(this.vy, this.vm, 1).getDay(); },
+                                     prev() { this.vm === 0 ? (this.vm = 11, this.vy--) : this.vm--; },
+                                     next() { this.vm === 11 ? (this.vm = 0, this.vy++) : this.vm++; },
+                                     pick(d) {
+                                         let m = String(this.vm + 1).padStart(2, '0');
+                                         let dd = String(d).padStart(2, '0');
+                                         this.sel = this.vy + '-' + m + '-' + dd;
+                                         $wire.set('sale_date', this.sel);
+                                         this.open = false;
+                                     },
+                                     goToday() {
+                                         let t = new Date();
+                                         this.vy = t.getFullYear();
+                                         this.vm = t.getMonth();
+                                         this.pick(t.getDate());
+                                     },
+                                     isSel(d) {
+                                         if (!this.sel) return false;
+                                         let p = new Date(this.sel + 'T12:00:00');
+                                         return p.getFullYear() === this.vy && p.getMonth() === this.vm && p.getDate() === d;
+                                     },
+                                     isToday(d) {
+                                         let t = new Date();
+                                         return t.getFullYear() === this.vy && t.getMonth() === this.vm && t.getDate() === d;
+                                     },
+                                     fmtSel() {
+                                         if (!this.sel) return 'Selecionar data';
+                                         return new Date(this.sel + 'T12:00:00')
+                                             .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+                                     }
+                                 }"
+                                 @click.outside="open = false">
+
+                                <button type="button" @click="open = !open"
+                                        class="w-full flex items-center gap-2 min-h-[44px] text-left focus:outline-none">
+                                    <i class="bi bi-calendar-fill text-purple-500 text-lg flex-shrink-0"></i>
+                                    <div class="flex-1 min-w-0">
+                                        <label class="text-[10px] font-medium text-purple-800 dark:text-purple-200 block pointer-events-none">Data</label>
+                                        <span class="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight"
+                                              x-text="fmtSel()"></span>
+                                    </div>
+                                    <i class="bi bi-chevron-down text-purple-400/70 text-xs flex-shrink-0 transition-transform duration-200"
+                                       :class="open ? 'rotate-180' : ''"></i>
+                                </button>
+
+                                <!-- Popover calendário -->
+                                <div x-show="open"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     x-transition:leave="transition ease-in duration-100"
+                                     x-transition:leave-start="opacity-100 scale-100"
+                                     x-transition:leave-end="opacity-0 scale-95"
+                                     class="absolute z-[9999] top-full left-0 mt-2 w-64 rounded-2xl overflow-hidden shadow-2xl"
+                                     style="background:linear-gradient(160deg,#1e1b4b 0%,#312e81 50%,#1a1640 100%);border:1px solid rgba(165,180,252,0.25);">
+
+                                    <!-- Cabeçalho mês/ano -->
+                                    <div class="flex items-center justify-between px-4 py-3"
+                                         style="background:linear-gradient(135deg,rgba(99,102,241,0.55),rgba(139,92,246,0.45));border-bottom:1px solid rgba(165,180,252,0.18);">
+                                        <button type="button" @click.stop="prev()"
+                                                class="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-200 hover:bg-white/15 transition-colors">
+                                            <i class="bi bi-chevron-left text-xs"></i>
+                                        </button>
+                                        <span class="text-sm font-bold text-white capitalize" x-text="mname"></span>
+                                        <button type="button" @click.stop="next()"
+                                                class="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-200 hover:bg-white/15 transition-colors">
+                                            <i class="bi bi-chevron-right text-xs"></i>
+                                        </button>
+                                    </div>
+
+                                    <!-- Labels dias da semana -->
+                                    <div class="grid grid-cols-7 px-3 pt-2 pb-0.5">
+                                        <template x-for="w in wdays">
+                                            <div class="text-center text-[10px] font-bold pb-1"
+                                                 style="color:rgba(165,180,252,0.65)"
+                                                 x-text="w"></div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Grade de dias -->
+                                    <div class="grid grid-cols-7 px-3 pb-2 gap-y-0.5">
+                                        <template x-for="_ in fdow">
+                                            <div></div>
+                                        </template>
+                                        <template x-for="day in dim" :key="day">
+                                            <button type="button"
+                                                    @click.stop="pick(day)"
+                                                    :class="isSel(day)
+                                                        ? 'text-white font-bold shadow-lg'
+                                                        : isToday(day)
+                                                            ? 'text-indigo-200 font-semibold border border-indigo-400/50'
+                                                            : 'text-slate-300 hover:bg-white/10'"
+                                                    :style="isSel(day) ? 'background:linear-gradient(135deg,#6366f1,#9333ea)' : ''"
+                                                    class="w-7 h-7 mx-auto flex items-center justify-center text-xs rounded-lg transition-all duration-100"
+                                                    x-text="day">
+                                            </button>
+                                        </template>
+                                    </div>
+
+                                    <!-- Rodapé: Hoje -->
+                                    <div class="px-3 pb-3 pt-1">
+                                        <button type="button" @click.stop="goToday()"
+                                                class="w-full py-1.5 text-xs font-semibold rounded-lg transition-colors"
+                                                style="color:rgba(165,180,252,0.9);border:1px solid rgba(99,102,241,0.35);"
+                                                onmouseover="this.style.background='rgba(255,255,255,0.08)'"
+                                                onmouseout="this.style.background=''">
+                                            Hoje
+                                        </button>
                                     </div>
                                 </div>
+
                                 @error('sale_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                             </div>
 
