@@ -1,3 +1,49 @@
 @media (max-width: 767px) {
-    .dashboard-cashbook-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); }
+    .dashboard-cashbook-page {
+        min-height: 100dvh;
+        height: auto;
+    }
+
+    .dashboard-cashbook-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+    }
+
+    .dashboard-cashbook-page .max-w-\[1880px\] {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .dashboard-cashbook-page .grid[class*='xl:grid-cols-12'],
+    .dashboard-cashbook-page .grid[class*='xl:grid-cols-4'] {
+        gap: 0.75rem;
+    }
+
+    .dashboard-cashbook-page .text-3xl {
+        font-size: 1.65rem;
+        line-height: 1.2;
+    }
+
+    .dashboard-cashbook-page .text-2xl {
+        font-size: 1.25rem;
+    }
+
+    .dashboard-cashbook-page .rounded-\[30px\],
+    .dashboard-cashbook-page .rounded-\[28px\],
+    .dashboard-cashbook-page .rounded-\[26px\] {
+        border-radius: 22px;
+    }
+
+    .dashboard-cashbook-page #financeFlowChart,
+    .dashboard-cashbook-page #periodComparisonChart,
+    .dashboard-cashbook-page #bankShareChart,
+    .dashboard-cashbook-page #invoiceDailyChart,
+    .dashboard-cashbook-page #categorySpendChart,
+    .dashboard-cashbook-page #cofrinhosEvolutionChart {
+        min-height: 260px;
+        height: 260px !important;
+    }
+
+    .dashboard-cashbook-page .xl\:w-\[760px\] {
+        width: 100% !important;
+    }
 }
