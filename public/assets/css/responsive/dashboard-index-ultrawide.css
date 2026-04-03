@@ -1,5 +1,23 @@
 /* Dashboard Index — Ultrawide */
 @media (min-width: 1441px) {
-    .dashboard-index-page { margin-inline: auto; }
+    .dashboard-index-page { width: 100% !important; max-width: none !important; margin-inline: auto; }
+    .dashboard-index-page .dashboard-shell {
+        width: min(100%, 2360px) !important;
+        max-width: calc(100vw - 24px) !important;
+        padding-inline: clamp(10px, 0.8vw, 18px) !important;
+        margin-inline: auto !important;
+    }
     .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(12, 1fr) !important; }
+    .dashboard-index-page .px-4,
+    .dashboard-index-page .sm\:px-6,
+    .dashboard-index-page .lg\:px-8 { max-width: none; margin-inline: auto; }
+    .dashboard-index-page .dashboard-chart-lg { min-height: 290px !important; }
+    .dashboard-index-page .dashboard-chart-md { min-height: 230px !important; }
+    .dashboard-index-page .space-y-6 > section { margin-bottom: 0.85rem !important; }
+    .dashboard-index-page .xl\:col-span-4.grid { align-content: start !important; }
+    .dashboard-index-page .dashboard-kpi-grid { gap: 0.9rem !important; }
+    .dashboard-index-page .grid.grid-cols-2.gap-3.sm\:grid-cols-3.xl\:grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; }
+    .dashboard-index-page .xl\:col-span-4.grid.grid-cols-1.sm\:grid-cols-2.xl\:grid-cols-2 { gap: 0.8rem !important; }
+    .dashboard-index-page .text-3xl { font-size: 1.85rem !important; }
+    .dashboard-index-page .text-2xl { font-size: 1.25rem !important; }
 }
