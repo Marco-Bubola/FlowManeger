@@ -5,6 +5,22 @@
     .dashboard-index-page .xl\:col-span-8,
     .dashboard-index-page .xl\:col-span-4,
     .dashboard-index-page .lg\:col-span-2 { grid-column: 1 / -1 !important; }
+    .dashboard-index-page h1 { font-size: 1.875rem !important; line-height: 2.2rem !important; }
+    .dashboard-index-page h2 { font-size: 1.5rem !important; }
+    .dashboard-index-page .rounded-\[28px\] { border-radius: 24px !important; }
+    .dashboard-index-page .rounded-\[24px\] { border-radius: 20px !important; }
+    .dashboard-index-page .sm\:grid-cols-4,
+    .dashboard-index-page .sm\:grid-cols-2,
+    .dashboard-index-page .md\:grid-cols-2,
+    .dashboard-index-page .lg\:grid-cols-3 { grid-template-columns: 1fr !important; }
+    .dashboard-index-page .sm\:min-w-\[250px\],
+    .dashboard-index-page .lg\:min-w-\[320px\],
+    .dashboard-index-page .sm\:w-auto,
+    .dashboard-index-page .sm\:min-w-\[280px\] { min-width: 0 !important; width: 100% !important; }
+    .dashboard-index-page .dashboard-chart-lg { min-height: 240px !important; }
+    .dashboard-index-page .dashboard-chart-md { min-height: 220px !important; }
+    .dashboard-index-page .max-h-\[860px\] { max-height: none !important; }
+    .dashboard-index-page select { font-size: 16px !important; }
 }
 @media (min-width: 540px) and (max-width: 767px) {
     .dashboard-index-page .grid.grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
