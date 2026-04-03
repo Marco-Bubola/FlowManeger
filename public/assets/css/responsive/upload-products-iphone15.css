@@ -52,15 +52,7 @@
         gap: 0.55rem !important;
     }
 
-    .upload-products-page .product-card-modern .product-img-area {
-        min-height: 135px !important;
-        height: 135px !important;
-    }
-    .upload-products-page .product-card-modern .product-img {
-        height: 135px !important;
-        max-height: 135px !important;
-    }
-
+    /* Imagem proporcional via aspect-ratio (base) */
     .upload-products-page .product-card-modern {
         min-height: 0 !important;
         height: auto !important;
