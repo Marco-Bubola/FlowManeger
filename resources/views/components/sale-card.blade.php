@@ -45,6 +45,80 @@
         $progressToneClass = $isPaid ? 'is-paid' : 'is-pending';
         $progressStatusTitle = $isPaid ? 'Pagamento concluído' : 'Pagamento pendente';
         $progressStatusText = $isPaid ? 'Venda 100% paga' : 'Falta quitar R$ ' . number_format($remainingAmount, 2, ',', '.');
+        $actionItems = [
+            [
+                'type' => 'link',
+                'href' => route('sales.show', $sale->id),
+                'label' => 'Detalhes',
+                'tooltip' => 'Ver detalhes completos da venda',
+                'icon' => 'bi-eye',
+                'tone' => 'sky',
+            ],
+            [
+                'type' => 'link',
+                'href' => route('sales.edit', $sale->id),
+                'label' => 'Editar venda',
+                'tooltip' => 'Editar dados gerais da venda',
+                'icon' => 'bi-pencil',
+                'tone' => 'amber',
+            ],
+            [
+                'type' => 'button',
+                'wireClick' => 'openExportSaleModalFromCard(' . $sale->id . ')',
+                'label' => 'Exportar PDF',
+                'tooltip' => 'Gerar PDF desta venda',
+                'icon' => 'bi-file-earmark-pdf',
+                'tone' => 'rose',
+            ],
+            [
+                'type' => 'link',
+                'href' => route('sales.add-products', $sale->id),
+                'label' => 'Add produtos',
+                'tooltip' => 'Adicionar produtos a esta venda',
+                'icon' => 'bi-plus-circle',
+                'tone' => 'teal',
+            ],
+            [
+                'type' => 'link',
+                'href' => route('sales.edit-prices', $sale->id),
+                'label' => 'Editar preços',
+                'tooltip' => 'Editar preços dos itens da venda',
+                'icon' => 'bi-currency-dollar',
+                'tone' => 'violet',
+            ],
+            [
+                'type' => 'link',
+                'href' => route('sales.add-payments', $sale->id),
+                'label' => 'Add pagamento',
+                'tooltip' => 'Adicionar pagamento à venda',
+                'icon' => 'bi-credit-card',
+                'tone' => 'green',
+            ],
+            [
+                'type' => 'link',
+                'href' => route('sales.edit-payments', $sale->id),
+                'label' => 'Editar pagamento',
+                'tooltip' => 'Editar pagamentos já lançados',
+                'icon' => 'bi-pencil-square',
+                'tone' => 'indigo',
+            ],
+            [
+                'type' => 'button',
+                'wireClick' => 'payFull(' . $sale->id . ')',
+                'label' => 'Quitar saldo',
+                'tooltip' => 'Quitar o saldo restante da venda',
+                'icon' => 'bi-cash-stack',
+                'tone' => 'emerald',
+            ],
+            [
+                'type' => 'button',
+                'wireClick' => 'confirmDelete(' . $sale->id . ')',
+                'label' => 'Excluir venda',
+                'tooltip' => 'Excluir venda e devolver produtos ao estoque',
+                'icon' => 'bi-trash',
+                'tone' => 'red',
+            ],
+        ];
 @endphp
 
 <div class="sale-card shadow-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-950 dark:to-black border border-slate-200 dark:border-gray-900"
@@ -163,106 +237,34 @@
     </div>
     </template>
 
-    <div class="sale-card-actions">
-
-        {{-- 1. Ver detalhes --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <a href="{{ route('sales.show', $sale->id) }}" @focus="open=true" @blur="open=false"
-               aria-label="Ver detalhes da venda"
-               class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-sky-500 hover:bg-sky-600 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-sky-400">
-                <i class="bi bi-eye text-sm leading-none"></i>
-                <span class="sale-action-label">Ver</span>
-            </a>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip" aria-hidden="true">Ver</span>
-        </div>
-
-        {{-- 2. Editar venda --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <a href="{{ route('sales.edit', $sale->id) }}" @focus="open=true" @blur="open=false"
-               aria-label="Editar venda"
-               class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-amber-500 hover:bg-amber-600 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-amber-400">
-                <i class="bi bi-pencil text-sm leading-none"></i>
-                <span class="sale-action-label">Editar</span>
-            </a>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Editar</span>
-        </div>
-
-        {{-- 3. Exportar PDF --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <button type="button" wire:click="openExportSaleModalFromCard({{ $sale->id }})" @focus="open=true" @blur="open=false"
-                    aria-label="Exportar venda para PDF"
-                    class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-pink-600 hover:from-rose-600 hover:to-pink-700 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-pink-400">
-                <i class="bi bi-file-earmark-pdf text-sm leading-none"></i>
-                <span class="sale-action-label">PDF</span>
-            </button>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">PDF</span>
-        </div>
-
-        {{-- 4. Adicionar produtos --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <a href="{{ route('sales.add-products', $sale->id) }}" @focus="open=true" @blur="open=false"
-               aria-label="Adicionar produtos"
-               class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-teal-400">
-                <i class="bi bi-plus-circle text-sm leading-none"></i>
-                <span class="sale-action-label">Produto</span>
-            </a>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Produto</span>
-        </div>
-
-        {{-- 5. Editar preços --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <a href="{{ route('sales.edit-prices', $sale->id) }}" @focus="open=true" @blur="open=false"
-               aria-label="Editar preços"
-               class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-violet-600 hover:bg-violet-700 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-violet-400">
-                <i class="bi bi-currency-dollar text-sm leading-none"></i>
-                <span class="sale-action-label">Preços</span>
-            </a>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Preços</span>
-        </div>
-
-        {{-- 6. Adicionar pagamento --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <a href="{{ route('sales.add-payments', $sale->id) }}" @focus="open=true" @blur="open=false"
-               aria-label="Adicionar pagamento"
-               class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400">
-                <i class="bi bi-credit-card text-sm leading-none"></i>
-                <span class="sale-action-label">Pag.</span>
-            </a>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Pagamento</span>
-        </div>
-
-        {{-- 7. Editar pagamentos --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <a href="{{ route('sales.edit-payments', $sale->id) }}" @focus="open=true" @blur="open=false"
-               aria-label="Editar pagamentos"
-               class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                <i class="bi bi-pencil-square text-sm leading-none"></i>
-                <span class="sale-action-label">Ed.Pag</span>
-            </a>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Ed. Pag.</span>
-        </div>
-
-        {{-- 8. Pagar tudo --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <button type="button" wire:click="payFull({{ $sale->id }})" @focus="open=true" @blur="open=false"
-                    aria-label="Pagar tudo"
-                    class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 hover:from-emerald-500 hover:to-green-700 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-300">
-                <i class="bi bi-cash-stack text-sm leading-none"></i>
-                <span class="sale-action-label">Quitar</span>
-            </button>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Quitar Tudo</span>
-        </div>
-
-        {{-- 9. Excluir --}}
-        <div class="relative" x-data="{ open:false }" @mouseenter="open=true" @mouseleave="open=false">
-            <button type="button" wire:click="confirmDelete({{ $sale->id }})" @focus="open=true" @blur="open=false"
-                    aria-label="Excluir venda"
-                    class="sale-card-icon-btn w-10 h-10 flex flex-col items-center justify-center rounded-xl bg-gradient-to-br from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-md hover:shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-red-400">
-                <i class="bi bi-trash text-sm leading-none"></i>
-                <span class="sale-action-label">Excluir</span>
-            </button>
-            <span x-show="open" x-cloak x-transition class="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 rounded-md text-xs font-medium bg-slate-900 text-white shadow-lg pointer-events-none z-50" role="tooltip">Excluir</span>
-        </div>
-
+    <div class="sale-card-actions" aria-label="Ações da venda">
+        @foreach ($actionItems as $action)
+            <div class="sale-card-action-wrap">
+                @if ($action['type'] === 'link')
+                    <a href="{{ $action['href'] }}"
+                        class="sale-card-action-chip sale-card-action-{{ $action['tone'] }}"
+                        data-tooltip="{{ $action['tooltip'] }}"
+                        title="{{ $action['tooltip'] }}"
+                        aria-label="{{ $action['tooltip'] }}">
+                        <span class="sale-card-action-icon">
+                            <i class="bi {{ $action['icon'] }}"></i>
+                        </span>
+                        <span class="sale-card-action-text">{{ $action['label'] }}</span>
+                    </a>
+                @else
+                    <button type="button"
+                        wire:click="{{ $action['wireClick'] }}"
+                        class="sale-card-action-chip sale-card-action-{{ $action['tone'] }}"
+                        data-tooltip="{{ $action['tooltip'] }}"
+                        title="{{ $action['tooltip'] }}"
+                        aria-label="{{ $action['tooltip'] }}">
+                        <span class="sale-card-action-icon">
+                            <i class="bi {{ $action['icon'] }}"></i>
+                        </span>
+                        <span class="sale-card-action-text">{{ $action['label'] }}</span>
+                    </button>
+                @endif
+            </div>
+        @endforeach
     </div>
 </div>
