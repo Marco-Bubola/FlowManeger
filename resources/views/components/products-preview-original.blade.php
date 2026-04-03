@@ -152,6 +152,8 @@
                                 dropdownTop: 0,
                                 dropdownLeft: 0,
                                 dropdownWidth: 0,
+                                dropdownBottom: 0,
+                                dropdownIsAbove: false,
                                 categories: {{ Js::from($categories->map(function($cat) use ($iconMap) {
                                     return [
                                         'id' => $cat->id_category,
@@ -170,9 +172,25 @@
                                 },
                                 openDropdown() {
                                     const rect = this.$refs.dropdownTrigger.getBoundingClientRect();
-                                    this.dropdownTop = rect.bottom + 4;
-                                    this.dropdownLeft = rect.left;
-                                    this.dropdownWidth = rect.width;
+                                    const vw = window.innerWidth;
+                                    const vh = window.innerHeight;
+                                    const dropH = 256; // max-h-60 = 240px + search bar ~16px
+                                    const spaceBelow = vh - rect.bottom;
+                                    const w = Math.max(180, Math.min(rect.width, vw - 16));
+                                    let left = rect.left;
+                                    if (left + w > vw - 8) left = vw - w - 8;
+                                    if (left < 8) left = 8;
+                                    this.dropdownWidth = w;
+                                    this.dropdownLeft = left;
+                                    if (spaceBelow < dropH && rect.top > dropH) {
+                                        this.dropdownIsAbove = true;
+                                        this.dropdownBottom = vh - rect.top + 4;
+                                        this.dropdownTop = 0;
+                                    } else {
+                                        this.dropdownIsAbove = false;
+                                        this.dropdownTop = rect.bottom + 4;
+                                        this.dropdownBottom = 0;
+                                    }
                                     this.open = true;
                                     this.$parent.dropdownOpen = true;
                                 },
@@ -191,7 +209,7 @@
                                 <div class="relative w-full max-w-xs" x-ref="dropdownAnchor">
                                     <button type="button"
                                             x-ref="dropdownTrigger"
-                                            @click="open ? closeDropdown() : openDropdown()"
+                                            @click.stop="open ? closeDropdown() : openDropdown()"
                                             class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-purple-200 bg-white dark:bg-slate-700 dark:border-purple-700 text-slate-700 dark:text-slate-200 hover:border-purple-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-400/20 focus:outline-none transition-all duration-200 text-xs">
                                         <span class="flex items-center gap-2 overflow-hidden">
                                             <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0"></i>
@@ -209,7 +227,9 @@
                                              x-transition:leave-start="opacity-100 scale-100"
                                              x-transition:leave-end="opacity-0 scale-95"
                                              @click.away="closeDropdown()"
-                                             :style="`position:fixed; z-index:2147483647; width:${dropdownWidth}px; top:${dropdownTop}px; left:${dropdownLeft}px`"
+                                             :style="dropdownIsAbove
+                                                 ? `position:fixed; z-index:2147483647; width:${dropdownWidth}px; bottom:${dropdownBottom}px; left:${dropdownLeft}px`
+                                                 : `position:fixed; z-index:2147483647; width:${dropdownWidth}px; top:${dropdownTop}px; left:${dropdownLeft}px`"
                                              class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
                                             <!-- Search -->
                                             <div class="p-2 border-b border-slate-200 dark:border-slate-700">
