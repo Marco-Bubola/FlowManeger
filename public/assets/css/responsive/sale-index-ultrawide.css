@@ -125,11 +125,22 @@
     .sale-card-fin-data strong {
         font-size: 0.88rem !important;
     }
-    .sale-card-actions a,
-    .sale-card-actions button {
-        font-size: 0.78rem !important;
-        padding: 0.5rem 0.75rem !important;
-        border-radius: 0.625rem !important;
+    .sales-index-page .sale-card-actions {
+        gap: 0.65rem !important;
+        padding-top: 0.9rem !important;
+    }
+    .sales-index-page .sale-card-action-chip {
+        min-height: 3.15rem !important;
+        padding: 0.58rem 0.8rem !important;
+        border-radius: 1rem !important;
+    }
+    .sales-index-page .sale-card-action-icon {
+        width: 2.05rem !important;
+        height: 2.05rem !important;
+        font-size: 1rem !important;
+    }
+    .sales-index-page .sale-card-action-text {
+        font-size: 0.76rem !important;
     }
     .sale-card-progress-status {
         padding: 0.5rem 0.75rem !important;
