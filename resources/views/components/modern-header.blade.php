@@ -12,10 +12,13 @@
     'ringColor' => 'ring-white/50 dark:ring-slate-700/50',
     'extra' => null
 ])
-<div class="relative overflow-hidden bg-gradient-to-r {{ $bg }} backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl mb-6 w-full">
-    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
-    <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full transform translate-x-16 -translate-y-16 blur-2xl"></div>
-    <div class="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-blue-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-12 translate-y-12 blur-xl"></div>
+<div class="relative bg-gradient-to-r {{ $bg }} backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-2xl mb-6 w-full">
+    {{-- Decorative background elements contained inside their own overflow-hidden wrapper --}}
+    <div class="absolute inset-0 overflow-hidden rounded-2xl pointer-events-none">
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
+        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full transform translate-x-16 -translate-y-16 blur-2xl"></div>
+        <div class="absolute bottom-0 left-0 w-28 h-28 bg-gradient-to-tr from-blue-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-12 translate-y-12 blur-xl"></div>
+    </div>
     <div class="relative px-6 py-5">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div class="flex items-center gap-5">
