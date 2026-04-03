@@ -4,4 +4,11 @@
     .dashboard-index-page .grid { grid-template-columns: 1fr !important; }
     .dashboard-index-page .xl\:col-span-8,
     .dashboard-index-page .xl\:col-span-4 { grid-column: 1 / -1 !important; }
+    .dashboard-index-page .px-4 { padding-left: .85rem !important; padding-right: .85rem !important; }
+    .dashboard-index-page .text-3xl { font-size: 1.7rem !important; }
+    .dashboard-index-page .text-2xl { font-size: 1.35rem !important; }
+    .dashboard-index-page .rounded-\[28px\] { border-radius: 22px !important; }
+    .dashboard-index-page .rounded-\[24px\] { border-radius: 18px !important; }
+    .dashboard-index-page button.rounded-full,
+    .dashboard-index-page .inline-flex.rounded-full { width: 100%; justify-content: center; }
 }
