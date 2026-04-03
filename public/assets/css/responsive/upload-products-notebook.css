@@ -22,7 +22,8 @@
 
     .upload-history-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        max-height: 530px !important;
+        max-height: none !important;
+        overflow-y: visible !important;
         gap: 0.85rem !important;
     }
 
@@ -35,22 +36,15 @@
         gap: 0.7rem !important;
     }
 
-    .upload-products-page .products-preview-grid .product-img-area {
-        height: 185px !important;
-        min-height: 185px !important;
-    }
-
+    /* Imagem proporcional via aspect-ratio (base) */
     .upload-products-page .products-preview-grid .product-card-modern {
         min-height: 0 !important;
         height: auto !important;
+        border-radius: 1.1rem !important;
     }
 
     .upload-products-page .products-preview-grid .product-img-area .product-img {
         border-radius: 0.9rem !important;
-    }
-
-    .upload-products-page .products-preview-grid .product-card-modern {
-        border-radius: 1.1rem !important;
     }
 
     .upload-products-page .products-preview-grid .card-body {
@@ -62,6 +56,11 @@
         font-size: 0.9em !important;
         letter-spacing: 0.04em !important;
         line-height: 1.25 !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-title-editable input {
+        font-size: 0.83rem !important;
+        letter-spacing: 0.02em !important;
     }
 
     .upload-products-page .products-preview-grid .badge-product-code,
@@ -114,7 +113,8 @@
 
     .upload-history-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        max-height: 560px !important;
+        max-height: none !important;
+        overflow-y: visible !important;
         gap: 1rem !important;
     }
 
@@ -124,15 +124,7 @@
         gap: 0.75rem !important;
     }
 
-    .upload-products-page .products-preview-grid .product-img-area {
-        height: 195px !important;
-        min-height: 195px !important;
-    }
-
-    .upload-products-page .products-preview-grid .product-img-area .product-img {
-        border-radius: 1rem !important;
-    }
-
+    /* Imagem proporcional via aspect-ratio (base) */
     .upload-products-page .products-preview-grid .product-card-modern {
         border-radius: 1.2rem !important;
         min-height: 0 !important;
@@ -148,6 +140,11 @@
         font-size: 0.92em !important;
         letter-spacing: 0.05em !important;
         line-height: 1.25 !important;
+    }
+
+    .upload-products-page .products-preview-grid .product-title-editable input {
+        font-size: 0.85rem !important;
+        letter-spacing: 0.025em !important;
     }
 
     .upload-products-page .products-preview-grid .badge-product-code,
