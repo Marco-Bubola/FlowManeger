@@ -95,12 +95,37 @@
         gap: 0.5rem !important;
     }
 
+    .upload-stage-shell,
+    .upload-history-shell {
+        border-radius: 1.15rem !important;
+    }
+
+    .upload-stage-shell > .relative,
+    .upload-history-shell > .relative {
+        padding: 0.85rem !important;
+    }
+
+    .upload-stage-badges {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+    }
+
+    .upload-stage-badges > div {
+        padding: 0.65rem 0.75rem !important;
+        border-radius: 0.9rem !important;
+    }
+
     /* ── Drop zone ── */
     .upload-drop-zone {
         height: auto !important;
-        min-height: 220px !important;
+        min-height: 340px !important;
         border-radius: 1rem !important;
         transform: none !important;
+    }
+
+    .upload-drop-zone-premium::after {
+        inset: 10px !important;
+        border-radius: 1rem !important;
     }
 
     .upload-drop-zone .relative.flex.flex-col.items-center.justify-center.px-10 {
@@ -170,6 +195,22 @@
         overflow-y: visible !important;
         padding-right: 0 !important;
         gap: 0.65rem !important;
+    }
+
+    .upload-history-pagination {
+        gap: 0.75rem !important;
+    }
+
+    .upload-history-pagination > div:last-child {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .upload-history-pagination button {
+        min-height: 2.55rem !important;
+        padding: 0.55rem 0.85rem !important;
+        border-radius: 0.9rem !important;
+        font-size: 0.72rem !important;
     }
 
     /* Estado vazio */
@@ -263,19 +304,10 @@
         gap: 0.5rem !important;
     }
 
-    .upload-products-page .product-card-modern .product-img-area {
-        min-height: 120px !important;
-        height: 120px !important;
-    }
-
-    /* Card proporcional – sem altura fixsa gigante */
+    /* Card e imagem proporcionais via aspect-ratio (definido em produtos.css base) */
     .upload-products-page .product-card-modern {
         min-height: 0 !important;
         height: auto !important;
-    }
-    .upload-products-page .product-card-modern .product-img {
-        height: 120px !important;
-        max-height: 120px !important;
     }
 
     .upload-products-page .product-card-modern .category-icon-wrapper {
@@ -337,6 +369,8 @@
 
     /* Input do nome */
     .upload-products-page .product-card-modern .product-title-editable input {
-        font-size: 0.75em !important;
+        font-size: 0.68rem !important;
+        letter-spacing: 0.01em !important;
+        padding-inline: 0.1rem !important;
     }
 }
