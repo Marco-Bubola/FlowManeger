@@ -1,6 +1,7 @@
 /* Create Sale - Mobile Base (<= 767px) */
 @media (max-width: 767.98px) {
     .sales-create-page {
+        --cs-page-px: 0.55rem;
         padding-inline: 0.55rem;
         padding-bottom: calc(82px + env(safe-area-inset-bottom));
     }
@@ -63,6 +64,12 @@
     .sales-create-page .create-sale-summary-pane {
         width: 100% !important;
         height: auto !important;
+    }
+
+    /* Resumo acima do catálogo no mobile — melhor UX (cliente/dados primeiro) */
+    .sales-create-page .create-sale-summary-pane {
+        order: -1;
+        position: static !important;
     }
 
     .sales-create-page .create-sale-products-controls {
