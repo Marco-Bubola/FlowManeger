@@ -1,3 +1,19 @@
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .dashboard-banks-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+    .dashboard-banks-page {
+        min-height: 100dvh;
+        height: auto;
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+    }
+
+    .dashboard-banks-page .max-w-\[1780px\] {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .dashboard-banks-page #banksTrendChart,
+    .dashboard-banks-page #banksRankingChart,
+    .dashboard-banks-page #banksCategoryChart,
+    .dashboard-banks-page #banksCycleChart {
+        height: 300px !important;
+    }
 }
