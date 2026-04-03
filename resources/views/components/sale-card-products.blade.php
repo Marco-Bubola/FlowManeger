@@ -8,7 +8,7 @@
 @endphp
 
 @if($displayItems->isNotEmpty())
-    <div class="sale-card-products">
+    <div class="sale-card-products" data-count="{{ $displayItems->count() }}">
         @foreach($displayItems as $item)
             @php
                 $product = $item->product;
