@@ -1,3 +1,10 @@
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .dashboard-banks-page { }
+    .dashboard-banks-page {
+        min-height: 100dvh;
+        height: auto;
+    }
+
+    .dashboard-banks-page .max-w-\[1780px\] {
+        max-width: 1280px;
+    }
 }
