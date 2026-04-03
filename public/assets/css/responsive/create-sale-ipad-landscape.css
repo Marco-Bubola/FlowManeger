@@ -124,19 +124,9 @@
         min-height: 2.2rem !important;
     }
 
-    /* Pill de stats — proporcional ao header landscape */
+    /* Pill de stats — ocultar no iPad landscape (info redundante com painel lateral) */
     .sales-create-page .create-header-stat-pill {
-        min-height: 1.8rem !important;
-        padding: 0.26rem 0.52rem !important;
-        gap: 0.28rem !important;
-        border-radius: 0.6rem !important;
-    }
-    .sales-create-page .create-header-stat-pill i {
-        font-size: 0.8rem !important;
-    }
-    .sales-create-page .create-header-stat-pill strong {
-        font-size: 0.78rem !important;
-        line-height: 1.1 !important;
+        display: none !important;
     }
     .sales-create-page .create-header-next-meta {
         display: none !important;
@@ -351,9 +341,7 @@
         font-size: 0.88rem !important;
     }
     .sales-create-page .create-sale-summary-title-wrap p {
-        font-size: 0.62rem !important;
-        line-height: 1.25 !important;
-        margin-top: 0.08rem !important;
+        display: none !important;
     }
     .sales-create-page .create-sale-summary-status {
         padding: 0.22rem 0.44rem !important;
@@ -364,6 +352,7 @@
 
     /* Stat cells do resumo */
     .sales-create-page .create-sale-summary-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
         gap: 0.34rem !important;
         margin-bottom: 0.48rem !important;
     }
