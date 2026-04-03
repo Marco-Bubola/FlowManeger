@@ -605,13 +605,29 @@
 
                                         <div class="create-sale-selected-field">
                                             <label for="price-{{ $selectedProduct->id }}">Preço</label>
-                                            <div class="relative">
+                                            <div class="relative"
+                                                 x-data="{
+                                                     cts: {{ (int)round($productItem['unit_price'] * 100) }},
+                                                     fmt() {
+                                                         let s = String(this.cts).padStart(3, '0');
+                                                         let d = s.slice(-2);
+                                                         let i = s.slice(0, -2).replace(/^0+/, '') || '0';
+                                                         i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                                         return i + ',' + d;
+                                                     },
+                                                     inp(e) {
+                                                         let digs = e.target.value.replace(/\D/g, '');
+                                                         this.cts = digs ? parseInt(digs) : 0;
+                                                         e.target.value = this.fmt();
+                                                     }
+                                                 }">
                                                 <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-slate-400 dark:text-slate-500 pointer-events-none">R$</span>
-                                                <input type="number"
+                                                <input type="text"
+                                                       inputmode="numeric"
                                                        id="price-{{ $selectedProduct->id }}"
-                                                       wire:change="updateProductPrice({{ $selectedProduct->id }}, $event.target.value)"
-                                                       value="{{ number_format($productItem['unit_price'], 2, '.', '') }}"
-                                                       step="0.01" min="0"
+                                                       x-init="$el.value = fmt()"
+                                                       @input="inp($event)"
+                                                       @blur="$wire.updateProductPrice({{ $selectedProduct->id }}, (cts / 100).toFixed(2))"
                                                        class="pl-6 text-green-600 dark:text-green-400">
                                             </div>
                                         </div>
