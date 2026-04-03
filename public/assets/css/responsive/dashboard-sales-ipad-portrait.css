@@ -1,3 +1,28 @@
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
     .dashboard-sales-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+
+    .dashboard-sales-page .dashboard-sales-shell {
+        padding-inline: 1rem !important;
+    }
+
+    .dashboard-sales-page .grid.xl\:grid-cols-12 {
+        grid-template-columns: repeat(6, 1fr) !important;
+    }
+
+    .dashboard-sales-page .xl\:col-span-8,
+    .dashboard-sales-page .xl\:col-span-7,
+    .dashboard-sales-page .xl\:col-span-6,
+    .dashboard-sales-page .xl\:col-span-5,
+    .dashboard-sales-page .xl\:col-span-4,
+    .dashboard-sales-page .xl\:col-span-3 {
+        grid-column: span 6 !important;
+    }
+
+    .dashboard-sales-page .sales-chart-lg {
+        min-height: 280px !important;
+    }
+
+    .dashboard-sales-page .sales-chart-md {
+        min-height: 240px !important;
+    }
 }
