@@ -1,3 +1,15 @@
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .dashboard-banks-page { }
+    .dashboard-banks-page {
+        min-height: 100dvh;
+        height: auto;
+    }
+
+    .dashboard-banks-page .max-w-\[1780px\] {
+        max-width: 1180px;
+    }
+
+    .dashboard-banks-page #banksTrendChart,
+    .dashboard-banks-page #banksRankingChart {
+        height: 300px !important;
+    }
 }
