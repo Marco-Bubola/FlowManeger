@@ -1,11 +1,28 @@
 /* Dashboard Index — iPad Landscape */
 @media (min-width: 768px) and (max-width: 1180px) and (orientation: landscape) {
     .dashboard-index-page { padding-inline: 1.2rem !important; }
+    .dashboard-index-page .dashboard-shell { padding-top: 1.1rem !important; padding-bottom: 1.1rem !important; }
     .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(8, 1fr) !important; }
     .dashboard-index-page .xl\:col-span-8 { grid-column: span 5 !important; }
     .dashboard-index-page .xl\:col-span-4 { grid-column: span 3 !important; }
     .dashboard-index-page .grid.lg\:grid-cols-3 { grid-template-columns: repeat(3, 1fr) !important; }
+    .dashboard-index-page .sm\:grid-cols-4 { grid-template-columns: repeat(4, 1fr) !important; }
+    .dashboard-index-page .dashboard-chart-lg { min-height: 280px !important; }
+    .dashboard-index-page .dashboard-chart-md { min-height: 232px !important; }
+    .dashboard-index-page .lg\:min-w-\[320px\] { min-width: 280px !important; }
+    .dashboard-index-page .text-3xl { font-size: 1.9rem !important; }
+    .dashboard-index-page .text-2xl { font-size: 1.45rem !important; }
+    .dashboard-index-page .rounded-\[28px\],
+    .dashboard-index-page .rounded-\[24px\] { border-radius: 22px !important; }
+    .dashboard-index-page .p-5,
+    .dashboard-index-page .p-6 { padding: 1rem !important; }
+    .dashboard-index-page button.rounded-full { white-space: nowrap !important; }
 }
 @media (min-width: 1181px) and (max-width: 1366px) and (orientation: landscape) {
     .dashboard-index-page .grid.xl\:grid-cols-12 { grid-template-columns: repeat(12, 1fr) !important; }
+    .dashboard-index-page .dashboard-chart-lg { min-height: 295px !important; }
+    .dashboard-index-page .dashboard-chart-md { min-height: 240px !important; }
+    .dashboard-index-page .space-y-6 > section { margin-bottom: 1.25rem !important; }
+    .dashboard-index-page .p-5,
+    .dashboard-index-page .p-6 { padding: 1.05rem !important; }
 }
