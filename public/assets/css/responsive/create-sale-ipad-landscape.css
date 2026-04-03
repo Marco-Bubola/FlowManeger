@@ -7,6 +7,7 @@
 
     /* ── PAGE ────────────────────────────────────────────── */
     .sales-create-page {
+        --cs-page-px: 0.95rem;
         padding-inline: 0.95rem;
         padding-bottom: calc(65px + env(safe-area-inset-bottom));
     }
@@ -182,7 +183,7 @@
         overflow-y: auto !important;
     }
 
-    /* Painel direito — resumo + selecionados */
+    /* Painel direito — resumo + selecionados: sticky ajustado para header compacto */
     .sales-create-page .create-sale-summary-pane {
         width: 32% !important;
         height: auto !important;
@@ -190,6 +191,7 @@
         display: flex !important;
         flex-direction: column !important;
         overflow: visible !important;
+        top: 4.25rem; /* header compacto no landscape */
     }
 
     /* Lista de selecionados proporcional */
