@@ -3,8 +3,14 @@
 namespace App\Livewire\Dashboard;
 
 use App\Models\Client;
+use App\Models\MercadoLivreOrder;
+use App\Models\MercadoLivreSyncLog;
+use App\Models\MlPublication;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Models\ShopeeOrder;
+use App\Models\ShopeePublication;
+use App\Models\ShopeeSyncLog;
 use App\Models\Product;
 use App\Models\Category;
 use Illuminate\Support\Facades\DB;
@@ -49,6 +55,23 @@ class DashboardSales extends Component
     public float $customerSatisfaction = 0;
     public int $totalVendas = 0;
     public int $totalDiasAtivos = 30; // Total de dias no período ativo
+
+    // Marketplaces
+    public int $mlOrdersCount = 0;
+    public float $mlRevenue = 0;
+    public int $mlPaidOrders = 0;
+    public int $mlPublicationsAtivas = 0;
+    public int $shopeeOrdersCount = 0;
+    public float $shopeeRevenue = 0;
+    public int $shopeeCompletedOrders = 0;
+    public int $shopeePublicationsAtivas = 0;
+    public array $marketplaceSplit = [];
+    public array $marketplaceMonthly = [];
+    public array $marketplaceStatus = [];
+    public array $recentMlOrders = [];
+    public array $recentShopeeOrders = [];
+    public array $marketplaceLogs = [];
+    public array $marketplaceSyncHealth = [];
 
     // Últimas informações
     public $ultimaVenda = null;
@@ -249,8 +272,209 @@ class DashboardSales extends Component
             })
             ->count();
 
+        $this->loadMarketplaceMetrics($userId);
+
         // Métricas avançadas
         $this->calcularMetricasAvancadas($userId);
+    }
+
+    private function loadMarketplaceMetrics(int $userId): void
+    {
+        $internalOrdersCount = Sale::where('user_id', $userId)->count();
+
+        $mlOrdersBase = DB::table('mercadolivre_orders as mo')
+            ->join('ml_publications as mp', 'mp.ml_item_id', '=', 'mo.ml_item_id')
+            ->where('mp.user_id', $userId);
+
+        $this->mlOrdersCount = (clone $mlOrdersBase)->count('mo.id');
+        $this->mlRevenue = (float) (clone $mlOrdersBase)->sum('mo.total_amount');
+        $this->mlPaidOrders = (clone $mlOrdersBase)
+            ->where(function ($query) {
+                $query->where('mo.payment_status', 'approved')
+                    ->orWhere('mo.order_status', 'delivered');
+            })
+            ->count('mo.id');
+        $this->mlPublicationsAtivas = MlPublication::where('user_id', $userId)
+            ->where('status', 'active')
+            ->count();
+
+        $shopeeOrdersBase = ShopeeOrder::where('user_id', $userId);
+        $this->shopeeOrdersCount = (clone $shopeeOrdersBase)->count();
+        $this->shopeeRevenue = (float) (clone $shopeeOrdersBase)->sum('total_amount');
+        $this->shopeeCompletedOrders = (clone $shopeeOrdersBase)
+            ->whereIn('order_status', ['COMPLETED', 'SHIPPED'])
+            ->count();
+        $this->shopeePublicationsAtivas = ShopeePublication::where('user_id', $userId)
+            ->where('status', 'active')
+            ->count();
+
+        $labels = collect(range(5, 0))
+            ->map(fn ($monthsAgo) => now()->subMonths($monthsAgo)->format('M/y'))
+            ->values()
+            ->all();
+
+        $internalMonthly = Sale::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as period, SUM(total_price) as total")
+            ->where('user_id', $userId)
+            ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->groupBy('period')
+            ->pluck('total', 'period');
+
+        $mlMonthly = DB::table('mercadolivre_orders as mo')
+            ->join('ml_publications as mp', 'mp.ml_item_id', '=', 'mo.ml_item_id')
+            ->where('mp.user_id', $userId)
+            ->where('mo.date_created', '>=', now()->subMonths(5)->startOfMonth())
+            ->selectRaw("DATE_FORMAT(mo.date_created, '%Y-%m') as period, SUM(mo.total_amount) as total")
+            ->groupBy('period')
+            ->pluck('total', 'period');
+
+        $shopeeMonthly = ShopeeOrder::where('user_id', $userId)
+            ->where('shopee_created_at', '>=', now()->subMonths(5)->startOfMonth())
+            ->selectRaw("DATE_FORMAT(shopee_created_at, '%Y-%m') as period, SUM(total_amount) as total")
+            ->groupBy('period')
+            ->pluck('total', 'period');
+
+        $periodKeys = collect(range(5, 0))
+            ->map(fn ($monthsAgo) => now()->subMonths($monthsAgo)->format('Y-m'))
+            ->values();
+
+        $this->marketplaceMonthly = [
+            'labels' => $labels,
+            'internal' => $periodKeys->map(fn ($period) => (float) ($internalMonthly[$period] ?? 0))->all(),
+            'mercadoLivre' => $periodKeys->map(fn ($period) => (float) ($mlMonthly[$period] ?? 0))->all(),
+            'shopee' => $periodKeys->map(fn ($period) => (float) ($shopeeMonthly[$period] ?? 0))->all(),
+        ];
+
+        $this->marketplaceSplit = [
+            'labels' => ['Loja', 'Mercado Livre', 'Shopee'],
+            'revenue' => [
+                (float) $this->totalFaturamento,
+                (float) $this->mlRevenue,
+                (float) $this->shopeeRevenue,
+            ],
+            'orders' => [
+                (int) $internalOrdersCount,
+                (int) $this->mlOrdersCount,
+                (int) $this->shopeeOrdersCount,
+            ],
+            'publications' => [
+                0,
+                (int) $this->mlPublicationsAtivas,
+                (int) $this->shopeePublicationsAtivas,
+            ],
+        ];
+
+        $mlCancelled = DB::table('mercadolivre_orders as mo')
+            ->join('ml_publications as mp', 'mp.ml_item_id', '=', 'mo.ml_item_id')
+            ->where('mp.user_id', $userId)
+            ->where('mo.order_status', 'cancelled')
+            ->count('mo.id');
+
+        $shopeeCancelled = ShopeeOrder::where('user_id', $userId)
+            ->where('order_status', 'CANCELLED')
+            ->count();
+
+        $this->marketplaceStatus = [
+            'labels' => ['Concluidos', 'Pendentes', 'Cancelados'],
+            'mercadoLivre' => [
+                (int) $this->mlPaidOrders,
+                max($this->mlOrdersCount - $this->mlPaidOrders - $mlCancelled, 0),
+                (int) $mlCancelled,
+            ],
+            'shopee' => [
+                (int) $this->shopeeCompletedOrders,
+                max($this->shopeeOrdersCount - $this->shopeeCompletedOrders - $shopeeCancelled, 0),
+                (int) $shopeeCancelled,
+            ],
+        ];
+
+        $this->recentMlOrders = DB::table('mercadolivre_orders as mo')
+            ->join('ml_publications as mp', 'mp.ml_item_id', '=', 'mo.ml_item_id')
+            ->where('mp.user_id', $userId)
+            ->orderByDesc('mo.date_created')
+            ->limit(5)
+            ->get([
+                'mo.ml_order_id',
+                'mo.buyer_nickname',
+                'mo.total_amount',
+                'mo.order_status',
+                'mo.payment_status',
+                'mo.date_created',
+            ])
+            ->map(fn ($order) => (array) $order)
+            ->all();
+
+        $this->recentShopeeOrders = ShopeeOrder::where('user_id', $userId)
+            ->orderByDesc('shopee_created_at')
+            ->limit(5)
+            ->get([
+                'shopee_order_sn',
+                'buyer_username',
+                'total_amount',
+                'order_status',
+                'shopee_created_at',
+            ])
+            ->map(fn ($order) => $order->toArray())
+            ->all();
+
+        $mlSuccessLogs = MercadoLivreSyncLog::where('user_id', $userId)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->where('status', 'success')
+            ->count();
+        $mlErrorLogs = MercadoLivreSyncLog::where('user_id', $userId)
+            ->where('created_at', '>=', now()->subDays(30))
+            ->where('status', 'error')
+            ->count();
+        $shopeeSuccessLogs = ShopeeSyncLog::where('user_id', $userId)
+            ->where('platform', 'shopee')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->where('status', 'success')
+            ->count();
+        $shopeeErrorLogs = ShopeeSyncLog::where('user_id', $userId)
+            ->where('platform', 'shopee')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->where('status', 'error')
+            ->count();
+
+        $this->marketplaceSyncHealth = [
+            'mercadoLivre' => ['success' => $mlSuccessLogs, 'error' => $mlErrorLogs],
+            'shopee' => ['success' => $shopeeSuccessLogs, 'error' => $shopeeErrorLogs],
+        ];
+
+        $mlLogs = MercadoLivreSyncLog::where('user_id', $userId)
+            ->orderByDesc('created_at')
+            ->limit(4)
+            ->get(['sync_type', 'status', 'message', 'created_at'])
+            ->map(fn ($log) => [
+                'channel' => 'Mercado Livre',
+                'sync_type' => $log->sync_type,
+                'status' => $log->status,
+                'message' => $log->message,
+                'created_at' => $log->created_at,
+            ]);
+
+        $shopeeLogs = ShopeeSyncLog::where('user_id', $userId)
+            ->where('platform', 'shopee')
+            ->orderByDesc('created_at')
+            ->limit(4)
+            ->get(['sync_type', 'status', 'message', 'created_at'])
+            ->map(fn ($log) => [
+                'channel' => 'Shopee',
+                'sync_type' => $log->sync_type,
+                'status' => $log->status,
+                'message' => $log->message,
+                'created_at' => $log->created_at,
+            ]);
+
+        $this->marketplaceLogs = $mlLogs
+            ->concat($shopeeLogs)
+            ->sortByDesc('created_at')
+            ->take(8)
+            ->map(function ($log) {
+                $log['created_at'] = optional($log['created_at'])->format('d/m H:i');
+                return $log;
+            })
+            ->values()
+            ->all();
     }
 
     private function calcularMetricasAvancadas($userId)
