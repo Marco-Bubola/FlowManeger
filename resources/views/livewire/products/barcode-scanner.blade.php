@@ -556,7 +556,7 @@
                      x-transition:leave="transition ease-in duration-150"
                      x-transition:leave-start="opacity-100 scale-100 translate-y-0"
                      x-transition:leave-end="opacity-0 scale-95 -translate-y-1"
-                     class="absolute right-0 top-[calc(100%+8px)] z-[100] w-72 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xl shadow-slate-900/20 overflow-hidden"
+                     class="absolute right-0 top-[calc(100%+8px)] z-[9999] w-72 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xl shadow-slate-900/20 overflow-hidden"
                      style="display:none">
                     <div class="px-3 py-2 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
                         <span class="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
@@ -643,8 +643,8 @@
             {{-- ═══ WORKSPACE: Scanner (esq. 1/4) + Painel (dir. 3/4 sticky) ═══ --}}
             <div class="grid grid-cols-1 md:grid-cols-12 lg:grid-cols-12 gap-4 items-start">
 
-                {{-- ─────────── SCANNER (≈ 1/4 da tela) ─────────── --}}
-                <div class="md:col-span-5 lg:col-span-3">
+                {{-- ─────────── SCANNER + HISTÓRICO (esq. ≈ 1/3) ─────────── --}}
+                <div class="md:col-span-4 lg:col-span-4 space-y-4 lg:sticky lg:top-4">
 
                     {{-- ═══ SCANNER ═══ --}}
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-xl overflow-hidden">
@@ -809,10 +809,64 @@
                         </div>
                     </div>
 
-                </div>{{-- end scanner col --}}
+                    {{-- ═══ HISTÓRICO (abaixo do scanner) ═══ --}}
+                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
+                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
+                        <div class="relative p-4">
+                            <div class="mb-3 flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                                        <i class="fas fa-clock-rotate-left text-white text-xs"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black tracking-[0.18em] text-slate-500/60 dark:text-slate-400/60 uppercase">Linha do tempo</p>
+                                        <h3 class="text-sm font-black text-slate-800 dark:text-white leading-tight">Últimas leituras</h3>
+                                    </div>
+                                </div>
+                                @if(count($scanHistory) > 0)
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-black bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300">{{ count($scanHistory) }}</span>
+                                    <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1" title="Limpar histórico">
+                                        <i class="fas fa-trash-can"></i>
+                                    </button>
+                                </div>
+                                @endif
+                            </div>
+                            @if(count($scanHistory) === 0)
+                            <div class="text-center py-8">
+                                <div class="w-12 h-12 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-2">
+                                    <i class="fas fa-list-check text-xl text-slate-300 dark:text-slate-600"></i>
+                                </div>
+                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
+                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
+                            </div>
+                            @else
+                            <div class="space-y-1.5 max-h-[260px] overflow-y-auto pr-1">
+                                @foreach($scanHistory as $entry)
+                                <div class="flex items-start gap-2 p-2 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
+                                    <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
+                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[9px]"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        @if($entry['found'])
+                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
+                                        @else
+                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
+                                        @endif
+                                        <p class="text-[9px] text-slate-400 font-mono truncate">{{ $entry['code'] }}</p>
+                                        <p class="text-[9px] text-slate-400">{{ $entry['scanned_at'] }}</p>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                    </div>
 
-                {{-- ─────────── RESULTADO / VINCULAR (≈ 1/2 da tela) ─────────── --}}
-                <div class="md:col-span-7 lg:col-span-6 space-y-4">
+                </div>{{-- end scanner + history col --}}
+
+                {{-- ─────────── RESULTADOS / VINCULAR (dir. ≈ 2/3) ─────────── --}}
+                <div class="md:col-span-8 lg:col-span-8 space-y-4">
 
                     @if($activeMode === 'vincular')
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border-2 border-cyan-400/50 dark:border-cyan-600/50 shadow-xl shadow-cyan-500/8 overflow-hidden">
@@ -988,7 +1042,10 @@
                             @endif
                         </div>
                     </div>
-                    @elseif($onlineLoading || $onlineResult || $onlineError || $foundProduct || $searchMessage)
+                    @endif{{-- fim bloco vincular --}}
+
+                    {{-- ─── Resultados: online + produto encontrado (visíveis mesmo no modo vincular) ─── --}}
+                    @if($onlineLoading || $onlineResult || $onlineError || $foundProduct || $searchMessage)
                     {{-- Search message --}}
                     @if($searchMessage)
                     @if($searchStatus === 'error')
@@ -1401,8 +1458,8 @@
                         </details>
                         @endif
                     </div>
-                    @endif
-                    @else
+                    @endif{{-- end onlineError block --}}
+                    @elseif($activeMode !== 'vincular')
                     <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
                         <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.35) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.35) 1px, transparent 1px); background-size: 24px 24px; opacity: 0.025;"></div>
                         <div class="relative flex flex-col items-center justify-center py-16 px-6 text-center gap-4">
@@ -1532,63 +1589,6 @@
                     @endif
 
                 </div>{{-- end result col --}}
-
-                {{-- ─────────── HISTÓRICO (≈ 1/4 da tela) ─────────── --}}
-                <div class="md:col-span-12 lg:col-span-3">
-
-                    {{-- ═══ ESTATÍSTICAS ═══ --}}
-                    
-
-                    {{-- ═══ HISTÓRICO ═══ --}}
-                    <div class="relative bg-white/95 dark:bg-slate-900/90 backdrop-blur-md rounded-[28px] border border-slate-200/60 dark:border-slate-700/60 shadow-lg overflow-hidden">
-                        <div class="absolute inset-0 pointer-events-none" style="background-image: linear-gradient(rgba(99,102,241,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.3) 1px, transparent 1px); background-size: 20px 20px; opacity: 0.02;"></div>
-                        <div class="relative p-4">
-                            <div class="mb-4 flex items-center justify-between gap-3">
-                                <div>
-                                    <p class="text-[11px] font-black tracking-[0.22em] text-slate-500/70 dark:text-slate-400/70 uppercase">Linha do tempo</p>
-                                    <h3 class="text-base font-black text-slate-800 dark:text-white">Últimas leituras</h3>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between mb-3">
-                                @if(count($scanHistory) > 0)
-                                <span class="px-2.5 py-1 rounded-full text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">{{ count($scanHistory) }} leitura(s)</span>
-                                <button wire:click="clearHistory" class="text-[10px] text-red-400 hover:text-red-600 transition-colors font-bold flex items-center gap-1">
-                                    <i class="fas fa-trash-can"></i> Limpar
-                                </button>
-                                @endif
-                            </div>
-                            @if(count($scanHistory) === 0)
-                            <div class="text-center py-10">
-                                <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 dark:bg-slate-800/60 flex items-center justify-center mb-3">
-                                    <i class="fas fa-list-check text-2xl text-slate-300 dark:text-slate-600"></i>
-                                </div>
-                                <p class="text-xs text-slate-400 font-semibold">Nenhuma leitura ainda</p>
-                                <p class="text-[10px] text-slate-300 dark:text-slate-600 mt-0.5">Escaneie para ver o histórico</p>
-                            </div>
-                            @else
-                            <div class="space-y-2 max-h-[360px] overflow-y-auto pr-1">
-                                @foreach($scanHistory as $entry)
-                                <div class="flex items-start gap-2.5 p-2.5 rounded-xl {{ $entry['found'] ? 'bg-emerald-50/60 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-900/30' : 'bg-red-50/60 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30' }}">
-                                    <div class="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm {{ $entry['found'] ? 'bg-gradient-to-br from-emerald-500 to-teal-600' : 'bg-gradient-to-br from-red-500 to-rose-600' }}">
-                                        <i class="{{ $entry['found'] ? 'fas fa-check' : 'fas fa-xmark' }} text-white text-[10px]"></i>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        @if($entry['found'])
-                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $entry['product']['name'] }}</p>
-                                        @else
-                                        <p class="text-xs font-bold text-red-600 dark:text-red-400">Não encontrado</p>
-                                        @endif
-                                        <p class="text-[9px] text-slate-400 font-mono mt-0.5 truncate">{{ $entry['code'] }}</p>
-                                        <p class="text-[9px] text-slate-400 mt-0.5">{{ $entry['scanned_at'] }}</p>
-                                    </div>
-                                </div>
-                                @endforeach
-                            </div>
-                            @endif
-                        </div>
-                    </div>
-
-                </div>{{-- end history col --}}
             </div>{{-- end workspace grid --}}
         </div>{{-- end content wrapper --}}
     </div>{{-- end main wrapper --}}
