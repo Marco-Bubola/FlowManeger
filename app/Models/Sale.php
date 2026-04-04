@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\SalePayment as ModelsSalePayment;
+use App\Traits\HasTeamScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,9 @@ use SalePayment;
 class Sale extends Model
 {
     use HasFactory;
+    use HasTeamScope;
+
+    protected string $teamScopeModule = 'sales';
 
     protected $fillable = [
         'client_id',
