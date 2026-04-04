@@ -70,31 +70,49 @@
         }
     </style>
 
-    <!-- Header Modernizado -->
-    <x-sales-add-products-header
-        :sale="$sale"
-        :back-route="route('sales.show', $sale->id)"
-        :total-selected="count($newProducts)" />
+    <!-- Header Compacto Sticky (mesmo visual do Create/Edit Sale) -->
+    <div class="sticky top-0 z-50 bg-white/88 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/55 dark:border-slate-700/40 -mx-[0.85rem] px-4 py-2.5 mb-3">
+        <div class="flex items-center gap-3">
+            <a href="{{ route('sales.show', $sale->id) }}"
+               class="shrink-0 w-9 h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 hover:text-indigo-600 transition-all">
+                <i class="bi bi-arrow-left text-sm"></i>
+            </a>
+            <span class="shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow">
+                <i class="bi bi-plus-circle text-base"></i>
+            </span>
+            <div class="flex-1 min-w-0">
+                <h1 class="text-sm font-bold text-slate-800 dark:text-white leading-tight">Adicionar Produtos</h1>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                    Venda #{{ $sale->id }} · {{ $sale->client->name ?? 'Cliente' }}
+                </p>
+            </div>
+            @if(count($newProducts) > 0 && $this->hasSelectedProducts())
+            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                <i class="bi bi-check-circle-fill"></i>{{ count(array_filter($newProducts, fn($p) => !empty($p['product_id']))) }} novos
+            </span>
+            @endif
+        </div>
+    </div>
 
     <!-- Layout Split 3/4 e 1/4 -->
-    <div class="w-full h-[75vh] flex add-products-split-shell">
+    <div class="w-full flex add-products-split-shell">
         <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
         <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col add-products-pane">
             <!-- Header com Controles -->
-            <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
-                        <i class="bi bi-box text-emerald-600 dark:text-emerald-400 mr-3"></i>
+            <div class="p-3 border-b border-gray-200 dark:border-zinc-700">
+                <div class="flex flex-row items-center gap-2 mb-2">
+                    <h2 class="text-sm font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                        <i class="bi bi-box text-emerald-600 dark:text-emerald-400"></i>
                         Selecionar Produtos
                     </h2>
-                    <div class="flex items-center gap-2">
+                    <div class="flex items-center gap-1.5 ml-auto">
                         @if($filteredProducts->isNotEmpty())
-                        <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-700 px-2 py-1 rounded-lg">
+                        <span class="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-zinc-700 px-2 py-0.5 rounded-lg">
                             {{ $filteredProducts->count() }} {{ $filteredProducts->count() === 1 ? 'produto' : 'produtos' }}
                         </span>
                         @endif
                         @if(count($newProducts) > 0 && $this->hasSelectedProducts())
-                        <span class="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 px-2 py-1 rounded-lg">
+                        <span class="text-xs font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-200 dark:border-emerald-700 px-2 py-0.5 rounded-lg">
                             <i class="bi bi-check-circle-fill mr-1"></i>{{ count(array_filter($newProducts, fn($p) => !empty($p['product_id']))) }} selecionados
                         </span>
                         @endif
@@ -102,7 +120,7 @@
                 </div>
 
                 <!-- Controles de pesquisa e filtro -->
-                <div class="flex flex-col md:flex-row gap-3">
+                <div class="flex flex-col md:flex-row gap-2">
                     <!-- Campo de pesquisa com botão de limpar -->
                     <div class="flex-1">
                         <div class="relative">
@@ -110,7 +128,7 @@
                             <input type="text"
                                 wire:model.live.debounce.300ms="searchTerm"
                                 placeholder="Buscar por nome, código ou categoria..."
-                                class="w-full pl-12 pr-10 py-3 border border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white">
+                                class="w-full pl-12 pr-10 py-2 border border-gray-200 dark:border-zinc-600 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 bg-white dark:bg-zinc-700 text-gray-900 dark:text-white text-sm">
                             @if($searchTerm)
                             <button type="button" wire:click="$set('searchTerm', '')"
                                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
@@ -123,7 +141,7 @@
                     <!-- Filtro de categoria -->
                     <div class="flex items-center">
                         <select wire:model.live="selectedCategory"
-                                class="px-4 py-3 border border-gray-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200">
+                                class="px-3 py-2 border border-gray-200 dark:border-zinc-600 rounded-xl bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors duration-200 text-sm">
                             <option value="">Todas as categorias</option>
                             @foreach($categories as $category)
                                 <option value="{{ $category->id }}">{{ $category->name }}</option>
@@ -165,7 +183,7 @@
             </div>
 
             <!-- Grid de Produtos com Scroll -->
-            <div class="flex-1 p-6 overflow-y-auto">
+            <div class="flex-1 p-3 overflow-y-auto">
                 @if($filteredProducts->isEmpty())
                     <!-- Estado vazio -->
                     <div class="flex flex-col items-center justify-center h-full">
