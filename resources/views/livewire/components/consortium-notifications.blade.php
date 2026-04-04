@@ -1,30 +1,14 @@
 <div class="relative" x-data="{ open: @entangle('showDropdown') }">
-    <!-- Botão de Notificações - Estilo Sidebar -->
-    <button wire:click="toggleDropdown" @click.away="open = false"
-        class="w-full flex items-center gap-3 p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 group">
-        <div class="relative">
-            <i class="bi bi-bell-fill text-xl text-slate-600 dark:text-slate-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"></i>
+    <button wire:click="toggleDropdown" @click.away="open = false" type="button"
+        class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-slate-50/90 text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-100 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-blue-400"
+        title="Notificações">
+        <i class="bi {{ $unreadCount > 0 ? 'bi-bell-fill' : 'bi-bell' }} text-sm"></i>
 
-            <!-- Badge de Contador -->
-            @if ($unreadCount > 0)
-                <span class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center text-[10px] font-bold text-white shadow-lg ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                    {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                </span>
-            @endif
-        </div>
-
-        <div class="sidebar-text flex-1 text-left">
-            <p class="text-sm font-semibold text-slate-900 dark:text-white">Notificações</p>
-            @if ($unreadCount > 0)
-                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $unreadCount }} não {{ $unreadCount > 1 ? 'lidas' : 'lida' }}</p>
-            @else
-                <p class="text-xs text-slate-500 dark:text-slate-400">Nenhuma nova</p>
-            @endif
-        </div>
-
-        <svg class="sidebar-text w-5 h-5 text-slate-400 transition-transform duration-200" :class="open && 'rotate-180'" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
+        @if ($unreadCount > 0)
+            <span class="absolute -right-1 -top-1 flex h-4.5 min-w-[1.15rem] items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-pink-600 px-1 text-[9px] font-bold leading-none text-white shadow-lg ring-2 ring-white dark:ring-slate-900">
+                {{ $unreadCount > 9 ? '9+' : $unreadCount }}
+            </span>
+        @endif
     </button>
 
     <!-- Dropdown de Notificações -->
@@ -35,7 +19,7 @@
         x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 scale-100"
         x-transition:leave-end="opacity-0 scale-95"
         class="fixed w-96 bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 z-[9999] overflow-hidden notification-dropdown"
-        style="max-height: calc(100vh - 120px); left: 280px; bottom: 80px;">
+        style="max-height: calc(100vh - 120px); left: 280px; bottom: 92px;">
 
         <style>
             /* Ajuste responsivo do dropdown */
@@ -51,6 +35,13 @@
             /* Ajuste para sidebar compact */
             body.sidebar-compact .notification-dropdown {
                 left: 100px !important;
+            }
+
+            /* Ajuste do novo rodapé da sidebar */
+            @media (min-width: 1024px) {
+                .notification-dropdown {
+                    left: 294px !important;
+                }
             }
         </style>
 
