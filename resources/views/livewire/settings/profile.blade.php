@@ -16,6 +16,11 @@ new class extends Component {
     public string $about_me = '';
     public $profile_picture = null;
     public string $google_id = '';
+    public string $website = '';
+    public string $twitter = '';
+    public string $instagram = '';
+    public string $linkedin = '';
+    public string $birth_date = '';
 
     public function mount(): void
     {
@@ -25,8 +30,12 @@ new class extends Component {
         $this->phone = $user->phone ?? '';
         $this->location = $user->location ?? '';
         $this->about_me = $user->about_me ?? '';
-        $this->role_id = $user->role_id ?? '';
         $this->google_id = $user->google_id ?? '';
+        $this->website = $user->website ?? '';
+        $this->twitter = $user->twitter ?? '';
+        $this->instagram = $user->instagram ?? '';
+        $this->linkedin = $user->linkedin ?? '';
+        $this->birth_date = $user->birth_date ?? '';
     }
 
     public function updateProfileInformation(): void
@@ -40,6 +49,11 @@ new class extends Component {
             'location'   => ['nullable', 'string', 'max:255'],
             'about_me'   => ['nullable', 'string', 'max:1000'],
             'google_id'  => ['nullable', 'string', 'max:255'],
+            'website'    => ['nullable', 'url', 'max:255'],
+            'twitter'    => ['nullable', 'string', 'max:100'],
+            'instagram'  => ['nullable', 'string', 'max:100'],
+            'linkedin'   => ['nullable', 'string', 'max:100'],
+            'birth_date' => ['nullable', 'string', 'max:20'],
         ]);
 
         $user->fill($validated);
@@ -73,16 +87,10 @@ new class extends Component {
 }; ?>
 
 <section class="settings-profile-page w-full mobile-393-base">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-profile-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-profile-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-profile-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-profile-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-profile-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/settings-profile-ultrawide.css') }}">
-
-    @include('partials.settings-heading')
 
     <x-settings.layout :heading="''">
+        <div class="s-pg-grid">
+        <div class="s-col-main">
 
         {{-- ── CARD DE PERFIL ── --}}
         <div class="settings-card">
@@ -227,6 +235,67 @@ new class extends Component {
                         <flux:input wire:model="google_id" type="text" placeholder="ID Google vinculado"/>
                         @error('google_id') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
                     </div>
+
+                    {{-- Data de nascimento --}}
+                    <div>
+                        <label class="settings-field-label">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8.25v-1.5m0 1.5c-1.355 0-2.697.056-4.024.166C6.845 8.51 6 9.473 6 10.608v2.513m6-4.871c1.355 0 2.697.056 4.024.166C17.155 8.51 18 9.473 18 10.608v2.513M15 8.25v-1.5A2.25 2.25 0 0 0 12.75 4.5h-1.5A2.25 2.25 0 0 0 9 6.75v1.5m3 13.5V21m-3-3h6m-6 0a1.5 1.5 0 0 1-1.5-1.5V15a1.5 1.5 0 0 1 1.5-1.5h6a1.5 1.5 0 0 1 1.5 1.5v.375a1.5 1.5 0 0 1-1.5 1.5H9Z"/></svg>
+                            {{ __('Data de nascimento') }}
+                        </label>
+                        <flux:input wire:model="birth_date" type="date" placeholder="dd/mm/aaaa"/>
+                        @error('birth_date') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <hr class="settings-divider">
+
+                {{-- Redes Sociais --}}
+                <div style="margin-bottom:1rem">
+                    <p class="settings-sect-label">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem;color:var(--s-accent)"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>
+                        Presenca Online
+                    </p>
+                    <div class="settings-form-grid">
+                        {{-- Website --}}
+                        <div>
+                            <label class="settings-field-label">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253M3 12c0 .778.099 1.533.284 2.253"/></svg>
+                                Website
+                            </label>
+                            <flux:input wire:model="website" type="url" placeholder="https://seusite.com"/>
+                            @error('website') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- LinkedIn --}}
+                        <div>
+                            <label class="settings-field-label">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6;color:#0077b5"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                                LinkedIn
+                            </label>
+                            <flux:input wire:model="linkedin" type="text" placeholder="usuario-linkedin"/>
+                            @error('linkedin') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Instagram --}}
+                        <div>
+                            <label class="settings-field-label">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6;color:#e1306c"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/></svg>
+                                Instagram
+                            </label>
+                            <flux:input wire:model="instagram" type="text" placeholder="@seuperfil"/>
+                            @error('instagram') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
+                        </div>
+
+                        {{-- Twitter/X --}}
+                        <div>
+                            <label class="settings-field-label">
+                                <svg viewBox="0 0 24 24" fill="currentColor" style="width:0.9rem;height:0.9rem;display:inline;vertical-align:-0.1em;margin-right:0.25rem;opacity:0.6"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.258 5.63L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                                Twitter / X
+                            </label>
+                            <flux:input wire:model="twitter" type="text" placeholder="@seuusername"/>
+                            @error('twitter') <p style="color:#ef4444;font-size:0.73rem;margin-top:0.2rem">{{ $message }}</p> @enderror
+                        </div>
+                    </div>
                 </div>
 
                 {{-- Email não verificado --}}
@@ -263,6 +332,10 @@ new class extends Component {
             </form>
         </div>
 
+        </div>{{-- /s-col-main --}}
+
+        <div class="s-col-side">
+
         {{-- CARD: Informações da conta --}}
         @php
             $au = Auth::user();
@@ -285,7 +358,6 @@ new class extends Component {
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;padding:0 1.25rem 1.25rem">
                 @foreach([
-                    ['ID da conta','#'.$au->id,'rgba(99,102,241,.08)','#6366f1'],
                     ['Membro desde',$au->created_at ? $au->created_at->format('d/m/Y') : '—','rgba(16,185,129,.08)','#10b981'],
                     ['Tempo de conta',$auMonths > 0 ? $auMonths.' meses' : $auDays.' dias','rgba(245,158,11,.08)','#f59e0b'],
                     ['E-mail',$auVerified ? 'Verificado ✓' : 'Não verificado',$auVerified ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)',$auVerified ? '#10b981' : '#ef4444'],
@@ -300,8 +372,14 @@ new class extends Component {
             </div>
         </div>
 
+        </div>{{-- /s-col-side --}}
+
+        <div class="s-col-full">
         {{-- EXCLUIR CONTA --}}
         <livewire:settings.delete-user-form />
+        </div>{{-- /s-col-full --}}
+
+        </div>{{-- /s-pg-grid --}}
     </x-settings.layout>
 </section>
 
