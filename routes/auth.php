@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\GoogleFirebaseController;
 use App\Http\Controllers\Auth\VerifyEmailController;
 use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
@@ -17,6 +18,10 @@ Route::middleware('guest')->group(function () {
     Volt::route('reset-password/{token}', 'auth.reset-password')
         ->name('password.reset');
 
+    // Google Sign-In via Firebase ID Token
+    Route::post('auth/google/firebase', GoogleFirebaseController::class)
+        ->name('auth.google.firebase')
+        ->middleware('throttle:10,1');
 });
 
 Route::middleware('auth')->group(function () {
