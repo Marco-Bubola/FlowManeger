@@ -1,5 +1,15 @@
-/* settings-profile — iPad Landscape */
+/* settings-profile — iPad Landscape (768px-1366px landscape) */
 @media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
-    .settings-profile-page { padding-inline: 2rem !important; }
-    .settings-profile-page form, .settings-profile-page .form-section { max-width: 720px; }
+    .settings-wrap {
+        flex-direction: row;
+    }
+    .settings-nav-panel {
+        width: 220px;
+    }
+    .settings-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .settings-card {
+        max-width: 720px;
+    }
 }
