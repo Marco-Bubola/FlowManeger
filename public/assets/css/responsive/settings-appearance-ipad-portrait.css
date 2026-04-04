@@ -1,6 +1,23 @@
-/* settings-appearance — iPad Portrait */
+/* settings-appearance — iPad Portrait (768px-1024px portrait) */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-    .settings-appearance-page { padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important; padding-inline: 1.5rem !important; }
-    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 600px; }
-    .settings-appearance-page .grid.md\:grid-cols-2 { grid-template-columns: repeat(2, 1fr) !important; }
+    .settings-wrap {
+        flex-direction: row;
+    }
+    .settings-nav-panel {
+        width: 200px;
+        flex-shrink: 0;
+    }
+    .settings-content-area {
+        flex: 1;
+        min-width: 0;
+    }
+    .settings-color-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    .settings-option-row {
+        gap: 0.75rem;
+    }
+    .settings-preview-block {
+        width: 180px;
+    }
 }
