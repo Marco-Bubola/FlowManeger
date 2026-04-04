@@ -1,4 +1,15 @@
-/* settings-profile — Notebook */
+/* settings-profile — Notebook (1025px-1440px) */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .settings-profile-page form, .settings-profile-page .form-section { max-width: 800px; }
+    .settings-wrap {
+        gap: 1.5rem;
+    }
+    .settings-nav-panel {
+        width: 230px;
+    }
+    .settings-card {
+        max-width: 800px;
+    }
+    .settings-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }
