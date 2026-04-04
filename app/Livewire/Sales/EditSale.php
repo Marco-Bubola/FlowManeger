@@ -67,6 +67,10 @@ class EditSale extends Component
     {
         $this->sale = Sale::with('saleItems.product')->findOrFail($id);
 
+        if ((int) $this->sale->user_id !== (int) Auth::id()) {
+            abort(403, 'Você só pode editar suas próprias vendas.');
+        }
+
         // Carregar dados
         $this->clients = Client::where('user_id', Auth::id())->get();
         $this->products = Product::where('user_id', Auth::id())->get();
