@@ -1,5 +1,18 @@
-/* settings-profile — Ultrawide */
+/* settings-profile — Ultrawide (>=1441px) */
 @media (min-width: 1441px) {
-    .settings-profile-page { margin-inline: auto; }
-    .settings-profile-page form, .settings-profile-page .form-section { max-width: 900px; }
+    .settings-wrap {
+        gap: 2rem;
+    }
+    .settings-nav-panel {
+        width: 260px;
+    }
+    .settings-card {
+        max-width: 900px;
+    }
+    .settings-form-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .settings-form-full {
+        grid-column: 1 / -1;
+    }
 }
