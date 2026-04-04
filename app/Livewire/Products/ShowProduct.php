@@ -234,6 +234,11 @@ class ShowProduct extends Component
         try {
             $originalSale = Sale::findOrFail($saleId);
 
+            if ((int) $originalSale->user_id !== (int) Auth::id()) {
+                session()->flash('error', 'Você não tem permissão para duplicar esta venda.');
+                return;
+            }
+
             // Criar nova venda baseada na original
             $newSale = Sale::create([
                 'client_id' => $originalSale->client_id,
