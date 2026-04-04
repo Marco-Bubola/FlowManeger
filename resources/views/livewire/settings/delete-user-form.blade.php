@@ -7,9 +7,6 @@ use Livewire\Volt\Component;
 new class extends Component {
     public string $password = '';
 
-    /**
-     * Delete the currently authenticated user.
-     */
     public function deleteUser(Logout $logout): void
     {
         $this->validate([
@@ -22,59 +19,61 @@ new class extends Component {
     }
 }; ?>
 
-<section class="mt-10 space-y-6">
-    <div class="relative mb-5">
-        <div class="flex items-center gap-2 mb-1">
-            <!-- Ícone de alerta/exclusão -->
-            <svg class="w-7 h-7 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0 3.75h.008v-.008H12v.008zm-7.5-7.5A9 9 0 1 1 21 12A9 9 0 0 1 4.5 4.5z" />
+{{-- ── ZONA DE PERIGO — wrapper único (Livewire exige um único root element) ── --}}
+<div>
+<div class="settings-card" style="margin-top:0">
+    <div class="settings-danger-zone">
+        <p class="settings-danger-title">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1.1rem;height:1.1rem">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
             </svg>
-            <flux:heading>{{ __('Excluir conta') }}</flux:heading>
-        </div>
-        <div class="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-            <!-- Ícone de aviso -->
-            <svg class="w-5 h-5 text-red-400 dark:text-red-500" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 19.5A1.5 1.5 0 0 1 19.5 21h-15A1.5 1.5 0 0 1 3 19.5v-15A1.5 1.5 0 0 1 4.5 3h15A1.5 1.5 0 0 1 21 4.5v15z" />
-            </svg>
-            <flux:subheading>{{ __('Exclua sua conta e todos os seus recursos') }}</flux:subheading>
-        </div>
+            {{ __('Zona de perigo') }}
+        </p>
+        <p class="settings-danger-desc">
+            {{ __('Uma vez excluída, sua conta e todos os dados associados serão permanentemente removidos. Esta ação não pode ser desfeita.') }}
+        </p>
+
+        <flux:modal.trigger name="confirm-user-deletion">
+            <button type="button"
+                x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')"
+                style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.55rem 1.1rem;border-radius:0.65rem;font-size:0.85rem;font-weight:700;background:#fee2e2;color:#dc2626;border:1.5px solid #fecaca;cursor:pointer;transition:all 0.18s"
+                onmouseover="this.style.background='#fecaca'"
+                onmouseout="this.style.background='#fee2e2'">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/>
+                </svg>
+                {{ __('Excluir minha conta') }}
+            </button>
+        </flux:modal.trigger>
     </div>
+</div>
 
-    <flux:modal.trigger name="confirm-user-deletion">
-        <flux:button variant="danger" x-data="" x-on:click.prevent="$dispatch('open-modal', 'confirm-user-deletion')" class="flex items-center gap-2">
-            <!-- Ícone de lixeira -->
-            <svg class="w-5 h-5 text-white dark:text-red-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m2 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12z" />
-            </svg>
-            {{ __('Excluir conta') }}
-        </flux:button>
-    </flux:modal.trigger>
-
-    <flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
-        <form wire:submit="deleteUser" class="space-y-6">
-            <div>
-                <flux:heading size="lg">{{ __('Tem certeza de que deseja excluir sua conta?') }}</flux:heading>
-
-                <flux:subheading>
-                    {{ __('Uma vez que sua conta for excluída, todos os seus recursos e dados serão permanentemente apagados. Por favor, digite sua senha para confirmar que deseja excluir sua conta permanentemente.') }}
-                </flux:subheading>
+<flux:modal name="confirm-user-deletion" :show="$errors->isNotEmpty()" focusable class="max-w-lg">
+    <form wire:submit="deleteUser" class="space-y-6">
+        <div>
+            <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem">
+                <div style="width:2.5rem;height:2.5rem;border-radius:50%;background:#fee2e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="#dc2626" style="width:1.25rem;height:1.25rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+                </div>
+                <flux:heading size="lg">{{ __('Excluir conta permanentemente?') }}</flux:heading>
             </div>
+            <flux:subheading>
+                {{ __('Todos os seus recursos, dados e histórico serão permanentemente excluídos. Digite sua senha para confirmar.') }}
+            </flux:subheading>
+        </div>
 
-            <flux:input wire:model="password" :label="__('Senha')" type="password" />
+        <flux:input wire:model="password" :label="__('Senha atual')" type="password" placeholder="••••••••"/>
 
-            <div class="flex justify-end space-x-2 rtl:space-x-reverse">
-                <flux:modal.close>
-                    <flux:button variant="filled">{{ __('Cancelar') }}</flux:button>
-                </flux:modal.close>
+        <div class="flex justify-end" style="gap:0.75rem">
+            <flux:modal.close>
+                <flux:button variant="filled">{{ __('Cancelar') }}</flux:button>
+            </flux:modal.close>
 
-                <flux:button variant="danger" type="submit" class="flex items-center gap-2">
-                    <!-- Ícone de lixeira -->
-                    <svg class="w-5 h-5 text-white dark:text-red-200" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3m2 0v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V7h12z" />
-                    </svg>
-                    {{ __('Excluir conta') }}
-                </flux:button>
-            </div>
-        </form>
-    </flux:modal>
-</section>
+            <flux:button variant="danger" type="submit" style="display:flex;align-items:center;gap:0.4rem">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.9rem;height:0.9rem"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0"/></svg>
+                {{ __('Sim, excluir conta') }}
+            </flux:button>
+        </div>
+    </form>
+</flux:modal>
+</div>{{-- /root wrapper --}}
