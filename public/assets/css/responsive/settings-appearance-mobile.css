@@ -1,6 +1,42 @@
 /* settings-appearance — Mobile (<=767px) */
 @media (max-width: 767px) {
-    .settings-appearance-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); padding-inline: 1rem; }
-    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 100% !important; }
-    .settings-appearance-page .grid.md\:grid-cols-2 { grid-template-columns: 1fr !important; }
+    .settings-appearance-page {
+        padding-bottom: calc(82px + env(safe-area-inset-bottom));
+        padding-inline: 0.75rem;
+    }
+    .settings-nav-panel {
+        display: none !important;
+    }
+    .settings-color-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 0.4rem;
+    }
+    .settings-color-name {
+        font-size: 0.62rem;
+    }
+    .settings-option-row {
+        gap: 0.4rem;
+    }
+    .settings-option-card {
+        padding: 0.6rem 0.5rem;
+        font-size: 0.78rem;
+    }
+    .settings-preview-block {
+        display: none;
+    }
+    .settings-card {
+        border-radius: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .settings-toggle-row {
+        padding: 0.75rem 0;
+    }
+    .settings-tab-nav-toggle {
+        flex-direction: row;
+    }
+    .settings-custom-color-row {
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
 }
