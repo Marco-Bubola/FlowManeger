@@ -2,18 +2,18 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\AI\GeminiClient;
 use Illuminate\Support\Facades\Log;
 
 class GeminiTransactionProcessorService
 {
-    private $apiKey;
-    private $model;
+    private GeminiClient $client;
+    private string $model;
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.api_key');
-        $this->model = config('services.gemini.model', 'gemini-2.0-flash-exp');
+        $this->client = app(GeminiClient::class);
+        $this->model = config('services.gemini.model', 'gemini-2.5-flash');
     }
 
     /**
@@ -38,37 +38,18 @@ class GeminiTransactionProcessorService
 
             $prompt = $this->buildPrompt($transactions, $availableCategories);
 
-            $response = Http::timeout(120)
-                ->connectTimeout(30)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                ])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}", [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt]
-                            ]
-                        ]
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.2,
-                        'maxOutputTokens' => 8192,
-                    ]
-                ]);
-
-            if ($response->successful()) {
-                $result = $response->json();
-                $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                Log::info('Gemini respondeu com sucesso', ['response_length' => strlen($text)]);
-
-                return $this->parseGeminiResponse($text, $transactions);
-            }
-
-            Log::error('Erro ao chamar Gemini API', [
-                'status' => $response->status(),
-                'body' => $response->body()
+            $responseText = $this->client->generateText($prompt, [
+                'feature' => 'invoices.transaction_processing',
+                'model' => $this->model,
+                'temperature' => 0.2,
+                'max_output_tokens' => 8192,
             ]);
+
+            if ($responseText !== null) {
+                Log::info('Gemini respondeu com sucesso', ['response_length' => strlen($responseText)]);
+
+                return $this->parseGeminiResponse($responseText, $transactions);
+            }
 
             // Fallback: retornar transações sem processamento
             return $this->fallbackProcessing($transactions);
