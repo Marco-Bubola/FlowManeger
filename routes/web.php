@@ -1,6 +1,8 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Volt\Volt;
 
 // Importe o componente Livewire corretamente
@@ -67,12 +69,14 @@ use App\Http\Controllers\ChangePasswordController;
 use App\Http\Controllers\ClientController;
 
 use App\Http\Controllers\GoogleAuthController;
+use App\Http\Controllers\ClientPortalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\InfoUserController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\RegisterController;
 use App\Http\Controllers\ResetController;
 use App\Http\Controllers\SessionsController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SaleController;
 use App\Models\Client;
@@ -118,6 +122,31 @@ Route::get('/dashboard', DashboardIndex::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::middleware('guest:portal')->prefix('portal')->name('portal.')->group(function () {
+    Route::get('/login', [ClientPortalController::class, 'showLogin'])->name('login');
+    Route::post('/login', [ClientPortalController::class, 'login'])->name('login.post');
+    Route::get('/auth/google', [ClientPortalController::class, 'redirectToGoogle'])->name('google.redirect');
+    Route::get('/auth/google/callback', [ClientPortalController::class, 'handleGoogleCallback'])->name('google.callback');
+    Route::get('/esqueci-a-senha', [ClientPortalController::class, 'showForgotPassword'])->name('password.request');
+    Route::post('/esqueci-a-senha', [ClientPortalController::class, 'sendResetLink'])->name('password.email');
+    Route::get('/resetar-senha/{token}', [ClientPortalController::class, 'showResetPassword'])->name('password.reset');
+    Route::post('/resetar-senha', [ClientPortalController::class, 'resetPassword'])->name('password.update');
+});
+
+Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(function () {
+    Route::get('/', [ClientPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/vendas', [ClientPortalController::class, 'sales'])->name('sales');
+    Route::get('/produtos', [ClientPortalController::class, 'products'])->name('products');
+    Route::get('/orcamentos', [ClientPortalController::class, 'quotes'])->name('quotes');
+    Route::get('/orcamentos/novo', [ClientPortalController::class, 'createQuote'])->name('quotes.create');
+    Route::post('/orcamentos', [ClientPortalController::class, 'storeQuote'])->name('quotes.store');
+    Route::get('/orcamentos/{quote}', [ClientPortalController::class, 'showQuote'])->name('quotes.show');
+    Route::patch('/orcamentos/{quote}/resposta', [ClientPortalController::class, 'respondToQuote'])->name('quotes.respond');
+    Route::get('/perfil', [ClientPortalController::class, 'profile'])->name('profile');
+    Route::patch('/perfil', [ClientPortalController::class, 'updateProfile'])->name('profile.update');
+    Route::post('/logout', [ClientPortalController::class, 'logout'])->name('logout');
+});
+
 // --- Rotas Autenticadas ---
 Route::middleware(['auth'])->group(function () {
 
@@ -154,6 +183,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clients/{cliente}/resumo', ClientResumo::class)->name('clients.resumo');
     Route::get('/clients/{cliente}/faturas', ClientFaturas::class)->name('clients.faturas');
     Route::get('/clients/{cliente}/transferencias/{tipo?}', ClientTransferencias::class)->name('clients.transferencias');
+    Route::get('/clients/{client}/portal/access', [ClientPortalController::class, 'accessPage'])->name('clients.portal.access');
+    Route::post('/clients/{client}/portal/send-access', [ClientPortalController::class, 'sendAccess'])->name('clients.portal.send-access');
+    Route::post('/clients/{client}/portal/reset-access-link', [ClientPortalController::class, 'generateResetAccessLink'])->name('clients.portal.reset-access-link');
+    Route::delete('/clients/{client}/portal/revoke-access', [ClientPortalController::class, 'revokeAccess'])->name('clients.portal.revoke-access');
+    Route::get('/clients/{client}/portal/quotes', [ClientPortalController::class, 'adminClientQuotes'])->name('clients.portal.quotes');
+    Route::patch('/clients/portal/quotes/{quote}', [ClientPortalController::class, 'adminRespondQuote'])->name('clients.portal.quotes.update');
 
     // Manter algumas rotas específicas se necessário
     // Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
@@ -240,9 +275,35 @@ Route::middleware(['auth'])->group(function () {
     // --- Rotas de Conquistas (Livewire) ---
     Route::get('/achievements', AchievementsPage::class)->name('achievements.index');
 
+    // --- Preferências de usuário (persistência DB) ---
+    Route::post('/settings/preferences/{group}', function(\Illuminate\Http\Request $req, string $group) {
+        abort_unless(in_array($group, ['notifications', 'system', 'devices', 'appearance'], true), 422);
+        $authUser = Auth::user();
+        abort_unless($authUser instanceof \App\Models\User, 403);
+        /** @var \App\Models\User $user */
+        $user = $authUser;
+        $prefs = is_array($user->preferences) ? $user->preferences : [];
+        $prefs[$group] = $req->input('data', []);
+        $user->update(['preferences' => $prefs]);
+        return response()->json(['ok' => true]);
+    })->name('settings.preferences.save');
+
+    Route::prefix('settings/team')->name('settings.team.')->group(function () {
+        Route::post('/', [TeamController::class, 'store'])->name('store');
+        Route::patch('/', [TeamController::class, 'update'])->name('update');
+        Route::post('/invite', [TeamController::class, 'invite'])->name('invite');
+        Route::patch('/members/{member}', [TeamController::class, 'updateMember'])->name('members.update');
+        Route::delete('/members/{member}', [TeamController::class, 'removeMember'])->name('members.destroy');
+        Route::post('/invitations/{invitation}/accept', [TeamController::class, 'acceptInvitation'])->name('invitations.accept');
+        Route::delete('/invitations/{invitation}', [TeamController::class, 'cancelInvitation'])->name('invitations.destroy');
+        Route::delete('/leave', [TeamController::class, 'leave'])->name('leave');
+        Route::post('/transfer', [TeamController::class, 'transferRecords'])->name('transfer');
+    });
+
     // --- Rotas de Settings (Livewire Volt) ---
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
+    Volt::route('settings/team', 'settings.team')->name('settings.team');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
     Volt::route('settings/notifications', 'settings.notifications')->name('settings.notifications');
     Volt::route('settings/security', 'settings.security')->name('settings.security');
@@ -470,5 +531,46 @@ Route::get('/shopee/webhook', [ShopeeWebhookController::class, 'verify'])
     ->withoutMiddleware(['auth', 'web']);
 // ==================== END SHOPEE ROUTES ====================
 
+
+// ==================== SUBSCRIPTION ROUTES ====================
+use App\Http\Controllers\SubscriptionController;
+
+Route::middleware(['auth'])->prefix('subscription')->name('subscription.')->group(function () {
+    Route::get('/plans',    [SubscriptionController::class, 'plans'])->name('plans');
+    Route::get('/checkout/{plan}', [SubscriptionController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout',       [SubscriptionController::class, 'processCheckout'])->name('checkout.process');
+    Route::get('/success',         [SubscriptionController::class, 'success'])->name('success');
+    Route::post('/cancel',         [SubscriptionController::class, 'cancel'])->name('cancel');
+});
+
+// ==================== ADMIN ROUTES ====================
+use App\Http\Controllers\Admin\PlansController as AdminPlansController;
+
+Route::middleware(['auth'])->get('/access-center', [AdminPlansController::class, 'users'])->name('access.center');
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', fn () => redirect()->route('admin.plans.index'))->name('dashboard');
+
+    // Plans CRUD
+    Route::resource('plans', AdminPlansController::class)->except('show');
+    Route::patch('plans/{plan}/toggle', [AdminPlansController::class, 'toggleActive'])->name('plans.toggle');
+    Route::get('plans-users', [AdminPlansController::class, 'users'])->name('plans.users');
+    Route::post('plans/grant', [AdminPlansController::class, 'grantAccess'])->name('plans.grant');
+    Route::post('users/toggle-admin', [AdminPlansController::class, 'toggleAdmin'])->name('users.toggle-admin');
+
+    // Subscriptions management
+    Route::get('subscriptions', [AdminPlansController::class, 'subscriptions'])->name('subscriptions.index');
+    Route::post('subscriptions/{subscription}/revoke', [AdminPlansController::class, 'revokeAccess'])->name('subscriptions.revoke');
+    Route::post('subscriptions/{subscription}/extend', [AdminPlansController::class, 'extendSubscription'])->name('subscriptions.extend');
+});
+
+// ==================== PAYMENT WEBHOOKS (public, no auth) ====================
+Route::post('/webhooks/stripe',      [SubscriptionController::class, 'webhookStripe'])
+    ->name('webhooks.stripe')->withoutMiddleware(['auth', 'web']);
+Route::post('/webhooks/mercadopago', [SubscriptionController::class, 'webhookMercadoPago'])
+    ->name('webhooks.mercadopago')->withoutMiddleware(['auth', 'web']);
+Route::post('/webhooks/pagseguro',   [SubscriptionController::class, 'webhookPagSeguro'])
+    ->name('webhooks.pagseguro')->withoutMiddleware(['auth', 'web']);
+// ==================== END SUBSCRIPTION/ADMIN ROUTES ====================
 
 require __DIR__.'/auth.php';
