@@ -4,6 +4,7 @@ namespace App\Livewire\Clients;
 
 use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class EditClient extends Component
@@ -19,6 +20,18 @@ class EditClient extends Component
 
     // Lista de avatares predefinidos
     public $avatarOptions;
+
+    public function updatedPhone($value): void
+    {
+        $digits = preg_replace('/\D+/', '', (string) $value);
+
+        if (strlen($digits) <= 10) {
+            $this->phone = preg_replace('/^(\d{0,2})(\d{0,4})(\d{0,4}).*/', '($1) $2-$3', $digits);
+            return;
+        }
+
+        $this->phone = preg_replace('/^(\d{0,2})(\d{0,5})(\d{0,4}).*/', '($1) $2-$3', substr($digits, 0, 11));
+    }
 
     /**
      * Formata o nome automaticamente com primeira letra maiúscula
@@ -70,8 +83,8 @@ class EditClient extends Component
     {
         return [
             'name' => 'required|string|max:255',
-            'email' => 'nullable|email|max:255',
-            'phone' => 'nullable|string|max:15',
+            'email' => ['nullable', 'email', 'max:255'],
+            'phone' => 'nullable|regex:/^\(\d{2}\) \d{4,5}-\d{4}$/',
             'address' => 'nullable|string',
             'avatar_cliente' => 'required|url',
         ];
@@ -84,7 +97,7 @@ class EditClient extends Component
             'name.max' => 'O nome não pode ter mais de 255 caracteres.',
             'email.email' => 'O email deve ter um formato válido.',
             'email.max' => 'O email não pode ter mais de 255 caracteres.',
-            'phone.max' => 'O telefone não pode ter mais de 15 caracteres.',
+            'phone.regex' => 'Informe um telefone valido no formato (11) 99999-9999.',
             'avatar_cliente.required' => 'Selecione um avatar para o cliente.',
             'avatar_cliente.url' => 'O avatar deve ser uma URL válida.',
         ];
