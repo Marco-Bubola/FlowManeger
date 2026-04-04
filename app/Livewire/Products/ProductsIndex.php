@@ -4,6 +4,7 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -375,7 +376,14 @@ class ProductsIndex extends Component
             return;
         }
 
-        $products = Product::whereIn('id', $this->selectedProducts)->get();
+        $products = Product::whereIn('id', $this->selectedProducts)
+            ->where('user_id', Auth::id())
+            ->get();
+
+        if ($products->isEmpty()) {
+            session()->flash('error', 'Voce so pode excluir produtos da sua propria conta.');
+            return;
+        }
 
         foreach ($products as $product) {
             // Verificar se a imagem do produto não é a imagem padrão
@@ -406,7 +414,15 @@ class ProductsIndex extends Component
 
     public function confirmDelete($productId)
     {
-        $this->deletingProduct = Product::find($productId);
+        $this->deletingProduct = Product::whereKey($productId)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$this->deletingProduct) {
+            session()->flash('error', 'Voce so pode excluir produtos da sua propria conta.');
+            return;
+        }
+
         $this->showDeleteModal = true;
     }
 
@@ -417,9 +433,15 @@ class ProductsIndex extends Component
             return;
         }
 
-        // Aqui poderíamos usar um modal diferente para seleção múltipla
-        // Por enquanto vamos usar o mesmo modal
-        $this->deletingProduct = Product::find($this->selectedProducts[0]); // Primeiro produto para mostrar no modal
+        $this->deletingProduct = Product::whereIn('id', $this->selectedProducts)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$this->deletingProduct) {
+            session()->flash('error', 'Voce so pode excluir produtos da sua propria conta.');
+            return;
+        }
+
         $this->showDeleteModal = true;
     }
 
@@ -429,19 +451,24 @@ class ProductsIndex extends Component
         if (!empty($this->selectedProducts)) {
             $deletedCount = 0;
 
-            foreach ($this->selectedProducts as $productId) {
-                $product = Product::find($productId);
-                if ($product) {
-                    // Verificar se a imagem do produto não é a imagem padrão
-                    if ($product->image && $product->image !== 'product-placeholder.png') {
-                        // Excluir a imagem do produto
-                        Storage::delete('public/products/' . $product->image);
-                    }
+            $products = Product::whereIn('id', $this->selectedProducts)
+                ->where('user_id', Auth::id())
+                ->get();
 
-                    // Excluir o produto
-                    $product->delete();
-                    $deletedCount++;
+            foreach ($products as $product) {
+                if ($product->image && $product->image !== 'product-placeholder.png') {
+                    Storage::delete('public/products/' . $product->image);
                 }
+
+                $product->delete();
+                $deletedCount++;
+            }
+
+            if ($deletedCount === 0) {
+                session()->flash('error', 'Voce so pode excluir produtos da sua propria conta.');
+                $this->showDeleteModal = false;
+                $this->deletingProduct = null;
+                return;
             }
 
             session()->flash('success', "{$deletedCount} produto(s) excluído(s) com sucesso!");
@@ -508,10 +535,7 @@ class ProductsIndex extends Component
 
     public function getProductsProperty()
     {
-        $userId = Auth::id();
-
-        // Inicializa a consulta para produtos, filtrando pelo user_id
-        $query = Product::where('user_id', $userId);
+        $query = Product::query();
 
         // Filtro de pesquisa por nome ou código
         if (!empty($this->search)) {
@@ -659,11 +683,16 @@ class ProductsIndex extends Component
 
     public function getCategoriesProperty()
     {
-        return Category::where('user_id', Auth::id())
-                      ->where('type', 'product')
-                      ->where('is_active', 1)
-                      ->orderBy('name')
-                      ->get();
+        $viewer = Auth::user();
+        $visibleUserIds = $viewer instanceof User
+            ? $viewer->visibleTeamUserIds('products')
+            : [Auth::id()];
+
+        return Category::whereIn('user_id', $visibleUserIds)
+            ->where('type', 'product')
+            ->where('is_active', 1)
+            ->orderBy('name')
+            ->get();
     }
 
     public function render()
