@@ -3,6 +3,7 @@
 namespace App\Livewire\Products;
 
 use App\Models\Product;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use Livewire\Attributes\On;
 
@@ -17,12 +18,21 @@ class ExportProductCard extends Component
     public function openExportModal($productId)
     {
         $this->product = Product::with('category')->findOrFail($productId);
+
+        if ((int) $this->product->user_id !== (int) Auth::id()) {
+            $this->showModal = false;
+            return;
+        }
+
         $this->showModal = true;
     }
 
     public function openBulkExportModal($productIds)
     {
-        $this->selectedProducts = Product::with('category')->whereIn('id', $productIds)->get();
+        $this->selectedProducts = Product::with('category')
+            ->whereIn('id', $productIds)
+            ->where('user_id', Auth::id())
+            ->get();
         $this->showModal = true;
     }
 
