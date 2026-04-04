@@ -55,5 +55,27 @@ return [
         'environment'  => env('SHOPEE_ENVIRONMENT', 'sandbox'), // sandbox ou production
     ],
 
+    'firebase' => [
+        'api_key'              => env('FIREBASE_API_KEY'),
+        'auth_domain'          => env('FIREBASE_AUTH_DOMAIN'),
+        'project_id'           => env('FIREBASE_PROJECT_ID'),
+        'storage_bucket'       => env('FIREBASE_STORAGE_BUCKET'),
+        'messaging_sender_id'  => env('FIREBASE_MESSAGING_SENDER_ID'),
+        'app_id'               => env('FIREBASE_APP_ID'),
+        'measurement_id'       => env('FIREBASE_MEASUREMENT_ID'),
+    ],
+
+    'google' => [
+        'client_id'     => env('GOOGLE_CLIENT_ID'),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
+        'redirect'      => env('GOOGLE_REDIRECT_URI', env('APP_URL') . '/auth/google/callback'),
+    ],
+
+    'google_portal' => [
+        'client_id'     => env('GOOGLE_PORTAL_CLIENT_ID', env('GOOGLE_CLIENT_ID')),
+        'client_secret' => env('GOOGLE_PORTAL_CLIENT_SECRET', env('GOOGLE_CLIENT_SECRET')),
+        'redirect'      => env('GOOGLE_PORTAL_REDIRECT_URI', env('APP_URL') . '/portal/auth/google/callback'),
+    ],
+
 ];
 
