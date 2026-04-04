@@ -1,4 +1,15 @@
-/* settings-appearance — Notebook */
+/* settings-appearance — Notebook (1025px-1440px) */
 @media (min-width: 1025px) and (max-width: 1440px) {
-    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 800px; }
+    .settings-wrap {
+        gap: 1.5rem;
+    }
+    .settings-nav-panel {
+        width: 230px;
+    }
+    .settings-color-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    .settings-card {
+        max-width: 800px;
+    }
 }
