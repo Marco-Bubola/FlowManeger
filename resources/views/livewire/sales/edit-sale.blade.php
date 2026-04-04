@@ -1,7 +1,8 @@
-<div x-data="{ currentStep: $wire.currentStep, init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; $wire.set('currentStep', e.detail); }); $watch('currentStep', v => $wire.set('currentStep', v)); } }" x-init="init()" class="edit-sale-page mobile-393-base">
+<div x-data="{ currentStep: $wire.currentStep, init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; $wire.set('currentStep', e.detail); }); $watch('currentStep', v => $wire.set('currentStep', v)); } }" x-init="init()" class="edit-sale-page mobile-393-base w-full" style="overflow-x:clip">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/edit-sale.css') }}">
     <!-- Responsive CSS -->
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-iphone15.css') }}">
@@ -10,7 +11,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-ultrawide.css') }}">
 
-    <!-- Header Modernizado para Edição (2 passos como Create) -->
+    <!-- Header Sticky (mesmo estilo do Create) -->
+    <div class="create-sale-sticky-header">
     <x-sales-header
         title="Editar Venda #{{ $sale->id }}"
         description="Atualize as informações da venda seguindo os passos"
@@ -66,24 +68,28 @@
                 @endif
                 title="{{ $tooltip }}"
                 @if(!$canProceed) disabled @endif
-                class="
-                    group relative inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold tracking-wide text-white transition-all duration-300
+                class="create-header-next-btn group relative inline-flex items-center justify-center rounded-lg font-semibold tracking-wide text-white transition-all duration-300
                     focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900
                     {{ $canProceed
                         ? 'bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/20 shadow-lg shadow-indigo-500/20 hover:bg-gradient-to-r from-indigo-500 to-purple-600'
                         : 'bg-slate-400/50 dark:bg-slate-700/50 cursor-not-allowed opacity-60'
-                    }}
-                "
+                    }}"
             >
-                <span class="flex items-center gap-2">
-                    <span class="hidden sm:inline">Ir para Resumo</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-1 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
+                <span class="create-header-next-content">
+                    <span class="create-header-next-copy">
+                        <span class="create-header-next-label">Ir para Resumo</span>
+                        <span class="create-header-next-meta">{{ $canProceed ? 'Revisar e salvar alterações' : 'Complete cliente e produtos para continuar' }}</span>
+                    </span>
+                    <span class="create-header-next-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                        </svg>
+                    </span>
                 </span>
             </button>
         </x-slot>
     </x-sales-header>
+    </div>{{-- /.create-sale-sticky-header --}}
 
     <!-- Conteúdo Principal -->
     <div class="">
@@ -95,10 +101,10 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full flex flex-col lg:flex-row gap-4 lg:h-[80vh] edit-sale-step1-shell">
+                    class="w-full flex flex-col lg:flex-row gap-4 edit-sale-step1-shell">
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-                    <div class="w-full lg:w-3/4 flex flex-col lg:h-full min-h-0 edit-sale-products-pane">
+                    <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col edit-sale-products-pane">
                         <!-- Header com Controles -->
                         <div class="p-2">
                             <div class="flex flex-row items-center gap-2 md:gap-4 edit-sale-products-controls">
@@ -130,7 +136,7 @@
                         </div>
 
                         <!-- Grid de Produtos com Scroll -->
-                        <div class="flex-1 p-3 sm:p-6 overflow-y-auto min-h-0">
+                        <div class="flex-1 p-2 sm:p-3 overflow-y-auto min-h-0">
                             @if($this->getFilteredProducts()->isEmpty())
                             <div class="flex flex-col items-center justify-center h-full">
                                 <div class="w-32 h-32 mx-auto mb-6 text-gray-400">
@@ -158,7 +164,7 @@
                                 </p>
                             </div>
                             @else
-                            <div class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 sm:gap-4 products-step-grid products-mobile-compact-grid">
+                            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 products-step-grid products-mobile-compact-grid">
                                 @foreach($this->getFilteredProducts() as $product)
                                 @php
                                     $isSelected = collect($selectedProducts)->contains(function($selected) use ($product) {
@@ -225,18 +231,46 @@
                         </div>
                     </div>
 
-                    <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) - igual ao Create -->
-                    <div class="w-full lg:w-1/4 flex flex-col lg:h-full edit-sale-side-pane">
-                        <div class="p-4 edit-sale-summary-card">
-                            <div class="flex justify-between items-center mb-4">
-                                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                    <i class="bi bi-receipt text-indigo-500"></i>
-                                    <span>Resumo da Venda</span>
-                                </h3>
-                                <span class="bg-amber-100 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full dark:bg-amber-900 dark:text-amber-300">Edição</span>
+                    <!-- Lado Direito: Painel de Resumo Modernizado -->
+                    <div class="w-full lg:w-1/4 shrink-0 flex flex-col create-sale-summary-pane">
+                        <div class="p-4 create-sale-summary-card">
+                            @php
+                                $selectedItemsCount = count($selectedProducts);
+                                $selectedUnitsCount = collect($selectedProducts)->sum('quantity');
+                                $averageItemTicket = $selectedUnitsCount > 0 ? $this->getTotalPrice() / $selectedUnitsCount : 0;
+                                $summaryReady = $client_id && $selectedItemsCount > 0;
+                            @endphp
+                            <div class="create-sale-summary-topbar">
+                                <div class="create-sale-summary-title-wrap">
+                                    <span class="create-sale-summary-icon">
+                                        <i class="bi bi-pencil-square text-2xl"></i>
+                                    </span>
+                                    <div>
+                                        <h3 class="text-base font-bold text-slate-800 dark:text-white">
+                                            Editando #{{ $sale->id }}
+                                        </h3>
+                                    </div>
+                                </div>
+                                <span class="create-sale-summary-status">
+                                    <i class="bi {{ $summaryReady ? 'bi-check2-circle' : 'bi-pencil' }}"></i>
+                                    {{ $summaryReady ? 'Pronto' : 'Em edição' }}
+                                </span>
                             </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 edit-sale-summary-info-grid">
+                            <div class="create-sale-summary-stats">
+                                <div class="create-sale-summary-stat">
+                                    <span class="create-sale-summary-stat-label">Produtos</span>
+                                    <span class="create-sale-summary-stat-value">{{ $selectedItemsCount }}</span>
+                                </div>
+                                <div class="create-sale-summary-stat">
+                                    <span class="create-sale-summary-stat-label">Unidades</span>
+                                    <span class="create-sale-summary-stat-value">{{ $selectedUnitsCount }}</span>
+                                </div>
+                                <div class="create-sale-summary-stat">
+                                    <span class="create-sale-summary-stat-label">Modo</span>
+                                    <span class="create-sale-summary-stat-value">{{ $tipo_pagamento === 'a_vista' ? 'Vista' : 'Parc.' }}</span>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 create-sale-summary-info-grid">
                                 <!-- Bloco Cliente -->
                                 <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
                                     <div class="relative">
@@ -276,15 +310,129 @@
                                     @error('client_id') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
 
-                                <!-- Bloco Data -->
-                                <div class="p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl shadow-sm">
-                                    <div class="flex items-center gap-2">
-                                        <i class="bi bi-calendar-fill text-purple-500 text-lg"></i>
-                                        <div>
-                                            <label class="text-[10px] font-medium text-purple-800 dark:text-purple-200">Data</label>
-                                            <input type="date" wire:model="sale_date" class="p-0 text-sm font-bold text-slate-700 dark:text-slate-200 bg-transparent border-0 focus:ring-0">
+                                <!-- Bloco Data — Custom DatePicker -->
+                                <div class="relative p-3 bg-purple-50 dark:bg-purple-900/30 rounded-xl shadow-sm"
+                                     x-data="{
+                                         open: false,
+                                         sel: '{{ $sale_date ?? date('Y-m-d') }}',
+                                         vy: 0, vm: 0,
+                                         wdays: ['D','S','T','Q','Q','S','S'],
+                                         init() {
+                                             let d = this.sel ? new Date(this.sel + 'T12:00:00') : new Date();
+                                             this.vy = d.getFullYear();
+                                             this.vm = d.getMonth();
+                                         },
+                                         get mname() {
+                                             return new Date(this.vy, this.vm, 1)
+                                                 .toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+                                         },
+                                         get dim() { return new Date(this.vy, this.vm + 1, 0).getDate(); },
+                                         get fdow() { return new Date(this.vy, this.vm, 1).getDay(); },
+                                         prev() { this.vm === 0 ? (this.vm = 11, this.vy--) : this.vm--; },
+                                         next() { this.vm === 11 ? (this.vm = 0, this.vy++) : this.vm++; },
+                                         pick(d) {
+                                             let m = String(this.vm + 1).padStart(2, '0');
+                                             let dd = String(d).padStart(2, '0');
+                                             this.sel = this.vy + '-' + m + '-' + dd;
+                                             $wire.set('sale_date', this.sel);
+                                             this.open = false;
+                                         },
+                                         goToday() {
+                                             let t = new Date();
+                                             this.vy = t.getFullYear();
+                                             this.vm = t.getMonth();
+                                             this.pick(t.getDate());
+                                         },
+                                         isSel(d) {
+                                             if (!this.sel) return false;
+                                             let p = new Date(this.sel + 'T12:00:00');
+                                             return p.getFullYear() === this.vy && p.getMonth() === this.vm && p.getDate() === d;
+                                         },
+                                         isToday(d) {
+                                             let t = new Date();
+                                             return t.getFullYear() === this.vy && t.getMonth() === this.vm && t.getDate() === d;
+                                         },
+                                         fmtSel() {
+                                             if (!this.sel) return 'Selecionar data';
+                                             return new Date(this.sel + 'T12:00:00')
+                                                 .toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' });
+                                         }
+                                     }"
+                                     @click.outside="open = false">
+
+                                    <button type="button" @click="open = !open"
+                                            class="w-full flex items-center gap-2 min-h-[44px] text-left focus:outline-none">
+                                        <i class="bi bi-calendar-fill text-purple-500 text-lg flex-shrink-0"></i>
+                                        <div class="flex-1 min-w-0">
+                                            <label class="text-[10px] font-medium text-purple-800 dark:text-purple-200 block pointer-events-none">Data</label>
+                                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 leading-tight"
+                                                  x-text="fmtSel()"></span>
+                                        </div>
+                                        <i class="bi bi-chevron-down text-purple-400/70 text-xs flex-shrink-0 transition-transform duration-200"
+                                           :class="open ? 'rotate-180' : ''"></i>
+                                    </button>
+
+                                    <div x-show="open"
+                                         x-transition:enter="transition ease-out duration-150"
+                                         x-transition:enter-start="opacity-0 scale-95"
+                                         x-transition:enter-end="opacity-100 scale-100"
+                                         x-transition:leave="transition ease-in duration-100"
+                                         x-transition:leave-start="opacity-100 scale-100"
+                                         x-transition:leave-end="opacity-0 scale-95"
+                                         class="absolute z-[9999] top-full left-0 mt-2 w-64 rounded-2xl overflow-hidden shadow-2xl"
+                                         style="background:linear-gradient(160deg,#1e1b4b 0%,#312e81 50%,#1a1640 100%);border:1px solid rgba(165,180,252,0.25);">
+
+                                        <div class="flex items-center justify-between px-4 py-3"
+                                             style="background:linear-gradient(135deg,rgba(99,102,241,0.55),rgba(139,92,246,0.45));border-bottom:1px solid rgba(165,180,252,0.18);">
+                                            <button type="button" @click.stop="prev()"
+                                                    class="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-200 hover:bg-white/15 transition-colors">
+                                                <i class="bi bi-chevron-left text-xs"></i>
+                                            </button>
+                                            <span class="text-sm font-bold text-white capitalize" x-text="mname"></span>
+                                            <button type="button" @click.stop="next()"
+                                                    class="w-7 h-7 flex items-center justify-center rounded-lg text-indigo-200 hover:bg-white/15 transition-colors">
+                                                <i class="bi bi-chevron-right text-xs"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="grid grid-cols-7 px-3 pt-2 pb-0.5">
+                                            <template x-for="w in wdays">
+                                                <div class="text-center text-[10px] font-bold pb-1"
+                                                     style="color:rgba(165,180,252,0.65)"
+                                                     x-text="w"></div>
+                                            </template>
+                                        </div>
+
+                                        <div class="grid grid-cols-7 px-3 pb-2 gap-y-0.5">
+                                            <template x-for="_ in fdow">
+                                                <div></div>
+                                            </template>
+                                            <template x-for="day in dim" :key="day">
+                                                <button type="button"
+                                                        @click.stop="pick(day)"
+                                                        :class="isSel(day)
+                                                            ? 'text-white font-bold shadow-lg'
+                                                            : isToday(day)
+                                                                ? 'text-indigo-200 font-semibold border border-indigo-400/50'
+                                                                : 'text-slate-300 hover:bg-white/10'"
+                                                        :style="isSel(day) ? 'background:linear-gradient(135deg,#6366f1,#9333ea)' : ''"
+                                                        class="w-7 h-7 mx-auto flex items-center justify-center text-xs rounded-lg transition-all duration-100"
+                                                        x-text="day">
+                                                </button>
+                                            </template>
+                                        </div>
+
+                                        <div class="px-3 pb-3 pt-1">
+                                            <button type="button" @click.stop="goToday()"
+                                                    class="w-full py-1.5 text-xs font-semibold rounded-lg transition-colors"
+                                                    style="color:rgba(165,180,252,0.9);border:1px solid rgba(99,102,241,0.35);"
+                                                    onmouseover="this.style.background='rgba(255,255,255,0.08)'"
+                                                    onmouseout="this.style.background=''">
+                                                Hoje
+                                            </button>
                                         </div>
                                     </div>
+
                                     @error('sale_date') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                                 </div>
 
@@ -310,8 +458,8 @@
                                              x-transition:leave-start="opacity-100 scale-100"
                                              x-transition:leave-end="opacity-0 scale-95"
                                              @click.away="open = false"
-                                             class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1">
-                                            <button @click="$wire.set('tipo_pagamento', 'a_vista'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'a_vista' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
+                                         class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[160px] w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1">
+                                            <button @click="$wire.set('tipo_pagamento', 'a_vista'); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-green-100/50 dark:hover:bg-green-900/20 {{ $tipo_pagamento === 'a_vista' ? 'bg-green-100 dark:bg-green-900/50' : '' }}">
                                                 @if($tipo_pagamento === 'a_vista') <i class="bi bi-check-circle-fill text-green-500"></i> @endif
                                                 <span>À Vista</span>
                                             </button>
@@ -348,9 +496,9 @@
                                                  x-transition:leave-start="opacity-100 scale-100"
                                                  x-transition:leave-end="opacity-0 scale-95"
                                                  @click.away="open = false"
-                                                 class="absolute z-10 w-full mt-2 bg-white/70 dark:bg-slate-800/70 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1 max-h-40 overflow-y-auto">
+                                             class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[110px] w-full mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-xl shadow-xl border border-slate-200/70 dark:border-slate-700/50 p-1 max-h-40 overflow-y-auto">
                                                 @for($i = 1; $i <= 12; $i++)
-                                                <button @click="$wire.set('parcelas', {{ $i }}); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/20 {{ $parcelas == $i ? 'bg-amber-100 dark:bg-amber-900/50' : '' }}">
+                                                <button @click="$wire.set('parcelas', {{ $i }}); open = false" type="button" class="w-full text-left flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-amber-100/50 dark:hover:bg-amber-900/20 {{ $parcelas == $i ? 'bg-amber-100 dark:bg-amber-900/50' : '' }}">
                                                     @if($parcelas == $i) <i class="bi bi-check-circle-fill text-amber-500"></i> @endif
                                                     <span>{{ $i }}x</span>
                                                 </button>
@@ -369,8 +517,18 @@
                             </div>
 
                             @if(!empty($selectedProducts))
-                            <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/50">
-                                <div class="flex justify-between items-center">
+                            <div class="create-sale-total-panel">
+                                <div class="create-sale-total-grid">
+                                    <div class="create-sale-total-metric">
+                                        <span class="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Ticket médio por unidade</span>
+                                        <strong class="mt-1 block text-base text-slate-900 dark:text-white">R$ {{ number_format($averageItemTicket, 2, ',', '.') }}</strong>
+                                    </div>
+                                    <div class="create-sale-total-metric">
+                                        <span class="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Parcelas atuais</span>
+                                        <strong class="mt-1 block text-base text-slate-900 dark:text-white">{{ $tipo_pagamento === 'parcelado' ? $parcelas . 'x' : '1x' }}</strong>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center gap-4">
                                     <span class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><i class="bi bi-currency-dollar"></i>Valor Total</span>
                                     <span class="text-2xl font-bold text-green-500">
                                         R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
@@ -378,16 +536,46 @@
                                 </div>
                             </div>
                             @endif
+
+                            @if(!$summaryReady)
+                                <div class="create-sale-summary-alert">
+                                    <p class="text-sm font-bold flex items-center gap-2"><i class="bi bi-exclamation-circle"></i>Faltando para liberar o resumo</p>
+                                    <ul>
+                                        @if(empty($client_id))<li>Selecionar o cliente da venda.</li>@endif
+                                        @if($selectedItemsCount === 0)<li>Adicionar pelo menos um produto.</li>@endif
+                                    </ul>
+                                </div>
+                            @endif
+
+                            @php $canProceedMobile = count($selectedProducts) > 0 && $client_id; @endphp
+                            <button
+                                type="button"
+                                @if($canProceedMobile)
+                                    @click="currentStep = 2; $wire.set('currentStep', 2)"
+                                @endif
+                                @if(!$canProceedMobile) disabled @endif
+                                class="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-all duration-300
+                                    {{ $canProceedMobile
+                                        ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md'
+                                        : 'bg-slate-400/60 dark:bg-slate-700/60 cursor-not-allowed opacity-60'
+                                    }}"
+                            >
+                                <span>Prosseguir para Resumo</span>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
                         </div>
 
-                        <!-- Lista de produtos selecionados com scroll (estilo igual ao Create) -->
-                        <div class="flex-1 overflow-y-auto edit-sale-selected-list">
+                        <!-- Lista de produtos selecionados -->
+                        <div class="flex-1 overflow-y-auto create-sale-selected-list">
                             @if(empty($selectedProducts))
-                            <div class="p-3 text-center">
-                                <div class="text-gray-400 mb-2">
+                            <div class="p-4 text-center create-sale-selected-empty">
+                                <div class="text-gray-400 mb-3">
                                     <i class="bi bi-cart-x text-2xl"></i>
                                 </div>
-                                <p class="text-gray-500 dark:text-gray-500 text-xs">
+                                <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    Carrinho ainda vazio
+                                </p>
+                                <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
                                     Clique nos produtos à esquerda para adicioná-los
                                 </p>
                             </div>
@@ -398,56 +586,87 @@
                                         $selectedProduct = $products->firstWhere('id', $productItem['product_id']);
                                     @endphp
                                     @if($selectedProduct)
-                                    <div class="bg-white dark:bg-slate-800 rounded-xl p-3.5 shadow-sm border border-slate-100 dark:border-slate-700 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-600 transition-all duration-300 group edit-sale-selected-item">
-                                        <div class="flex items-center gap-4">
-                                            <div class="flex-shrink-0">
+                                    <div class="group create-sale-selected-item" wire:key="edit-selected-{{ $selectedProduct->id }}">
+
+                                        <div class="flex items-start gap-2.5">
+                                            <div class="relative shrink-0">
                                                 <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
                                                      alt="{{ $selectedProduct->name }}"
-                                                     class="w-12 h-12 rounded-lg object-cover border border-slate-200 dark:border-slate-600">
+                                                     class="create-sale-selected-thumb border border-white/40 dark:border-slate-700/50">
+                                                <span class="csi-type-badge {{ ($selectedProduct->tipo ?? 'simples') === 'kit' ? 'bg-violet-500' : 'bg-indigo-500' }}">
+                                                    <i class="bi {{ ($selectedProduct->tipo ?? 'simples') === 'kit' ? 'bi-boxes' : 'bi-box' }} text-white" style="font-size:7px"></i>
+                                                </span>
                                             </div>
+
                                             <div class="flex-1 min-w-0">
-                                                <div class="flex justify-between items-start">
-                                                    <h4 class="font-bold text-slate-800 dark:text-white truncate" title="{{ $selectedProduct->name }}">
-                                                        {{ $selectedProduct->name }}
-                                                    </h4>
-                                                    <button type="button"
-                                                            wire:click="toggleProduct({{ $selectedProduct->id }})"
-                                                            class="text-slate-400 hover:text-red-500 dark:hover:text-red-400 transition-colors -mt-1 -mr-1">
-                                                        <i class="bi bi-trash-fill"></i>
-                                                    </button>
-                                                </div>
-                                                <div class="flex items-center text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                                    <i class="bi bi-tag mr-1.5"></i>
-                                                    <span>Custo: R$ {{ number_format($selectedProduct->price, 2, ',', '.') }}</span>
+                                                <h4 class="text-sm font-bold text-slate-800 dark:text-white leading-tight truncate" title="{{ $selectedProduct->name }}">
+                                                    {{ $selectedProduct->name }}
+                                                </h4>
+                                                <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                                                    <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">#{{ $selectedProduct->product_code }}</span>
+                                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 inline-flex items-center gap-0.5">
+                                                        <i class="bi bi-tag text-[9px]"></i>R${{ number_format($selectedProduct->price, 2, ',', '.') }}
+                                                    </span>
                                                 </div>
                                             </div>
+
+                                            <button type="button"
+                                                    wire:click.stop="toggleProduct({{ $selectedProduct->id }})"
+                                                    class="create-sale-remove-btn shrink-0 mt-0.5"
+                                                    title="Remover item">
+                                                <i class="bi bi-x-lg text-xs"></i>
+                                            </button>
                                         </div>
-                                        <div class="mt-4 flex items-end justify-between">
-                                            <div class="flex items-center gap-2">
-                                                <label for="quantity-edit-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Qtd:</label>
-                                                <input type="number" id="quantity-edit-{{ $selectedProduct->id }}"
-                                                    wire:model.blur="selectedProducts.{{ $index }}.quantity"
-                                                    min="1"
-                                                    @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
-                                                        max="{{ $selectedProduct->stock_quantity }}"
-                                                    @endif
-                                                    class="w-20 h-8 text-center text-sm border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+
+                                        <div class="my-2 h-px bg-gradient-to-r from-transparent via-slate-200/80 dark:via-slate-700/50 to-transparent"></div>
+
+                                        <div class="create-sale-selected-grid">
+
+                                            <div class="create-sale-selected-field">
+                                                <label for="quantity-edit-{{ $selectedProduct->id }}">Qtd</label>
+                                                <input type="number"
+                                                       id="quantity-edit-{{ $selectedProduct->id }}"
+                                                       wire:model.blur="selectedProducts.{{ $index }}.quantity"
+                                                       value="{{ $productItem['quantity'] }}"
+                                                       min="1"
+                                                       @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
+                                                           max="{{ $selectedProduct->stock_quantity }}"
+                                                       @endif
+                                                       class="text-center">
                                             </div>
-                                            <div>
-                                                <label for="price-edit-{{ $selectedProduct->id }}" class="text-xs text-slate-500 dark:text-gray-400 font-medium">Preço Venda</label>
-                                                <div class="relative">
-                                                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-sm text-slate-400">R$</span>
-                                                    <input type="number" id="price-edit-{{ $selectedProduct->id }}"
-                                                       wire:model.blur="selectedProducts.{{ $index }}.price_sale"
-                                                       step="0.01" min="0"
-                                                       class="w-28 h-8 font-semibold text-green-600 dark:text-green-400 border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 pl-7 pr-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition">
+
+                                            <div class="create-sale-selected-field">
+                                                <label for="price-edit-{{ $selectedProduct->id }}">Preço</label>
+                                                <div class="relative"
+                                                     x-data="{
+                                                         cts: {{ (int)round(($productItem['price_sale'] ?? 0) * 100) }},
+                                                         fmt() {
+                                                             let s = String(this.cts).padStart(3, '0');
+                                                             let d = s.slice(-2);
+                                                             let i = s.slice(0, -2).replace(/^0+/, '') || '0';
+                                                             i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                                                             return i + ',' + d;
+                                                         },
+                                                         inp(e) {
+                                                             let digs = e.target.value.replace(/\D/g, '');
+                                                             this.cts = digs ? parseInt(digs) : 0;
+                                                             e.target.value = this.fmt();
+                                                         }
+                                                     }">
+                                                    <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-slate-400 dark:text-slate-500 pointer-events-none">R$</span>
+                                                    <input type="text"
+                                                           inputmode="numeric"
+                                                           id="price-edit-{{ $selectedProduct->id }}"
+                                                           x-init="$el.value = fmt()"
+                                                           @input="inp($event)"
+                                                           @blur="$wire.set('selectedProducts.{{ $index }}.price_sale', (cts / 100).toFixed(2))"
+                                                           class="pl-6 text-green-600 dark:text-green-400">
                                                 </div>
                                             </div>
-                                            <div class="text-right">
-                                                <span class="text-xs text-slate-500 dark:text-slate-400">Subtotal</span>
-                                                <p class="font-bold text-slate-800 dark:text-white">
-                                                    R$ {{ number_format(($productItem['quantity'] ?? 0) * ($productItem['price_sale'] ?? 0), 2, ',', '.') }}
-                                                </p>
+
+                                            <div class="create-sale-selected-subtotal">
+                                                <span class="csi-total-label">Total</span>
+                                                <span class="csi-total-value">R$&nbsp;{{ number_format(($productItem['quantity'] ?? 0) * ($productItem['price_sale'] ?? 0), 2, ',', '.') }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -464,7 +683,7 @@
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
-                    class="w-full flex flex-col lg:flex-row lg:max-h-screen lg:overflow-hidden edit-sale-step2-shell">
+                    class="w-full flex flex-col lg:flex-row edit-sale-step2-shell">
 
                     <div class="w-full lg:w-2/5 bg-white dark:bg-zinc-800 p-3 sm:p-5 flex flex-col gap-3 sm:gap-4 edit-sale-review-info-pane">
                         <h2 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center sm:text-left mb-1 sm:mb-4 edit-sale-review-title">
@@ -587,7 +806,7 @@
                             <i class="bi bi-cart mr-2"></i>Produtos Selecionados ({{ count($selectedProducts) }})
                         </h3>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto max-h-118">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                             @foreach($selectedProducts as $product)
                             @if($product['product_id'])
                             @php
