@@ -52,7 +52,6 @@
         'stock'   => $p->stock_quantity ?? 0,
         'img'     => $p->image_url ?? ($p->image ? asset('storage/products/'.$p->image) : null),
     ])) }},
-    extraItems: [],
     selected: {},
     get filtered() {
         return this.products.filter(p => {
@@ -73,8 +72,6 @@
     },
     isSelected(id) { return !!this.selected[id]; },
     setPage(n)     { this.page = Math.max(1, Math.min(n, this.pages)); },
-    addExtra()     { this.extraItems.push({ desc:'', qty:1 }); },
-    removeExtra(i) { this.extraItems.splice(i,1); },
     submitForm() {
         const form = document.getElementById('quoteForm');
         const hid  = document.getElementById('hiddenInputs');
@@ -82,13 +79,11 @@
         let idx = 0;
         for (const [id, item] of Object.entries(this.selected)) {
             const qEl = form.querySelector('[data-qty-id=\''+id+'\']');
-            const nEl = form.querySelector('[data-notes-id=\''+id+'\']');
             hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][product_id]\' value=\''+id+'\'>';
             hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][quantity]\' value=\''+(qEl?qEl.value:item.qty||1)+'\'>';
             hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][notes]\' value=\''+(nEl?nEl.value:item.notes||'')+'\'>';
             idx++;
         }
-        this.extraItems.forEach((e,i)=>{ if(e.desc){ hid.innerHTML+='<input type=\'hidden\' name=\'extra_items['+i+'][desc]\' value=\''+e.desc+'\'><input type=\'hidden\' name=\'extra_items['+i+'][qty]\' value=\''+e.qty+'\'>'; }});
         form.submit();
     }
 }" x-cloak>
@@ -153,21 +148,31 @@
                             </div>
                         </div>
 
-                        {{-- Search + filtro categoria --}}
-                        <div class="mt-4 flex flex-col sm:flex-row gap-2.5">
-                            <div class="relative flex-1">
-                                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs pointer-events-none"></i>
+                        {{-- Barra de busca e filtro --}}
+                        <div class="mt-5 space-y-2.5">
+                            <div class="relative">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-sky-400 dark:text-sky-500 text-sm pointer-events-none"></i>
                                 <input x-model="search" @input="page=1" type="text"
-                                       placeholder="Buscar produto por nome..."
-                                       class="portal-input pl-9 pr-3 py-2.5 text-xs w-full">
+                                       placeholder="Buscar produto por nome, categoria..."
+                                       class="w-full pl-11 pr-4 py-3.5 text-sm font-semibold bg-white dark:bg-slate-800 border-2 border-sky-100 dark:border-sky-800/50 rounded-2xl focus:border-sky-400 dark:focus:border-sky-500 focus:outline-none focus:ring-4 focus:ring-sky-100 dark:focus:ring-sky-900/30 text-gray-900 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 transition-all shadow-sm">
+                                <span x-show="search" @click="search=''; page=1"
+                                      class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-slate-300 transition-colors">
+                                    <i class="fas fa-xmark"></i>
+                                </span>
                             </div>
-                            <select x-model="catFilter" @change="page=1"
-                                    class="portal-input py-2.5 text-xs sm:min-w-[10rem]">
-                                <option value="all">Todas as categorias</option>
-                                @foreach($products->pluck('category')->filter()->unique('id') as $cat)
-                                <option value="{{ $cat->name }}">{{ $cat->name }}</option>
-                                @endforeach
-                            </select>
+                            <div class="flex gap-2 flex-wrap">
+                                <select x-model="catFilter" @change="page=1"
+                                        class="portal-input py-2 text-xs flex-1 min-w-[9rem]">
+                                    <option value="all">Todas as categorias</option>
+                                    @foreach($products->pluck('category')->filter()->unique('id') as $cat)
+                                    <option value="{{ $cat->name }}">{{ $cat->name }}</option>
+                                    @endforeach
+                                </select>
+                                <div class="flex items-center gap-1.5 px-3 py-2 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/40 rounded-xl text-[11px] font-bold text-sky-600 dark:text-sky-400">
+                                    <i class="fas fa-boxes-stacked text-[10px]"></i>
+                                    <span x-text="filtered.length + ' produto' + (filtered.length !== 1 ? 's' : '')"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -208,11 +213,10 @@
                                             <i class="fas fa-layer-group" style="font-size:0.55rem"></i>
                                             <span x-text="p.stock"></span>
                                         </span>
-                                    </div>
-
-                                    {{-- Ícone circular de categoria --}}
-                                    <div class="pcard-cat-circle">
-                                        <i :class="p.catIcon"></i>
+                                        {{-- Ícone circular — dentro da img-area para bottom:-32px posicionar entre img e body --}}
+                                        <div class="pcard-cat-circle">
+                                            <i :class="p.catIcon"></i>
+                                        </div>
                                     </div>
 
                                     {{-- Corpo --}}
@@ -224,24 +228,14 @@
                                         <p class="text-sm font-black text-sky-600 dark:text-sky-400"
                                            x-text="p.priceF" x-show="p.priceF"></p>
 
-                                        {{-- Qtd + obs (só quando selecionado) --}}
-                                        <div class="product-details flex-col gap-1.5 w-full mt-1" @click.stop>
-                                            <div>
-                                                <label class="text-[9px] font-bold text-gray-500 dark:text-slate-400">Quantidade</label>
-                                                <input type="number"
-                                                       :data-qty-id="p.id"
-                                                       :min="1" :max="p.stock" value="1"
-                                                       @input="if(selected[p.id]) selected[p.id].qty = $event.target.value"
-                                                       class="portal-input py-1.5 px-2 text-xs mt-0.5 text-center font-bold w-full">
-                                            </div>
-                                            <div>
-                                                <label class="text-[9px] font-bold text-gray-500 dark:text-slate-400">Observação</label>
-                                                <input type="text"
-                                                       :data-notes-id="p.id"
-                                                       placeholder="cor, tamanho..."
-                                                       @input="if(selected[p.id]) selected[p.id].notes = $event.target.value"
-                                                       class="portal-input py-1.5 px-2 text-xs mt-0.5 w-full">
-                                            </div>
+                                        {{-- Qtd (só quando selecionado) --}}
+                                        <div class="product-details flex-col gap-1 w-full mt-1" @click.stop>
+                                            <label class="text-[9px] font-bold text-gray-500 dark:text-slate-400">Quantidade</label>
+                                            <input type="number"
+                                                   :data-qty-id="p.id"
+                                                   :min="1" :max="p.stock" value="1"
+                                                   @input="if(selected[p.id]) selected[p.id].qty = $event.target.value"
+                                                   class="portal-input py-1.5 px-2 text-xs mt-0.5 text-center font-bold w-full">
                                         </div>
                                     </div>
                                 </div>
@@ -276,56 +270,6 @@
                     </div>
                 </div>
 
-                {{-- ── Itens Adicionais ── --}}
-                <div class="portal-card overflow-hidden">
-                    <div class="px-5 py-4 border-b border-gray-100 dark:border-slate-700 bg-gradient-to-r from-violet-50/80 to-purple-50/80 dark:from-violet-900/20 dark:to-purple-900/20">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2.5">
-                                <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl flex items-center justify-center shadow-sm">
-                                    <i class="fas fa-list-plus text-white text-xs"></i>
-                                </div>
-                                <div>
-                                    <h2 class="font-black text-sm text-gray-900 dark:text-slate-200">
-                                        Itens Adicionais
-                                        <span class="text-[10px] font-normal text-gray-400 dark:text-slate-500 ml-0.5">(opcional)</span>
-                                    </h2>
-                                    <p class="text-[10px] text-gray-400 dark:text-slate-500">Frete, instalação ou itens fora do catálogo</p>
-                                </div>
-                            </div>
-                            <button type="button" @click="addExtra()"
-                                class="inline-flex items-center gap-1.5 px-4 py-2 bg-violet-500 hover:bg-violet-600 active:scale-95 text-white text-xs font-bold rounded-xl transition-all shadow-sm">
-                                <i class="fas fa-plus text-[9px]"></i> Adicionar
-                            </button>
-                        </div>
-                    </div>
-                    <div class="p-4">
-                        <div x-show="extraItems.length === 0" class="text-center py-8">
-                            <i class="fas fa-layer-group text-3xl text-gray-200 dark:text-slate-700 mb-2"></i>
-                            <p class="text-xs text-gray-400 dark:text-slate-500">Adicione serviços, frete ou outros itens personalizados</p>
-                        </div>
-                        <div class="space-y-2.5">
-                            <template x-for="(item, idx) in extraItems" :key="idx">
-                                <div class="flex gap-2 items-center bg-violet-50/60 dark:bg-violet-900/10 border border-violet-100 dark:border-violet-800/30 rounded-xl p-3">
-                                    <div class="w-7 h-7 bg-violet-100 dark:bg-violet-900/40 rounded-lg flex items-center justify-center flex-shrink-0">
-                                        <i class="fas fa-tag text-violet-500 text-[10px]"></i>
-                                    </div>
-                                    <input type="text" x-model="item.desc"
-                                           placeholder="Descrição (ex: frete expresso, instalação...)"
-                                           class="portal-input flex-1 py-2 text-xs">
-                                    <div class="flex items-center gap-1.5 flex-shrink-0">
-                                        <label class="text-[9px] font-bold text-gray-400 dark:text-slate-500 whitespace-nowrap">Qtd</label>
-                                        <input type="number" x-model="item.qty" min="1"
-                                               class="portal-input w-14 py-2 text-xs text-center font-bold">
-                                    </div>
-                                    <button type="button" @click="removeExtra(idx)"
-                                            class="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-400 hover:text-red-600 rounded-lg transition-colors border border-red-100 dark:border-red-800/30">
-                                        <i class="fas fa-trash-alt text-[9px]"></i>
-                                    </button>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
             </div>{{-- /coluna principal --}}
 
             {{-- ── Sidebar: Resumo ── --}}
@@ -380,20 +324,6 @@
                         </template>
                     </div>
 
-                    {{-- Extras no resumo --}}
-                    <template x-if="extraItems.filter(e=>e.desc).length > 0">
-                        <div class="px-3 pb-2 border-t border-gray-100 dark:border-slate-700 pt-2 space-y-1">
-                            <p class="text-[9px] font-black uppercase tracking-wider text-violet-500 dark:text-violet-400 mb-1">Itens adicionais</p>
-                            <template x-for="(e,i) in extraItems.filter(x=>x.desc)" :key="i">
-                                <div class="flex items-center gap-1.5">
-                                    <i class="fas fa-tag text-violet-400 text-[9px] flex-shrink-0"></i>
-                                    <p class="text-[10px] text-gray-600 dark:text-slate-400 flex-1 truncate" x-text="e.desc"></p>
-                                    <span class="text-[9px] text-gray-400 flex-shrink-0" x-text="e.qty + '×'"></span>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-
                     {{-- Total referência --}}
                     <div x-show="selectedCount > 0 && totalRef > 0"
                          class="mx-3 mb-3 mt-1 p-3 bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-sky-900/20 dark:to-indigo-900/20 rounded-xl border border-sky-100 dark:border-sky-800/30">
@@ -406,9 +336,9 @@
                     {{-- Botão Enviar --}}
                     <div class="px-3 pb-4 pt-1 space-y-2">
                         <button type="button" @click="submitForm()"
-                                :disabled="selectedCount === 0 && extraItems.filter(e=>e.desc).length === 0"
+                                :disabled="selectedCount === 0"
                                 class="w-full flex items-center justify-center gap-2 py-3.5 font-black text-sm rounded-xl transition-all"
-                                :class="selectedCount > 0 || extraItems.filter(e=>e.desc).length > 0
+                                :class="selectedCount > 0
                                     ? 'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white hover:scale-[1.02] shadow-lg shadow-sky-500/20'
                                     : 'opacity-40 cursor-not-allowed bg-gray-200 dark:bg-slate-700 text-gray-500 dark:text-slate-400'">
                             <i class="fas fa-paper-plane text-xs"></i>
@@ -456,7 +386,5 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endpush
-
-</x-portal-layout>
 
 </x-portal-layout>
