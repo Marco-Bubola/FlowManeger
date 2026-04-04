@@ -304,7 +304,15 @@ class SalesIndex extends Component
 
     public function confirmDelete($saleId)
     {
-        $this->deletingSale = Sale::find($saleId);
+        $this->deletingSale = Sale::whereKey($saleId)
+            ->where('user_id', Auth::id())
+            ->first();
+
+        if (!$this->deletingSale) {
+            session()->flash('error', 'Voce so pode excluir vendas da sua propria conta.');
+            return;
+        }
+
         $this->showDeleteModal = true;
         $this->dispatch('refreshComponent');
     }
@@ -318,6 +326,12 @@ class SalesIndex extends Component
     public function deleteSale()
     {
         if ($this->deletingSale) {
+            if ((int) $this->deletingSale->user_id !== (int) Auth::id()) {
+                session()->flash('error', 'Voce so pode excluir vendas da sua propria conta.');
+                $this->cancelDelete();
+                return;
+            }
+
             // Restaurar o estoque dos produtos
             foreach ($this->deletingSale->saleItems as $saleItem) {
                 $product = Product::find($saleItem->product_id);
@@ -387,9 +401,7 @@ class SalesIndex extends Component
 
     public function getSalesProperty()
     {
-        $userId = Auth::id();
-
-        $query = Sale::where('sales.user_id', $userId)
+        $query = Sale::query()
             ->with(['client', 'saleItems.product', 'payments', 'parcelasVenda']);
 
         // Filtro de pesquisa por nome do cliente
@@ -548,7 +560,7 @@ class SalesIndex extends Component
 
     public function getClientsProperty()
     {
-        return Client::where('user_id', Auth::id())->get();
+        return Client::query()->get();
     }
 
     public function toggleTips()
@@ -558,14 +570,12 @@ class SalesIndex extends Component
 
     public function render()
     {
-        // Calcular estatísticas para o header
-        $totalSales = Sale::where('user_id', Auth::id())->count();
-        $pendingSales = Sale::where('user_id', Auth::id())->where('status', 'pendente')->count();
-        $todaySales = Sale::where('user_id', Auth::id())->whereDate('created_at', today())->count();
-        $totalRevenue = Sale::where('user_id', Auth::id())->sum('total_price');
+        $totalSales = Sale::query()->count();
+        $pendingSales = Sale::query()->where('status', 'pendente')->count();
+        $todaySales = Sale::query()->whereDate('created_at', today())->count();
+        $totalRevenue = Sale::query()->sum('total_price');
 
-        // Coleções para filtros
-        $clients = Client::where('user_id', Auth::id())->get();
+        $clients = Client::query()->get();
         $sellers = collect(); // Implementar se houver tabela de vendedores
 
         return view('livewire.sales.sales-index', [
@@ -585,7 +595,7 @@ class SalesIndex extends Component
     public function openExportSaleModalFromCard($saleId)
     {
         // Log para diagnóstico
-        \Log::debug('SalesIndex::openExportSaleModalFromCard called', ['saleId' => $saleId]);
+        Log::debug('SalesIndex::openExportSaleModalFromCard called', ['saleId' => $saleId]);
 
         // Dispatch a browser/livewire event para abrir o modal (compatível com o atributo #[On('openExportSaleModal')])
         $this->dispatch('openExportSaleModal', ['saleId' => $saleId]);
