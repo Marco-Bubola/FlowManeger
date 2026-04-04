@@ -1,208 +1,128 @@
 /* Edit Sale - Mobile Base (<= 767px) */
 @media (max-width: 767.98px) {
+
     .edit-sale-page {
+        --cs-page-px: 0.55rem;
         padding-inline: 0.55rem;
         padding-bottom: calc(82px + env(safe-area-inset-bottom));
     }
 
-    .edit-sale-page .sales-create-header-inner {
-        padding: 0.72rem !important;
+    /* Header sticky */
+    .edit-sale-page .create-sale-sticky-header {
+        margin-top: -0.6rem;
+        margin-inline: -0.55rem;
+        padding-top:    0.6rem;
+        padding-bottom: 0.55rem;
+        padding-inline: 0.55rem;
     }
 
-    .edit-sale-page .sales-create-header-main {
-        align-items: stretch !important;
-        gap: 0.55rem !important;
-    }
-
-    .edit-sale-page .sales-create-header-main > div:first-child {
-        gap: 0.55rem !important;
-    }
-
-    .edit-sale-page .sales-create-header-title {
-        font-size: 1.15rem !important;
-    }
-
-    .edit-sale-page .sales-create-header-subtitle {
-        font-size: 0.74rem !important;
-        line-height: 1.2 !important;
-        margin-top: 0.1rem !important;
-    }
+    .edit-sale-page .sales-create-header-inner  { padding: 0.72rem !important; }
+    .edit-sale-page .sales-create-header-main   { align-items: stretch !important; gap: 0.55rem !important; }
+    .edit-sale-page .sales-create-header-main > div:first-child { gap: 0.55rem !important; }
+    .edit-sale-page .sales-create-header-title  { font-size: 1.15rem !important; }
+    .edit-sale-page .sales-create-header-subtitle { font-size: 0.74rem !important; line-height: 1.2 !important; }
 
     .edit-sale-page .sales-create-header-actions {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: nowrap !important;
-        gap: 0.4rem !important;
-        overflow-x: auto;
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+        width: 100% !important; justify-content: flex-start !important;
+        flex-wrap: nowrap !important; gap: 0.4rem !important;
+        overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
     }
+    .edit-sale-page .sales-create-header-actions::-webkit-scrollbar { display: none; }
+    .edit-sale-page .create-header-action  { padding: 0.42rem !important; flex: 0 0 auto; }
+    .edit-sale-page .create-header-next-btn{ padding: 0.45rem 0.72rem !important; font-size: 0.72rem !important; flex: 0 0 auto; white-space: nowrap; }
+    .edit-sale-page .create-header-next-meta { display: none !important; }
 
-    .edit-sale-page .sales-create-header-actions::-webkit-scrollbar {
-        display: none;
-    }
-
-    .edit-sale-page .create-header-action {
-        padding: 0.42rem !important;
-        flex: 0 0 auto;
-    }
-
-    .edit-sale-page .create-header-next-btn {
-        padding: 0.45rem 0.72rem !important;
-        font-size: 0.72rem !important;
-        flex: 0 0 auto;
-        white-space: nowrap;
-    }
-
-    /* Step 1: empilha verticalmente em mobile */
+    /* Step 1 — empilha verticalmente */
     .edit-sale-page .edit-sale-step1-shell {
+        flex-direction: column !important;
         gap: 0.65rem !important;
         height: auto !important;
     }
 
     .edit-sale-page .edit-sale-products-pane,
-    .edit-sale-page .edit-sale-side-pane {
-        width: 100% !important;
-        height: auto !important;
+    .edit-sale-page .create-sale-summary-pane {
+        width: 100% !important; height: auto !important; position: static !important;
     }
+
+    /* Resumo acima do catalogo no mobile */
+    .edit-sale-page .create-sale-summary-pane { order: -1; }
 
     /* Controles de pesquisa */
-    .edit-sale-page .edit-sale-products-controls {
-        flex-wrap: wrap !important;
-        align-items: stretch !important;
-        gap: 0.5rem !important;
-    }
+    .edit-sale-page .edit-sale-products-controls { flex-wrap: wrap !important; align-items: stretch !important; gap: 0.5rem !important; }
+    .edit-sale-page .edit-sale-products-controls > .flex-1 { flex: 1 1 100% !important; }
+    .edit-sale-page .edit-sale-products-controls input[type=text] { height: 2.7rem !important; font-size: 0.84rem !important; }
+    .edit-sale-page .edit-sale-products-controls .toggle-filter  { width: 100%; justify-content: center; }
 
-    .edit-sale-page .edit-sale-products-controls > .flex-1 {
-        flex: 1 1 100% !important;
-    }
-
-    .edit-sale-page .edit-sale-products-controls input[type="text"] {
-        height: 2.7rem !important;
-        font-size: 0.84rem !important;
-    }
-
-    .edit-sale-page .edit-sale-products-controls .toggle-filter {
-        width: 100%;
-        justify-content: center;
-    }
-
-    /* Grid de produtos: 2 colunas */
-    .edit-sale-page .products-step-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 0.45rem !important;
-    }
+    /* Grid produtos 2 colunas */
+    .edit-sale-page .products-step-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.45rem !important; }
 
     /* Cards compactos */
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern,
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern {
-        min-height: 0 !important;
-        height: auto !important;
-    }
-
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-img-area {
-        min-height: 142px !important;
-        height: 142px !important;
-    }
-
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern .product-img-area {
-        min-height: 136px !important;
-        height: 136px !important;
-    }
-
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .card-body {
-        padding: 2.42em 0.42em 2em 0.42em !important;
-        gap: 0.14em !important;
-    }
-
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern .card-body {
-        padding: 2.28em 0.4em 1.92em 0.4em !important;
-        gap: 0.12em !important;
-    }
-
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-title {
-        font-size: 0.74em !important;
-        line-height: 1.12 !important;
-        line-clamp: 2 !important;
-        -webkit-line-clamp: 2 !important;
-        min-height: 2.05em !important;
-    }
-
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern .product-title {
-        font-size: 0.72em !important;
-        line-height: 1.1 !important;
-        line-clamp: 2 !important;
-        -webkit-line-clamp: 2 !important;
-        min-height: 2.02em !important;
-    }
-
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .price-area {
-        margin-top: 0.2em !important;
-        gap: 0.14em !important;
-        min-height: 1.76em !important;
-    }
-
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern .price-area {
-        margin-top: 0.18em !important;
-        gap: 0.12em !important;
-        min-height: 1.7em !important;
-    }
-
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern { min-height: 0 !important; height: auto !important; }
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-img-area { min-height: 142px !important; height: 142px !important; }
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .card-body  { padding: 2.42em 0.42em 2em 0.42em !important; gap: 0.14em !important; }
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-title { font-size: 0.74em !important; line-height: 1.12 !important; -webkit-line-clamp: 2 !important; min-height: 2.05em !important; }
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .price-area { margin-top: 0.2em !important; gap: 0.14em !important; min-height: 1.76em !important; }
     .edit-sale-page .products-mobile-compact-grid .product-card-modern .badge-price,
     .edit-sale-page .products-mobile-compact-grid .product-card-modern .badge-price-sale,
     .edit-sale-page .products-mobile-compact-grid .product-card-modern .badge-product-code,
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .badge-quantity {
-        font-size: 0.66em !important;
-        padding: 0.16em 0.42em !important;
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .badge-quantity { font-size: 0.66em !important; padding: 0.16em 0.42em !important; }
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .category-icon-wrapper { width: 46px !important; height: 46px !important; bottom: -23px !important; border-width: 3px !important; }
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .category-icon { font-size: 1.45em !important; }
+
+    /* ── Painel de resumo (summary pane) ── */
+    .edit-sale-page .create-sale-summary-card      { padding: 0.75rem !important; }
+
+    .edit-sale-page .create-sale-summary-topbar {
+        flex-direction: row !important; gap: 0.5rem !important;
+        margin-bottom: 0.5rem !important; align-items: center !important;
+    }
+    .edit-sale-page .create-sale-summary-icon {
+        width: 1.9rem !important; height: 1.9rem !important; min-width: 1.9rem !important;
+    }
+    .edit-sale-page .create-sale-summary-title-wrap p { display: none !important; }
+
+    .edit-sale-page .create-sale-summary-stats      { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.35rem !important; margin-bottom: 0.5rem !important; }
+    .edit-sale-page .create-sale-summary-stat       { padding: 0.42rem !important; }
+    .edit-sale-page .create-sale-summary-stat-label { font-size: 0.55rem !important; }
+    .edit-sale-page .create-sale-summary-stat-value { font-size: 0.8rem !important; }
+
+    .edit-sale-page .create-sale-summary-info-grid {
+        grid-template-columns: 1fr !important; gap: 0.45rem !important;
     }
 
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .category-icon-wrapper,
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern .category-icon-wrapper {
-        width: 46px !important;
-        height: 46px !important;
-        bottom: -23px !important;
-        border-width: 3px !important;
-    }
+    /* Total panel */
+    .edit-sale-page .create-sale-total-panel  { padding: 0.65rem 0.75rem !important; margin-top: 0.65rem !important; }
+    .edit-sale-page .create-sale-total-grid   { grid-template-columns: 1fr 1fr !important; gap: 0.4rem !important; margin-bottom: 0.55rem !important; }
+    .edit-sale-page .create-sale-total-metric { padding: 0.5rem 0.6rem !important; }
 
-    .edit-sale-page .products-mobile-compact-grid .product-card-modern .category-icon,
-    .edit-sale-page .edit-sale-review-products-grid .product-card-modern .category-icon {
-        font-size: 1.45em !important;
-    }
+    /* ── Lista de selecionados ── */
+    .edit-sale-page .create-sale-selected-list { max-height: 340px; overflow-y: auto; }
 
-    /* Painel lateral — resumo */
-    .edit-sale-page .edit-sale-selected-list {
-        max-height: 340px;
-        overflow-y: auto;
-    }
+    .edit-sale-page .create-sale-selected-item { padding: 0.58rem !important; border-radius: 0.8rem !important; }
+    .edit-sale-page .create-sale-selected-thumb { width: 2.1rem !important; height: 2.1rem !important; min-width: 2.1rem !important; }
 
-    .edit-sale-page .edit-sale-summary-card {
-        padding: 0.75rem !important;
+    /* Grid Qtd/Preco/Total */
+    .edit-sale-page .create-sale-selected-grid {
+        grid-template-columns: 4rem 1fr 4.5rem !important;
+        gap: 0.4rem !important;
+        margin-top: 0 !important;
     }
+    .edit-sale-page .create-sale-selected-field        { padding: 0.45rem 0.5rem !important; }
+    .edit-sale-page .create-sale-selected-field label  { font-size: 0.55rem !important; }
+    .edit-sale-page .create-sale-selected-field input  { font-size: 0.75rem !important; }
+    .edit-sale-page .create-sale-selected-subtotal     { padding: 0.45rem 0.5rem !important; }
+    .edit-sale-page .csi-total-label                   { font-size: 0.53rem !important; }
+    .edit-sale-page .csi-total-value                   { font-size: 0.72rem !important; }
 
-    .edit-sale-page .edit-sale-summary-info-grid {
-        grid-template-columns: 1fr !important;
-        gap: 0.45rem !important;
-    }
-
-    .edit-sale-page .edit-sale-selected-item {
-        padding: 0.58rem !important;
-    }
-
-    /* Step 2 — revisão */
-    .edit-sale-page .edit-sale-step2-shell {
-        gap: 0.65rem !important;
-        max-height: none !important;
-    }
-
+    /* Step 2 */
+    .edit-sale-page .edit-sale-step2-shell { flex-direction: column !important; gap: 0.65rem !important; max-height: none !important; }
     .edit-sale-page .edit-sale-review-info-pane,
-    .edit-sale-page .edit-sale-review-products-pane {
-        width: 100% !important;
-        padding: 0.72rem !important;
-        border-radius: 0.85rem;
-    }
+    .edit-sale-page .edit-sale-review-products-pane { width: 100% !important; padding: 0.72rem !important; border-radius: 0.85rem !important; }
+    .edit-sale-page .edit-sale-review-title { font-size: 1.05rem !important; margin-bottom: 0.45rem !important; }
+}
 
-    .edit-sale-page .edit-sale-review-title {
-        font-size: 1.05rem !important;
-        margin-bottom: 0.45rem !important;
-    }
+/* Dropdowns mobile */
+@media (max-width: 767.98px) {
+    .edit-sale-page .summary-dropdown-menu { font-size: 0.84rem; max-height: 220px; }
+    .edit-sale-page .summary-dropdown-menu button { font-size: 0.82rem !important; padding: 0.52rem 0.72rem !important; gap: 0.55rem !important; }
 }
