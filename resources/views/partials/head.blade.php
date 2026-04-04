@@ -54,6 +54,41 @@
 <!-- Theme overrides CSS file (moved from inline to prevent visual rendering) -->
 <link rel="stylesheet" href="{{ asset('assets/css/flow-theme.css') }}">
 
+<!-- Color theme init: aplica variáveis de cor antes do render para evitar flash -->
+<script>
+(function() {
+    try {
+        var THEMES = {
+            purple:  { a:'#9333ea', d:'#7c3aed', l:'#d8b4fe', f:'#faf5ff', r:'147,51,234' },
+            indigo:  { a:'#4f46e5', d:'#3730a3', l:'#a5b4fc', f:'#eef2ff', r:'79,70,229' },
+            blue:    { a:'#2563eb', d:'#1d4ed8', l:'#93c5fd', f:'#eff6ff', r:'37,99,235' },
+            teal:    { a:'#0d9488', d:'#0f766e', l:'#5eead4', f:'#f0fdfa', r:'13,148,136' },
+            emerald: { a:'#059669', d:'#047857', l:'#6ee7b7', f:'#ecfdf5', r:'5,150,105' },
+            rose:    { a:'#e11d48', d:'#be123c', l:'#fda4af', f:'#fff1f2', r:'225,29,72' },
+            orange:  { a:'#ea580c', d:'#c2410c', l:'#fdba74', f:'#fff7ed', r:'234,88,12' },
+            amber:   { a:'#d97706', d:'#b45309', l:'#fcd34d', f:'#fffbeb', r:'217,119,6' }
+        };
+        var colorTheme = localStorage.getItem('flowmanager:color-theme');
+        var customColor = localStorage.getItem('flowmanager:color-custom');
+        var root = document.documentElement;
+        if (colorTheme === 'custom' && customColor) {
+            root.style.setProperty('--s-accent', customColor);
+        } else {
+            var t = THEMES[colorTheme] || THEMES.purple;
+            root.style.setProperty('--s-accent', t.a);
+            root.style.setProperty('--s-accent-dark', t.d);
+            root.style.setProperty('--s-accent-light', t.l);
+            root.style.setProperty('--s-accent-faint', t.f);
+            root.style.setProperty('--s-accent-rgb', t.r);
+        }
+        var fontSize = localStorage.getItem('flowmanager:font-size');
+        if (fontSize) root.style.setProperty('--s-font-size-factor', (fontSize / 100).toString());
+        if (localStorage.getItem('flowmanager:compact') === '1') root.classList.add('compact-mode');
+        if (localStorage.getItem('flowmanager:no-animations') === '1') root.classList.add('no-animations');
+    } catch(e) {}
+})();
+</script>
+
 <!-- Critical CSS: sidebar oculta no mobile ANTES do body renderizar (evita flash no F5) -->
 <style>
     [x-cloak] { display: none !important; }
