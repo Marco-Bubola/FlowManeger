@@ -11,21 +11,37 @@
     --sale-border: rgba(148, 163, 184, 0.22);
     --cs-page-px: 0.85rem;
     --cs-page-pt: 0.85rem;
-    background:
-        radial-gradient(circle at top left, rgba(79, 70, 229, 0.08), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.08), transparent 24%),
-        linear-gradient(180deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.98));
-    padding: 0.85rem;
+    background: transparent;
+    padding: 0.5rem 0.85rem 0.85rem;
     overflow-x: clip;
 }
 
 .dark .edit-sale-page {
     --sale-surface: rgba(15, 23, 42, 0.84);
     --sale-border: rgba(71, 85, 105, 0.35);
-    background:
-        radial-gradient(circle at top left, rgba(79, 70, 229, 0.18), transparent 26%),
-        radial-gradient(circle at bottom right, rgba(5, 150, 105, 0.16), transparent 24%),
-        linear-gradient(180deg, rgba(2, 6, 23, 0.98), rgba(15, 23, 42, 0.96));
+    background: transparent;
+}
+
+/* Fix: remove min-height base 420px que criava espaço em branco enorme */
+.edit-sale-page .product-card-modern {
+    min-height: 0 !important;
+    height: auto !important;
+}
+.edit-sale-page .product-card-modern .card-body {
+    min-height: 0 !important;
+}
+/* Fix: força a imagem a preencher 100% da área sem espaço vazio */
+.edit-sale-page .product-card-modern .product-img-area {
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+}
+.edit-sale-page .product-card-modern .product-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    flex-shrink: 0 !important;
+    align-self: stretch !important;
+    display: block !important;
 }
 
 /* ── Sticky Header ── */
@@ -274,16 +290,33 @@
 
 /* ── Total panel ── */
 .edit-sale-page .create-sale-total-panel {
-    padding: 0.85rem 0.95rem 0.7rem;
-    border-radius: 1.1rem;
-    border: 1px solid rgba(226, 232, 240, 0.72);
-    background: rgba(248, 250, 252, 0.7);
-    margin-top: 0.85rem;
+    margin-top: 0.9rem;
+    padding: 0.9rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.04), rgba(79, 70, 229, 0.08), rgba(5, 150, 105, 0.08));
+    border: 1px solid rgba(99, 102, 241, 0.14);
 }
 
 .dark .edit-sale-page .create-sale-total-panel {
-    background: rgba(15, 23, 42, 0.55);
-    border-color: rgba(71, 85, 105, 0.32);
+    background: linear-gradient(135deg, rgba(15, 23, 42, 0.84), rgba(49, 46, 129, 0.32), rgba(6, 78, 59, 0.24));
+    border-color: rgba(99, 102, 241, 0.18);
+}
+
+.edit-sale-page .create-sale-total-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-bottom: 0.7rem;
+}
+
+.edit-sale-page .create-sale-total-metric {
+    padding: 0.68rem 0.75rem;
+    border-radius: 0.9rem;
+    background: rgba(255, 255, 255, 0.72);
+}
+
+.dark .edit-sale-page .create-sale-total-metric {
+    background: rgba(15, 23, 42, 0.58);
 }
 
 /* ── Summary alert ── */
