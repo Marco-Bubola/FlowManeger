@@ -40,8 +40,17 @@ class ShowSale extends Component
         $this->paymentDate = now()->format('Y-m-d');
     }
 
+    private function ensureOwner(): void
+    {
+        if ((int) $this->sale->user_id !== (int) Auth::id()) {
+            session()->flash('error', 'Você não tem permissão para modificar esta venda.');
+            abort(403);
+        }
+    }
+
     public function removeSaleItem($itemId)
     {
+        $this->ensureOwner();
         $saleItem = $this->sale->saleItems()->findOrFail($itemId);
 
         // Restaurar estoque
@@ -95,6 +104,7 @@ class ShowSale extends Component
 
     public function addPayments()
     {
+        $this->ensureOwner();
         $this->validate([
             'newPayments.*.amount_paid' => 'required|numeric|min:0.01',
             'newPayments.*.payment_method' => 'required|string',
@@ -135,6 +145,7 @@ class ShowSale extends Component
 
     public function pagarParcela($parcelaId, $valorPago, $dataPagamento)
     {
+        $this->ensureOwner();
         $parcela = VendaParcela::findOrFail($parcelaId);
 
         // Atualizar status da parcela
@@ -204,6 +215,7 @@ class ShowSale extends Component
 
     public function applyDiscountToZero()
     {
+        $this->ensureOwner();
         // Valor restante
         $remaining = $this->sale->remaining_amount; // usa accessor
 
@@ -252,6 +264,7 @@ class ShowSale extends Component
      */
     public function payFull($paymentMethod = 'dinheiro')
     {
+        $this->ensureOwner();
         // Recarregar para garantir dados atualizados
         $this->sale->refresh();
 
@@ -290,6 +303,7 @@ class ShowSale extends Component
 
     public function confirmPayment()
     {
+        $this->ensureOwner();
         $this->validate([
             'paymentMethod' => 'required|string',
             'paymentDate' => 'required|date',
