@@ -1,5 +1,25 @@
-/* settings-appearance — Ultrawide */
+/* settings-appearance — Ultrawide (>=1441px) */
 @media (min-width: 1441px) {
-    .settings-appearance-page { margin-inline: auto; }
-    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 900px; }
+    .settings-wrap {
+        gap: 2rem;
+    }
+    .settings-nav-panel {
+        width: 260px;
+    }
+    .settings-color-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+    .settings-color-dot {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+    .settings-card {
+        max-width: 1000px;
+    }
+    .settings-option-card {
+        padding: 1.25rem 1rem;
+    }
+    .settings-preview-block {
+        width: 250px;
+    }
 }
