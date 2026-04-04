@@ -458,3 +458,5 @@ document.addEventListener('DOMContentLoaded', () => {
 @endpush
 
 </x-portal-layout>
+
+</x-portal-layout>
