@@ -244,6 +244,12 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/profile', 'settings.profile')->name('settings.profile');
     Volt::route('settings/password', 'settings.password')->name('settings.password');
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
+    Volt::route('settings/notifications', 'settings.notifications')->name('settings.notifications');
+    Volt::route('settings/security', 'settings.security')->name('settings.security');
+    Volt::route('settings/system', 'settings.system')->name('settings.system');
+    Volt::route('settings/devices', 'settings.devices')->name('settings.devices');
+    Volt::route('settings/plan', 'settings.plan')->name('settings.plan');
+    Volt::route('settings/connections', 'settings.connections')->name('settings.connections');
 
     // --- Outras Rotas ---
     Route::redirect('settings', 'settings/profile');
