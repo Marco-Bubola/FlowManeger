@@ -44,33 +44,54 @@
                 <!-- Sidebar Content -->
                 <div class="relative h-full flex flex-col">
                     <!-- Header Section -->
-                    <div class="flex items-center justify-between p-5 border-b border-slate-200/50 dark:border-slate-700/50">
+                    <div class="flex items-center justify-between gap-3 p-5 border-b border-slate-200/50 dark:border-slate-700/50">
                         <a href="{{ route('dashboard.index') }}" class="flex items-center gap-3 transition-all duration-300 hover:scale-105" wire:navigate.hover>
-                            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                                <x-app-logo class="w-6 h-6" />
-                            </div>
-                            <span class="sidebar-text font-black text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">FlowManager</span>
+                            <img src="/favicon.svg" alt="{{ config('app.name', 'FlowManager') }}" class="h-10 w-10 shrink-0 object-contain" />
+                            <span class="sidebar-text font-black text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ config('app.name', 'FlowManager') }}</span>
                         </a>
 
-                        <!-- Toggle Button -->
-                        <button id="sidebarToggle" class="lg:flex hidden w-9 h-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 group">
-                            <svg class="w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform duration-300 group-hover:scale-110" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
-                            </svg>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            <div x-data="{ dark: document.documentElement.classList.contains('dark') }">
+                                <button
+                                    type="button"
+                                    @click="dark = !dark; document.documentElement.classList.toggle('dark', dark); localStorage.setItem('flowmanager:theme', dark ? 'dark' : 'light'); window.dispatchEvent(new CustomEvent('flowmanager:theme-changed', { detail: { theme: dark ? 'dark' : 'light' } }));"
+                                    :aria-label="dark ? 'Ativar modo claro' : 'Ativar modo escuro'"
+                                    :title="dark ? 'Ativar modo claro' : 'Ativar modo escuro'"
+                                    class="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200/80 bg-white/80 text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                                >
+                                    <span class="sr-only" x-text="dark ? 'Ativar modo claro' : 'Ativar modo escuro'"></span>
+                                    <svg x-cloak x-show="!dark" class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v2.25m0 13.5V21m9-9h-2.25M5.25 12H3m15.114 6.364-1.591-1.591M7.477 7.477 5.886 5.886m12.228 0-1.591 1.591M7.477 16.523l-1.591 1.591M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"></path>
+                                    </svg>
+                                    <svg x-cloak x-show="dark" class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.326.265-2.59.744-3.74A9.753 9.753 0 103 12.75 9.75 9.75 0 0021.752 15.002z"></path>
+                                    </svg>
+                                </button>
+                            </div>
 
-                        <!-- Mobile Close -->
-                        <button class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" onclick="closeMobileSidebar()">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
+                            <!-- Toggle Button -->
+                            <button id="sidebarToggle" type="button" class="lg:flex hidden w-9 h-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all duration-200 group">
+                                    <button
+                                        type="button"
+                                        @click="toggle()"
+                                        :aria-expanded="open.toString()"
+                                        class="flex w-full items-center justify-between rounded-2xl border border-fuchsia-200/70 bg-fuchsia-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-fuchsia-300 hover:bg-fuchsia-100/80 dark:border-fuchsia-900/70 dark:bg-fuchsia-950/30 dark:hover:border-fuchsia-800 dark:hover:bg-fuchsia-900/30"
+                                    >
+                            <button type="button" class="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all" onclick="closeMobileSidebar()">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Navigation Content -->
                     <div class="flex-1 overflow-y-auto overflow-x-hidden py-4 px-3 custom-scrollbar">
                         <!-- Dashboards Section -->
-                        <div class="mb-4">
+                        <div class="mb-4 sidebar-section-dashboard">
+                            <div class="sidebar-text px-3 mb-2">
+                                <p class="text-xs font-bold uppercase tracking-[0.18em] text-indigo-500 dark:text-indigo-400">Painel</p>
+                            </div>
                             <nav class="space-y-1">
                                 <!-- Dashboard Geral (Principal) -->
                                 <a href="{{ route('dashboard.index') }}" class="relative flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('dashboard.index') ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 text-blue-600 dark:text-blue-400 font-semibold' : '' }}" wire:navigate.hover>
@@ -120,7 +141,39 @@
 
 
                         <!-- Financeiro Section -->
-                        <div class="mb-4">
+                        <div class="mb-4 sidebar-section-financeiro" x-data="flowSidebarSection('financeiro', true)" x-init="init()">
+                            <button
+                                type="button"
+                                @click="toggle()"
+                                :aria-expanded="open.toString()"
+                                class="flex w-full items-center justify-between rounded-2xl border border-emerald-200/70 bg-emerald-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-100/80 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:hover:border-emerald-800 dark:hover:bg-emerald-900/30"
+                            >
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
+                                        <i class="bi bi-wallet2 text-base"></i>
+                                    </div>
+                                    <div class="sidebar-text min-w-0">
+                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Financeiro</p>
+                                        <p class="truncate text-xs text-emerald-700 dark:text-emerald-300">Caixa, bancos e reservas</p>
+                                    </div>
+                                </div>
+                                <div class="sidebar-text flex items-center gap-2 pl-3">
+                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm dark:bg-slate-900/70 dark:text-emerald-300">Gestão</span>
+                                    <i class="bi bi-chevron-down text-xs text-emerald-700 transition-transform duration-200 dark:text-emerald-300" :class="open ? 'rotate-180' : ''"></i>
+                                </div>
+                            </button>
+
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2"
+                                class="mt-2"
+                            >
                             <nav class="space-y-1">
                                 <!-- Bancos com botão + -->
                                 <a href="{{ url('banks') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('banks') ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 text-emerald-600 dark:text-emerald-400 font-semibold' : '' }}" wire:navigate.hover>
@@ -290,11 +343,43 @@
                                     <div class="{{ Request::is('consortiums*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-l-full"></div>
                                 </a>
                             </nav>
+                            </div>
                         </div>
 
                         <!-- Vendas e Produtos Section -->
-                        <div class="mb-4">
+                        <div class="mb-4 sidebar-section-vendas" x-data="flowSidebarSection('vendas', true)" x-init="init()">
+                            <button
+                                type="button"
+                                @click="toggle()"
+                                :aria-expanded="open.toString()"
+                                class="flex w-full items-center justify-between rounded-2xl border border-violet-200/70 bg-violet-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-violet-300 hover:bg-violet-100/80 dark:border-violet-900/70 dark:bg-violet-950/30 dark:hover:border-violet-800 dark:hover:bg-violet-900/30"
+                            >
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-lg shadow-violet-500/20">
+                                        <i class="bi bi-bag-check text-base"></i>
+                                    </div>
+                                    <div class="sidebar-text min-w-0">
+                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Vendas</p>
+                                        <p class="truncate text-xs text-violet-700 dark:text-violet-300">CRM, catálogo e operação comercial</p>
+                                    </div>
+                                </div>
+                                <div class="sidebar-text flex items-center gap-2 pl-3">
+                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-violet-700 shadow-sm dark:bg-slate-900/70 dark:text-violet-300">Operação</span>
+                                    <i class="bi bi-chevron-down text-xs text-violet-700 transition-transform duration-200 dark:text-violet-300" :class="open ? 'rotate-180' : ''"></i>
+                                </div>
+                            </button>
 
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2"
+                                class="mt-2"
+                            >
                             <nav class="space-y-1">
                                 <a href="{{ url('products') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
@@ -377,6 +462,7 @@
                                     <div class="{{ Request::is('categories') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
                             </nav>
+                            </div>
                         </div>
 
                         <!-- Integrações Section -->
@@ -396,9 +482,9 @@
                                         </svg>
                                     </div>
                                     <span class="sidebar-text flex-1 font-medium truncate">Mercado Livre</span>
-                                    <!-- Badge de progresso -->
+                                    <!-- Badge de integração -->
                                     <div class="sidebar-text flex items-center gap-1 flex-shrink-0">
-                                        <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-green-400/20 text-green-700 dark:bg-green-500/20 dark:text-green-300">100%</span>
+                                        <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-yellow-400/15 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300">Marketplace</span>
                                     </div>
                                     <!-- Chevron accordion -->
                                     <i class="sidebar-text bi text-xs transition-transform duration-200 text-slate-400"
@@ -406,7 +492,7 @@
                                     <div class="{{ Request::is('mercadolivre*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                 </a>
 
-                                <!-- Submenu Mercado Livre (sempre disponível, colapsável) -->
+                                <!-- Submenu Mercado Livre (padronizado) -->
                                 <div x-show="mlOpen"
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
@@ -415,63 +501,36 @@
                                      x-transition:leave-start="opacity-100 translate-y-0"
                                      x-transition:leave-end="opacity-0 -translate-y-2"
                                      class="ml-4 space-y-1 border-l-2 border-yellow-200 dark:border-yellow-800 pl-2 mt-1">
-                                    <a href="{{ route('mercadolivre.products') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/products') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                    <a href="{{ route('mercadolivre.publications') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/publications*') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/products') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3 3m0 0l-3-3m3 3V8"></path>
-                                            </svg>
-                                        </div>
-                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Produtos ML</span>
-                                        <div class="{{ Request::is('mercadolivre/products') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
-                                    </a>
-
-                                    <a href="{{ route('mercadolivre.orders') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/orders') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
-                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/orders') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
-                                            <i class="bi bi-receipt text-sm"></i>
-                                        </div>
-                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Pedidos</span>
-                                        <div class="{{ Request::is('mercadolivre/orders') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
-                                    </a>
-
-                                    <a href="{{ route('mercadolivre.publications') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/publications') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
-                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/publications') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
                                             <i class="bi bi-list-check text-sm"></i>
                                         </div>
                                         <span class="sidebar-text flex-1 font-medium truncate text-sm">Publicações</span>
-                                        <div class="{{ Request::is('mercadolivre/publications') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                        <div class="{{ Request::is('mercadolivre/publications*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                     </a>
 
-                                    {{-- ---- Novos módulos ML ---- --}}
-                                    @php
-                                        $mlNewLinks = [
-                                            ['route'=>'mercadolivre.questions',  'label'=>'Perguntas',  'icon'=>'bi bi-chat-left-text', 'pattern'=>'mercadolivre/questions*'],
-                                            ['route'=>'mercadolivre.messages',   'label'=>'Mensagens',  'icon'=>'bi bi-envelope',        'pattern'=>'mercadolivre/messages*'],
-                                            ['route'=>'mercadolivre.reputation', 'label'=>'Reputação',  'icon'=>'bi bi-star-half',       'pattern'=>'mercadolivre/reputation*'],
-                                            ['route'=>'mercadolivre.mediations', 'label'=>'Mediações',  'icon'=>'bi bi-shield-exclamation','pattern'=>'mercadolivre/mediations*'],
-                                            ['route'=>'mercadolivre.promotions', 'label'=>'Promoções',  'icon'=>'bi bi-percent',         'pattern'=>'mercadolivre/promotions*'],
-                                        ];
-                                    @endphp
-                                    @foreach($mlNewLinks as $mlLink)
-                                        <a href="{{ route($mlLink['route']) }}"
-                                           class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is($mlLink['pattern']) ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}"
-                                           wire:navigate.hover>
-                                            <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is($mlLink['pattern']) ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
-                                                <i class="{{ $mlLink['icon'] }} text-sm"></i>
-                                            </div>
-                                            <span class="sidebar-text flex-1 font-medium truncate text-sm">{{ $mlLink['label'] }}</span>
-                                            <div class="{{ Request::is($mlLink['pattern']) ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
-                                        </a>
-                                    @endforeach
+                                    <a href="{{ route('mercadolivre.products.publish.create') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/products/publish/create') || Request::is('mercadolivre/products/*/publish') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/products/publish/create') || Request::is('mercadolivre/products/*/publish') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-plus-square text-sm"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Nova publicação</span>
+                                        <div class="{{ Request::is('mercadolivre/products/publish/create') || Request::is('mercadolivre/products/*/publish') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
 
                                     <a href="{{ route('mercadolivre.settings') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/settings') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/settings') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                            </svg>
+                                            <i class="bi bi-gear text-sm"></i>
                                         </div>
                                         <span class="sidebar-text flex-1 font-medium truncate text-sm">Configurações</span>
                                         <div class="{{ Request::is('mercadolivre/settings') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('mercadolivre.auth.redirect') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/auth/*') ? 'bg-yellow-400/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-yellow-100 dark:bg-yellow-900/50 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/auth/*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-plug text-sm"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Conexão</span>
+                                        <div class="{{ Request::is('mercadolivre/auth/*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                     </a>
                                 </div>
                                 </div>
@@ -487,12 +546,15 @@
                                         </svg>
                                     </div>
                                     <span class="sidebar-text flex-1 font-medium truncate">Shopee</span>
+                                    <div class="sidebar-text flex items-center gap-1 flex-shrink-0">
+                                        <span class="px-2 py-0.5 rounded-md text-xs font-bold bg-orange-400/15 text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">Marketplace</span>
+                                    </div>
                                     <i class="sidebar-text bi text-xs transition-transform duration-200 text-slate-400"
                                        :class="shopeeOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
                                     <div class="{{ Request::is('shopee*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
                                 </a>
 
-                                <!-- Submenu Shopee -->
+                                  <!-- Submenu Shopee (padronizado) -->
                                 <div x-show="shopeeOpen"
                                      x-transition:enter="transition ease-out duration-200"
                                      x-transition:enter-start="opacity-0 -translate-y-2"
@@ -512,6 +574,14 @@
                                         <div class="{{ Request::is('shopee/publications') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
                                     </a>
 
+                                    <a href="{{ route('shopee.products.publish.create') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee/products/publish/create') || Request::is('shopee/products/*/publish') ? 'bg-orange-400/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee/products/publish/create') || Request::is('shopee/products/*/publish') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md shadow-orange-500/30' : '' }}">
+                                            <i class="bi bi-plus-square text-sm"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Nova publicação</span>
+                                        <div class="{{ Request::is('shopee/products/publish/create') || Request::is('shopee/products/*/publish') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
+                                    </a>
+
                                     <a href="{{ route('shopee.settings') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee/settings') ? 'bg-orange-400/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee/settings') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md shadow-orange-500/30' : '' }}">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -522,69 +592,220 @@
                                         <span class="sidebar-text flex-1 font-medium truncate text-sm">Configurações</span>
                                         <div class="{{ Request::is('shopee/settings') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
                                     </a>
+
+                                    <a href="{{ route('shopee.auth.connect') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee/auth/*') ? 'bg-orange-400/10 dark:bg-orange-500/20 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-100 dark:bg-orange-900/50 group-hover:bg-orange-200 dark:group-hover:bg-orange-800/50 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee/auth/*') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md shadow-orange-500/30' : '' }}">
+                                            <i class="bi bi-plug text-sm"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Conexão</span>
+                                        <div class="{{ Request::is('shopee/auth/*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-orange-500 to-red-600 rounded-l-full"></div>
+                                    </a>
                                 </div>
                                 </div>
 
                             </nav>
                         </div>
+
+                        <!-- Conta e Plano Section -->
+                        <div class="mb-4 sidebar-section-account" x-data="flowSidebarSection('account', true)" x-init="init()">
+                            <button
+                                type="button"
+                                @click="toggle()"
+                                :aria-expanded="open.toString()"
+                                class="flex w-full items-center justify-between rounded-2xl border border-fuchsia-200/70 bg-fuchsia-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-fuchsia-300 hover:bg-fuchsia-100/80 dark:border-fuchsia-900/70 dark:bg-fuchsia-950/30 dark:hover:border-fuchsia-800 dark:hover:bg-fuchsia-900/30"
+                            >
+                                <div class="flex min-w-0 items-center gap-3">
+                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/20">
+                                        <i class="bi bi-person-badge text-base"></i>
+                                    </div>
+                                    <div class="sidebar-text min-w-0">
+                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Conta e Plano</p>
+                                        <p class="truncate text-xs text-fuchsia-700 dark:text-fuchsia-300">Equipe, assinatura e acesso pessoal</p>
+                                    </div>
+                                </div>
+                                <div class="sidebar-text flex items-center gap-2 pl-3">
+                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-fuchsia-700 shadow-sm dark:bg-slate-900/70 dark:text-fuchsia-300">Conta</span>
+                                    <i class="bi bi-chevron-down text-xs text-fuchsia-700 transition-transform duration-200 dark:text-fuchsia-300" :class="open ? 'rotate-180' : ''"></i>
+                                </div>
+                            </button>
+
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2"
+                                class="mt-2"
+                            >
+                                <nav class="space-y-1">
+                                    <a href="{{ route('access.center') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('access.center') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('access.center') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-person-lock text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Acesso e permissoes</span>
+                                        <div class="{{ request()->routeIs('access.center') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('settings.team') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.team') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.team') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-people text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Equipe</span>
+                                        <div class="{{ request()->routeIs('settings.team') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('settings.plan') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.plan') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.plan') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-credit-card text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Meu plano</span>
+                                        <div class="{{ request()->routeIs('settings.plan') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('subscription.plans') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('subscription.plans') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('subscription.plans') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-stars text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Trocar plano</span>
+                                        <div class="{{ request()->routeIs('subscription.plans') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
+                                    @if(auth()->check() && auth()->user()->isAdmin())
+                                        <div class="ml-4 space-y-1 border-l-2 border-fuchsia-200 dark:border-fuchsia-800 pl-2">
+                                            <a href="{{ route('admin.plans.index') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('admin.plans.index') || request()->routeIs('admin.plans.create') || request()->routeIs('admin.plans.edit') ? 'bg-fuchsia-400/10 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 font-semibold' : '' }}" wire:navigate.hover>
+                                                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/50 group-hover:bg-fuchsia-200 dark:group-hover:bg-fuchsia-800/50 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('admin.plans.index') || request()->routeIs('admin.plans.create') || request()->routeIs('admin.plans.edit') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-fuchsia-500/30' : '' }}">
+                                                    <i class="bi bi-gem text-sm"></i>
+                                                </div>
+                                                <span class="sidebar-text flex-1 font-medium truncate text-sm">Planos</span>
+                                                <div class="{{ request()->routeIs('admin.plans.index') || request()->routeIs('admin.plans.create') || request()->routeIs('admin.plans.edit') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                            </a>
+
+                                            <a href="{{ route('admin.subscriptions.index') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('admin.subscriptions.*') ? 'bg-fuchsia-400/10 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 font-semibold' : '' }}" wire:navigate.hover>
+                                                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/50 group-hover:bg-fuchsia-200 dark:group-hover:bg-fuchsia-800/50 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('admin.subscriptions.*') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-fuchsia-500/30' : '' }}">
+                                                    <i class="bi bi-people text-sm"></i>
+                                                </div>
+                                                <span class="sidebar-text flex-1 font-medium truncate text-sm">Assinaturas</span>
+                                                <div class="{{ request()->routeIs('admin.subscriptions.*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                            </a>
+
+                                            <a href="{{ route('admin.plans.users') }}" class="relative flex items-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('admin.plans.users') ? 'bg-fuchsia-400/10 dark:bg-fuchsia-500/20 text-fuchsia-700 dark:text-fuchsia-300 font-semibold' : '' }}" wire:navigate.hover>
+                                                <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-fuchsia-100 dark:bg-fuchsia-900/50 group-hover:bg-fuchsia-200 dark:group-hover:bg-fuchsia-800/50 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('admin.plans.users') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-fuchsia-500/30' : '' }}">
+                                                    <i class="bi bi-person-vcard text-sm"></i>
+                                                </div>
+                                                <span class="sidebar-text flex-1 font-medium truncate text-sm">Usuarios</span>
+                                                <div class="{{ request()->routeIs('admin.plans.users') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                            </a>
+                                        </div>
+                                    @endif
+                                </nav>
+                            </div>
+                        </div>
                     </div>
+
+                    @php
+                        $__sidebarUser = auth()->user();
+                        $__sidebarProfileImage = $__sidebarUser?->profile_picture ?: $__sidebarUser?->avatar;
+                        $__sidebarProfileImage = $__sidebarProfileImage
+                            ? (\Illuminate\Support\Str::startsWith($__sidebarProfileImage, ['http://', 'https://']) ? $__sidebarProfileImage : asset($__sidebarProfileImage))
+                            : null;
+                    @endphp
+
                     <!-- Footer Section -->
-                    <div class="border-t border-slate-200/50 dark:border-slate-700/50 p-3">
-                        <!-- Notificações -->
-                        <div class="mb-3">
+                    <div class="border-t border-slate-200/50 px-3 pb-3 pt-3 dark:border-slate-700/50" x-data="{ profileOpen: false }">
+                        <div class="mb-3 flex items-center justify-between">
+                            <div class="sidebar-text">
+                                <p class="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Perfil</p>
+                            </div>
                             @livewire('components.consortium-notifications')
                         </div>
 
-                        <!-- User Profile -->
-                        <div class="mb-3">
-                            <button onclick="document.getElementById('userMenu').classList.toggle('hidden')" class="w-full flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-700 hover:from-slate-200 hover:to-slate-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-200 group">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                                    {{ auth()->user()->initials() }}
+                        <div class="relative">
+                            <button @click="profileOpen = !profileOpen" type="button" class="w-full overflow-hidden rounded-[1.55rem] border border-slate-200/70 bg-[radial-gradient(circle_at_top_left,_rgba(96,165,250,0.16),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.98),rgba(241,245,249,0.94))] p-3 shadow-[0_18px_38px_-24px_rgba(15,23,42,0.85)] transition-all duration-200 hover:border-slate-300 hover:shadow-[0_20px_40px_-22px_rgba(59,130,246,0.30)] dark:border-slate-700/70 dark:bg-[radial-gradient(circle_at_top_left,_rgba(59,130,246,0.16),_transparent_38%),linear-gradient(135deg,rgba(30,41,59,0.98),rgba(15,23,42,0.97))] dark:hover:border-slate-600 group">
+                                <div class="flex items-center gap-3">
+                                    <div class="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 text-sm font-bold text-white shadow-lg shadow-blue-500/20 dark:border-slate-700/70">
+                                        @if($__sidebarProfileImage)
+                                            <img src="{{ $__sidebarProfileImage }}" alt="{{ $__sidebarUser->name }}" class="h-full w-full object-cover" />
+                                        @else
+                                            {{ $__sidebarUser->initials() }}
+                                        @endif
+                                    </div>
+                                    <div class="sidebar-text min-w-0 flex-1 text-left">
+                                        <p class="truncate text-sm font-extrabold text-slate-900 dark:text-white">{{ $__sidebarUser->name }}</p>
+                                        <p class="truncate pt-0.5 text-xs text-slate-500 dark:text-slate-400">{{ $__sidebarUser->email }}</p>
+                                        <div class="flex items-center gap-1.5 pt-1.5">
+                                            <span class="inline-flex items-center rounded-full bg-white/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-500 shadow-sm dark:bg-slate-900/60 dark:text-slate-400">Conta</span>
+                                            @if($__sidebarUser->isAdmin())
+                                                <span class="inline-flex items-center rounded-full bg-pink-500/12 px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-pink-600 dark:text-pink-400">Admin</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                    <div class="sidebar-text flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200/70 bg-white/85 text-slate-400 transition-all duration-200 group-hover:border-slate-300 group-hover:text-slate-600 dark:border-slate-700 dark:bg-slate-900/60 dark:group-hover:text-slate-300">
+                                        <svg class="h-4 w-4 transition-transform duration-200" :class="profileOpen ? 'rotate-180' : ''" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                        </svg>
+                                    </div>
                                 </div>
-                                <div class="sidebar-text flex-1 text-left">
-                                    <p class="font-bold text-sm text-slate-900 dark:text-white truncate">{{ auth()->user()->name }}</p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate">{{ auth()->user()->email }}</p>
-                                </div>
-                                <svg class="sidebar-text w-5 h-5 text-slate-400 transition-transform duration-200 group-hover:translate-y-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                                </svg>
                             </button>
 
-                            <!-- Dropdown Menu -->
-                            <div id="userMenu" class="hidden mt-2 p-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-xl">
-                                <a href="{{ route('settings.profile') }}" class="flex items-center gap-3 p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-all" wire:navigate.hover>
-                                    <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    </svg>
-                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Configurações</span>
-                                </a>
-                                <form method="POST" action="{{ route('logout') }}" class="mt-1">
+                            <div x-cloak x-show="profileOpen" @click.away="profileOpen = false" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-2" x-transition:enter-end="opacity-100 translate-y-0" x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0" x-transition:leave-end="opacity-0 translate-y-2" class="absolute bottom-[calc(100%+0.75rem)] left-0 right-0 z-40 rounded-[1.55rem] border border-slate-200 bg-white p-3 shadow-2xl dark:border-slate-700 dark:bg-slate-800">
+                                <div class="mb-3 flex items-center gap-3 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50 p-3 dark:from-slate-900 dark:to-slate-800/80">
+                                    <div class="relative flex h-12 w-12 flex-shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/70 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 text-sm font-bold text-white shadow-lg shadow-blue-500/20 dark:border-slate-700/70">
+                                        @if($__sidebarProfileImage)
+                                            <img src="{{ $__sidebarProfileImage }}" alt="{{ $__sidebarUser->name }}" class="h-full w-full object-cover" />
+                                        @else
+                                            {{ $__sidebarUser->initials() }}
+                                        @endif
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <p class="truncate text-sm font-extrabold text-slate-900 dark:text-white">{{ $__sidebarUser->name }}</p>
+                                        <p class="truncate text-xs text-slate-500 dark:text-slate-400">{{ $__sidebarUser->email }}</p>
+                                        <p class="pt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Central da conta</p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 border-t border-slate-200/70 pt-3 dark:border-slate-700/70">
+                                    <p class="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Acessos rápidos</p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <a href="{{ route('settings.profile') }}" class="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-700/70" wire:navigate.hover>
+                                            <i class="bi bi-person-circle text-sm text-slate-500 dark:text-slate-400"></i>
+                                            <span>Perfil</span>
+                                        </a>
+                                        <a href="{{ route('settings.team') }}" class="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-700/70" wire:navigate.hover>
+                                            <i class="bi bi-people text-sm text-emerald-500"></i>
+                                            <span>Equipe</span>
+                                        </a>
+                                        <a href="{{ route('settings.devices') }}" class="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-700/70" wire:navigate.hover>
+                                            <i class="bi bi-laptop text-sm text-indigo-500"></i>
+                                            <span>Dispositivos</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 border-t border-slate-200/70 pt-3 dark:border-slate-700/70">
+                                    <p class="mb-2 px-1 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Recursos</p>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <a href="{{ route('settings.connections') }}" class="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-700/70" wire:navigate.hover>
+                                            <i class="bi bi-link-45deg text-sm text-slate-500 dark:text-slate-400"></i>
+                                            <span>Conexoes</span>
+                                        </a>
+                                        <a href="{{ route('settings.notifications') }}" class="flex items-center gap-2 rounded-xl border border-slate-200/70 bg-slate-50/80 px-3 py-2.5 text-xs font-semibold text-slate-700 transition-all hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900/60 dark:text-slate-300 dark:hover:bg-slate-700/70" wire:navigate.hover>
+                                            <i class="bi bi-bell text-sm text-slate-500 dark:text-slate-400"></i>
+                                            <span>Alertas</span>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <form method="POST" action="{{ route('logout') }}">
                                     @csrf
-                                    <button type="submit" class="w-full flex items-center gap-3 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all text-red-600 dark:text-red-400">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
-                                        </svg>
-                                        <span class="text-sm font-medium">Sair</span>
+                                    <button type="submit" class="flex w-full items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm font-semibold text-red-600 transition-all hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-900/30">
+                                        <i class="bi bi-box-arrow-right text-base"></i>
+                                        <span>Sair da conta</span>
                                     </button>
                                 </form>
                             </div>
-                        </div>
-
-                        <!-- Links externos (compact mode) -->
-                        <div class="sidebar-text flex items-center gap-2">
-                            <a href="https://github.com/laravel/livewire-starter-kit" target="_blank" class="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-                                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                                </svg>
-                                <span class="font-medium">GitHub</span>
-                            </a>
-                            <a href="https://laravel.com/docs/starter-kits#livewire" target="_blank" class="flex-1 flex items-center justify-center gap-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                                </svg>
-                                <span class="font-medium">Docs</span>
-                            </a>
                         </div>
                     </div>
                 </div>
@@ -637,6 +858,7 @@
                 <div class="fab-circle">
                     <img src="{{ asset('assets/img/Criar.svg') }}" alt="Criar" style="display:block; width:5.8rem; height:5.8rem; object-fit:contain; border-radius:50%;">
                 </div>
+                <span class="fab-label">Criar</span>
             </button>
 
             <!-- Produtos -->
@@ -665,7 +887,7 @@
             </a>
 
             <!-- Mais -->
-            <button type="button" class="mobile-tab-item" onclick="openMoreSheet()" aria-label="Mais opções">
+            <button type="button" class="mobile-tab-item mobile-tab-more" id="tabMoreBtn" onclick="openMoreSheet()" aria-label="Mais opções">
                 <div class="tab-icon">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8M4 18h6"></path>
@@ -909,12 +1131,42 @@
                     </svg>
                 </button>
 
+                <div class="more-sheet-header">
+                    <div class="more-sheet-header-icon">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 7h16M4 12h10M4 17h7"></path>
+                        </svg>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="more-sheet-title">Explorar menu</p>
+                        <p class="more-sheet-subtitle">Acesse módulos, atalhos e painéis do app</p>
+                    </div>
+                </div>
+
                 {{-- ─── PERFIL DO USUÁRIO ─── --}}
+                @php
+                    $__mobileProfileImage = auth()->user()?->profile_picture ?: auth()->user()?->avatar;
+                    $__mobileProfileImage = $__mobileProfileImage
+                        ? (\Illuminate\Support\Str::startsWith($__mobileProfileImage, ['http://', 'https://']) ? $__mobileProfileImage : asset($__mobileProfileImage))
+                        : null;
+                @endphp
                 <div class="more-sheet-profile">
-                    <div class="more-sheet-avatar">{{ auth()->user()->initials() }}</div>
+                    <div class="more-sheet-avatar {{ $__mobileProfileImage ? 'has-photo' : '' }}">
+                        @if($__mobileProfileImage)
+                            <img src="{{ $__mobileProfileImage }}" alt="{{ auth()->user()->name }}" class="more-sheet-avatar-image" />
+                        @else
+                            {{ auth()->user()->initials() }}
+                        @endif
+                    </div>
                     <div class="more-sheet-user-info">
                         <p class="more-sheet-user-name">{{ auth()->user()->name }}</p>
                         <p class="more-sheet-user-email">{{ auth()->user()->email }}</p>
+                        <div class="more-sheet-user-meta">
+                            <span class="more-sheet-user-chip">Conta</span>
+                            @if(auth()->user()->isAdmin())
+                                <span class="more-sheet-user-chip is-admin">Admin</span>
+                            @endif
+                        </div>
                     </div>
                     <a href="{{ route('settings.profile') }}" class="more-sheet-settings-btn" wire:navigate.hover onclick="closeMoreSheet()" title="Configurações de perfil">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -922,6 +1174,81 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                         </svg>
                     </a>
+                </div>
+
+                <div class="more-sheet-account-panel">
+                    <div class="more-sheet-account-heading">
+                        <span>Central da conta</span>
+                        <span class="more-sheet-account-caption">Acessos essenciais</span>
+                    </div>
+                    <div class="more-sheet-account-grid">
+                        <a href="{{ route('settings.profile') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                            <span class="more-sheet-account-icon is-slate"><i class="bi bi-person-circle"></i></span>
+                            <span class="more-sheet-account-copy">
+                                <strong>Perfil</strong>
+                                <small>Ajustes pessoais</small>
+                            </span>
+                        </a>
+                        <a href="{{ route('access.center') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                            <span class="more-sheet-account-icon is-sky"><i class="bi bi-person-badge"></i></span>
+                            <span class="more-sheet-account-copy">
+                                <strong>Meu acesso</strong>
+                                <small>Credenciais e uso</small>
+                            </span>
+                        </a>
+                        <a href="{{ route('settings.team') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                            <span class="more-sheet-account-icon is-emerald"><i class="bi bi-people"></i></span>
+                            <span class="more-sheet-account-copy">
+                                <strong>Equipe</strong>
+                                <small>Permissoes e membros</small>
+                            </span>
+                        </a>
+                        @if(auth()->user()->isAdmin())
+                            <a href="{{ route('admin.plans.index') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                                <span class="more-sheet-account-icon is-pink"><i class="bi bi-shield-check"></i></span>
+                                <span class="more-sheet-account-copy">
+                                    <strong>Planos</strong>
+                                    <small>Camadas e oferta</small>
+                                </span>
+                            </a>
+                            <a href="{{ route('admin.subscriptions.index') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                                <span class="more-sheet-account-icon is-violet"><i class="bi bi-people"></i></span>
+                                <span class="more-sheet-account-copy">
+                                    <strong>Assinaturas</strong>
+                                    <small>Gestão ativa</small>
+                                </span>
+                            </a>
+                            <a href="{{ route('admin.plans.users') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                                <span class="more-sheet-account-icon is-indigo"><i class="bi bi-person-vcard"></i></span>
+                                <span class="more-sheet-account-copy">
+                                    <strong>Usuarios</strong>
+                                    <small>Acesso e permissoes</small>
+                                </span>
+                            </a>
+                        @else
+                            <a href="{{ route('settings.plan') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                                <span class="more-sheet-account-icon is-violet"><i class="bi bi-credit-card"></i></span>
+                                <span class="more-sheet-account-copy">
+                                    <strong>Meu plano</strong>
+                                    <small>Resumo e cobrança</small>
+                                </span>
+                            </a>
+                            <a href="{{ route('subscription.plans') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                                <span class="more-sheet-account-icon is-pink"><i class="bi bi-stars"></i></span>
+                                <span class="more-sheet-account-copy">
+                                    <strong>Trocar plano</strong>
+                                    <small>Upgrade e catalogo</small>
+                                </span>
+                            </a>
+                            <a href="{{ route('settings.devices') }}" class="more-sheet-account-link" wire:navigate.hover onclick="closeMoreSheet()">
+                                <span class="more-sheet-account-icon is-indigo"><i class="bi bi-laptop"></i></span>
+                                <span class="more-sheet-account-copy">
+                                    <strong>Dispositivos</strong>
+                                    <small>Sessões conectadas</small>
+                                </span>
+                            </a>
+                        @endif
+                    </div>
                 </div>
 
                 {{-- ─── PRINCIPAL ─── --}}
@@ -1016,51 +1343,66 @@
                 </div>
 
                 {{-- ─── MERCADO LIVRE ─── --}}
-                <p class="more-sheet-ml-label">Mercado Livre</p>
+                <div class="flex items-center justify-between gap-3">
+                    <p class="more-sheet-ml-label">Mercado Livre</p>
+                    <span class="rounded-full bg-yellow-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-300">Marketplace</span>
+                </div>
                 <div class="more-sheet-app-grid more-ml-grid">
-                    <a href="{{ route('mercadolivre.products') }}" class="more-app-card {{ Request::is('mercadolivre*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
-                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-8-5v5m-4 0h16M3 3h18"></path></svg>
-                        </div>
-                        <span class="more-app-label">Produtos ML</span>
-                        @if($mobilePendingMl > 0)
-                            <span class="more-app-badge">{{ $mobilePendingMl > 99 ? '99+' : $mobilePendingMl }}</span>
-                        @endif
-                    </a>
-                    <a href="{{ route('mercadolivre.orders') }}" class="more-app-card {{ Request::is('mercadolivre/orders*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
-                        <div class="more-app-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                        </div>
-                        <span class="more-app-label">Pedidos ML</span>
-                    </a>
                     <a href="{{ route('mercadolivre.publications') }}" class="more-app-card {{ Request::is('mercadolivre/publications*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
-                        <div class="more-app-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b)">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                         </div>
-                        <span class="more-app-label">Publicações ML</span>
+                        <span class="more-app-label">Publicações</span>
+                    </a>
+                    <a href="{{ route('mercadolivre.products.publish.create') }}" class="more-app-card {{ Request::is('mercadolivre/products/publish/create') || Request::is('mercadolivre/products/*/publish') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#fb923c,#f59e0b)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <span class="more-app-label">Nova publicação</span>
                     </a>
                     <a href="{{ route('mercadolivre.settings') }}" class="more-app-card {{ Request::is('mercadolivre/settings*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#a78bfa,#7c3aed)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="more-app-label">Config. ML</span>
+                        <span class="more-app-label">Configurações</span>
+                    </a>
+                    <a href="{{ route('mercadolivre.auth.redirect') }}" class="more-app-card {{ Request::is('mercadolivre/auth/*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#14b8a6,#0f766e)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m8-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="more-app-label">Conexão</span>
                     </a>
                 </div>
 
                 {{-- ─── SHOPEE ─── --}}
-                <p class="more-sheet-ml-label">Shopee</p>
-                <div class="more-sheet-app-grid">
+                <div class="flex items-center justify-between gap-3">
+                    <p class="more-sheet-ml-label">Shopee</p>
+                    <span class="rounded-full bg-orange-400/15 px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.14em] text-orange-700 dark:bg-orange-500/20 dark:text-orange-300">Marketplace</span>
+                </div>
+                <div class="more-sheet-app-grid more-ml-grid">
                     <a href="{{ route('shopee.publications') }}" class="more-app-card {{ Request::is('shopee/publications*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#EE4D2D,#FF6633)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
                         </div>
                         <span class="more-app-label">Publicações</span>
                     </a>
+                    <a href="{{ route('shopee.products.publish.create') }}" class="more-app-card {{ Request::is('shopee/products/publish/create') || Request::is('shopee/products/*/publish') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#fb923c,#f97316)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </div>
+                        <span class="more-app-label">Nova publicação</span>
+                    </a>
                     <a href="{{ route('shopee.settings') }}" class="more-app-card {{ Request::is('shopee/settings*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#c2410c,#EE4D2D)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                         </div>
-                        <span class="more-app-label">Config. Shopee</span>
+                        <span class="more-app-label">Configurações</span>
+                    </a>
+                    <a href="{{ route('shopee.auth.connect') }}" class="more-app-card {{ Request::is('shopee/auth/*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f97316,#ea580c)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m8-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <span class="more-app-label">Conexão</span>
                     </a>
                 </div>
 
@@ -1207,6 +1549,36 @@
                 return document.querySelector('.mobile-bottom-tabbar');
             }
 
+            function getSidebarSectionStates() {
+                try {
+                    return JSON.parse(localStorage.getItem('flowmanager:sidebar-sections') || '{}');
+                } catch (error) {
+                    return {};
+                }
+            }
+
+            function setSidebarSectionState(key, value) {
+                const states = getSidebarSectionStates();
+                states[key] = value;
+                localStorage.setItem('flowmanager:sidebar-sections', JSON.stringify(states));
+            }
+
+            window.flowSidebarSection = function(key, defaultOpen = true) {
+                return {
+                    open: defaultOpen,
+                    init() {
+                        const states = getSidebarSectionStates();
+                        if (typeof states[key] === 'boolean') {
+                            this.open = states[key];
+                        }
+                    },
+                    toggle() {
+                        this.open = !this.open;
+                        setSidebarSectionState(key, this.open);
+                    },
+                };
+            };
+
             function _isAnySheetOpen() {
                 return document.getElementById('mobileFabSheet')?.classList.contains('is-open')
                     || document.getElementById('mobileMoreSheet')?.classList.contains('is-open');
@@ -1235,6 +1607,7 @@
                 closeMobileSidebar(); // fecha sidebar antes
                 sheet.classList.add('is-open');
                 sheet.setAttribute('aria-hidden', 'false');
+                document.getElementById('tabMoreBtn')?.classList.add('more-sheet-open');
             }
 
             function closeMoreSheet() {
@@ -1242,6 +1615,7 @@
                 if (!sheet) return;
                 sheet.classList.remove('is-open');
                 sheet.setAttribute('aria-hidden', 'true');
+                document.getElementById('tabMoreBtn')?.classList.remove('more-sheet-open');
             }
 
             function initSidebar() {
@@ -1271,6 +1645,7 @@
                 closeFabSheet();
                 closeMoreSheet();
                 document.getElementById('tabFabBtn')?.classList.remove('fab-sheet-open');
+                document.getElementById('tabMoreBtn')?.classList.remove('more-sheet-open');
 
                 // Desktop toggle functionality (apenas quando sidebar está ativa)
                 if (toggle && !toggle.hasAttribute('data-sidebar-initialized')) {
@@ -1282,14 +1657,20 @@
                     });
                 }
 
-                // Close mobile sidebar on nav link click (mobile e iPad portrait)
-                document.querySelectorAll('.nav-item').forEach(item => {
-                    item.addEventListener('click', function() {
+                if (!document.body.hasAttribute('data-sidebar-nav-bound')) {
+                    document.body.setAttribute('data-sidebar-nav-bound', 'true');
+                    document.addEventListener('click', function(e) {
+                        const sidebarLink = e.target.closest('#modernSidebar a[href]');
+
+                        if (!sidebarLink || sidebarLink.closest('#userMenu')) {
+                            return;
+                        }
+
                         if (window.innerWidth < 1024 || isTabletPortrait() || isTabletLandscape()) {
                             closeMobileSidebar();
                         }
                     });
-                });
+                }
 
                 // Close user dropdown on outside click
                 document.addEventListener('click', function(e) {
