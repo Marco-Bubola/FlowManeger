@@ -107,11 +107,10 @@
                     <span class="badge-stock {{ $product->stock_quantity > 5 ? 'bg-emerald-500/95 text-white' : 'bg-amber-400/95 text-white' }} shadow-sm">
                         <i class="fas fa-layer-group text-[9px]"></i> {{ $product->stock_quantity }}
                     </span>
-                </div>
-
-                {{-- Ícone circular de categoria (estilo product-card-modern) --}}
-                <div class="pcard-cat-circle" title="{{ $product->category?->name ?? 'Produto' }}">
-                    <i class="{{ $product->category?->icone ?? 'fas fa-box' }}"></i>
+                    {{-- Ícone circular de categoria — dentro da img-area para bottom:-32px funcionar corretamente --}}
+                    <div class="pcard-cat-circle" title="{{ $product->category?->name ?? 'Produto' }}">
+                        <i class="{{ $product->category?->icone ?? 'fas fa-box' }}"></i>
+                    </div>
                 </div>
 
                 {{-- Corpo do card --}}
