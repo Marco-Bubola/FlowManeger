@@ -1,74 +1,223 @@
-/* ============================================================
-   Edit Sale — Notebook / Desktop (1025–1440px)
-   Bloco 1 (1025–1279px): lg: ativo — layout 3/4+1/4 natural
-   Bloco 2 (1280–1440px): espaços maiores, tipografia maior
-   ============================================================ */
+/* ==========================================================
+   Edit Sale - Notebook (1025-1440px)
+   Products pane: flex-1 (ocupa espaco restante apos summary 1/4)
+   Summary pane:  lg:w-1/4 fixo, sticky
+   Grid: 4 colunas em todo notebook, 5 apenas no ultrawide
+   ========================================================== */
 
-/* ── BLOCO 1: 1025–1279px ─────────────────────────────────── */
+/* ---- 1025-1279px (notebook pequeno) ---- */
 @media (min-width: 1025px) and (max-width: 1279px) {
 
     .edit-sale-page {
-        padding-bottom: 2rem !important;
-        padding-inline: 1rem !important;
+        --cs-page-px: 1.25rem;
+        padding: 0.35rem 1.25rem 2rem;
     }
 
-    /* Header */
-    .edit-sale-page .relative.overflow-hidden.rounded-3xl {
-        border-radius: 1.125rem !important;
-        margin-bottom: 0.875rem !important;
-    }
-    .edit-sale-page .relative.px-8.py-6 {
-        padding: 0.875rem 1.5rem !important;
+    .edit-sale-page .create-sale-sticky-header {
+        margin-inline: -1.25rem;
+        padding-inline: 1.25rem;
     }
 
-    /* Step 1: split 3/4 + 1/4 (já ativo pelo lg:) */
-    .edit-sale-step1-shell {
-        gap: 1rem !important;
+    /* ---- Header ---- */
+    .edit-sale-page .sales-create-header { border-radius: 1.2rem !important; }
+    .edit-sale-page .sales-create-header-inner { padding: 0.72rem 1.2rem !important; }
+    .edit-sale-page .sales-create-header-main {
+        display: flex !important; flex-direction: row !important;
+        align-items: center !important; justify-content: space-between !important;
+        flex-wrap: nowrap !important; gap: 0.7rem !important;
     }
-    .edit-sale-products-pane {
-        /* w-3/4 já ativo */
+    .edit-sale-page .sales-create-header-main > div:first-child {
+        display: flex !important; flex-direction: row !important;
+        align-items: center !important; gap: 0.55rem !important; min-width: 0 !important;
     }
+    .edit-sale-page .sales-create-header-main > div:first-child > div.relative.flex {
+        width: 2.4rem !important; height: 2.4rem !important; min-width: 2.4rem !important; border-radius: 0.65rem !important;
+    }
+    .edit-sale-page .sales-create-header-main > div:first-child > div.relative.flex i { font-size: 1.2rem !important; }
+    .edit-sale-page .sales-create-header-main > div:first-child > a { width: 2.1rem !important; height: 2.1rem !important; min-width: 2.1rem !important; border-radius: 0.55rem !important; }
+    .edit-sale-page .sales-create-header-title    { font-size: 1.2rem !important; line-height: 1.1 !important; margin: 0 !important; }
+    .edit-sale-page .sales-create-header-subtitle { font-size: 0.7rem !important; line-height: 1.25 !important; margin: 0 !important; }
+    .edit-sale-page .sales-create-header-actions  { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; gap: 0.5rem !important; overflow: visible !important; }
+    .edit-sale-page .create-header-stat-pill   { font-size: 0.62rem !important; }
+    .edit-sale-page .create-header-next-meta   { display: none !important; }
+    .edit-sale-page .create-header-action   { padding: 0.42rem !important; width: 2.15rem !important; height: 2.15rem !important; border-radius: 0.55rem !important; }
+    .edit-sale-page .create-header-next-btn { padding: 0.45rem 1rem !important; font-size: 0.78rem !important; border-radius: 0.7rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex { display: flex !important; overflow: visible !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-8,
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-10 { width: 2rem !important; height: 2rem !important; min-width: 2rem !important; border-radius: 0.48rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex p.text-sm,
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex p.text-xs { font-size: 0.68rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .hidden.sm\:block { display: none !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-12.h-1 { width: 1.4rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-8.h-1  { width: 1.2rem !important; }
 
-    /* Controls de pesquisa */
-    .edit-sale-products-controls {
+    /* ---- Step 1: layout fluido ---- */
+    .edit-sale-page .edit-sale-step1-shell {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
         gap: 0.75rem !important;
+        height: auto !important;
+        margin-top: 0.65rem !important;
     }
-    .edit-sale-products-controls input {
-        font-size: 0.875rem !important;
-        padding: 0.625rem 0.75rem 0.625rem 2.375rem !important;
+
+    /* Products: flex-1 sem largura fixa */
+    .edit-sale-page .edit-sale-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
     }
+    .edit-sale-page .edit-sale-products-pane > div.overflow-y-auto {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
+    }
+
+    /* Summary: largura fixa ~28% */
+    .edit-sale-page .create-sale-summary-pane {
+        position: sticky !important;
+        top: 5rem !important;
+        align-self: flex-start !important;
+        width: clamp(240px, 27%, 320px) !important;
+        flex-shrink: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+    }
+
+    /* Grid: SEMPRE 4 colunas no notebook */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
+    }
+    .edit-sale-page .products-step-grid .product-card-modern .product-img-area,
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-img-area { height: 110px !important; min-height: 110px !important; }
+    .edit-sale-page .products-step-grid .product-card-modern { min-height: 0 !important; height: auto !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .card-body { padding: 1.35em 0.52em 1.3em 0.52em !important; min-height: 0 !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .product-title { font-size: 0.74em !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .category-icon-wrapper { width: 36px !important; height: 36px !important; bottom: -16px !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .category-icon { font-size: 1.1em !important; }
+
+    /* Selected list */
+    .edit-sale-page .create-sale-selected-list {
+        min-height: clamp(16rem, 30vh, 26rem) !important;
+        max-height: min(48vh, 34rem) !important;
+        overflow-y: auto !important;
+    }
+
+    /* Resumo */
+    .edit-sale-page .create-sale-summary-card { padding: 0.72rem !important; }
+    .edit-sale-page .create-sale-summary-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.32rem !important; }
+    .edit-sale-page .create-sale-summary-info-grid { grid-template-columns: 1fr !important; gap: 0.38rem !important; }
+    .edit-sale-page .create-sale-summary-card button.sm\:hidden { display: none !important; }
+    .edit-sale-page .create-sale-selected-grid { grid-template-columns: 4.5rem 1fr 5rem !important; gap: 0.45rem !important; }
+
+    /* Step 2 layout */
+    .edit-sale-page .edit-sale-step2-shell {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+        height: auto !important;
+        margin-top: 0.65rem !important;
+        overflow: visible !important;
+    }
+    .edit-sale-page .edit-sale-review-info-pane     { width: 40% !important; flex-shrink: 0 !important; align-self: flex-start !important; }
+    .edit-sale-page .edit-sale-review-products-pane { flex: 1 1 0% !important; min-width: 0 !important; align-self: flex-start !important; }
 }
 
-/* ── BLOCO 2: 1280–1440px ─────────────────────────────────── */
+/* ---- 1280-1440px (notebook padrao) ---- */
 @media (min-width: 1280px) and (max-width: 1440px) {
 
     .edit-sale-page {
-        padding-bottom: 2rem !important;
-        padding-inline: 1.25rem !important;
+        --cs-page-px: 1.5rem;
+        padding: 0.35rem 1.5rem 2.5rem;
     }
 
-    /* Header */
-    .edit-sale-page .relative.overflow-hidden.rounded-3xl {
-        border-radius: 1.25rem !important;
-        margin-bottom: 1rem !important;
-    }
-    .edit-sale-page .relative.px-8.py-6 {
-        padding: 1rem 1.75rem !important;
+    .edit-sale-page .create-sale-sticky-header {
+        margin-inline: -1.5rem;
+        padding-inline: 1.5rem;
     }
 
-    /* Split layout */
-    .edit-sale-step1-shell {
-        gap: 1.25rem !important;
+    /* Step 1 layout */
+    .edit-sale-page .edit-sale-step1-shell {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+        height: auto !important;
+        margin-top: 0.75rem !important;
     }
 
-    /* Controls */
-    .edit-sale-products-controls {
-        gap: 0.875rem !important;
+    /* Products pane: flex-1 */
+    .edit-sale-page .edit-sale-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
     }
-    .edit-sale-products-controls input {
-        font-size: 0.9rem !important;
-        padding: 0.6875rem 0.875rem 0.6875rem 2.5rem !important;
-        border-radius: 0.75rem !important;
+    .edit-sale-page .edit-sale-products-pane > div.overflow-y-auto {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
     }
+
+    /* Summary pane: ~26% fixo */
+    .edit-sale-page .create-sale-summary-pane {
+        position: sticky !important;
+        top: 5.25rem !important;
+        align-self: flex-start !important;
+        width: clamp(260px, 26%, 340px) !important;
+        flex-shrink: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
+    }
+
+    /* Grid: SEMPRE 4 colunas no notebook */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
+    }
+    .edit-sale-page .products-step-grid .product-card-modern .product-img-area,
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-img-area { height: 120px !important; min-height: 120px !important; }
+    .edit-sale-page .products-step-grid .product-card-modern { min-height: 0 !important; height: auto !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .card-body { padding: 1.5em 0.55em 1.4em 0.55em !important; min-height: 0 !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .product-title { font-size: 0.76em !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .category-icon-wrapper { width: 38px !important; height: 38px !important; bottom: -18px !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .category-icon { font-size: 1.2em !important; }
+
+    /* Selected list */
+    .edit-sale-page .create-sale-selected-list {
+        min-height: clamp(18rem, 34vh, 30rem) !important;
+        max-height: min(52vh, 38rem) !important;
+        overflow-y: auto !important;
+    }
+
+    /* Resumo */
+    .edit-sale-page .create-sale-summary-card { padding: 0.8rem !important; }
+    .edit-sale-page .create-sale-summary-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.35rem !important; }
+    .edit-sale-page .create-sale-summary-info-grid { grid-template-columns: 1fr !important; gap: 0.4rem !important; }
+    .edit-sale-page .create-sale-summary-card button.sm\:hidden { display: none !important; }
+    .edit-sale-page .create-sale-selected-grid { grid-template-columns: 4.5rem 1fr 5.5rem !important; gap: 0.45rem !important; }
+
+    /* Step 2 */
+    .edit-sale-page .edit-sale-step2-shell {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 1rem !important;
+        align-items: flex-start !important;
+        height: auto !important;
+        margin-top: 0.75rem !important;
+        overflow: visible !important;
+    }
+    .edit-sale-page .edit-sale-review-info-pane     { width: 38% !important; flex-shrink: 0 !important; align-self: flex-start !important; }
+    .edit-sale-page .edit-sale-review-products-pane { flex: 1 1 0% !important; min-width: 0 !important; align-self: flex-start !important; }
 }
-
