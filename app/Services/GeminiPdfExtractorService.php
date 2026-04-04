@@ -2,18 +2,18 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
+use App\Services\AI\GeminiClient;
 use Illuminate\Support\Facades\Log;
 
 class GeminiPdfExtractorService
 {
-    private $apiKey;
-    private $model;
+    private GeminiClient $client;
+    private string $model;
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.api_key');
-        $this->model = config('services.gemini.model', 'gemini-1.5-flash');
+        $this->client = app(GeminiClient::class);
+        $this->model = config('services.gemini.model', 'gemini-2.5-flash');
     }
 
     public function extractProductsFromPdf($text)
@@ -32,37 +32,19 @@ class GeminiPdfExtractorService
 
             $prompt = $this->buildPrompt($cleanedText);
 
-            $response = Http::timeout(120)
-                ->connectTimeout(30)
-                ->withHeaders([
-                    'Content-Type' => 'application/json',
-                ])
-                ->post("https://generativelanguage.googleapis.com/v1beta/models/{$this->model}:generateContent?key={$this->apiKey}", [
-                    'contents' => [
-                        [
-                            'parts' => [
-                                ['text' => $prompt]
-                            ]
-                        ]
-                    ],
-                    'generationConfig' => [
-                        'temperature' => 0.1,
-                        'maxOutputTokens' => 8192,
-                    ]
-                ]);
+            $responseText = $this->client->generateText($prompt, [
+                'feature' => 'products.pdf_extraction',
+                'model' => $this->model,
+                'temperature' => 0.1,
+                'max_output_tokens' => 8192,
+            ]);
 
-            if ($response->successful()) {
-                $result = $response->json();
-                Log::info('Resposta completa Gemini', ['full_response' => json_encode($result)]);
-                $text = $result['candidates'][0]['content']['parts'][0]['text'] ?? '';
-                Log::info('Gemini respondeu com sucesso', ['response_length' => strlen($text)]);
-                return $this->parseGeminiResponse($text);
+            if ($responseText !== null) {
+                Log::info('Gemini respondeu com sucesso', ['response_length' => strlen($responseText)]);
+
+                return $this->parseGeminiResponse($responseText);
             }
 
-            Log::error('Erro ao chamar Gemini API', [
-                'status' => $response->status(),
-                'body' => $response->body()
-            ]);
             return [];
 
         } catch (\Exception $e) {
@@ -143,6 +125,6 @@ PROMPT;
 
     public function isConfigured()
     {
-        return !empty($this->apiKey);
+        return $this->client->isConfigured();
     }
 }
