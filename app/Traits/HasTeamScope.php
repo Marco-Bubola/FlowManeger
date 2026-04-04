@@ -16,7 +16,15 @@ trait HasTeamScope
             }
 
             $viewer = Auth::user();
-            if (!$viewer instanceof User || $viewer->isAdmin()) {
+
+            // Usuário não autenticado: bloqueia tudo em vez de expor todos os registros.
+            if (!$viewer instanceof User) {
+                $builder->whereRaw('1 = 0');
+                return;
+            }
+
+            // Admin vê todos os registros (bypass intencional).
+            if ($viewer->isAdmin()) {
                 return;
             }
 
