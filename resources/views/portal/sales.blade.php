@@ -81,7 +81,7 @@
                     'partial'   => ['Parcial',     'blue',    'circle-half-stroke'],
                 ];
                 [$lbl, $col, $ico] = $statusMap[$sale->status] ?? [$sale->status, 'gray', 'circle'];
-                $remaining = $sale->total_price - ($sale->amount_paid ?? 0);
+                $remaining = $sale->total_price - $sale->total_paid;
             @endphp
             <div class="portal-card overflow-hidden"
                  x-show="filtered.find(s => s.id === {{ $sale->id }})"
@@ -124,12 +124,12 @@
                         <div class="flex-1 min-w-0">
                             <p class="text-[11px] font-bold text-gray-800 dark:text-slate-200 truncate">{{ $item->product->name ?? 'Produto removido' }}</p>
                             <p class="text-[10px] text-gray-400 dark:text-slate-500">
-                                {{ $item->quantity }}× · R$ {{ number_format($item->unit_price, 2, ',', '.') }} un.
+                                {{ $item->quantity }}× · R$ {{ number_format($item->price_sale, 2, ',', '.') }} un.
                             </p>
                         </div>
                         {{-- Total do item --}}
                         <span class="text-[11px] font-black text-gray-900 dark:text-slate-200 flex-shrink-0">
-                            R$ {{ number_format($item->unit_price * $item->quantity, 2, ',', '.') }}
+                            R$ {{ number_format($item->price_sale * $item->quantity, 2, ',', '.') }}
                         </span>
                     </div>
                     @endforeach
@@ -140,29 +140,40 @@
                     @endif
                 </div>
 
-                {{-- Footer summary --}}
-                <div class="flex flex-wrap items-center gap-3 px-4 py-2.5 bg-gray-50/50 dark:bg-slate-700/20 border-t border-gray-50 dark:border-slate-700/60">
-                    <div class="flex items-center gap-1.5 text-[10px]">
-                        <i class="fas fa-circle-check text-emerald-500 text-xs"></i>
-                        <span class="text-gray-500 dark:text-slate-400">Pago:</span>
-                        <span class="font-bold text-emerald-600 dark:text-emerald-400">R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}</span>
-                    </div>
-                    @if($remaining > 0.01)
-                    <div class="flex items-center gap-1.5 text-[10px]">
-                        <i class="fas fa-hourglass-half text-amber-500 text-xs"></i>
-                        <span class="text-gray-500 dark:text-slate-400">Saldo:</span>
-                        <span class="font-bold text-amber-600 dark:text-amber-400">R$ {{ number_format($remaining, 2, ',', '.') }}</span>
-                    </div>
-                    @endif
-                    @if($sale->payment_method)
-                    <div class="flex items-center gap-1.5 text-[10px]">
-                        <i class="fas fa-credit-card text-gray-400 dark:text-slate-500 text-xs"></i>
-                        <span class="text-gray-500 dark:text-slate-400">{{ ucfirst(str_replace('_', ' ', $sale->payment_method)) }}</span>
-                    </div>
-                    @endif
-                    <div class="flex items-center gap-1.5 text-[10px] ml-auto">
-                        <i class="fas fa-box text-sky-400 text-xs"></i>
-                        <span class="text-gray-500 dark:text-slate-400">{{ $sale->saleItems->count() }} {{ Str::plural('item', $sale->saleItems->count()) }}</span>
+                {{-- Footer financeiro --}}
+                <div class="px-4 py-3 bg-gray-50/60 dark:bg-slate-700/20 border-t border-gray-100 dark:border-slate-700/60">
+                    <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                        {{-- Total --}}
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-gray-400 dark:text-slate-500">Total</span>
+                            <span class="text-sm font-black text-gray-900 dark:text-slate-200">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</span>
+                        </div>
+                        <div class="w-px h-8 bg-gray-200 dark:bg-slate-600 flex-shrink-0"></div>
+                        {{-- Pago --}}
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-emerald-500">Pago</span>
+                            <span class="text-sm font-black text-emerald-600 dark:text-emerald-400">R$ {{ number_format($sale->total_paid, 2, ',', '.') }}</span>
+                        </div>
+                        @if($remaining > 0.01)
+                        <div class="w-px h-8 bg-gray-200 dark:bg-slate-600 flex-shrink-0"></div>
+                        {{-- Saldo --}}
+                        <div class="flex flex-col">
+                            <span class="text-[9px] font-bold uppercase tracking-wider text-amber-500">Saldo</span>
+                            <span class="text-sm font-black text-amber-600 dark:text-amber-400">R$ {{ number_format($remaining, 2, ',', '.') }}</span>
+                        </div>
+                        @endif
+                        <div class="ml-auto flex items-center gap-2">
+                            @if($sale->payment_method)
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-lg text-[10px] font-semibold text-gray-500 dark:text-slate-400">
+                                <i class="fas fa-credit-card text-[9px]"></i>
+                                {{ ucfirst(str_replace('_', ' ', $sale->payment_method)) }}
+                            </span>
+                            @endif
+                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-sky-50 dark:bg-sky-900/20 border border-sky-100 dark:border-sky-800/30 rounded-lg text-[10px] font-bold text-sky-600 dark:text-sky-400">
+                                <i class="fas fa-box text-[9px]"></i>
+                                {{ $sale->saleItems->count() }} {{ Str::plural('item', $sale->saleItems->count()) }}
+                            </span>
+                        </div>
                     </div>
                 </div>
             </div>
