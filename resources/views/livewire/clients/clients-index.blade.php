@@ -517,6 +517,36 @@
                             @endif
                         </div>
 
+                        <div class="grid grid-cols-3 gap-2 mb-3">
+                            <a href="{{ route('clients.portal.quotes', $client->id) }}"
+                                class="flex items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-violet-200 bg-violet-900/30 hover:bg-violet-900/40 border border-violet-700 transition-all duration-200"
+                                title="Orçamentos do cliente">
+                                <i class="bi bi-receipt me-1"></i>
+                                <span class="text-[10px]">Orçamentos</span>
+                            </a>
+                            <a href="{{ route('clients.portal.access', $client->id) }}"
+                                class="flex items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-sky-200 bg-sky-900/30 hover:bg-sky-900/40 border border-sky-700 transition-all duration-200"
+                                title="Gerenciar acesso do portal">
+                                <i class="bi bi-key me-1"></i>
+                                <span class="text-[10px]">Acesso</span>
+                            </a>
+                            @if($client->portal_active)
+                            <a href="{{ route('portal.login') }}"
+                                target="_blank"
+                                class="flex items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-emerald-200 bg-emerald-900/30 hover:bg-emerald-900/40 border border-emerald-700 transition-all duration-200"
+                                title="Abrir portal do cliente">
+                                <i class="bi bi-box-arrow-up-right me-1"></i>
+                                <span class="text-[10px]">Portal</span>
+                            </a>
+                            @else
+                            <div class="flex items-center justify-center px-2 py-2 text-xs font-semibold rounded-lg text-gray-500 bg-slate-700/50 opacity-60"
+                                title="Portal ainda nao ativado">
+                                <i class="bi bi-person-lock me-1"></i>
+                                <span class="text-[10px]">Inativo</span>
+                            </div>
+                            @endif
+                        </div>
+
                         <!-- Ações Secundárias - COMPACTO -->
                         <div class="grid grid-cols-3 gap-2 mb-2">
                             <a href="{{ route('clients.edit', $client->id) }}"
