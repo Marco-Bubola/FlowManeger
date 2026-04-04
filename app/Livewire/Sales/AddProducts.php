@@ -7,6 +7,7 @@ use App\Models\Sale;
 use App\Models\Product;
 use App\Models\SaleItem;
 use App\Models\VendaParcela;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class AddProducts extends Component
@@ -22,6 +23,10 @@ class AddProducts extends Component
 
     public function mount(Sale $sale)
     {
+        if ((int) $sale->user_id !== (int) Auth::id()) {
+            abort(403, 'Você só pode adicionar produtos em suas próprias vendas.');
+        }
+
         $this->sale = $sale;
         $this->resetNewProducts();
         $this->loadCategories();
