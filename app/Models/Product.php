@@ -2,12 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\HasTeamScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
     use HasFactory;
+    use HasTeamScope;
+
+    protected string $teamScopeModule = 'products';
 
     protected $fillable = [
         'name',
