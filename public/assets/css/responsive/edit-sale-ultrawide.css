@@ -1,77 +1,158 @@
-/* ============================================================
-   Edit Sale — Ultrawide / 4K (1441px+)
-   - Container max-width 1800px
-   - Header grande
-   - Split 3/4 + 1/4 com mais espaço
-   - Tipografia maior nos controles
-   ============================================================ */
-
+/* ==========================================================
+   Edit Sale - Ultrawide (1441px+)
+   Container max 1800px, grid 5 colunas, summary sticky proporcional.
+   ========================================================== */
 @media (min-width: 1441px) {
 
-    /* ── CONTAINER ────────────────────────────────────────── */
+    /* ---- PAGE ---- */
     .edit-sale-page {
-        max-width: 1800px !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-        padding-bottom: 2.5rem !important;
-        padding-inline: 1.5rem !important;
+        --cs-page-px: 2rem;
+        max-width: none;
+        margin-inline: 0;
+        padding: 0.35rem 2rem 3rem;
     }
 
-    /* ── HEADER ───────────────────────────────────────────── */
-    .edit-sale-page .relative.overflow-hidden.rounded-3xl {
-        border-radius: 1.375rem !important;
-        margin-bottom: 1.25rem !important;
-    }
-    .edit-sale-page .relative.px-8.py-6 {
-        padding: 1.25rem 2.25rem !important;
-    }
-    /* Ícone principal no header */
-    .edit-sale-page .relative.overflow-hidden.rounded-3xl .w-16.h-16 {
-        width: 4rem !important;
-        height: 4rem !important;
-        border-radius: 1rem !important;
-    }
-    .edit-sale-page .relative.overflow-hidden.rounded-3xl .w-16.h-16 i {
-        font-size: 2rem !important;
-    }
-    /* Botão voltar */
-    .edit-sale-page .w-14.h-14 {
-        width: 3.5rem !important;
-        height: 3.5rem !important;
-    }
-    /* Título */
-    .edit-sale-page .text-4xl {
-        font-size: 2.75rem !important;
-    }
-    /* Steppers */
-    .edit-sale-page .w-12.h-12.rounded-xl {
-        width: 3.25rem !important;
-        height: 3.25rem !important;
+    .edit-sale-page .create-sale-sticky-header {
+        margin-inline: -2rem;
+        padding-inline: 2rem;
     }
 
-    /* ── STEP 1: SPLIT LAYOUT ─────────────────────────────── */
-    .edit-sale-step1-shell {
-        gap: 1.5rem !important;
+    /* ---- Header ---- */
+    .edit-sale-page .sales-create-header { border-radius: 1.4rem !important; }
+    .edit-sale-page .sales-create-header-inner { padding: 0.85rem 1.5rem !important; }
+    .edit-sale-page .sales-create-header-main {
+        display: flex !important; flex-direction: row !important;
+        align-items: center !important; justify-content: space-between !important;
+        flex-wrap: nowrap !important; gap: 0.85rem !important;
+    }
+    .edit-sale-page .sales-create-header-main > div:first-child {
+        display: flex !important; flex-direction: row !important;
+        align-items: center !important; gap: 0.65rem !important; min-width: 0 !important;
+    }
+    .edit-sale-page .sales-create-header-main > div:first-child > div.relative.flex {
+        width: 2.7rem !important; height: 2.7rem !important; min-width: 2.7rem !important; border-radius: 0.8rem !important;
+    }
+    .edit-sale-page .sales-create-header-main > div:first-child > div.relative.flex i { font-size: 1.35rem !important; }
+    .edit-sale-page .sales-create-header-main > div:first-child > a { width: 2.3rem !important; height: 2.3rem !important; min-width: 2.3rem !important; border-radius: 0.65rem !important; }
+    .edit-sale-page .sales-create-header-title    { font-size: 1.4rem !important; line-height: 1.15 !important; margin: 0 !important; }
+    .edit-sale-page .sales-create-header-subtitle { font-size: 0.78rem !important; line-height: 1.3 !important; margin: 0 !important; }
+    .edit-sale-page .sales-create-header-actions  { display: flex !important; flex-wrap: nowrap !important; align-items: center !important; gap: 0.65rem !important; overflow: visible !important; }
+    .edit-sale-page .create-header-stat-pill  { font-size: 0.7rem !important; padding: 0.3rem 0.7rem !important; }
+    .edit-sale-page .create-header-next-meta  { display: flex !important; }
+    .edit-sale-page .create-header-action     { padding: 0.5rem !important; width: 2.4rem !important; height: 2.4rem !important; border-radius: 0.65rem !important; }
+    .edit-sale-page .create-header-next-btn   { padding: 0.55rem 1.25rem !important; font-size: 0.88rem !important; border-radius: 0.8rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex { display: flex !important; overflow: visible !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-8,
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-10 { width: 2.25rem !important; height: 2.25rem !important; min-width: 2.25rem !important; border-radius: 0.55rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex p.text-sm { font-size: 0.75rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex p.text-xs { font-size: 0.7rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .hidden.sm\:block { display: block !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-12.h-1 { width: 1.8rem !important; }
+    .edit-sale-page .sales-create-header-actions .hidden.sm\:flex .w-8.h-1  { width: 1.4rem !important; }
+
+    /* ---- Step 1: layout fluido ---- */
+    .edit-sale-page .edit-sale-step1-shell {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: flex-start !important;
+        gap: 1.25rem !important;
+        height: auto !important;
+        margin-top: 1rem !important;
     }
 
-    /* Controls */
-    .edit-sale-products-controls {
-        gap: 1rem !important;
+    /* Products: flex-1 ocupa espaco restante */
+    .edit-sale-page .edit-sale-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
     }
-    .edit-sale-products-controls input {
-        font-size: 0.9rem !important;
-        padding: 0.75rem 1rem 0.75rem 2.75rem !important;
-        border-radius: 0.875rem !important;
+    .edit-sale-page .edit-sale-products-pane > div.overflow-y-auto {
+        overflow: visible !important;
+        max-height: none !important;
+        height: auto !important;
     }
 
-    /* Product cards dentro do painel esquerdo */
-    .edit-sale-products-pane .product-card-modern {
-        border-radius: 0.875rem !important;
+    /* Summary: largura fixa generosa no ultrawide */
+    .edit-sale-page .create-sale-summary-pane {
+        position: sticky !important;
+        top: 5.5rem !important;
+        align-self: flex-start !important;
+        width: clamp(300px, 22%, 400px) !important;
+        flex-shrink: 0 !important;
+        height: auto !important;
+        display: flex !important;
+        flex-direction: column !important;
+        overflow: visible !important;
     }
 
-    /* Painel direito (selecionados) */
-    .edit-sale-step1-shell > .w-full.lg\:w-1\/4 {
-        /* Manter proporção */
+    /* Grid: 5 colunas no ultrawide */
+    .edit-sale-page .products-step-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+        gap: 0.8rem !important;
     }
+    .edit-sale-page .products-step-grid .product-card-modern { border-radius: 1.1rem !important; min-height: 0 !important; height: auto !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .product-img-area,
+    .edit-sale-page .products-mobile-compact-grid .product-card-modern .product-img-area { height: 140px !important; min-height: 140px !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .card-body { padding: 1.65em 0.65em 1.55em 0.65em !important; min-height: 0 !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .product-title { font-size: 0.82em !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .category-icon-wrapper { width: 46px !important; height: 46px !important; bottom: -22px !important; }
+    .edit-sale-page .products-step-grid .product-card-modern .category-icon { font-size: 1.4em !important; }
+
+    /* Selected list */
+    .edit-sale-page .create-sale-selected-list {
+        min-height: clamp(20rem, 38vh, 36rem) !important;
+        max-height: min(58vh, 48rem) !important;
+        overflow-y: auto !important;
+    }
+
+    /* Resumo */
+    .edit-sale-page .create-sale-summary-card { padding: 1rem !important; }
+    .edit-sale-page .create-sale-summary-card h3 { font-size: 1rem !important; }
+    .edit-sale-page .create-sale-summary-icon { width: 2.2rem !important; height: 2.2rem !important; min-width: 2.2rem !important; border-radius: 0.65rem !important; }
+    .edit-sale-page .create-sale-summary-stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.48rem !important; }
+    .edit-sale-page .create-sale-summary-stat-label { font-size: 0.6rem !important; }
+    .edit-sale-page .create-sale-summary-stat-value { font-size: 0.92rem !important; }
+    .edit-sale-page .create-sale-summary-info-grid { grid-template-columns: 1fr !important; gap: 0.5rem !important; }
+    .edit-sale-page .create-sale-total-panel  { padding: 0.75rem 0.9rem !important; margin-top: 0.65rem !important; }
+    .edit-sale-page .create-sale-summary-card button.sm\:hidden { display: none !important; }
+
+    /* Selecionados */
+    .edit-sale-page .create-sale-selected-grid { grid-template-columns: 5rem 1fr 6rem !important; gap: 0.55rem !important; }
+    .edit-sale-page .create-sale-selected-field { padding: 0.55rem 0.65rem !important; }
+    .edit-sale-page .create-sale-selected-field label { font-size: 0.65rem !important; }
+    .edit-sale-page .create-sale-selected-field input { font-size: 0.88rem !important; }
+    .edit-sale-page .create-sale-selected-thumb { width: 2.8rem !important; height: 2.8rem !important; min-width: 2.8rem !important; border-radius: 0.6rem !important; }
+    .edit-sale-page .create-sale-selected-item h4 { font-size: 0.82rem !important; }
+    .edit-sale-page .csi-total-value { font-size: 0.88rem !important; }
+
+    /* Step 2 */
+    .edit-sale-page .edit-sale-step2-shell {
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        gap: 1.25rem !important;
+        align-items: flex-start !important;
+        height: auto !important;
+        margin-top: 1rem !important;
+        overflow: visible !important;
+    }
+    .edit-sale-page .edit-sale-review-info-pane {
+        width: clamp(300px, 35%, 500px) !important;
+        flex-shrink: 0 !important;
+        align-self: flex-start !important;
+        padding: 1rem !important;
+        border-radius: 1.5rem !important;
+    }
+    .edit-sale-page .edit-sale-review-products-pane {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        align-self: flex-start !important;
+        padding: 1rem !important;
+        border-radius: 1.5rem !important;
+    }
+    .edit-sale-page .edit-sale-review-title          { font-size: 1.3rem !important; font-weight: 800 !important; }
+    .edit-sale-page .edit-sale-review-products-title { font-size: 1.2rem !important; margin-bottom: 0.6rem !important; }
+    .edit-sale-page .edit-sale-review-total-footer span:last-child { font-size: 1.5rem !important; }
 }
-
