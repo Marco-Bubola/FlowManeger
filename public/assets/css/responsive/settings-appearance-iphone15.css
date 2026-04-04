@@ -1,5 +1,32 @@
-/* settings-appearance — iPhone 15 */
-@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
-    .settings-appearance-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); padding-inline: 1rem; }
-    .settings-appearance-page form, .settings-appearance-page .form-section { max-width: 100% !important; }
+/* settings-appearance — iPhone 15 / small phones (<=430px) */
+@media (max-width: 430px) {
+    .settings-appearance-page {
+        padding-inline: 0.5rem;
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+    .settings-color-grid {
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 0.3rem;
+    }
+    .settings-color-dot {
+        width: 1.8rem;
+        height: 1.8rem;
+    }
+    .settings-color-name {
+        font-size: 0.58rem;
+        margin-top: 0.2rem;
+    }
+    .settings-option-card {
+        padding: 0.5rem;
+        font-size: 0.75rem;
+    }
+    .settings-range {
+        height: 0.35rem;
+    }
+    .settings-card-header {
+        padding: 0.6rem 0.75rem;
+    }
+    .settings-card-title {
+        font-size: 0.85rem;
+    }
 }
