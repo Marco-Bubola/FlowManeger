@@ -82,13 +82,9 @@ class ClientsIndex extends Component
         $startOfMonth = Carbon::create($this->year, $this->month, 1)->startOfDay();
         $endOfMonth = Carbon::create($this->year, $this->month, 1)->endOfMonth()->endOfDay();
 
-        // Total de clientes
-        $this->totalClients = Client::where('user_id', Auth::id())->count();
+        $this->totalClients = Client::query()->count();
 
-        // Vendas do mês
-        $salesQuery = Sale::whereHas('client', function($query) {
-                $query->where('user_id', Auth::id());
-            })
+        $salesQuery = Sale::query()
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
 
         $this->totalSales = $salesQuery->count();
@@ -96,7 +92,7 @@ class ClientsIndex extends Component
         $this->averageTicket = $this->totalSales > 0 ? $this->totalRevenue / $this->totalSales : 0;
 
         // Cliente com mais compras
-        $this->topClient = Client::where('user_id', Auth::id())
+        $this->topClient = Client::query()
             ->withCount(['sales as sales_count' => function($query) use ($startOfMonth, $endOfMonth) {
                 $query->whereBetween('created_at', [$startOfMonth, $endOfMonth]);
             }])
@@ -108,16 +104,13 @@ class ClientsIndex extends Component
             ->first();
 
         // Clientes recentes (últimos 5)
-        $this->recentClients = Client::where('user_id', Auth::id())
+        $this->recentClients = Client::query()
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get()
             ->toArray();
 
-        // Vendas por dia do mês (para gráfico)
-        $this->monthlySales = Sale::whereHas('client', function($query) {
-                $query->where('user_id', Auth::id());
-            })
+        $this->monthlySales = Sale::query()
             ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->selectRaw('DATE(created_at) as date, COUNT(*) as count, SUM(total_price) as total')
             ->groupBy('date')
@@ -205,9 +198,9 @@ class ClientsIndex extends Component
 
     public function confirmDelete($clientId): void
     {
-        $client = Client::where('id', $clientId)
-                       ->where('user_id', Auth::id())
-                       ->first();
+        $client = Client::whereKey($clientId)
+            ->where('user_id', Auth::id())
+            ->first();
 
         if ($client) {
             $this->deletingClient = $client;
@@ -272,8 +265,7 @@ class ClientsIndex extends Component
     public function updatedSelectAll()
     {
         if ($this->selectAll) {
-            // Buscar IDs dos clientes da página atual
-            $query = Client::where('user_id', Auth::id());
+            $query = Client::query();
 
             if ($this->search) {
                 $query->where(function($q) {
@@ -301,8 +293,13 @@ class ClientsIndex extends Component
     {
         if (!empty($this->selectedClients)) {
             $deletedCount = Client::whereIn('id', $this->selectedClients)
-                  ->where('user_id', Auth::id())
-                  ->delete();
+                ->where('user_id', Auth::id())
+                ->delete();
+
+            if ($deletedCount === 0) {
+                session()->flash('error', 'Voce so pode excluir clientes da sua propria conta.');
+                return;
+            }
 
             $this->selectedClients = [];
             $this->selectAll = false;
@@ -326,34 +323,29 @@ class ClientsIndex extends Component
         $stats = collect();
 
         // Total de clientes
-        $stats->put('total', Client::where('user_id', Auth::id())->count());
+        $stats->put('total', Client::query()->count());
 
-        // Clientes novos este mês
-        $stats->put('new_this_month', Client::where('user_id', Auth::id())
+        $stats->put('new_this_month', Client::query()
             ->where('created_at', '>=', now()->startOfMonth())
             ->count());
 
-        // Clientes VIP (10+ compras)
-        $stats->put('vip', Client::where('user_id', Auth::id())
+        $stats->put('vip', Client::query()
             ->withCount('sales')
             ->having('sales_count', '>=', 10)
             ->count());
 
-        // Total de vendas de todos os clientes
         $stats->put('total_sales', Sale::whereIn('client_id',
-            Client::where('user_id', Auth::id())->pluck('id')
-        )->sum('total'));
+            Client::query()->pluck('id')
+        )->sum('total_price'));
 
-        // Média de vendas por cliente
-        $clientsWithSales = Client::where('user_id', Auth::id())
+        $clientsWithSales = Client::query()
             ->whereHas('sales')
             ->count();
         $stats->put('avg_sales_per_client', $clientsWithSales > 0 ?
             $stats->get('total_sales') / $clientsWithSales : 0);
 
-        // Última venda
         $lastSale = Sale::whereIn('client_id',
-            Client::where('user_id', Auth::id())->pluck('id')
+            Client::query()->pluck('id')
         )->latest()->first();
         $stats->put('last_sale', $lastSale ? $lastSale->created_at->diffForHumans() : 'Nenhuma venda');
 
@@ -374,7 +366,7 @@ class ClientsIndex extends Component
 
     public function render()
     {
-        $query = Client::where('user_id', Auth::id());
+        $query = Client::query();
 
         // Filtro de pesquisa por nome, email, telefone ou cidade
         if (!empty($this->search)) {
@@ -560,23 +552,23 @@ class ClientsIndex extends Component
      */
     public function getActiveClientsProperty()
     {
-        return Client::where('user_id', Auth::id())
-                    ->where('status', 'ativo')
-                    ->count();
+        return Client::query()
+            ->where('status', 'ativo')
+            ->count();
     }
 
     public function getPremiumClientsProperty()
     {
-        return Client::where('user_id', Auth::id())
-                    ->where('type', 'premium')
-                    ->count();
+        return Client::query()
+            ->where('type', 'premium')
+            ->count();
     }
 
     public function getNewClientsThisMonthProperty()
     {
-        return Client::where('user_id', Auth::id())
-                    ->where('created_at', '>=', now()->startOfMonth())
-                    ->count();
+        return Client::query()
+            ->where('created_at', '>=', now()->startOfMonth())
+            ->count();
     }
 
     /**
