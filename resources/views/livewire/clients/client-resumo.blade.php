@@ -65,7 +65,25 @@
                 </div>
 
                 <!-- Ações -->
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <a href="{{ route('clients.portal.quotes', $client->id) }}"
+                       class="inline-flex items-center px-4 py-2 bg-white/80 hover:bg-white text-slate-700 rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg border border-white/50">
+                        <i class="fas fa-file-invoice-dollar mr-2"></i>
+                        Orçamentos
+                    </a>
+                    @if($client->portal_active)
+                        <a href="{{ route('portal.login') }}"
+                           target="_blank"
+                           class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg">
+                            <i class="fas fa-external-link-alt mr-2"></i>
+                            Abrir Portal
+                        </a>
+                    @endif
+                    <a href="{{ route('clients.portal.access', $client->id) }}"
+                       class="inline-flex items-center px-4 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg border border-sky-200">
+                        <i class="fas fa-key mr-2"></i>
+                        Acesso do Portal
+                    </a>
                     <a href="{{ route('clients.edit', $client->id) }}"
                        class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg">
                         <i class="fas fa-edit mr-2"></i>
