@@ -5,6 +5,10 @@ use Livewire\Volt\Component;
 new class extends Component {
     //
 }; ?>
+@php
+    /** @var array|null $dbSystem */
+    $dbSystem = auth()->user()?->preferences['system'] ?? null;
+@endphp
 
 <section class="settings-system-page w-full mobile-393-base"
     x-data="{
@@ -18,7 +22,7 @@ new class extends Component {
         paper_size: 'A4',
         saved: false,
         saveAll() {
-            localStorage.setItem('flowmanager:system', JSON.stringify({
+            const payload = {
                 language: this.language,
                 timezone: this.timezone,
                 date_format: this.date_format,
@@ -27,7 +31,14 @@ new class extends Component {
                 currency: this.currency,
                 number_format: this.number_format,
                 paper_size: this.paper_size,
-            }));
+            };
+            localStorage.setItem('flowmanager:system', JSON.stringify(payload));
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            fetch('/settings/preferences/system', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf},
+                body: JSON.stringify({data: payload})
+            }).catch(()=>{});
             this.saved = true;
             setTimeout(() => this.saved = false, 2000);
         },
@@ -58,31 +69,32 @@ new class extends Component {
         }
     }"
     x-init="
-        try {
-            const s = JSON.parse(localStorage.getItem('flowmanager:system') || 'null');
-            if (s) {
-                if (s.language) language = s.language;
-                if (s.timezone) timezone = s.timezone;
-                if (s.date_format) date_format = s.date_format;
-                if (s.time_format) time_format = s.time_format;
-                if (s.first_dow) first_dow = s.first_dow;
-                if (s.currency) currency = s.currency;
-                if (s.number_format) number_format = s.number_format;
-                if (s.paper_size) paper_size = s.paper_size;
-            }
-        } catch(e){}
+        const dbData = @json($dbSystem ?? null);
+        if (dbData) {
+            if (dbData.language) language = dbData.language;
+            if (dbData.timezone) timezone = dbData.timezone;
+            if (dbData.date_format) date_format = dbData.date_format;
+            if (dbData.time_format) time_format = dbData.time_format;
+            if (dbData.first_dow) first_dow = dbData.first_dow;
+            if (dbData.currency) currency = dbData.currency;
+            if (dbData.number_format) number_format = dbData.number_format;
+            if (dbData.paper_size) paper_size = dbData.paper_size;
+        } else {
+            try {
+                const s = JSON.parse(localStorage.getItem('flowmanager:system') || 'null');
+                if (s) {
+                    if (s.language) language = s.language;
+                    if (s.timezone) timezone = s.timezone;
+                    if (s.date_format) date_format = s.date_format;
+                    if (s.time_format) time_format = s.time_format;
+                    if (s.first_dow) first_dow = s.first_dow;
+                    if (s.currency) currency = s.currency;
+                    if (s.number_format) number_format = s.number_format;
+                    if (s.paper_size) paper_size = s.paper_size;
+                }
+            } catch(e){}
+        }
     ">
-
-    <style>
-        @media (max-width: 767px) {
-            .settings-system-page { padding-bottom: calc(82px + env(safe-area-inset-bottom)); padding-inline: 0.75rem; }
-            .settings-sys-grid { grid-template-columns: 1fr !important; }
-            .settings-sys-preview { flex-direction: column; }
-        }
-        @media (max-width: 430px) {
-            .settings-system-page { padding-inline: 0.5rem; }
-        }
-    </style>
 
     {{-- Toast salvo --}}
     <div x-show="saved" x-transition.opacity
@@ -91,9 +103,10 @@ new class extends Component {
         Configurações salvas!
     </div>
 
-    @include('partials.settings-heading')
-
     <x-settings.layout :heading="''">
+
+        <div class="s-pg-grid">
+        <div class="s-col-main">
 
         {{-- ── CARD: Preview dinamico ── --}}
         <div class="settings-card">
@@ -273,6 +286,10 @@ new class extends Component {
             </div>
         </div>
 
+        </div>{{-- /s-col-main --}}
+
+        <div class="s-col-side">
+
         {{-- ── CARD: Relatórios e impressão ── --}}
         <div class="settings-card">
             <div class="settings-card-header">
@@ -301,6 +318,75 @@ new class extends Component {
             </div>
         </div>
 
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1rem;margin-top:1rem">
+            <div class="settings-card" style="padding:1.25rem;background:linear-gradient(135deg,rgba(var(--s-accent-rgb),0.08),transparent)">
+                <div class="settings-card-header" style="margin-bottom:.9rem">
+                    <div class="settings-card-title-row">
+                        <div class="settings-card-icon" style="background:rgba(var(--s-accent-rgb),0.14)">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 0 0 6 16.5h12A2.25 2.25 0 0 0 20.25 14.25V3M3.75 3h16.5M3.75 3l2.25 2.25m12-2.25L15.75 5.25M8.25 21h7.5"/></svg>
+                        </div>
+                        <div>
+                            <p class="settings-card-title">Resumo operacional</p>
+                            <p class="settings-card-desc">Combinação atual de idioma, formato e impressão</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem">
+                    <div class="settings-info-tile"><p class="settings-info-tile-label">Idioma</p><p class="settings-info-tile-val" x-text="language"></p></div>
+                    <div class="settings-info-tile"><p class="settings-info-tile-label">Fuso</p><p class="settings-info-tile-val" x-text="timezone.replace('_',' ').split('/').pop()"></p></div>
+                    <div class="settings-info-tile"><p class="settings-info-tile-label">Data/Hora</p><p class="settings-info-tile-val"><span x-text="datePreview"></span> · <span x-text="timePreview"></span></p></div>
+                    <div class="settings-info-tile"><p class="settings-info-tile-label">Papel</p><p class="settings-info-tile-val" x-text="paper_size"></p></div>
+                </div>
+            </div>
+
+            <div class="settings-card" style="padding:1.25rem">
+                <div class="settings-card-header" style="margin-bottom:.9rem">
+                    <div class="settings-card-title-row">
+                        <div class="settings-card-icon" style="background:rgba(16,185,129,.12);color:#10b981">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75h19.5v10.5H2.25V6.75Zm3 3.75h6m-6 3h12"/></svg>
+                        </div>
+                        <div>
+                            <p class="settings-card-title">Exemplo em documento</p>
+                            <p class="settings-card-desc">Prévia de um PDF usando suas preferências</p>
+                        </div>
+                    </div>
+                </div>
+                <div style="padding:1rem;border-radius:.95rem;background:linear-gradient(180deg,#ffffff,#f8fafc);border:1px solid #e2e8f0;box-shadow:inset 0 1px 0 rgba(255,255,255,.7)">
+                    <div style="display:flex;justify-content:space-between;gap:1rem;margin-bottom:.8rem">
+                        <div>
+                            <p style="font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94a3b8;margin:0">Relatório</p>
+                            <p style="font-size:1rem;font-weight:800;color:#0f172a;margin:.15rem 0 0">Painel Financeiro</p>
+                        </div>
+                        <div style="text-align:right">
+                            <p style="font-size:.72rem;color:#94a3b8;margin:0">Gerado em</p>
+                            <p style="font-size:.82rem;font-weight:700;color:#334155;margin:.15rem 0 0"><span x-text="datePreview"></span> · <span x-text="timePreview"></span></p>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.55rem;margin-bottom:.8rem">
+                        <div style="padding:.65rem;border-radius:.7rem;background:rgba(var(--s-accent-rgb),.07)">
+                            <p style="font-size:.68rem;color:#94a3b8;margin:0">Receita</p>
+                            <p style="font-size:.88rem;font-weight:800;color:var(--s-accent);margin:.15rem 0 0" x-text="currencyPreview"></p>
+                        </div>
+                        <div style="padding:.65rem;border-radius:.7rem;background:rgba(16,185,129,.07)">
+                            <p style="font-size:.68rem;color:#94a3b8;margin:0">Formato</p>
+                            <p style="font-size:.88rem;font-weight:800;color:#047857;margin:.15rem 0 0" x-text="paper_size"></p>
+                        </div>
+                        <div style="padding:.65rem;border-radius:.7rem;background:rgba(99,102,241,.07)">
+                            <p style="font-size:.68rem;color:#94a3b8;margin:0">Semana</p>
+                            <p style="font-size:.88rem;font-weight:800;color:#4338ca;margin:.15rem 0 0" x-text="first_dow === 'sun' ? 'Domingo' : 'Segunda' "></p>
+                        </div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:.35rem">
+                        <div style="height:6px;border-radius:999px;background:#e2e8f0;width:100%"></div>
+                        <div style="height:6px;border-radius:999px;background:rgba(var(--s-accent-rgb),.18);width:78%"></div>
+                        <div style="height:6px;border-radius:999px;background:#e2e8f0;width:61%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        </div>{{-- /s-col-side --}}
+        </div>{{-- /s-pg-grid --}}
+
     </x-settings.layout>
-</section>
 </section>
