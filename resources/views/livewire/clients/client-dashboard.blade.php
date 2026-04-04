@@ -1212,6 +1212,217 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </div>
 
+{{-- ═══ PORTAL DO CLIENTE ═══════════════════════════════════════════════════ --}}
+<div class="mt-8 px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+        {{-- Header --}}
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-6 py-5 bg-gradient-to-r from-sky-50 via-indigo-50 to-purple-50 dark:from-sky-900/20 dark:to-indigo-900/20 border-b border-slate-200 dark:border-slate-700">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                    <i class="fas fa-user-lock text-white text-base"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-slate-900 dark:text-white text-base">Portal do Cliente</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Gerencie o acesso de <strong>{{ $client->name }}</strong> ao portal exclusivo
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap">
+                @if($client->portal_active)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs font-bold rounded-full border border-green-200 dark:border-green-800">
+                        <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                        Portal Ativo
+                    </span>
+                @else
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 text-xs font-bold rounded-full border border-gray-200 dark:border-gray-600">
+                        <span class="w-2 h-2 bg-gray-400 rounded-full"></span>
+                        Portal Inativo
+                    </span>
+                @endif
+            </div>
+        </div>
+
+        <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            {{-- Left: Info & Actions --}}
+            <div class="lg:col-span-1 space-y-4">
+                {{-- Client info tiles --}}
+                <div class="space-y-2">
+                    <div class="p-4 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">Credenciais do portal</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Aqui voce recupera o acesso do cliente sem precisar ler senha antiga do banco.</p>
+                            </div>
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold {{ $client->portal_active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-800' : 'bg-slate-100 text-slate-600 border border-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:border-slate-600' }}">
+                                {{ $client->portal_active ? 'Ativo' : 'Inativo' }}
+                            </span>
+                        </div>
+                        <div class="mt-4 space-y-3 text-xs">
+                            <div>
+                                <p class="mb-1 font-semibold uppercase tracking-[0.12em] text-slate-400">Login</p>
+                                <div class="flex items-center gap-2">
+                                    <input id="portalClientLoginDashboard" readonly value="{{ $client->portal_login ?: 'Login ainda nao preparado' }}" class="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 px-3 py-2 text-slate-700 dark:text-slate-200">
+                                    @if($client->portal_login)
+                                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('portalClientLoginDashboard').value)" class="rounded-xl bg-slate-900 px-3 py-2 font-bold text-white">Copiar</button>
+                                    @endif
+                                </div>
+                            </div>
+                            <div>
+                                <p class="mb-1 font-semibold uppercase tracking-[0.12em] text-slate-400">Portal</p>
+                                <div class="flex items-center gap-2">
+                                    <input id="portalClientUrlDashboard" readonly value="{{ route('portal.login') }}" class="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 px-3 py-2 text-slate-700 dark:text-slate-200">
+                                    <button type="button" onclick="navigator.clipboard.writeText(document.getElementById('portalClientUrlDashboard').value)" class="rounded-xl bg-slate-900 px-3 py-2 font-bold text-white">Copiar</button>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 text-[11px]">
+                                <div class="rounded-xl bg-slate-50 dark:bg-slate-700/50 p-3">
+                                    <p class="font-semibold text-slate-500 dark:text-slate-400">Troca de senha</p>
+                                    <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">{{ $client->portal_force_password_change ? 'Pendente' : 'Concluida' }}</p>
+                                </div>
+                                <div class="rounded-xl bg-slate-50 dark:bg-slate-700/50 p-3">
+                                    <p class="font-semibold text-slate-500 dark:text-slate-400">Cadastro</p>
+                                    <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">{{ $client->portal_profile_completed_at ? 'Completo' : 'Pendente' }}</p>
+                                </div>
+                                <div class="rounded-xl bg-slate-50 dark:bg-slate-700/50 p-3 col-span-2">
+                                    <p class="font-semibold text-slate-500 dark:text-slate-400">Google</p>
+                                    <p class="mt-1 font-bold text-slate-800 dark:text-slate-100">{{ $client->google_id ? 'Conta Google vinculada' : 'Sem vinculacao Google' }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if($client->portal_last_login_at)
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <i class="fas fa-clock text-slate-400 text-sm w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Último acesso</p>
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                {{ $client->portal_last_login_at->format('d/m/Y H:i') }}
+                            </p>
+                        </div>
+                    </div>
+                    @endif
+                    @if($client->company)
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <i class="fas fa-building text-slate-400 text-sm w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Empresa</p>
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ $client->company }}</p>
+                        </div>
+                    </div>
+                    @endif
+                    @if($client->cpf_cnpj)
+                    <div class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                        <i class="fas fa-id-card text-slate-400 text-sm w-5 text-center"></i>
+                        <div>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">CPF/CNPJ</p>
+                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">{{ $client->cpf_cnpj }}</p>
+                        </div>
+                    </div>
+                    @endif
+                </div>
+
+                {{-- Actions --}}
+                <div class="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-700">
+                    <a href="{{ route('clients.portal.access', $client) }}"
+                        class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-md hover:shadow-lg transition-all hover:scale-[1.02]">
+                        <i class="fas fa-key text-sm"></i>
+                        Gerenciar Acesso do Portal
+                    </a>
+
+                    @if($client->portal_active)
+                    <form method="POST" action="{{ route('clients.portal.revoke-access', $client) }}">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit"
+                            onclick="return confirm('Revogar o acesso de {{ addslashes($client->name) }} ao portal?')"
+                            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-sm font-semibold rounded-xl transition-colors border border-red-200 dark:border-red-800">
+                            <i class="fas fa-ban text-sm"></i>
+                            Revogar Acesso
+                        </button>
+                    </form>
+                    @endif
+
+                    @if($client->portal_active)
+                    <a href="{{ route('portal.login') }}" target="_blank"
+                       class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-50 hover:bg-slate-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-600 dark:text-slate-300 text-sm font-semibold rounded-xl transition-colors border border-slate-200 dark:border-slate-600">
+                        <i class="fas fa-external-link-alt text-sm"></i>
+                        Abrir Portal (link)
+                    </a>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Right: Quote requests --}}
+            <div class="lg:col-span-2">
+                <div class="flex items-center justify-between mb-3">
+                    <h4 class="font-bold text-slate-800 dark:text-slate-100 text-sm flex items-center gap-2">
+                        <i class="fas fa-file-invoice text-violet-500"></i>
+                        Orçamentos Solicitados
+                    </h4>
+                    @php $quotes = $client->quoteRequests()->latest()->limit(5)->get(); @endphp
+                    <span class="text-xs text-slate-400">{{ $client->quoteRequests()->count() }} total</span>
+                </div>
+
+                @if($quotes->isEmpty())
+                <div class="flex flex-col items-center justify-center py-10 text-center bg-slate-50 dark:bg-slate-700/30 rounded-xl">
+                    <i class="fas fa-file-invoice text-3xl text-slate-300 dark:text-slate-600 mb-2"></i>
+                    <p class="text-sm text-slate-500 dark:text-slate-400">Nenhum orçamento solicitado ainda.</p>
+                </div>
+                @else
+                <div class="space-y-2">
+                    @foreach($quotes as $q)
+                    @php $col = $q->status_color; @endphp
+                    <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-700/40 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-700/70 transition-colors group">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 bg-{{ $col }}-100 dark:bg-{{ $col }}-900/30 rounded-xl flex items-center justify-center flex-shrink-0">
+                                <i class="fas fa-file-alt text-{{ $col }}-600 dark:text-{{ $col }}-400 text-sm"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">Orç. #{{ $q->id }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $q->created_at->format('d/m/Y') }}
+                                    @if($q->items) · {{ count($q->items) }} produto(s) @endif
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                            @if($q->quoted_total)
+                            <span class="text-sm font-bold text-slate-700 dark:text-slate-200 hidden sm:block">R$ {{ number_format($q->quoted_total, 2, ',', '.') }}</span>
+                            @endif
+                            <span class="inline-flex items-center px-2.5 py-1 bg-{{ $col }}-100 dark:bg-{{ $col }}-900/30 text-{{ $col }}-700 dark:text-{{ $col }}-300 text-xs font-bold rounded-full">
+                                {{ $q->status_label }}
+                            </span>
+
+                            {{-- Quick respond form --}}
+                            @if($q->status === 'pending')
+                            <form method="POST" action="{{ route('clients.portal.quotes.update', $q) }}" class="hidden group-hover:flex items-center gap-1">
+                                @csrf @method('PATCH')
+                                <input type="hidden" name="status" value="reviewing">
+                                <button type="submit" title="Iniciar análise"
+                                    class="px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white text-xs rounded-lg transition-colors">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </form>
+                            @endif
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+
+                @if($client->quoteRequests()->count() > 5)
+                <a href="{{ route('clients.portal.quotes', $client) }}" class="mt-3 block text-center text-xs text-sky-600 hover:underline font-medium">
+                    Ver todos os orçamentos →
+                </a>
+                @endif
+                @endif
+            </div>
+        </div>
+    </div>
+</div>
+{{-- ═══ FIM PORTAL DO CLIENTE ════════════════════════════════════════════════ --}}
+
 @push('styles')
 <style>
     .apexcharts-legend-text { color: #0f172a !important; }
