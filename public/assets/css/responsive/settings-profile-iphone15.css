@@ -1,5 +1,33 @@
-/* settings-profile — iPhone 15 */
-@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
-    .settings-profile-page { padding-bottom: calc(90px + env(safe-area-inset-bottom)); padding-inline: 1rem; }
-    .settings-profile-page form, .settings-profile-page .form-section { max-width: 100% !important; }
+/* settings-profile — iPhone 15 / small phones (<=430px) */
+@media (max-width: 430px) {
+    .settings-profile-page {
+        padding-inline: 0.5rem;
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+    }
+    .settings-hero {
+        padding: 0.85rem 0.75rem;
+    }
+    .settings-hero-icon-box {
+        width: 2rem;
+        height: 2rem;
+    }
+    .settings-hero-title {
+        font-size: 1.1rem;
+    }
+    .settings-avatar-img,
+    .settings-avatar-placeholder {
+        width: 4rem;
+        height: 4rem;
+    }
+    .settings-avatar-overlay {
+        width: 4rem;
+        height: 4rem;
+    }
+    .settings-field-label {
+        font-size: 0.78rem;
+    }
+    .settings-save-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
