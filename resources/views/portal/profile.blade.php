@@ -1,9 +1,47 @@
 <x-portal-layout title="Meu Perfil">
 
-<div class="max-w-2xl mx-auto">
-    <h1 class="text-base font-black text-gray-900 dark:text-slate-100 mb-5">Meu Perfil</h1>
+<div class="max-w-4xl mx-auto">
 
-    <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+    {{-- ── HEADER glassmorphism ── --}}
+    <div class="portal-page-header">
+        <div class="pph-blur-tr"></div>
+        <div class="pph-blur-bl"></div>
+        <div class="pph-shine"></div>
+
+        <div class="pph-row1">
+            <div class="pph-icon" style="background:linear-gradient(135deg,#8b5cf6,#6366f1);">
+                <i class="fas fa-circle-user"></i>
+            </div>
+            <div class="pph-title-wrap">
+                <div class="pph-breadcrumb">
+                    <a href="{{ route('portal.dashboard') }}"><i class="fas fa-house-chimney text-[8px]"></i> Início</a>
+                    <i class="fas fa-chevron-right text-[8px]"></i>
+                    <span>Meu Perfil</span>
+                </div>
+                <h1 class="pph-title">{{ $client->name }}</h1>
+            </div>
+            <div class="hidden sm:flex flex-wrap items-center gap-2 ml-auto">
+                <span class="pph-badge info">
+                    <i class="fas fa-user text-[8px]"></i>
+                    {{ $client->portal_login }}
+                </span>
+                @if($client->email)
+                <span class="pph-badge">
+                    <i class="fas fa-envelope text-[8px]"></i>
+                    {{ $client->email }}
+                </span>
+                @endif
+                @if($client->google_id)
+                <span class="pph-badge success">
+                    <i class="fab fa-google text-[8px]"></i>
+                    Google conectado
+                </span>
+                @endif
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <div class="rounded-2xl border border-sky-100 dark:border-sky-800/50 bg-white dark:bg-slate-800 p-4 shadow-sm">
             <p class="text-xs font-bold uppercase tracking-[0.18em] text-sky-500">Login do portal</p>
             <p class="mt-2 text-base font-black text-slate-900 dark:text-slate-100">{{ $client->portal_login }}</p>
