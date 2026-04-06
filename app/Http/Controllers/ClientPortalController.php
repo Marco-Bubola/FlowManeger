@@ -8,6 +8,9 @@ use App\Models\ClientQuoteRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Sale;
+use App\Models\SaleItem;
+use App\Notifications\PortalQuoteReceived;
+use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -288,9 +291,22 @@ class ClientPortalController extends Controller
         $sales = Sale::with(['saleItems.product', 'payments'])
             ->where('client_id', $client->id)
             ->latest()
-            ->paginate(10);
+            ->paginate(12);
 
-        return view('portal.sales', compact('client', 'sales'));
+        // KPI aggregates (all client sales, not just this page)
+        $allSales = Sale::where('client_id', $client->id);
+        $kpiTotal      = (clone $allSales)->count();
+        $kpiTotalValue = (clone $allSales)->sum('total_price');
+        $kpiPending    = (clone $allSales)->whereIn('status', ['pendente', 'pending', 'orcamento'])->count();
+        $kpiPaid       = Sale::with('payments')
+            ->where('client_id', $client->id)
+            ->get()
+            ->sum(fn($s) => $s->total_paid);
+
+        return view('portal.sales', compact(
+            'client', 'sales',
+            'kpiTotal', 'kpiTotalValue', 'kpiPending', 'kpiPaid'
+        ));
     }
 
     public function products()
@@ -329,7 +345,8 @@ class ClientPortalController extends Controller
         $client = Auth::guard('portal')->user();
 
         $quotes = ClientQuoteRequest::where('client_id', $client->id)
-            ->latest()
+            ->orderByRaw("CASE status WHEN 'quoted' THEN 0 WHEN 'pending' THEN 1 WHEN 'reviewing' THEN 2 WHEN 'approved' THEN 3 ELSE 4 END")
+            ->orderBy('created_at', 'desc')
             ->paginate(10);
 
         return view('portal.quotes.index', compact('client', 'quotes'));
@@ -365,6 +382,7 @@ class ClientPortalController extends Controller
             'extra_items.*.desc'  => ['required_with:extra_items', 'string', 'max:255'],
             'extra_items.*.qty'   => ['required_with:extra_items', 'integer', 'min:1'],
             'client_notes'        => ['nullable', 'string', 'max:1000'],
+            'payment_preference'  => ['nullable', 'string', 'in:pix,dinheiro,credito,debito,boleto,outro'],
         ]);
 
         if (empty($validated['items']) && empty($validated['extra_items'])) {
@@ -398,13 +416,20 @@ class ClientPortalController extends Controller
         }
 
         $quote = ClientQuoteRequest::create([
-            'client_id'    => $client->id,
-            'user_id'      => $client->user_id,
-            'status'       => 'pending',
-            'items'        => $items,
-            'extra_items'  => $extraItems ?: null,
-            'client_notes' => $validated['client_notes'] ?? null,
+            'client_id'          => $client->id,
+            'user_id'            => $client->user_id,
+            'status'             => 'pending',
+            'items'              => $items,
+            'extra_items'        => $extraItems ?: null,
+            'client_notes'       => $validated['client_notes'] ?? null,
+            'payment_preference' => $validated['payment_preference'] ?? null,
         ]);
+
+        // Notificar o admin (dono da conta) sobre o novo orçamento do portal
+        $owner = User::find($client->user_id);
+        if ($owner) {
+            $owner->notify(new PortalQuoteReceived($quote));
+        }
 
         return redirect()->route('portal.quotes.show', $quote)
             ->with('success', 'Orçamento enviado com sucesso! Aguarde a resposta do vendedor.');
@@ -435,7 +460,102 @@ class ClientPortalController extends Controller
 
         $quote->update(['status' => $validated['status']]);
 
-        return back()->with('success', 'Resposta do orçamento registrada com sucesso.');
+        if ($validated['status'] === 'approved') {
+            return back()->with('success', 'Orçamento aceito! Nosso time confirmará em breve.');
+        }
+
+        return back()->with('success', 'Orçamento recusado. Caso deseje, entre em contato conosco.');
+    }
+
+    public function editQuote(ClientQuoteRequest $quote)
+    {
+        /** @var \App\Models\Client $client */
+        $client = Auth::guard('portal')->user();
+
+        abort_if($quote->client_id !== $client->id, 403);
+        abort_unless($quote->can_edit, 403, 'Este orçamento não pode mais ser editado.');
+
+        $products = Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $client->user_id)
+            ->where('stock_quantity', '>', 0)
+            ->whereIn('status', ['active', 'ativo'])
+            ->with('category')
+            ->orderBy('name')
+            ->get();
+
+        return view('portal.quotes.edit', compact('client', 'quote', 'products'));
+    }
+
+    public function updateQuote(Request $request, ClientQuoteRequest $quote)
+    {
+        /** @var \App\Models\Client $client */
+        $client = Auth::guard('portal')->user();
+
+        abort_if($quote->client_id !== $client->id, 403);
+        abort_unless($quote->can_edit, 422, 'Este orçamento não pode mais ser editado.');
+
+        $validated = $request->validate([
+            'items'               => ['nullable', 'array'],
+            'items.*.product_id'  => ['required_with:items', 'integer', 'exists:products,id'],
+            'items.*.quantity'    => ['required_with:items', 'integer', 'min:1'],
+            'items.*.notes'       => ['nullable', 'string', 'max:255'],
+            'extra_items'         => ['nullable', 'array'],
+            'extra_items.*.desc'  => ['required_with:extra_items', 'string', 'max:255'],
+            'extra_items.*.qty'   => ['required_with:extra_items', 'integer', 'min:1'],
+            'client_notes'        => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        if (empty($validated['items']) && empty($validated['extra_items'])) {
+            return back()->withErrors(['items' => 'Adicione pelo menos um produto ou item ao orçamento.']);
+        }
+
+        $items = [];
+        foreach ($validated['items'] ?? [] as $item) {
+            $product = Product::withoutGlobalScope('team_visibility')
+                ->where('id', $item['product_id'])
+                ->where('user_id', $client->user_id)
+                ->first();
+            if ($product) {
+                $items[] = [
+                    'product_id' => $product->id,
+                    'name'       => $product->name,
+                    'quantity'   => (int) $item['quantity'],
+                    'notes'      => $item['notes'] ?? '',
+                    'price_ref'  => (float) $product->price_sale,
+                ];
+            }
+        }
+
+        $extraItems = [];
+        foreach ($validated['extra_items'] ?? [] as $ei) {
+            $extraItems[] = [
+                'description' => $ei['desc'],
+                'quantity'    => (int) $ei['qty'],
+            ];
+        }
+
+        $quote->update([
+            'items'        => $items,
+            'extra_items'  => $extraItems ?: null,
+            'client_notes' => $validated['client_notes'] ?? null,
+        ]);
+
+        return redirect()->route('portal.quotes.show', $quote)
+            ->with('success', 'Orçamento atualizado com sucesso!');
+    }
+
+    public function destroyQuote(ClientQuoteRequest $quote)
+    {
+        /** @var \App\Models\Client $client */
+        $client = Auth::guard('portal')->user();
+
+        abort_if($quote->client_id !== $client->id, 403);
+        abort_unless($quote->can_edit, 422, 'Este orçamento não pode mais ser excluído.');
+
+        $quote->delete();
+
+        return redirect()->route('portal.quotes')
+            ->with('success', 'Orçamento excluído com sucesso.');
     }
 
     public function profile()
@@ -613,6 +733,63 @@ class ClientPortalController extends Controller
     }
 
     /** Lista orçamentos de um cliente (admin) */
+    /** Admin confirma orçamento e cria uma Venda */
+    public function adminConfirmQuote(Request $request, ClientQuoteRequest $quote)
+    {
+        $this->assertCanManageClient($quote->client);
+
+        $validated = $request->validate([
+            'total_price'    => ['required', 'numeric', 'min:0'],
+            'payment_method' => ['required', 'string'],
+            'tipo_pagamento' => ['required', 'in:a_vista,parcelado'],
+            'parcelas'       => ['required_if:tipo_pagamento,parcelado', 'nullable', 'integer', 'min:1', 'max:120'],
+        ]);
+
+        $sale = Sale::create([
+            'client_id'       => $quote->client_id,
+            'user_id'         => Auth::id(),
+            'total_price'     => $validated['total_price'],
+            'amount_paid'     => 0,
+            'status'          => 'pendente',
+            'payment_method'  => $validated['payment_method'],
+            'tipo_pagamento'  => $validated['tipo_pagamento'],
+            'parcelas'        => $validated['tipo_pagamento'] === 'parcelado' ? ($validated['parcelas'] ?? 1) : 1,
+            'source'          => 'portal',
+            'portal_quote_id' => $quote->id,
+        ]);
+
+        foreach ($quote->items ?? [] as $item) {
+            if (empty($item['product_id'])) {
+                continue;
+            }
+            $product = Product::withoutGlobalScopes()->find($item['product_id']);
+            if (!$product) {
+                continue;
+            }
+            SaleItem::create([
+                'sale_id'    => $sale->id,
+                'product_id' => $product->id,
+                'quantity'   => (int) ($item['quantity'] ?? 1),
+                'price_sale' => $product->price_sale ?? $item['price_ref'] ?? 0,
+                'price'      => $product->price_sale ?? $item['price_ref'] ?? 0,
+            ]);
+
+            // Baixar estoque
+            if ($product->stock_quantity !== null) {
+                $product->decrement('stock_quantity', (int) ($item['quantity'] ?? 1));
+            }
+        }
+
+        $quote->update([
+            'status'       => 'approved',
+            'quoted_total' => $validated['total_price'],
+        ]);
+
+        return redirect()->route('sales.show', $sale)
+            ->with('success', "Orçamento confirmado! Venda #{$sale->id} criada com sucesso.");
+    }
+
+    /** Admin visualiza orçamentos de um cliente */
     public function adminClientQuotes(Client $client)
     {
         $this->assertCanManageClient($client);
