@@ -1,8 +1,13 @@
 <x-portal-layout title="Meus Orçamentos">
 
 @push('styles')
-<style>[x-cloak]{display:none!important}</style>
+<link rel="stylesheet" href="{{ asset('assets/css/portal/portal-quotes-index.css') }}">
 @endpush
+
+@php
+    $quotedCount = $quotes->where('status', 'quoted')->count();
+    $editableCount = $quotes->filter(fn($q) => $q->can_edit)->count();
+@endphp
 
 <div x-data="{
     search: '',
@@ -17,39 +22,64 @@
     }
 }">
 
-    {{-- Hero banner --}}
-    <div class="relative overflow-hidden bg-gradient-to-br from-violet-600 via-indigo-700 to-sky-800 rounded-2xl p-5 mb-5 text-white shadow-xl">
-        <div class="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent"></div>
-        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <div class="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.2em] mb-2">
-                    <i class="fas fa-file-invoice text-[9px]"></i> Central de Orçamentos
-                </div>
-                <h1 class="text-lg font-black leading-tight">Meus Orçamentos</h1>
-                <p class="text-sky-200/80 text-xs mt-1">{{ $quotes->total() }} solicitaç{{ $quotes->total() !== 1 ? 'ões' : 'ão' }} registrada{{ $quotes->total() !== 1 ? 's' : '' }}</p>
+    {{-- ── HEADER glassmorphism ── --}}
+    <div class="portal-page-header">
+        <div class="pph-blur-tr"></div>
+        <div class="pph-blur-bl"></div>
+        <div class="pph-shine"></div>
+
+        <div class="pph-row1">
+            <div class="pph-icon">
+                <i class="fas fa-file-lines"></i>
             </div>
-            <a href="{{ route('portal.quotes.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl font-bold text-xs transition-all hover:scale-105 shadow-lg whitespace-nowrap">
-                <i class="fas fa-circle-plus text-xs"></i> Novo Orçamento
+            <div class="pph-title-wrap">
+                <div class="pph-breadcrumb">
+                    <a href="{{ route('portal.dashboard') }}"><i class="fas fa-house-chimney text-[8px]"></i> Início</a>
+                    <i class="fas fa-chevron-right text-[8px]"></i>
+                    <span>Meus Pedidos</span>
+                </div>
+                <h1 class="pph-title">Meus Orçamentos</h1>
+            </div>
+            <div class="hidden sm:flex flex-wrap items-center gap-2 ml-auto">
+                <span class="pph-badge">
+                    <i class="fas fa-file-invoice text-[8px]"></i>
+                    {{ $quotes->total() }} solicitaç{{ $quotes->total() !== 1 ? 'ões' : 'ão' }}
+                </span>
+                @if($quotedCount > 0)
+                <span class="pph-badge warning">
+                    <i class="fas fa-bell text-[8px]"></i>
+                    {{ $quotedCount }} aguardando resposta
+                </span>
+                @endif
+                @if($editableCount > 0)
+                <span class="pph-badge info">
+                    <i class="fas fa-pen-to-square text-[8px]"></i>
+                    {{ $editableCount }} editável
+                </span>
+                @endif
+            </div>
+            <a href="{{ route('portal.quotes.create') }}" class="pph-btn">
+                <i class="fas fa-circle-plus text-xs"></i>
+                Novo Orçamento
             </a>
+        </div>
+
+        <div class="pph-row2">
+            <button @click="statusFilter=''" class="pph-pill" :class="{ 'active': statusFilter === '' }">Todos</button>
+            <button @click="statusFilter='pending'"   class="pph-pill" :class="{ 'active': statusFilter === 'pending'   }">Pendente</button>
+            <button @click="statusFilter='reviewing'" class="pph-pill" :class="{ 'active': statusFilter === 'reviewing' }">Em Análise</button>
+            <button @click="statusFilter='quoted'"    class="pph-pill" :class="{ 'active': statusFilter === 'quoted'    }">Cotado</button>
+            <button @click="statusFilter='approved'"  class="pph-pill" :class="{ 'active': statusFilter === 'approved'  }">Aprovado</button>
+            <button @click="statusFilter='rejected'"  class="pph-pill" :class="{ 'active': statusFilter === 'rejected'  }">Recusado</button>
         </div>
     </div>
 
-    {{-- Filters bar --}}
-    <div class="portal-card flex flex-wrap items-center gap-2 p-3 mb-5">
+    {{-- Search bar --}}
+    <div class="portal-card flex flex-wrap items-center gap-2 p-3 mb-4">
         <div class="relative flex-1 min-w-44">
             <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 text-xs"></i>
-            <input x-model="search" type="text" placeholder="Buscar orçamento..." class="portal-input pl-8 pr-3 py-2 text-xs w-full">
+            <input x-model="search" type="text" placeholder="Buscar por #ID, data, status..." class="portal-input pl-8 pr-3 py-2 text-xs w-full">
         </div>
-        <select x-model="statusFilter" class="portal-input py-2 text-xs min-w-[8rem]">
-            <option value="">Todos</option>
-            <option value="pending">Pendente</option>
-            <option value="reviewing">Em Análise</option>
-            <option value="quoted">Cotado</option>
-                <option value="approved">Aprovado</option>
-                <option value="rejected">Recusado</option>
-            </select>
     </div>
 
     @if($quotes->isEmpty())
@@ -74,28 +104,40 @@
 
         <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
             @foreach($quotes as $quote)
-            @php $col = $quote->status_color; @endphp
+            @php $col = $quote->status_color; $needsAction = $quote->status === 'quoted'; @endphp
             <a href="{{ route('portal.quotes.show', $quote) }}"
-               class="portal-card block overflow-hidden hover:shadow-lg hover:border-sky-200 dark:hover:border-sky-700 transition-all group"
+               class="portal-card block overflow-hidden hover:shadow-lg hover:border-sky-200 dark:hover:border-sky-700 transition-all group {{ $needsAction ? 'ring-2 ring-purple-400 dark:ring-purple-600' : '' }}"
                x-show="filtered.find(q => q.id === {{ $quote->id }})"
                x-transition:enter="transition ease-out duration-150"
                x-transition:enter-start="opacity-0 scale-95"
                x-transition:enter-end="opacity-100 scale-100">
                 {{-- Card top gradient strip --}}
-                <div class="h-1.5 bg-gradient-to-r from-{{ $col }}-400 to-{{ $col }}-600"></div>
+                <div class="h-1.5 bg-gradient-to-r from-{{ $col }}-400 to-{{ $col }}-600 {{ $needsAction ? 'h-2' : '' }}"></div>
                 <div class="p-4">
                     {{-- Header row --}}
                     <div class="flex items-start justify-between gap-2 mb-3">
                         <div class="flex items-center gap-2.5 min-w-0">
-                            <div class="w-9 h-9 bg-{{ $col }}-100 dark:bg-{{ $col }}-900/40 rounded-xl flex items-center justify-center flex-shrink-0">
+                            <div class="w-9 h-9 bg-{{ $col }}-100 dark:bg-{{ $col }}-900/40 rounded-xl flex items-center justify-center flex-shrink-0 {{ $needsAction ? 'ring-2 ring-purple-300 dark:ring-purple-700' : '' }}">
                                 <i class="fas fa-file-invoice text-{{ $col }}-600 dark:text-{{ $col }}-400 text-sm"></i>
                             </div>
                             <div class="min-w-0">
                                 <p class="text-xs font-black text-gray-900 dark:text-slate-200">Orçamento #{{ $quote->id }}</p>
-                                <p class="text-[10px] text-gray-400 dark:text-slate-500">{{ $quote->created_at->format('d/m/Y') }}</p>
+                                <p class="text-[10px] text-gray-400 dark:text-slate-500">{{ $quote->created_at->format('d/m/Y') }} · {{ $quote->created_at->diffForHumans() }}</p>
                             </div>
                         </div>
-                        <span class="status-badge bg-{{ $col }}-100 dark:bg-{{ $col }}-900/40 text-{{ $col }}-700 dark:text-{{ $col }}-300 flex-shrink-0">{{ $quote->status_label }}</span>
+                        <div class="flex flex-col items-end gap-1 flex-shrink-0">
+                            <span class="status-badge bg-{{ $col }}-100 dark:bg-{{ $col }}-900/40 text-{{ $col }}-700 dark:text-{{ $col }}-300">{{ $quote->status_label }}</span>
+                            @if($needsAction)
+                            <span class="inline-flex items-center gap-1 text-[9px] font-black text-purple-700 dark:text-purple-300 bg-purple-100 dark:bg-purple-900/40 px-2 py-0.5 rounded-full animate-pulse">
+                                <i class="fas fa-bell text-[8px]"></i> Ação necessária
+                            </span>
+                            @endif
+                            @if($quote->can_edit)
+                            <span class="inline-flex items-center gap-1 text-[9px] font-semibold text-amber-600 dark:text-amber-400">
+                                <i class="fas fa-pen-to-square text-[8px]"></i> Editável
+                            </span>
+                            @endif
+                        </div>
                     </div>
 
                     {{-- Items do orçamento --}}
@@ -124,13 +166,22 @@
                     {{-- Footer --}}
                     <div class="flex items-center justify-between">
                         @if($quote->quoted_total)
-                        <p class="text-sm font-black text-gray-900 dark:text-slate-200">R$ {{ number_format($quote->quoted_total, 2, ',', '.') }}</p>
+                        <div>
+                            <p class="text-[9px] text-gray-400 dark:text-slate-500">Valor cotado</p>
+                            <p class="text-sm font-black text-gray-900 dark:text-slate-200">R$ {{ number_format($quote->quoted_total, 2, ',', '.') }}</p>
+                        </div>
                         @else
                         <p class="text-xs text-gray-400 dark:text-slate-500 italic">Aguardando cotação</p>
                         @endif
+                        @if($needsAction)
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-500 text-white text-[10px] font-black rounded-xl shadow group-hover:shadow-purple-400/30 group-hover:scale-105 transition-all">
+                            <i class="fas fa-tag text-[9px]"></i> Ver proposta
+                        </span>
+                        @else
                         <span class="text-[10px] text-sky-600 dark:text-sky-400 font-bold group-hover:underline flex items-center gap-1">
                             Ver detalhes <i class="fas fa-chevron-right text-[8px] group-hover:translate-x-0.5 transition-transform"></i>
                         </span>
+                        @endif
                     </div>
                 </div>
             </a>
