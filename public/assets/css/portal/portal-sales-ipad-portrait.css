@@ -1,0 +1,16 @@
+/* Portal Sales — iPad Portrait (768px–1024px portrait) */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .portal-sales-page {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+        padding-left: 0.875rem !important;
+        padding-right: 0.875rem !important;
+    }
+    .portal-sales-hero { padding: 1.25rem 1.5rem !important; border-radius: 1.25rem !important; }
+    .portal-sales-kpi-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 0.625rem !important; }
+    .portal-sales-filter-bar { flex-direction: row !important; }
+    .portal-sales-filter-bar .search-wrap { max-width: 22rem !important; }
+    .portal-sales-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 1rem !important; }
+    .portal-sale-card-header { padding: 1rem 1.125rem !important; }
+    .portal-sale-card-items { padding: 0.875rem 1.125rem !important; }
+    .portal-sale-card-footer { padding: 0.875rem 1.125rem !important; }
+}
