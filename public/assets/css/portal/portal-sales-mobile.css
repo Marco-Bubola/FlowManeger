@@ -1,0 +1,27 @@
+/* Portal Sales — Mobile (max-width: 767px) */
+@media (max-width: 767px) {
+    .portal-sales-page {
+        padding-bottom: calc(76px + env(safe-area-inset-bottom)) !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+    .portal-sales-hero { padding: 0.875rem 1rem !important; border-radius: 1rem !important; margin-bottom: 0.75rem !important; }
+    .portal-sales-hero-title { font-size: 1.1rem !important; }
+    .portal-sales-kpi-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+    .portal-sales-kpi-grid .kpi-tile { padding: 0.75rem !important; }
+    .portal-sales-kpi-grid .kpi-tile .kpi-value { font-size: 1.1rem !important; }
+    .portal-sales-filter-bar { flex-direction: column !important; gap: 0.5rem !important; }
+    .portal-sales-filter-bar .search-wrap { width: 100% !important; }
+    .portal-sales-grid { grid-template-columns: 1fr !important; gap: 0.75rem !important; }
+    .portal-sale-card { border-radius: 1.25rem !important; }
+    .portal-sale-card-header { padding: 0.75rem !important; }
+    .portal-sale-card .sale-id-text { font-size: 0.9rem !important; }
+    .portal-sale-card-items { padding: 0.625rem 0.75rem !important; }
+    .portal-sale-item-row { padding: 0.375rem !important; gap: 0.5rem !important; }
+    .portal-sale-item-thumb { width: 2rem !important; height: 2rem !important; }
+    .portal-sale-card-footer { padding: 0.625rem 0.75rem !important; }
+    .fin-divider { height: 1.5rem !important; }
+    .portal-fin-chip-value { font-size: 0.78rem !important; }
+    .fin-chip-group { gap: 0.625rem !important; }
+    .portal-sales-empty { padding: 2.5rem 1rem !important; }
+}
