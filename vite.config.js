@@ -11,7 +11,8 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/app.js',
                 'resources/css/upload-animations.css',
-                'resources/js/upload-interactions.js'
+                'resources/js/upload-interactions.js',
+                'resources/css/portal.css',
             ],
             refresh: true,
         }),
