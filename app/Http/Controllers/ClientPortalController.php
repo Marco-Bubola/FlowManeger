@@ -246,6 +246,9 @@ class ClientPortalController extends Controller
         $client->update(['portal_last_login_at' => now()]);
         $request->session()->regenerate();
 
+        // Salva cookie para catálogo público (30 dias)
+        cookie()->queue('portal_store', (string) $client->user_id, 60 * 24 * 30);
+
         return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
     }
 
@@ -315,12 +318,13 @@ class ClientPortalController extends Controller
         $client = Auth::guard('portal')->user();
 
         $search   = request('search', '');
-        $category = request('category');
+        $category = request('category', '');
 
         $query = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $client->user_id)
             ->where('stock_quantity', '>', 0)
-            ->whereIn('status', ['active', 'ativo']);
+            ->whereIn('status', ['active', 'ativo'])
+            ->with('category');
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -333,10 +337,22 @@ class ClientPortalController extends Controller
             $query->where('category_id', $category);
         }
 
-        $products   = $query->with('category')->paginate(12);
         $categories = Category::where('user_id', $client->user_id)->orderBy('name')->get();
 
-        return view('portal.products', compact('client', 'products', 'categories', 'search', 'category'));
+        // Com filtro ativo: lista paginada flat
+        // Sem filtro: todos os produtos agrupados por categoria
+        if ($search || $category) {
+            $products = $query->orderBy('name')->paginate(24);
+            $grouped  = null;
+        } else {
+            $products = null;
+            $all = $query->orderBy('name')->get();
+            // Agrupa preservando ordem: categorias com nome primeiro, sem categoria no fim
+            $grouped = $all->sortBy(fn($p) => $p->category?->name ?? 'ZZZZ')
+                           ->groupBy(fn($p) => $p->category_id ?? 0);
+        }
+
+        return view('portal.products', compact('client', 'products', 'grouped', 'categories', 'search', 'category'));
     }
 
     public function quotes()
@@ -365,7 +381,56 @@ class ClientPortalController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('portal.quotes.create', compact('client', 'products'));
+        // Determina produtos frequentes deste cliente (top 10 mais pedidos)
+        $frequentIds = ClientQuoteRequest::where('client_id', $client->id)
+            ->get()
+            ->flatMap(fn($q) => collect($q->items ?? [])->pluck('product_id'))
+            ->countBy()
+            ->sortDesc()
+            ->keys()
+            ->take(10)
+            ->toArray();
+
+        return view('portal.quotes.create', compact('client', 'products', 'frequentIds'));
+    }
+
+    // ─── Catálogo Público (sem autenticação) ────────────────────────────────────
+
+    public function publicCatalog(Request $request, ?string $userId = null)
+    {
+        // Determina qual loja mostrar: parâmetro URL > cookie > query string
+        $ownerId = $userId
+            ?? $request->query('owner')
+            ?? $request->cookie('portal_store');
+
+        if (! $ownerId) {
+            return redirect()->route('portal.login')->with('info', 'Acesse o catálogo pelo link compartilhado pelo vendedor.');
+        }
+
+        $ownerId   = (int) $ownerId;
+        $search    = $request->query('search', '');
+        $category  = $request->query('category', '');
+
+        $query = Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $ownerId)
+            ->where('stock_quantity', '>', 0)
+            ->whereIn('status', ['active', 'ativo']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('description', 'like', "%{$search}%");
+            });
+        }
+
+        if ($category) {
+            $query->where('category_id', $category);
+        }
+
+        $products   = $query->with('category')->paginate(24);
+        $categories = Category::where('user_id', $ownerId)->orderBy('name')->get();
+
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId'));
     }
 
     public function storeQuote(Request $request)
