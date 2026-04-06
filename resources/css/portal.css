@@ -1,0 +1,160 @@
+@import 'tailwindcss';
+
+@source '../views/portal';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+    --color-brand-50: #f0f9ff;
+    --color-brand-100: #e0f2fe;
+    --color-brand-500: #0ea5e9;
+    --color-brand-600: #0284c7;
+    --color-brand-700: #0369a1;
+}
+
+/* ── Portal Base Components ── */
+@layer components {
+
+    /* Card padrão */
+    .portal-card {
+        @apply bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl shadow-sm;
+    }
+
+    /* Input padrão */
+    .portal-input {
+        @apply w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-600 rounded-xl text-sm text-gray-900 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400 dark:focus:border-sky-500 transition-all;
+    }
+
+    /* Badge de status */
+    .status-badge {
+        @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold uppercase tracking-wider;
+    }
+
+    /* KPI tile */
+    .kpi-tile {
+        @apply bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-2xl p-4 shadow-sm;
+    }
+
+    /* Tabela portal */
+    .portal-table th {
+        @apply px-4 py-2.5 text-[10px] font-bold uppercase tracking-wider;
+    }
+    .portal-table td {
+        @apply px-4 py-2.5 text-xs border-t border-gray-50 dark:border-slate-700/60;
+    }
+
+    /* ── Product Card ── */
+    .portal-product-card {
+        @apply relative bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-sky-200 dark:hover:border-sky-700 hover:-translate-y-1;
+    }
+
+    .portal-product-img-area {
+        @apply relative w-full h-36 bg-gray-50 dark:bg-slate-900/40 overflow-hidden flex items-center justify-center;
+    }
+    .portal-product-img-area img {
+        @apply w-full h-full object-cover;
+    }
+
+    .pimg-placeholder {
+        @apply w-full h-full flex items-center justify-center bg-gradient-to-br from-sky-50 to-sky-100 dark:from-slate-800 dark:to-slate-700;
+    }
+
+    .badge-stock {
+        @apply absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold;
+    }
+
+    .pcard-cat-circle {
+        @apply absolute bottom-[-1rem] left-1/2 -translate-x-1/2 w-8 h-8 bg-white dark:bg-slate-800 border-2 border-gray-100 dark:border-slate-700 rounded-full flex items-center justify-center text-sky-500 dark:text-sky-400 text-xs shadow-md z-10;
+    }
+
+    .pcard-body {
+        @apply flex flex-col items-center text-center gap-1 pt-6 pb-4 px-3;
+    }
+}
+
+/* ── Sidebar ── */
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 1rem;
+    border-radius: 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.sidebar-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+}
+.sidebar-link.active {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
+}
+.sidebar-link:not(.active) { color: #e0f2fe; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 999px;
+}
+
+/* ── Product card selection states ── */
+.portal-product-card .sel-badge { display: none; }
+.portal-product-card.selected .sel-badge { display: flex; }
+.portal-product-card.selected {
+    border-color: #0ea5e9 !important;
+    box-shadow: 0 0 0 3px rgba(14,165,233,0.25), 0 10px 30px rgba(14,165,233,0.22) !important;
+    transform: translateY(-4px) !important;
+}
+.portal-product-card .product-details { display: none; }
+.portal-product-card.selected .product-details { display: flex; }
+
+/* ── Paginação ── */
+.pag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0 0.5rem;
+    transition: all 0.15s;
+    border: 1.5px solid transparent;
+    cursor: pointer;
+}
+.pag-btn:not(.active):not([disabled]) { color: #64748b; }
+.pag-btn:not(.active):not([disabled]):hover { background: #f0f9ff; border-color: #bae6fd; color: #0369a1; }
+.pag-btn.active { background: linear-gradient(135deg,#0ea5e9,#6366f1); color: #fff; border-color: transparent; box-shadow: 0 2px 8px rgba(14,165,233,0.3); }
+.pag-btn[disabled] { opacity: 0.35; cursor: not-allowed; }
+
+/* ── Resumo sticky ── */
+#summaryPanel.has-items { border-color: #38bdf8; }
+
+/* ── Item no painel ── */
+.sel-item-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.65rem;
+    border-radius: 0.75rem;
+    background: #fff;
+    border: 1px solid #e0f2fe;
+}
+.dark .sel-item-row { background: #1e293b; border-color: #334155; }
+.dark .pag-btn:not(.active):not([disabled]) { color: #94a3b8; }
+.dark .pag-btn:not(.active):not([disabled]):hover { background: #1e293b; border-color: #334155; color: #38bdf8; }
+
+/* ── Float mobile ── */
+@media(max-width: 1023px) {
+    #floatSubmit { position: fixed; bottom: 5.5rem; right: 1rem; z-index: 50; }
+}
+
+/* Cloak */
+[x-cloak] { display: none !important; }
