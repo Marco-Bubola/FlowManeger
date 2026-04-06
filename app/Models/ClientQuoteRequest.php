@@ -13,6 +13,7 @@ class ClientQuoteRequest extends Model
         'items', 'extra_items',
         'client_notes', 'admin_notes',
         'quoted_total', 'valid_until',
+        'payment_preference',
     ];
 
     protected $casts = [
@@ -56,5 +57,10 @@ class ClientQuoteRequest extends Model
     public function getStatusColorAttribute(): string
     {
         return self::STATUS_COLORS[$this->status] ?? 'gray';
+    }
+
+    public function getCanEditAttribute(): bool
+    {
+        return in_array($this->status, ['pending', 'reviewing']);
     }
 }
