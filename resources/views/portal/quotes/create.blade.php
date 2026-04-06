@@ -1,46 +1,13 @@
 <x-portal-layout title="Novo Orçamento">
 
 @push('styles')
-<style>
-/* ── Seleção de card ── */
-.portal-product-card .sel-badge { display:none; }
-.portal-product-card.selected .sel-badge { display:flex; }
-.portal-product-card.selected {
-    border-color:#0ea5e9 !important;
-    box-shadow:0 0 0 3px rgba(14,165,233,0.25), 0 10px 30px rgba(14,165,233,0.22) !important;
-    transform:translateY(-4px) !important;
-}
-.portal-product-card .product-details { display:none; }
-.portal-product-card.selected .product-details { display:flex; }
-
-/* ── Resumo sticky ── */
-#summaryPanel.has-items { border-color:#38bdf8; }
-
-/* ── Paginação ── */
-.pag-btn { display:inline-flex; align-items:center; justify-content:center; min-width:2.25rem; height:2.25rem; border-radius:0.6rem; font-size:0.75rem; font-weight:700; padding:0 0.5rem; transition:all 0.15s; border:1.5px solid transparent; cursor:pointer; }
-.pag-btn:not(.active):not([disabled]) { color:#64748b; }
-.pag-btn:not(.active):not([disabled]):hover { background:#f0f9ff; border-color:#bae6fd; color:#0369a1; }
-.pag-btn.active { background:linear-gradient(135deg,#0ea5e9,#6366f1); color:#fff; border-color:transparent; box-shadow:0 2px 8px rgba(14,165,233,0.3); }
-.pag-btn[disabled] { opacity:0.35; cursor:not-allowed; }
-.dark .pag-btn:not(.active):not([disabled]) { color:#94a3b8; }
-.dark .pag-btn:not(.active):not([disabled]):hover { background:#1e293b; border-color:#334155; color:#38bdf8; }
-
-/* ── Item no painel ── */
-.sel-item-row { display:flex; align-items:center; gap:0.6rem; padding:0.5rem 0.65rem; border-radius:0.75rem; background:#fff; border:1px solid #e0f2fe; }
-.dark .sel-item-row { background:#1e293b; border-color:#334155; }
-
-/* ── Float mobile ── */
-@media(max-width:1023px){
-    #floatSubmit { position:fixed; bottom:5.5rem; right:1rem; z-index:50; }
-}
-</style>
+<link rel="stylesheet" href="{{ asset('assets/css/portal/portal-quotes-create.css') }}">
 @endpush
 
-<div x-data="{
+<div class="portal-quote-create-page" x-data="{
     search: '',
     catFilter: 'all',
-    page: 1,
-    perPage: 20,
+    paymentPreference: '',
     products: {{ Js::from($products->map(fn($p) => [
         'id'      => $p->id,
         'name'    => $p->name,
@@ -60,8 +27,6 @@
             return m && c;
         });
     },
-    get pages() { return Math.max(1, Math.ceil(this.filtered.length / this.perPage)); },
-    get paged()  { const s=(this.page-1)*this.perPage; return this.filtered.slice(s,s+this.perPage); },
     get selectedList()  { return Object.values(this.selected); },
     get selectedCount() { return this.selectedList.length; },
     get totalRef()      { return this.selectedList.reduce((a,i)=>a+(parseFloat(i.price||0)*(parseInt(i.qty)||1)),0); },
@@ -71,17 +36,20 @@
         this.selected = { ...this.selected };
     },
     isSelected(id) { return !!this.selected[id]; },
-    setPage(n)     { this.page = Math.max(1, Math.min(n, this.pages)); },
+    setQty(id, val) {
+        const q = Math.max(1, parseInt(val) || 1);
+        if (this.selected[id]) { this.selected[id].qty = q; this.selected = { ...this.selected }; }
+    },
     submitForm() {
+        if (!this.selectedCount) return;
         const form = document.getElementById('quoteForm');
         const hid  = document.getElementById('hiddenInputs');
         hid.innerHTML = '';
         let idx = 0;
         for (const [id, item] of Object.entries(this.selected)) {
-            const qEl = form.querySelector('[data-qty-id=\''+id+'\']');
             hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][product_id]\' value=\''+id+'\'>';
-            hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][quantity]\' value=\''+(qEl?qEl.value:item.qty||1)+'\'>';
-            hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][notes]\' value=\''+(nEl?nEl.value:item.notes||'')+'\'>';
+            hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][quantity]\' value=\''+(item.qty||1)+'\'>';
+            hid.innerHTML += '<input type=\'hidden\' name=\'items['+idx+'][notes]\' value=\''+(item.notes||'')+'\'>';
             idx++;
         }
         form.submit();
@@ -185,10 +153,10 @@
                                     class="mt-3 text-xs text-sky-500 hover:underline">Limpar filtros</button>
                         </div>
 
-                        {{-- Grid de produtos --}}
-                        <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5"
+                        {{-- Grid de produtos — todos, sem paginação --}}
+                        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
                              x-show="filtered.length > 0">
-                            <template x-for="p in paged" :key="p.id">
+                            <template x-for="p in filtered" :key="p.id">
                                 <div class="portal-product-card cursor-pointer select-none"
                                      :class="{ 'selected': isSelected(p.id) }"
                                      @click="toggleProduct(p)">
@@ -227,46 +195,11 @@
                                            x-text="p.name"></p>
                                         <p class="text-sm font-black text-sky-600 dark:text-sky-400"
                                            x-text="p.priceF" x-show="p.priceF"></p>
-
-                                        {{-- Qtd (só quando selecionado) --}}
-                                        <div class="product-details flex-col gap-1 w-full mt-1" @click.stop>
-                                            <label class="text-[9px] font-bold text-gray-500 dark:text-slate-400">Quantidade</label>
-                                            <input type="number"
-                                                   :data-qty-id="p.id"
-                                                   :min="1" :max="p.stock" value="1"
-                                                   @input="if(selected[p.id]) selected[p.id].qty = $event.target.value"
-                                                   class="portal-input py-1.5 px-2 text-xs mt-0.5 text-center font-bold w-full">
-                                        </div>
                                     </div>
                                 </div>
                             </template>
                         </div>
 
-                        {{-- Paginação moderna --}}
-                        <div x-show="pages > 1"
-                             class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100 dark:border-slate-700">
-                            <p class="text-[10px] text-gray-400 dark:text-slate-500">
-                                <span class="font-bold text-gray-700 dark:text-slate-300"
-                                      x-text="Math.min((page-1)*perPage+1, filtered.length)"></span>–<span
-                                      class="font-bold text-gray-700 dark:text-slate-300"
-                                      x-text="Math.min(page*perPage, filtered.length)"></span>
-                                de <span class="font-bold" x-text="filtered.length"></span> produtos
-                            </p>
-                            <div class="flex items-center gap-1">
-                                <button type="button" class="pag-btn" :disabled="page===1" @click="setPage(page-1)">
-                                    <i class="fas fa-chevron-left text-[10px]"></i>
-                                </button>
-                                <template x-for="n in Array.from({length:pages},(v,k)=>k+1)" :key="n">
-                                    <button type="button" class="pag-btn"
-                                            :class="{'active': n===page}"
-                                            x-show="pages<=7 || Math.abs(n-page)<=2 || n===1 || n===pages"
-                                            @click="setPage(n)" x-text="n"></button>
-                                </template>
-                                <button type="button" class="pag-btn" :disabled="page===pages" @click="setPage(page+1)">
-                                    <i class="fas fa-chevron-right text-[10px]"></i>
-                                </button>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -313,17 +246,28 @@
                                 <div class="flex-1 min-w-0">
                                     <p class="text-[10px] font-black text-gray-900 dark:text-slate-200 truncate" x-text="item.name"></p>
                                     <p class="text-[9px] text-sky-600 dark:text-sky-400 font-bold" x-text="item.priceF" x-show="item.priceF"></p>
+                                    {{-- Qty控制器 no resumo --}}
+                                    <div class="flex items-center gap-1 mt-1" @click.stop>
+                                        <button type="button"
+                                                @click="setQty(item.id, (item.qty||1) - 1)"
+                                                class="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-slate-700 hover:bg-sky-100 dark:hover:bg-sky-900/40 rounded text-gray-600 dark:text-slate-300 font-black text-xs transition">−</button>
+                                        <input type="number"
+                                               :value="item.qty||1"
+                                               min="1" :max="item.stock"
+                                               @change="setQty(item.id, $event.target.value)"
+                                               class="w-9 text-center text-[10px] font-black border border-gray-200 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-gray-800 dark:text-slate-200 py-0.5 px-0">
+                                        <button type="button"
+                                                @click="setQty(item.id, (item.qty||1) + 1)"
+                                                class="w-5 h-5 flex items-center justify-center bg-gray-100 dark:bg-slate-700 hover:bg-sky-100 dark:hover:bg-sky-900/40 rounded text-gray-600 dark:text-slate-300 font-black text-xs transition">+</button>
+                                    </div>
                                 </div>
-                                <span class="text-[9px] font-black text-white bg-sky-500 rounded-lg px-1.5 py-0.5 flex-shrink-0"
-                                      x-text="(item.qty||1) + '×'"></span>
                                 <button type="button" @click="toggleProduct(item)"
-                                        class="w-5 h-5 flex items-center justify-center text-red-400 hover:text-red-600 transition-colors flex-shrink-0 rounded ml-0.5">
+                                        class="w-5 h-5 flex items-center justify-center text-red-400 hover:text-red-600 transition-colors flex-shrink-0 rounded ml-0.5 self-start mt-1">
                                     <i class="fas fa-times text-[9px]"></i>
                                 </button>
                             </div>
                         </template>
                     </div>
-
                     {{-- Total referência --}}
                     <div x-show="selectedCount > 0 && totalRef > 0"
                          class="mx-3 mb-3 mt-1 p-3 bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-sky-900/20 dark:to-indigo-900/20 rounded-xl border border-sky-100 dark:border-sky-800/30">
@@ -331,6 +275,34 @@
                         <p class="text-base font-black text-sky-700 dark:text-sky-300"
                            x-text="'R$ ' + totalRef.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})"></p>
                         <p class="text-[9px] text-gray-400 dark:text-slate-500 mt-0.5">*Sujeito a negociação</p>
+                    </div>
+
+                    {{-- Preferência de Pagamento --}}
+                    <div x-show="selectedCount > 0" class="mx-3 mb-3">
+                        <label class="text-[9px] font-black text-gray-500 dark:text-slate-400 uppercase tracking-wider block mb-1.5">
+                            <i class="fas fa-credit-card text-sky-400 mr-1"></i> Forma de Pagamento Preferida
+                        </label>
+                        <div class="grid grid-cols-2 gap-1.5">
+                            <template x-for="opt in [
+                                {val:'pix',       icon:'fas fa-qrcode',         label:'PIX'},
+                                {val:'dinheiro',  icon:'fas fa-money-bill-wave', label:'Dinheiro'},
+                                {val:'credito',   icon:'fas fa-credit-card',     label:'Crédito'},
+                                {val:'debito',    icon:'fas fa-credit-card',     label:'Débito'},
+                                {val:'boleto',    icon:'fas fa-barcode',         label:'Boleto'},
+                                {val:'outro',     icon:'fas fa-ellipsis-h',      label:'Outro'},
+                            ]" :key="opt.val">
+                                <button type="button"
+                                        @click="paymentPreference = paymentPreference === opt.val ? '' : opt.val"
+                                        :class="paymentPreference === opt.val
+                                            ? 'bg-sky-500 text-white border-sky-500 shadow-md shadow-sky-500/20'
+                                            : 'bg-white dark:bg-slate-800 text-gray-600 dark:text-slate-400 border-gray-200 dark:border-slate-600 hover:border-sky-400 hover:text-sky-600'"
+                                        class="flex items-center gap-1.5 px-2 py-1.5 border rounded-lg text-[10px] font-bold transition-all">
+                                    <i :class="opt.icon" class="text-[9px]"></i>
+                                    <span x-text="opt.label"></span>
+                                </button>
+                            </template>
+                        </div>
+                        <input type="hidden" name="payment_preference" :value="paymentPreference">
                     </div>
 
                     {{-- Botão Enviar --}}
