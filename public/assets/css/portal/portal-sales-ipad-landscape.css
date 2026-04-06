@@ -1,0 +1,14 @@
+/* Portal Sales — iPad Landscape (1025px–1366px) */
+@media (min-width: 1025px) and (max-width: 1366px) {
+    .portal-sales-page {
+        padding-bottom: 2rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    .portal-sales-hero { padding: 1.25rem 1.5rem !important; }
+    .portal-sales-kpi-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .portal-sales-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 1.25rem !important; }
+    .portal-sale-card-header { padding: 1rem 1.25rem !important; }
+    .portal-sale-card-items { padding: 0.875rem 1.25rem !important; }
+    .portal-sale-card-footer { padding: 0.875rem 1.25rem !important; }
+}
