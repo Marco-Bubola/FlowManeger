@@ -1,38 +1,67 @@
 <x-portal-layout title="Catálogo de Produtos">
 
 @push('styles')
-<style>
-[x-cloak] { display:none !important; }
-.product-placeholder { background: linear-gradient(135deg,#f0f9ff 0%,#e0f2fe 100%); }
-.dark .product-placeholder { background: linear-gradient(135deg,#0f172a 0%,#1e293b 100%); }
-</style>
+<link rel="stylesheet" href="{{ asset('assets/css/portal/portal-products.css') }}">
 @endpush
 
-<div x-data="{
+<div class="portal-products-page" x-data="{
     search: '{{ $search }}',
     category: '{{ $category }}',
     viewMode: localStorage.getItem('portal-products-view') || 'grid',
     setView(v) { this.viewMode = v; localStorage.setItem('portal-products-view', v); }
 }">
 
-    {{-- Page header --}}
-    <div class="relative overflow-hidden bg-gradient-to-br from-sky-600 via-indigo-700 to-violet-800 rounded-2xl p-5 mb-5 text-white shadow-xl">
-        <div class="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent"></div>
-        <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="relative flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-                <div class="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[.2em] mb-2">
-                    <i class="fas fa-sparkles text-[9px]"></i> Catálogo Premium
-                </div>
-                <h1 class="text-lg font-black leading-tight">Produtos disponíveis para pedido</h1>
-                <p class="text-sky-200/80 text-xs mt-1">{{ $products->total() }} produto{{ $products->total() !== 1 ? 's' : '' }} em estoque</p>
+    {{-- ── HEADER glassmorphism ── --}}
+    <div class="portal-page-header">
+        <div class="pph-blur-tr"></div>
+        <div class="pph-blur-bl"></div>
+        <div class="pph-shine"></div>
+
+        <div class="pph-row1">
+            <div class="pph-icon">
+                <i class="fas fa-boxes-stacked"></i>
             </div>
-            <a href="{{ route('portal.quotes.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl font-bold text-xs transition-all hover:scale-105 shadow-lg whitespace-nowrap">
+            <div class="pph-title-wrap">
+                <div class="pph-breadcrumb">
+                    <a href="{{ route('portal.dashboard') }}"><i class="fas fa-house-chimney text-[8px]"></i> Início</a>
+                    <i class="fas fa-chevron-right text-[8px]"></i>
+                    <span>Catálogo</span>
+                </div>
+                <h1 class="pph-title">Catálogo de Produtos</h1>
+            </div>
+            <div class="hidden sm:flex flex-wrap items-center gap-2 ml-auto">
+                <span class="pph-badge info">
+                    <i class="fas fa-box text-[8px]"></i>
+                    {{ $products->total() }} produto{{ $products->total() !== 1 ? 's' : '' }}
+                </span>
+                @if($categories->count())
+                <span class="pph-badge">
+                    <i class="fas fa-tags text-[8px]"></i>
+                    {{ $categories->count() }} categori{{ $categories->count() !== 1 ? 'as' : 'a' }}
+                </span>
+                @endif
+            </div>
+            <a href="{{ route('portal.quotes.create') }}" class="pph-btn">
                 <i class="fas fa-file-invoice text-xs"></i>
                 Solicitar Orçamento
             </a>
         </div>
+
+        @if($categories->count())
+        <div class="pph-row2">
+            <a href="{{ route('portal.products', array_merge(request()->query(), ['category'=>''])) }}"
+               class="pph-pill {{ !$category ? 'active' : '' }}">
+                Todos
+            </a>
+            @foreach($categories->take(8) as $cat)
+            <a href="{{ route('portal.products', array_merge(request()->query(), ['category'=>$cat->getKey()])) }}"
+               class="pph-pill {{ (string)$category === (string)$cat->getKey() ? 'active' : '' }}">
+                @if($cat->icone)<i class="{{ $cat->icone }} text-[8px]"></i>@endif
+                {{ $cat->name }}
+            </a>
+            @endforeach
+        </div>
+        @endif
     </div>
 
     {{-- Filters bar --}}
