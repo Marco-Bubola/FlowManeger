@@ -7,10 +7,8 @@
         }
 
         .plan-admin-page {
-            max-width: 1320px;
-            margin: 0 auto;
             width: 100%;
-            padding: 1.5rem 1rem max(7.5rem, env(safe-area-inset-bottom));
+            padding: 1.25rem var(--app-fluid-padding, clamp(0.65rem, 1.2vw, 1rem)) max(7.5rem, env(safe-area-inset-bottom));
             color: #0f172a;
         }
 
@@ -23,8 +21,8 @@
             text-decoration: none;
         }
 
-        .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
-        .page-title { font-size: 1.6rem; font-weight: 900; letter-spacing: -.03em; }
+        .page-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .page-title { font-size: 1.4rem; font-weight: 900; letter-spacing: -.03em; }
         .page-sub { font-size: .84rem; color: #64748b; margin-top: .2rem; }
         .dark .page-sub { color: #94a3b8; }
 
@@ -41,19 +39,17 @@
         .btn-danger:hover { background: rgba(239,68,68,.2); }
         .btn-success { background: rgba(16,185,129,.12); color: #34d399; border: 1px solid rgba(16,185,129,.2); }
 
-        /* Stats cards */
-        .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 1rem; margin-bottom: 2rem; }
-        .stat-card { background: rgba(255,255,255,.82); border: 1px solid rgba(148,163,184,.18); border-radius: 1.2rem; padding: 1.2rem 1.4rem; box-shadow: 0 18px 30px -24px rgba(15,23,42,.18); }
-        .dark .stat-card { background: rgba(15,23,42,.72); border-color: rgba(71,85,105,.5); box-shadow: 0 20px 36px -24px rgba(2,6,23,.7); }
+        .stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: .75rem; margin-bottom: 1.25rem; }
+        .stat-card { background: white; border: 1.5px solid #f1f5f9; border-radius: 1rem; padding: .95rem 1.1rem; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.03); }
+        .dark .stat-card { background: #1e293b; border-color: #334155; }
         .stat-card-label { font-size: .72rem; color: #64748b; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; margin-bottom: .4rem; }
         .dark .stat-card-label { color: #94a3b8; }
         .stat-card-value { font-size: 1.9rem; font-weight: 900; letter-spacing: -.04em; }
         .stat-card-value.grad { background: linear-gradient(135deg, #3b82f6, #7c3aed); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .stat-card-sub { font-size: .72rem; color: #94a3b8; margin-top: .25rem; }
 
-        /* Table */
-        .table-card { background: rgba(255,255,255,.84); border: 1px solid rgba(148,163,184,.18); border-radius: 1.3rem; overflow: hidden; box-shadow: 0 18px 32px -26px rgba(15,23,42,.22); }
-        .dark .table-card { background: rgba(15,23,42,.78); border-color: rgba(71,85,105,.48); box-shadow: 0 22px 36px -24px rgba(2,6,23,.76); }
+        .table-card { background: white; border: 1.5px solid #f1f5f9; border-radius: 1.1rem; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.04); }
+        .dark .table-card { background: #1e293b; border-color: #334155; }
         .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
         table { min-width: 860px; }
         .table-card-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(148,163,184,.18); gap: 1rem; }
@@ -93,22 +89,20 @@
 
         /* Responsive */
         .grant-card {
-            margin-top: 2rem;
-            background: rgba(255,255,255,.84);
-            border: 1px solid rgba(148,163,184,.18);
-            border-radius: 1.3rem;
-            padding: 1.5rem;
-            box-shadow: 0 18px 32px -26px rgba(15,23,42,.22);
+            margin-top: 1rem;
+            background: white;
+            border: 1.5px solid #f1f5f9;
+            border-radius: 1.1rem;
+            padding: 1rem 1.25rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.03);
         }
-
         .dark .grant-card {
-            background: rgba(15,23,42,.78);
-            border-color: rgba(71,85,105,.48);
-            box-shadow: 0 22px 36px -24px rgba(2,6,23,.76);
+            background: #1e293b;
+            border-color: #334155;
         }
 
         @media (max-width: 900px) {
-            .plan-admin-page { padding: 1rem 0.75rem max(7.25rem, env(safe-area-inset-bottom)); }
+            .plan-admin-page { padding: .85rem .65rem max(7.25rem, env(safe-area-inset-bottom)); }
             .stats-row { grid-template-columns: repeat(2,1fr); }
         }
         @media (max-width: 600px) {
@@ -118,7 +112,7 @@
         }
     </style>
 
-    <div class="plan-admin-page">
+    <div class="plan-admin-page w-full app-viewport-fit mobile-393-base">
         @include('partials.plan-center-nav', [
             'scope' => 'admin',
             'title' => 'Gerenciar planos',
