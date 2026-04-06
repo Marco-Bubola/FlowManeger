@@ -1,24 +1,63 @@
 <x-portal-layout title="Início">
 
-    {{-- Hero greeting --}}
-    <div class="relative overflow-hidden bg-gradient-to-r from-sky-600 via-indigo-700 to-violet-800 rounded-2xl shadow-xl mb-5 p-5 text-white">
-        <div class="absolute inset-0 bg-gradient-to-br from-black/10 to-transparent"></div>
-        <div class="absolute -right-8 -top-8 w-36 h-36 bg-white/10 rounded-full blur-2xl"></div>
-        <div class="absolute -left-6 -bottom-6 w-28 h-28 bg-violet-500/20 rounded-full blur-2xl"></div>
-        <div class="relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div>
-                <p class="text-sky-200 text-xs font-semibold uppercase tracking-wider mb-1">Bem-vindo de volta</p>
-                <h1 class="text-xl sm:text-2xl font-black leading-tight">{{ $client->name }}</h1>
-                <p class="text-sky-200/80 text-xs mt-1 flex items-center gap-1.5">
-                    <i class="fas fa-clock text-sky-300"></i>
-                    Último acesso: {{ $client->portal_last_login_at?->format('d/m/Y H:i') ?? 'Primeiro acesso' }}
-                </p>
+@push('styles')
+<link rel="stylesheet" href="{{ asset('assets/css/portal/portal-dashboard.css') }}">
+@endpush
+
+<div class="portal-dashboard-page">
+    {{-- ── HEADER glassmorphism ── --}}
+    <div class="portal-page-header">
+        <div class="pph-blur-tr"></div>
+        <div class="pph-blur-bl"></div>
+        <div class="pph-shine"></div>
+
+        <div class="pph-row1">
+            <div class="pph-icon">
+                <i class="fas fa-house-chimney"></i>
             </div>
-            <a href="{{ route('portal.quotes.create') }}"
-               class="inline-flex items-center gap-2 px-4 py-2.5 bg-white/20 hover:bg-white/30 backdrop-blur-sm border border-white/30 rounded-xl font-bold text-xs transition-all hover:scale-105 shadow-lg whitespace-nowrap">
-                <i class="fas fa-circle-plus"></i>
+            <div class="pph-title-wrap">
+                <div class="pph-breadcrumb">
+                    <i class="fas fa-store text-[8px]"></i>
+                    <span>Portal do Cliente</span>
+                </div>
+                <h1 class="pph-title">Olá, {{ explode(' ', $client->name)[0] }}!</h1>
+            </div>
+            <div class="hidden sm:flex flex-wrap items-center gap-2 ml-auto">
+                <span class="pph-badge info">
+                    <i class="fas fa-bag-shopping text-[8px]"></i>
+                    {{ $totalSales }} compra{{ $totalSales !== 1 ? 's' : '' }}
+                </span>
+                <span class="pph-badge success">
+                    <i class="fas fa-circle-dollar-sign text-[8px]"></i>
+                    R$ {{ number_format($totalPaid, 2, ',', '.') }}
+                </span>
+                @if($pendingSales > 0)
+                <span class="pph-badge warning">
+                    <i class="fas fa-hourglass-half text-[8px]"></i>
+                    {{ $pendingSales }} pendente{{ $pendingSales !== 1 ? 's' : '' }}
+                </span>
+                @endif
+            </div>
+            <a href="{{ route('portal.quotes.create') }}" class="pph-btn">
+                <i class="fas fa-circle-plus text-xs"></i>
                 Solicitar Orçamento
             </a>
+        </div>
+
+        <div class="pph-row2">
+            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500">
+                Último acesso:
+            </span>
+            <span class="text-[10px] font-bold text-slate-600 dark:text-slate-400">
+                <i class="fas fa-clock text-sky-400 mr-1"></i>
+                {{ $client->portal_last_login_at?->format('d/m/Y H:i') ?? 'Primeiro acesso' }}
+            </span>
+            @if($recentQuotes->count() > 0)
+            <span class="pph-badge violet">
+                <i class="fas fa-file-invoice text-[8px]"></i>
+                {{ $recentQuotes->count() }} orçamento{{ $recentQuotes->count() !== 1 ? 's' : '' }}
+            </span>
+            @endif
         </div>
     </div>
 
@@ -163,4 +202,5 @@
     </div>
     @endif
 
+</div>{{-- /portal-dashboard-page --}}
 </x-portal-layout>
