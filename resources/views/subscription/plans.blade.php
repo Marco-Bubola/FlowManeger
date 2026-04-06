@@ -6,28 +6,29 @@
             --catalog-border-dark: rgba(71,85,105,.48);
             --catalog-grad: linear-gradient(135deg, #3b82f6 0%, #7c3aed 55%, #06b6d4 100%);
         }
-        .page {
+        .plans-page {
             --muted: #64748b;
             --border: rgba(148,163,184,.18);
-            --card: rgba(255,255,255,.84);
         }
 
-        .page { max-width: 1120px; margin: 0 auto; width: 100%; padding: 1.5rem 1rem max(7.5rem, env(safe-area-inset-bottom)); color:#0f172a; }
-        .dark .page { color:#f8fafc; }
-        .back-link { font-size: .8rem; color: var(--catalog-muted); display: inline-flex; align-items: center; gap: .35rem; margin-bottom: 1.25rem; transition: color .15s; }
+        .plans-page { width: 100%; padding: 1.25rem var(--app-fluid-padding, clamp(0.65rem, 1.2vw, 1rem)) max(7.5rem, env(safe-area-inset-bottom)); color:#0f172a; }
+        .dark .plans-page { color:#f8fafc; }
+        .back-link { font-size: .78rem; color: var(--catalog-muted); display: inline-flex; align-items: center; gap: .35rem; margin-bottom: .65rem; transition: color .15s; }
         .back-link:hover { color: #312e81; }
         .dark .back-link { color:#94a3b8; }
 
         /* Header */
-        .page-header { text-align: center; margin-bottom: 3rem; }
-        .badge-current { display: inline-flex; align-items: center; gap: .4rem; padding: .25rem .8rem; background: rgba(168,85,247,.15); border: 1px solid rgba(168,85,247,.3); border-radius: 99px; font-size: .75rem; font-weight: 700; color: #c084fc; margin-bottom: 1rem; }
-        .page-title { font-size: clamp(1.8rem,4vw,2.8rem); font-weight: 900; letter-spacing: -.04em; }
+        .page-header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .85rem; }
+        .page-header-left { min-width: 0; }
+        .badge-current { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .6rem; background: rgba(147,51,234,.07); border: 1.5px solid rgba(147,51,234,.18); border-radius: 99px; font-size: .68rem; font-weight: 800; color: #9333ea; margin-bottom: .3rem; }
+        .dark .badge-current { background: rgba(168,85,247,.12); border-color: rgba(168,85,247,.3); color: #c084fc; }
+        .page-title { font-size: clamp(1.25rem,2.5vw,1.65rem); font-weight: 900; letter-spacing: -.04em; }
         .page-title span { background: var(--catalog-grad); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .page-sub { font-size: 1rem; color: var(--catalog-muted); margin-top: .6rem; }
+        .page-sub { font-size: .8rem; color: var(--catalog-muted); margin-top: .15rem; }
         .dark .page-sub { color:#94a3b8; }
 
         /* Toggle */
-        .billing-toggle { display: flex; align-items: center; justify-content: center; gap: .75rem; margin: 2rem 0; }
+        .billing-toggle { display: flex; align-items: center; justify-content: flex-end; gap: .6rem; flex-shrink: 0; }
         .toggle-pill { display: flex; background: rgba(255,255,255,.75); border: 1px solid var(--catalog-border); border-radius: 99px; padding: 3px; gap: 2px; }
         .dark .toggle-pill { background: rgba(15,23,42,.62); border-color: var(--catalog-border-dark); }
         .toggle-btn { padding: .4rem 1.1rem; border-radius: 99px; font-size: .82rem; font-weight: 700; cursor: pointer; border: none; background: transparent; color: var(--muted); transition: all .2s; }
@@ -35,16 +36,18 @@
         .toggle-badge { font-size: .7rem; font-weight: 800; padding: .15rem .5rem; border-radius: 99px; background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.25); }
 
         /* Cards grid */
-        .plans-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 1.5rem; }
+        .plans-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .85rem; }
 
         /* Plan card */
         .plan-card {
-            background: rgba(255,255,255,.84); border: 1px solid var(--catalog-border);
-            border-radius: 22px; padding: 1.75rem 1.5rem 2rem;
-            display: flex; flex-direction: column; position: relative; transition: transform .2s, border-color .2s;
+            background: white; border: 1.5px solid #f1f5f9;
+            border-radius: 1.1rem; padding: .95rem .95rem 1.1rem;
+            display: flex; flex-direction: column; position: relative;
+            transition: transform .2s, border-color .2s, box-shadow .2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.03);
         }
-        .dark .plan-card { background: rgba(15,23,42,.78); border-color: var(--catalog-border-dark); }
-        .plan-card:hover { transform: translateY(-4px); border-color: rgba(255,255,255,.15); }
+        .dark .plan-card { background: #1e293b; border-color: #334155; }
+        .plan-card:hover { transform: translateY(-2px); border-color: rgba(147,51,234,.2); box-shadow: 0 4px 20px rgba(147,51,234,.08); }
         .plan-card.popular { border-color: rgba(168,85,247,.4); background: rgba(168,85,247,.06); }
         .plan-card.popular::before {
             content: attr(data-badge);
@@ -55,17 +58,19 @@
         }
         .plan-card.current-plan { border-color: rgba(6,182,212,.4); background: rgba(6,182,212,.04); }
 
-        .plan-name { font-size: 1rem; font-weight: 700; margin-bottom: .2rem; }
-        .plan-desc { font-size: .78rem; color: var(--catalog-muted); margin-bottom: 1.5rem; min-height: 2.5em; }
+        .plan-name { font-size: .95rem; font-weight: 800; margin-bottom: .15rem; color: #0f172a; }
+        .dark .plan-name { color: #f1f5f9; }
+        .plan-desc { font-size: .75rem; color: var(--catalog-muted); margin-bottom: .85rem; min-height: 2em; }
         .dark .plan-desc { color:#94a3b8; }
-        .plan-price { margin-bottom: 1.5rem; }
-        .plan-price-val { font-size: 2.4rem; font-weight: 900; letter-spacing: -.05em; }
-        .plan-price-period { font-size: .78rem; color: var(--catalog-muted); }
-        .plan-price-annual { font-size: .72rem; color: var(--catalog-muted); margin-top: .15rem; }
-        .plan-price-free { font-size: 2rem; font-weight: 900; color: #34d399; }
+        .plan-price { margin-bottom: .85rem; }
+        .plan-price-val { font-size: 1.75rem; font-weight: 900; letter-spacing: -.05em; }
+        .plan-price-period { font-size: .75rem; color: var(--catalog-muted); }
+        .plan-price-annual { font-size: .7rem; color: var(--catalog-muted); margin-top: .1rem; }
+        .plan-price-free { font-size: 1.6rem; font-weight: 900; color: #16a34a; }
+        .dark .plan-price-free { color: #34d399; }
 
-        .plan-features { list-style: none; flex: 1; margin-bottom: 1.75rem; display: flex; flex-direction: column; gap: .5rem; }
-        .plan-features li { display: flex; align-items: flex-start; gap: .55rem; font-size: .83rem; }
+        .plan-features { list-style: none; flex: 1; margin-bottom: .85rem; display: flex; flex-direction: column; gap: .35rem; }
+        .plan-features li { display: flex; align-items: flex-start; gap: .45rem; font-size: .78rem; }
         .feat-icon.yes { color: #34d399; flex-shrink: 0; margin-top: 1px; }
         .feat-icon.no  { color: rgba(255,255,255,.2); flex-shrink: 0; margin-top: 1px; }
 
@@ -100,7 +105,7 @@
         .alert-success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.25); color: #34d399; }
 
         /* Comparison table */
-        .compare-section { margin-top: 4rem; }
+        .compare-section { margin-top: 1.5rem; }
         .compare-title { font-size: 1.3rem; font-weight: 800; text-align: center; margin-bottom: 1.5rem; }
         .compare-table-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 14px; }
         .compare-table { width: 100%; min-width: 720px; border-collapse: collapse; background: rgba(255,255,255,.84); border: 1px solid var(--catalog-border); border-radius: 14px; overflow: hidden; }
@@ -113,26 +118,15 @@
         .check { color: #34d399; }
         .cross { color: rgba(255,255,255,.2); }
 
-        @media (max-width: 1024px) {
-            .plans-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
-        }
-        @media (max-width: 860px) {
-            .page { padding: 1rem .75rem max(7.5rem, env(safe-area-inset-bottom)); }
-            .plans-grid { grid-template-columns: 1fr; max-width: 460px; margin: 0 auto; }
-            .plan-card { padding: 1.35rem 1.1rem 1.5rem; }
-            .compare-section { margin-top: 2.5rem; }
-        }
-        @media (max-width: 600px) {
-            .page-header { margin-bottom: 2.1rem; }
-            .billing-toggle { flex-direction: column; align-items: stretch; }
-            .toggle-pill { width: 100%; justify-content: stretch; }
-            .toggle-btn { flex: 1 1 0; }
+        @media (max-width: 640px) {
+            .plans-page { padding: .85rem .65rem max(7.5rem, env(safe-area-inset-bottom)); }
+            .page-header { flex-direction: column; align-items: flex-start; }
             .gateway-row { grid-template-columns: 1fr 1fr; }
             .compare-title { text-align: left; }
         }
     </style>
 
-<div class="page">
+<div class="plans-page w-full app-viewport-fit mobile-393-base">
     @include('partials.plan-center-nav', [
         'scope' => 'account',
         'title' => 'Escolha o plano certo para você',
@@ -146,20 +140,18 @@
     @endif
 
     <div class="page-header">
-        <div class="badge-current">
-            Plano atual: <strong>{{ $currentPlan->name }}</strong>
+        <div class="page-header-left">
+            <div class="badge-current">Plano atual: <strong>{{ $currentPlan->name }}</strong></div>
+            <div class="page-title">Escolha o plano <span>certo para você</span></div>
+            <div class="page-sub">Sem compromisso. Cancele quando quiser.</div>
         </div>
-        <div class="page-title">Escolha o plano <span>certo para você</span></div>
-        <div class="page-sub">Sem compromisso. Cancele quando quiser.</div>
-    </div>
-
-    <!-- Billing toggle -->
-    <div class="billing-toggle">
-        <div class="toggle-pill">
-            <button class="toggle-btn active" id="btn-monthly" onclick="setBilling('monthly')">Mensal</button>
-            <button class="toggle-btn" id="btn-annual" onclick="setBilling('annual')">Anual</button>
+        <div class="billing-toggle">
+            <div class="toggle-pill">
+                <button class="toggle-btn active" id="btn-monthly" onclick="setBilling('monthly')">Mensal</button>
+                <button class="toggle-btn" id="btn-annual" onclick="setBilling('annual')">Anual</button>
+            </div>
+            <span class="toggle-badge">20% off</span>
         </div>
-        <span class="toggle-badge">até 20% off</span>
     </div>
 
     <!-- Plans grid -->
