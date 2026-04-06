@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ asset('assets/css/portal/portal-base.css') }}">
     {{-- Dark mode antes do Tailwind para evitar FOUC --}}
     <script>(function(){var d=localStorage.getItem('portal-dark');if(d==='1')document.documentElement.classList.add('dark');})();</script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -170,70 +171,87 @@
 <div class="flex h-screen overflow-hidden">
 
     {{-- ── Sidebar (desktop) ── --}}
-    <aside id="sidebar" class="w-60 flex-shrink-0 bg-gradient-to-b from-sky-700 via-sky-800 to-indigo-900 flex flex-col shadow-2xl transform -translate-x-full lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 transition-transform duration-300">
+    <aside id="sidebar" class="w-64 flex-shrink-0 flex flex-col shadow-2xl transform -translate-x-full lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 transition-transform duration-300 overflow-hidden" style="background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);">
+
+        {{-- Logo strip (top accent) --}}
+        <div class="h-1 w-full" style="background: linear-gradient(90deg, #38bdf8, #6366f1, #a855f7)"></div>
 
         {{-- Logo --}}
-        <div class="px-5 py-5 border-b border-white/10">
+        <div class="px-5 py-4 border-b border-white/[0.07]">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0">
-                    <i class="fas fa-store text-white text-base"></i>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style="background: linear-gradient(135deg,#38bdf8,#6366f1)">
+                    <i class="fas fa-store text-white text-sm"></i>
                 </div>
                 <div class="min-w-0">
-                    <p class="text-[10px] text-sky-300 font-bold uppercase tracking-[.18em]">Portal</p>
-                    <p class="text-white font-bold text-sm leading-tight truncate">{{ config('app.name') }}</p>
+                    <p class="text-[9px] font-bold uppercase tracking-[.22em]" style="color:#38bdf8">Portal do Cliente</p>
+                    <p class="text-white font-black text-sm leading-tight truncate">{{ config('app.name') }}</p>
                 </div>
             </div>
         </div>
 
-        {{-- Client info --}}
-        <div class="px-5 py-3.5 border-b border-white/10">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-gradient-to-br from-sky-400 to-violet-500 rounded-full flex items-center justify-center text-white font-black shadow-md text-xs flex-shrink-0">
+        {{-- Client info card --}}
+        <div class="mx-3 mt-3 mb-2 rounded-xl px-3 py-2.5 border border-white/[0.08]" style="background:rgba(255,255,255,0.05)">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-white font-black text-xs flex-shrink-0 shadow" style="background:linear-gradient(135deg,#0ea5e9,#818cf8)">
                     {{ strtoupper(substr(Auth::guard('portal')->user()->name, 0, 2)) }}
                 </div>
-                <div class="min-w-0">
-                    <p class="text-white text-xs font-semibold truncate leading-snug">{{ Auth::guard('portal')->user()->name }}</p>
-                    <p class="text-sky-300 text-[10px] truncate">{{ Auth::guard('portal')->user()->email ?: Auth::guard('portal')->user()->portal_login }}</p>
+                <div class="min-w-0 flex-1">
+                    <p class="text-white text-[11px] font-bold truncate leading-snug">{{ Auth::guard('portal')->user()->name }}</p>
+                    <p class="text-[10px] truncate leading-none mt-0.5" style="color:#94a3b8">{{ Auth::guard('portal')->user()->email ?: Auth::guard('portal')->user()->portal_login }}</p>
                 </div>
+                <div class="w-2 h-2 rounded-full flex-shrink-0 shadow" style="background:#22c55e"></div>
             </div>
         </div>
 
         {{-- Navigation --}}
-        <nav class="flex-1 px-2.5 py-3 space-y-0.5 overflow-y-auto">
+        <nav class="flex-1 px-2.5 pb-3 space-y-0.5 overflow-y-auto" style="-ms-overflow-style:none;scrollbar-width:none">
+            @php
+                $portalQuoteAlerts = Auth::guard('portal')->check()
+                    ? \App\Models\ClientQuoteRequest::where('client_id', Auth::guard('portal')->id())->where('status', 'quoted')->count()
+                    : 0;
+            @endphp
+
+            <div class="pt-2 pb-1">
+                <p class="px-3 text-[9px] font-black uppercase tracking-[.22em]" style="color:#475569">Principal</p>
+            </div>
             <a href="{{ route('portal.dashboard') }}" class="sidebar-link {{ request()->routeIs('portal.dashboard') ? 'active' : '' }}">
-                <i class="fas fa-house-chimney w-4 text-center text-sm"></i><span>Início</span>
+                <i class="fas fa-house-chimney w-4 text-center text-sm flex-shrink-0"></i><span>Início</span>
             </a>
             <a href="{{ route('portal.sales') }}" class="sidebar-link {{ request()->routeIs('portal.sales') ? 'active' : '' }}">
-                <i class="fas fa-bag-shopping w-4 text-center text-sm"></i><span>Minhas Compras</span>
+                <i class="fas fa-bag-shopping w-4 text-center text-sm flex-shrink-0"></i><span>Minhas Compras</span>
             </a>
             <a href="{{ route('portal.products') }}" class="sidebar-link {{ request()->routeIs('portal.products') ? 'active' : '' }}">
-                <i class="fas fa-boxes-stacked w-4 text-center text-sm"></i><span>Catálogo</span>
+                <i class="fas fa-boxes-stacked w-4 text-center text-sm flex-shrink-0"></i><span>Catálogo de Produtos</span>
             </a>
 
             <div class="pt-3 pb-1">
-                <p class="px-3 text-[10px] font-bold text-sky-400/80 uppercase tracking-[.18em]">Orçamentos</p>
+                <p class="px-3 text-[9px] font-black uppercase tracking-[.22em]" style="color:#475569">Orçamentos</p>
             </div>
             <a href="{{ route('portal.quotes') }}" class="sidebar-link {{ request()->routeIs('portal.quotes') && !request()->routeIs('portal.quotes.create') ? 'active' : '' }}">
-                <i class="fas fa-file-invoice w-4 text-center text-sm"></i><span>Meus Pedidos</span>
+                <i class="fas fa-file-lines w-4 text-center text-sm flex-shrink-0"></i>
+                <span class="flex-1">Meus Pedidos</span>
+                @if($portalQuoteAlerts > 0)
+                <span class="w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center flex-shrink-0 animate-pulse" style="background:#fbbf24;color:#1e293b">{{ $portalQuoteAlerts }}</span>
+                @endif
             </a>
-            <a href="{{ route('portal.quotes.create') }}" class="sidebar-link {{ request()->routeIs('portal.quotes.create') ? 'active' : '' }}">
-                <i class="fas fa-circle-plus w-4 text-center text-sm"></i><span>Novo Orçamento</span>
+            <a href="{{ route('portal.quotes.create') }}" class="sidebar-link {{ request()->routeIs('portal.quotes.create') || request()->routeIs('portal.quotes.edit') ? 'active' : '' }}">
+                <i class="fas fa-plus-circle w-4 text-center text-sm flex-shrink-0"></i><span>Novo Orçamento</span>
             </a>
 
             <div class="pt-3 pb-1">
-                <p class="px-3 text-[10px] font-bold text-sky-400/80 uppercase tracking-[.18em]">Conta</p>
+                <p class="px-3 text-[9px] font-black uppercase tracking-[.22em]" style="color:#475569">Conta</p>
             </div>
             <a href="{{ route('portal.profile') }}" class="sidebar-link {{ request()->routeIs('portal.profile') ? 'active' : '' }}">
-                <i class="fas fa-circle-user w-4 text-center text-sm"></i><span>Meu Perfil</span>
+                <i class="fas fa-circle-user w-4 text-center text-sm flex-shrink-0"></i><span>Meu Perfil</span>
             </a>
         </nav>
 
         {{-- Logout --}}
-        <div class="px-2.5 py-3 border-t border-white/10">
+        <div class="px-2.5 py-3 border-t border-white/[0.07]">
             <form method="POST" action="{{ route('portal.logout') }}">
                 @csrf
-                <button type="submit" class="sidebar-link w-full text-left">
-                    <i class="fas fa-right-from-bracket w-4 text-center text-sm"></i><span>Sair</span>
+                <button type="submit" class="sidebar-link w-full text-left hover:text-red-300">
+                    <i class="fas fa-right-from-bracket w-4 text-center text-sm flex-shrink-0"></i><span>Sair da conta</span>
                 </button>
             </form>
         </div>
@@ -325,7 +343,13 @@
         <i class="fas fa-boxes-stacked"></i><span>Catálogo</span>
     </a>
     <a href="{{ route('portal.quotes') }}" class="bottom-tab {{ request()->routeIs('portal.quotes') || request()->routeIs('portal.quotes.*') ? 'active' : '' }}">
-        <i class="fas fa-file-invoice"></i><span>Pedidos</span>
+        <div class="relative">
+            <i class="fas fa-file-invoice"></i>
+            @if($portalQuoteAlerts > 0)
+            <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-amber-400 text-slate-900 rounded-full text-[8px] font-black flex items-center justify-center">{{ $portalQuoteAlerts }}</span>
+            @endif
+        </div>
+        <span>Pedidos</span>
     </a>
     <a href="{{ route('portal.profile') }}" class="bottom-tab {{ request()->routeIs('portal.profile') ? 'active' : '' }}">
         <i class="fas fa-circle-user"></i><span>Perfil</span>
