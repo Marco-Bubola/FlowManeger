@@ -90,10 +90,10 @@
         @csrf
         <div id="hiddenInputs"></div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-5 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 items-start">
 
             {{-- ── Coluna principal ── --}}
-            <div class="lg:col-span-2 xl:col-span-3 space-y-5">
+            <div class="lg:col-span-2 xl:col-span-3 2xl:col-span-4 space-y-5">
 
                 {{-- Card Selecionar Produtos --}}
                 <div class="portal-card overflow-hidden">
@@ -154,7 +154,7 @@
                         </div>
 
                         {{-- Grid de produtos — todos, sem paginação --}}
-                        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
+                        <div class="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8 gap-3"
                              x-show="filtered.length > 0">
                             <template x-for="p in filtered" :key="p.id">
                                 <div class="portal-product-card cursor-pointer select-none"
