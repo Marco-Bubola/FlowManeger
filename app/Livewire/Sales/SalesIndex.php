@@ -4,6 +4,7 @@ namespace App\Livewire\Sales;
 
 use App\Models\Sale;
 use App\Models\Client;
+use App\Models\ClientQuoteRequest;
 use App\Models\Product;
 use App\Models\SalePayment;
 use App\Models\VendaParcela;
@@ -578,6 +579,13 @@ class SalesIndex extends Component
         $clients = Client::query()->get();
         $sellers = collect(); // Implementar se houver tabela de vendedores
 
+        $portalQuotes = ClientQuoteRequest::query()
+            ->with('client')
+            ->where('user_id', Auth::id())
+            ->whereIn('status', ['pending', 'reviewing', 'quoted'])
+            ->latest()
+            ->get();
+
         return view('livewire.sales.sales-index', [
             'sales' => $this->sales,
             'clients' => $clients,
@@ -588,6 +596,7 @@ class SalesIndex extends Component
             'totalRevenue' => $totalRevenue,
             'perPageOptions' => $this->getPerPageOptions(),
             'ultraWindClient' => $this->ultraWindClient,
+            'portalQuotes' => $portalQuotes,
         ]);
     }
 
