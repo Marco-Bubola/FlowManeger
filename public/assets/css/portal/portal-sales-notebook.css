@@ -1,0 +1,11 @@
+/* Portal Sales — Notebook (1367px–1919px) */
+@media (min-width: 1367px) and (max-width: 1919px) {
+    .portal-sales-page {
+        padding-bottom: 2.5rem !important;
+    }
+    .portal-sales-kpi-grid { grid-template-columns: repeat(4, 1fr) !important; }
+    .portal-sales-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 1.25rem !important; }
+    .portal-sale-card-header { padding: 1.125rem 1.375rem !important; }
+    .portal-sale-card-items { padding: 1rem 1.375rem !important; }
+    .portal-sale-card-footer { padding: 1rem 1.375rem !important; }
+}
