@@ -142,6 +142,9 @@ Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(funct
     Route::post('/orcamentos', [ClientPortalController::class, 'storeQuote'])->name('quotes.store');
     Route::get('/orcamentos/{quote}', [ClientPortalController::class, 'showQuote'])->name('quotes.show');
     Route::patch('/orcamentos/{quote}/resposta', [ClientPortalController::class, 'respondToQuote'])->name('quotes.respond');
+    Route::get('/orcamentos/{quote}/editar', [ClientPortalController::class, 'editQuote'])->name('quotes.edit');
+    Route::put('/orcamentos/{quote}', [ClientPortalController::class, 'updateQuote'])->name('quotes.update');
+    Route::delete('/orcamentos/{quote}', [ClientPortalController::class, 'destroyQuote'])->name('quotes.destroy');
     Route::get('/perfil', [ClientPortalController::class, 'profile'])->name('profile');
     Route::patch('/perfil', [ClientPortalController::class, 'updateProfile'])->name('profile.update');
     Route::post('/logout', [ClientPortalController::class, 'logout'])->name('logout');
@@ -189,6 +192,7 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/clients/{client}/portal/revoke-access', [ClientPortalController::class, 'revokeAccess'])->name('clients.portal.revoke-access');
     Route::get('/clients/{client}/portal/quotes', [ClientPortalController::class, 'adminClientQuotes'])->name('clients.portal.quotes');
     Route::patch('/clients/portal/quotes/{quote}', [ClientPortalController::class, 'adminRespondQuote'])->name('clients.portal.quotes.update');
+    Route::post('/clients/portal/quotes/{quote}/confirm', [ClientPortalController::class, 'adminConfirmQuote'])->name('clients.portal.quotes.confirm');
 
     // Manter algumas rotas específicas se necessário
     // Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
