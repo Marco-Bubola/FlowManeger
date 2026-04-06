@@ -25,6 +25,8 @@ class Sale extends Model
         'payment_method',
         'tipo_pagamento', // a_vista, parcelado
         'parcelas', // int
+        'source', // e.g. 'portal'
+        'portal_quote_id',
     ];
 
     protected $casts = [
