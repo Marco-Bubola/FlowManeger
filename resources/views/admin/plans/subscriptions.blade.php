@@ -10,10 +10,8 @@
         }
 
         .plan-subscriptions-page {
-            max-width: 1320px;
-            margin: 0 auto;
             width: 100%;
-            padding: 1.5rem 1rem max(7.5rem, env(safe-area-inset-bottom));
+            padding: 1.25rem var(--app-fluid-padding, clamp(0.65rem, 1.2vw, 1rem)) max(7.5rem, env(safe-area-inset-bottom));
             color: #0f172a;
         }
 
@@ -35,8 +33,8 @@
         .dark .filter-input { background:rgba(15,23,42,.62);border-color:var(--plan-border-dark);color:#f8fafc; }
         .filter-input:focus { border-color:#a855f7; }
         select.filter-input option { background:#111120; }
-        .table-card { background:rgba(255,255,255,.84);border:1px solid var(--plan-border);border-radius:1.3rem;overflow:hidden;box-shadow:0 18px 32px -26px rgba(15,23,42,.22); }
-        .dark .table-card { background:rgba(15,23,42,.78);border-color:var(--plan-border-dark);box-shadow:0 22px 36px -24px rgba(2,6,23,.76); }
+        .table-card { background: white; border: 1.5px solid #f1f5f9; border-radius: 1.1rem; overflow:hidden; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 6px 24px rgba(0,0,0,.04); }
+        .dark .table-card { background: #1e293b; border-color: #334155; }
         .table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; }
         table { width:100%; min-width:920px; border-collapse:collapse; }
         thead th { padding:.75rem 1.25rem;text-align:left;font-size:.68rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--plan-muted);border-bottom:1px solid var(--plan-border);background:rgba(248,250,252,.8); }
@@ -77,7 +75,7 @@
         .alert-error { background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#f87171; }
 
         @media (max-width: 900px) {
-            .plan-subscriptions-page { padding: 1rem 0.75rem max(7.25rem, env(safe-area-inset-bottom)); }
+            .plan-subscriptions-page { padding: .85rem .65rem max(7.25rem, env(safe-area-inset-bottom)); }
             .filter-input { min-width: 0; flex: 1 1 100%; }
         }
         @media (max-width: 600px) {
@@ -86,7 +84,7 @@
         }
     </style>
 
-    <div class="plan-subscriptions-page">
+    <div class="plan-subscriptions-page w-full app-viewport-fit mobile-393-base">
         @include('partials.plan-center-nav', [
             'scope' => 'admin',
             'title' => 'Assinaturas ativas e históricas',
