@@ -5,59 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Portal do Cliente' }} — {{ config('app.name') }}</title>
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    colors: {
-                        brand: {
-                            50:  '#f0f9ff',
-                            100: '#e0f2fe',
-                            500: '#0ea5e9',
-                            600: '#0284c7',
-                            700: '#0369a1',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        * { font-family: 'Inter', sans-serif; }
-        .sidebar-link {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 0.625rem 1rem;
-            border-radius: 0.75rem;
-            font-size: 0.875rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        .sidebar-link:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #ffffff;
-        }
-        .sidebar-link.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: #ffffff;
-            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
-        }
-        .sidebar-link:not(.active) { color: #e0f2fe; }
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 999px;
-        }
-    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    @vite(['resources/css/portal.css'])
     @stack('styles')
 </head>
 <body class="h-full bg-gray-50 text-gray-900">
@@ -69,8 +23,8 @@
         {{-- Logo --}}
         <div class="px-6 py-6 border-b border-white/10">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg">
-                    <i class="fas fa-store text-white text-lg"></i>
+                <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
+                    <img src="{{ asset('favicon.svg') }}" alt="{{ config('app.name') }}" class="w-7 h-7 object-contain">
                 </div>
                 <div>
                     <p class="text-xs text-sky-200 font-medium uppercase tracking-widest">Portal</p>
