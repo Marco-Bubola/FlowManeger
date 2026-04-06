@@ -98,6 +98,110 @@
             :seller-filter="$sellerFilter" :quick-filter="$quickFilter" :sort-by="$sortBy" :sort-direction="$sortDirection" :per-page-options="$perPageOptions"
             :per-page="$perPage" :search="$search" />
 
+        <!-- Orçamentos do Portal -->
+        @if(isset($portalQuotes) && $portalQuotes->count() > 0)
+        <div class="mb-6 mx-4 sm:mx-0">
+            <div class="relative overflow-hidden rounded-2xl border border-sky-200 dark:border-sky-800/50 bg-gradient-to-r from-sky-50 via-indigo-50 to-violet-50 dark:from-sky-900/20 dark:via-indigo-900/20 dark:to-violet-900/20 shadow-lg">
+                {{-- Decoração --}}
+                <div class="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-sky-400 to-indigo-600 rounded-l-2xl"></div>
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-sky-400/10 rounded-full blur-3xl pointer-events-none"></div>
+
+                {{-- Header --}}
+                <div class="flex items-center justify-between px-5 pt-4 pb-3 border-b border-sky-200/60 dark:border-sky-700/40">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 bg-gradient-to-br from-sky-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-md">
+                            <i class="fas fa-file-invoice text-white text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-black text-sm text-gray-900 dark:text-slate-100">Orçamentos do Portal</h3>
+                            <p class="text-[10px] text-gray-500 dark:text-slate-400">Solicitações pendentes de confirmação</p>
+                        </div>
+                        <span class="ml-1 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 bg-sky-500 text-white text-[10px] font-black rounded-full shadow animate-pulse">
+                            {{ $portalQuotes->count() }}
+                        </span>
+                    </div>
+                </div>
+
+                {{-- Tabela de orçamentos --}}
+                <div class="overflow-x-auto">
+                    <table class="w-full text-xs">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase tracking-wider text-gray-500 dark:text-slate-400 bg-sky-50/50 dark:bg-sky-900/10">
+                                <th class="text-left px-5 py-2.5">Cliente</th>
+                                <th class="text-center px-3 py-2.5">Itens</th>
+                                <th class="text-center px-3 py-2.5">Pagamento</th>
+                                <th class="text-center px-3 py-2.5">Status</th>
+                                <th class="text-center px-3 py-2.5">Data</th>
+                                <th class="text-right px-5 py-2.5">Ação</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-sky-100/80 dark:divide-sky-800/30">
+                            @foreach($portalQuotes as $pq)
+                            <tr class="hover:bg-sky-50/60 dark:hover:bg-sky-900/10 transition-colors group">
+                                <td class="px-5 py-3">
+                                    <div class="flex items-center gap-2.5">
+                                        <div class="w-7 h-7 bg-gradient-to-br from-sky-400 to-indigo-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-user text-white text-[9px]"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-black text-gray-900 dark:text-slate-200">{{ $pq->client?->name ?? '—' }}</p>
+                                            <p class="text-[9px] text-gray-400 dark:text-slate-500">#ORC-{{ $pq->id }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg font-black">
+                                        <i class="fas fa-boxes-stacked text-[9px]"></i>
+                                        {{ count($pq->items ?? []) }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    @if($pq->payment_preference)
+                                        @php
+                                            $payLabels = ['pix'=>'PIX','dinheiro'=>'Dinheiro','credito'=>'Crédito','debito'=>'Débito','boleto'=>'Boleto','outro'=>'Outro'];
+                                            $payIcons  = ['pix'=>'fa-qrcode','dinheiro'=>'fa-money-bill-wave','credito'=>'fa-credit-card','debito'=>'fa-credit-card','boleto'=>'fa-barcode','outro'=>'fa-ellipsis-h'];
+                                        @endphp
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg font-bold text-[10px]">
+                                            <i class="fas {{ $payIcons[$pq->payment_preference] ?? 'fa-credit-card' }} text-[9px]"></i>
+                                            {{ $payLabels[$pq->payment_preference] ?? $pq->payment_preference }}
+                                        </span>
+                                    @else
+                                        <span class="text-gray-400 dark:text-slate-500">—</span>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-3 text-center">
+                                    @php
+                                        $stColors = ['pending'=>'amber','reviewing'=>'blue','quoted'=>'violet'];
+                                        $stLabels = ['pending'=>'Aguardando','reviewing'=>'Em análise','quoted'=>'Cotado'];
+                                        $sc = $stColors[$pq->status] ?? 'gray';
+                                    @endphp
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-{{ $sc }}-100 dark:bg-{{ $sc }}-900/20 text-{{ $sc }}-700 dark:text-{{ $sc }}-300 rounded-lg font-black text-[10px]">
+                                        @if($pq->status === 'pending') <i class="fas fa-clock text-[8px]"></i>
+                                        @elseif($pq->status === 'reviewing') <i class="fas fa-magnifying-glass text-[8px]"></i>
+                                        @else <i class="fas fa-check text-[8px]"></i>
+                                        @endif
+                                        {{ $stLabels[$pq->status] ?? $pq->status }}
+                                    </span>
+                                </td>
+                                <td class="px-3 py-3 text-center text-gray-500 dark:text-slate-400">
+                                    {{ $pq->created_at->format('d/m/Y') }}
+                                </td>
+                                <td class="px-5 py-3 text-right">
+                                    <a href="{{ route('clients.portal.quotes', $pq->client_id) }}"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-[10px] rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                        <i class="fas fa-eye text-[9px]"></i>
+                                        Confirmar
+                                    </a>
+                                </td>
+                            </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <!-- Grid de Cards de Vendas -->
         <div class="sales-grid gap-4 mb-8" x-ref="salesGrid"
             data-ultrawind="{{ $ultraWindClient ?? false ? 'true' : 'false' }}"
