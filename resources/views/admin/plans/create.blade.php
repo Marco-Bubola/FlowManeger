@@ -10,10 +10,8 @@
         }
 
         .plan-form-page {
-            max-width: 920px;
-            margin: 0 auto;
             width: 100%;
-            padding: 1.5rem 1rem max(7.5rem, env(safe-area-inset-bottom));
+            padding: 1.25rem var(--app-fluid-padding, clamp(0.65rem, 1.2vw, 1rem)) max(7.5rem, env(safe-area-inset-bottom));
             color: #0f172a;
         }
 
@@ -29,8 +27,8 @@
         .btn-ghost { background:rgba(255,255,255,.78);color:#475569;border:1px solid var(--plan-border); }
         .btn-ghost:hover { background:rgba(255,255,255,.96);color:#0f172a; }
         .dark .btn-ghost { background:rgba(15,23,42,.62);color:#cbd5e1;border-color:var(--plan-border-dark); }
-        .form-card { background:rgba(255,255,255,.84);border:1px solid var(--plan-border);border-radius:1.3rem;padding:1.5rem 2rem;margin-bottom:1.5rem;box-shadow:0 18px 32px -26px rgba(15,23,42,.22); }
-        .dark .form-card { background:rgba(15,23,42,.78);border-color:var(--plan-border-dark);box-shadow:0 22px 36px -24px rgba(2,6,23,.76); }
+        .form-card { background: white; border: 1.5px solid #f1f5f9; border-radius: 1.1rem; padding: 1.25rem 1.5rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,.04), 0 4px 16px rgba(0,0,0,.03); }
+        .dark .form-card { background: #1e293b; border-color: #334155; }
         .section-divider { font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--plan-muted);padding:.5rem 0;border-bottom:1px solid var(--plan-border);margin-bottom:1rem; }
         .dark .section-divider { color:#94a3b8;border-bottom-color:var(--plan-border-dark); }
         .field-label { display:block;font-size:.7rem;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--plan-muted);margin-bottom:.35rem; }
@@ -54,14 +52,14 @@
         .form-footer { border-top-color: var(--plan-border); }
         .dark .form-footer { border-top-color: var(--plan-border-dark); }
         @media (max-width: 768px) {
-            .plan-form-page { padding: 1rem .75rem max(7.25rem, env(safe-area-inset-bottom)); }
-            .form-card { padding: 1rem; }
+            .plan-form-page { padding: .85rem .65rem max(7.25rem, env(safe-area-inset-bottom)); }
+            .form-card { padding: .85rem; }
             .form-footer { flex-direction: column-reverse; align-items: stretch; }
             .form-footer .btn { width: 100%; justify-content: center; }
         }
     </style>
 
-    <div class="plan-form-page">
+    <div class="plan-form-page w-full app-viewport-fit mobile-393-base">
         @include('partials.plan-center-nav', [
             'scope' => 'admin',
             'title' => 'Criar novo plano',
