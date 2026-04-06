@@ -1,0 +1,15 @@
+/* Portal Sales — Ultrawide (1920px+) */
+@media (min-width: 1920px) {
+    .portal-sales-page {
+        max-width: 1600px;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding-bottom: 3rem !important;
+    }
+    .portal-sales-kpi-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 1.5rem !important; }
+    .portal-sales-grid { grid-template-columns: repeat(4, 1fr) !important; gap: 1.5rem !important; }
+    .portal-sale-card-header { padding: 1.25rem 1.5rem !important; }
+    .portal-sale-card-items { padding: 1.125rem 1.5rem !important; }
+    .portal-sale-card-footer { padding: 1.125rem 1.5rem !important; }
+    .portal-fin-chip-value { font-size: 0.95rem !important; }
+}
