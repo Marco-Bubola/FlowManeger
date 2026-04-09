@@ -4,6 +4,8 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductImage;
+use App\Services\MercadoLivre\ProductService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +38,12 @@ class CreateProduct extends Component
 
     // Modal de dicas
     public bool $showTipsModal = false;
+
+    // ML image importer (importadas após salvar o produto)
+    public array $mlImageResults = [];
+    public array $selectedMlImages = [];
+    public bool $mlSearching = false;
+    public string $mlSearchError = '';
 
     public function rules(): array
     {
@@ -203,10 +211,13 @@ class CreateProduct extends Component
             $existingProduct->stock_quantity += (int) $this->stock_quantity;
             $existingProduct->save();
 
+            // Importa imagens ML selecionadas para o produto existente
+            $this->importPendingMlImages($existingProduct->id);
+
             session()->flash('success', 'Produto atualizado com sucesso!');
         } else {
             // Se o produto não existe com o mesmo código e preço, cria um novo
-            Product::create([
+            $product = Product::create([
                 'name' => $this->name,
                 'description' => $this->description,
                 'price' => $this->price,
@@ -226,6 +237,9 @@ class CreateProduct extends Component
                 'warranty_months' => $this->warranty_months ?: 3,
                 'condition' => $this->condition ?: 'new',
             ]);
+
+            // Importa imagens ML selecionadas
+            $this->importPendingMlImages($product->id);
 
             session()->flash('success', 'Produto adicionado com sucesso!');
         }
@@ -288,6 +302,74 @@ class CreateProduct extends Component
         return view('livewire.products.create-product', [
             'categories' => $this->categories,
         ]);
+    }
+
+    // ─── ML barcode image importer ────────────────────────────────────────────
+
+    public function searchMlImages(): void
+    {
+        if (empty($this->barcode)) {
+            $this->mlSearchError = 'Informe o código de barras antes de buscar.';
+            return;
+        }
+
+        $this->mlSearchError = '';
+        $this->mlImageResults = [];
+        $this->selectedMlImages = [];
+        $this->mlSearching = true;
+
+        try {
+            $service = new ProductService();
+            $result = $service->searchCatalogByBarcode($this->barcode, Auth::id());
+
+            if (!($result['success'] ?? false) || empty($result['results'])) {
+                $this->mlSearchError = 'Nenhum produto encontrado no catálogo do ML para este código.';
+                $this->mlSearching = false;
+                return;
+            }
+
+            $productId = $result['results'][0]['id'];
+            $details = $service->getCategoryFromCatalogProduct($productId, Auth::id());
+            $pictures = $details['product_info']['pictures'] ?? [];
+
+            $urls = [];
+            foreach ($pictures as $pic) {
+                $url = $pic['url'] ?? ($pic['secure_url'] ?? null);
+                if ($url) $urls[] = $url;
+            }
+
+            if (empty($urls)) {
+                $this->mlSearchError = 'Produto encontrado mas sem imagens disponíveis.';
+            } else {
+                $this->mlImageResults = $urls;
+                $this->selectedMlImages = array_fill(0, count($urls), false);
+            }
+        } catch (\Exception $e) {
+            Log::error('CreateProduct::searchMlImages error', ['e' => $e->getMessage()]);
+            $this->mlSearchError = 'Erro ao buscar imagens: ' . $e->getMessage();
+        } finally {
+            $this->mlSearching = false;
+        }
+    }
+
+    private function importPendingMlImages(int $productId): void
+    {
+        $sort = 0;
+        foreach ($this->selectedMlImages as $i => $selected) {
+            if (!$selected) continue;
+            $url = $this->mlImageResults[$i] ?? null;
+            if (!$url) continue;
+
+            $sort++;
+            ProductImage::create([
+                'product_id' => $productId,
+                'filename'   => basename(parse_url($url, PHP_URL_PATH)),
+                'alt_text'   => $this->name,
+                'source'     => 'mercadolivre',
+                'source_url' => $url,
+                'sort_order' => $sort,
+            ]);
+        }
     }
 
     public function updatedImage()
