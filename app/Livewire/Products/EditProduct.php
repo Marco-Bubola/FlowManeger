@@ -4,6 +4,8 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\ProductImage;
+use App\Services\MercadoLivre\ProductService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -38,6 +40,13 @@ class EditProduct extends Component
 
     public bool $showTipsModal = false;
 
+    // Galeria de imagens adicionais
+    public array $extraImages = [];
+    public array $mlImageResults = [];
+    public array $selectedMlImages = [];
+    public bool $mlSearching = false;
+    public string $mlSearchError = '';
+
     public function mount(Product $product)
     {
         if ($product->user_id !== Auth::id()) {
@@ -70,6 +79,9 @@ class EditProduct extends Component
         $this->model = $product->model ?? '';
         $this->warranty_months = $product->warranty_months ? (string)$product->warranty_months : '3';
         $this->condition = $product->condition ?? 'new';
+
+        // Carrega galeria extra
+        $this->loadExtraImages();
 
         // Não preenchemos $this->image para evitar conflitos
         // A imagem atual será mostrada através de $product->image
@@ -343,6 +355,126 @@ class EditProduct extends Component
             return asset('storage/products/' . $this->product->image);
         }
         return null;
+    }
+
+    // ─── Galeria de imagens adicionais ────────────────────────────────────────
+
+    public function loadExtraImages(): void
+    {
+        $this->extraImages = $this->product->images()
+            ->orderBy('sort_order')
+            ->get()
+            ->map(fn($img) => [
+                'id'         => $img->id,
+                'url'        => $img->url,
+                'filename'   => $img->filename,
+                'source'     => $img->source,
+                'sort_order' => $img->sort_order,
+            ])
+            ->toArray();
+    }
+
+    public function deleteExtraImage(int $imageId): void
+    {
+        $img = ProductImage::where('id', $imageId)
+            ->where('product_id', $this->product->id)
+            ->first();
+
+        if (!$img) {
+            return;
+        }
+
+        if ($img->source !== 'mercadolivre' && $img->filename) {
+            Storage::disk('public')->delete('products/' . $img->filename);
+        }
+
+        $img->delete();
+        $this->loadExtraImages();
+        $this->notifySuccess('Imagem removida.');
+    }
+
+    // ─── ML barcode image importer ────────────────────────────────────────────
+
+    public function searchMlImages(): void
+    {
+        if (empty($this->barcode)) {
+            $this->mlSearchError = 'Informe o código de barras antes de buscar.';
+            return;
+        }
+
+        $this->mlSearchError = '';
+        $this->mlImageResults = [];
+        $this->selectedMlImages = [];
+        $this->mlSearching = true;
+
+        try {
+            $service = new ProductService();
+            $result = $service->searchCatalogByBarcode($this->barcode, Auth::id());
+
+            if (!($result['success'] ?? false) || empty($result['results'])) {
+                $this->mlSearchError = 'Nenhum produto encontrado no catálogo do ML para este código.';
+                $this->mlSearching = false;
+                return;
+            }
+
+            $productId = $result['results'][0]['id'];
+            $details = $service->getCategoryFromCatalogProduct($productId, Auth::id());
+            $pictures = $details['product_info']['pictures'] ?? [];
+
+            $urls = [];
+            foreach ($pictures as $pic) {
+                $url = $pic['url'] ?? ($pic['secure_url'] ?? null);
+                if ($url) {
+                    $urls[] = $url;
+                }
+            }
+
+            if (empty($urls)) {
+                $this->mlSearchError = 'Produto encontrado mas sem imagens disponíveis.';
+            } else {
+                $this->mlImageResults = $urls;
+                $this->selectedMlImages = array_fill(0, count($urls), false);
+            }
+
+        } catch (\Exception $e) {
+            Log::error('EditProduct::searchMlImages error', ['e' => $e->getMessage()]);
+            $this->mlSearchError = 'Erro ao buscar imagens: ' . $e->getMessage();
+        } finally {
+            $this->mlSearching = false;
+        }
+    }
+
+    public function importMlImages(): void
+    {
+        $imported = 0;
+        $maxSort = $this->product->images()->max('sort_order') ?? 0;
+
+        foreach ($this->selectedMlImages as $i => $selected) {
+            if (!$selected) continue;
+            $url = $this->mlImageResults[$i] ?? null;
+            if (!$url) continue;
+
+            $maxSort++;
+            ProductImage::create([
+                'product_id' => $this->product->id,
+                'filename'   => basename(parse_url($url, PHP_URL_PATH)),
+                'alt_text'   => $this->product->name,
+                'source'     => 'mercadolivre',
+                'source_url' => $url,
+                'sort_order' => $maxSort,
+            ]);
+            $imported++;
+        }
+
+        $this->mlImageResults = [];
+        $this->selectedMlImages = [];
+        $this->loadExtraImages();
+
+        if ($imported > 0) {
+            $this->notifySuccess("{$imported} imagem(ns) importada(s) do Mercado Livre.");
+        } else {
+            $this->notifyError('Nenhuma imagem selecionada para importar.');
+        }
     }
 
     public function render()
