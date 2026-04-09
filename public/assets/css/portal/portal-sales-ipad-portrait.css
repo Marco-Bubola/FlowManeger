@@ -1,7 +1,7 @@
 /* Portal Sales — iPad Portrait (768px–1024px portrait) */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
     .portal-sales-page {
-        padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
         padding-left: 0.875rem !important;
         padding-right: 0.875rem !important;
     }
