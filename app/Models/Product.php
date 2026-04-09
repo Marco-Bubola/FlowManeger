@@ -56,7 +56,7 @@ class Product extends Model
         'height_cm'        => 'decimal:2',
     ];
 
-    protected $appends = ['image_url'];
+    protected $appends = ['image_url', 'all_images'];
 
     /**
      * status: ativo, inativo, descontinuado
@@ -67,7 +67,42 @@ class Product extends Model
     public function saleItems()
     {
         return $this->hasMany(SaleItem::class);
-    } // Relação com a categoria
+    }
+
+    /**
+     * Galeria de imagens adicionais do produto.
+     * Produto legado (sem registros aqui) continua funcionando — usa $product->image.
+     */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Retorna todas as URLs de imagem do produto (principal + galeria), sem duplicatas.
+     * Compatível com produtos legados (só possuem $product->image).
+     */
+    public function getAllImagesAttribute(): array
+    {
+        $urls = [];
+
+        // Galeria extra (nova tabela)
+        foreach ($this->images as $img) {
+            $urls[] = $img->url;
+        }
+
+        // Se não há galeria, usa a imagem principal como fallback
+        if (empty($urls)) {
+            $main = $this->getImageUrlAttribute();
+            if ($main && !str_ends_with($main, 'product-placeholder.png')) {
+                $urls[] = $main;
+            }
+        }
+
+        return array_values(array_unique($urls));
+    }
+
+    // Relação com a categoria
     public function category()
     {
         return $this->belongsTo(Category::class, 'category_id', 'id_category');  // A chave estrangeira é 'category_id' e a chave primária da categoria é 'id_category'
