@@ -122,6 +122,13 @@ Route::get('/dashboard', DashboardIndex::class)
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+// Rotas públicas do portal — sem autenticação (deve vir antes dos grupos com middleware)
+Route::prefix('portal')->name('portal.')->group(function () {
+    Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
+    // Entrada do portal sem login: redireciona autenticados ao dashboard, convidados ao catálogo (via cookie) ou login
+    Route::get('/', [ClientPortalController::class, 'portalHome'])->name('home');
+});
+
 Route::middleware('guest:portal')->prefix('portal')->name('portal.')->group(function () {
     Route::get('/login', [ClientPortalController::class, 'showLogin'])->name('login');
     Route::post('/login', [ClientPortalController::class, 'login'])->name('login.post');
@@ -134,7 +141,7 @@ Route::middleware('guest:portal')->prefix('portal')->name('portal.')->group(func
 });
 
 Route::middleware('portal.auth')->prefix('portal')->name('portal.')->group(function () {
-    Route::get('/', [ClientPortalController::class, 'dashboard'])->name('dashboard');
+    Route::get('/painel', [ClientPortalController::class, 'dashboard'])->name('dashboard');
     Route::get('/vendas', [ClientPortalController::class, 'sales'])->name('sales');
     Route::get('/produtos', [ClientPortalController::class, 'products'])->name('products');
     Route::get('/orcamentos', [ClientPortalController::class, 'quotes'])->name('quotes');
