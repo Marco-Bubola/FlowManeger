@@ -1,7 +1,7 @@
 /* Portal Sales — Ultrawide (1920px+) */
 @media (min-width: 1920px) {
     .portal-sales-page {
-        max-width: 1600px;
+       
         margin-left: auto !important;
         margin-right: auto !important;
         padding-bottom: 3rem !important;
