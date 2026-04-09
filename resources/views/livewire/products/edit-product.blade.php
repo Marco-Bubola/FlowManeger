@@ -340,6 +340,112 @@
                             height="h-[500px]" />
                     </div>
 
+                    {{-- ── Galeria de imagens adicionais ── --}}
+                    <div class="mt-6 border-t border-slate-700/50 pt-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h4 class="text-sm font-bold text-white">Imagens Adicionais
+                                    <span class="ml-1.5 px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full">{{ count($extraImages) }}</span>
+                                </h4>
+                                <p class="text-xs text-slate-400 mt-0.5">Galeria do produto — aparece no portal do cliente</p>
+                            </div>
+                        </div>
+
+                        {{-- Grid de thumbs existentes --}}
+                        @if(count($extraImages) > 0)
+                        <div class="grid grid-cols-4 gap-3 mb-4">
+                            @foreach($extraImages as $img)
+                            <div class="relative group rounded-xl overflow-hidden aspect-square bg-slate-800 border border-slate-700">
+                                <img src="{{ $img['url'] }}" alt="Imagem" class="w-full h-full object-cover">
+                                @if($img['source'] === 'mercadolivre')
+                                <span class="absolute top-1 left-1 px-1.5 py-0.5 bg-yellow-400/90 text-yellow-900 text-[9px] font-bold rounded-full">ML</span>
+                                @endif
+                                <button type="button"
+                                        wire:click="deleteExtraImage({{ $img['id'] }})"
+                                        wire:confirm="Remover esta imagem?"
+                                        class="absolute top-1 right-1 w-6 h-6 bg-red-500/80 hover:bg-red-500 text-white rounded-full text-xs flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i class="fas fa-xmark text-[10px]"></i>
+                                </button>
+                            </div>
+                            @endforeach
+                        </div>
+                        @endif
+
+                        {{-- Seção ML barcode importer --}}
+                        <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg bg-yellow-400/15 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-barcode text-yellow-400 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-200">Importar imagens do Mercado Livre</p>
+                                    <p class="text-[10px] text-slate-400">Busca pelo código de barras do produto no catálogo ML</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <input type="text"
+                                       wire:model="barcode"
+                                       placeholder="Ex: 7891234567890"
+                                       class="flex-1 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                                <button type="button"
+                                        wire:click="searchMlImages"
+                                        wire:loading.attr="disabled"
+                                        class="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5">
+                                    <span wire:loading.remove wire:target="searchMlImages">
+                                        <i class="fas fa-magnifying-glass text-[10px]"></i> Buscar
+                                    </span>
+                                    <span wire:loading wire:target="searchMlImages">
+                                        <i class="fas fa-spinner fa-spin text-[10px]"></i> Buscando…
+                                    </span>
+                                </button>
+                            </div>
+
+                            {{-- Erro --}}
+                            @if($mlSearchError)
+                            <p class="mt-2 text-xs text-red-400 flex items-center gap-1">
+                                <i class="fas fa-circle-exclamation text-[10px]"></i> {{ $mlSearchError }}
+                            </p>
+                            @endif
+
+                            {{-- Resultados ML --}}
+                            @if(count($mlImageResults) > 0)
+                            <div class="mt-3">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selecione as imagens para importar:</p>
+                                <div class="grid grid-cols-4 gap-2 mb-3">
+                                    @foreach($mlImageResults as $i => $url)
+                                    <label class="relative cursor-pointer group">
+                                        <input type="checkbox"
+                                               wire:model="selectedMlImages.{{ $i }}"
+                                               class="sr-only peer">
+                                        <div class="aspect-square rounded-lg overflow-hidden border-2 transition-all
+                                                    peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500/30
+                                                    border-slate-700 hover:border-slate-500 bg-slate-800">
+                                            <img src="{{ $url }}" alt="Foto ML {{ $i+1 }}" class="w-full h-full object-cover" loading="lazy">
+                                        </div>
+                                        <div class="absolute inset-0 rounded-lg bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-lg drop-shadow"></i>
+                                        </div>
+                                    </label>
+                                    @endforeach
+                                </div>
+                                <button type="button"
+                                        wire:click="importMlImages"
+                                        wire:loading.attr="disabled"
+                                        class="w-full py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm rounded-lg transition-colors flex items-center justify-center gap-2">
+                                    <span wire:loading.remove wire:target="importMlImages">
+                                        <i class="fas fa-download text-xs"></i> Importar selecionadas
+                                    </span>
+                                    <span wire:loading wire:target="importMlImages">
+                                        <i class="fas fa-spinner fa-spin text-xs"></i> Importando…
+                                    </span>
+                                </button>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    {{-- /galeria --}}
+
                     <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
                         <i class="bi bi-info-circle text-blue-400 mt-0.5"></i>
                         <p>JPG, PNG, JPEG • Máx 2MB • Recomendado: 800x800px</p>
