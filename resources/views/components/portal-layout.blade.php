@@ -126,15 +126,24 @@
         /* Smooth page transitions */
         main { animation: fadeIn .18s ease; }
         @keyframes fadeIn { from { opacity:.5; transform:translateY(4px); } to { opacity:1; transform:none; } }
+        [x-cloak] { display: none !important; }
 
         /* Bottom tab bar */
-        .bottom-tab { display:flex; flex-direction:column; align-items:center; gap:0.2rem; flex:1; padding:0.5rem 0; font-size:0.6rem; font-weight:600; color:#94a3b8; transition:color 0.15s; cursor:pointer; }
+        .bottom-tab { display:flex; flex-direction:column; align-items:center; gap:0.2rem; flex:1; padding:0.55rem 0 0.45rem; font-size:0.6rem; font-weight:700; color:#94a3b8; transition:color 0.15s; cursor:pointer; text-decoration:none; }
         .bottom-tab i { font-size:1.1rem; }
         .bottom-tab.active, .bottom-tab:hover { color:#0ea5e9; }
+        .dark .bottom-tabbar-wrap { background:rgba(15,23,42,0.92) !important; border-top-color:rgba(51,65,85,0.6) !important; }
         .dark .bottom-tab { color:#64748b; }
         .dark .bottom-tab.active, .dark .bottom-tab:hover { color:#38bdf8; }
 
-        /* Input / select --dark */
+        /* Safe area on mobile */
+        @supports(padding-bottom: env(safe-area-inset-bottom)) {
+            .bottom-tabbar { padding-bottom: env(safe-area-inset-bottom); }
+        }
+
+        @media (max-width: 1023px) {
+            main { padding-bottom: 5.5rem; }
+        }
         .portal-input { width:100%; padding:0.6rem 1rem; border:1px solid #e5e7eb; border-radius:0.75rem; font-size:0.8125rem; transition:all 0.15s; background:#fff; color:#111827; }
         .portal-input:focus { outline:none; border-color:#38bdf8; box-shadow:0 0 0 3px rgba(14,165,233,0.15); }
         .dark .portal-input { background:#1e293b; border-color:#334155; color:#e2e8f0; }
@@ -151,22 +160,42 @@
 
         /* Alert dismiss */
         .portal-alert { display:flex; align-items:flex-start; gap:0.75rem; padding:0.85rem 1rem; border-radius:0.875rem; font-size:0.8125rem; border:1px solid; }
-
-        /* Safe area on mobile */
-        @supports(padding-bottom: env(safe-area-inset-bottom)) {
-            .bottom-tabbar { padding-bottom: calc(0.5rem + env(safe-area-inset-bottom)); }
-        }
-
-        @media (max-width: 1023px) {
-            main { padding-bottom: 5rem; }
-        }
     </style>
     @stack('styles')
 </head>
 <body class="h-full bg-slate-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 transition-colors duration-200">
 
 {{-- Alpine dark mode state (body-level) --}}
-<div x-data="{ dark: document.documentElement.classList.contains('dark') }">
+<div x-data="{
+    dark: document.documentElement.classList.contains('dark'),
+    cartCount: 0,
+    initCart() {
+        try {
+            const d = JSON.parse(localStorage.getItem('portal_cart') || '[]');
+            this.cartCount = Array.isArray(d) ? d.length : 0;
+        } catch(e) { this.cartCount = 0; }
+        // Atualiza ao voltar para a aba (ex: retornou da página de carrinho)
+        window.addEventListener('focus', () => {
+            try {
+                const d = JSON.parse(localStorage.getItem('portal_cart') || '[]');
+                this.cartCount = Array.isArray(d) ? d.length : 0;
+            } catch(e) {}
+        });
+        // Atualiza ao evento 'storage' (outras abas)
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'portal_cart') {
+                try { this.cartCount = Array.isArray(JSON.parse(e.newValue||'[]')) ? JSON.parse(e.newValue||'[]').length : 0; } catch(e) {}
+            }
+        });
+        // Atualiza quando modal de produto adiciona ao carrinho (mesma aba)
+        window.addEventListener('portal-cart-updated', () => {
+            try {
+                const d = JSON.parse(localStorage.getItem('portal_cart') || '[]');
+                this.cartCount = Array.isArray(d) ? d.length : 0;
+            } catch(e) {}
+        });
+    }
+}" x-init="initCart()">
 
 <div class="flex h-screen overflow-hidden">
 
@@ -263,17 +292,15 @@
     {{-- ── Main area ── --}}
     <div class="flex-1 flex flex-col overflow-hidden min-w-0">
 
-        {{-- Top bar --}}
-        <header class="bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 lg:px-6 py-2.5 flex items-center justify-between flex-shrink-0 shadow-sm">
+        {{-- Top bar — apenas desktop (mobile navega via tab bar) --}}
+        <header class="hidden lg:flex bg-white dark:bg-slate-800 border-b border-gray-100 dark:border-slate-700 px-4 lg:px-6 py-2.5 items-center justify-between flex-shrink-0 shadow-sm">
             <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-lg text-gray-500 dark:text-slate-400 hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors">
-                    <i class="fas fa-bars text-base"></i>
-                </button>
-                {{-- Breadcrumb --}}
-                <div class="hidden sm:flex items-center gap-1.5 text-sm">
-                    <span class="text-gray-400 dark:text-slate-500">Portal</span>
-                    <i class="fas fa-chevron-right text-gray-300 dark:text-slate-600 text-xs"></i>
-                    <span class="font-semibold text-gray-800 dark:text-slate-200">{{ $title }}</span>
+                {{-- Sem hamburger no mobile: navegação via tab bar abaixo --}}
+                {{-- Breadcrumb (mobile: título da página; sm+: "Portal > título") --}}
+                <div class="flex items-center gap-1.5 text-sm">
+                    <span class="hidden sm:inline text-gray-400 dark:text-slate-500">Portal</span>
+                    <i class="hidden sm:inline fas fa-chevron-right text-gray-300 dark:text-slate-600 text-xs"></i>
+                    <span class="font-semibold text-gray-800 dark:text-slate-200 text-sm">{{ $title }}</span>
                 </div>
             </div>
             <div class="flex items-center gap-2">
@@ -331,29 +358,66 @@
     </div>
 </div>
 
-{{-- ── Bottom tab bar (mobile only) ── --}}
-<nav class="bottom-tabbar fixed bottom-0 inset-x-0 bg-white dark:bg-slate-800 border-t border-gray-100 dark:border-slate-700 flex lg:hidden z-30 shadow-[0_-2px_16px_rgba(0,0,0,0.06)]">
-    <a href="{{ route('portal.dashboard') }}" class="bottom-tab {{ request()->routeIs('portal.dashboard') ? 'active' : '' }}">
-        <i class="fas fa-house-chimney"></i><span>Início</span>
-    </a>
-    <a href="{{ route('portal.sales') }}" class="bottom-tab {{ request()->routeIs('portal.sales') ? 'active' : '' }}">
-        <i class="fas fa-bag-shopping"></i><span>Compras</span>
-    </a>
-    <a href="{{ route('portal.products') }}" class="bottom-tab {{ request()->routeIs('portal.products') ? 'active' : '' }}">
-        <i class="fas fa-boxes-stacked"></i><span>Catálogo</span>
-    </a>
-    <a href="{{ route('portal.quotes') }}" class="bottom-tab {{ request()->routeIs('portal.quotes') || request()->routeIs('portal.quotes.*') ? 'active' : '' }}">
-        <div class="relative">
-            <i class="fas fa-file-invoice"></i>
-            @if($portalQuoteAlerts > 0)
-            <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-amber-400 text-slate-900 rounded-full text-[8px] font-black flex items-center justify-center">{{ $portalQuoteAlerts }}</span>
-            @endif
-        </div>
-        <span>Pedidos</span>
-    </a>
-    <a href="{{ route('portal.profile') }}" class="bottom-tab {{ request()->routeIs('portal.profile') ? 'active' : '' }}">
-        <i class="fas fa-circle-user"></i><span>Perfil</span>
-    </a>
+{{-- ── Bottom tab bar (mobile/tablet, oculto em lg+) ── --}}
+<nav class="bottom-tabbar fixed bottom-0 inset-x-0 lg:hidden z-30"
+     :style="dark
+        ? 'background:rgba(15,23,42,0.96);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(51,65,85,0.55);box-shadow:0 -4px 24px rgba(0,0,0,0.3);'
+        : 'background:rgba(255,255,255,0.93);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.06);box-shadow:0 -4px 24px rgba(0,0,0,0.07);'">
+    <div class="flex items-end">
+
+        {{-- Início --}}
+        <a href="{{ route('portal.dashboard') }}"
+           class="bottom-tab {{ request()->routeIs('portal.dashboard') ? 'active' : '' }}">
+            <i class="fas fa-house-chimney"></i>
+            <span>Início</span>
+        </a>
+
+        {{-- Catálogo --}}
+        <a href="{{ route('portal.products') }}"
+           class="bottom-tab {{ request()->routeIs('portal.products') ? 'active' : '' }}">
+            <i class="fas fa-boxes-stacked"></i>
+            <span>Catálogo</span>
+        </a>
+
+        {{-- CARRINHO — botão central elevado --}}
+        <a href="{{ route('portal.quotes.create') }}"
+           class="relative flex flex-col items-center flex-1 -mt-4"
+           style="text-decoration:none">
+            {{-- círculo elevado --}}
+            <div class="w-14 h-14 rounded-full flex items-center justify-center shadow-lg
+                        {{ request()->routeIs('portal.quotes.create') ? 'ring-2 ring-white ring-offset-2' : '' }}"
+                 style="background:linear-gradient(135deg,#0ea5e9,#6366f1);box-shadow:0 6px 20px rgba(99,102,241,0.45)">
+                <i class="fas fa-basket-shopping text-white" style="font-size:1.25rem"></i>
+                {{-- Badge do carrinho via localStorage --}}
+                <span x-show="cartCount > 0"
+                      x-text="cartCount > 9 ? '9+' : cartCount"
+                      class="absolute -top-0.5 -right-0.5 min-w-[1.1rem] h-[1.1rem] bg-rose-500 text-white rounded-full text-[9px] font-black flex items-center justify-center px-[3px] shadow"
+                      x-cloak></span>
+            </div>
+            <span class="mt-1 text-[10px] font-bold"
+                  style="color: {{ request()->routeIs('portal.quotes.create') ? '#0ea5e9' : '#64748b' }}">Carrinho</span>
+        </a>
+
+        {{-- Pedidos --}}
+        <a href="{{ route('portal.quotes') }}"
+           class="bottom-tab {{ request()->routeIs('portal.quotes') && !request()->routeIs('portal.quotes.create') ? 'active' : '' }}">
+            <div class="relative">
+                <i class="fas fa-file-lines"></i>
+                @if($portalQuoteAlerts > 0)
+                <span class="absolute -top-1.5 -right-2 w-4 h-4 bg-amber-400 text-slate-900 rounded-full text-[8px] font-black flex items-center justify-center">{{ $portalQuoteAlerts }}</span>
+                @endif
+            </div>
+            <span>Pedidos</span>
+        </a>
+
+        {{-- Perfil --}}
+        <a href="{{ route('portal.profile') }}"
+           class="bottom-tab {{ request()->routeIs('portal.profile') ? 'active' : '' }}">
+            <i class="fas fa-circle-user"></i>
+            <span>Perfil</span>
+        </a>
+
+    </div>
 </nav>
 
 </div>{{-- /alpine --}}
