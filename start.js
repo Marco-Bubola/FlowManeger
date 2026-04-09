@@ -177,7 +177,7 @@ async function runAll() {
   }
 
   // 3. Iniciar servidor Laravel em background
-  const serverProc = runBackground('php artisan serve', 'Laravel Server');
+  const serverProc = runBackground('php artisan serve --host=0.0.0.0 --port=8000', 'Laravel Server');
 
   // 4. Aguardar servidor estar pronto
   if (!dryRun) {
