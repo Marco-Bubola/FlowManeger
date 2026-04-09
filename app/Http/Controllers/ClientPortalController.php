@@ -24,15 +24,42 @@ use Laravel\Socialite\Facades\Socialite;
 
 class ClientPortalController extends Controller
 {
+    // ─── Entrada pública do portal ─────────────────────────────────────────────
+
+    /**
+     * Rota pública /portal — sem autenticação.
+     * Autenticados: vão ao dashboard. Convidados: catálogo (cookie) ou login.
+     */
+    public function portalHome(Request $request)
+    {
+        if (Auth::guard('portal')->check()) {
+            /** @var \App\Models\Client $client */
+            $client = Auth::guard('portal')->user();
+            return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
+        }
+
+        $ownerId = $request->cookie('portal_store');
+        if ($ownerId) {
+            return redirect()->route('portal.catalog', ['userId' => $ownerId]);
+        }
+
+        return redirect()->route('portal.login');
+    }
+
     // ─── Login / Logout ────────────────────────────────────────────────────────
 
-    public function showLogin()
+    public function showLogin(Request $request)
     {
         if (Auth::guard('portal')->check()) {
             /** @var \App\Models\Client $client */
             $client = Auth::guard('portal')->user();
 
             return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
+        }
+
+        // Salva intenção de redirecionar ao carrinho após login
+        if ($request->query('redirect') === 'cart') {
+            $request->session()->put('portal_intended', 'cart');
         }
 
         return view('portal.login');
@@ -128,6 +155,12 @@ class ClientPortalController extends Controller
 
             Auth::guard('portal')->login($client, true);
             request()->session()->regenerate();
+
+            // Se veio do carrinho, retorna ao carrinho após login
+            $intended = request()->session()->pull('portal_intended');
+            if ($intended === 'cart') {
+                return redirect()->route('portal.quotes.create');
+            }
 
             return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
         } catch (\Throwable $exception) {
@@ -249,6 +282,12 @@ class ClientPortalController extends Controller
         // Salva cookie para catálogo público (30 dias)
         cookie()->queue('portal_store', (string) $client->user_id, 60 * 24 * 30);
 
+        // Se veio do carrinho, retorna ao carrinho após login
+        $intended = $request->session()->pull('portal_intended');
+        if ($intended === 'cart') {
+            return redirect()->route('portal.quotes.create');
+        }
+
         return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
     }
 
@@ -324,7 +363,7 @@ class ClientPortalController extends Controller
             ->where('user_id', $client->user_id)
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
-            ->with('category');
+            ->with(['category', 'images']);
 
         if ($search) {
             $query->where(function ($q) use ($search) {
