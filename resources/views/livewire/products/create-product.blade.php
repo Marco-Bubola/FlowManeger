@@ -337,6 +337,70 @@
                             height="h-[500px]" />
                     </div>
 
+                    {{-- ── ML barcode image importer ── --}}
+                    <div class="mt-6 border-t border-slate-700/50 pt-6">
+                        <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+                            <div class="flex items-center gap-2 mb-3">
+                                <div class="w-7 h-7 rounded-lg bg-yellow-400/15 flex items-center justify-center flex-shrink-0">
+                                    <i class="fas fa-barcode text-yellow-400 text-xs"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-bold text-slate-200">Importar imagens do Mercado Livre</p>
+                                    <p class="text-[10px] text-slate-400">Selecione as imagens antes de salvar — serão vinculadas automaticamente</p>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-2">
+                                <input type="text"
+                                       wire:model="barcode"
+                                       placeholder="Código de barras"
+                                       class="flex-1 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                                <button type="button"
+                                        wire:click="searchMlImages"
+                                        wire:loading.attr="disabled"
+                                        class="px-3 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 font-bold text-xs rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5">
+                                    <span wire:loading.remove wire:target="searchMlImages">
+                                        <i class="fas fa-magnifying-glass text-[10px]"></i> Buscar
+                                    </span>
+                                    <span wire:loading wire:target="searchMlImages">
+                                        <i class="fas fa-spinner fa-spin text-[10px]"></i> Buscando…
+                                    </span>
+                                </button>
+                            </div>
+
+                            @if($mlSearchError)
+                            <p class="mt-2 text-xs text-red-400 flex items-center gap-1">
+                                <i class="fas fa-circle-exclamation text-[10px]"></i> {{ $mlSearchError }}
+                            </p>
+                            @endif
+
+                            @if(count($mlImageResults) > 0)
+                            <div class="mt-3">
+                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selecione as imagens:</p>
+                                <div class="grid grid-cols-4 gap-2">
+                                    @foreach($mlImageResults as $i => $url)
+                                    <label class="relative cursor-pointer group">
+                                        <input type="checkbox"
+                                               wire:model="selectedMlImages.{{ $i }}"
+                                               class="sr-only peer">
+                                        <div class="aspect-square rounded-lg overflow-hidden border-2 transition-all
+                                                    peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500/30
+                                                    border-slate-700 hover:border-slate-500 bg-slate-800">
+                                            <img src="{{ $url }}" alt="Foto ML {{ $i+1 }}" class="w-full h-full object-cover" loading="lazy">
+                                        </div>
+                                        <div class="absolute inset-0 rounded-lg bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
+                                            <i class="fas fa-check text-white text-lg drop-shadow"></i>
+                                        </div>
+                                    </label>
+                                    @endforeach
+                                </div>
+                                <p class="mt-2 text-[10px] text-slate-500 italic">As imagens marcadas serão salvas automaticamente ao criar o produto.</p>
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                    {{-- /ML importer --}}
+
                     <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
                         <i class="bi bi-info-circle text-blue-400 mt-0.5"></i>
                         <p>JPG, PNG, JPEG • Máx 2MB • Recomendado: 800x800px</p>
