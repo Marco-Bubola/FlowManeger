@@ -79,7 +79,6 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 0
-          tar_exec: C:/Windows/System32/tar.exe
           tar_tmp_path: C:/Windows/Temp/
 
       - name: Upload public files to HOSTOO_PUBLIC_PATH
@@ -94,7 +93,6 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 1
-          tar_exec: C:/Windows/System32/tar.exe
           tar_tmp_path: C:/Windows/Temp/
 
       - name: Run remote post-deploy commands
