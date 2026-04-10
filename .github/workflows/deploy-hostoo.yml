@@ -67,6 +67,17 @@ jobs:
           [ -n "$HOSTOO_APP_PATH" ] || (echo "Secret HOSTOO_APP_PATH não definido" && exit 1)
           [ -n "$HOSTOO_PUBLIC_PATH" ] || (echo "Secret HOSTOO_PUBLIC_PATH não definido" && exit 1)
 
+      - name: Criar diretórios remotos
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          script: |
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
+            mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+
       - name: Upload app to HOSTOO_APP_PATH
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -79,7 +90,6 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 0
-          tar_tmp_path: C:/Windows/Temp/
 
       - name: Upload public files to HOSTOO_PUBLIC_PATH
         uses: appleboy/scp-action@v0.1.7
@@ -93,7 +103,6 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 1
-          tar_tmp_path: C:/Windows/Temp/
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
