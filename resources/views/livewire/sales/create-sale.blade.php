@@ -1282,10 +1282,9 @@
     </div>
 @endif
 
-@push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
 <script>
-    function createSalePage(currentStepModel, openScannerOnLoad = false) {
+    window.createSalePage = function createSalePage(currentStepModel, openScannerOnLoad = false) {
         return {
             currentStep: Number.parseInt(currentStepModel, 10) || 1,
             openScannerOnLoad: Boolean(openScannerOnLoad),
@@ -1625,7 +1624,6 @@
                 }
             }
         };
-    }
+    };
 </script>
-@endpush
 </div>
