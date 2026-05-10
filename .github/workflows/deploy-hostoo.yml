@@ -107,15 +107,33 @@ jobs:
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
             mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/app/public"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/cache/data"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/sessions"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/views"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/logs"
 
-      - name: Upload app to HOSTOO_APP_PATH
+      - name: Upload PHP core files
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "app,artisan,bootstrap,config,database,resources,routes,scripts,storage,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,.env.example"
+          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example"
+          target: ${{ secrets.HOSTOO_APP_PATH }}
+          rm: false
+          overwrite: true
+          strip_components: 0
+
+      - name: Upload Blade views
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          source: "resources/views"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
