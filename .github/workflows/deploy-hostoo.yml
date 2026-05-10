@@ -80,15 +80,24 @@ jobs:
           port: ${{ secrets.HOSTOO_PORT }}
           script_stop: true
           script: |
-            # Remove diretórios antigos (cleanup)
-            rm -rf "${{ secrets.HOSTOO_APP_PATH }}" || true
-            rm -rf "${{ secrets.HOSTOO_PUBLIC_PATH }}" || true
-            
-            # Cria novos diretórios com permissões adequadas
+            # Nao remover APP_PATH/PUBLIC_PATH: isso apaga .env e quebra o deploy.
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
-            mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/public"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/app/public"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/cache/data"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/sessions"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/views"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/logs"
             chmod 777 "${{ secrets.HOSTOO_APP_PATH }}"
-            chmod 777 "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+
+            EXPECTED_PUBLIC="${{ secrets.HOSTOO_APP_PATH }}/public"
+            CURRENT_PUBLIC="$(readlink -f "${{ secrets.HOSTOO_PUBLIC_PATH }}" 2>/dev/null || echo '')"
+            if [ "$CURRENT_PUBLIC" != "$EXPECTED_PUBLIC" ]; then
+              rm -rf "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+              ln -s "$EXPECTED_PUBLIC" "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+              echo "Symlink corrigido: ${{ secrets.HOSTOO_PUBLIC_PATH }} -> $EXPECTED_PUBLIC"
+            fi
             
             # Verifica espaço em disco
             df -h "${{ secrets.HOSTOO_APP_PATH }}"
@@ -131,7 +140,7 @@ jobs:
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
           source: "public/.htaccess,public/index.php,public/robots.txt,public/assets,public/build,public/storage,public/js"
-          target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
+          target: ${{ secrets.HOSTOO_APP_PATH }}/public
           rm: false
           overwrite: true
           strip_components: 1
@@ -152,6 +161,7 @@ jobs:
           envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
+            [ -f .env ] || { echo "ERRO: arquivo .env nao encontrado em $PWD"; exit 1; }
             mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
             composer install --no-dev --no-scripts
             php artisan package:discover --ansi || true
@@ -165,7 +175,7 @@ jobs:
             echo "Local create-sale SHA:  $LOCAL_CREATE_SALE_SHA"
             echo "Remote create-sale SHA: $REMOTE_CREATE_SALE_SHA"
             [ "$REMOTE_CREATE_SALE_SHA" = "$LOCAL_CREATE_SALE_SHA" ] || { echo "ERRO: SHA mismatch"; php artisan up; exit 1; }
-            printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_PUBLIC_PATH }}/deploy-sha.txt"
+            printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_APP_PATH }}/public/deploy-sha.txt"
             php artisan queue:restart
             php artisan up
             echo "=== Deploy OK ==="
