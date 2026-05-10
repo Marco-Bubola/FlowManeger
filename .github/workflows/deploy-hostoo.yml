@@ -51,6 +51,10 @@ jobs:
       - name: Build Assets
         run: npm run build
 
+      - name: Compute local view hash
+        run: |
+          echo "LOCAL_CREATE_SALE_SHA=$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')" >> "$GITHUB_ENV"
+
       - name: Validate required deploy secrets
         env:
           HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
@@ -158,6 +162,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         env:
           GITHUB_SHA: ${{ github.sha }}
+          LOCAL_CREATE_SALE_SHA: ${{ env.LOCAL_CREATE_SALE_SHA }}
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
@@ -166,7 +171,7 @@ jobs:
           timeout: 120s
           command_timeout: 10m
           script_stop: true
-          envs: GITHUB_SHA
+          envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             php artisan down --retry=60 || true
@@ -176,6 +181,15 @@ jobs:
             php artisan optimize:clear
             php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache reset executado'.PHP_EOL; }"
             php artisan optimize
+            REMOTE_CREATE_SALE_SHA="$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')"
+            echo "Local create-sale SHA:  $LOCAL_CREATE_SALE_SHA"
+            echo "Remote create-sale SHA: $REMOTE_CREATE_SALE_SHA"
+            [ "$REMOTE_CREATE_SALE_SHA" = "$LOCAL_CREATE_SALE_SHA" ] || {
+              echo "ERRO: a view create-sale no servidor nao bate com a versao do commit."
+              echo "Provavel caminho remoto incorreto (app_path/document root desalinhados)."
+              php artisan up
+              exit 1
+            }
             printf '%s\n' "$GITHUB_SHA" > storage/app/deploy-sha.txt
             printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_PUBLIC_PATH }}/deploy-sha.txt"
             php artisan queue:restart
