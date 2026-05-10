@@ -11,8 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (! Schema::hasTable('client_quote_requests')) {
+            return;
+        }
+
         Schema::table('client_quote_requests', function (Blueprint $table) {
-            $table->string('payment_preference')->nullable()->after('client_notes');
+            if (! Schema::hasColumn('client_quote_requests', 'payment_preference')) {
+                $table->string('payment_preference')->nullable();
+            }
         });
     }
 
@@ -21,6 +27,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (! Schema::hasTable('client_quote_requests') || ! Schema::hasColumn('client_quote_requests', 'payment_preference')) {
+            return;
+        }
+
         Schema::table('client_quote_requests', function (Blueprint $table) {
             $table->dropColumn('payment_preference');
         });
