@@ -193,3 +193,5 @@ jobs:
             php artisan queue:restart
             php artisan up
             echo "=== Deploy OK ==="
+
+            
