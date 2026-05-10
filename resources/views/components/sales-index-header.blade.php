@@ -93,12 +93,21 @@
                 </button>
             </div>
 
-            <!-- Botão Nova Venda -->
-            <a href="{{ route('sales.create') }}"
-                class="sales-index-header-btn-create group">
-                <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
-                <span>Nova Venda</span>
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('sales.create', ['scanner' => 1]) }}"
+                    class="sales-index-header-btn-create group"
+                    title="Criar venda com scanner">
+                    <i class="bi bi-upc-scan"></i>
+                    <span>Venda com Scanner</span>
+                </a>
+
+                <!-- Botão Nova Venda -->
+                <a href="{{ route('sales.create') }}"
+                    class="sales-index-header-btn-create group">
+                    <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
+                    <span>Nova Venda</span>
+                </a>
+            </div>
             @endif
         </div>
 
