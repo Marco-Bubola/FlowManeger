@@ -74,9 +74,13 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
+          script_stop: true
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
             mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+            chmod 755 "${{ secrets.HOSTOO_APP_PATH }}"
+            chmod 755 "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+            echo "Diretórios criados com sucesso"
 
       - name: Upload app to HOSTOO_APP_PATH
         uses: appleboy/scp-action@v0.1.7
@@ -90,6 +94,9 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 0
+          timeout: 60s
+          command_timeout: 30m
+          debug: true
 
       - name: Upload public files to HOSTOO_PUBLIC_PATH
         uses: appleboy/scp-action@v0.1.7
@@ -103,6 +110,9 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 1
+          timeout: 60s
+          command_timeout: 30m
+          debug: true
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
