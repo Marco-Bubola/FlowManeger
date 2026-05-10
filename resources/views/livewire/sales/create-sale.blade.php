@@ -1060,11 +1060,12 @@
 
     <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
         <div class="relative w-[80%] max-w-[420px] h-[200px]">
+            <div class="absolute inset-0 rounded-2xl border-2 border-emerald-400/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]"></div>
             <div class="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-indigo-400 rounded-tl-lg"></div>
             <div class="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-indigo-400 rounded-tr-lg"></div>
             <div class="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-purple-400 rounded-bl-lg"></div>
             <div class="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-purple-400 rounded-br-lg"></div>
-            <div class="absolute left-4 right-4 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent"></div>
+            <div class="absolute left-4 right-4 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-pulse"></div>
         </div>
     </div>
 
@@ -1492,7 +1493,8 @@
                             if (capabilities && typeof capabilities.zoom !== 'undefined') {
                                 const minZoom = Number(capabilities.zoom.min ?? 1);
                                 const maxZoom = Number(capabilities.zoom.max ?? 10);
-                                const targetZoom = Math.min(Math.max(2.5, minZoom), maxZoom);
+                                const preferredZoom = 1.0;
+                                const targetZoom = Math.min(Math.max(preferredZoom, minZoom), maxZoom);
 
                                 await videoTrack.applyConstraints({
                                     advanced: [{ zoom: targetZoom }]
