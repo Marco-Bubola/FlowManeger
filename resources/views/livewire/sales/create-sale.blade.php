@@ -1,4 +1,4 @@
-<div x-data="{ currentStep: @entangle('currentStep').live }" class="sales-create-page mobile-393-base app-viewport-fit  w-full">
+<div x-data="createSalePage(@entangle('currentStep').live)" x-init="initScanner()" x-on:sale-scan-feedback.window="handleScanFeedback($event.detail)" class="sales-create-page mobile-393-base app-viewport-fit w-full">
     <!-- CSS base + responsivo modular por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -15,6 +15,25 @@
             padding: 0 !important;
         }
     </style>
+
+    <div x-show="scanToast.visible"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 -translate-y-2"
+         x-transition:enter-end="opacity-100 translate-y-0"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed top-4 right-4 z-[10000]"
+         style="display:none;">
+        <div class="px-4 py-3 rounded-xl shadow-xl text-white text-sm font-semibold"
+             :class="{
+                'bg-emerald-600': scanToast.type === 'success',
+                'bg-amber-500': scanToast.type === 'warning',
+                'bg-red-600': scanToast.type === 'error',
+                'bg-slate-700': !['success','warning','error'].includes(scanToast.type)
+             }"
+             x-text="scanToast.message"></div>
+    </div>
 
     <!-- Header Flutuante / Sticky -->
     <div class="create-sale-sticky-header">
@@ -173,6 +192,37 @@
                                         </span>
                                     </label>
                                 </div>
+
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <button type="button"
+                                            @click="openScanner()"
+                                            class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-semibold shadow hover:shadow-lg transition-all">
+                                        <i class="bi bi-upc-scan"></i>
+                                        <span class="hidden sm:inline">Scanner</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="mt-2 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
+                                <div class="w-full sm:max-w-sm">
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <i class="bi bi-123 text-slate-400"></i>
+                                        </div>
+                                        <input type="text"
+                                               x-model="manualScanCode"
+                                               @keydown.enter.prevent="submitManualCode()"
+                                               placeholder="Bip manual: digite o codigo e tecle Enter"
+                                               class="w-full pl-10 pr-10 py-2 border border-slate-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                                        <button type="button"
+                                                @click="submitManualCode()"
+                                                class="absolute inset-y-0 right-0 px-3 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100">
+                                            <i class="bi bi-arrow-right-circle"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="text-xs text-slate-600 dark:text-slate-300" x-show="lastScanMessage" x-text="lastScanMessage"></div>
                             </div>
                         </div>
 
@@ -986,6 +1036,77 @@
     </form>
 </div>
 
+<div x-show="scannerOpen"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[9999] p-3 sm:p-6"
+     style="display:none; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(6px);">
+
+    <div class="w-full h-full max-w-5xl mx-auto bg-slate-950/95 border border-slate-700 rounded-2xl overflow-hidden flex flex-col">
+        <div class="px-4 py-3 border-b border-slate-700 flex items-center justify-between gap-3">
+            <div class="min-w-0">
+                <h3 class="text-white font-bold truncate">Scanner de Codigo de Barras</h3>
+                <p class="text-slate-300 text-xs">Aponte a camera para o codigo. O item entra automaticamente na venda.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button"
+                        @click="toggleScannerFacing()"
+                        class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">
+                    Trocar Camera
+                </button>
+                <button type="button"
+                        @click="closeScanner()"
+                        class="px-3 py-2 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-500">
+                    Fechar
+                </button>
+            </div>
+        </div>
+
+        <div class="relative flex-1 min-h-0">
+            <video x-ref="scannerVideo" class="w-full h-full object-cover bg-black" playsinline muted></video>
+            <canvas x-ref="scannerCanvas" class="hidden"></canvas>
+
+            <div class="absolute inset-x-0 top-0 p-3">
+                <div class="mx-auto max-w-md bg-black/50 border border-white/20 rounded-xl p-2 text-center text-xs text-white font-medium"
+                     x-text="scannerStatus"></div>
+            </div>
+
+            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+                <div class="w-[80%] max-w-lg h-40 border-2 border-emerald-400/80 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]"></div>
+            </div>
+
+            <div class="absolute inset-x-0 bottom-0 p-3">
+                <div class="mx-auto max-w-xl bg-slate-900/70 border border-slate-600 rounded-xl p-3 text-xs text-slate-200">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                        <div class="min-w-0">
+                            <span x-text="lastDetectedCode ? 'Ultimo codigo: ' + lastDetectedCode : 'Nenhum codigo lido ainda'"></span>
+                            <p x-show="lastScannedProduct" class="mt-1 text-[11px] text-emerald-300 truncate" x-text="lastScannedProduct ? 'Ultimo item: ' + lastScannedProduct.name + ' | qtd: ' + lastScannedProduct.quantity : ''"></p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button"
+                                    @click="undoLastScan()"
+                                    :disabled="!lastScannedProduct"
+                                    class="px-3 py-1.5 rounded-lg bg-slate-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                Desfazer ultimo
+                            </button>
+                            <button type="button"
+                                    @click="submitDetectedCode()"
+                                    :disabled="!lastDetectedCode"
+                                    class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                                Reenviar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Notificações -->
 @if (session()->has('success'))
 <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
@@ -1148,4 +1269,286 @@
         </div>
     </div>
 @endif
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
+<script>
+    function createSalePage(currentStepModel) {
+        return {
+            currentStep: currentStepModel,
+            scannerOpen: false,
+            scannerStatus: 'Inicie o scanner para ler o codigo de barras.',
+            scannerFacing: 'environment',
+            scannerStream: null,
+            scanLoopId: null,
+            scanCooldown: false,
+            detector: null,
+            lastDetectedCode: '',
+            lastProcessedCode: '',
+            lastProcessedAt: 0,
+            lastScannedProduct: null,
+            manualScanCode: '',
+            lastScanMessage: '',
+            lastQuaggaRunAt: 0,
+            scanToast: {
+                visible: false,
+                type: 'success',
+                message: '',
+            },
+
+            initScanner() {
+                this.detector = ('BarcodeDetector' in window)
+                    ? new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] })
+                    : null;
+            },
+
+            showToast(message, type = 'success') {
+                this.scanToast.message = message;
+                this.scanToast.type = type;
+                this.scanToast.visible = true;
+                setTimeout(() => {
+                    this.scanToast.visible = false;
+                }, 2500);
+            },
+
+            handleScanFeedback(detail) {
+                if (!detail) {
+                    return;
+                }
+
+                const type = detail.type || 'success';
+                const message = detail.message || 'Leitura processada.';
+                const quantity = detail.quantity ? ` | qtd: ${detail.quantity}` : '';
+
+                if (detail.action === 'add' && detail.productId) {
+                    this.lastScannedProduct = {
+                        id: detail.productId,
+                        name: detail.productName || '',
+                        quantity: detail.quantity || 1,
+                    };
+                }
+
+                if (detail.action === 'undo') {
+                    if (detail.productId && detail.quantity > 0) {
+                        this.lastScannedProduct = {
+                            id: detail.productId,
+                            name: detail.productName || '',
+                            quantity: detail.quantity,
+                        };
+                    } else {
+                        this.lastScannedProduct = null;
+                    }
+                }
+
+                this.lastScanMessage = `${message}${quantity}`;
+                this.scannerStatus = this.lastScanMessage;
+                this.showToast(message, type);
+                this.playBeep(type === 'error' ? 300 : 1200, type === 'error' ? 0.2 : 0.08);
+            },
+
+            async openScanner() {
+                this.scannerOpen = true;
+                this.scannerStatus = 'Abrindo camera...';
+                await this.startScanner();
+            },
+
+            async closeScanner() {
+                this.stopScanner();
+                this.scannerOpen = false;
+                this.scannerStatus = 'Scanner fechado.';
+            },
+
+            async toggleScannerFacing() {
+                this.scannerFacing = this.scannerFacing === 'environment' ? 'user' : 'environment';
+                await this.startScanner();
+            },
+
+            async startScanner() {
+                this.stopScanner();
+
+                try {
+                    this.scannerStream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            facingMode: { ideal: this.scannerFacing },
+                            width: { ideal: 1280 },
+                            height: { ideal: 720 }
+                        },
+                        audio: false
+                    });
+
+                    const video = this.$refs.scannerVideo;
+                    if (!video) {
+                        this.scannerStatus = 'Elemento de video indisponivel.';
+                        return;
+                    }
+
+                    video.srcObject = this.scannerStream;
+                    await video.play();
+                    this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
+                    this.scanFrames();
+                } catch (error) {
+                    this.scannerStatus = 'Nao foi possivel acessar a camera.';
+                    this.showToast('Permita o acesso a camera para usar o scanner.', 'error');
+                    console.error(error);
+                }
+            },
+
+            stopScanner() {
+                if (this.scanLoopId) {
+                    cancelAnimationFrame(this.scanLoopId);
+                    this.scanLoopId = null;
+                }
+
+                const video = this.$refs.scannerVideo;
+                if (video) {
+                    video.pause();
+                    video.srcObject = null;
+                }
+
+                if (this.scannerStream) {
+                    this.scannerStream.getTracks().forEach(track => track.stop());
+                    this.scannerStream = null;
+                }
+            },
+
+            scanFrames() {
+                const video = this.$refs.scannerVideo;
+                const canvas = this.$refs.scannerCanvas;
+                if (!video || !canvas || video.readyState < 2) {
+                    this.scanLoopId = requestAnimationFrame(() => this.scanFrames());
+                    return;
+                }
+
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                if (!this.scanCooldown) {
+                    if (this.detector) {
+                        this.detectWithNative(canvas);
+                    } else {
+                        this.detectWithQuagga(canvas);
+                    }
+                }
+
+                this.scanLoopId = requestAnimationFrame(() => this.scanFrames());
+            },
+
+            async detectWithNative(canvas) {
+                try {
+                    const codes = await this.detector.detect(canvas);
+                    if (codes && codes.length > 0) {
+                        const value = (codes[0].rawValue || '').trim();
+                        if (value) {
+                            this.processDetectedCode(value);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('BarcodeDetector detect error', error);
+                }
+            },
+
+            detectWithQuagga(canvas) {
+                const now = Date.now();
+                if (now - this.lastQuaggaRunAt < 700 || !window.Quagga || !window.Quagga.decodeSingle) {
+                    return;
+                }
+
+                this.lastQuaggaRunAt = now;
+
+                window.Quagga.decodeSingle({
+                    src: canvas.toDataURL('image/png'),
+                    numOfWorkers: 0,
+                    locate: true,
+                    inputStream: {
+                        size: 1200,
+                        singleChannel: true,
+                    },
+                    decoder: {
+                        readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader', 'code_39_reader', 'i2of5_reader']
+                    }
+                }, (result) => {
+                    const value = result && result.codeResult ? result.codeResult.code : '';
+                    if (value) {
+                        this.processDetectedCode(value);
+                    }
+                });
+            },
+
+            processDetectedCode(code) {
+                if (!code || this.scanCooldown) {
+                    return;
+                }
+
+                const normalizedCode = String(code).trim();
+                const now = Date.now();
+                if (
+                    normalizedCode === this.lastProcessedCode &&
+                    now - this.lastProcessedAt < 1400
+                ) {
+                    this.scannerStatus = `Leitura repetida ignorada: ${normalizedCode}`;
+                    return;
+                }
+
+                this.scanCooldown = true;
+                this.lastDetectedCode = normalizedCode;
+                this.lastProcessedCode = normalizedCode;
+                this.lastProcessedAt = now;
+                this.scannerStatus = `Codigo lido: ${normalizedCode}`;
+                this.$wire.addProductByBarcode(normalizedCode);
+
+                setTimeout(() => {
+                    this.scanCooldown = false;
+                }, 900);
+            },
+
+            submitDetectedCode() {
+                if (!this.lastDetectedCode) {
+                    return;
+                }
+
+                this.$wire.addProductByBarcode(this.lastDetectedCode);
+            },
+
+            undoLastScan() {
+                if (!this.lastScannedProduct) {
+                    this.showToast('Nenhum item recente para desfazer.', 'warning');
+                    return;
+                }
+
+                this.$wire.undoLastScannedProduct();
+            },
+
+            submitManualCode() {
+                const code = (this.manualScanCode || '').trim();
+                if (!code) {
+                    this.showToast('Digite um codigo antes de enviar.', 'warning');
+                    return;
+                }
+
+                this.$wire.addProductByBarcode(code);
+                this.manualScanCode = '';
+            },
+
+            playBeep(frequency = 1200, duration = 0.08) {
+                try {
+                    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = frequency;
+                    gain.gain.value = 0.2;
+                    osc.start();
+                    osc.stop(ctx.currentTime + duration);
+                } catch (e) {
+                    // noop
+                }
+            }
+        };
+    }
+</script>
+@endpush
 </div>
