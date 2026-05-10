@@ -90,10 +90,9 @@ jobs:
             exit 1
           }
 
-          echo "Testando conectividade TCP com o servidor SSH..."
-          timeout 15 bash -lc "</dev/tcp/$HOSTOO_HOST/$HOSTOO_PORT" || {
-            echo "Não foi possível conectar em $HOSTOO_HOST:$HOSTOO_PORT a partir do runner do GitHub Actions."
-            echo "Verifique host, porta, firewall, whitelist e se o SSH está ativo no servidor."
+          echo "Testando conectividade TCP na porta SSH..."
+          timeout 15 bash -c "</dev/tcp/$HOSTOO_HOST/$HOSTOO_PORT" 2>/dev/null && echo "Porta acessível." || {
+            echo "Porta $HOSTOO_PORT fechada ou filtrada. Verifique firewall/host."
             exit 1
           }
 
@@ -105,6 +104,7 @@ jobs:
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
           timeout: 30s
+          cipher: hmac-sha2-512
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
             mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
@@ -116,6 +116,7 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
+          cipher: hmac-sha2-512
           source: "app,artisan,bootstrap,config,database,resources,routes,scripts,storage,vendor,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,.env.example"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
@@ -129,6 +130,7 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
+          cipher: hmac-sha2-512
           source: "public/.htaccess,public/*"
           target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
           rm: false
@@ -143,6 +145,7 @@ jobs:
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
           timeout: 30s
+          cipher: hmac-sha2-512
           script_stop: true
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
