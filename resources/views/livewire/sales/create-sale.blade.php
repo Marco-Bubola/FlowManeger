@@ -1050,69 +1050,78 @@
      x-transition:leave="transition ease-in duration-150"
      x-transition:leave-start="opacity-100"
      x-transition:leave-end="opacity-0"
-     class="fixed inset-0 z-[9999] p-3 sm:p-6"
-     style="display:none; background: rgba(2, 6, 23, 0.85); backdrop-filter: blur(6px);">
+     class="fixed inset-0 z-[9999] bg-black"
+     style="display:none;">
 
-    <div class="w-full h-full max-w-5xl mx-auto bg-slate-950/95 border border-slate-700 rounded-2xl overflow-hidden flex flex-col">
-        <div class="px-4 py-3 border-b border-slate-700 flex items-center justify-between gap-3">
-            <div class="min-w-0">
-                <h3 class="text-white font-bold truncate">Scanner de Codigo de Barras</h3>
-                <p class="text-slate-300 text-xs">Aponte a camera para o codigo. O item entra automaticamente na venda.</p>
+    <div class="absolute inset-0">
+        <video x-ref="scannerVideo" class="w-full h-full object-cover bg-black" playsinline muted autoplay></video>
+        <canvas x-ref="scannerCanvas" class="hidden"></canvas>
+    </div>
+
+    <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
+        <div class="relative w-[80%] max-w-[420px] h-[200px]">
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-indigo-400 rounded-tl-lg"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-indigo-400 rounded-tr-lg"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-purple-400 rounded-bl-lg"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-purple-400 rounded-br-lg"></div>
+            <div class="absolute left-4 right-4 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent"></div>
+        </div>
+    </div>
+
+    <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/75 to-transparent">
+        <div class="flex items-center justify-between gap-2">
+            <button type="button" @click="closeScanner()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95">
+                <i class="fas fa-arrow-left text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md max-w-[70vw]">
+                <span class="relative flex h-2.5 w-2.5">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+                <span class="text-white/90 text-xs font-semibold truncate" x-text="scannerStatus"></span>
             </div>
-            <div class="flex items-center gap-2">
-                <button type="button"
-                        @click="startScanner()"
-                        class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500">
-                    Ativar Camera
-                </button>
-                <button type="button"
-                        @click="toggleScannerFacing()"
-                        class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">
-                    Trocar Camera
-                </button>
-                <button type="button"
-                        @click="closeScanner()"
-                        class="px-3 py-2 rounded-lg text-xs font-semibold bg-red-600 text-white hover:bg-red-500">
-                    Fechar
-                </button>
+
+            <button type="button" @click="toggleScannerFacing()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95">
+                <i class="fas fa-camera-rotate text-lg"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/80 to-transparent">
+        <div x-show="pendingCode" x-transition class="mb-4 mx-auto max-w-sm">
+            <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl px-4 py-3 border border-emerald-500/50 shadow-2xl">
+                <p class="text-[10px] text-emerald-400 uppercase font-black tracking-widest mb-1 text-center">Codigo detectado</p>
+                <p class="text-white font-black font-mono text-xl text-center tracking-wider mb-3" x-text="pendingCode"></p>
+                <div class="flex gap-2">
+                    <button @click="confirmDetectedCode()" class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-black text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+                        <i class="fas fa-check"></i> Confirmar
+                    </button>
+                    <button @click="rejectDetectedCode()" class="flex-1 py-3 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-bold text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-camera"></i> Continuar
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div class="relative flex-1 min-h-0">
-            <video x-ref="scannerVideo" class="w-full h-full object-cover bg-black" playsinline muted autoplay></video>
-            <canvas x-ref="scannerCanvas" class="hidden"></canvas>
-
-            <div class="absolute inset-x-0 top-0 p-3">
-                <div class="mx-auto max-w-md bg-black/50 border border-white/20 rounded-xl p-2 text-center text-xs text-white font-medium"
-                     x-text="scannerStatus"></div>
-            </div>
-
-            <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                <div class="w-[80%] max-w-lg h-40 border-2 border-emerald-400/80 rounded-2xl shadow-[0_0_0_9999px_rgba(0,0,0,0.25)]"></div>
-            </div>
-
-            <div class="absolute inset-x-0 bottom-0 p-3">
-                <div class="mx-auto max-w-xl bg-slate-900/70 border border-slate-600 rounded-xl p-3 text-xs text-slate-200">
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div class="min-w-0">
-                            <span x-text="lastDetectedCode ? 'Ultimo codigo: ' + lastDetectedCode : 'Nenhum codigo lido ainda'"></span>
-                            <p x-show="lastScannedProduct" class="mt-1 text-[11px] text-emerald-300 truncate" x-text="lastScannedProduct ? 'Ultimo item: ' + lastScannedProduct.name + ' | qtd: ' + lastScannedProduct.quantity : ''"></p>
-                        </div>
-                        <div class="flex flex-wrap items-center gap-2">
-                            <button type="button"
-                                    @click="undoLastScan()"
-                                    :disabled="!lastScannedProduct"
-                                    class="px-3 py-1.5 rounded-lg bg-slate-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                                Desfazer ultimo
-                            </button>
-                            <button type="button"
-                                    @click="submitDetectedCode()"
-                                    :disabled="!lastDetectedCode"
-                                    class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                                Reenviar
-                            </button>
-                        </div>
-                    </div>
+        <div class="mx-auto max-w-xl bg-slate-900/70 border border-slate-600 rounded-xl p-3 text-xs text-slate-200">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div class="min-w-0">
+                    <span x-text="lastDetectedCode ? 'Ultimo codigo: ' + lastDetectedCode : 'Nenhum codigo lido ainda'"></span>
+                    <p x-show="lastScannedProduct" class="mt-1 text-[11px] text-emerald-300 truncate" x-text="lastScannedProduct ? 'Ultimo item: ' + lastScannedProduct.name + ' | qtd: ' + lastScannedProduct.quantity : ''"></p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button"
+                            @click="startScanner()"
+                            class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold">
+                        Ativar Camera
+                    </button>
+                    <button type="button"
+                            @click="undoLastScan()"
+                            :disabled="!lastScannedProduct"
+                            class="px-3 py-1.5 rounded-lg bg-slate-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+                        Desfazer ultimo
+                    </button>
                 </div>
             </div>
         </div>
@@ -1296,6 +1305,7 @@
             scanCooldown: false,
             detector: null,
             lastDetectedCode: '',
+            pendingCode: null,
             lastProcessedCode: '',
             lastProcessedAt: 0,
             lastScannedProduct: null,
@@ -1370,6 +1380,8 @@
                         name: detail.productName || '',
                         quantity: detail.quantity || 1,
                     };
+                    this.pendingCode = null;
+                    this.scanCooldown = false;
                 }
 
                 if (detail.action === 'undo') {
@@ -1388,6 +1400,7 @@
                 this.scannerStatus = this.lastScanMessage;
                 this.showToast(message, type);
                 this.playBeep(type === 'error' ? 300 : 1200, type === 'error' ? 0.2 : 0.08);
+                this.scanCooldown = false;
             },
 
             async openScanner() {
@@ -1402,6 +1415,8 @@
             async closeScanner() {
                 this.stopScanner();
                 this.scannerOpen = false;
+                this.pendingCode = null;
+                this.scanCooldown = false;
                 this.scannerStatus = 'Scanner fechado.';
             },
 
@@ -1617,20 +1632,25 @@
                 this.lastDetectedCode = normalizedCode;
                 this.lastProcessedCode = normalizedCode;
                 this.lastProcessedAt = now;
-                this.scannerStatus = `Codigo lido: ${normalizedCode}`;
-                this.$wire.addProductByBarcode(normalizedCode);
-
-                setTimeout(() => {
-                    this.scanCooldown = false;
-                }, 900);
+                this.pendingCode = normalizedCode;
+                this.scannerStatus = `Codigo detectado: ${normalizedCode}. Confirme para adicionar.`;
+                this.playBeep(1200, 0.08);
             },
 
-            submitDetectedCode() {
-                if (!this.lastDetectedCode) {
+            confirmDetectedCode() {
+                const code = (this.pendingCode || this.lastDetectedCode || '').trim();
+                if (!code) {
                     return;
                 }
 
-                this.$wire.addProductByBarcode(this.lastDetectedCode);
+                this.pendingCode = null;
+                this.$wire.addProductByBarcode(code);
+            },
+
+            rejectDetectedCode() {
+                this.pendingCode = null;
+                this.scanCooldown = false;
+                this.scannerStatus = 'Leitura descartada. Continue apontando para outro codigo.';
             },
 
             undoLastScan() {
