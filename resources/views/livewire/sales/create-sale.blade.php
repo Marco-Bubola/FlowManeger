@@ -1,4 +1,4 @@
-<div x-data="createSalePage(@entangle('currentStep').live, @js(request()->boolean('scanner')))" x-init="initScanner()" x-on:sale-scan-feedback.window="handleScanFeedback($event.detail)" class="sales-create-page mobile-393-base app-viewport-fit w-full">
+<div x-data="createSalePage(@js((int) ($currentStep ?? 1)), @js(request()->boolean('scanner')))" x-init="initScanner()" x-on:sale-scan-feedback.window="handleScanFeedback($event.detail)" class="sales-create-page mobile-393-base app-viewport-fit w-full">
     <!-- CSS base + responsivo modular por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -1287,15 +1287,7 @@
 <script>
     function createSalePage(currentStepModel, openScannerOnLoad = false) {
         return {
-            stepModel: currentStepModel,
-            get currentStep() {
-                const parsed = parseInt(this.stepModel, 10);
-                return Number.isNaN(parsed) ? 1 : parsed;
-            },
-            set currentStep(value) {
-                const parsed = parseInt(value, 10);
-                this.stepModel = Number.isNaN(parsed) ? 1 : parsed;
-            },
+            currentStep: Number.parseInt(currentStepModel, 10) || 1,
             openScannerOnLoad: Boolean(openScannerOnLoad),
             scannerOpen: false,
             scannerStatus: 'Inicie o scanner para ler o codigo de barras.',
@@ -1377,8 +1369,11 @@
 
             async openScanner() {
                 this.scannerOpen = true;
-                this.scannerStatus = 'Abrindo camera...';
-                await this.startScanner();
+                this.scannerStatus = 'Toque em Ativar Camera para iniciar a leitura.';
+
+                if (!this.openScannerOnLoad) {
+                    await this.startScanner();
+                }
             },
 
             async closeScanner() {
