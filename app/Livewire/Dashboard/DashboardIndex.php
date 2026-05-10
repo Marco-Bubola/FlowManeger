@@ -135,6 +135,11 @@ class DashboardIndex extends Component
 
     public int $activityFeedLimit = 40;
 
+    // IA Dashboard Summary
+    public string $aiSummary = '';
+    public bool $aiSummaryLoading = false;
+    public bool $showAiPanel = false;
+
     public function mount()
     {
         $this->selectedMonth = (int) now()->month;
@@ -1143,6 +1148,74 @@ class DashboardIndex extends Component
         $this->atividades = array_slice($this->atividades, 0, $this->activityFeedLimit);
     }
 
+    public function getAiSummary(): void
+    {
+        $this->aiSummaryLoading = true;
+        $this->showAiPanel = true;
+        $this->aiSummary = '';
+
+        $budgetPct = $this->orcamentoMesTotal > 0
+            ? round(($this->orcamentoMesUsado / $this->orcamentoMesTotal) * 100, 1)
+            : 0;
+
+        $prompt =
+            "Você é um assistente financeiro especialista no FlowManager. Analise os dados abaixo e forneça um resumo executivo claro, objetivo e acionável em português do Brasil.\n\n" .
+            "**Período analisado:** {$this->getPeriodLabel()}\n\n" .
+            "**Dados financeiros:**\n" .
+            "- Receitas: R$ " . number_format($this->receitasPeriodo, 2, ',', '.') . "\n" .
+            "- Despesas: R$ " . number_format($this->despesasPeriodo, 2, ',', '.') . "\n" .
+            "- Lucro líquido: R$ " . number_format($this->lucroLiquido, 2, ',', '.') . "\n" .
+            "- Margem operacional: " . number_format($this->margemLucro, 1, ',', '.') . "%\n" .
+            "- Saldo em caixa: R$ " . number_format($this->saldoCaixa, 2, ',', '.') . "\n" .
+            "- Crescimento vs período anterior: " . number_format($this->taxaCrescimento, 1, ',', '.') . "%\n\n" .
+            "**Vendas e clientes:**\n" .
+            "- Vendas no período: {$this->salesMonth}\n" .
+            "- Ticket médio: R$ " . number_format($this->ticketMedio, 2, ',', '.') . "\n" .
+            "- Total de clientes: {$this->totalClientes} ({$this->clientesNovosMes} novos no período)\n" .
+            "- Clientes inadimplentes: {$this->clientesInadimplentes}\n\n" .
+            "**Estoque e produtos:**\n" .
+            "- Produtos ativos em estoque: {$this->produtosAtivos}\n" .
+            "- Produtos com estoque baixo: {$this->produtosEstoqueBaixo}\n\n" .
+            "**Obrigações financeiras:**\n" .
+            "- Contas a receber pendentes: R$ " . number_format($this->contasReceberPendentes, 2, ',', '.') . "\n" .
+            "- Contas a pagar pendentes: R$ " . number_format($this->contasPagarPendentes, 2, ',', '.') . "\n" .
+            "- Parcelas vencidas: {$this->parcelasVencidasCount} (R$ " . number_format($this->parcelasVencidasValor, 2, ',', '.') . ")\n" .
+            "- Orçamento consumido: {$budgetPct}%\n\n" .
+            "Forneça o resumo neste formato exato:\n" .
+            "📊 **Resumo Executivo**\n(2-3 frases sobre a saúde financeira geral)\n\n" .
+            "⚠️ **Pontos de Atenção**\n(até 3 itens críticos que merecem ação imediata; se não houver, diga que está tudo bem)\n\n" .
+            "✅ **Recomendações**\n(2-3 ações práticas e específicas para melhorar os resultados)\n\n" .
+            "Máximo 300 palavras. Seja direto, útil e objetivo.";
+
+        try {
+            $gemini = app(\App\Services\AI\GeminiClient::class);
+
+            if (!$gemini->isConfigured()) {
+                $this->aiSummary = "⚙️ **Assistente IA não configurado**\n\nPara ativar o assistente inteligente, adicione a variável `GEMINI_API_KEY` ao arquivo `.env` do projeto.\n\nObtenha uma chave gratuita em: https://aistudio.google.com/";
+                $this->aiSummaryLoading = false;
+                return;
+            }
+
+            $result = $gemini->generateText($prompt, [
+                'feature' => 'dashboard-insight',
+                'temperature' => 0.35,
+                'max_output_tokens' => 800,
+            ]);
+
+            $this->aiSummary = $result ?? '❌ Não foi possível gerar o resumo. Tente novamente em instantes.';
+        } catch (\Throwable $e) {
+            $this->aiSummary = '⚠️ Erro ao conectar com o assistente de IA. Verifique a configuração da `GEMINI_API_KEY`.';
+        } finally {
+            $this->aiSummaryLoading = false;
+        }
+    }
+
+    public function closeAiPanel(): void
+    {
+        $this->showAiPanel = false;
+        $this->aiSummary = '';
+    }
+
     public function render()
     {
         $totalSales = Sale::where('user_id', Auth::id())->count();
@@ -1228,6 +1301,9 @@ class DashboardIndex extends Component
             'monthOptions' => $this->monthOptions,
             'periodPreset' => $this->periodPreset,
             'periodLabel' => $this->getPeriodLabel(),
+            'aiSummary' => $this->aiSummary,
+            'aiSummaryLoading' => $this->aiSummaryLoading,
+            'showAiPanel' => $this->showAiPanel,
         ]);
     }
 
