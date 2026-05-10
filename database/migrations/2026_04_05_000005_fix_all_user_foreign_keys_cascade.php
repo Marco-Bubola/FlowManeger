@@ -24,7 +24,15 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         foreach ($this->fks as [$table, $fkName]) {
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+
             Schema::table($table, function (Blueprint $blueprint) use ($fkName) {
                 $blueprint->dropForeign($fkName);
                 $blueprint->foreign('user_id', $fkName)
@@ -36,7 +44,15 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         foreach ($this->fks as [$table, $fkName]) {
+            if (! Schema::hasTable($table)) {
+                continue;
+            }
+
             Schema::table($table, function (Blueprint $blueprint) use ($fkName) {
                 $blueprint->dropForeign($fkName);
                 $blueprint->foreign('user_id', $fkName)

@@ -39,7 +39,15 @@ return new class extends Migration
 
     public function up(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         foreach ($this->fks as [$table, $column, $fkName, $refTable, $refColumn, $onDelete]) {
+            if (! Schema::hasTable($table) || ! Schema::hasTable($refTable)) {
+                continue;
+            }
+
             Schema::table($table, function (Blueprint $blueprint) use ($column, $fkName, $refTable, $refColumn, $onDelete) {
                 $blueprint->dropForeign($fkName);
                 $blueprint->foreign($column, $fkName)
@@ -51,7 +59,15 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         foreach ($this->fks as [$table, $column, $fkName, $refTable, $refColumn]) {
+            if (! Schema::hasTable($table) || ! Schema::hasTable($refTable)) {
+                continue;
+            }
+
             Schema::table($table, function (Blueprint $blueprint) use ($column, $fkName, $refTable, $refColumn) {
                 $blueprint->dropForeign($fkName);
                 $blueprint->foreign($column, $fkName)
