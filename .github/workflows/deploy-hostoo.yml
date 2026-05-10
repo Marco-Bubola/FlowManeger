@@ -164,21 +164,22 @@ jobs:
           script_stop: true
           envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
+            echo "[deploy] entrando em APP_PATH"
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             [ -f .env ] || { echo "ERRO: arquivo .env nao encontrado em $PWD"; exit 1; }
-            mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
+            mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+            echo "[deploy] composer install"
             composer install --no-dev --no-scripts
+            echo "[deploy] package discover"
             php artisan package:discover --ansi || true
             DB_CHECK_LOG="${{ secrets.HOSTOO_APP_PATH }}/storage/logs/db-check.log"
-            set +e
-            php artisan migrate:status --no-ansi > "$DB_CHECK_LOG" 2>&1
-            DB_CHECK_EXIT=$?
-            set -e
-            if [ "$DB_CHECK_EXIT" -ne 0 ]; then
+            echo "[deploy] testando conexao de banco"
+            if ! php artisan migrate:status --no-ansi > "$DB_CHECK_LOG" 2>&1; then
               echo "ERRO: falha de conexao com banco. Revise DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME e DB_PASSWORD no .env do servidor."
               tail -n 40 "$DB_CHECK_LOG" || true
               exit 1
             fi
+            echo "[deploy] aplicando migracoes"
             php artisan down --retry=60 || true
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
