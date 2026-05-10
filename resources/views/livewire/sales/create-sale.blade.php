@@ -1059,69 +1059,129 @@
     </div>
 
     <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-        <div class="relative w-[80%] max-w-[420px] h-[200px]">
-            <div class="absolute inset-0 rounded-2xl border-2 border-emerald-400/85 shadow-[0_0_0_9999px_rgba(0,0,0,0.35)]"></div>
-            <div class="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-indigo-400 rounded-tl-lg"></div>
-            <div class="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-indigo-400 rounded-tr-lg"></div>
-            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-purple-400 rounded-bl-lg"></div>
-            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-purple-400 rounded-br-lg"></div>
-            <div class="absolute left-4 right-4 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-pulse"></div>
+        <div class="relative w-[80%] max-w-[420px] h-[200px] group">
+            <!-- Brilho de fundo (glow) -->
+            <div class="absolute -inset-2 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-emerald-400/20 blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
+            
+            <!-- Borda principal -->
+            <div class="absolute inset-0 rounded-2xl border-2 border-emerald-400/70 shadow-2xl shadow-emerald-500/30 group-hover:border-emerald-300 group-hover:shadow-emerald-400/50 transition-all duration-300"></div>
+            
+            <!-- Cantos decorativos com gradiente -->
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-[4px] border-l-[4px] border-indigo-400 rounded-tl-lg shadow-lg shadow-indigo-400/40"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-[4px] border-r-[4px] border-indigo-400 rounded-tr-lg shadow-lg shadow-indigo-400/40"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-[4px] border-l-[4px] border-purple-400 rounded-bl-lg shadow-lg shadow-purple-400/40"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-[4px] border-r-[4px] border-purple-400 rounded-br-lg shadow-lg shadow-purple-400/40"></div>
+            
+            <!-- Linha de scanning animada -->
+            <div class="absolute left-4 right-4 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-pulse group-hover:via-purple-400"></div>
+            
+            <!-- Indicadores de focagem -->
+            <div class="absolute inset-4 rounded-lg border border-emerald-500/20 pointer-events-none"></div>
         </div>
     </div>
 
-    <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/75 to-transparent">
-        <div class="flex items-center justify-between gap-2">
-            <button type="button" @click="closeScanner()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95">
+    <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-md">
+        <div class="flex items-center justify-between gap-3 mb-2">
+            <button type="button" @click="closeScanner()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 shadow-lg">
                 <i class="fas fa-arrow-left text-lg"></i>
             </button>
 
-            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md max-w-[70vw]">
-                <span class="relative flex h-2.5 w-2.5">
+            <div class="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-md border border-indigo-400/30">
+                <span class="relative flex h-2.5 w-2.5 flex-shrink-0">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
-                <span class="text-white/90 text-xs font-semibold truncate" x-text="scannerStatus"></span>
+                <span class="text-white/90 text-sm font-semibold truncate" x-text="scannerStatus"></span>
             </div>
 
-            <button type="button" @click="toggleScannerFacing()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95">
+            <button type="button" @click="toggleScannerFacing()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 shadow-lg" title="Mudar camera">
                 <i class="fas fa-camera-rotate text-lg"></i>
             </button>
         </div>
+        <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent"></div>
     </div>
 
-    <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/80 to-transparent">
-        <div x-show="pendingCode" x-transition class="mb-4 mx-auto max-w-sm">
-            <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl px-4 py-3 border border-emerald-500/50 shadow-2xl">
-                <p class="text-[10px] text-emerald-400 uppercase font-black tracking-widest mb-1 text-center">Codigo detectado</p>
-                <p class="text-white font-black font-mono text-xl text-center tracking-wider mb-3" x-text="pendingCode"></p>
+    <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-md">
+        <div x-show="pendingCode" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4" class="mb-4 mx-auto max-w-sm">
+            <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl px-5 py-4 border-2 border-emerald-400/60 shadow-2xl shadow-emerald-500/20">
+                <p class="text-[10px] text-emerald-300 uppercase font-black tracking-widest mb-2 text-center">
+                    <i class="fas fa-check-circle mr-1"></i>Codigo detectado
+                </p>
+                <p class="text-white font-black font-mono text-2xl text-center tracking-wider mb-4" x-text="pendingCode"></p>
                 <div class="flex gap-2">
-                    <button @click="confirmDetectedCode()" class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-black text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
+                    <button @click="confirmDetectedCode()" class="flex-1 py-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white font-black text-sm transition-all shadow-lg shadow-emerald-500/40 flex items-center justify-center gap-2">
                         <i class="fas fa-check"></i> Confirmar
                     </button>
-                    <button @click="rejectDetectedCode()" class="flex-1 py-3 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-bold text-sm transition-all flex items-center justify-center gap-2">
-                        <i class="fas fa-camera"></i> Continuar
+                    <button @click="rejectDetectedCode()" class="flex-1 py-3 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
+                        <i class="fas fa-redo"></i> Ler novo
                     </button>
                 </div>
             </div>
         </div>
 
-        <div class="mx-auto max-w-xl bg-slate-900/70 border border-slate-600 rounded-xl p-3 text-xs text-slate-200">
-            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div class="min-w-0">
-                    <span x-text="lastDetectedCode ? 'Ultimo codigo: ' + lastDetectedCode : 'Nenhum codigo lido ainda'"></span>
-                    <p x-show="lastScannedProduct" class="mt-1 text-[11px] text-emerald-300 truncate" x-text="lastScannedProduct ? 'Ultimo item: ' + lastScannedProduct.name + ' | qtd: ' + lastScannedProduct.quantity : ''"></p>
+        <!-- Controle de Zoom -->
+        <div x-show="zoomSupported && scannerStream" x-transition class="mx-auto max-w-2xl mb-4">
+            <div class="bg-slate-900/90 border border-indigo-500/40 rounded-xl p-3 backdrop-blur-sm shadow-xl">
+                <div class="flex items-center justify-between gap-2 mb-2">
+                    <div class="flex items-center gap-2">
+                        <i class="fas fa-search-plus text-indigo-400 text-sm"></i>
+                        <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Zoom: <span x-text="currentZoom.toFixed(1)"></span>x</span>
+                    </div>
+                    <button type="button"
+                            @click="resetPermissionCache()"
+                            title="Limpar cache de permissao"
+                            class="px-2 py-1 text-[10px] rounded bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600 transition-all">
+                        <i class="fas fa-redo text-xs"></i>
+                    </button>
                 </div>
-                <div class="flex flex-wrap items-center gap-2">
+                <div class="flex flex-wrap gap-1.5">
+                    <template x-for="zoom in availableZooms" :key="zoom">
+                        <button type="button"
+                                @click="applyZoom(zoom)"
+                                :class="{
+                                    'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/50': Math.abs(currentZoom - zoom) < 0.1,
+                                    'bg-slate-700/60 text-slate-200 hover:bg-slate-600': Math.abs(currentZoom - zoom) >= 0.1
+                                }"
+                                class="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all active:scale-95 whitespace-nowrap"
+                                x-text="zoom.toFixed(1) + 'x'">
+                        </button>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico e Ações -->
+        <div class="mx-auto max-w-2xl bg-slate-900/70 border border-slate-600 rounded-xl p-3 text-xs text-slate-200 backdrop-blur-sm">
+            <div class="flex flex-col gap-2 sm:gap-3">
+                <!-- Status Info -->
+                <div class="min-w-0">
+                    <div class="flex items-center gap-2 mb-1.5">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-pulse absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-emerald-300 font-semibold" x-text="lastDetectedCode ? 'Ultimo codigo: ' + lastDetectedCode : 'Nenhum codigo lido'"></span>
+                    </div>
+                    <p x-show="lastScannedProduct" class="text-[10px] text-purple-300 truncate pl-3" x-text="lastScannedProduct ? '↳ Item: ' + lastScannedProduct.name + ' (qtd: ' + lastScannedProduct.quantity + ')' : ''"></p>
+                </div>
+                
+                <!-- Controles -->
+                <div class="flex flex-wrap items-center gap-2 pt-1">
                     <button type="button"
                             @click="startScanner()"
-                            class="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold">
-                        Ativar Camera
+                            class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-sm transition-all active:scale-95 shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-camera"></i>Ativar Camera
                     </button>
                     <button type="button"
                             @click="undoLastScan()"
                             :disabled="!lastScannedProduct"
-                            class="px-3 py-1.5 rounded-lg bg-slate-700 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-                        Desfazer ultimo
+                            class="px-3 py-2 rounded-lg bg-slate-700/70 hover:bg-slate-600 text-slate-200 font-semibold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-700/70 flex items-center justify-center gap-2">
+                        <i class="fas fa-undo"></i>Desfazer
+                    </button>
+                    <button type="button"
+                            @click="closeScanner()"
+                            class="px-3 py-2 rounded-lg bg-slate-700/70 hover:bg-slate-600 text-slate-200 font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-times"></i>Fechar
                     </button>
                 </div>
             </div>
@@ -1313,6 +1373,13 @@
             manualScanCode: '',
             lastScanMessage: '',
             lastQuaggaRunAt: 0,
+            currentZoom: 1.0,
+            minZoom: 1.0,
+            maxZoom: 10.0,
+            availableZooms: [1.0, 1.5, 2.0, 2.5, 3.0],
+            zoomSupported: false,
+            cameraPermissionGranted: false,
+            cameraPermissionDenied: false,
             scanToast: {
                 visible: false,
                 type: 'success',
@@ -1321,6 +1388,7 @@
 
             initScanner() {
                 this.detector = null;
+                this.loadPermissionCache();
 
                 try {
                     if ('BarcodeDetector' in window) {
@@ -1483,24 +1551,28 @@
                     }
 
                     if (!stream) {
+                        this.cameraPermissionDenied = true;
+                        this.savePermissionCache(false);
                         throw lastError || new Error('Falha ao iniciar stream da camera.');
                     }
+
+                    this.cameraPermissionGranted = true;
+                    this.cameraPermissionDenied = false;
+                    this.savePermissionCache(true);
 
                     const videoTrack = stream.getVideoTracks()[0] || null;
                     if (videoTrack && typeof videoTrack.getCapabilities === 'function' && typeof videoTrack.applyConstraints === 'function') {
                         try {
                             const capabilities = videoTrack.getCapabilities();
                             if (capabilities && typeof capabilities.zoom !== 'undefined') {
-                                const minZoom = Number(capabilities.zoom.min ?? 1);
-                                const maxZoom = Number(capabilities.zoom.max ?? 10);
-                                const preferredZoom = 1.0;
-                                const targetZoom = Math.min(Math.max(preferredZoom, minZoom), maxZoom);
-
-                                await videoTrack.applyConstraints({
-                                    advanced: [{ zoom: targetZoom }]
-                                });
-
-                                this.scannerStatus = `Camera ativa com zoom ${targetZoom.toFixed(1)}x. Aponte para o codigo de barras.`;
+                                this.minZoom = Number(capabilities.zoom.min ?? 1);
+                                this.maxZoom = Number(capabilities.zoom.max ?? 10);
+                                this.zoomSupported = true;
+                                this.currentZoom = 1.0;
+                                this.scannerStatus = `Camera ativa. Zoom disponivel (${this.minZoom}x - ${this.maxZoom}x). Aponte para o codigo de barras.`;
+                            } else {
+                                this.zoomSupported = false;
+                                this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
                             }
                         } catch (zoomError) {
                             console.warn('Nao foi possivel aplicar zoom no dispositivo.', zoomError);
@@ -1521,14 +1593,74 @@
                     video.muted = true;
                     video.srcObject = this.scannerStream;
                     await video.play();
-                    if (!this.scannerStatus.includes('zoom')) {
-                        this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
-                    }
                     this.scanFrames();
                 } catch (error) {
                     this.scannerStatus = 'Nao foi possivel acessar a camera. Verifique permissao e HTTPS.';
                     this.showToast('Camera indisponivel. Verifique permissao, HTTPS e navegador.', 'error');
                     console.error(error);
+                }
+            },
+
+            async applyZoom(zoomLevel) {
+                if (!this.scannerStream || !this.zoomSupported) {
+                    this.showToast('Zoom nao suportado neste dispositivo.', 'warning');
+                    return;
+                }
+
+                try {
+                    const videoTrack = this.scannerStream.getVideoTracks()[0];
+                    if (!videoTrack) return;
+
+                    const validZoom = Math.min(Math.max(zoomLevel, this.minZoom), this.maxZoom);
+                    await videoTrack.applyConstraints({
+                        advanced: [{ zoom: validZoom }]
+                    });
+
+                    this.currentZoom = validZoom;
+                    this.scannerStatus = `Zoom em ${validZoom.toFixed(1)}x. Aponte para o codigo.`;
+                    this.showToast(`Zoom ajustado para ${validZoom.toFixed(1)}x`, 'success');
+                } catch (error) {
+                    console.warn('Erro ao aplicar zoom:', error);
+                    this.showToast('Nao foi possivel ajustar zoom neste dispositivo.', 'warning');
+                }
+            },
+
+            savePermissionCache(granted) {
+                try {
+                    const cache = {
+                        granted: granted,
+                        timestamp: Date.now()
+                    };
+                    localStorage.setItem('camera-permission-cache', JSON.stringify(cache));
+                } catch (e) {
+                    console.warn('Nao foi possivel cachear permissao:', e);
+                }
+            },
+
+            loadPermissionCache() {
+                try {
+                    const cached = localStorage.getItem('camera-permission-cache');
+                    if (cached) {
+                        const data = JSON.parse(cached);
+                        const oneHourAgo = Date.now() - (60 * 60 * 1000);
+                        if (data.timestamp > oneHourAgo) {
+                            this.cameraPermissionGranted = data.granted;
+                            this.cameraPermissionDenied = !data.granted;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Erro ao carregar cache de permissao:', e);
+                }
+            },
+
+            resetPermissionCache() {
+                try {
+                    localStorage.removeItem('camera-permission-cache');
+                    this.cameraPermissionGranted = false;
+                    this.cameraPermissionDenied = false;
+                    this.showToast('Cache de permissao limpo. Toque novamente para acessar.', 'success');
+                } catch (e) {
+                    console.warn('Erro ao limpar cache:', e);
                 }
             },
 
