@@ -14,6 +14,45 @@
         [data-flux-main]:has(.sales-create-page) {
             padding: 0 !important;
         }
+
+        @keyframes sale-scan-line {
+            0% {
+                top: 10%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 90%;
+                opacity: 0;
+            }
+        }
+
+        .animate-sale-scan-line {
+            animation: sale-scan-line 2s ease-in-out infinite;
+            position: absolute;
+        }
+
+        .safe-area-top {
+            padding-top: env(safe-area-inset-top, 0px);
+        }
+
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+
+        body.camera-active .mobile-bottom-tabbar,
+        body.camera-active #mobileFabSheet,
+        body.camera-active #mobileMoreSheet {
+            display: none !important;
+        }
     </style>
 
     <div x-show="scanToast.visible"
@@ -1053,69 +1092,68 @@
      class="fixed inset-0 z-[9999] bg-black"
      style="display:none;">
 
-    <div class="absolute inset-0">
-        <video x-ref="scannerVideo" class="w-full h-full object-cover bg-black" playsinline muted autoplay></video>
-        <canvas x-ref="scannerCanvas" class="hidden"></canvas>
-    </div>
+    <div id="sale-camera-scanner-viewport" class="w-full h-full"></div>
 
     <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-        <div class="relative w-[80%] max-w-[420px] h-[200px] group">
-            <!-- Brilho de fundo (glow) -->
-            <div class="absolute -inset-2 rounded-3xl bg-gradient-to-br from-indigo-500/20 via-purple-500/10 to-emerald-400/20 blur-2xl opacity-60 group-hover:opacity-80 transition-opacity duration-300"></div>
-            
-            <!-- Borda principal -->
-            <div class="absolute inset-0 rounded-2xl border-2 border-emerald-400/70 shadow-2xl shadow-emerald-500/30 group-hover:border-emerald-300 group-hover:shadow-emerald-400/50 transition-all duration-300"></div>
-            
-            <!-- Cantos decorativos com gradiente -->
-            <div class="absolute top-0 left-0 w-8 h-8 border-t-[4px] border-l-[4px] border-indigo-400 rounded-tl-lg shadow-lg shadow-indigo-400/40"></div>
-            <div class="absolute top-0 right-0 w-8 h-8 border-t-[4px] border-r-[4px] border-indigo-400 rounded-tr-lg shadow-lg shadow-indigo-400/40"></div>
-            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-[4px] border-l-[4px] border-purple-400 rounded-bl-lg shadow-lg shadow-purple-400/40"></div>
-            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-[4px] border-r-[4px] border-purple-400 rounded-br-lg shadow-lg shadow-purple-400/40"></div>
-            
-            <!-- Linha de scanning animada -->
-            <div class="absolute left-4 right-4 top-1/2 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-pulse group-hover:via-purple-400"></div>
-            
-            <!-- Indicadores de focagem -->
-            <div class="absolute inset-4 rounded-lg border border-emerald-500/20 pointer-events-none"></div>
+        <div class="relative" style="width: 80%; max-width: 400px; height: 200px;">
+            <div class="absolute top-0 left-0 w-8 h-8 border-t-[3px] border-l-[3px] border-indigo-400 rounded-tl-lg"></div>
+            <div class="absolute top-0 right-0 w-8 h-8 border-t-[3px] border-r-[3px] border-indigo-400 rounded-tr-lg"></div>
+            <div class="absolute bottom-0 left-0 w-8 h-8 border-b-[3px] border-l-[3px] border-purple-400 rounded-bl-lg"></div>
+            <div class="absolute bottom-0 right-0 w-8 h-8 border-b-[3px] border-r-[3px] border-purple-400 rounded-br-lg"></div>
+            <div class="absolute left-4 right-4 h-0.5 bg-gradient-to-r from-transparent via-indigo-400 to-transparent animate-sale-scan-line"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6">
+                <div class="absolute top-1/2 left-0 right-0 h-px bg-indigo-400/50"></div>
+                <div class="absolute left-1/2 top-0 bottom-0 w-px bg-indigo-400/50"></div>
+            </div>
         </div>
     </div>
 
-    <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/90 via-black/70 to-transparent backdrop-blur-md">
-        <div class="flex items-center justify-between gap-3 mb-2">
-            <button type="button" @click="closeScanner()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 shadow-lg">
+    <div class="absolute top-0 left-0 right-0 p-4 bg-gradient-to-b from-black/70 to-transparent safe-area-top">
+        <div class="flex items-center justify-between">
+            <button type="button" @click="closeScanner()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95">
                 <i class="fas fa-arrow-left text-lg"></i>
             </button>
 
-            <div class="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500/20 to-purple-500/20 backdrop-blur-md border border-indigo-400/30">
-                <span class="relative flex h-2.5 w-2.5 flex-shrink-0">
+            <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/10 backdrop-blur-md">
+                <span class="relative flex h-2.5 w-2.5" x-show="scannerStream">
                     <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                     <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
                 </span>
-                <span class="text-white/90 text-sm font-semibold truncate" x-text="scannerStatus"></span>
+                <span class="text-white/90 text-sm font-semibold" x-text="scannerStream ? scannerStatus : 'Iniciando...'"></span>
             </div>
 
-            <button type="button" @click="toggleScannerFacing()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95 shadow-lg" title="Mudar camera">
+            <button type="button" @click="toggleScannerFacing()" class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur-md flex items-center justify-center text-white hover:bg-white/25 transition-all active:scale-95">
                 <i class="fas fa-camera-rotate text-lg"></i>
             </button>
         </div>
-        <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-indigo-400/40 to-transparent"></div>
     </div>
 
-    <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-md">
+    <div class="absolute bottom-0 left-0 right-0 p-4 pb-8 bg-gradient-to-t from-black/80 to-transparent safe-area-bottom">
         <div x-show="pendingCode" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-4" class="mb-4 mx-auto max-w-sm">
-            <div class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl px-5 py-4 border-2 border-emerald-400/60 shadow-2xl shadow-emerald-500/20">
-                <p class="text-[10px] text-emerald-300 uppercase font-black tracking-widest mb-2 text-center">
-                    <i class="fas fa-check-circle mr-1"></i>Codigo detectado
-                </p>
-                <p class="text-white font-black font-mono text-2xl text-center tracking-wider mb-4" x-text="pendingCode"></p>
+            <div class="bg-slate-900/95 backdrop-blur-md rounded-2xl px-4 py-3 border border-emerald-500/50 shadow-2xl">
+                <p class="text-[10px] text-emerald-400 uppercase font-black tracking-widest mb-1 text-center">Codigo detectado</p>
+                <p class="text-white font-black font-mono text-xl text-center tracking-wider mb-3" x-text="pendingCode"></p>
                 <div class="flex gap-2">
-                    <button @click="confirmDetectedCode()" class="flex-1 py-3 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 active:scale-95 text-white font-black text-sm transition-all shadow-lg shadow-emerald-500/40 flex items-center justify-center gap-2">
+                    <button @click="confirmDetectedCode()" class="flex-1 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white font-black text-sm transition-all shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2">
                         <i class="fas fa-check"></i> Confirmar
                     </button>
-                    <button @click="rejectDetectedCode()" class="flex-1 py-3 rounded-xl bg-white/20 hover:bg-white/30 active:scale-95 text-white font-bold text-sm transition-all flex items-center justify-center gap-2 backdrop-blur-sm">
-                        <i class="fas fa-redo"></i> Ler novo
+                    <button @click="rejectDetectedCode()" class="flex-1 py-3 rounded-xl bg-white/15 hover:bg-white/25 active:scale-95 text-white font-bold text-sm transition-all flex items-center justify-center gap-2">
+                        <i class="fas fa-camera"></i> Continuar
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div x-show="cameraError" x-transition class="mb-4 mx-auto max-w-sm">
+            <div class="bg-red-500/90 backdrop-blur-md rounded-2xl px-5 py-3 flex items-center gap-3">
+                <i class="fas fa-circle-exclamation text-white text-lg"></i>
+                <div class="flex-1">
+                    <p class="text-sm font-semibold text-white" x-text="cameraError"></p>
+                    <p class="text-[10px] text-red-100 mt-0.5">No iOS use Safari. Verifique permissao e HTTPS.</p>
+                </div>
+                <button @click="startScanner()" class="px-3 py-1.5 bg-white/20 rounded-lg text-white text-xs font-bold hover:bg-white/30 transition-all">
+                    <i class="fas fa-redo"></i>
+                </button>
             </div>
         </div>
 
@@ -1169,18 +1207,18 @@
                 <div class="flex flex-wrap items-center gap-2 pt-1">
                     <button type="button"
                             @click="startScanner()"
-                            class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold text-sm transition-all active:scale-95 shadow-lg shadow-emerald-500/30 flex items-center justify-center gap-2 whitespace-nowrap">
-                        <i class="fas fa-camera"></i>Ativar Camera
+                            class="flex-1 sm:flex-none px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-white font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-camera"></i>Reiniciar
                     </button>
                     <button type="button"
                             @click="undoLastScan()"
                             :disabled="!lastScannedProduct"
-                            class="px-3 py-2 rounded-lg bg-slate-700/70 hover:bg-slate-600 text-slate-200 font-semibold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-slate-700/70 flex items-center justify-center gap-2">
+                            class="px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-slate-200 font-semibold text-sm transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-white/15 flex items-center justify-center gap-2">
                         <i class="fas fa-undo"></i>Desfazer
                     </button>
                     <button type="button"
                             @click="closeScanner()"
-                            class="px-3 py-2 rounded-lg bg-slate-700/70 hover:bg-slate-600 text-slate-200 font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2">
+                            class="px-3 py-2 rounded-lg bg-white/15 hover:bg-white/25 text-slate-200 font-semibold text-sm transition-all active:scale-95 flex items-center justify-center gap-2">
                         <i class="fas fa-times"></i>Fechar
                     </button>
                 </div>
@@ -1364,6 +1402,7 @@
             scannerStream: null,
             scanLoopId: null,
             scanCooldown: false,
+            cameraError: null,
             detector: null,
             lastDetectedCode: '',
             pendingCode: null,
@@ -1373,6 +1412,8 @@
             manualScanCode: '',
             lastScanMessage: '',
             lastQuaggaRunAt: 0,
+            scannerVideoEl: null,
+            scannerCanvasEl: null,
             currentZoom: 1.0,
             minZoom: 1.0,
             maxZoom: 10.0,
@@ -1474,6 +1515,8 @@
 
             async openScanner() {
                 this.scannerOpen = true;
+                this.cameraError = null;
+                document.body.classList.add('camera-active');
                 this.scannerStatus = 'Toque em Ativar Camera para iniciar a leitura.';
 
                 if (!this.openScannerOnLoad) {
@@ -1484,8 +1527,10 @@
             async closeScanner() {
                 this.stopScanner();
                 this.scannerOpen = false;
+                this.cameraError = null;
                 this.pendingCode = null;
                 this.scanCooldown = false;
+                document.body.classList.remove('camera-active');
                 this.scannerStatus = 'Scanner fechado.';
             },
 
@@ -1496,6 +1541,7 @@
 
             async startScanner() {
                 this.stopScanner();
+                this.cameraError = null;
 
                 try {
                     const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
@@ -1512,6 +1558,14 @@
                     }
 
                     const cameraConstraints = [
+                        {
+                            video: {
+                                facingMode: { exact: this.scannerFacing },
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            },
+                            audio: false
+                        },
                         {
                             video: {
                                 facingMode: this.scannerFacing === 'environment'
@@ -1553,6 +1607,31 @@
                     this.cameraPermissionGranted = true;
                     this.cameraPermissionDenied = false;
                     this.savePermissionCache(true);
+                    this.scannerStream = stream;
+
+                    const viewport = document.getElementById('sale-camera-scanner-viewport');
+                    if (!viewport) {
+                        throw new Error('Viewport da camera nao encontrado.');
+                    }
+
+                    viewport.innerHTML = '';
+
+                    const video = document.createElement('video');
+                    video.setAttribute('autoplay', '');
+                    video.setAttribute('muted', '');
+                    video.setAttribute('playsinline', '');
+                    video.setAttribute('webkit-playsinline', '');
+                    video.muted = true;
+                    video.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
+                    video.srcObject = this.scannerStream;
+                    viewport.appendChild(video);
+                    this.scannerVideoEl = video;
+
+                    await new Promise((resolve) => {
+                        video.addEventListener('loadedmetadata', resolve, { once: true });
+                        setTimeout(resolve, 3000);
+                    });
+                    await video.play();
 
                     const videoTrack = stream.getVideoTracks()[0] || null;
                     if (videoTrack && typeof videoTrack.getCapabilities === 'function' && typeof videoTrack.applyConstraints === 'function') {
@@ -1612,25 +1691,26 @@
                             this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
                         }
                     }
-
-                    this.scannerStream = stream;
-
-                    const video = this.$refs.scannerVideo;
-                    if (!video) {
-                        this.scannerStatus = 'Elemento de video indisponivel.';
-                        return;
-                    }
-
-                    video.setAttribute('playsinline', 'true');
-                    video.setAttribute('webkit-playsinline', 'true');
-                    video.setAttribute('autoplay', 'true');
-                    video.muted = true;
-                    video.srcObject = this.scannerStream;
-                    await video.play();
                     this.scanFrames();
                 } catch (error) {
+                    const errName = error?.name || '';
+                    const errMsg = error?.message || '';
+                    const combined = `${errName} ${errMsg}`;
                     this.scannerStatus = 'Nao foi possivel acessar a camera. Verifique permissao e HTTPS.';
-                    this.showToast('Camera indisponivel. Verifique permissao, HTTPS e navegador.', 'error');
+
+                    if (/NotAllowed|Permission|denied/i.test(combined)) {
+                        this.cameraError = 'Permissao negada. Libere a camera nas configuracoes do navegador.';
+                    } else if (/NotFound|DevicesNotFound|device not found/i.test(combined)) {
+                        this.cameraError = 'Nenhuma camera encontrada neste dispositivo.';
+                    } else if (/NotReadable|Could not start|TrackStart/i.test(combined)) {
+                        this.cameraError = 'Camera em uso por outro app. Feche-o e tente novamente.';
+                    } else if (/Overconstrained/i.test(combined)) {
+                        this.cameraError = 'Configuracao de camera nao suportada. Tente reiniciar a leitura.';
+                    } else {
+                        this.cameraError = 'Camera indisponivel. Verifique permissao, HTTPS e navegador.';
+                    }
+
+                    this.showToast(this.cameraError, 'error');
                     console.error(error);
                 }
             },
@@ -1704,25 +1784,37 @@
                     this.scanLoopId = null;
                 }
 
-                const video = this.$refs.scannerVideo;
-                if (video) {
-                    video.pause();
-                    video.srcObject = null;
+                if (this.scannerVideoEl) {
+                    this.scannerVideoEl.pause();
+                    this.scannerVideoEl.srcObject = null;
+                    this.scannerVideoEl = null;
                 }
 
                 if (this.scannerStream) {
                     this.scannerStream.getTracks().forEach(track => track.stop());
                     this.scannerStream = null;
                 }
+
+                const viewport = document.getElementById('sale-camera-scanner-viewport');
+                if (viewport) {
+                    viewport.innerHTML = '';
+                }
+
+                this.scannerCanvasEl = null;
             },
 
             scanFrames() {
-                const video = this.$refs.scannerVideo;
-                const canvas = this.$refs.scannerCanvas;
-                if (!video || !canvas || video.readyState < 2) {
+                const video = this.scannerVideoEl;
+                if (!video || video.readyState < 2) {
                     this.scanLoopId = requestAnimationFrame(() => this.scanFrames());
                     return;
                 }
+
+                if (!this.scannerCanvasEl) {
+                    this.scannerCanvasEl = document.createElement('canvas');
+                }
+
+                const canvas = this.scannerCanvasEl;
 
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 canvas.width = video.videoWidth;
@@ -1762,23 +1854,32 @@
 
                 this.lastQuaggaRunAt = now;
 
-                window.Quagga.decodeSingle({
-                    src: canvas.toDataURL('image/png'),
-                    numOfWorkers: 0,
-                    locate: true,
-                    inputStream: {
-                        size: 1200,
-                        singleChannel: true,
-                    },
-                    decoder: {
-                        readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader', 'code_39_reader', 'i2of5_reader']
+                canvas.toBlob((blob) => {
+                    if (!blob) {
+                        return;
                     }
-                }, (result) => {
-                    const value = result && result.codeResult ? result.codeResult.code : '';
-                    if (value) {
-                        this.processDetectedCode(value);
-                    }
-                });
+
+                    const imageUrl = URL.createObjectURL(blob);
+
+                    window.Quagga.decodeSingle({
+                        src: imageUrl,
+                        numOfWorkers: 0,
+                        locate: true,
+                        inputStream: {
+                            size: 1000,
+                            singleChannel: true,
+                        },
+                        decoder: {
+                            readers: ['ean_reader', 'ean_8_reader', 'upc_reader', 'upc_e_reader', 'code_128_reader', 'code_39_reader', 'i2of5_reader']
+                        }
+                    }, (result) => {
+                        URL.revokeObjectURL(imageUrl);
+                        const value = result && result.codeResult ? result.codeResult.code : '';
+                        if (value) {
+                            this.processDetectedCode(value);
+                        }
+                    });
+                }, 'image/jpeg', 0.85);
             },
 
             processDetectedCode(code) {
