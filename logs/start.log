@@ -1,230 +1,67 @@
-[2026-04-16 22:41:24] [INFO] ============================================================
-[2026-04-16 22:41:24] [INFO] FlowManeger start script
-[2026-04-16 22:41:24] [INFO] cwd: C:\projetos\FlowManeger
-[2026-04-16 22:41:24] [INFO] node: v18.5.0
-[2026-04-16 22:41:24] [INFO] options: nenhuma
-[2026-04-16 22:41:24] [INFO] log file: C:\projetos\FlowManeger\logs\start.log
-[2026-04-16 22:41:24] [INFO] ============================================================
-[2026-04-16 22:41:24] [INFO] 🚀 Modo servidor apenas (padrão) - pulando instalações e migrações
-[2026-04-16 22:41:24] [INFO] 💡 Para executar instalação completa use: --full-setup
-[2026-04-16 22:41:24] [INFO] 
+[2026-05-10 15:11:09] [INFO] ============================================================
+[2026-05-10 15:11:09] [INFO] FlowManeger start script
+[2026-05-10 15:11:09] [INFO] cwd: C:\projetos\FlowManeger
+[2026-05-10 15:11:09] [INFO] node: v18.5.0
+[2026-05-10 15:11:09] [INFO] options: nenhuma
+[2026-05-10 15:11:09] [INFO] log file: C:\projetos\FlowManeger\logs\start.log
+[2026-05-10 15:11:09] [INFO] ============================================================
+[2026-05-10 15:11:09] [INFO] 🚀 Modo servidor apenas (padrão) - pulando instalações e migrações
+[2026-05-10 15:11:09] [INFO] 💡 Para executar instalação completa use: --full-setup
+[2026-05-10 15:11:09] [INFO] 
 === FASE 1: Pulando instalação de dependências (modo servidor apenas) ===
-[2026-04-16 22:41:24] [INFO] 
+[2026-05-10 15:11:09] [INFO] 
 === FASE 2: Iniciando servidores ===
-[2026-04-16 22:41:24] [INFO] 
+[2026-05-10 15:11:09] [INFO] 
 -> Iniciando em background: npm run dev
-[2026-04-16 22:41:24] [INFO] ✓ Vite iniciado (PID: 17656)
-[2026-04-16 22:41:24] [INFO] Aguardando Vite inicializar...
-[2026-04-16 22:41:25] [Vite] 
+[2026-05-10 15:11:09] [INFO] ✓ Vite iniciado (PID: 5000)
+[2026-05-10 15:11:09] [INFO] Aguardando Vite inicializar...
+[2026-05-10 15:11:11] [Vite] 
 > dev
 > vite
 
-[2026-04-16 22:41:27] [Vite] 
-  [32m[1mVITE[22m v6.4.1[39m  [2mready in [0m[1m1482[22m[2m[0m ms[22m
-
-[2026-04-16 22:41:27] [Vite]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
-[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
-[2026-04-16 22:41:27] [Vite] 
-  [31m[1mLARAVEL[22m v12.19.3[39m  [2mplugin[22m [1mv1.2.0[22m
-[2026-04-16 22:41:27] [Vite] 
-  [32m➜[39m  [1mAPP_URL[22m: [36mhttps://minh-statesmanly-hailey.ngrok-free.dev[39m
-[2026-04-16 22:41:27] [INFO] 
+[2026-05-10 15:11:12] [INFO] 
 -> Iniciando em background: php artisan serve
-[2026-04-16 22:41:27] [INFO] ✓ Laravel Server iniciado (PID: 4452)
-[2026-04-16 22:41:27] [INFO] 
+[2026-05-10 15:11:13] [INFO] ✓ Laravel Server iniciado (PID: 21468)
+[2026-05-10 15:11:13] [INFO] 
 === FASE 3: Aguardando servidor ===
-[2026-04-16 22:41:27] [INFO] 
+[2026-05-10 15:11:13] [INFO] 
 Aguardando servidor estar pronto em http://127.0.0.1:8000...
-[2026-04-16 22:41:27] [INFO] ⏳ Tentativa 1/30: aguardando servidor... (ECONNREFUSED)
-[2026-04-16 22:41:31] [INFO] ⏳ Tentativa 5/30: aguardando servidor... (ECONNREFUSED)
-[2026-04-16 22:41:36] [INFO] ⏳ Tentativa 10/30: aguardando servidor... (ECONNREFUSED)
-[2026-04-16 22:41:41] [INFO] ⏳ Tentativa 15/30: aguardando servidor... (ECONNREFUSED)
-[2026-04-16 22:41:46] [INFO] ⏳ Tentativa 20/30: aguardando servidor... (ECONNREFUSED)
-[2026-04-16 22:41:54] [Laravel Server] 
+[2026-05-10 15:11:13] [INFO] ⏳ Tentativa 1/30: aguardando servidor... (ECONNREFUSED)
+[2026-05-10 15:11:13] [Vite] 
+  [32m[1mVITE[22m v6.4.1[39m  [2mready in [0m[1m1225[22m[2m[0m ms[22m
+
+[2026-05-10 15:11:13] [Vite]   [32m➜[39m  [1mLocal[22m:   [36mhttp://localhost:[1m5173[22m/[39m
+[2m  [32m➜[39m  [1mNetwork[22m[2m: use [22m[1m--host[22m[2m to expose[22m
+[2026-05-10 15:11:13] [Vite] 
+  [31m[1mLARAVEL[22m v12.19.3[39m  [2mplugin[22m [1mv1.2.0[22m
+[2026-05-10 15:11:13] [Vite] 
+  [32m➜[39m  [1mAPP_URL[22m: [36mhttps://minh-statesmanly-hailey.ngrok-free.dev[39m
+[2026-05-10 15:11:17] [INFO] ⏳ Tentativa 5/30: aguardando servidor... (ECONNREFUSED)
+[2026-05-10 15:11:22] [INFO] ⏳ Tentativa 10/30: aguardando servidor... (ECONNREFUSED)
+[2026-05-10 15:11:27] [INFO] ⏳ Tentativa 15/30: aguardando servidor... (ECONNREFUSED)
+[2026-05-10 15:11:31] [INFO] ✓ Servidor pronto! (tentativa 17)
+[2026-05-10 15:11:31] [INFO] 
+=== FASE 4: Abrindo navegador ===
+[2026-05-10 15:11:31] [INFO] 
+-> Abrindo navegador: http://127.0.0.1:8000
+[2026-05-10 15:11:31] [INFO] ============================================================
+[2026-05-10 15:11:31] [INFO] ✓ Projeto iniciado com sucesso!
+[2026-05-10 15:11:31] [INFO] ✓ Laravel: http://127.0.0.1:8000
+[2026-05-10 15:11:31] [INFO] ✓ Vite: http://localhost:5173
+[2026-05-10 15:11:31] [INFO] 
+📝 Log completo: C:\projetos\FlowManeger\logs\start.log
+[2026-05-10 15:11:31] [INFO] 
+⚠ IMPORTANTE: Mantenha esta janela aberta!
+[2026-05-10 15:11:31] [INFO]    Os servidores estão rodando nesta janela.
+[2026-05-10 15:11:31] [INFO]    Pressione Ctrl+C para encerrar os servidores.
+[2026-05-10 15:11:31] [INFO] ============================================================
+[2026-05-10 15:11:32] [INFO] ✓ Chrome aberto com sucesso
+[2026-05-10 15:11:32] [Laravel Server] 
    INFO  Server running on [http://127.0.0.1:8000].  
 
-[2026-04-16 22:41:54] [Laravel Server]   Press Ctrl+C to stop the server
+[2026-05-10 15:11:32] [Laravel Server]   Press Ctrl+C to stop the server
 
-[2026-04-16 22:41:55] [INFO] ✓ Servidor pronto! (tentativa 25)
-[2026-04-16 22:41:55] [INFO] 
-=== FASE 4: Abrindo navegador ===
-[2026-04-16 22:41:55] [INFO] 
--> Abrindo navegador: http://127.0.0.1:8000
-[2026-04-16 22:41:55] [INFO] ============================================================
-[2026-04-16 22:41:55] [INFO] ✓ Projeto iniciado com sucesso!
-[2026-04-16 22:41:55] [INFO] ✓ Laravel: http://127.0.0.1:8000
-[2026-04-16 22:41:55] [INFO] ✓ Vite: http://localhost:5173
-[2026-04-16 22:41:55] [INFO] 
-📝 Log completo: C:\projetos\FlowManeger\logs\start.log
-[2026-04-16 22:41:55] [INFO] 
-⚠ IMPORTANTE: Mantenha esta janela aberta!
-[2026-04-16 22:41:55] [INFO]    Os servidores estão rodando nesta janela.
-[2026-04-16 22:41:55] [INFO]    Pressione Ctrl+C para encerrar os servidores.
-[2026-04-16 22:41:55] [INFO] ============================================================
-[2026-04-16 22:41:55] [INFO] ✓ Chrome aberto com sucesso
-[2026-04-16 22:41:55] [Laravel Server]   2026-04-16 19:41:51[2026-04-16 22:41:55] [Laravel Server]  /[2026-04-16 22:41:55] [Laravel Server]  ........................................................................................[2026-04-16 22:41:55] [Laravel Server]  ~ 1s
-[2026-04-16 22:41:56] [Laravel Server]   2026-04-16 19:41:55[2026-04-16 22:41:56] [Laravel Server]  /[2026-04-16 22:41:56] [Laravel Server]  .................................................................................. ~ 505.34ms
-  2026-04-16 19:41:55 /apple-touch-icon.png .............................................................. ~ 506.58ms
-[2026-04-16 22:41:56] [Laravel Server]   2026-04-16 19:41:56[2026-04-16 22:41:56] [Laravel Server]  /apple-touch-icon.png ................................................................[2026-04-16 22:41:56] [Laravel Server]  ~ 0.18ms
-[2026-04-16 22:42:01] [Laravel Server]   2026-04-16 19:41:59[2026-04-16 22:42:01] [Laravel Server]  /register[2026-04-16 22:42:01] [Laravel Server]  ................................................................................[2026-04-16 22:42:01] [Laravel Server]  ~ 2s
-  2026-04-16 19:41:59 /assets/css/flatpickr-custom.css ......................................................... ~ 1s
-  2026-04-16 19:42:01 /assets/css/flow-theme.css ........................................................... ~ 1.37ms
-  2026-04-16 19:42:01 /assets/css/responsive/responsive-iphone.css ......................................... ~ 2.11ms
-  2026-04-16 19:42:01 /assets/css/responsive/responsive-mobile.css ......................................... ~ 5.10ms
-  2026-04-16 19:42:01 /assets/css/responsive/tabbar.css?v=1775268488 ....................................... ~ 4.66ms
-  2026-04-16 19:42:01 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 9.58ms
-  2026-04-16 19:42:01 /assets/css/responsive/responsive-ipad.css ........................................... ~ 9.60ms
-  2026-04-16 19:42:01 /assets/css/responsive/responsive-notebook.css[2026-04-16 22:42:01] [Laravel Server]  ....................................... ~ 7.36ms
-[2026-04-16 22:42:02] [Laravel Server]   2026-04-16 19:42:01[2026-04-16 22:42:02] [Laravel Server]  /flux/flux.js[2026-04-16 22:42:02] [Laravel Server]  ............................................................................[2026-04-16 22:42:02] [Laravel Server]  ~ 1s
-[2026-04-16 22:42:02] [Laravel Server]   2026-04-16 19:42:01 /assets/css/responsive/responsive-fullhd.css ............................................. ~ 1s
-  2026-04-16 19:42:01 /assets/css/responsive/responsive-ultrawide.css .......................................... ~ 1s
-[2026-04-16 22:42:03] [Laravel Server]   2026-04-16 19:42:02[2026-04-16 22:42:03] [Laravel Server]  /livewire/livewire.js ..............................................................[2026-04-16 22:42:03] [Laravel Server]  ~ 513.85ms
-[2026-04-16 22:42:03] [Laravel Server]   2026-04-16 19:42:01[2026-04-16 22:42:03] [Laravel Server]  /apple-touch-icon.png[2026-04-16 22:42:03] [Laravel Server]  ....................................................................[2026-04-16 22:42:03] [Laravel Server]  ~ 1s
-[2026-04-16 22:42:05] [Laravel Server]   2026-04-16 19:42:05[2026-04-16 22:42:05] [Laravel Server]  /favicon.svg .........................................................................[2026-04-16 22:42:05] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:42:06] [Laravel Server]   2026-04-16 19:42:05[2026-04-16 22:42:06] [Laravel Server]  /favicon.ico[2026-04-16 22:42:06] [Laravel Server]  .........................................................................[2026-04-16 22:42:06] [Laravel Server]  ~ 0.13ms
-[2026-04-16 22:42:08] [Laravel Server]   2026-04-16 19:42:07[2026-04-16 22:42:08] [Laravel Server]  /login[2026-04-16 22:42:08] [Laravel Server]  ............................................................................. ~ 504.53ms
-  2026-04-16 19:42:08 /assets/css/flatpickr-custom.css[2026-04-16 22:42:08] [Laravel Server]  ..................................................... ~ 0.05ms
-  2026-04-16 19:42:08 /assets/css/flow-theme.css ........................................................... ~ 0.22ms
-  2026-04-16 19:42:08 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.91ms
-  2026-04-16 19:42:08 /assets/css/responsive/tabbar.css?v=1775268488 ....................................... ~ 2.07ms
-  2026-04-16 19:42:08 /assets/css/responsive/responsive-mobile.css ......................................... ~ 6.50ms
-  2026-04-16 19:42:08 /assets/css/responsive/responsive-iphone.css ......................................... ~ 8.83ms
-  2026-04-16 19:42:08 /assets/css/responsive/responsive-ipad.css ........................................... ~ 9.25ms
-  2026-04-16 19:42:08 /assets/css/responsive/responsive-notebook.css ....................................... ~ 0.04ms
-  2026-04-16 19:42:08 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 0.04ms
-  2026-04-16 19:42:08 /assets/css/responsive/responsive-ultrawide.css ...................................... ~ 0.06ms
-  2026-04-16 19:42:08 /apple-touch-icon.png ................................................................ ~ 0.04ms
-[2026-04-16 22:42:19] [Laravel Server]   2026-04-16 19:42:16[2026-04-16 22:42:19] [Laravel Server]  /livewire/update[2026-04-16 22:42:19] [Laravel Server]  ......................................................................... ~ 2s
-[2026-04-16 22:42:24] [Laravel Server]   2026-04-16 19:42:19[2026-04-16 22:42:24] [Laravel Server]  /dashboard ............................................................................... ~ 4s
-[2026-04-16 22:42:24] [Laravel Server]   2026-04-16 19:42:24[2026-04-16 22:42:24] [Laravel Server]  /assets/css/icon-category.css ...................................................... ~ 517.60ms
-  2026-04-16 19:42:24 /assets/css/icon-overrides.css ..................................................... ~ 519.31ms
-  2026-04-16 19:42:24 /assets/css/responsive/dashboard-index-mobile.css .................................. ~ 519.79ms
-  2026-04-16 19:42:24 /assets/css/responsive/dashboard-index-iphone15.css ................................ ~ 520.09ms
-  2026-04-16 19:42:24 /assets/css/responsive/dashboard-index-ipad-portrait.css ........................... ~ 520.35ms
-  2026-04-16 19:42:24 /assets/css/responsive/dashboard-index-ipad-landscape.css .......................... ~ 520.58ms
-  2026-04-16 19:42:24 /assets/css/responsive/dashboard-index-notebook.css .................................. ~ 0.07ms
-  2026-04-16 19:42:24 /assets/css/responsive/dashboard-index-ultrawide.css ................................. ~ 0.49ms
-  2026-04-16 19:42:24 /assets/img/banks/inter.png ......................................................... ~ 12.67ms
-  2026-04-16 19:42:24 /assets/img/banks/nubank.svg ........................................................ ~ 13.23ms
-  2026-04-16 19:42:24 /favicon.svg ........................................................................ ~ 13.24ms
-  2026-04-16 19:42:24 /assets/img/Criar.svg ............................................................... ~ 15.63ms
-[2026-04-16 22:42:25] [Laravel Server]   2026-04-16 19:42:24[2026-04-16 22:42:25] [Laravel Server]  /favicon.svg .........................................................................[2026-04-16 22:42:25] [Laravel Server]  ~ 0.33ms
-  2026-04-16 19:42:24 /favicon.ico .........................................................................[2026-04-16 22:42:25] [Laravel Server]  ~ 0.04ms
-  2026-04-16 19:42:24 /favicon.svg .........................................................................[2026-04-16 22:42:25] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:42:25] [Laravel Server]   2026-04-16 19:42:24 /favicon.svg .........................................................................[2026-04-16 22:42:25] [Laravel Server]  ~ 0.09ms
-[2026-04-16 22:42:25] [Laravel Server]   2026-04-16 19:42:24 /favicon.ico .........................................................................[2026-04-16 22:42:25] [Laravel Server]  ~ 0.05ms
-[2026-04-16 22:42:34] [Laravel Server]   2026-04-16 19:42:32[2026-04-16 22:42:34] [Laravel Server]  /goals[2026-04-16 22:42:34] [Laravel Server]  ...................................................................................[2026-04-16 22:42:34] [Laravel Server]  ~ 2s
-[2026-04-16 22:42:35] [Laravel Server]   2026-04-16 19:42:34[2026-04-16 22:42:35] [Laravel Server]  /cofrinhos ......................................................................... ~ 505.18ms
-[2026-04-16 22:42:37] [Laravel Server]   2026-04-16 19:42:34[2026-04-16 22:42:37] [Laravel Server]  /products[2026-04-16 22:42:37] [Laravel Server]  ................................................................................ ~ 2s
-[2026-04-16 22:42:39] [Laravel Server]   2026-04-16 19:42:35[2026-04-16 22:42:39] [Laravel Server]  /categories[2026-04-16 22:42:39] [Laravel Server]  ..............................................................................[2026-04-16 22:42:39] [Laravel Server]  ~ 3s
-[2026-04-16 22:42:40] [Laravel Server]   2026-04-16 19:42:37[2026-04-16 22:42:40] [Laravel Server]  /settings/plan[2026-04-16 22:42:40] [Laravel Server]  ........................................................................... ~ 3s
-[2026-04-16 22:42:41] [Laravel Server]   2026-04-16 19:42:39[2026-04-16 22:42:41] [Laravel Server]  /settings/team ........................................................................... ~ 2s
-[2026-04-16 22:48:06] [Vite] [2m19:48:06[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Dashboard\DashboardIndex.php[22m
-[2026-04-16 22:48:06] [Vite] [2m19:48:06[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Dashboard/DashboardIndex.php[22m
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:07[2026-04-16 22:48:08] [Laravel Server]  /dashboard ......................................................................... ~ 509.00ms
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:07[2026-04-16 22:48:08] [Laravel Server]  /assets/css/flatpickr-custom.css[2026-04-16 22:48:08] [Laravel Server]  .........................................................[2026-04-16 22:48:08] [Laravel Server]  ~ 1s
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:08[2026-04-16 22:48:08] [Laravel Server]  /assets/css/flow-theme.css ...........................................................[2026-04-16 22:48:08] [Laravel Server]  ~ 0.07ms
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:08[2026-04-16 22:48:08] [Laravel Server]  /assets/css/responsive/sidebar.css?v=1773879672[2026-04-16 22:48:08] [Laravel Server]  ...................................... ~ 0.05ms
-  2026-04-16 19:48:08 /assets/css/responsive/tabbar.css?v=1775268488 .......................................[2026-04-16 22:48:08] [Laravel Server]  ~ 0.06ms
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:08 /assets/css/responsive/responsive-mobile.css ......................................... ~ 0.90ms
-  2026-04-16 19:48:08 /assets/css/responsive/responsive-iphone.css[2026-04-16 22:48:08] [Laravel Server]  .........................................[2026-04-16 22:48:08] [Laravel Server]  ~ 0.05ms
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:08[2026-04-16 22:48:08] [Laravel Server]  /assets/css/responsive/responsive-ipad.css[2026-04-16 22:48:08] [Laravel Server]  ...........................................[2026-04-16 22:48:08] [Laravel Server]  ~ 0.43ms
-  2026-04-16 19:48:08 /assets/css/responsive/responsive-notebook.css[2026-04-16 22:48:08] [Laravel Server]  ....................................... ~ 0.04ms
-  2026-04-16 19:48:08 /assets/css/responsive/responsive-fullhd.css ......................................... ~ 0.05ms
-  2026-04-16 19:48:08 /assets/css/responsive/responsive-ultrawide.css[2026-04-16 22:48:08] [Laravel Server]  ......................................[2026-04-16 22:48:08] [Laravel Server]  ~ 0.04ms
-  2026-04-16 19:48:08[2026-04-16 22:48:08] [Laravel Server]  /assets/img/banks/inter.png[2026-04-16 22:48:08] [Laravel Server]  ..........................................................[2026-04-16 22:48:08] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:48:08] [Laravel Server]   2026-04-16 19:48:08[2026-04-16 22:48:08] [Laravel Server]  /favicon.svg[2026-04-16 22:48:08] [Laravel Server]  .........................................................................[2026-04-16 22:48:08] [Laravel Server]  ~ 1.68ms
-  2026-04-16 19:48:08 /assets/img/banks/nubank.svg ......................................................... ~ 0.07ms
-  2026-04-16 19:48:08 /assets/css/icon-category.css ........................................................ ~ 0.05ms
-  2026-04-16 19:48:08 /assets/css/icon-overrides.css ....................................................... ~ 0.04ms
-  2026-04-16 19:48:08 /assets/css/responsive/dashboard-index-mobile.css .................................... ~ 0.06ms
-  2026-04-16 19:48:08 /assets/css/responsive/dashboard-index-iphone15.css .................................. ~ 0.04ms
-  2026-04-16 19:48:08 /assets/css/responsive/dashboard-index-ipad-portrait.css ............................. ~ 0.04ms
-  2026-04-16 19:48:08 /assets/css/responsive/dashboard-index-ipad-landscape.css ............................ ~ 0.04ms
-  2026-04-16 19:48:08 /assets/css/responsive/dashboard-index-notebook.css .................................. ~ 0.06ms
-  2026-04-16 19:48:08 /assets/css/responsive/dashboard-index-ultrawide.css ................................. ~ 0.36ms
-[2026-04-16 22:48:09] [Laravel Server]   2026-04-16 19:48:09[2026-04-16 22:48:09] [Laravel Server]  /assets/img/Criar.svg ................................................................[2026-04-16 22:48:09] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:48:10] [Laravel Server]   2026-04-16 19:48:10[2026-04-16 22:48:10] [Laravel Server]  /favicon.svg ......................................................................... ~ 0.21ms
-  2026-04-16 19:48:10 /favicon.ico ......................................................................... ~ 0.04ms
-[2026-04-16 22:48:10] [Vite] [2m19:48:10[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Dashboard\DashboardIndex.php[22m
-[2026-04-16 22:48:10] [Vite] [2m19:48:10[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Dashboard/DashboardIndex.php[22m
-[2026-04-16 22:48:17] [Laravel Server]   2026-04-16 19:48:11[2026-04-16 22:48:17] [Laravel Server]  /dashboard ............................................................................... ~ 5s
-[2026-04-16 22:48:25] [Vite] [2m19:48:25[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Dashboard\DashboardIndex.php[22m
-[2026-04-16 22:48:25] [Vite] [2m19:48:25[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Dashboard/DashboardIndex.php[22m
-[2026-04-16 22:48:27] [Laravel Server]   2026-04-16 19:48:17[2026-04-16 22:48:27] [Laravel Server]  /dashboard[2026-04-16 22:48:27] [Laravel Server]  ..............................................................................[2026-04-16 22:48:27] [Laravel Server]  ~ 10s
-[2026-04-16 22:48:29] [Vite] [2m19:48:29[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Dashboard\DashboardIndex.php[22m
-[2026-04-16 22:48:29] [Vite] [2m19:48:29[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Dashboard/DashboardIndex.php[22m
-[2026-04-16 22:48:31] [Laravel Server]   2026-04-16 19:48:27[2026-04-16 22:48:31] [Laravel Server]  /dashboard[2026-04-16 22:48:31] [Laravel Server]  ............................................................................... ~ 3s
-[2026-04-16 22:48:49] [Vite] [2m19:48:49[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\partials\fab-menu.blade.php[22m
-[2026-04-16 22:48:49] [Vite] [2m19:48:49[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/partials/fab-menu.blade.php[22m
-[2026-04-16 22:48:50] [Laravel Server]   2026-04-16 19:48:30[2026-04-16 22:48:50] [Laravel Server]  /dashboard[2026-04-16 22:48:50] [Laravel Server]  ..............................................................................[2026-04-16 22:48:50] [Laravel Server]  ~ 20s
-[2026-04-16 22:49:19] [Vite] [2m19:49:19[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\dashboard-index.blade.php[22m
-[2026-04-16 22:49:19] [Vite] [2m19:49:19[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/dashboard-index.blade.php[22m
-[2026-04-16 22:49:21] [Laravel Server]   2026-04-16 19:48:49[2026-04-16 22:49:21] [Laravel Server]  /dashboard[2026-04-16 22:49:21] [Laravel Server]  ..............................................................................[2026-04-16 22:49:21] [Laravel Server]  ~ 31s
-[2026-04-16 22:49:43] [Vite] [2m19:49:43[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\dashboard-index.blade.php[22m
-[2026-04-16 22:49:43] [Vite] [2m19:49:43[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/dashboard-index.blade.php[22m
-[2026-04-16 22:49:45] [Laravel Server]   2026-04-16 19:49:21[2026-04-16 22:49:45] [Laravel Server]  /dashboard .............................................................................. ~ 23s
-[2026-04-16 22:50:00] [Vite] [2m19:50:00[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\dashboard-index.blade.php[22m
-[2026-04-16 22:50:00] [Vite] [2m19:50:00[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/dashboard-index.blade.php[22m
-[2026-04-16 22:50:02] [Laravel Server]   2026-04-16 19:49:45[2026-04-16 22:50:02] [Laravel Server]  /dashboard[2026-04-16 22:50:02] [Laravel Server]  ..............................................................................[2026-04-16 22:50:02] [Laravel Server]  ~ 17s
-[2026-04-16 22:50:09] [Vite] [2m19:50:09[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\dashboard-index.blade.php[22m
-[2026-04-16 22:50:09] [Vite] [2m19:50:09[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/dashboard-index.blade.php[22m
-[2026-04-16 22:50:11] [Laravel Server]   2026-04-16 19:50:01[2026-04-16 22:50:11] [Laravel Server]  /dashboard .............................................................................. ~ 10s
-[2026-04-16 22:50:25] [Vite] [2m19:50:25[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\dashboard-index.blade.php[22m
-[2026-04-16 22:50:25] [Vite] [2m19:50:25[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/dashboard-index.blade.php[22m
-[2026-04-16 22:50:27] [Laravel Server]   2026-04-16 19:50:11[2026-04-16 22:50:27] [Laravel Server]  /dashboard .............................................................................. ~ 16s
-[2026-04-16 22:50:59] [Vite] [2m19:50:59[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mapp\Livewire\Dashboard\DashboardIndex.php[22m
-[2026-04-16 22:50:59] [Vite] [2m19:50:59[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mapp/Livewire/Dashboard/DashboardIndex.php[22m
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:50:27[2026-04-16 22:51:01] [Laravel Server]  /dashboard[2026-04-16 22:51:01] [Laravel Server]  .............................................................................. ~ 33s
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:00[2026-04-16 22:51:01] [Laravel Server]  /assets/css/flatpickr-custom.css[2026-04-16 22:51:01] [Laravel Server]  .........................................................[2026-04-16 22:51:01] [Laravel Server]  ~ 1s
-  2026-04-16 19:51:01 /assets/css/flow-theme.css[2026-04-16 22:51:01] [Laravel Server]  ...........................................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.05ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.46ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01 /assets/css/responsive/tabbar.css?v=1775268488[2026-04-16 22:51:01] [Laravel Server]  .......................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.07ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/css/responsive/responsive-mobile.css[2026-04-16 22:51:01] [Laravel Server]  .........................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.44ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/css/responsive/responsive-iphone.css[2026-04-16 22:51:01] [Laravel Server]  .........................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.54ms
-  2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/css/responsive/responsive-ipad.css[2026-04-16 22:51:01] [Laravel Server]  ...........................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.13ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/css/responsive/responsive-notebook.css[2026-04-16 22:51:01] [Laravel Server]  .......................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.68ms
-  2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/css/responsive/responsive-fullhd.css[2026-04-16 22:51:01] [Laravel Server]  .........................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01 /assets/css/responsive/responsive-ultrawide.css[2026-04-16 22:51:01] [Laravel Server]  ......................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.09ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/img/banks/inter.png ..........................................................[2026-04-16 22:51:01] [Laravel Server]  ~ 0.37ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01 /favicon.svg[2026-04-16 22:51:01] [Laravel Server]  .........................................................................[2026-04-16 22:51:01] [Laravel Server]  ~ 1.87ms
-[2026-04-16 22:51:01] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:01] [Laravel Server]  /assets/img/banks/nubank.svg[2026-04-16 22:51:01] [Laravel Server]  .........................................................[2026-04-16 22:51:01] [Laravel Server]  ~ 3.06ms
-[2026-04-16 22:51:02] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:02] [Laravel Server]  /assets/css/icon-category.css[2026-04-16 22:51:02] [Laravel Server]  ........................................................[2026-04-16 22:51:02] [Laravel Server]  ~ 1.15ms
-[2026-04-16 22:51:02] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:02] [Laravel Server]  /assets/css/icon-overrides.css[2026-04-16 22:51:02] [Laravel Server]  .......................................................[2026-04-16 22:51:02] [Laravel Server]  ~ 1.20ms
-[2026-04-16 22:51:02] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:02] [Laravel Server]  /assets/css/responsive/dashboard-index-mobile.css ....................................[2026-04-16 22:51:02] [Laravel Server]  ~ 0.14ms
-[2026-04-16 22:51:02] [Laravel Server]   2026-04-16 19:51:01 /assets/css/responsive/dashboard-index-iphone15.css[2026-04-16 22:51:02] [Laravel Server]  ..................................[2026-04-16 22:51:02] [Laravel Server]  ~ 0.05ms
-[2026-04-16 22:51:02] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:02] [Laravel Server]  /assets/css/responsive/dashboard-index-ipad-portrait.css[2026-04-16 22:51:02] [Laravel Server]  .............................[2026-04-16 22:51:02] [Laravel Server]  ~ 0.49ms
-  2026-04-16 19:51:01 /assets/css/responsive/dashboard-index-ipad-landscape.css[2026-04-16 22:51:02] [Laravel Server]  ............................[2026-04-16 22:51:02] [Laravel Server]  ~ 0.05ms
-  2026-04-16 19:51:01[2026-04-16 22:51:02] [Laravel Server]  /assets/css/responsive/dashboard-index-notebook.css[2026-04-16 22:51:02] [Laravel Server]  ..................................[2026-04-16 22:51:02] [Laravel Server]  ~ 0.16ms
-[2026-04-16 22:51:02] [Laravel Server]   2026-04-16 19:51:01[2026-04-16 22:51:02] [Laravel Server]  /assets/css/responsive/dashboard-index-ultrawide.css[2026-04-16 22:51:02] [Laravel Server]  .................................[2026-04-16 22:51:02] [Laravel Server]  ~ 4.46ms
-[2026-04-16 22:51:03] [Laravel Server]   2026-04-16 19:51:02[2026-04-16 22:51:03] [Laravel Server]  /assets/img/Criar.svg ................................................................[2026-04-16 22:51:03] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:51:04] [Laravel Server]   2026-04-16 19:51:03[2026-04-16 22:51:04] [Laravel Server]  /favicon.svg[2026-04-16 22:51:04] [Laravel Server]  ......................................................................... ~ 0.13ms
-[2026-04-16 22:51:04] [Laravel Server]   2026-04-16 19:51:03 /favicon.ico[2026-04-16 22:51:04] [Laravel Server]  .........................................................................[2026-04-16 22:51:04] [Laravel Server]  ~ 0.47ms
-[2026-04-16 22:51:11] [Vite] [2m19:51:11[22m [36m[1m[vite][22m[39m [32mfull reload[39m [2mresources\views\livewire\dashboard\dashboard-index.blade.php[22m
-[2026-04-16 22:51:11] [Vite] [2m19:51:11[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mpage reload [39m[2mresources/views/livewire/dashboard/dashboard-index.blade.php[22m
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:11[2026-04-16 22:51:12] [Laravel Server]  /dashboard ...............................................................................[2026-04-16 22:51:12] [Laravel Server]  ~ 1s
-  2026-04-16 19:51:11[2026-04-16 22:51:12] [Laravel Server]  /assets/css/flatpickr-custom.css ......................................................... ~ 1s
-  2026-04-16 19:51:12 /assets/css/flow-theme.css ........................................................... ~ 0.06ms
-  2026-04-16 19:51:12 /assets/css/responsive/sidebar.css?v=1773879672 ...................................... ~ 0.87ms
-  2026-04-16 19:51:12 /assets/css/responsive/tabbar.css?v=1775268488 ....................................... ~ 0.09ms
-  2026-04-16 19:51:12 /assets/css/responsive/responsive-mobile.css .........................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.48ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/responsive/responsive-iphone.css ......................................... ~ 0.96ms
-  2026-04-16 19:51:12 /assets/css/responsive/responsive-ipad.css ...........................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.66ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12 /assets/css/responsive/responsive-notebook.css[2026-04-16 22:51:12] [Laravel Server]  .......................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.06ms
-  2026-04-16 19:51:12 /assets/css/responsive/responsive-fullhd.css[2026-04-16 22:51:12] [Laravel Server]  .........................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.95ms
-  2026-04-16 19:51:12 /assets/css/responsive/responsive-ultrawide.css[2026-04-16 22:51:12] [Laravel Server]  ...................................... ~ 0.05ms
-  2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/img/banks/inter.png[2026-04-16 22:51:12] [Laravel Server]  ..........................................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.18ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12 /favicon.svg[2026-04-16 22:51:12] [Laravel Server]  .........................................................................[2026-04-16 22:51:12] [Laravel Server]  ~ 1.61ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/img/banks/nubank.svg[2026-04-16 22:51:12] [Laravel Server]  .........................................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.59ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/icon-category.css[2026-04-16 22:51:12] [Laravel Server]  ........................................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.09ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/icon-overrides.css[2026-04-16 22:51:12] [Laravel Server]  .......................................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.44ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/responsive/dashboard-index-mobile.css[2026-04-16 22:51:12] [Laravel Server]  ....................................[2026-04-16 22:51:12] [Laravel Server]  ~ 1.54ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/responsive/dashboard-index-iphone15.css ..................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.11ms
-  2026-04-16 19:51:12 /assets/css/responsive/dashboard-index-ipad-portrait.css[2026-04-16 22:51:12] [Laravel Server]  .............................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.83ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/responsive/dashboard-index-ipad-landscape.css[2026-04-16 22:51:12] [Laravel Server]  ............................[2026-04-16 22:51:12] [Laravel Server]  ~ 1.22ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12 /assets/css/responsive/dashboard-index-notebook.css[2026-04-16 22:51:12] [Laravel Server]  .................................. ~ 5.43ms
-[2026-04-16 22:51:12] [Laravel Server]   2026-04-16 19:51:12[2026-04-16 22:51:12] [Laravel Server]  /assets/css/responsive/dashboard-index-ultrawide.css[2026-04-16 22:51:12] [Laravel Server]  .................................[2026-04-16 22:51:12] [Laravel Server]  ~ 0.74ms
-[2026-04-16 22:51:13] [Laravel Server]   2026-04-16 19:51:13 /assets/img/Criar.svg[2026-04-16 22:51:13] [Laravel Server]  ................................................................[2026-04-16 22:51:13] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:51:14] [Laravel Server]   2026-04-16 19:51:14 /favicon.svg[2026-04-16 22:51:14] [Laravel Server]  .........................................................................[2026-04-16 22:51:14] [Laravel Server]  ~ 0.08ms
-[2026-04-16 22:51:14] [Laravel Server]   2026-04-16 19:51:14[2026-04-16 22:51:14] [Laravel Server]  /favicon.ico[2026-04-16 22:51:14] [Laravel Server]  .........................................................................[2026-04-16 22:51:14] [Laravel Server]  ~ 0.62ms
-[2026-04-17 01:23:59] [WARN] ⚠ Laravel Server encerrado com código 3221225786
+[2026-05-10 15:11:33] [Laravel Server]   2026-05-10 12:11:29[2026-05-10 15:11:33] [Laravel Server]  /[2026-05-10 15:11:33] [Laravel Server]  ..................................................................................[2026-05-10 15:11:33] [Laravel Server]  ~ 512.69ms
+  2026-05-10 12:11:32 /[2026-05-10 15:11:33] [Laravel Server]  ....................................................................................[2026-05-10 15:11:33] [Laravel Server]  ~ 0.04ms
+  2026-05-10 12:11:32 /apple-touch-icon.png[2026-05-10 15:11:33] [Laravel Server]  ................................................................[2026-05-10 15:11:33] [Laravel Server]  ~ 2.55ms
+[2026-05-10 15:11:33] [Laravel Server]   2026-05-10 12:11:33[2026-05-10 15:11:33] [Laravel Server]  /apple-touch-icon.png[2026-05-10 15:11:33] [Laravel Server]  ................................................................[2026-05-10 15:11:33] [Laravel Server]  ~ 0.40ms
