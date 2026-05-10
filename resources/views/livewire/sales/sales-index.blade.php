@@ -240,12 +240,21 @@
                             Comece registrando sua primeira venda.
                             @endif
                         </p>
-                        <a href="{{ route('sales.create') }}"
-                            class="inline-flex items-center gap-2 px-7 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
-                            style="background: linear-gradient(135deg, #6366f1 0%, #7c3aed 60%, #a855f7 100%); box-shadow: 0 6px 20px rgba(99,102,241,0.4);">
-                            <i class="bi bi-plus-circle"></i>
-                            Criar Nova Venda
-                        </a>
+                        <div class="flex flex-wrap items-center justify-center gap-2">
+                            <a href="{{ route('sales.create', ['scanner' => 1]) }}"
+                                class="inline-flex items-center gap-2 px-7 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+                                style="background: linear-gradient(135deg, #0284c7 0%, #2563eb 60%, #4f46e5 100%); box-shadow: 0 6px 20px rgba(37,99,235,0.35);">
+                                <i class="bi bi-upc-scan"></i>
+                                Criar Venda com Scanner
+                            </a>
+
+                            <a href="{{ route('sales.create') }}"
+                                class="inline-flex items-center gap-2 px-7 py-3 text-sm font-bold text-white rounded-xl shadow-lg transition-all duration-200 hover:-translate-y-0.5 hover:shadow-xl"
+                                style="background: linear-gradient(135deg, #6366f1 0%, #7c3aed 60%, #a855f7 100%); box-shadow: 0 6px 20px rgba(99,102,241,0.4);">
+                                <i class="bi bi-plus-circle"></i>
+                                Criar Nova Venda
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
