@@ -104,7 +104,6 @@ jobs:
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
           timeout: 30s
-          cipher: hmac-sha2-512
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
             mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
@@ -116,8 +115,7 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          cipher: hmac-sha2-512
-          source: "app,artisan,bootstrap,config,database,resources,routes,scripts,storage,vendor,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,.env.example"
+          source: "app,artisan,bootstrap,config,database,resources,routes,scripts,storage,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,.env.example"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
@@ -130,7 +128,6 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          cipher: hmac-sha2-512
           source: "public/.htaccess,public/*"
           target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
           rm: false
@@ -144,12 +141,13 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          timeout: 30s
-          cipher: hmac-sha2-512
+          timeout: 120s
+          command_timeout: 10m
           script_stop: true
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             php artisan down --retry=60 || true
+            composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
             php artisan optimize
