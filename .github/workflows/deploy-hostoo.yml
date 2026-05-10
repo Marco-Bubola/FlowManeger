@@ -192,5 +192,15 @@ jobs:
             }
             printf '%s\n' "$GITHUB_SHA" > storage/app/deploy-sha.txt
             printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_PUBLIC_PATH }}/deploy-sha.txt"
+
+            # Diagnóstico: revela o APP_PATH real que o index.php do site está usando
+            echo "=== DIAGNOSTICO DE CAMINHOS ==="
+            echo "HOSTOO_APP_PATH configurado: ${{ secrets.HOSTOO_APP_PATH }}"
+            echo "public_html/index.php aponta para:"
+            head -20 "${{ secrets.HOSTOO_PUBLIC_PATH }}/index.php" || echo "(index.php nao encontrado no public_html)"
+            echo "Conteudo de /home/zyme3ncq (raiz do usuario):"
+            ls -la /home/zyme3ncq/ 2>/dev/null || ls -la "$HOME/" 2>/dev/null || echo "(sem acesso)"
+            echo "================================"
+
             php artisan queue:restart
             php artisan up
