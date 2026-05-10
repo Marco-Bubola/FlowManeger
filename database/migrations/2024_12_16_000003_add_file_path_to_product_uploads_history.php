@@ -1,0 +1,28 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        if (Schema::hasColumn('product_uploads_history', 'file_path')) {
+            return;
+        }
+
+        Schema::table('product_uploads_history', function (Blueprint $table) {
+            $table->string('file_path')->nullable()->after('filename');
+        });
+    }
+
+    public function down(): void
+    {
+        if (Schema::hasColumn('product_uploads_history', 'file_path')) {
+            Schema::table('product_uploads_history', function (Blueprint $table) {
+                $table->dropColumn('file_path');
+            });
+        }
+    }
+};
