@@ -51,10 +51,6 @@ jobs:
       - name: Build Assets
         run: npm run build
 
-      - name: Compute local view hash
-        run: |
-          echo "LOCAL_CREATE_SALE_SHA=$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')" >> "$GITHUB_ENV"
-
       - name: Validate required deploy secrets
         env:
           HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
@@ -71,35 +67,6 @@ jobs:
           [ -n "$HOSTOO_APP_PATH" ] || (echo "Secret HOSTOO_APP_PATH não definido" && exit 1)
           [ -n "$HOSTOO_PUBLIC_PATH" ] || (echo "Secret HOSTOO_PUBLIC_PATH não definido" && exit 1)
 
-          case "$HOSTOO_PORT" in
-            (*[!0-9]*)
-              echo "Secret HOSTOO_PORT deve conter apenas números"
-              exit 1
-              ;;
-          esac
-
-          if printf '%s' "$HOSTOO_HOST" | grep -q '[[:space:]]'; then
-            echo "Secret HOSTOO_HOST contém espaços ou quebra de linha"
-            exit 1
-          fi
-
-      - name: Diagnose SSH connectivity
-        env:
-          HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
-          HOSTOO_PORT: ${{ secrets.HOSTOO_PORT }}
-        run: |
-          echo "Resolvendo DNS do host de deploy..."
-          getent ahosts "$HOSTOO_HOST" | awk '{print $1}' | sort -u | head -n 5 || {
-            echo "Falha ao resolver HOSTOO_HOST. Verifique DNS/IP informado no secret."
-            exit 1
-          }
-
-          echo "Testando conectividade TCP na porta SSH..."
-          timeout 15 bash -c "</dev/tcp/$HOSTOO_HOST/$HOSTOO_PORT" 2>/dev/null && echo "Porta acessível." || {
-            echo "Porta $HOSTOO_PORT fechada ou filtrada. Verifique firewall/host."
-            exit 1
-          }
-
       - name: Criar diretórios remotos
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -107,48 +74,18 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          timeout: 30s
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/public"
-            rm -rf "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/app/public"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/cache/data"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/sessions"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/views"
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/logs"
-            EXPECTED_PUBLIC="${{ secrets.HOSTOO_APP_PATH }}/public"
-            CURRENT_PUBLIC="$(readlink -f "${{ secrets.HOSTOO_PUBLIC_PATH }}" 2>/dev/null || echo '')"
-            echo "public_path atual: $CURRENT_PUBLIC"
-            echo "public_path esperado: $EXPECTED_PUBLIC"
-            if [ "$CURRENT_PUBLIC" != "$EXPECTED_PUBLIC" ]; then
-              rm -rf "${{ secrets.HOSTOO_PUBLIC_PATH }}"
-              ln -s "$EXPECTED_PUBLIC" "${{ secrets.HOSTOO_PUBLIC_PATH }}"
-              echo "Symlink corrigido: ${{ secrets.HOSTOO_PUBLIC_PATH }} -> $EXPECTED_PUBLIC"
-            fi
+            mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
 
-      - name: Upload PHP core files
+      - name: Upload app to HOSTOO_APP_PATH
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example"
-          target: ${{ secrets.HOSTOO_APP_PATH }}
-          rm: false
-          overwrite: true
-          strip_components: 0
-
-      - name: Upload Blade views
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTOO_HOST }}
-          username: ${{ secrets.HOSTOO_USER }}
-          password: ${{ secrets.HOSTOO_PASSWORD }}
-          port: ${{ secrets.HOSTOO_PORT }}
-          source: "resources/views"
+          source: "app,artisan,bootstrap,config,database,resources,routes,scripts,storage,vendor,composer.json,composer.lock,package.json,package-lock.json,vite.config.js,tailwind.config.js,.env.example"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
@@ -161,44 +98,25 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "public/.htaccess,public/index.php,public/robots.txt,public/assets,public/build,public/storage,public/js"
-          target: ${{ secrets.HOSTOO_APP_PATH }}/public
+          source: "public/.htaccess,public/*"
+          target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
           rm: false
           overwrite: true
           strip_components: 1
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          GITHUB_SHA: ${{ github.sha }}
-          LOCAL_CREATE_SALE_SHA: ${{ env.LOCAL_CREATE_SALE_SHA }}
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          timeout: 120s
-          command_timeout: 10m
           script_stop: true
-          envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             php artisan down --retry=60 || true
-            composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
-            php artisan optimize:clear
-            php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache reset executado'.PHP_EOL; }"
             php artisan optimize
-            REMOTE_CREATE_SALE_SHA="$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')"
-            echo "Local create-sale SHA:  $LOCAL_CREATE_SALE_SHA"
-            echo "Remote create-sale SHA: $REMOTE_CREATE_SALE_SHA"
-            [ "$REMOTE_CREATE_SALE_SHA" = "$LOCAL_CREATE_SALE_SHA" ] || {
-              echo "ERRO: a view create-sale no servidor nao bate com a versao do commit."
-              echo "Provavel caminho remoto incorreto (app_path/document root desalinhados)."
-              php artisan up
-              exit 1
-            }
-            printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_APP_PATH }}/public/deploy-sha.txt"
             php artisan queue:restart
             php artisan up
