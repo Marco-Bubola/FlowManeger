@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Confiar em todos os proxies (ngrok, cloudflare, etc) em desenvolvimento
         $middleware->trustProxies(at: '*');
 
+        // Middleware global para desabilitar cache de Blade views em produção
+        $middleware->append(\App\Http\Middleware\NoCacheViews::class);
+
         // Aliases de middleware personalizados
         $middleware->alias([
             'admin'        => \App\Http\Middleware\EnsureAdmin::class,
