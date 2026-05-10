@@ -104,7 +104,7 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example,vendor"
+          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
@@ -152,25 +152,20 @@ jobs:
           envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
-            
-            # vendor/ já foi uploadado. Só roda php artisan
+            mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache
+            composer install --no-dev --no-scripts 2>&1 | grep -E "(Installing|Generating|Package operations|error)" || true
             php artisan package:discover --ansi || true
             php artisan down --retry=60 || true
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
             php artisan optimize:clear
-            php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache reset executado'.PHP_EOL; }"
+            php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache reset'.PHP_EOL; }"
             php artisan optimize
             REMOTE_CREATE_SALE_SHA="$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')"
             echo "Local create-sale SHA:  $LOCAL_CREATE_SALE_SHA"
             echo "Remote create-sale SHA: $REMOTE_CREATE_SALE_SHA"
-            [ "$REMOTE_CREATE_SALE_SHA" = "$LOCAL_CREATE_SALE_SHA" ] || {
-              echo "ERRO: a view create-sale no servidor nao bate com a versao do commit."
-              echo "Provavel caminho remoto incorreto (app_path/document root desalinhados)."
-              php artisan up
-              exit 1
-            }
+            [ "$REMOTE_CREATE_SALE_SHA" = "$LOCAL_CREATE_SALE_SHA" ] || { echo "ERRO: SHA mismatch"; php artisan up; exit 1; }
             printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_PUBLIC_PATH }}/deploy-sha.txt"
             php artisan queue:restart
             php artisan up
-            echo "=== Deploy concluído com sucesso ==="
+            echo "=== Deploy OK ==="
