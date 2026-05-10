@@ -1,9 +1,9 @@
 @push('styles')
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+<link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 @endpush
 
-<div class="w-full h-screen min-h-screenapp-viewport-fit sales-index-page mobile-393-base relative" x-data="{
+<div class="w-full min-h-screenapp-viewport-fit sales-index-page mobile-393-base relative" x-data="{
     showFilters: false,
     fullHd: false,
     ultra: false,
@@ -54,10 +54,7 @@
             display: none !important;
         }
     </style>
-
     <x-loading-overlay message="Carregando vendas..." />
-
-
     <div class="">
 
         <!-- Header Moderno -->
@@ -157,23 +154,23 @@
                                 </td>
                                 <td class="px-3 py-3 text-center">
                                     @if($pq->payment_preference)
-                                        @php
-                                            $payLabels = ['pix'=>'PIX','dinheiro'=>'Dinheiro','credito'=>'Crédito','debito'=>'Débito','boleto'=>'Boleto','outro'=>'Outro'];
-                                            $payIcons  = ['pix'=>'fa-qrcode','dinheiro'=>'fa-money-bill-wave','credito'=>'fa-credit-card','debito'=>'fa-credit-card','boleto'=>'fa-barcode','outro'=>'fa-ellipsis-h'];
-                                        @endphp
-                                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg font-bold text-[10px]">
-                                            <i class="fas {{ $payIcons[$pq->payment_preference] ?? 'fa-credit-card' }} text-[9px]"></i>
-                                            {{ $payLabels[$pq->payment_preference] ?? $pq->payment_preference }}
-                                        </span>
+                                    @php
+                                    $payLabels = ['pix'=>'PIX','dinheiro'=>'Dinheiro','credito'=>'Crédito','debito'=>'Débito','boleto'=>'Boleto','outro'=>'Outro'];
+                                    $payIcons = ['pix'=>'fa-qrcode','dinheiro'=>'fa-money-bill-wave','credito'=>'fa-credit-card','debito'=>'fa-credit-card','boleto'=>'fa-barcode','outro'=>'fa-ellipsis-h'];
+                                    @endphp
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 rounded-lg font-bold text-[10px]">
+                                        <i class="fas {{ $payIcons[$pq->payment_preference] ?? 'fa-credit-card' }} text-[9px]"></i>
+                                        {{ $payLabels[$pq->payment_preference] ?? $pq->payment_preference }}
+                                    </span>
                                     @else
-                                        <span class="text-gray-400 dark:text-slate-500">—</span>
+                                    <span class="text-gray-400 dark:text-slate-500">—</span>
                                     @endif
                                 </td>
                                 <td class="px-3 py-3 text-center">
                                     @php
-                                        $stColors = ['pending'=>'amber','reviewing'=>'blue','quoted'=>'violet'];
-                                        $stLabels = ['pending'=>'Aguardando','reviewing'=>'Em análise','quoted'=>'Cotado'];
-                                        $sc = $stColors[$pq->status] ?? 'gray';
+                                    $stColors = ['pending'=>'amber','reviewing'=>'blue','quoted'=>'violet'];
+                                    $stLabels = ['pending'=>'Aguardando','reviewing'=>'Em análise','quoted'=>'Cotado'];
+                                    $sc = $stColors[$pq->status] ?? 'gray';
                                     @endphp
                                     <span class="inline-flex items-center gap-1 px-2 py-1 bg-{{ $sc }}-100 dark:bg-{{ $sc }}-900/20 text-{{ $sc }}-700 dark:text-{{ $sc }}-300 rounded-lg font-black text-[10px]">
                                         @if($pq->status === 'pending') <i class="fas fa-clock text-[8px]"></i>
@@ -188,7 +185,7 @@
                                 </td>
                                 <td class="px-5 py-3 text-right">
                                     <a href="{{ route('clients.portal.quotes', $pq->client_id) }}"
-                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-[10px] rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white font-black text-[10px] rounded-lg shadow-sm hover:shadow-md transition-all hover:scale-[1.02]">
                                         <i class="fas fa-eye text-[9px]"></i>
                                         Confirmar
                                     </a>
@@ -921,4 +918,4 @@
         </div>
     </div>
     @endif
- </div>
+</div>
