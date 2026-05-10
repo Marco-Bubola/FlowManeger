@@ -51,6 +51,10 @@ jobs:
       - name: Build Assets
         run: npm run build
 
+      - name: Compute local view hash
+        run: |
+          echo "LOCAL_CREATE_SALE_SHA=$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')" >> "$GITHUB_ENV"
+
       - name: Validate required deploy secrets
         env:
           HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
@@ -93,58 +97,78 @@ jobs:
             ls -ld "${{ secrets.HOSTOO_APP_PATH }}"
             ls -ld "${{ secrets.HOSTOO_PUBLIC_PATH }}"
 
-      - name: Deploy app to HOSTOO_APP_PATH via rsync
-        env:
-          HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
-          HOSTOO_USER: ${{ secrets.HOSTOO_USER }}
-          HOSTOO_PASSWORD: ${{ secrets.HOSTOO_PASSWORD }}
-          HOSTOO_PORT: ${{ secrets.HOSTOO_PORT }}
-          HOSTOO_APP_PATH: ${{ secrets.HOSTOO_APP_PATH }}
-        run: |
-          # Instala sshpass se necessário
-          apt-get update && apt-get install -y sshpass > /dev/null 2>&1 || true
-          
-          # Deploy via rsync
-          sshpass -p "$HOSTOO_PASSWORD" rsync -avz --delete \
-            -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $HOSTOO_PORT" \
-            app/ artisan bootstrap/ config/ database/ resources/ routes/ scripts/ vendor/ storage/ \
-            composer.json composer.lock package.json package-lock.json vite.config.js tailwind.config.js .env.example \
-            "$HOSTOO_USER@$HOSTOO_HOST:$HOSTOO_APP_PATH/"
-
-      - name: Deploy public files to HOSTOO_PUBLIC_PATH via rsync
-        env:
-          HOSTOO_HOST: ${{ secrets.HOSTOO_HOST }}
-          HOSTOO_USER: ${{ secrets.HOSTOO_USER }}
-          HOSTOO_PASSWORD: ${{ secrets.HOSTOO_PASSWORD }}
-          HOSTOO_PORT: ${{ secrets.HOSTOO_PORT }}
-          HOSTOO_PUBLIC_PATH: ${{ secrets.HOSTOO_PUBLIC_PATH }}
-        run: |
-          # Deploy public files via rsync
-          sshpass -p "$HOSTOO_PASSWORD" rsync -avz \
-            -e "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p $HOSTOO_PORT" \
-            public/ "$HOSTOO_USER@$HOSTOO_HOST:$HOSTOO_PUBLIC_PATH/"
-
-      - name: Run remote post-deploy commands
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Upload PHP core files
+        uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
+          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example"
+          target: ${{ secrets.HOSTOO_APP_PATH }}
+          rm: false
+          overwrite: true
+          strip_components: 0
+
+      - name: Upload Blade views
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          source: "resources/views"
+          target: ${{ secrets.HOSTOO_APP_PATH }}
+          rm: false
+          overwrite: true
+          strip_components: 0
+
+      - name: Upload public files to HOSTOO_PUBLIC_PATH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          source: "public/.htaccess,public/index.php,public/robots.txt,public/assets,public/build,public/storage,public/js"
+          target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
+          rm: false
+          overwrite: true
+          strip_components: 1
+
+      - name: Run remote post-deploy commands
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+          LOCAL_CREATE_SALE_SHA: ${{ env.LOCAL_CREATE_SALE_SHA }}
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          timeout: 120s
+          command_timeout: 10m
           script_stop: true
+          envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
-            # Debug: verifica estrutura de diretórios
-            echo "=== Verificando diretórios ==="
-            ls -la "${{ secrets.HOSTOO_APP_PATH }}" | head -20
-            
             cd "${{ secrets.HOSTOO_APP_PATH }}"
-            
-            echo "=== Executando comandos de deploy ==="
             php artisan down --retry=60 || true
+            composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
+            php artisan optimize:clear
+            php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache reset executado'.PHP_EOL; }"
             php artisan optimize
+            REMOTE_CREATE_SALE_SHA="$(sha1sum resources/views/livewire/sales/create-sale.blade.php | awk '{print $1}')"
+            echo "Local create-sale SHA:  $LOCAL_CREATE_SALE_SHA"
+            echo "Remote create-sale SHA: $REMOTE_CREATE_SALE_SHA"
+            [ "$REMOTE_CREATE_SALE_SHA" = "$LOCAL_CREATE_SALE_SHA" ] || {
+              echo "ERRO: a view create-sale no servidor nao bate com a versao do commit."
+              echo "Provavel caminho remoto incorreto (app_path/document root desalinhados)."
+              php artisan up
+              exit 1
+            }
+            printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_PUBLIC_PATH }}/deploy-sha.txt"
             php artisan queue:restart
             php artisan up
-            
             echo "=== Deploy concluído com sucesso ==="
