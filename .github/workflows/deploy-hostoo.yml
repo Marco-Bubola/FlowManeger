@@ -107,8 +107,8 @@ jobs:
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
             mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
-              rm -rf "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
-              mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
+            rm -rf "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/app/public"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/cache/data"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/sessions"
@@ -156,6 +156,8 @@ jobs:
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_SHA: ${{ github.sha }}
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
@@ -164,14 +166,17 @@ jobs:
           timeout: 120s
           command_timeout: 10m
           script_stop: true
+          envs: GITHUB_SHA
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             php artisan down --retry=60 || true
             composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
-            php artisan view:clear
-            php artisan cache:clear
+            php artisan optimize:clear
+            php -r "if (function_exists('opcache_reset')) { opcache_reset(); echo 'OPcache reset executado'.PHP_EOL; }"
             php artisan optimize
+            printf '%s\n' "$GITHUB_SHA" > storage/app/deploy-sha.txt
+            printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_PUBLIC_PATH }}/deploy-sha.txt"
             php artisan queue:restart
             php artisan up
