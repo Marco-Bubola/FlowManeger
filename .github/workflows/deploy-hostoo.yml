@@ -170,6 +170,8 @@ jobs:
             composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
+            php artisan view:clear
+            php artisan cache:clear
             php artisan optimize
             php artisan queue:restart
             php artisan up
