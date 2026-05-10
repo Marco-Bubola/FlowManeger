@@ -858,7 +858,6 @@
                 <div class="fab-circle">
                     <img src="{{ asset('assets/img/Criar.svg') }}" alt="Criar" style="display:block; width:5.8rem; height:5.8rem; object-fit:contain; border-radius:50%;">
                 </div>
-                <span class="fab-label">Criar</span>
             </button>
 
             <!-- Produtos -->
