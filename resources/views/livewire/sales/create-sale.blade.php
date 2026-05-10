@@ -1514,15 +1514,9 @@
                     const cameraConstraints = [
                         {
                             video: {
-                                facingMode: { exact: this.scannerFacing },
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                            },
-                            audio: false
-                        },
-                        {
-                            video: {
-                                facingMode: { ideal: this.scannerFacing },
+                                facingMode: this.scannerFacing === 'environment'
+                                    ? { ideal: 'environment' }
+                                    : { ideal: 'user' },
                                 width: { ideal: 1280 },
                                 height: { ideal: 720 }
                             },
@@ -1568,14 +1562,54 @@
                                 this.minZoom = Number(capabilities.zoom.min ?? 1);
                                 this.maxZoom = Number(capabilities.zoom.max ?? 10);
                                 this.zoomSupported = true;
-                                this.currentZoom = 1.0;
-                                this.scannerStatus = `Camera ativa. Zoom disponivel (${this.minZoom}x - ${this.maxZoom}x). Aponte para o codigo de barras.`;
+
+                                const ua = navigator.userAgent || '';
+                                const isAppleMobile = /iPhone|iPad|iPod/i.test(ua)
+                                    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+                                // Em iPhone com lente ultra-wide (0.5x), iniciar no menor zoom evita efeito de "camera fechada".
+                                const preferredZoom = isAppleMobile && this.scannerFacing === 'environment' && this.minZoom < 1
+                                    ? this.minZoom
+                                    : 1;
+                                const defaultZoom = Math.min(Math.max(preferredZoom, this.minZoom), this.maxZoom);
+
+                                try {
+                                    await videoTrack.applyConstraints({
+                                        advanced: [{ zoom: defaultZoom }]
+                                    });
+                                } catch (defaultZoomError) {
+                                    console.warn('Nao foi possivel aplicar zoom inicial da camera.', defaultZoomError);
+                                }
+
+                                this.currentZoom = defaultZoom;
+
+                                const zoomCandidates = [
+                                    this.minZoom,
+                                    0.5,
+                                    1.0,
+                                    1.5,
+                                    2.0,
+                                    2.5,
+                                    3.0,
+                                    this.maxZoom
+                                ];
+                                this.availableZooms = [...new Set(
+                                    zoomCandidates
+                                        .map((z) => Number(z.toFixed(1)))
+                                        .filter((z) => z >= this.minZoom && z <= this.maxZoom)
+                                )].sort((a, b) => a - b);
+
+                                this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
                             } else {
                                 this.zoomSupported = false;
+                                this.availableZooms = [1.0, 1.5, 2.0, 2.5, 3.0];
                                 this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
                             }
                         } catch (zoomError) {
                             console.warn('Nao foi possivel aplicar zoom no dispositivo.', zoomError);
+                            this.zoomSupported = false;
+                            this.availableZooms = [1.0, 1.5, 2.0, 2.5, 3.0];
+                            this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
                         }
                     }
 
