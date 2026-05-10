@@ -1470,6 +1470,26 @@
                         throw lastError || new Error('Falha ao iniciar stream da camera.');
                     }
 
+                    const videoTrack = stream.getVideoTracks()[0] || null;
+                    if (videoTrack && typeof videoTrack.getCapabilities === 'function' && typeof videoTrack.applyConstraints === 'function') {
+                        try {
+                            const capabilities = videoTrack.getCapabilities();
+                            if (capabilities && typeof capabilities.zoom !== 'undefined') {
+                                const minZoom = Number(capabilities.zoom.min ?? 1);
+                                const maxZoom = Number(capabilities.zoom.max ?? 10);
+                                const targetZoom = Math.min(Math.max(2.5, minZoom), maxZoom);
+
+                                await videoTrack.applyConstraints({
+                                    advanced: [{ zoom: targetZoom }]
+                                });
+
+                                this.scannerStatus = `Camera ativa com zoom ${targetZoom.toFixed(1)}x. Aponte para o codigo de barras.`;
+                            }
+                        } catch (zoomError) {
+                            console.warn('Nao foi possivel aplicar zoom no dispositivo.', zoomError);
+                        }
+                    }
+
                     this.scannerStream = stream;
 
                     const video = this.$refs.scannerVideo;
@@ -1484,7 +1504,9 @@
                     video.muted = true;
                     video.srcObject = this.scannerStream;
                     await video.play();
-                    this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
+                    if (!this.scannerStatus.includes('zoom')) {
+                        this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
+                    }
                     this.scanFrames();
                 } catch (error) {
                     this.scannerStatus = 'Nao foi possivel acessar a camera. Verifique permissao e HTTPS.';
