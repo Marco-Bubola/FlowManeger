@@ -172,11 +172,17 @@ jobs:
             composer install --no-dev --no-scripts
             echo "[deploy] package discover"
             php artisan package:discover --ansi || true
+            echo "[deploy] limpando cache de configuracao"
+            rm -f bootstrap/cache/config.php bootstrap/cache/packages.php bootstrap/cache/services.php || true
+            php artisan config:clear || true
+            php artisan cache:clear || true
+            echo "[deploy] DB_* lidos do .env (senha mascarada)"
+            grep -E '^DB_(CONNECTION|HOST|PORT|DATABASE|USERNAME|PASSWORD)=' .env | sed -E 's/^(DB_PASSWORD=).*/\1***MASKED***/'
             DB_CHECK_LOG="${{ secrets.HOSTOO_APP_PATH }}/storage/logs/db-check.log"
             echo "[deploy] testando conexao de banco"
             if ! php artisan migrate:status --no-ansi > "$DB_CHECK_LOG" 2>&1; then
               echo "ERRO: falha de conexao com banco. Revise DB_CONNECTION, DB_HOST, DB_PORT, DB_DATABASE, DB_USERNAME e DB_PASSWORD no .env do servidor."
-              tail -n 40 "$DB_CHECK_LOG" || true
+              tail -n 60 "$DB_CHECK_LOG" || true
               exit 1
             fi
             echo "[deploy] aplicando migracoes"
