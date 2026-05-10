@@ -8,6 +8,14 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('invoice')) {
+            return;
+        }
+
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('invoice', function (Blueprint $table) {
             // Drop existing FKs without ON DELETE CASCADE
             $table->dropForeign('invoice_ibfk_1');
@@ -26,6 +34,14 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('invoice')) {
+            return;
+        }
+
+        if (Schema::getConnection()->getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('invoice', function (Blueprint $table) {
             $table->dropForeign('invoice_ibfk_1');
             $table->dropForeign('invoice_ibfk_2');
