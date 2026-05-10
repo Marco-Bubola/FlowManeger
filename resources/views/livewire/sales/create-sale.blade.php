@@ -1560,14 +1560,6 @@
                     const cameraConstraints = [
                         {
                             video: {
-                                facingMode: { exact: this.scannerFacing },
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                            },
-                            audio: false
-                        },
-                        {
-                            video: {
                                 facingMode: this.scannerFacing === 'environment'
                                     ? { ideal: 'environment' }
                                     : { ideal: 'user' },
@@ -1641,26 +1633,7 @@
                                 this.minZoom = Number(capabilities.zoom.min ?? 1);
                                 this.maxZoom = Number(capabilities.zoom.max ?? 10);
                                 this.zoomSupported = true;
-
-                                const ua = navigator.userAgent || '';
-                                const isAppleMobile = /iPhone|iPad|iPod/i.test(ua)
-                                    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-
-                                // Em iPhone com lente ultra-wide (0.5x), iniciar no menor zoom evita efeito de "camera fechada".
-                                const preferredZoom = isAppleMobile && this.scannerFacing === 'environment' && this.minZoom < 1
-                                    ? this.minZoom
-                                    : 1;
-                                const defaultZoom = Math.min(Math.max(preferredZoom, this.minZoom), this.maxZoom);
-
-                                try {
-                                    await videoTrack.applyConstraints({
-                                        advanced: [{ zoom: defaultZoom }]
-                                    });
-                                } catch (defaultZoomError) {
-                                    console.warn('Nao foi possivel aplicar zoom inicial da camera.', defaultZoomError);
-                                }
-
-                                this.currentZoom = defaultZoom;
+                                this.currentZoom = Math.min(Math.max(1.0, this.minZoom), this.maxZoom);
 
                                 const zoomCandidates = [
                                     this.minZoom,
