@@ -109,8 +109,7 @@ jobs:
           port: ${{ secrets.HOSTOO_PORT }}
           timeout: 30s
           script: |
-            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
-            mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+            mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/public"
             rm -rf "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/app/public"
@@ -118,6 +117,14 @@ jobs:
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/sessions"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/views"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/logs"
+            # Corrige public_html para apontar ao diretório correto ANTES do upload
+            EXPECTED="${{ secrets.HOSTOO_APP_PATH }}/public"
+            CURRENT="$(readlink -f "$HOME/public_html" 2>/dev/null || echo '')"
+            if [ "$CURRENT" != "$EXPECTED" ]; then
+              echo "Corrigindo symlink: public_html -> $EXPECTED"
+              rm -f "$HOME/public_html"
+              ln -s "$EXPECTED" "$HOME/public_html"
+            fi
 
       - name: Upload PHP core files
         uses: appleboy/scp-action@v0.1.7
@@ -153,7 +160,7 @@ jobs:
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
           source: "public/.htaccess,public/index.php,public/robots.txt,public/assets,public/build,public/storage,public/js"
-          target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
+          target: ${{ secrets.HOSTOO_APP_PATH }}/public
           rm: false
           overwrite: true
           strip_components: 1
@@ -192,20 +199,6 @@ jobs:
             }
             printf '%s\n' "$GITHUB_SHA" > storage/app/deploy-sha.txt
 
-            # Corrige o symlink public_html para apontar para flowmaneger/public
-            EXPECTED_PUBLIC="${{ secrets.HOSTOO_APP_PATH }}/public"
-            CURRENT_TARGET="$(readlink -f "$HOME/public_html" 2>/dev/null || echo '')"
-            echo "public_html atual aponta para: $CURRENT_TARGET"
-            echo "Esperado: $EXPECTED_PUBLIC"
-            if [ "$CURRENT_TARGET" != "$EXPECTED_PUBLIC" ]; then
-              echo "Corrigindo symlink public_html..."
-              rm -f "$HOME/public_html"
-              ln -s "$EXPECTED_PUBLIC" "$HOME/public_html"
-              echo "Symlink corrigido: public_html -> $EXPECTED_PUBLIC"
-            else
-              echo "Symlink ja correto."
-            fi
-
-            printf '%s\n' "$GITHUB_SHA" > "$HOME/public_html/deploy-sha.txt"
+            printf '%s\n' "$GITHUB_SHA" > "${{ secrets.HOSTOO_APP_PATH }}/public/deploy-sha.txt"
             php artisan queue:restart
             php artisan up
