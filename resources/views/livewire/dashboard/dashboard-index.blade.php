@@ -220,6 +220,60 @@
     </div>
 
     <div class="dashboard-shell px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+        {{-- Barra de métricas rápidas --}}
+        <div class="overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div class="flex items-center gap-2 min-w-max sm:min-w-0 sm:flex-wrap pb-1">
+                <a href="{{ route('cashbook.index') }}" class="qstat-pill bg-emerald-50 border-emerald-200/70 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:text-emerald-300">
+                    <i class="fas fa-wallet text-[10px]"></i>
+                    <span class="font-black">R$ {{ number_format($saldoCaixa, 0, ',', '.') }}</span>
+                    <span class="opacity-70 font-medium">saldo</span>
+                </a>
+                <a href="{{ route('cashbook.index') }}" class="qstat-pill bg-sky-50 border-sky-200/70 text-sky-700 hover:bg-sky-100 dark:bg-sky-500/10 dark:border-sky-500/20 dark:text-sky-300">
+                    <i class="fas fa-arrow-trend-up text-[10px]"></i>
+                    <span class="font-black">R$ {{ number_format($receitasPeriodo, 0, ',', '.') }}</span>
+                    <span class="opacity-70 font-medium">receitas</span>
+                </a>
+                <a href="{{ route('cashbook.index') }}" class="qstat-pill bg-rose-50 border-rose-200/70 text-rose-700 hover:bg-rose-100 dark:bg-rose-500/10 dark:border-rose-500/20 dark:text-rose-300">
+                    <i class="fas fa-arrow-trend-down text-[10px]"></i>
+                    <span class="font-black">R$ {{ number_format($despesasPeriodo, 0, ',', '.') }}</span>
+                    <span class="opacity-70 font-medium">despesas</span>
+                </a>
+                <a href="{{ route('sales.index') }}" class="qstat-pill bg-fuchsia-50 border-fuchsia-200/70 text-fuchsia-700 hover:bg-fuchsia-100 dark:bg-fuchsia-500/10 dark:border-fuchsia-500/20 dark:text-fuchsia-300">
+                    <i class="fas fa-shopping-bag text-[10px]"></i>
+                    <span class="font-black">{{ $salesMonth }}</span>
+                    <span class="opacity-70 font-medium">vendas</span>
+                </a>
+                <a href="{{ route('clients.index') }}" class="qstat-pill bg-violet-50 border-violet-200/70 text-violet-700 hover:bg-violet-100 dark:bg-violet-500/10 dark:border-violet-500/20 dark:text-violet-300">
+                    <i class="fas fa-users text-[10px]"></i>
+                    <span class="font-black">{{ $totalClientes }}</span>
+                    <span class="opacity-70 font-medium">clientes</span>
+                </a>
+                <a href="{{ route('products.index') }}" class="qstat-pill bg-indigo-50 border-indigo-200/70 text-indigo-700 hover:bg-indigo-100 dark:bg-indigo-500/10 dark:border-indigo-500/20 dark:text-indigo-300">
+                    <i class="fas fa-box text-[10px]"></i>
+                    <span class="font-black">{{ $produtosAtivos }}</span>
+                    <span class="opacity-70 font-medium">produtos</span>
+                </a>
+                <a href="{{ route('invoices.index') }}" class="qstat-pill bg-amber-50 border-amber-200/70 text-amber-700 hover:bg-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20 dark:text-amber-300">
+                    <i class="fas fa-file-invoice-dollar text-[10px]"></i>
+                    <span class="font-black">{{ $totalInvoices }}</span>
+                    <span class="opacity-70 font-medium">invoices</span>
+                </a>
+                @if ($parcelasVencidasCount > 0)
+                <span class="qstat-pill bg-red-50 border-red-300 text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 animate-pulse">
+                    <i class="fas fa-triangle-exclamation text-[10px]"></i>
+                    <span class="font-black">{{ $parcelasVencidasCount }}</span>
+                    <span class="opacity-70 font-medium">vencidas</span>
+                </span>
+                @endif
+                <button wire:click="getAiSummary"
+                    class="qstat-pill bg-gradient-to-r from-violet-50 to-fuchsia-50 border-violet-300/60 text-violet-700 hover:from-violet-100 hover:to-fuchsia-100 dark:from-violet-500/10 dark:to-fuchsia-500/10 dark:border-violet-500/30 dark:text-violet-300 ml-auto">
+                    <i class="fas fa-sparkles text-[10px]"></i>
+                    <span class="font-bold">Resumo IA</span>
+                </button>
+            </div>
+        </div>
+
         <section class="dashboard-section dashboard-hero-section space-y-4">
             <div class="grid grid-cols-1 xl:grid-cols-12 gap-4 xl:gap-6">
                 <div class="xl:col-span-8 overflow-hidden rounded-[28px] border border-white/60 bg-white/85 shadow-[0_20px_80px_rgba(15,23,42,0.10)] backdrop-blur dark:border-slate-800 dark:bg-slate-950/75">
@@ -368,6 +422,49 @@
         </section>
 
         <section class="dashboard-section dashboard-finance-section space-y-4">
+            {{-- Micro tendências --}}
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 backdrop-blur">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-500/20">
+                        <i class="fas fa-chart-line text-sm text-emerald-600 dark:text-emerald-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Crescimento</p>
+                        <p class="mt-0.5 text-base font-black {{ $taxaCrescimento >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                            {{ $taxaCrescimento >= 0 ? '+' : '' }}{{ number_format($taxaCrescimento, 1, ',', '.') }}%
+                            <i class="fas fa-arrow-{{ $taxaCrescimento >= 0 ? 'up' : 'down' }} text-[10px] ml-0.5"></i>
+                        </p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 backdrop-blur">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-500/20">
+                        <i class="fas fa-percent text-sm text-indigo-600 dark:text-indigo-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Margem</p>
+                        <p class="mt-0.5 text-base font-black text-indigo-600 dark:text-indigo-400">{{ number_format($margemLucro, 1, ',', '.') }}%</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 backdrop-blur">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-fuchsia-100 dark:bg-fuchsia-500/20">
+                        <i class="fas fa-receipt text-sm text-fuchsia-600 dark:text-fuchsia-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Ticket médio</p>
+                        <p class="mt-0.5 text-base font-black text-fuchsia-600 dark:text-fuchsia-400">R$ {{ number_format($ticketMedio, 0, ',', '.') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3 rounded-2xl border border-slate-200/60 bg-white/80 px-4 py-3 shadow-sm dark:border-slate-800 dark:bg-slate-900/60 backdrop-blur">
+                    <div class="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-500/20">
+                        <i class="fas fa-bullseye text-sm text-amber-600 dark:text-amber-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">Orçamento</p>
+                        <p class="mt-0.5 text-base font-black {{ $budgetUsagePercent > 90 ? 'text-rose-600 dark:text-rose-400' : 'text-amber-600 dark:text-amber-400' }}">{{ number_format($budgetUsagePercent, 0, ',', '.') }}%</p>
+                    </div>
+                </div>
+            </div>
+
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                     <span class="inline-flex items-center gap-2 rounded-full border border-sky-200/80 bg-sky-50/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-sky-700 dark:border-sky-500/20 dark:bg-sky-500/10 dark:text-sky-200">
@@ -742,26 +839,19 @@
                         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600 dark:bg-slate-900 dark:text-slate-300">{{ count($moduleCards) }} módulos</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3">
                         @foreach ($moduleCards as $module)
                             <a href="{{ $module['route'] }}"
-                                class="group rounded-[24px] border border-slate-200/80 bg-white/80 p-5 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/70">
-                                <div class="flex items-start justify-between gap-4">
-                                    <div>
-                                        <div class="mb-3 flex items-center gap-3">
-                                            <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br {{ $module['gradient'] }} text-white shadow-lg">
-                                                <i class="{{ $module['icon'] }}"></i>
-                                            </div>
-                                            <div>
-                                                <p class="text-sm font-bold text-slate-900 dark:text-white">{{ $module['title'] }}</p>
-                                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $module['subtitle'] }}</p>
-                                            </div>
-                                        </div>
-                                        <p class="text-3xl font-black text-slate-900 dark:text-white">{{ $module['value'] }}</p>
-                                        <p class="mt-2 text-sm leading-5 text-slate-500 dark:text-slate-400">{{ $module['meta'] }}</p>
+                                class="group rounded-[20px] border border-slate-200/80 bg-white/80 p-4 shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900/70">
+                                <div class="flex items-start justify-between gap-2 mb-3">
+                                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br {{ $module['gradient'] }} text-white shadow-md flex-shrink-0">
+                                        <i class="{{ $module['icon'] }} text-sm"></i>
                                     </div>
-                                    <i class="fas fa-arrow-up-right-from-square text-xs text-slate-400 transition group-hover:text-indigo-500"></i>
+                                    <i class="fas fa-arrow-up-right-from-square text-[10px] text-slate-400 transition group-hover:text-indigo-500 mt-1"></i>
                                 </div>
+                                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide">{{ $module['title'] }}</p>
+                                <p class="mt-1 text-2xl font-black text-slate-900 dark:text-white leading-none">{{ $module['value'] }}</p>
+                                <p class="mt-1.5 text-xs text-slate-500 dark:text-slate-400 leading-4">{{ $module['meta'] }}</p>
                             </a>
                         @endforeach
                     </div>
@@ -904,8 +994,137 @@
         @include('livewire.dashboard.partials.fab-menu')
     </div>
 
+    {{-- Painel de Resumo com IA --}}
+    @if ($showAiPanel)
+        <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:justify-end p-4 sm:p-6"
+             x-data
+             x-on:keydown.escape.window="$wire.closeAiPanel()">
+            <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" wire:click="closeAiPanel"></div>
+            <div class="relative z-10 w-full max-w-lg sm:max-w-md bg-white dark:bg-slate-950 rounded-[28px] shadow-[0_40px_120px_rgba(0,0,0,0.3)] border border-slate-200/80 dark:border-slate-800 overflow-hidden flex flex-col max-h-[80vh] sm:max-h-[85vh] sm:mr-4 sm:mb-4">
+                {{-- Header do painel --}}
+                <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-gradient-to-r from-violet-500/10 via-fuchsia-500/10 to-pink-500/10 flex-shrink-0">
+                    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-lg flex-shrink-0">
+                        <i class="fas fa-sparkles text-base"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-sm font-black text-slate-900 dark:text-white">Resumo Inteligente</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 truncate">FlowManager · {{ $periodLabel }}</p>
+                    </div>
+                    <button wire:click="getAiSummary"
+                        class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-violet-50 hover:text-violet-600 dark:hover:bg-violet-500/10 dark:hover:text-violet-300 transition"
+                        title="Atualizar resumo">
+                        <i class="fas fa-rotate text-sm {{ $aiSummaryLoading ? 'animate-spin' : '' }}"></i>
+                    </button>
+                    <button wire:click="closeAiPanel"
+                        class="flex h-9 w-9 items-center justify-center rounded-xl text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:hover:bg-slate-800 transition">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
+
+                {{-- Conteúdo --}}
+                <div class="flex-1 overflow-y-auto p-5 space-y-4">
+                    @if ($aiSummaryLoading)
+                        <div class="flex flex-col items-center justify-center gap-4 py-10">
+                            <div class="relative flex h-16 w-16 items-center justify-center">
+                                <div class="absolute inset-0 rounded-full bg-gradient-to-br from-violet-400 to-fuchsia-500 opacity-20 animate-ping"></div>
+                                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-lg">
+                                    <i class="fas fa-brain text-xl animate-pulse"></i>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">Analisando seus dados...</p>
+                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">O assistente está interpretando {{ $periodLabel }}</p>
+                            </div>
+                            <div class="flex gap-1.5">
+                                <div class="h-2 w-2 rounded-full bg-violet-400 animate-bounce" style="animation-delay: 0ms"></div>
+                                <div class="h-2 w-2 rounded-full bg-fuchsia-400 animate-bounce" style="animation-delay: 150ms"></div>
+                                <div class="h-2 w-2 rounded-full bg-pink-400 animate-bounce" style="animation-delay: 300ms"></div>
+                            </div>
+                        </div>
+                    @elseif ($aiSummary)
+                        <div class="prose prose-sm dark:prose-invert max-w-none text-slate-700 dark:text-slate-300 leading-relaxed ai-summary-content">
+                            @php
+                                $formatted = e($aiSummary);
+                                $formatted = preg_replace('/\*\*(.*?)\*\*/s', '<strong>$1</strong>', $formatted);
+                                $formatted = preg_replace('/^(#{1,3})\s+(.+)$/m', '<strong>$2</strong>', $formatted);
+                                $formatted = nl2br($formatted);
+                            @endphp
+                            {!! $formatted !!}
+                        </div>
+                        <div class="mt-4 rounded-2xl border border-violet-200/60 bg-violet-50/70 px-4 py-3 dark:border-violet-500/20 dark:bg-violet-500/10">
+                            <p class="text-[11px] text-violet-700 dark:text-violet-300">
+                                <i class="fas fa-circle-info mr-1.5"></i>
+                                Resumo gerado por IA com base nos dados de <strong>{{ $periodLabel }}</strong>. Verifique sempre os dados originais antes de tomar decisões.
+                            </p>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center justify-center gap-4 py-10 text-center">
+                            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-violet-100 to-fuchsia-100 dark:from-violet-500/20 dark:to-fuchsia-500/20">
+                                <i class="fas fa-sparkles text-2xl text-violet-500"></i>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-slate-900 dark:text-white">Assistente de IA Pronto</p>
+                                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Clique em "Gerar análise" para obter um resumo inteligente dos seus dados</p>
+                            </div>
+                            <button wire:click="getAiSummary"
+                                class="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 px-5 py-3 text-sm font-bold text-white shadow-lg hover:shadow-xl hover:from-violet-600 hover:to-fuchsia-700 transition">
+                                <i class="fas fa-brain"></i>
+                                Gerar análise
+                            </button>
+                        </div>
+                    @endif
+                </div>
+
+                {{-- Footer --}}
+                <div class="flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-800 px-5 py-3 flex-shrink-0 bg-slate-50/80 dark:bg-slate-900/50">
+                    <span class="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                        <i class="fas fa-robot text-violet-400"></i>
+                        Assistente Gemini AI
+                    </span>
+                    <button wire:click="getAiSummary"
+                        class="inline-flex items-center gap-1.5 rounded-xl bg-violet-100 hover:bg-violet-200 dark:bg-violet-500/15 dark:hover:bg-violet-500/25 px-3 py-1.5 text-xs font-bold text-violet-700 dark:text-violet-300 transition">
+                        <i class="fas fa-rotate text-[10px] {{ $aiSummaryLoading ? 'animate-spin' : '' }}"></i>
+                        Atualizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <style>
-        .dashboard-shell {
+        .qstat-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            border-width: 1px;
+            font-size: 11px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            text-decoration: none;
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .qstat-pill:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        .ai-summary-content strong {
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .dark .ai-summary-content strong {
+            color: #f1f5f9;
+        }
+
+        .ai-summary-content p {
+            margin-top: 0;
+        }
             width: 100%;
             max-width: 100%;
             box-sizing: border-box;
