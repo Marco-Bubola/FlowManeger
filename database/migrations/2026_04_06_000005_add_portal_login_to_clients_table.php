@@ -9,9 +9,19 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('clients', function (Blueprint $table) {
-            $table->string('portal_login')->nullable()->unique()->after('email');
-        });
+        if (! Schema::hasTable('clients')) {
+            return;
+        }
+
+        if (! Schema::hasColumn('clients', 'portal_login')) {
+            Schema::table('clients', function (Blueprint $table) {
+                $table->string('portal_login')->nullable()->unique();
+            });
+        }
+
+        if (! Schema::hasColumn('clients', 'id') || ! Schema::hasColumn('clients', 'portal_login')) {
+            return;
+        }
 
         DB::table('clients')
             ->select('id', 'portal_login')
@@ -32,8 +42,19 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasTable('clients') || ! Schema::hasColumn('clients', 'portal_login')) {
+            return;
+        }
+
+        try {
+            Schema::table('clients', function (Blueprint $table) {
+                $table->dropUnique(['portal_login']);
+            });
+        } catch (\Throwable $e) {
+            // Índice já removido ou não existe neste banco.
+        }
+
         Schema::table('clients', function (Blueprint $table) {
-            $table->dropUnique(['portal_login']);
             $table->dropColumn('portal_login');
         });
     }
