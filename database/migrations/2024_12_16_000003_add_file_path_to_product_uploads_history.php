@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        if (Schema::hasColumn('product_uploads_history', 'file_path')) {
+        if (!Schema::hasTable('product_uploads_history') || Schema::hasColumn('product_uploads_history', 'file_path')) {
             return;
         }
 
