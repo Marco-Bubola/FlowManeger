@@ -2,12 +2,21 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('clients')) {
+            return;
+        }
+
+        if (! Schema::hasColumn('clients', 'id') || ! Schema::hasColumn('clients', 'name') || ! Schema::hasColumn('clients', 'portal_login')) {
+            return;
+        }
+
         $reserved = [];
 
         DB::table('clients')
