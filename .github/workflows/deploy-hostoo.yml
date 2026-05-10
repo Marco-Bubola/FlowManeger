@@ -104,7 +104,7 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example"
+          source: "app,bootstrap,config,database,routes,scripts,vendor,artisan,composer.json,composer.lock,.env.example"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
@@ -153,16 +153,7 @@ jobs:
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             
-            # Criar diretórios de cache ANTES do composer install
-            mkdir -p storage/framework/cache/data
-            mkdir -p storage/framework/sessions
-            mkdir -p storage/framework/views
-            mkdir -p bootstrap/cache
-            
-            # Instala dependências SEM rodar os post-autoload scripts (que tentariam usar artisan)
-            composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
-            
-            # Agora sim pode usar php artisan (vendor está pronto)
+            # vendor/ já foi uploadado via SCP, não precisa instalar
             php artisan package:discover --ansi || true
             php artisan down --retry=60 || true
             php artisan migrate --force || { php artisan up; exit 1; }
