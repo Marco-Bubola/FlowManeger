@@ -158,7 +158,7 @@
                 <!-- NOTE: Step 1 (Cliente) foi removido. A seleção de cliente, data e parcelas foi integrada ao painel lateral do Step Produtos (abaixo). -->
 
                 <!-- Step 1: Produtos - Layout Split 3/4 e 1/4 (antiga Step 2) -->
-                <div x-show="Number(currentStep) === 1"
+                <div x-show="currentStep === 1"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
@@ -824,7 +824,7 @@
             </div>
 
             <!-- Step 3: Resumo e Finalização - Layout em duas colunas -->
-            <div x-show="Number(currentStep) === 2"
+            <div x-show="currentStep === 2"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
@@ -1061,6 +1061,11 @@
             </div>
             <div class="flex items-center gap-2">
                 <button type="button"
+                        @click="startScanner()"
+                        class="px-3 py-2 rounded-lg text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-500">
+                    Ativar Camera
+                </button>
+                <button type="button"
                         @click="toggleScannerFacing()"
                         class="px-3 py-2 rounded-lg text-xs font-semibold bg-slate-800 text-slate-200 hover:bg-slate-700">
                     Trocar Camera
@@ -1074,7 +1079,7 @@
         </div>
 
         <div class="relative flex-1 min-h-0">
-            <video x-ref="scannerVideo" class="w-full h-full object-cover bg-black" playsinline muted></video>
+            <video x-ref="scannerVideo" class="w-full h-full object-cover bg-black" playsinline muted autoplay></video>
             <canvas x-ref="scannerCanvas" class="hidden"></canvas>
 
             <div class="absolute inset-x-0 top-0 p-3">
@@ -1282,7 +1287,15 @@
 <script>
     function createSalePage(currentStepModel, openScannerOnLoad = false) {
         return {
-            currentStep: currentStepModel,
+            stepModel: currentStepModel,
+            get currentStep() {
+                const parsed = parseInt(this.stepModel, 10);
+                return Number.isNaN(parsed) ? 1 : parsed;
+            },
+            set currentStep(value) {
+                const parsed = parseInt(value, 10);
+                this.stepModel = Number.isNaN(parsed) ? 1 : parsed;
+            },
             openScannerOnLoad: Boolean(openScannerOnLoad),
             scannerOpen: false,
             scannerStatus: 'Inicie o scanner para ler o codigo de barras.',
@@ -1311,7 +1324,8 @@
 
                 if (this.openScannerOnLoad) {
                     setTimeout(() => {
-                        this.openScanner();
+                        this.scannerOpen = true;
+                        this.scannerStatus = 'Toque em Ativar Camera para iniciar a leitura.';
                         this.openScannerOnLoad = false;
                     }, 350);
                 }
@@ -1382,14 +1396,63 @@
                 this.stopScanner();
 
                 try {
-                    this.scannerStream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            facingMode: { ideal: this.scannerFacing },
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
+                    const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+                    if (!window.isSecureContext && !isLocalHost) {
+                        this.scannerStatus = 'Camera bloqueada: use HTTPS no celular/tablet.';
+                        this.showToast('Use HTTPS para liberar camera no celular/tablet.', 'warning');
+                        return;
+                    }
+
+                    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                        this.scannerStatus = 'Este navegador nao suporta acesso a camera.';
+                        this.showToast('Navegador sem suporte para camera.', 'error');
+                        return;
+                    }
+
+                    const cameraConstraints = [
+                        {
+                            video: {
+                                facingMode: { exact: this.scannerFacing },
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            },
+                            audio: false
                         },
-                        audio: false
-                    });
+                        {
+                            video: {
+                                facingMode: { ideal: this.scannerFacing },
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            },
+                            audio: false
+                        },
+                        {
+                            video: {
+                                width: { ideal: 1280 },
+                                height: { ideal: 720 }
+                            },
+                            audio: false
+                        },
+                        { video: true, audio: false },
+                    ];
+
+                    let stream = null;
+                    let lastError = null;
+
+                    for (const constraints of cameraConstraints) {
+                        try {
+                            stream = await navigator.mediaDevices.getUserMedia(constraints);
+                            break;
+                        } catch (err) {
+                            lastError = err;
+                        }
+                    }
+
+                    if (!stream) {
+                        throw lastError || new Error('Falha ao iniciar stream da camera.');
+                    }
+
+                    this.scannerStream = stream;
 
                     const video = this.$refs.scannerVideo;
                     if (!video) {
@@ -1397,13 +1460,17 @@
                         return;
                     }
 
+                    video.setAttribute('playsinline', 'true');
+                    video.setAttribute('webkit-playsinline', 'true');
+                    video.setAttribute('autoplay', 'true');
+                    video.muted = true;
                     video.srcObject = this.scannerStream;
                     await video.play();
                     this.scannerStatus = 'Camera ativa. Aponte para o codigo de barras.';
                     this.scanFrames();
                 } catch (error) {
-                    this.scannerStatus = 'Nao foi possivel acessar a camera.';
-                    this.showToast('Permita o acesso a camera para usar o scanner.', 'error');
+                    this.scannerStatus = 'Nao foi possivel acessar a camera. Verifique permissao e HTTPS.';
+                    this.showToast('Camera indisponivel. Verifique permissao, HTTPS e navegador.', 'error');
                     console.error(error);
                 }
             },
