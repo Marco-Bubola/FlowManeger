@@ -107,6 +107,8 @@ jobs:
           script: |
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}"
             mkdir -p "${{ secrets.HOSTOO_PUBLIC_PATH }}"
+              rm -rf "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
+              mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/database/migrations"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/app/public"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/cache/data"
             mkdir -p "${{ secrets.HOSTOO_APP_PATH }}/storage/framework/sessions"
