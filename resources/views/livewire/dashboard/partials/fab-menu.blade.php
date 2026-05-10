@@ -25,6 +25,15 @@
          class="absolute bottom-20 right-0 flex flex-col gap-3"
          style="display: none;">
 
+        {{-- Assistente IA --}}
+        <button wire:click="getAiSummary"
+           class="group flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-violet-500 to-fuchsia-600 hover:from-violet-600 hover:to-fuchsia-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-x-2">
+            <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center">
+                <i class="fas fa-sparkles text-xl"></i>
+            </div>
+            <span class="font-semibold pr-2">Resumo com IA</span>
+        </button>
+
         {{-- Nova Venda --}}
         <a href="{{ route('sales.create') }}"
            class="group flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-x-2">
