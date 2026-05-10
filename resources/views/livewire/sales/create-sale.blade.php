@@ -1,4 +1,4 @@
-<div x-data="createSalePage(@entangle('currentStep').live)" x-init="initScanner()" x-on:sale-scan-feedback.window="handleScanFeedback($event.detail)" class="sales-create-page mobile-393-base app-viewport-fit w-full">
+<div x-data="createSalePage(@entangle('currentStep').live, @js(request()->boolean('scanner')))" x-init="initScanner()" x-on:sale-scan-feedback.window="handleScanFeedback($event.detail)" class="sales-create-page mobile-393-base app-viewport-fit w-full">
     <!-- CSS base + responsivo modular por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -92,6 +92,13 @@
                 <i class="bi bi-lightbulb"></i>
             </button>
 
+            <button type="button"
+                @click="openScanner()"
+                class="create-header-action p-2 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
+                title="Abrir scanner">
+                <i class="bi bi-upc-scan"></i>
+            </button>
+
             <span class="create-header-step-badge inline-flex sm:hidden items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 whitespace-nowrap">
                 <i class="bi bi-signpost-split mr-1"></i>
                 <span x-text="`Passo ${currentStep}/2`"></span>
@@ -151,7 +158,7 @@
                 <!-- NOTE: Step 1 (Cliente) foi removido. A seleção de cliente, data e parcelas foi integrada ao painel lateral do Step Produtos (abaixo). -->
 
                 <!-- Step 1: Produtos - Layout Split 3/4 e 1/4 (antiga Step 2) -->
-                <div x-show="currentStep === 1"
+                <div x-show="Number(currentStep) === 1"
                     x-transition:enter="transition ease-out duration-300"
                     x-transition:enter-start="opacity-0 transform translate-x-4"
                     x-transition:enter-end="opacity-100 transform translate-x-0"
@@ -817,7 +824,7 @@
             </div>
 
             <!-- Step 3: Resumo e Finalização - Layout em duas colunas -->
-            <div x-show="currentStep === 2"
+            <div x-show="Number(currentStep) === 2"
                 x-transition:enter="transition ease-out duration-300"
                 x-transition:enter-start="opacity-0 transform translate-x-4"
                 x-transition:enter-end="opacity-100 transform translate-x-0"
@@ -1273,9 +1280,10 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2@1.7.4/dist/quagga.min.js"></script>
 <script>
-    function createSalePage(currentStepModel) {
+    function createSalePage(currentStepModel, openScannerOnLoad = false) {
         return {
             currentStep: currentStepModel,
+            openScannerOnLoad: Boolean(openScannerOnLoad),
             scannerOpen: false,
             scannerStatus: 'Inicie o scanner para ler o codigo de barras.',
             scannerFacing: 'environment',
@@ -1300,6 +1308,13 @@
                 this.detector = ('BarcodeDetector' in window)
                     ? new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] })
                     : null;
+
+                if (this.openScannerOnLoad) {
+                    setTimeout(() => {
+                        this.openScanner();
+                        this.openScannerOnLoad = false;
+                    }, 350);
+                }
             },
 
             showToast(message, type = 'success') {
