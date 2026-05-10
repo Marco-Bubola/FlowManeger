@@ -148,7 +148,7 @@ jobs:
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "public/.htaccess,public/*"
+          source: "public/.htaccess,public/index.php,public/robots.txt,public/assets,public/build,public/storage,public/js"
           target: ${{ secrets.HOSTOO_PUBLIC_PATH }}
           rm: false
           overwrite: true
