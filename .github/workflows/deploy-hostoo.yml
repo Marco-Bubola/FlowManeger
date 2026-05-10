@@ -152,8 +152,12 @@ jobs:
           envs: GITHUB_SHA,LOCAL_CREATE_SALE_SHA
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
-            php artisan down --retry=60 || true
+            
+            # Primeiro instala dependências ANTES de usar php artisan
             composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+            
+            # Agora sim pode usar php artisan
+            php artisan down --retry=60 || true
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
             php artisan optimize:clear
