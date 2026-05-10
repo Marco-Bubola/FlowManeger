@@ -153,10 +153,17 @@ jobs:
           script: |
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             
-            # Primeiro instala dependências ANTES de usar php artisan
-            composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+            # Criar diretórios de cache ANTES do composer install
+            mkdir -p storage/framework/cache/data
+            mkdir -p storage/framework/sessions
+            mkdir -p storage/framework/views
+            mkdir -p bootstrap/cache
             
-            # Agora sim pode usar php artisan
+            # Instala dependências SEM rodar os post-autoload scripts (que tentariam usar artisan)
+            composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
+            
+            # Agora sim pode usar php artisan (vendor está pronto)
+            php artisan package:discover --ansi || true
             php artisan down --retry=60 || true
             php artisan migrate --force || { php artisan up; exit 1; }
             php artisan storage:link || echo "Storage link already exists"
