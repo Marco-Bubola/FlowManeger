@@ -8,16 +8,40 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (! Schema::hasTable('clients')) {
+            return;
+        }
+
         Schema::table('clients', function (Blueprint $table) {
-            $table->string('google_id')->nullable()->unique()->after('portal_password');
-            $table->string('google_avatar')->nullable()->after('google_id');
+            if (! Schema::hasColumn('clients', 'google_id')) {
+                $table->string('google_id')->nullable()->unique();
+            }
+            if (! Schema::hasColumn('clients', 'google_avatar')) {
+                $table->string('google_avatar')->nullable();
+            }
         });
     }
 
     public function down(): void
     {
-        Schema::table('clients', function (Blueprint $table) {
-            $table->dropColumn(['google_id', 'google_avatar']);
+        if (! Schema::hasTable('clients')) {
+            return;
+        }
+
+        $toDrop = [];
+        if (Schema::hasColumn('clients', 'google_id')) {
+            $toDrop[] = 'google_id';
+        }
+        if (Schema::hasColumn('clients', 'google_avatar')) {
+            $toDrop[] = 'google_avatar';
+        }
+
+        if ($toDrop === []) {
+            return;
+        }
+
+        Schema::table('clients', function (Blueprint $table) use ($toDrop) {
+            $table->dropColumn($toDrop);
         });
     }
 };
