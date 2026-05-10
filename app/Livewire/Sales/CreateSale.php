@@ -29,6 +29,8 @@ class CreateSale extends Component
     public $selectedProducts = []; // Array com IDs dos produtos selecionados
     public $searchProduct = ''; // Campo de pesquisa de produtos
     public $showOnlySelected = false; // Filtro para mostrar apenas produtos selecionados
+    public ?string $lastScannedCode = null;
+    public ?array $lastScannedProduct = null;
 
     protected $rules = [
         'client_id' => 'required|exists:clients,id',
@@ -363,6 +365,207 @@ class CreateSale extends Component
                 ];
             }
         }
+    }
+
+    public function addProductByBarcode(string $rawCode): void
+    {
+        $code = $this->normalizeScannedCode($rawCode);
+
+        if ($code === '') {
+            $this->dispatch('sale-scan-feedback', type: 'warning', message: 'Codigo de barras vazio ou invalido.');
+            return;
+        }
+
+        $product = $this->resolveProductByScannedCode($code);
+
+        if (! $product) {
+            $this->lastScannedCode = $code;
+            $this->lastScannedProduct = null;
+
+            $this->dispatch(
+                'sale-scan-feedback',
+                type: 'error',
+                action: 'scan',
+                message: "Produto nao encontrado para o codigo {$code}.",
+                code: $code,
+            );
+            return;
+        }
+
+        $alreadySelected = in_array($product->id, $this->selectedProducts);
+
+        if (! $alreadySelected) {
+            $this->selectedProducts[] = $product->id;
+            $this->products[] = [
+                'product_id' => $product->id,
+                'quantity' => 1,
+                'unit_price' => (float) $product->price_sale,
+            ];
+        } else {
+            foreach ($this->products as $index => $item) {
+                if ((int) $item['product_id'] !== (int) $product->id) {
+                    continue;
+                }
+
+                $nextQuantity = ((int) ($item['quantity'] ?? 1)) + 1;
+
+                if (($product->tipo ?? 'simples') === 'simples') {
+                    $maxStock = max(1, (int) $product->stock_quantity);
+                    if ($nextQuantity > $maxStock) {
+                        $this->dispatch(
+                            'sale-scan-feedback',
+                            type: 'warning',
+                            action: 'scan',
+                            message: "Limite de estoque atingido para {$product->name}.",
+                            code: $code,
+                            productId: $product->id,
+                            productName: $product->name,
+                            quantity: (int) $item['quantity'],
+                        );
+                        return;
+                    }
+                }
+
+                $this->products[$index]['quantity'] = $nextQuantity;
+                break;
+            }
+        }
+
+        $currentItem = collect($this->products)->firstWhere('product_id', $product->id);
+
+        $this->lastScannedCode = $code;
+        $this->lastScannedProduct = [
+            'id' => $product->id,
+            'name' => $product->name,
+            'barcode' => $product->barcode,
+            'product_code' => $product->product_code,
+            'quantity' => (int) ($currentItem['quantity'] ?? 1),
+        ];
+
+        $this->dispatch(
+            'sale-scan-feedback',
+            type: 'success',
+            action: 'add',
+            message: "Produto adicionado: {$product->name}",
+            code: $code,
+            productId: $product->id,
+            productName: $product->name,
+            quantity: (int) ($currentItem['quantity'] ?? 1),
+        );
+    }
+
+    public function undoLastScannedProduct(): void
+    {
+        if (empty($this->lastScannedProduct['id'])) {
+            $this->dispatch(
+                'sale-scan-feedback',
+                type: 'warning',
+                action: 'scan',
+                message: 'Nenhum item escaneado recente para desfazer.'
+            );
+            return;
+        }
+
+        $productId = (int) $this->lastScannedProduct['id'];
+        $productName = (string) ($this->lastScannedProduct['name'] ?? 'Produto');
+
+        foreach ($this->products as $index => $item) {
+            if ((int) ($item['product_id'] ?? 0) !== $productId) {
+                continue;
+            }
+
+            $currentQuantity = max(1, (int) ($item['quantity'] ?? 1));
+            $nextQuantity = $currentQuantity - 1;
+
+            if ($nextQuantity > 0) {
+                $this->products[$index]['quantity'] = $nextQuantity;
+                $this->lastScannedProduct['quantity'] = $nextQuantity;
+            } else {
+                unset($this->products[$index]);
+                $this->products = array_values($this->products);
+                $this->selectedProducts = array_values(array_filter(
+                    $this->selectedProducts,
+                    fn ($selectedProductId) => (int) $selectedProductId !== $productId
+                ));
+                $this->lastScannedProduct = null;
+            }
+
+            $this->dispatch(
+                'sale-scan-feedback',
+                type: 'success',
+                action: 'undo',
+                message: $nextQuantity > 0
+                    ? "Ultimo item desfeito: {$productName}."
+                    : "Produto removido da venda: {$productName}.",
+                code: $this->lastScannedCode,
+                productId: $productId,
+                productName: $productName,
+                quantity: max(0, $nextQuantity),
+            );
+
+            return;
+        }
+
+        $this->lastScannedProduct = null;
+
+        $this->dispatch(
+            'sale-scan-feedback',
+            type: 'warning',
+            action: 'scan',
+            message: 'O ultimo item escaneado nao esta mais na venda.'
+        );
+    }
+
+    private function resolveProductByScannedCode(string $code): ?Product
+    {
+        $normalizedDigits = preg_replace('/\D+/', '', $code);
+
+        $baseQuery = Product::where('user_id', Auth::id())
+            ->where(function ($q) {
+                $q->where(function ($q2) {
+                    $q2->where('tipo', 'simples')
+                        ->where('stock_quantity', '>', 0);
+                })->orWhere('tipo', 'kit');
+            });
+
+        $exact = (clone $baseQuery)
+            ->where(function ($q) use ($code) {
+                $q->where('barcode', $code)
+                    ->orWhere('product_code', $code);
+            })
+            ->with('category')
+            ->first();
+
+        if ($exact) {
+            return $exact;
+        }
+
+        if ($normalizedDigits === '') {
+            return null;
+        }
+
+        $candidates = (clone $baseQuery)
+            ->where(function ($q) {
+                $q->whereNotNull('barcode')
+                    ->orWhereNotNull('product_code');
+            })
+            ->with('category')
+            ->get();
+
+        return $candidates->first(function (Product $product) use ($normalizedDigits) {
+            $barcodeDigits = preg_replace('/\D+/', '', (string) ($product->barcode ?? ''));
+            $productCodeDigits = preg_replace('/\D+/', '', (string) ($product->product_code ?? ''));
+
+            return $barcodeDigits === $normalizedDigits || $productCodeDigits === $normalizedDigits;
+        });
+    }
+
+    private function normalizeScannedCode(string $rawCode): string
+    {
+        $clean = trim($rawCode);
+        $clean = preg_replace('/\s+/', '', $clean);
+
+        return (string) mb_substr($clean, 0, 64);
     }
 
     public function getFilteredProducts()
