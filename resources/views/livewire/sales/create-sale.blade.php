@@ -1309,9 +1309,33 @@
             },
 
             initScanner() {
-                this.detector = ('BarcodeDetector' in window)
-                    ? new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'] })
-                    : null;
+                this.detector = null;
+
+                try {
+                    if ('BarcodeDetector' in window) {
+                        const detectorFormats = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'];
+
+                        // Alguns navegadores expõem BarcodeDetector, mas rejeitam formatos não suportados.
+                        // Nesses casos, caímos automaticamente no fallback com Quagga.
+                        if (typeof window.BarcodeDetector.getSupportedFormats === 'function') {
+                            window.BarcodeDetector.getSupportedFormats()
+                                .then((supported) => {
+                                    const available = detectorFormats.filter((f) => supported.includes(f));
+                                    if (available.length > 0) {
+                                        this.detector = new window.BarcodeDetector({ formats: available });
+                                    }
+                                })
+                                .catch(() => {
+                                    this.detector = null;
+                                });
+                        } else {
+                            this.detector = new window.BarcodeDetector({ formats: detectorFormats });
+                        }
+                    }
+                } catch (error) {
+                    console.warn('BarcodeDetector indisponivel nesta plataforma, usando fallback.', error);
+                    this.detector = null;
+                }
 
                 if (this.openScannerOnLoad) {
                     setTimeout(() => {
