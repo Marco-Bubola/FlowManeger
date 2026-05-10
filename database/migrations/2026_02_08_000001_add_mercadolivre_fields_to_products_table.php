@@ -39,12 +39,7 @@ return new class extends Migration
             }
         });
 
-        $indexExists = \DB::select("SHOW INDEX FROM products WHERE Key_name = 'idx_products_barcode'");
-        if (empty($indexExists)) {
-            Schema::table('products', function (Blueprint $table) {
-                $table->index('barcode', 'idx_products_barcode');
-            });
-        }
+        // Índice criado automaticamente pelo Laravel na coluna unique
     }
 
     public function down(): void
