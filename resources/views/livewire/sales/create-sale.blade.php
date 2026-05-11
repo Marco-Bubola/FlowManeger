@@ -1157,37 +1157,6 @@
             </div>
         </div>
 
-        <!-- Controle de Zoom -->
-        <div x-show="zoomSupported && scannerStream" x-transition class="mx-auto max-w-2xl mb-4">
-            <div class="bg-slate-900/90 border border-indigo-500/40 rounded-xl p-3 backdrop-blur-sm shadow-xl">
-                <div class="flex items-center justify-between gap-2 mb-2">
-                    <div class="flex items-center gap-2">
-                        <i class="fas fa-search-plus text-indigo-400 text-sm"></i>
-                        <span class="text-xs font-bold text-indigo-300 uppercase tracking-wider">Zoom: <span x-text="currentZoom.toFixed(1)"></span>x</span>
-                    </div>
-                    <button type="button"
-                            @click="resetPermissionCache()"
-                            title="Limpar cache de permissao"
-                            class="px-2 py-1 text-[10px] rounded bg-slate-700/50 text-slate-300 hover:text-white hover:bg-slate-600 transition-all">
-                        <i class="fas fa-redo text-xs"></i>
-                    </button>
-                </div>
-                <div class="flex flex-wrap gap-1.5">
-                    <template x-for="zoom in availableZooms" :key="zoom">
-                        <button type="button"
-                                @click="applyZoom(zoom)"
-                                :class="{
-                                    'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/50': Math.abs(currentZoom - zoom) < 0.1,
-                                    'bg-slate-700/60 text-slate-200 hover:bg-slate-600': Math.abs(currentZoom - zoom) >= 0.1
-                                }"
-                                class="px-2.5 py-1.5 rounded-lg font-bold text-xs transition-all active:scale-95 whitespace-nowrap"
-                                x-text="zoom.toFixed(1) + 'x'">
-                        </button>
-                    </template>
-                </div>
-            </div>
-        </div>
-
         <!-- Histórico e Ações -->
         <div class="mx-auto max-w-2xl bg-slate-900/70 border border-slate-600 rounded-xl p-3 text-xs text-slate-200 backdrop-blur-sm">
             <div class="flex flex-col gap-2 sm:gap-3">
@@ -1414,6 +1383,7 @@
             lastQuaggaRunAt: 0,
             scannerVideoEl: null,
             scannerCanvasEl: null,
+            preferredEnvironmentDeviceId: null,
             currentZoom: 1.0,
             minZoom: 1.0,
             maxZoom: 10.0,
@@ -1596,6 +1566,22 @@
                         throw lastError || new Error('Falha ao iniciar stream da camera.');
                     }
 
+                    if (this.scannerFacing === 'environment') {
+                        const preferredDeviceId = await this.pickPreferredEnvironmentDevice(stream);
+                        if (preferredDeviceId) {
+                            stream.getTracks().forEach((track) => track.stop());
+                            stream = await navigator.mediaDevices.getUserMedia({
+                                video: {
+                                    deviceId: { exact: preferredDeviceId },
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 }
+                                },
+                                audio: false
+                            });
+                            this.preferredEnvironmentDeviceId = preferredDeviceId;
+                        }
+                    }
+
                     this.cameraPermissionGranted = true;
                     this.cameraPermissionDenied = false;
                     this.savePermissionCache(true);
@@ -1685,6 +1671,53 @@
 
                     this.showToast(this.cameraError, 'error');
                     console.error(error);
+                }
+            },
+
+            async pickPreferredEnvironmentDevice(currentStream) {
+                try {
+                    if (!navigator.mediaDevices || typeof navigator.mediaDevices.enumerateDevices !== 'function') {
+                        return null;
+                    }
+
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const videoDevices = devices.filter((d) => d.kind === 'videoinput');
+                    if (!videoDevices.length) {
+                        return null;
+                    }
+
+                    const currentTrack = currentStream?.getVideoTracks?.()[0] || null;
+                    const currentDeviceId = currentTrack?.getSettings?.().deviceId || null;
+
+                    let ranked = videoDevices.map((device) => {
+                        const label = (device.label || '').toLowerCase();
+                        let score = 0;
+
+                        if (/back|rear|environment|traseira|traseiro/.test(label)) score += 100;
+                        if (/wide|1x|ultra/.test(label)) score += 40;
+                        if (/front|facetime|user|frontal/.test(label)) score -= 90;
+                        if (/tele|zoom|2x|3x/.test(label)) score -= 70;
+
+                        return {
+                            deviceId: device.deviceId,
+                            score,
+                        };
+                    });
+
+                    ranked = ranked.sort((a, b) => b.score - a.score);
+                    const best = ranked[0] || null;
+                    if (!best || best.score <= 0) {
+                        return null;
+                    }
+
+                    if (best.deviceId && best.deviceId !== currentDeviceId) {
+                        return best.deviceId;
+                    }
+
+                    return null;
+                } catch (error) {
+                    console.warn('Nao foi possivel selecionar camera traseira preferencial.', error);
+                    return null;
                 }
             },
 
