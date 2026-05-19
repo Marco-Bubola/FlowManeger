@@ -87,15 +87,36 @@
                                     <input type="text"
                                         wire:model.live="name"
                                         id="name"
-                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
+                                        class="w-full px-4 py-3 pr-20 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
                                            {{ $errors->has('name') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-slate-600' }}
                                            focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
                                         placeholder="Ex: Notebook Dell">
-                                    @if($name && !$errors->has('name'))
-                                    <div class="absolute right-3 top-1/2 -translate-y-1/2">
+                                    <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                                        @if($name && !$errors->has('name'))
                                         <i class="bi bi-check-circle-fill text-emerald-400 text-lg"></i>
+                                        @endif
+                                        <!-- Botão copiar nome -->
+                                        <div x-data="{ copied: false }">
+                                            <button type="button"
+                                                @click="
+                                                    navigator.clipboard.writeText(document.getElementById('name').value)
+                                                        .then(() => { copied = true; setTimeout(() => copied = false, 2000) })
+                                                "
+                                                :class="copied
+                                                    ? 'bg-emerald-500/20 border-emerald-500/60 scale-110'
+                                                    : 'bg-slate-700/80 border-slate-600 hover:bg-blue-500/20 hover:border-blue-400 hover:scale-110'"
+                                                class="group flex items-center justify-center w-7 h-7 rounded-lg border transition-all duration-200 active:scale-95 cursor-pointer"
+                                                :title="copied ? 'Copiado!' : 'Copiar nome do produto'">
+                                                <i x-show="!copied"
+                                                   class="bi bi-clipboard text-slate-400 group-hover:text-blue-400 text-sm transition-colors duration-200"></i>
+                                                <i x-show="copied"
+                                                   x-transition:enter="transition ease-out duration-200"
+                                                   x-transition:enter-start="opacity-0 scale-75"
+                                                   x-transition:enter-end="opacity-100 scale-100"
+                                                   class="bi bi-clipboard-check text-emerald-400 text-sm"></i>
+                                            </button>
+                                        </div>
                                     </div>
-                                    @endif
                                 </div>
                                 @error('name')
                                 <p class="text-red-400 text-xs flex items-center gap-1">
