@@ -290,6 +290,12 @@
                         <span>Upload</span>
                     </a>
 
+                    <a href="{{ route('products.bulk-edit') }}"
+                        class="sale-action-btn prod-action-bulk-edit" title="Edição em Massa">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
+                        <span>Edição em Massa</span>
+                    </a>
+
                 </div>
             </div>
         </div>
