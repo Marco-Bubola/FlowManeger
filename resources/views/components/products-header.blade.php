@@ -91,6 +91,12 @@
                     Upload
                 </a>
 
+                <a href="{{ route('products.bulk-edit') }}"
+                   class="group relative inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="bi bi-grid-3x3-gap mr-2 group-hover:scale-110 transition-transform duration-200"></i>
+                    Edição em Massa
+                </a>
+
                 <!-- Botão de filtros -->
                 <button @click="showFilters = !showFilters"
                     class="group relative inline-flex items-center justify-center px-6 py-3 bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 dark:from-slate-600 dark:to-slate-700 dark:hover:from-slate-500 dark:hover:to-slate-600 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
