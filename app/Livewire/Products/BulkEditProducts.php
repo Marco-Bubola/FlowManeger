@@ -15,6 +15,8 @@ class BulkEditProducts extends Component
 
     public array $productsData = [];
     public string $search = '';
+    public string $filterStatus = '';
+    public string $sortBy = 'updated_at';
     public array $savedStatus = [];
 
     public function mount(): void
@@ -24,18 +26,23 @@ class BulkEditProducts extends Component
 
     public function loadProducts(): void
     {
-        $products = Product::where('user_id', Auth::id())
+        $query = Product::where('user_id', Auth::id())
             ->when($this->search, fn($q) => $q
                 ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('product_code', 'like', "%{$this->search}%"))
-            ->orderBy('name')
+                ->orWhere('product_code', 'like', "%{$this->search}%")
+                ->orWhere('barcode', 'like', "%{$this->search}%"))
+            ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
+            ->when($this->sortBy === 'name', fn($q) => $q->orderBy('name'))
+            ->when($this->sortBy === 'updated_at', fn($q) => $q->orderByDesc('updated_at'))
+            ->when($this->sortBy === 'price_sale', fn($q) => $q->orderByDesc('price_sale'))
             ->limit(120)
             ->get();
 
-        $this->productsData = $products->map(fn($p) => [
+        $this->productsData = $query->map(fn($p) => [
             'id'             => $p->id,
             'name'           => $p->name ?? '',
             'product_code'   => $p->product_code ?? '',
+            'barcode'        => $p->barcode ?? '',
             'stock_quantity' => (string)($p->stock_quantity ?? 0),
             'price'          => number_format((float)$p->price, 2, '.', ''),
             'price_sale'     => number_format((float)$p->price_sale, 2, '.', ''),
@@ -48,10 +55,9 @@ class BulkEditProducts extends Component
         $this->savedStatus = [];
     }
 
-    public function updatedSearch(): void
-    {
-        $this->loadProducts();
-    }
+    public function updatedSearch(): void  { $this->loadProducts(); }
+    public function updatedFilterStatus(): void { $this->loadProducts(); }
+    public function updatedSortBy(): void  { $this->loadProducts(); }
 
     public function saveProductWithImage(int $index, ?string $base64 = null): void
     {
@@ -98,6 +104,7 @@ class BulkEditProducts extends Component
         $product->update([
             'name'           => $data['name'],
             'product_code'   => $data['product_code'],
+            'barcode'        => $data['barcode'] ?? null,
             'stock_quantity' => (int)$data['stock_quantity'],
             'price'          => (float)$data['price'],
             'price_sale'     => (float)$data['price_sale'],
