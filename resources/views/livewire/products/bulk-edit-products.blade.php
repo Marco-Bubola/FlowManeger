@@ -3,31 +3,108 @@
      x-init="init()">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-header.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/bulk-edit-products.css') }}">
 
-    <!-- ───────────────── HEADER (igual ao products-index) ───────────────── -->
+    <!-- ───────────────── HEADER (idêntico ao products-index) ───────────────── -->
     <x-products-header
         title="Edição em Massa"
         description="Edite seus produtos em cards interativos"
         :total-products="count($productsData)"
-        :total-categories="0"
+        :total-categories="$categories->count()"
         :show-quick-actions="false">
 
-        <div class="bulk-header-controls">
-            <!-- Busca -->
-            <div class="bulk-search-wrap">
-                <i class="bi bi-search bulk-search-icon"></i>
-                <input type="text"
-                    wire:model.live.debounce.400ms="search"
-                    placeholder="Buscar produto..."
-                    class="bulk-search-input">
+        <x-slot name="breadcrumb">
+            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
+                <a href="{{ route('products.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                    <i class="bi bi-box-seam mr-1"></i>Produtos
+                </a>
+                <i class="bi bi-chevron-right text-xs"></i>
+                <span class="text-slate-800 dark:text-slate-200 font-medium">
+                    <i class="bi bi-grid-3x3-gap-fill mr-1"></i>Edição em Massa
+                </span>
+            </div>
+        </x-slot>
+
+        <!-- Controls slot — igual ao layout do products-index -->
+        <div class="w-full products-index-controls">
+
+            <!-- ── LINHA 1: Busca + Status filter ── -->
+            <div class="prod-header-row-1">
+                <div class="prod-header-search relative group">
+                    <input type="text"
+                        wire:model.live.debounce.300ms="search"
+                        placeholder="Buscar por nome, código, EAN/código de barras..."
+                        class="w-full pl-11 pr-10 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2">
+                        <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
+                    </div>
+                    <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
+                        class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 rounded-lg transition-all duration-200">
+                        <i class="bi bi-x text-sm"></i>
+                    </button>
+                    <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 -translate-y-1/2">
+                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
+                    </div>
+                </div>
+
+                <!-- Status filter -->
+                <div class="flex items-center gap-1 flex-shrink-0">
+                    <button type="button" wire:click="$set('filterStatus', '')"
+                        class="sale-filter-pill prod-pill-type {{ $filterStatus === '' ? 'active' : '' }}">
+                        <i class="bi bi-grid-3x3-gap"></i><span>Todos</span>
+                    </button>
+                    <button type="button" wire:click="$set('filterStatus', 'ativo')"
+                        class="sale-filter-pill {{ $filterStatus === 'ativo' ? 'active' : '' }}">
+                        <i class="bi bi-check-circle"></i><span class="hidden sm:inline">Ativos</span>
+                    </button>
+                    <button type="button" wire:click="$set('filterStatus', 'inativo')"
+                        class="sale-filter-pill {{ $filterStatus === 'inativo' ? 'active' : '' }}">
+                        <i class="bi bi-pause-circle"></i><span class="hidden sm:inline">Inativos</span>
+                    </button>
+                </div>
+
+                <!-- Voltar -->
+                <a href="{{ route('products.index') }}" class="sale-action-btn flex-shrink-0">
+                    <i class="bi bi-arrow-left"></i>
+                    <span>Voltar</span>
+                </a>
             </div>
 
-            <!-- Voltar -->
-            <a href="{{ route('products.index') }}" class="sale-action-btn">
-                <i class="bi bi-arrow-left"></i>
-                <span>Voltar</span>
-            </a>
+            <!-- ── LINHA 2: Sort pills + Ações ── -->
+            <div class="prod-header-row-2">
+                <div class="prod-header-row-2-left">
+                    <div class="sale-filter-pills sale-sort-pills hidden md:flex">
+                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i></span>
+                        <button type="button" wire:click="$set('sortBy', 'name')"
+                            class="sale-filter-pill {{ $sortBy === 'name' ? 'active' : '' }}">
+                            <span>A-Z</span>
+                        </button>
+                        <button type="button" wire:click="$set('sortBy', 'updated_at')"
+                            class="sale-filter-pill {{ $sortBy === 'updated_at' ? 'active' : '' }}">
+                            <span>Recentes</span>
+                        </button>
+                        <button type="button" wire:click="$set('sortBy', 'price_sale')"
+                            class="sale-filter-pill {{ $sortBy === 'price_sale' ? 'active' : '' }}">
+                            <span>Preço</span>
+                        </button>
+                    </div>
+
+                    <!-- Contagem -->
+                    <span class="text-xs text-slate-500 dark:text-slate-400 ml-1">
+                        {{ count($productsData) }} produto{{ count($productsData) !== 1 ? 's' : '' }}
+                    </span>
+                </div>
+
+                <div class="prod-header-row-2-right">
+                    <button type="button" wire:click="loadProducts"
+                        class="sale-action-btn" title="Recarregar">
+                        <i class="bi bi-arrow-clockwise"></i>
+                        <span class="hidden sm:inline">Recarregar</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </x-products-header>
 
@@ -68,84 +145,61 @@
                      }"
                      :class="{ 'dropdown-open': dropdownOpen }">
 
-                    <!-- ── Botões de ação (topo) ── -->
-                    <div class="btn-action-group bulk-actions-top">
+                    <!-- ── Botões de ação (absolutos dentro do card, overlay na imagem) ── -->
+                    <div class="btn-action-group">
                         <!-- Copiar nome -->
                         <button type="button"
                                 x-data="{ copied: false }"
                                 @click="navigator.clipboard.writeText('{{ addslashes($product['name']) }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                                class="group inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 hover:from-emerald-500 hover:to-emerald-700 text-white transition-all duration-300 shadow-lg border border-emerald-300"
-                                title="Copiar nome">
-                            <i x-show="!copied" class="bi bi-tag text-sm group-hover:scale-110 transition-transform"></i>
-                            <i x-show="copied" class="bi bi-check-lg text-sm"></i>
+                                class="bulk-act-btn bulk-act-green btn" title="Copiar nome">
+                            <i x-show="!copied" class="bi bi-tag"></i>
+                            <i x-show="copied" class="bi bi-check-lg"></i>
                         </button>
 
                         <!-- Copiar código -->
                         <button type="button"
                                 x-data="{ copied: false }"
                                 @click="navigator.clipboard.writeText('{{ addslashes($product['product_code']) }}'); copied = true; setTimeout(() => copied = false, 2000)"
-                                class="group inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg border border-blue-300"
-                                title="Copiar código">
-                            <i x-show="!copied" class="bi bi-upc-scan text-sm group-hover:scale-110 transition-transform"></i>
-                            <i x-show="copied" class="bi bi-check-lg text-sm"></i>
+                                class="bulk-act-btn bulk-act-blue btn" title="Copiar código">
+                            <i x-show="!copied" class="bi bi-upc-scan"></i>
+                            <i x-show="copied" class="bi bi-check-lg"></i>
                         </button>
 
                         <!-- Remover -->
                         <button type="button"
                                 wire:click="removeProduct({{ $index }})"
                                 wire:confirm="Remover este produto permanentemente?"
-                                class="group inline-flex items-center justify-center px-3 py-2 rounded-xl bg-gradient-to-br from-red-400 to-red-600 hover:from-red-500 hover:to-red-700 text-white transition-all duration-300 shadow-lg border border-red-300"
-                                title="Remover produto">
-                            <i class="bi bi-trash3 text-sm group-hover:scale-110 transition-transform"></i>
+                                class="bulk-act-btn bulk-act-red btn" title="Remover produto">
+                            <i class="bi bi-trash3"></i>
                         </button>
                     </div>
 
                     <!-- ── Área da imagem ── -->
                     <div class="product-img-area">
-                        <!-- Imagem clicável -->
-                        <div class="bulk-img-click relative cursor-pointer"
-                             @click="$refs.fileInput{{ $index }}.click()">
-
+                        <div class="bulk-img-click" @click="$refs.fileInput{{ $index }}.click()">
                             <img :src="tempImage || '{{ $product['image_url'] }}'"
                                  class="product-img"
-                                 alt="{{ $product['name'] }}"
-                                 id="bulk-preview-{{ $index }}">
+                                 alt="{{ $product['name'] }}">
 
-                            <!-- Overlay câmera -->
                             <div class="bulk-img-overlay">
-                                <div class="bulk-camera-pill">
-                                    <i class="bi bi-camera"></i>
-                                </div>
+                                <div class="bulk-camera-pill"><i class="bi bi-camera"></i></div>
                             </div>
 
-                            <!-- Badge nova foto -->
-                            <div x-show="hasTempImage"
-                                 x-transition
-                                 class="absolute top-2 left-2 bg-amber-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md">
+                            <div x-show="hasTempImage" x-transition
+                                 class="absolute top-1.5 left-1.5 bg-amber-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md z-10">
                                 Nova foto
                             </div>
                         </div>
 
-                        <!-- Input file -->
-                        <input type="file"
-                               x-ref="fileInput{{ $index }}"
-                               class="hidden"
-                               accept="image/*"
-                               @change="
-                                   const file = $event.target.files[0];
-                                   if (!file) return;
-                                   const reader = new FileReader();
-                                   reader.onload = e => { tempImage = e.target.result; };
-                                   reader.readAsDataURL(file);
-                               ">
+                        <input type="file" x-ref="fileInput{{ $index }}" class="hidden" accept="image/*"
+                               @change="const f=$event.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{tempImage=e.target.result;}; r.readAsDataURL(f);">
 
                         <!-- Badge código -->
                         <div class="badge-product-code editable-badge" title="Código">
                             <input type="text"
                                    wire:model.lazy="productsData.{{ $index }}.product_code"
-                                   class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded"
-                                   placeholder="Código"
-                                   maxlength="15">
+                                   class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded text-[11px]"
+                                   placeholder="Código" maxlength="15">
                         </div>
 
                         <!-- Badge estoque -->
@@ -153,7 +207,7 @@
                             <input type="number"
                                    wire:model.lazy="productsData.{{ $index }}.stock_quantity"
                                    min="0"
-                                   class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded"
+                                   class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded text-[11px]"
                                    placeholder="0">
                         </div>
 
@@ -173,16 +227,8 @@
                                    placeholder="Nome do produto">
                         </div>
 
-                        <!-- Status -->
-                        <div class="bulk-status-wrap">
-                            <span class="bulk-status-badge bulk-status-{{ $product['status'] }}">
-                                <i class="bi bi-{{ $product['status'] === 'ativo' ? 'check-circle-fill' : 'pause-circle-fill' }}"></i>
-                                {{ ucfirst($product['status']) }}
-                            </span>
-                        </div>
-
                         <!-- Categoria -->
-                        <div class="flex justify-center mt-2" x-data="{
+                        <div class="bulk-cat-wrap" x-data="{
                             open: false, search: '',
                             selectedId: {{ $product['category_id'] ?? 0 }},
                             dropdownTop: 0, dropdownLeft: 0, dropdownWidth: 0, dropdownBottom: 0, dropdownIsAbove: false,
@@ -211,78 +257,89 @@
                                 if (ic) ic.className = cat.icon + ' category-icon';
                             }
                         }">
-                            <div class="relative w-full max-w-xs">
-                                <button type="button" x-ref="dt"
-                                        @click.stop="open ? closeDropdown() : openDropdown()"
-                                        class="w-full flex items-center justify-between px-3 py-1.5 rounded-lg border border-purple-200 dark:border-purple-700 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 hover:border-purple-400 focus:outline-none transition-all text-xs">
-                                    <span class="flex items-center gap-2 overflow-hidden">
-                                        <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0"></i>
-                                        <span x-text="selectedCategory.name" class="truncate max-w-[100px]"></span>
-                                    </span>
-                                    <i class="bi bi-chevron-down text-slate-400 transition-transform flex-shrink-0" :class="{ 'rotate-180': open }"></i>
-                                </button>
-                                <template x-teleport="body">
-                                    <div x-show="open"
-                                         x-transition:enter="transition ease-out duration-150"
-                                         x-transition:enter-start="opacity-0 scale-95"
-                                         x-transition:enter-end="opacity-100 scale-100"
-                                         @click.away="closeDropdown()"
-                                         :style="dropdownIsAbove ? `position:fixed;z-index:2147483647;width:${dropdownWidth}px;bottom:${dropdownBottom}px;left:${dropdownLeft}px` : `position:fixed;z-index:2147483647;width:${dropdownWidth}px;top:${dropdownTop}px;left:${dropdownLeft}px`"
-                                         class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
-                                        <div class="p-2 border-b border-slate-200 dark:border-slate-700">
-                                            <input type="text" x-model="search" @click.stop placeholder="Pesquisar..."
-                                                   class="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
-                                        </div>
-                                        <div class="overflow-y-auto max-h-44">
-                                            <template x-for="cat in filteredCategories" :key="cat.id">
-                                                <button type="button" @click="selectCategory(cat)"
-                                                        class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
-                                                    <i :class="cat.icon" class="text-purple-500 text-xs"></i>
-                                                    <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="cat.name"></span>
-                                                </button>
-                                            </template>
-                                            <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 text-center">Nenhuma encontrada</div>
-                                        </div>
+                            <button type="button" x-ref="dt"
+                                    @click.stop="open ? closeDropdown() : openDropdown()"
+                                    class="bulk-cat-wrap-btn w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg focus:outline-none transition-all text-xs">
+                                <span class="flex items-center gap-1.5 overflow-hidden min-w-0">
+                                    <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0 text-xs"></i>
+                                    <span x-text="selectedCategory.name" class="truncate text-xs"></span>
+                                </span>
+                                <i class="bi bi-chevron-down text-slate-400 text-[10px] transition-transform flex-shrink-0" :class="{ 'rotate-180': open }"></i>
+                            </button>
+                            <template x-teleport="body">
+                                <div x-show="open"
+                                     x-transition:enter="transition ease-out duration-150"
+                                     x-transition:enter-start="opacity-0 scale-95"
+                                     x-transition:enter-end="opacity-100 scale-100"
+                                     @click.away="closeDropdown()"
+                                     :style="dropdownIsAbove ? `position:fixed;z-index:2147483647;width:${dropdownWidth}px;bottom:${dropdownBottom}px;left:${dropdownLeft}px` : `position:fixed;z-index:2147483647;width:${dropdownWidth}px;top:${dropdownTop}px;left:${dropdownLeft}px`"
+                                     class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
+                                    <div class="p-2 border-b border-slate-200 dark:border-slate-700">
+                                        <input type="text" x-model="search" @click.stop placeholder="Pesquisar..."
+                                               class="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
                                     </div>
-                                </template>
-                            </div>
+                                    <div class="overflow-y-auto max-h-44">
+                                        <template x-for="cat in filteredCategories" :key="cat.id">
+                                            <button type="button" @click="selectCategory(cat)"
+                                                    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
+                                                <i :class="cat.icon" class="text-purple-500 text-xs"></i>
+                                                <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="cat.name"></span>
+                                            </button>
+                                        </template>
+                                        <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 text-center">Nenhuma encontrada</div>
+                                    </div>
+                                </div>
+                            </template>
                         </div>
                     </div>
 
-                    <!-- ── Preços ── -->
-                    <div class="badge-price editable-price-badge" title="Preço de Custo">
-                        <i class="bi bi-tag"></i>
-                        <span class="text-xs">R$</span>
-                        <input type="number" wire:model.lazy="productsData.{{ $index }}.price" step="0.01"
-                               class="bg-transparent border-none text-inherit font-inherit w-16 focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded text-right"
-                               placeholder="0,00">
-                    </div>
-                    <div class="badge-price-sale editable-price-badge" title="Preço de Venda">
-                        <i class="bi bi-currency-dollar"></i>
-                        <span class="text-xs">R$</span>
-                        <input type="number" wire:model.lazy="productsData.{{ $index }}.price_sale" step="0.01"
-                               class="bg-transparent border-none text-inherit font-inherit w-16 focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded text-right"
-                               placeholder="0,00">
-                    </div>
+                    <!-- ── Footer: Preços + Código de Barras + Salvar ── -->
+                    <div class="bulk-card-footer">
+                        <!-- Linha de preços -->
+                        <div class="bulk-prices-row">
+                            <div class="bulk-price-field">
+                                <div class="bulk-price-input-wrap">
+                                    <span class="bulk-price-prefix">Custo R$</span>
+                                    <input type="number" wire:model.lazy="productsData.{{ $index }}.price" step="0.01" min="0"
+                                           class="bulk-price-input" placeholder="0,00">
+                                </div>
+                            </div>
+                            <div class="bulk-price-field">
+                                <div class="bulk-price-input-wrap bulk-price-sale">
+                                    <span class="bulk-price-prefix">Venda R$</span>
+                                    <input type="number" wire:model.lazy="productsData.{{ $index }}.price_sale" step="0.01" min="0"
+                                           class="bulk-price-input" placeholder="0,00">
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- ── Salvar card ── -->
-                    <div class="bulk-save-row">
+                        <!-- Código de barras (EAN) -->
+                        <div class="bulk-barcode-row">
+                            <i class="bi bi-upc bulk-barcode-icon"></i>
+                            <input type="text"
+                                   wire:model.lazy="productsData.{{ $index }}.barcode"
+                                   class="bulk-barcode-input"
+                                   placeholder="EAN / Cód. de Barras"
+                                   maxlength="30">
+                        </div>
+
+                        <!-- Botão Salvar -->
                         <button type="button"
                                 wire:loading.attr="disabled"
-                                wire:target="saveProduct({{ $index }})"
+                                wire:target="saveProductWithImage({{ $index }})"
                                 @click="
                                     const img = tempImage;
                                     $wire.call('saveProductWithImage', {{ $index }}, img || null).then(() => { tempImage = null; });
                                 "
                                 class="bulk-save-btn {{ $isSaved ? 'bulk-save-btn--saved' : '' }}">
-                            <span wire:loading.remove wire:target="saveProduct({{ $index }})" class="flex items-center gap-1.5">
+                            <span wire:loading.remove wire:target="saveProductWithImage({{ $index }})" class="flex items-center gap-1.5">
                                 @if($isSaved)
                                     <i class="bi bi-check-circle-fill"></i><span>Salvo!</span>
                                 @else
                                     <i class="bi bi-floppy-fill"></i><span>Salvar</span>
                                 @endif
                             </span>
-                            <span wire:loading wire:target="saveProduct({{ $index }})" class="flex items-center gap-1.5">
+                            <span wire:loading wire:target="saveProductWithImage({{ $index }})" class="flex items-center gap-1.5">
                                 <i class="bi bi-arrow-clockwise animate-spin"></i><span>Salvando...</span>
                             </span>
                         </button>
