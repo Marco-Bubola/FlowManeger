@@ -1,0 +1,335 @@
+/* ================================================================
+   bulk-edit-products.css  —  Edição em Massa de Produtos
+   Grid: 2col (≤430) · 3col (431-767) · 4col (768-1023 iPad)
+         5col (1024-1279) · 6col (1280-1919) · 8col (≥2498 ultrawide)
+   ================================================================ */
+
+/* ──────────────────── Variáveis ──────────────────── */
+:root {
+    --bulk-gap: 1rem;
+    --bulk-cols: 6;
+    --bulk-card-min: 180px;
+    --bulk-img-h: 240px;
+}
+
+/* ──────────────────── Página ──────────────────── */
+.bulk-edit-page { padding-bottom: 3rem; }
+
+/* ──────────────────── Grid ──────────────────── */
+.bulk-grid-wrap { padding: 0 0.25rem; }
+
+.bulk-products-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--bulk-cols), minmax(var(--bulk-card-min), 1fr));
+    gap: var(--bulk-gap);
+    align-items: start;
+}
+
+/* ──────────────────── Card base ──────────────────── */
+.bulk-card {
+    min-height: 0 !important; /* override 420px min from produtos.css */
+}
+
+.bulk-card--saved {
+    box-shadow: 0 0 0 2.5px #34d399, 0 6px 24px rgba(52, 211, 153, 0.2) !important;
+}
+
+/* ──────────────────── Botões de ação (sobrepostos na imagem) ──────────────────── */
+/* Usa .btn-action-group de produtos.css (já position:absolute top-right) */
+.bulk-edit-page .product-card-modern .btn-action-group {
+    top: 0.7em !important;
+    right: 0.7em !important;
+    gap: 0.35em !important;
+}
+
+.bulk-act-btn {
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    border: none !important;
+    cursor: pointer !important;
+    font-size: 0.78rem !important;
+    color: #fff !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+    backdrop-filter: blur(4px) !important;
+}
+.bulk-act-btn:hover { transform: scale(1.15) !important; }
+
+.bulk-act-green { background: linear-gradient(135deg, #34d399, #059669) !important; box-shadow: 0 3px 8px rgba(5,150,105,0.45) !important; }
+.bulk-act-blue  { background: linear-gradient(135deg, #60a5fa, #2563eb) !important; box-shadow: 0 3px 8px rgba(37,99,235,0.45) !important; }
+.bulk-act-red   { background: linear-gradient(135deg, #f87171, #dc2626) !important; box-shadow: 0 3px 8px rgba(220,38,38,0.45) !important; }
+
+/* ──────────────────── Imagem clicável ──────────────────── */
+.bulk-edit-page .product-card-modern .product-img-area {
+    height: var(--bulk-img-h) !important;
+    min-height: var(--bulk-img-h) !important;
+    cursor: pointer;
+}
+
+.bulk-img-click {
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+    border-radius: 1.2em 1.2em 0 0;
+}
+
+.bulk-img-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    border-radius: 1.2em 1.2em 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: background 0.2s, opacity 0.2s;
+    pointer-events: none;
+}
+.bulk-img-click:hover .bulk-img-overlay {
+    background: rgba(0, 0, 0, 0.28);
+    opacity: 1;
+    pointer-events: none;
+}
+
+.bulk-camera-pill {
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 50%;
+    width: 2rem; height: 2rem;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    font-size: 0.95rem; color: #374151;
+}
+
+/* ──────────────────── Card body (sobre a imagem, área inferior ao ícone) ──────────────────── */
+.bulk-edit-page .product-card-modern .card-body.bulk-card-body {
+    padding: 2.5em 0.65rem 0.5rem 0.65rem !important; /* espaço para o ícone de cat sobrepost */
+    gap: 0.28em !important;
+    min-height: 0 !important;
+}
+
+/* Nome editável — card sempre com fundo lilás claro (#e6e6fa) */
+.bulk-name-input {
+    width: 100%;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.83rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.45rem;
+    padding: 0.2rem 0.3rem;
+    outline: none;
+    color: #3730a3;
+    transition: background 0.18s, box-shadow 0.18s;
+    line-height: 1.3;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+.bulk-name-input:focus {
+    background: rgba(99,102,241,0.1);
+    box-shadow: 0 0 0 2px rgba(99,102,241,0.3);
+}
+.bulk-name-input::placeholder { color: rgba(99,102,241,0.4); font-weight: 400; text-transform: none; }
+
+/* ──────────────────── Status badge ──────────────────── */
+.bulk-status-wrap { display: flex; justify-content: center; margin: 0.1rem 0; }
+
+.bulk-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.66rem;
+    font-weight: 700;
+}
+.bulk-status-ativo  { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+.bulk-status-inativo, .bulk-status-pausado { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+
+/* ──────────────────── Dropdown de categoria ──────────────────── */
+.bulk-cat-wrap { position: relative; width: 100%; }
+
+/* Botão do dropdown — funciona sobre o fundo lilás claro do card */
+.bulk-cat-wrap > button {
+    background: rgba(99,102,241,0.07) !important;
+    border: 1px solid rgba(99,102,241,0.25) !important;
+    color: #3730a3 !important;
+}
+.bulk-cat-wrap > button:hover {
+    background: rgba(99,102,241,0.13) !important;
+    border-color: rgba(99,102,241,0.45) !important;
+}
+
+/* Category button style */
+.bulk-cat-wrap-btn {
+    background: rgba(99,102,241,0.07);
+    border: 1px solid rgba(99,102,241,0.25);
+    color: #3730a3;
+}
+.bulk-cat-wrap-btn:hover {
+    background: rgba(99,102,241,0.13);
+    border-color: rgba(99,102,241,0.45);
+}
+
+/* ──────────────────── Footer: Preços + Barcode + Salvar ──────────────────── */
+.bulk-card-footer {
+    padding: 0.5rem 0.6rem 0.65rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.38rem;
+}
+
+/* Linha de preços — empilhados verticalmente */
+.bulk-prices-row { display: flex; flex-direction: column; gap: 0.22rem; }
+
+.bulk-price-field { display: flex; flex-direction: column; gap: 0; }
+
+.bulk-price-input-wrap {
+    display: flex; align-items: center; gap: 0.18rem;
+    background: rgba(99,102,241,0.08);
+    border: 1px solid rgba(99,102,241,0.22);
+    border-radius: 0.45rem;
+    padding: 0.22rem 0.3rem;
+    transition: border-color 0.18s, background 0.18s;
+}
+.bulk-price-input-wrap:focus-within {
+    border-color: rgba(99,102,241,0.5);
+    background: rgba(99,102,241,0.14);
+}
+.bulk-price-input-wrap.bulk-price-sale {
+    background: rgba(16,185,129,0.07);
+    border-color: rgba(16,185,129,0.22);
+}
+.bulk-price-input-wrap.bulk-price-sale:focus-within {
+    border-color: rgba(16,185,129,0.5);
+    background: rgba(16,185,129,0.12);
+}
+
+.bulk-price-prefix {
+    font-size: 0.58rem; font-weight: 800;
+    color: #6366f1; flex-shrink: 0; white-space: nowrap;
+}
+.bulk-price-input-wrap.bulk-price-sale .bulk-price-prefix { color: #059669; }
+
+.bulk-price-input {
+    flex: 1; min-width: 0;
+    background: transparent; border: none; outline: none;
+    font-size: 0.74rem; font-weight: 700;
+    color: #1e293b; text-align: right;
+    padding: 0;
+}
+.bulk-price-input::placeholder { color: #94a3b8; font-weight: 400; font-size: 0.65rem; }
+
+/* Código de barras */
+.bulk-barcode-row {
+    display: flex; align-items: center; gap: 0.3rem;
+    background: rgba(148,163,184,0.1);
+    border: 1px solid rgba(148,163,184,0.25);
+    border-radius: 0.5rem;
+    padding: 0.28rem 0.45rem;
+    transition: border-color 0.18s;
+}
+.bulk-barcode-row:focus-within {
+    border-color: rgba(149,117,205,0.55);
+    background: rgba(149,117,205,0.08);
+}
+
+.bulk-barcode-icon { font-size: 0.8rem; color: #94a3b8; flex-shrink: 0; }
+
+.bulk-barcode-input {
+    flex: 1; min-width: 0;
+    background: transparent; border: none; outline: none;
+    font-size: 0.7rem;
+    color: #1e293b;
+    letter-spacing: 0.03em;
+}
+.bulk-barcode-input::placeholder { color: #94a3b8; font-size: 0.67rem; }
+
+/* ──────────────────── Botão Salvar ──────────────────── */
+.bulk-save-btn {
+    width: 100%;
+    display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.75rem;
+    font-size: 0.8rem; font-weight: 700; letter-spacing: 0.03em;
+    border: none; cursor: pointer;
+    transition: all 0.2s ease;
+    background: linear-gradient(135deg, #9575cd 0%, #5c6bc0 100%);
+    color: #fff;
+    box-shadow: 0 3px 10px rgba(92,107,192,0.35);
+}
+.bulk-save-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #7e57c2 0%, #3f51b5 100%);
+    box-shadow: 0 5px 16px rgba(92,107,192,0.5);
+    transform: translateY(-1px);
+}
+.bulk-save-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.bulk-save-btn--saved {
+    background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+    box-shadow: 0 3px 10px rgba(5,150,105,0.35);
+}
+.bulk-save-btn--saved:hover:not(:disabled) { background: linear-gradient(135deg, #10b981 0%, #047857 100%); }
+
+/* ──────────────────── Estado vazio ──────────────────── */
+.bulk-empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 5rem 2rem;
+    background: linear-gradient(135deg, rgba(248,250,252,0.8), rgba(237,233,254,0.3));
+    border-radius: 1.25rem;
+    border: 2px dashed rgba(149,117,205,0.3);
+    text-align: center;
+}
+.dark .bulk-empty-state { background: linear-gradient(135deg, rgba(30,27,75,0.4), rgba(49,46,129,0.2)); border-color: rgba(149,117,205,0.25); }
+.bulk-empty-icon {
+    width: 5rem; height: 5rem;
+    background: linear-gradient(135deg, rgba(149,117,205,0.15), rgba(92,107,192,0.1));
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 1rem; font-size: 2.25rem; color: #9575cd;
+}
+.bulk-empty-state h4 { font-size: 1.1rem; font-weight: 700; color: #1a1a2e; margin-bottom: 0.5rem; }
+.dark .bulk-empty-state h4 { color: #e2e8f0; }
+.bulk-empty-state p { font-size: 0.875rem; color: #64748b; }
+.dark .bulk-empty-state p { color: #94a3b8; }
+
+/* ──────────────────── Botão Edição em Massa no header ──────────────────── */
+.prod-action-bulk-edit { color: var(--primary, #9575cd); border-color: rgba(149,117,205,0.25); }
+.prod-action-bulk-edit:hover { background: rgba(149,117,205,0.1); border-color: var(--primary,#9575cd); }
+.dark .prod-action-bulk-edit { color: #c4b5fd; }
+
+/* ══════════════ GRID RESPONSIVO ══════════════ */
+
+/* 1280–1919px → 6 colunas */
+@media (min-width: 1280px) and (max-width: 1919px) { :root { --bulk-cols: 6; --bulk-img-h: 225px; } }
+
+/* 1024–1279px → 5 colunas */
+@media (min-width: 1024px) and (max-width: 1279px) { :root { --bulk-cols: 5; --bulk-img-h: 210px; } }
+
+/* 768–1023px → 4 colunas (iPad portrait) */
+@media (min-width: 768px) and (max-width: 1023px) {
+    :root { --bulk-cols: 4; --bulk-img-h: 220px; }
+}
+
+/* 431–767px → 3 colunas */
+@media (min-width: 431px) and (max-width: 767px) {
+    :root { --bulk-cols: 3; --bulk-gap: 0.75rem; --bulk-card-min: 130px; --bulk-img-h: 185px; }
+    .bulk-name-input { font-size: 0.74rem; }
+}
+
+/* ≤430px → 2 colunas (iPhone 15) */
+@media (max-width: 430px) {
+    :root { --bulk-cols: 2; --bulk-gap: 0.5rem; --bulk-card-min: 140px; --bulk-img-h: 175px; }
+    .bulk-name-input { font-size: 0.72rem; }
+    .bulk-prices-row { gap: 0.2rem; }
+    .bulk-price-input { font-size: 0.68rem; }
+    .bulk-act-btn { width: 28px !important; height: 28px !important; font-size: 0.7rem !important; }
+    .bulk-barcode-input { font-size: 0.64rem; }
+}
+
+/* ≥1920px → 6 colunas (full HD) */
+@media (min-width: 1920px) and (max-width: 2497px) { :root { --bulk-cols: 6; --bulk-img-h: 245px; } }
+
+/* ≥2498px → 8 colunas (ultrawide) */
+@media (min-width: 2498px) { :root { --bulk-cols: 8; --bulk-img-h: 260px; --bulk-gap: 1.1rem; } }
