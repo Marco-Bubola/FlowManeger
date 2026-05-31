@@ -110,6 +110,24 @@
                             <option value="120">120</option>
                         </select>
                     </div>
+
+                    <!-- Salvar todos -->
+                    <button type="button"
+                            wire:click="saveAll"
+                            wire:loading.attr="disabled"
+                            wire:target="saveAll"
+                            wire:confirm="Salvar TODOS os produtos desta página? (as fotos novas continuam sendo salvas pelo card)"
+                            class="bulk-save-all-btn">
+                        <span wire:loading.remove wire:target="saveAll" class="flex items-center gap-1.5">
+                            <i class="bi bi-cloud-arrow-up-fill"></i>
+                            <span class="hidden sm:inline">Salvar Todos</span>
+                        </span>
+                        <span wire:loading wire:target="saveAll" class="flex items-center gap-1.5">
+                            <span class="bulk-btn-spinner"></span>
+                            <span class="hidden sm:inline">Salvando...</span>
+                        </span>
+                    </button>
+
                     <button type="button" wire:click="loadProducts"
                         class="sale-action-btn" title="Recarregar">
                         <i class="bi bi-arrow-clockwise"></i>
@@ -119,6 +137,27 @@
             </div>
         </div>
     </x-products-header>
+
+    @php
+        $iconMap = [
+            'icons8-perfume'      => 'bi-emoji-heart-eyes',
+            'icons8-beleza'       => 'bi-heart',
+            'icons8-tecnologia'   => 'bi-laptop',
+            'icons8-vestuario'    => 'bi-bag',
+            'icons8-saude'        => 'bi-heart-pulse',
+            'icons8-casa'         => 'bi-house',
+            'icons8-supermercado' => 'bi-cart',
+            'icons8-restaurante'  => 'bi-cup-straw',
+        ];
+        $catsForJs = $categories->map(fn($cat) => [
+            'id'   => $cat->id_category,
+            'name' => $cat->name,
+            'icon' => $iconMap[$cat->icone] ?? 'bi-tag',
+        ])->values();
+    @endphp
+
+    <!-- Categorias definidas uma única vez (evita repetir JSON em todos os cards) -->
+    <script>window.__bulkCats = @js($catsForJs);</script>
 
     <!-- ───────────────── GRID DE CARDS ───────────────── -->
     <div class="bulk-grid-wrap mt-4" id="bulk-grid-top">
@@ -144,16 +183,6 @@
             <div class="bulk-products-grid">
                 @foreach($productsData as $index => $product)
                 @php
-                    $iconMap = [
-                        'icons8-perfume'      => 'bi-emoji-heart-eyes',
-                        'icons8-beleza'       => 'bi-heart',
-                        'icons8-tecnologia'   => 'bi-laptop',
-                        'icons8-vestuario'    => 'bi-bag',
-                        'icons8-saude'        => 'bi-heart-pulse',
-                        'icons8-casa'         => 'bi-house',
-                        'icons8-supermercado' => 'bi-cart',
-                        'icons8-restaurante'  => 'bi-cup-straw',
-                    ];
                     $category  = $categories->firstWhere('id_category', $product['category_id']);
                     $iconClass = $iconMap[$category->icone ?? ''] ?? 'bi-tag';
                     $isSaved   = isset($savedStatus[$index]) && $savedStatus[$index] === 'saved';
@@ -165,7 +194,17 @@
                          dropdownOpen: false,
                          tempImage: null,
                          saving: false,
-                         get hasTempImage() { return this.tempImage !== null; }
+                         nameCopied: false,
+                         get hasTempImage() { return this.tempImage !== null; },
+                         copyNameAndPick(name, ref) {
+                             try {
+                                 navigator.clipboard.writeText(name);
+                                 this.nameCopied = true;
+                                 window.notifyInfo && window.notifyInfo('Nome copiado: ' + name, 2500);
+                                 setTimeout(() => this.nameCopied = false, 1800);
+                             } catch (e) {}
+                             ref.click();
+                         }
                      }"
                      :class="{ 'dropdown-open': dropdownOpen, 'bulk-card--saving': saving }">
 
@@ -212,18 +251,24 @@
 
                     <!-- ── Área da imagem ── -->
                     <div class="product-img-area">
-                        <div class="bulk-img-click" @click="$refs.fileInput{{ $index }}.click()">
+                        <div class="bulk-img-click" @click="copyNameAndPick('{{ addslashes($product['name']) }}', $refs.fileInput{{ $index }})">
                             <img :src="tempImage || '{{ $product['image_url'] }}'"
                                  class="product-img"
                                  alt="{{ $product['name'] }}">
 
                             <div class="bulk-img-overlay">
                                 <div class="bulk-camera-pill"><i class="bi bi-camera"></i></div>
+                                <span class="bulk-img-hint">Copiar nome + trocar foto</span>
                             </div>
 
                             <div x-show="hasTempImage" x-transition
                                  class="bulk-new-photo-badge">
                                 <i class="bi bi-camera-fill"></i> Nova foto
+                            </div>
+
+                            <div x-show="nameCopied" x-transition
+                                 class="bulk-name-copied-badge">
+                                <i class="bi bi-clipboard-check-fill"></i> Nome copiado!
                             </div>
                         </div>
 
@@ -268,9 +313,7 @@
                             open: false, search: '',
                             selectedId: {{ $product['category_id'] ?? 0 }},
                             dropdownTop: 0, dropdownLeft: 0, dropdownWidth: 0, dropdownBottom: 0, dropdownIsAbove: false,
-                            categories: {{ Js::from($categories->map(function($cat) use ($iconMap) {
-                                return ['id' => $cat->id_category, 'name' => $cat->name, 'icon' => $iconMap[$cat->icone] ?? 'bi-tag'];
-                            })) }},
+                            categories: (window.__bulkCats || []),
                             get selectedCategory() { return this.categories.find(c => c.id === this.selectedId) || this.categories[0] || { id: 0, name: 'Categoria', icon: 'bi-tag' }; },
                             get filteredCategories() { if (!this.search) return this.categories; return this.categories.filter(c => c.name.toLowerCase().includes(this.search.toLowerCase())); },
                             openDropdown() {
