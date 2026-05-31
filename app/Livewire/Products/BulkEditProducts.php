@@ -19,23 +19,48 @@ class BulkEditProducts extends Component
     public string $sortBy = 'updated_at';
     public array $savedStatus = [];
 
+    public int $currentPage = 1;
+    public int $perPage = 60;
+    public int $totalProducts = 0;
+    public int $totalPages = 1;
+
     public function mount(): void
     {
         $this->loadProducts();
     }
 
-    public function loadProducts(): void
+    protected function baseQuery()
     {
-        $query = Product::where('user_id', Auth::id())
+        return Product::where('user_id', Auth::id())
             ->when($this->search, fn($q) => $q
-                ->where('name', 'like', "%{$this->search}%")
-                ->orWhere('product_code', 'like', "%{$this->search}%")
-                ->orWhere('barcode', 'like', "%{$this->search}%"))
+                ->where(function($sub) {
+                    $sub->where('name', 'like', "%{$this->search}%")
+                        ->orWhere('product_code', 'like', "%{$this->search}%")
+                        ->orWhere('barcode', 'like', "%{$this->search}%");
+                }))
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->when($this->sortBy === 'name', fn($q) => $q->orderBy('name'))
             ->when($this->sortBy === 'updated_at', fn($q) => $q->orderByDesc('updated_at'))
-            ->when($this->sortBy === 'price_sale', fn($q) => $q->orderByDesc('price_sale'))
-            ->limit(120)
+            ->when($this->sortBy === 'price_sale', fn($q) => $q->orderByDesc('price_sale'));
+    }
+
+    public function loadProducts(): void
+    {
+        $this->totalProducts = $this->baseQuery()->count();
+        $this->totalPages = max(1, (int) ceil($this->totalProducts / $this->perPage));
+
+        if ($this->currentPage > $this->totalPages) {
+            $this->currentPage = $this->totalPages;
+        }
+        if ($this->currentPage < 1) {
+            $this->currentPage = 1;
+        }
+
+        $offset = ($this->currentPage - 1) * $this->perPage;
+
+        $query = $this->baseQuery()
+            ->skip($offset)
+            ->take($this->perPage)
             ->get();
 
         $this->productsData = $query->map(fn($p) => [
@@ -55,9 +80,65 @@ class BulkEditProducts extends Component
         $this->savedStatus = [];
     }
 
-    public function updatedSearch(): void  { $this->loadProducts(); }
-    public function updatedFilterStatus(): void { $this->loadProducts(); }
-    public function updatedSortBy(): void  { $this->loadProducts(); }
+    public function updatedSearch(): void       { $this->currentPage = 1; $this->loadProducts(); }
+    public function updatedFilterStatus(): void { $this->currentPage = 1; $this->loadProducts(); }
+    public function updatedSortBy(): void       { $this->currentPage = 1; $this->loadProducts(); }
+    public function updatedPerPage(): void      { $this->currentPage = 1; $this->loadProducts(); }
+
+    public function goToPage(int $page): void
+    {
+        $this->currentPage = max(1, min($page, $this->totalPages));
+        $this->loadProducts();
+        $this->dispatch('scroll-to-top');
+    }
+
+    public function nextPage(): void
+    {
+        if ($this->currentPage < $this->totalPages) {
+            $this->currentPage++;
+            $this->loadProducts();
+            $this->dispatch('scroll-to-top');
+        }
+    }
+
+    public function previousPage(): void
+    {
+        if ($this->currentPage > 1) {
+            $this->currentPage--;
+            $this->loadProducts();
+            $this->dispatch('scroll-to-top');
+        }
+    }
+
+    public function getPagesArrayProperty(): array
+    {
+        $current = $this->currentPage;
+        $total = $this->totalPages;
+        $delta = 2;
+        $range = [];
+        $rangeWithDots = [];
+        $l = null;
+
+        for ($i = 1; $i <= $total; $i++) {
+            if ($i == 1 || $i == $total || ($i >= $current - $delta && $i <= $current + $delta)) {
+                $range[] = $i;
+            }
+        }
+
+        foreach ($range as $i) {
+            if ($l !== null) {
+                if ($i - $l === 2) {
+                    $rangeWithDots[] = $l + 1;
+                } elseif ($i - $l !== 1) {
+                    $rangeWithDots[] = '...';
+                }
+            }
+            $rangeWithDots[] = $i;
+            $l = $i;
+        }
+
+        return $rangeWithDots;
+    }
 
     public function saveProductWithImage(int $index, ?string $base64 = null): void
     {
@@ -135,6 +216,8 @@ class BulkEditProducts extends Component
         }
 
         array_splice($this->productsData, $index, 1);
+        $this->totalProducts = max(0, $this->totalProducts - 1);
+        $this->totalPages = max(1, (int) ceil($this->totalProducts / $this->perPage));
         $this->notifySuccess('Produto removido!');
     }
 
@@ -144,6 +227,7 @@ class BulkEditProducts extends Component
 
         return view('livewire.products.bulk-edit-products', [
             'categories' => $categories,
+            'pagesArray' => $this->getPagesArrayProperty(),
         ])->layout('components.layouts.app');
     }
 }
