@@ -111,6 +111,27 @@
 .dark .bulk-perpage-label { color: var(--mg-silver); }
 .dark .bulk-perpage-select { background: #1e1b3a; color: var(--mg-silver); border-color: rgba(164, 144, 194, 0.4); }
 
+/* Botão Salvar Todos */
+.bulk-save-all-btn {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    padding: 0.42rem 0.85rem;
+    border-radius: 0.65rem;
+    font-size: 0.8rem; font-weight: 800;
+    letter-spacing: 0.02em;
+    border: none; cursor: pointer;
+    color: #fff;
+    background: linear-gradient(135deg, var(--mg-success) 0%, var(--mg-success-dk) 100%);
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.4);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.bulk-save-all-btn:hover:not(:disabled) {
+    background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(5, 150, 105, 0.55);
+}
+.bulk-save-all-btn:disabled { opacity: 0.7; cursor: wait; }
+
 /* ──────────────────── Overlay loading da página ──────────────────── */
 .bulk-page-loading-overlay {
     position: absolute;
@@ -254,6 +275,32 @@
     display: flex; align-items: center; justify-content: center;
     box-shadow: 0 4px 14px rgba(43, 30, 62, 0.3);
     font-size: 1.05rem; color: var(--mg-cosmic-blue);
+}
+.bulk-img-hint {
+    position: absolute;
+    bottom: 0.6rem; left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.66rem; font-weight: 700;
+    color: #fff;
+    background: rgba(43, 30, 62, 0.85);
+    padding: 0.22rem 0.6rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+    backdrop-filter: blur(4px);
+}
+.bulk-name-copied-badge {
+    position: absolute;
+    top: 0.55rem; left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, var(--mg-success), var(--mg-success-dk));
+    color: #fff;
+    font-size: 0.68rem; font-weight: 800;
+    padding: 0.28rem 0.65rem;
+    border-radius: 9999px;
+    box-shadow: 0 4px 12px rgba(5, 150, 105, 0.5);
+    z-index: 11;
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    white-space: nowrap;
 }
 .bulk-new-photo-badge {
     position: absolute;
@@ -702,10 +749,55 @@
     background: linear-gradient(135deg, rgba(164, 144, 194, 0.18), rgba(74, 78, 143, 0.12));
 }
 
+/* Header: controles à direita quebram bem em telas menores */
+.bulk-edit-page .prod-header-row-2-right {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
 /* ──────────────────── Botão Edição em Massa no header ──────────────────── */
 .prod-action-bulk-edit { color: var(--mg-cosmic-blue); border-color: rgba(164, 144, 194, 0.3); }
 .prod-action-bulk-edit:hover { background: rgba(164, 144, 194, 0.12); border-color: var(--mg-cosmic-blue); }
 .dark .prod-action-bulk-edit { color: var(--mg-lavender); }
+
+/* ══════════════ DARK MODE — campos legíveis ══════════════ */
+.dark .bulk-edit-page .product-card-modern .card-body.bulk-card-body { background: transparent; }
+
+.dark .bulk-price-input-wrap {
+    background: linear-gradient(135deg, rgba(74, 78, 143, 0.28), rgba(164, 144, 194, 0.16));
+    border-color: rgba(164, 144, 194, 0.4);
+}
+.dark .bulk-price-input-wrap:focus-within {
+    border-color: var(--mg-lavender);
+    box-shadow: 0 0 0 2px rgba(164, 144, 194, 0.3);
+}
+.dark .bulk-price-input-wrap.bulk-price-sale {
+    background: linear-gradient(135deg, rgba(16,185,129,0.22), rgba(52, 211, 153, 0.12));
+    border-color: rgba(52, 211, 153, 0.4);
+}
+.dark .bulk-price-prefix { color: var(--mg-lavender); }
+.dark .bulk-price-input-wrap.bulk-price-sale .bulk-price-prefix { color: #6ee7b7; }
+.dark .bulk-price-input::placeholder { color: rgba(196, 181, 253, 0.45); }
+
+.dark .bulk-barcode-row {
+    background: rgba(164, 144, 194, 0.18);
+    border-color: rgba(164, 144, 194, 0.38);
+}
+.dark .bulk-barcode-row:focus-within { border-color: var(--mg-lavender); box-shadow: 0 0 0 2px rgba(164, 144, 194, 0.3); }
+.dark .bulk-barcode-icon { color: var(--mg-lavender); }
+.dark .bulk-barcode-input::placeholder { color: rgba(196, 181, 253, 0.45); }
+
+.dark .bulk-cat-wrap-btn {
+    background: linear-gradient(135deg, rgba(74, 78, 143, 0.3), rgba(164, 144, 194, 0.18));
+    border-color: rgba(164, 144, 194, 0.4);
+}
+.dark .bulk-cat-wrap-btn:hover {
+    background: linear-gradient(135deg, rgba(74, 78, 143, 0.42), rgba(164, 144, 194, 0.26));
+    border-color: var(--mg-lavender);
+}
 
 /* ══════════════ GRID RESPONSIVO ══════════════ */
 
