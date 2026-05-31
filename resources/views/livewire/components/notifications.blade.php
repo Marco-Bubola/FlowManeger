@@ -1,19 +1,16 @@
-<div x-data="notificationManager(@js($flash))"
-     x-init="init()"
-     @notify.window="addNotification($event.detail)"
-     class="fm-notify-stack"
-     role="region"
-     aria-label="Notificações">
+<div class="fm-notify-stack" role="region" aria-label="Notificações"
+     x-data
+     x-init="$store.fmNotify.seed(@js($flash))">
 
     <!-- Botão limpar tudo (aparece com 3+ notificações) -->
-    <div x-show="items.length >= 3" x-transition class="fm-notify-clear-wrap">
-        <button type="button" @click="clearAll()" class="fm-notify-clear-btn">
+    <div x-show="$store.fmNotify.items.length >= 3" x-transition class="fm-notify-clear-wrap">
+        <button type="button" @click="$store.fmNotify.clearAll()" class="fm-notify-clear-btn">
             <i class="bi bi-x-circle"></i>
-            <span x-text="`Limpar todas (${items.length})`"></span>
+            <span x-text="`Limpar todas (${$store.fmNotify.items.length})`"></span>
         </button>
     </div>
 
-    <template x-for="n in items" :key="n.id">
+    <template x-for="n in $store.fmNotify.items" :key="n.id">
         <div class="fm-notify-item"
              :class="`fm-notify-${n.type}`"
              x-show="n.show"
@@ -23,24 +20,23 @@
              x-transition:leave="fm-notify-leave"
              x-transition:leave-start="fm-notify-leave-start"
              x-transition:leave-end="fm-notify-leave-end"
-             @mouseenter="pause(n)"
-             @mouseleave="resume(n)"
+             @mouseenter="$store.fmNotify.pause(n)"
+             @mouseleave="$store.fmNotify.resume(n)"
              role="alert">
 
             <div class="fm-notify-accent"></div>
 
             <div class="fm-notify-icon">
-                <i :class="iconFor(n.type)"></i>
+                <i :class="$store.fmNotify.iconFor(n.type)"></i>
             </div>
 
             <div class="fm-notify-body">
-                <p class="fm-notify-title" x-text="titleFor(n.type)"></p>
+                <p class="fm-notify-title" x-text="$store.fmNotify.titleFor(n.type)"></p>
                 <p class="fm-notify-msg" x-text="n.message"></p>
-                <!-- Badge de agrupamento (quando a mesma msg se repete) -->
                 <span x-show="n.count > 1" class="fm-notify-count" x-text="`×${n.count}`"></span>
             </div>
 
-            <button type="button" @click="remove(n.id)" class="fm-notify-close" aria-label="Fechar">
+            <button type="button" @click="$store.fmNotify.remove(n.id)" class="fm-notify-close" aria-label="Fechar">
                 <i class="bi bi-x-lg"></i>
             </button>
 
@@ -103,7 +99,6 @@
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Barra de destaque lateral */
 .fm-notify-accent {
     position: absolute;
     left: 0; top: 0; bottom: 0;
@@ -115,7 +110,6 @@
 .fm-notify-warning .fm-notify-accent { background: linear-gradient(180deg, #fbbf24, #f59e0b); }
 .fm-notify-info    .fm-notify-accent { background: linear-gradient(180deg, #a490c2, #4a4e8f); }
 
-/* Ícone */
 .fm-notify-icon {
     flex-shrink: 0;
     width: 2.4rem; height: 2.4rem;
@@ -132,7 +126,6 @@
 .dark .fm-notify-warning .fm-notify-icon { background: rgba(251, 191, 36, 0.22); color: #fcd34d; }
 .dark .fm-notify-info    .fm-notify-icon { background: rgba(164, 144, 194, 0.25); color: #c4b5fd; }
 
-/* Texto */
 .fm-notify-body { flex: 1; min-width: 0; padding-top: 0.05rem; }
 .fm-notify-title {
     font-size: 0.8rem; font-weight: 800;
@@ -166,7 +159,6 @@
 }
 .dark .fm-notify-count { background: rgba(164, 144, 194, 0.25); color: #c4b5fd; }
 
-/* Botão fechar */
 .fm-notify-close {
     flex-shrink: 0;
     width: 1.6rem; height: 1.6rem;
@@ -181,7 +173,6 @@
 .dark .fm-notify-close { color: #64748b; }
 .dark .fm-notify-close:hover { background: rgba(148, 163, 184, 0.2); color: #cbd5e1; }
 
-/* Barra de progresso (countdown) */
 .fm-notify-progress {
     position: absolute;
     left: 0; right: 0; bottom: 0;
@@ -200,7 +191,6 @@
 .fm-notify-info    .fm-notify-progress-bar { background: linear-gradient(90deg, #a490c2, #4a4e8f); }
 @keyframes fm-notify-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-/* Transições */
 .fm-notify-enter { transition: all 0.32s cubic-bezier(0.16, 1, 0.3, 1); }
 .fm-notify-enter-start { opacity: 0; transform: translateX(110%) scale(0.9); }
 .fm-notify-enter-end { opacity: 1; transform: translateX(0) scale(1); }
@@ -208,7 +198,6 @@
 .fm-notify-leave-start { opacity: 1; transform: translateX(0) scale(1); }
 .fm-notify-leave-end { opacity: 0; transform: translateX(110%) scale(0.9); }
 
-/* Responsivo: mobile ocupa largura toda */
 @media (max-width: 480px) {
     .fm-notify-stack {
         left: 0.6rem; right: 0.6rem; top: 0.6rem;
@@ -217,106 +206,77 @@
     .fm-notify-msg, .fm-notify-title { font-size: 0.78rem; }
 }
 </style>
-@endonce
 
 <script>
-function notificationManager(seed) {
-    return {
+/* Store global de notificações — registrado uma única vez, à prova de timing */
+document.addEventListener('alpine:init', () => {
+    if (Alpine.store('fmNotify')) return;
+
+    Alpine.store('fmNotify', {
         items: [],
-        recent: {},   // dedupe: "type|message" -> timestamp
+        recent: {},
         maxVisible: 5,
+        _seeded: false,
 
-        init() {
-            // Semeia notificações de flash da sessão (uma única vez)
-            (seed || []).forEach(f => this.addNotification(f));
-
-            // Canal Livewire (eventos dispatch dos componentes PHP).
-            // O dedupe por conteúdo impede duplicar com o @notify.window.
-            const hook = () => {
-                if (window.Livewire) {
-                    window.Livewire.on('notify', (payload) => this.addNotification(payload));
-                }
-            };
-            if (window.Livewire) hook();
-            else document.addEventListener('livewire:init', hook);
+        seed(arr) {
+            if (this._seeded) return;
+            this._seeded = true;
+            (arr || []).forEach(f => this.add(f));
         },
 
         iconFor(type) {
-            return {
+            return ({
                 success: 'bi bi-check-circle-fill',
                 error:   'bi bi-exclamation-octagon-fill',
                 warning: 'bi bi-exclamation-triangle-fill',
                 info:    'bi bi-info-circle-fill'
-            }[type] || 'bi bi-info-circle-fill';
+            })[type] || 'bi bi-info-circle-fill';
         },
-
         titleFor(type) {
-            return {
+            return ({
                 success: 'Sucesso!',
                 error:   'Erro!',
                 warning: 'Atenção!',
                 info:    'Informação'
-            }[type] || 'Informação';
+            })[type] || 'Informação';
         },
 
-        addNotification(detail) {
+        add(detail) {
             if (!detail) return;
-
-            // Normaliza o payload — Livewire pode entregar:
-            //  • objeto nomeado {type,message,duration}   (dispatch named params)
-            //  • array  [{type,message,...}]               (dispatch positional)
-            //  • objeto com chave numérica {0:{...}}        (dispatch single array)
+            // Normaliza payload (objeto nomeado / array / {0:{...}})
             let data = detail;
-            if (Array.isArray(data)) {
-                data = data[0] || {};
-            } else if (data && typeof data === 'object'
-                       && data.type === undefined && data.message === undefined
-                       && data['0'] !== undefined) {
-                data = data['0'];
-            }
+            if (Array.isArray(data)) data = data[0] || {};
+            else if (data && typeof data === 'object'
+                     && data.type === undefined && data.message === undefined
+                     && data['0'] !== undefined) data = data['0'];
             data = data || {};
+
             const type = data.type || 'info';
             const message = (data.message ?? '').toString().trim();
             const duration = data.duration || 4000;
-
-            if (!message) return; // ignora notificações vazias
+            if (!message) return;
 
             const key = type + '|' + message;
             const now = Date.now();
 
-            // 1) Dedupe: mesma mensagem já visível → incrementa contador e reinicia timer
+            // Dedupe: mesma msg visível → ×N e reinicia timer
             const existing = this.items.find(i => i.key === key && i.show);
-            if (existing) {
-                existing.count++;
-                this.restartTimer(existing);
-                return;
-            }
+            if (existing) { existing.count++; this.restartTimer(existing); return; }
 
-            // 2) Anti-burst: mesma mensagem disparada <1500ms atrás (3x do mesmo evento)
-            if (this.recent[key] && (now - this.recent[key]) < 1500) {
-                return;
-            }
+            // Anti-burst: mesma msg <1500ms atrás (vários listeners do mesmo evento)
+            if (this.recent[key] && (now - this.recent[key]) < 1500) return;
             this.recent[key] = now;
 
             const n = {
                 id: now + '-' + Math.random().toString(36).slice(2, 7),
                 key, type, message, duration,
-                count: 1,
-                show: false,
-                paused: false,
-                timer: null,
-                remaining: duration,
-                startedAt: now,
+                count: 1, show: false, paused: false,
+                timer: null, remaining: duration, startedAt: now,
             };
-
             this.items.push(n);
+            while (this.items.length > this.maxVisible) this.remove(this.items[0].id);
 
-            // Limita a quantidade visível removendo os mais antigos
-            while (this.items.length > this.maxVisible) {
-                this.remove(this.items[0].id);
-            }
-
-            this.$nextTick(() => { n.show = true; });
+            requestAnimationFrame(() => { n.show = true; });
             this.startTimer(n);
         },
 
@@ -325,45 +285,49 @@ function notificationManager(seed) {
             n.startedAt = Date.now();
             n.timer = setTimeout(() => this.remove(n.id), n.remaining);
         },
-
-        restartTimer(n) {
-            clearTimeout(n.timer);
-            n.remaining = n.duration;
-            this.startTimer(n);
-        },
-
+        restartTimer(n) { clearTimeout(n.timer); n.remaining = n.duration; this.startTimer(n); },
         pause(n) {
             if (!n.timer) return;
             clearTimeout(n.timer);
             n.paused = true;
             n.remaining -= (Date.now() - n.startedAt);
         },
-
         resume(n) {
             if (n.duration <= 0) return;
             n.paused = false;
             if (n.remaining <= 0) { this.remove(n.id); return; }
             this.startTimer(n);
         },
-
         remove(id) {
             const n = this.items.find(i => i.id === id);
             if (!n) return;
             clearTimeout(n.timer);
             n.show = false;
-            setTimeout(() => {
-                this.items = this.items.filter(i => i.id !== id);
-            }, 240);
+            setTimeout(() => { this.items = this.items.filter(i => i.id !== id); }, 240);
         },
-
         clearAll() {
             this.items.forEach(n => { clearTimeout(n.timer); n.show = false; });
             setTimeout(() => { this.items = []; }, 240);
         }
-    };
-}
+    });
+});
 
-// API global para uso em JS puro (mantém compatibilidade)
+/* Listeners globais — registrados em nível de documento (timing garantido) */
+(function () {
+    function push(detail) {
+        if (window.Alpine && Alpine.store('fmNotify')) {
+            Alpine.store('fmNotify').add(detail);
+        }
+    }
+    // Eventos JS puros: window.notify(...)
+    window.addEventListener('notify', e => push(e.detail));
+    // Eventos despachados por componentes Livewire ($this->dispatch('notify', ...))
+    document.addEventListener('livewire:init', () => {
+        window.Livewire.on('notify', payload => push(payload));
+    });
+})();
+
+/* API global p/ uso em JS puro */
 window.notify = function(type, message, duration = 4000) {
     window.dispatchEvent(new CustomEvent('notify', { detail: { type, message, duration } }));
 };
@@ -372,3 +336,4 @@ window.notifyError   = (m, d = 6000) => window.notify('error', m, d);
 window.notifyWarning = (m, d = 5000) => window.notify('warning', m, d);
 window.notifyInfo    = (m, d = 4000) => window.notify('info', m, d);
 </script>
+@endonce
