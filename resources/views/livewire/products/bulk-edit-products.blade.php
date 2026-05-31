@@ -112,17 +112,19 @@
                         </select>
                     </div>
 
-                    <!-- Salvar todos (abre modal moderno) -->
+                    <!-- Salvar editados (abre modal moderno) — só aparece quando há editados -->
                     <button type="button"
+                            x-show="$store.bulkCart.count > 0"
+                            x-transition
                             @click="showSaveAllModal = true"
-                            wire:loading.attr="disabled"
-                            wire:target="saveAll"
+                            :disabled="savingAll"
                             class="bulk-save-all-btn">
-                        <span wire:loading.remove wire:target="saveAll" class="flex items-center gap-1.5">
+                        <span x-show="!savingAll" class="flex items-center gap-1.5">
                             <i class="bi bi-cloud-arrow-up-fill"></i>
-                            <span class="hidden sm:inline">Salvar Todos</span>
+                            <span class="hidden sm:inline">Salvar Editados</span>
+                            <span class="bulk-save-all-count" x-text="$store.bulkCart.count"></span>
                         </span>
-                        <span wire:loading wire:target="saveAll" class="flex items-center gap-1.5">
+                        <span x-show="savingAll" class="flex items-center gap-1.5">
                             <span class="bulk-btn-spinner"></span>
                             <span class="hidden sm:inline">Salvando...</span>
                         </span>
@@ -191,11 +193,15 @@
                 <div class="bulk-card product-card-modern {{ $isSaved ? 'bulk-card--saved' : '' }}"
                      wire:key="bulk-card-{{ $product['id'] }}-{{ $currentPage }}"
                      x-data="{
+                         idx: {{ $index }},
+                         pid: {{ $product['id'] }},
                          dropdownOpen: false,
                          tempImage: null,
                          saving: false,
                          nameCopied: false,
                          get hasTempImage() { return this.tempImage !== null; },
+                         get isDirty() { return $store.bulkCart.has(this.idx); },
+                         markDirty(image) { $store.bulkCart.mark(this.idx, this.pid, image); },
                          copyNameAndPick(name, ref) {
                              window.fmCopyText(name);
                              this.nameCopied = true;
@@ -204,7 +210,8 @@
                              ref.click();
                          }
                      }"
-                     :class="{ 'dropdown-open': dropdownOpen, 'bulk-card--saving': saving }">
+                     @change="markDirty()"
+                     :class="{ 'dropdown-open': dropdownOpen, 'bulk-card--saving': saving, 'bulk-card--dirty': isDirty }">
 
                     <!-- ── Overlay de loading individual ── -->
                     <div class="bulk-card-loading-overlay" x-show="saving" x-transition.opacity>
@@ -218,12 +225,17 @@
                         </div>
                     </div>
 
+                    <!-- ── Badge "editado / pendente" (carrinho) ── -->
+                    <div class="bulk-dirty-badge" x-show="isDirty" x-transition title="Editado — pendente de salvar">
+                        <i class="bi bi-pencil-fill"></i>
+                    </div>
+
                     <!-- ── Botões de ação (absolutos dentro do card, overlay na imagem) ── -->
                     <div class="btn-action-group">
                         <!-- Copiar nome -->
                         <button type="button"
                                 x-data="{ copied: false }"
-                                @click="navigator.clipboard.writeText('{{ addslashes($product['name']) }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                @click="window.fmCopyText('{{ addslashes($product['name']) }}'); copied = true; setTimeout(() => copied = false, 2000)"
                                 class="bulk-act-btn bulk-act-green btn" title="Copiar nome">
                             <i x-show="!copied" class="bi bi-tag"></i>
                             <i x-show="copied" class="bi bi-check-lg"></i>
@@ -232,7 +244,7 @@
                         <!-- Copiar código -->
                         <button type="button"
                                 x-data="{ copied: false }"
-                                @click="navigator.clipboard.writeText('{{ addslashes($product['product_code']) }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                @click="window.fmCopyText('{{ addslashes($product['product_code']) }}'); copied = true; setTimeout(() => copied = false, 2000)"
                                 class="bulk-act-btn bulk-act-blue btn" title="Copiar código">
                             <i x-show="!copied" class="bi bi-upc-scan"></i>
                             <i x-show="copied" class="bi bi-check-lg"></i>
@@ -271,7 +283,7 @@
                         </div>
 
                         <input type="file" x-ref="fileInput{{ $index }}" class="hidden" accept="image/*"
-                               @change="const f=$event.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{tempImage=e.target.result;}; r.readAsDataURL(f);">
+                               @change.stop="const f=$event.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=e=>{ tempImage=e.target.result; markDirty(tempImage); }; r.readAsDataURL(f);">
 
                         <!-- Badge código -->
                         <div class="badge-product-code editable-badge" title="Código">
@@ -332,6 +344,7 @@
                                 $wire.set('productsData.{{ $index }}.category_id', cat.id);
                                 const ic = document.getElementById('bulk-cat-icon-{{ $index }}');
                                 if (ic) ic.className = cat.icon + ' category-icon';
+                                $store.bulkCart.mark({{ $index }}, {{ $product['id'] }});
                             }
                         }">
                             <button type="button" x-ref="dt"
@@ -409,6 +422,7 @@
                                     $wire.call('saveProductWithImage', {{ $index }}, img || null).then(() => {
                                         tempImage = null;
                                         saving = false;
+                                        $store.bulkCart.unmark(idx);
                                     }).catch(() => { saving = false; });
                                 "
                                 class="bulk-save-btn {{ $isSaved ? 'bulk-save-btn--saved' : '' }}"
@@ -502,26 +516,27 @@
         @endif
     </div>
 
-    <!-- ───────────────── BOTÃO FLUTUANTE: SALVAR TODOS ───────────────── -->
-    @if(count($productsData) > 0)
+    <!-- ───────────────── BOTÃO FLUTUANTE: SALVAR EDITADOS (carrinho) ───────────────── -->
     <button type="button"
+            x-show="$store.bulkCart.count > 0"
+            x-transition
             @click="showSaveAllModal = true"
-            wire:loading.attr="disabled"
-            wire:target="saveAll"
+            :disabled="savingAll"
             class="bulk-fab-save-all"
-            title="Salvar todos os produtos desta página">
-        <span wire:loading.remove wire:target="saveAll" class="bulk-fab-content">
-            <i class="bi bi-cloud-arrow-up-fill"></i>
-            <span class="bulk-fab-label">Salvar Todos</span>
+            title="Salvar produtos editados"
+            style="display:none;">
+        <span x-show="!savingAll" class="bulk-fab-content">
+            <i class="bi bi-cart-check-fill"></i>
+            <span class="bulk-fab-label">Salvar Editados</span>
+            <span class="bulk-fab-count" x-text="$store.bulkCart.count"></span>
         </span>
-        <span wire:loading wire:target="saveAll" class="bulk-fab-content">
+        <span x-show="savingAll" class="bulk-fab-content">
             <span class="bulk-btn-spinner"></span>
             <span class="bulk-fab-label">Salvando...</span>
         </span>
     </button>
-    @endif
 
-    <!-- ───────────────── MODAL MODERNO: CONFIRMAR SALVAR TODOS ───────────────── -->
+    <!-- ───────────────── MODAL MODERNO: CONFIRMAR SALVAR EDITADOS ───────────────── -->
     <template x-teleport="body">
         <div x-show="showSaveAllModal"
              x-transition:enter="transition ease-out duration-200"
@@ -543,16 +558,17 @@
                  x-transition:leave-end="opacity-0 scale-95">
 
                 <div class="bulk-modal-icon">
-                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                    <i class="bi bi-cart-check-fill"></i>
                 </div>
 
-                <h3 class="bulk-modal-title">Salvar todos os produtos?</h3>
+                <h3 class="bulk-modal-title">Salvar produtos editados?</h3>
                 <p class="bulk-modal-text">
-                    Todos os <strong>{{ count($productsData) }}</strong> produtos desta página
-                    serão salvos de uma vez.<br>
+                    <strong x-text="$store.bulkCart.count"></strong>
+                    produto(s) que você editou (nome, preço, categoria ou <strong>foto</strong>)
+                    serão salvos agora.
                     <span class="bulk-modal-note">
                         <i class="bi bi-info-circle"></i>
-                        As <strong>fotos novas</strong> continuam sendo salvas pelo botão de cada card.
+                        Os produtos que você não mexeu permanecem inalterados.
                     </span>
                 </p>
 
@@ -561,9 +577,9 @@
                         <i class="bi bi-x-lg"></i> Cancelar
                     </button>
                     <button type="button"
-                            @click="showSaveAllModal = false; $wire.call('saveAll')"
+                            @click="showSaveAllModal = false; saveEdited()"
                             class="bulk-modal-btn-confirm">
-                        <i class="bi bi-check-lg"></i> Salvar Todos
+                        <i class="bi bi-check-lg"></i> Salvar
                     </button>
                 </div>
             </div>
@@ -572,17 +588,57 @@
 </div>
 
 <script>
+/* Store "carrinho" de editados — registrado uma vez */
+document.addEventListener('alpine:init', () => {
+    if (window.Alpine && Alpine.store('bulkCart')) return;
+    Alpine.store('bulkCart', {
+        items: {},
+        mark(index, id, image) {
+            if (!this.items[index]) this.items[index] = { id: id, image: null };
+            if (image !== undefined) this.items[index].image = image;
+            this.items[index].id = id;
+        },
+        unmark(index) { delete this.items[index]; },
+        clear() { this.items = {}; },
+        has(index) { return Object.prototype.hasOwnProperty.call(this.items, index); },
+        get count() { return Object.keys(this.items).length; }
+    });
+});
+
 function bulkEditPage() {
     return {
         showSaveAllModal: false,
+        savingAll: false,
 
         init() {
             this.$wire.on('scroll-to-top', () => {
                 const el = document.getElementById('bulk-grid-top');
-                if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
+            // Nova listagem (paginação/busca/filtro) → limpa o carrinho
+            this.$wire.on('bulk-reloaded', () => {
+                if (window.Alpine && Alpine.store('bulkCart')) Alpine.store('bulkCart').clear();
+            });
+        },
+
+        async saveEdited() {
+            const cart = Alpine.store('bulkCart');
+            const entries = Object.entries(cart.items);
+            if (!entries.length) {
+                window.notifyInfo('Nenhum produto editado para salvar.');
+                return;
+            }
+            this.savingAll = true;
+            let ok = 0;
+            for (const [index, data] of entries) {
+                try {
+                    await this.$wire.call('saveProductWithImage', parseInt(index), data.image || null, true);
+                    ok++;
+                } catch (e) { /* segue para o próximo */ }
+            }
+            cart.clear();
+            this.savingAll = false;
+            window.notifySuccess(ok + ' produto(s) editado(s) salvos com sucesso!');
         }
     };
 }
