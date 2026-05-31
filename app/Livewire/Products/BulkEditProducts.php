@@ -205,6 +205,40 @@ class BulkEditProducts extends Component
         $this->saveProductWithImage($index, null);
     }
 
+    /**
+     * Salva TODOS os produtos da página de uma vez (campos de texto).
+     * Imagens novas continuam sendo salvas individualmente pelo botão do card.
+     */
+    public function saveAll(): void
+    {
+        $ids = collect($this->productsData)->pluck('id')->all();
+        $products = Product::whereIn('id', $ids)
+            ->where('user_id', Auth::id())
+            ->get()
+            ->keyBy('id');
+
+        $count = 0;
+        foreach ($this->productsData as $index => $data) {
+            $product = $products->get($data['id']);
+            if (!$product) continue;
+
+            $product->update([
+                'name'           => $data['name'],
+                'product_code'   => $data['product_code'],
+                'barcode'        => $data['barcode'] ?? null,
+                'stock_quantity' => (int)$data['stock_quantity'],
+                'price'          => (float)$data['price'],
+                'price_sale'     => (float)$data['price_sale'],
+                'category_id'    => (int)$data['category_id'],
+            ]);
+
+            $this->savedStatus[$index] = 'saved';
+            $count++;
+        }
+
+        $this->notifySuccess("{$count} produto(s) salvos com sucesso!");
+    }
+
     public function removeProduct(int $index): void
     {
         $data = $this->productsData[$index] ?? null;
