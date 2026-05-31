@@ -763,7 +763,39 @@
 .prod-action-bulk-edit:hover { background: rgba(164, 144, 194, 0.12); border-color: var(--mg-cosmic-blue); }
 .dark .prod-action-bulk-edit { color: var(--mg-lavender); }
 
-/* ══════════════ FAB — Botão flutuante Salvar Todos ══════════════ */
+/* ══════════════ Carrinho de editados — badge + destaque ══════════════ */
+.bulk-card--dirty {
+    box-shadow: 0 0 0 2.5px #fbbf24, 0 8px 24px rgba(251, 191, 36, 0.28) !important;
+}
+.bulk-dirty-badge {
+    position: absolute;
+    top: 0.7em; left: 0.7em;
+    z-index: 12;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 0.72rem;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    box-shadow: 0 3px 10px rgba(245, 158, 11, 0.55);
+    animation: bulk-dirty-pulse 1.8s ease-in-out infinite;
+}
+@keyframes bulk-dirty-pulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 3px 10px rgba(245, 158, 11, 0.55); }
+    50% { transform: scale(1.12); box-shadow: 0 4px 16px rgba(245, 158, 11, 0.8); }
+}
+
+/* Contadores nos botões */
+.bulk-save-all-count, .bulk-fab-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 1.25rem; height: 1.25rem;
+    padding: 0 0.35rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.3);
+    font-size: 0.72rem; font-weight: 900;
+    line-height: 1;
+}
+
+/* ══════════════ FAB — Botão flutuante Salvar Editados ══════════════ */
 .bulk-fab-save-all {
     position: fixed;
     right: 1.6rem; bottom: 1.6rem;
