@@ -1,6 +1,7 @@
 <div class="bulk-edit-page"
      x-data="bulkEditPage()"
-     x-init="init()">
+     x-init="init()"
+     @keydown.escape.window="showSaveAllModal = false">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -111,12 +112,11 @@
                         </select>
                     </div>
 
-                    <!-- Salvar todos -->
+                    <!-- Salvar todos (abre modal moderno) -->
                     <button type="button"
-                            wire:click="saveAll"
+                            @click="showSaveAllModal = true"
                             wire:loading.attr="disabled"
                             wire:target="saveAll"
-                            wire:confirm="Salvar TODOS os produtos desta página? (as fotos novas continuam sendo salvas pelo card)"
                             class="bulk-save-all-btn">
                         <span wire:loading.remove wire:target="saveAll" class="flex items-center gap-1.5">
                             <i class="bi bi-cloud-arrow-up-fill"></i>
@@ -197,12 +197,10 @@
                          nameCopied: false,
                          get hasTempImage() { return this.tempImage !== null; },
                          copyNameAndPick(name, ref) {
-                             try {
-                                 navigator.clipboard.writeText(name);
-                                 this.nameCopied = true;
-                                 window.notifyInfo && window.notifyInfo('Nome copiado: ' + name, 2500);
-                                 setTimeout(() => this.nameCopied = false, 1800);
-                             } catch (e) {}
+                             window.fmCopyText(name);
+                             this.nameCopied = true;
+                             window.notifyInfo && window.notifyInfo('Nome copiado — cole (Ctrl+V) para buscar a imagem', 3000);
+                             setTimeout(() => this.nameCopied = false, 1800);
                              ref.click();
                          }
                      }"
@@ -503,11 +501,81 @@
             @endif
         @endif
     </div>
+
+    <!-- ───────────────── BOTÃO FLUTUANTE: SALVAR TODOS ───────────────── -->
+    @if(count($productsData) > 0)
+    <button type="button"
+            @click="showSaveAllModal = true"
+            wire:loading.attr="disabled"
+            wire:target="saveAll"
+            class="bulk-fab-save-all"
+            title="Salvar todos os produtos desta página">
+        <span wire:loading.remove wire:target="saveAll" class="bulk-fab-content">
+            <i class="bi bi-cloud-arrow-up-fill"></i>
+            <span class="bulk-fab-label">Salvar Todos</span>
+        </span>
+        <span wire:loading wire:target="saveAll" class="bulk-fab-content">
+            <span class="bulk-btn-spinner"></span>
+            <span class="bulk-fab-label">Salvando...</span>
+        </span>
+    </button>
+    @endif
+
+    <!-- ───────────────── MODAL MODERNO: CONFIRMAR SALVAR TODOS ───────────────── -->
+    <template x-teleport="body">
+        <div x-show="showSaveAllModal"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="bulk-modal-overlay"
+             @click.self="showSaveAllModal = false"
+             style="display: none;">
+            <div class="bulk-modal-card"
+                 x-show="showSaveAllModal"
+                 x-transition:enter="transition ease-out duration-250"
+                 x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95">
+
+                <div class="bulk-modal-icon">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>
+                </div>
+
+                <h3 class="bulk-modal-title">Salvar todos os produtos?</h3>
+                <p class="bulk-modal-text">
+                    Todos os <strong>{{ count($productsData) }}</strong> produtos desta página
+                    serão salvos de uma vez.<br>
+                    <span class="bulk-modal-note">
+                        <i class="bi bi-info-circle"></i>
+                        As <strong>fotos novas</strong> continuam sendo salvas pelo botão de cada card.
+                    </span>
+                </p>
+
+                <div class="bulk-modal-actions">
+                    <button type="button" @click="showSaveAllModal = false" class="bulk-modal-btn-cancel">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <button type="button"
+                            @click="showSaveAllModal = false; $wire.call('saveAll')"
+                            class="bulk-modal-btn-confirm">
+                        <i class="bi bi-check-lg"></i> Salvar Todos
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 <script>
 function bulkEditPage() {
     return {
+        showSaveAllModal: false,
+
         init() {
             this.$wire.on('scroll-to-top', () => {
                 const el = document.getElementById('bulk-grid-top');
@@ -518,4 +586,30 @@ function bulkEditPage() {
         }
     };
 }
+
+// Helper de cópia compatível com HTTP (sem navigator.clipboard) e HTTPS
+window.fmCopyText = function(text) {
+    try {
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(text);
+            return true;
+        }
+    } catch (e) {}
+    // Fallback universal (funciona em http://)
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        return true;
+    } catch (e) {
+        return false;
+    }
+};
 </script>
