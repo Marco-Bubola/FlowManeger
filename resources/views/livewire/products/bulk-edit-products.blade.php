@@ -11,7 +11,7 @@
     <x-products-header
         title="Edição em Massa"
         description="Edite seus produtos em cards interativos"
-        :total-products="count($productsData)"
+        :total-products="$totalProducts"
         :total-categories="$categories->count()"
         :show-quick-actions="false">
 
@@ -92,12 +92,24 @@
                     </div>
 
                     <!-- Contagem -->
-                    <span class="text-xs text-slate-500 dark:text-slate-400 ml-1">
-                        {{ count($productsData) }} produto{{ count($productsData) !== 1 ? 's' : '' }}
+                    <span class="bulk-count-label">
+                        <i class="bi bi-boxes"></i>
+                        <strong>{{ number_format($totalProducts, 0, ',', '.') }}</strong> produto{{ $totalProducts !== 1 ? 's' : '' }}
+                        <span class="bulk-count-page">· Página {{ $currentPage }}/{{ $totalPages }}</span>
                     </span>
                 </div>
 
                 <div class="prod-header-row-2-right">
+                    <!-- Per page selector -->
+                    <div class="bulk-perpage-wrap">
+                        <label for="perPage" class="bulk-perpage-label"><i class="bi bi-grid"></i> Por página:</label>
+                        <select wire:model.live="perPage" id="perPage" class="bulk-perpage-select">
+                            <option value="24">24</option>
+                            <option value="48">48</option>
+                            <option value="60">60</option>
+                            <option value="120">120</option>
+                        </select>
+                    </div>
                     <button type="button" wire:click="loadProducts"
                         class="sale-action-btn" title="Recarregar">
                         <i class="bi bi-arrow-clockwise"></i>
@@ -109,7 +121,17 @@
     </x-products-header>
 
     <!-- ───────────────── GRID DE CARDS ───────────────── -->
-    <div class="bulk-grid-wrap mt-4">
+    <div class="bulk-grid-wrap mt-4" id="bulk-grid-top">
+
+        <!-- Overlay de loading durante mudança de página -->
+        <div wire:loading.delay wire:target="goToPage,nextPage,previousPage,perPage,search,filterStatus,sortBy,loadProducts"
+             class="bulk-page-loading-overlay">
+            <div class="bulk-page-loading-content">
+                <div class="bulk-page-loading-spinner"></div>
+                <span>Carregando produtos...</span>
+            </div>
+        </div>
+
         @if(count($productsData) === 0)
             <div class="bulk-empty-state">
                 <div class="bulk-empty-icon">
@@ -138,12 +160,26 @@
                 @endphp
 
                 <div class="bulk-card product-card-modern {{ $isSaved ? 'bulk-card--saved' : '' }}"
+                     wire:key="bulk-card-{{ $product['id'] }}-{{ $currentPage }}"
                      x-data="{
                          dropdownOpen: false,
                          tempImage: null,
+                         saving: false,
                          get hasTempImage() { return this.tempImage !== null; }
                      }"
-                     :class="{ 'dropdown-open': dropdownOpen }">
+                     :class="{ 'dropdown-open': dropdownOpen, 'bulk-card--saving': saving }">
+
+                    <!-- ── Overlay de loading individual ── -->
+                    <div class="bulk-card-loading-overlay" x-show="saving" x-transition.opacity>
+                        <div class="bulk-card-loading-content">
+                            <div class="bulk-card-loading-spinner">
+                                <div class="bulk-spinner-ring"></div>
+                                <div class="bulk-spinner-ring"></div>
+                                <div class="bulk-spinner-ring"></div>
+                            </div>
+                            <span class="bulk-card-loading-text">Salvando...</span>
+                        </div>
+                    </div>
 
                     <!-- ── Botões de ação (absolutos dentro do card, overlay na imagem) ── -->
                     <div class="btn-action-group">
@@ -186,8 +222,8 @@
                             </div>
 
                             <div x-show="hasTempImage" x-transition
-                                 class="absolute top-1.5 left-1.5 bg-amber-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full shadow-md z-10">
-                                Nova foto
+                                 class="bulk-new-photo-badge">
+                                <i class="bi bi-camera-fill"></i> Nova foto
                             </div>
                         </div>
 
@@ -198,7 +234,7 @@
                         <div class="badge-product-code editable-badge" title="Código">
                             <input type="text"
                                    wire:model.lazy="productsData.{{ $index }}.product_code"
-                                   class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded text-[11px]"
+                                   class="bulk-badge-input"
                                    placeholder="Código" maxlength="15">
                         </div>
 
@@ -207,7 +243,7 @@
                             <input type="number"
                                    wire:model.lazy="productsData.{{ $index }}.stock_quantity"
                                    min="0"
-                                   class="bg-transparent border-none text-inherit font-inherit w-full text-center focus:outline-none focus:ring-1 focus:ring-white/40 focus:bg-white/10 rounded text-[11px]"
+                                   class="bulk-badge-input"
                                    placeholder="0">
                         </div>
 
@@ -259,12 +295,12 @@
                         }">
                             <button type="button" x-ref="dt"
                                     @click.stop="open ? closeDropdown() : openDropdown()"
-                                    class="bulk-cat-wrap-btn w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg focus:outline-none transition-all text-xs">
-                                <span class="flex items-center gap-1.5 overflow-hidden min-w-0">
-                                    <i :class="selectedCategory.icon" class="text-purple-500 flex-shrink-0 text-xs"></i>
-                                    <span x-text="selectedCategory.name" class="truncate text-xs"></span>
+                                    class="bulk-cat-wrap-btn">
+                                <span class="bulk-cat-selected">
+                                    <i :class="selectedCategory.icon" class="bulk-cat-selected-icon"></i>
+                                    <span x-text="selectedCategory.name" class="bulk-cat-selected-name"></span>
                                 </span>
-                                <i class="bi bi-chevron-down text-slate-400 text-[10px] transition-transform flex-shrink-0" :class="{ 'rotate-180': open }"></i>
+                                <i class="bi bi-chevron-down bulk-cat-chevron" :class="{ 'rotate-180': open }"></i>
                             </button>
                             <template x-teleport="body">
                                 <div x-show="open"
@@ -273,20 +309,20 @@
                                      x-transition:enter-end="opacity-100 scale-100"
                                      @click.away="closeDropdown()"
                                      :style="dropdownIsAbove ? `position:fixed;z-index:2147483647;width:${dropdownWidth}px;bottom:${dropdownBottom}px;left:${dropdownLeft}px` : `position:fixed;z-index:2147483647;width:${dropdownWidth}px;top:${dropdownTop}px;left:${dropdownLeft}px`"
-                                     class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-2xl max-h-60 overflow-hidden">
-                                    <div class="p-2 border-b border-slate-200 dark:border-slate-700">
+                                     class="bulk-cat-dropdown-panel">
+                                    <div class="bulk-cat-search-wrap">
                                         <input type="text" x-model="search" @click.stop placeholder="Pesquisar..."
-                                               class="w-full px-2 py-1 text-xs rounded border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-purple-400 focus:outline-none">
+                                               class="bulk-cat-search-input">
                                     </div>
-                                    <div class="overflow-y-auto max-h-44">
+                                    <div class="bulk-cat-options">
                                         <template x-for="cat in filteredCategories" :key="cat.id">
                                             <button type="button" @click="selectCategory(cat)"
-                                                    class="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors border-b border-slate-100 dark:border-slate-700 last:border-b-0">
-                                                <i :class="cat.icon" class="text-purple-500 text-xs"></i>
-                                                <span class="text-slate-700 dark:text-slate-200 text-xs" x-text="cat.name"></span>
+                                                    class="bulk-cat-option">
+                                                <i :class="cat.icon" class="bulk-cat-option-icon"></i>
+                                                <span x-text="cat.name" class="bulk-cat-option-name"></span>
                                             </button>
                                         </template>
-                                        <div x-show="filteredCategories.length === 0" class="px-3 py-2 text-xs text-slate-500 text-center">Nenhuma encontrada</div>
+                                        <div x-show="filteredCategories.length === 0" class="bulk-cat-empty">Nenhuma encontrada</div>
                                     </div>
                                 </div>
                             </template>
@@ -325,28 +361,103 @@
 
                         <!-- Botão Salvar -->
                         <button type="button"
-                                wire:loading.attr="disabled"
-                                wire:target="saveProductWithImage({{ $index }})"
+                                :disabled="saving"
                                 @click="
+                                    saving = true;
                                     const img = tempImage;
-                                    $wire.call('saveProductWithImage', {{ $index }}, img || null).then(() => { tempImage = null; });
+                                    $wire.call('saveProductWithImage', {{ $index }}, img || null).then(() => {
+                                        tempImage = null;
+                                        saving = false;
+                                    }).catch(() => { saving = false; });
                                 "
-                                class="bulk-save-btn {{ $isSaved ? 'bulk-save-btn--saved' : '' }}">
-                            <span wire:loading.remove wire:target="saveProductWithImage({{ $index }})" class="flex items-center gap-1.5">
+                                class="bulk-save-btn {{ $isSaved ? 'bulk-save-btn--saved' : '' }}"
+                                :class="{ 'bulk-save-btn--loading': saving }">
+                            <span x-show="!saving" class="bulk-save-btn-content">
                                 @if($isSaved)
                                     <i class="bi bi-check-circle-fill"></i><span>Salvo!</span>
                                 @else
                                     <i class="bi bi-floppy-fill"></i><span>Salvar</span>
                                 @endif
                             </span>
-                            <span wire:loading wire:target="saveProductWithImage({{ $index }})" class="flex items-center gap-1.5">
-                                <i class="bi bi-arrow-clockwise animate-spin"></i><span>Salvando...</span>
+                            <span x-show="saving" class="bulk-save-btn-content">
+                                <span class="bulk-btn-spinner"></span>
+                                <span>Salvando...</span>
                             </span>
                         </button>
                     </div>
                 </div>
                 @endforeach
             </div>
+
+            <!-- ───────────────── PAGINAÇÃO ───────────────── -->
+            @if($totalPages > 1)
+            <nav class="bulk-pagination" aria-label="Paginação">
+                <div class="bulk-pagination-info">
+                    <i class="bi bi-collection"></i>
+                    Mostrando
+                    <strong>{{ ($currentPage - 1) * $perPage + 1 }}</strong>
+                    -
+                    <strong>{{ min($currentPage * $perPage, $totalProducts) }}</strong>
+                    de
+                    <strong>{{ number_format($totalProducts, 0, ',', '.') }}</strong>
+                </div>
+
+                <div class="bulk-pagination-controls">
+                    <!-- Primeira página -->
+                    <button type="button"
+                            wire:click="goToPage(1)"
+                            @disabled($currentPage === 1)
+                            class="bulk-page-btn bulk-page-btn-arrow"
+                            title="Primeira página">
+                        <i class="bi bi-chevron-double-left"></i>
+                    </button>
+
+                    <!-- Anterior -->
+                    <button type="button"
+                            wire:click="previousPage"
+                            @disabled($currentPage === 1)
+                            class="bulk-page-btn bulk-page-btn-arrow"
+                            title="Anterior">
+                        <i class="bi bi-chevron-left"></i>
+                        <span class="hidden sm:inline">Anterior</span>
+                    </button>
+
+                    <!-- Números de página -->
+                    <div class="bulk-page-numbers">
+                        @foreach($pagesArray as $p)
+                            @if($p === '...')
+                                <span class="bulk-page-dots">...</span>
+                            @else
+                                <button type="button"
+                                        wire:click="goToPage({{ $p }})"
+                                        class="bulk-page-btn bulk-page-btn-num {{ $p == $currentPage ? 'bulk-page-btn--active' : '' }}">
+                                    {{ $p }}
+                                </button>
+                            @endif
+                        @endforeach
+                    </div>
+
+                    <!-- Próxima -->
+                    <button type="button"
+                            wire:click="nextPage"
+                            @disabled($currentPage === $totalPages)
+                            class="bulk-page-btn bulk-page-btn-arrow"
+                            title="Próxima">
+                        <span class="hidden sm:inline">Próxima</span>
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+
+                    <!-- Última página -->
+                    <button type="button"
+                            wire:click="goToPage({{ $totalPages }})"
+                            @disabled($currentPage === $totalPages)
+                            class="bulk-page-btn bulk-page-btn-arrow"
+                            title="Última página">
+                        <i class="bi bi-chevron-double-right"></i>
+                    </button>
+                </div>
+            </nav>
+            @endif
         @endif
     </div>
 </div>
@@ -354,7 +465,14 @@
 <script>
 function bulkEditPage() {
     return {
-        init() {}
+        init() {
+            this.$wire.on('scroll-to-top', () => {
+                const el = document.getElementById('bulk-grid-top');
+                if (el) {
+                    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        }
     };
 }
 </script>
