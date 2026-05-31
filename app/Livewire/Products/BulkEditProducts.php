@@ -78,6 +78,9 @@ class BulkEditProducts extends Component
         ])->values()->toArray();
 
         $this->savedStatus = [];
+
+        // Avisa o cliente para limpar o "carrinho" de editados (nova listagem)
+        $this->dispatch('bulk-reloaded');
     }
 
     public function updatedSearch(): void       { $this->currentPage = 1; $this->loadProducts(); }
@@ -140,14 +143,14 @@ class BulkEditProducts extends Component
         return $rangeWithDots;
     }
 
-    public function saveProductWithImage(int $index, ?string $base64 = null): void
+    public function saveProductWithImage(int $index, ?string $base64 = null, bool $silent = false): void
     {
         $data = $this->productsData[$index] ?? null;
         if (!$data) return;
 
         $product = Product::find($data['id']);
         if (!$product || $product->user_id !== Auth::id()) {
-            $this->notifyError('Produto não encontrado.');
+            if (!$silent) $this->notifyError('Produto não encontrado.');
             return;
         }
 
@@ -177,7 +180,7 @@ class BulkEditProducts extends Component
                 Storage::disk('public')->put('products/' . $filename, $imageData);
                 $imageName = $filename;
             } catch (\Exception $e) {
-                $this->notifyError('Erro ao salvar imagem: ' . $e->getMessage());
+                if (!$silent) $this->notifyError('Erro ao salvar imagem: ' . $e->getMessage());
                 return;
             }
         }
@@ -197,7 +200,7 @@ class BulkEditProducts extends Component
         $this->productsData[$index]['image_url'] = asset('storage/products/' . $imageName);
 
         $this->savedStatus[$index] = 'saved';
-        $this->notifySuccess('Produto "' . $data['name'] . '" salvo!');
+        if (!$silent) $this->notifySuccess('Produto "' . $data['name'] . '" salvo!');
     }
 
     public function saveProduct(int $index): void
