@@ -7,53 +7,49 @@ trait HasNotifications
     /**
      * Envia uma notificação de sucesso
      */
-    public function notifySuccess($message, $duration = 5000)
+    public function notifySuccess($message, $duration = 4000)
     {
-        // Remove session()->flash() para evitar duplicação de notificações
-        $this->dispatch('notify', [
-            'type' => 'success',
-            'message' => $message,
-            'duration' => $duration
-        ]);
+        $this->dispatch('notify',
+            type: 'success',
+            message: $message,
+            duration: $duration
+        );
     }
 
     /**
      * Envia uma notificação de erro
      */
-    public function notifyError($message, $duration = 7000)
+    public function notifyError($message, $duration = 6000)
     {
-        // Remove session()->flash() para evitar duplicação de notificações
-        $this->dispatch('notify', [
-            'type' => 'error',
-            'message' => $message,
-            'duration' => $duration
-        ]);
+        $this->dispatch('notify',
+            type: 'error',
+            message: $message,
+            duration: $duration
+        );
     }
 
     /**
      * Envia uma notificação de aviso
      */
-    public function notifyWarning($message, $duration = 6000)
+    public function notifyWarning($message, $duration = 5000)
     {
-        // Remove session()->flash() para evitar duplicação de notificações
-        $this->dispatch('notify', [
-            'type' => 'warning',
-            'message' => $message,
-            'duration' => $duration
-        ]);
+        $this->dispatch('notify',
+            type: 'warning',
+            message: $message,
+            duration: $duration
+        );
     }
 
     /**
      * Envia uma notificação informativa
      */
-    public function notifyInfo($message, $duration = 5000)
+    public function notifyInfo($message, $duration = 4000)
     {
-        // Remove session()->flash() para evitar duplicação de notificações
-        $this->dispatch('notify', [
-            'type' => 'info',
-            'message' => $message,
-            'duration' => $duration
-        ]);
+        $this->dispatch('notify',
+            type: 'info',
+            message: $message,
+            duration: $duration
+        );
     }
 
     /**
