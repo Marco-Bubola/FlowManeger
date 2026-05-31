@@ -229,6 +229,16 @@ function notificationManager(seed) {
         init() {
             // Semeia notificações de flash da sessão (uma única vez)
             (seed || []).forEach(f => this.addNotification(f));
+
+            // Canal Livewire (eventos dispatch dos componentes PHP).
+            // O dedupe por conteúdo impede duplicar com o @notify.window.
+            const hook = () => {
+                if (window.Livewire) {
+                    window.Livewire.on('notify', (payload) => this.addNotification(payload));
+                }
+            };
+            if (window.Livewire) hook();
+            else document.addEventListener('livewire:init', hook);
         },
 
         iconFor(type) {
