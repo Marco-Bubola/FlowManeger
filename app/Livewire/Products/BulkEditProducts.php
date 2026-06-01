@@ -20,7 +20,7 @@ class BulkEditProducts extends Component
     public array $savedStatus = [];
 
     public int $currentPage = 1;
-    public int $perPage = 60;
+    public int $perPage = 120;
     public int $totalProducts = 0;
     public int $totalPages = 1;
 
