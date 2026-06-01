@@ -105,10 +105,10 @@
                     <div class="bulk-perpage-wrap">
                         <label for="perPage" class="bulk-perpage-label"><i class="bi bi-grid"></i> Por página:</label>
                         <select wire:model.live="perPage" id="perPage" class="bulk-perpage-select">
-                            <option value="24">24</option>
-                            <option value="48">48</option>
                             <option value="60">60</option>
                             <option value="120">120</option>
+                            <option value="180">180</option>
+                            <option value="240">240</option>
                         </select>
                     </div>
 
@@ -182,6 +182,37 @@
                 <p>{{ $search ? 'Tente outro termo de busca.' : 'Cadastre produtos para editá-los aqui.' }}</p>
             </div>
         @else
+            <!-- ── Paginação do topo (compacta) ── -->
+            @if($totalPages > 1)
+            <nav class="bulk-pagination bulk-pagination--top" aria-label="Paginação (topo)">
+                <div class="bulk-pagination-info">
+                    <i class="bi bi-collection"></i>
+                    <strong>{{ ($currentPage - 1) * $perPage + 1 }}</strong>–<strong>{{ min($currentPage * $perPage, $totalProducts) }}</strong>
+                    de <strong>{{ number_format($totalProducts, 0, ',', '.') }}</strong>
+                </div>
+                <div class="bulk-pagination-controls">
+                    <button type="button" wire:click="previousPage" @disabled($currentPage === 1)
+                            class="bulk-page-btn bulk-page-btn-arrow" title="Anterior">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <div class="bulk-page-numbers">
+                        @foreach($pagesArray as $p)
+                            @if($p === '...')
+                                <span class="bulk-page-dots">...</span>
+                            @else
+                                <button type="button" wire:click="goToPage({{ $p }})"
+                                        class="bulk-page-btn bulk-page-btn-num {{ $p == $currentPage ? 'bulk-page-btn--active' : '' }}">{{ $p }}</button>
+                            @endif
+                        @endforeach
+                    </div>
+                    <button type="button" wire:click="nextPage" @disabled($currentPage === $totalPages)
+                            class="bulk-page-btn bulk-page-btn-arrow" title="Próxima">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            </nav>
+            @endif
+
             <div class="bulk-products-grid">
                 @foreach($productsData as $index => $product)
                 @php
@@ -205,7 +236,6 @@
                          copyNameAndPick(name, ref) {
                              window.fmCopyText(name);
                              this.nameCopied = true;
-                             window.notifyInfo && window.notifyInfo('Nome copiado — cole (Ctrl+V) para buscar a imagem', 3000);
                              setTimeout(() => this.nameCopied = false, 1800);
                              ref.click();
                          }
@@ -413,32 +443,23 @@
                                    maxlength="30">
                         </div>
 
-                        <!-- Botão Salvar -->
-                        <button type="button"
-                                :disabled="saving"
-                                @click="
-                                    saving = true;
-                                    const img = tempImage;
-                                    $wire.call('saveProductWithImage', {{ $index }}, img || null).then(() => {
-                                        tempImage = null;
-                                        saving = false;
-                                        $store.bulkCart.unmark(idx);
-                                    }).catch(() => { saving = false; });
-                                "
-                                class="bulk-save-btn {{ $isSaved ? 'bulk-save-btn--saved' : '' }}"
-                                :class="{ 'bulk-save-btn--loading': saving }">
-                            <span x-show="!saving" class="bulk-save-btn-content">
-                                @if($isSaved)
-                                    <i class="bi bi-check-circle-fill"></i><span>Salvo!</span>
-                                @else
-                                    <i class="bi bi-floppy-fill"></i><span>Salvar</span>
-                                @endif
-                            </span>
-                            <span x-show="saving" class="bulk-save-btn-content">
-                                <span class="bulk-btn-spinner"></span>
-                                <span>Salvando...</span>
-                            </span>
-                        </button>
+                        <!-- Status de edição (sem botão — salva tudo via "Salvar Editados") -->
+                        <div class="bulk-card-status" :class="{ 'is-dirty': isDirty }">
+                            <template x-if="isDirty">
+                                <span class="bulk-card-status-dirty">
+                                    <i class="bi bi-pencil-fill"></i> Editado — pendente
+                                </span>
+                            </template>
+                            <template x-if="!isDirty">
+                                <span class="bulk-card-status-idle">
+                                    @if($isSaved)
+                                        <i class="bi bi-check-circle-fill"></i> Salvo
+                                    @else
+                                        <i class="bi bi-pencil"></i> Toque para editar
+                                    @endif
+                                </span>
+                            </template>
+                        </div>
                     </div>
                 </div>
                 @endforeach
