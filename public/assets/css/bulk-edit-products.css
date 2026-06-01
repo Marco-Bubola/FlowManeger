@@ -648,6 +648,22 @@
 .bulk-empty-state p { font-size: 0.92rem; color: rgba(74, 78, 143, 0.75); }
 .dark .bulk-empty-state p { color: var(--mg-lavender); }
 
+/* ──────────────────── PAGINAÇÃO TOPO (compacta) ──────────────────── */
+.bulk-pagination--top {
+    margin-top: 0 !important;
+    margin-bottom: 1.1rem;
+    padding: 0.7rem 1rem !important;
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap;
+    gap: 0.6rem !important;
+}
+.bulk-pagination--top .bulk-page-btn { min-width: 34px; height: 34px; }
+@media (max-width: 480px) {
+    .bulk-pagination--top { justify-content: center !important; }
+    .bulk-pagination--top .bulk-pagination-info { width: 100%; justify-content: center; }
+}
+
 /* ──────────────────── PAGINAÇÃO ──────────────────── */
 .bulk-pagination {
     margin-top: 2.5rem;
@@ -762,6 +778,27 @@
 .prod-action-bulk-edit { color: var(--mg-cosmic-blue); border-color: rgba(164, 144, 194, 0.3); }
 .prod-action-bulk-edit:hover { background: rgba(164, 144, 194, 0.12); border-color: var(--mg-cosmic-blue); }
 .dark .prod-action-bulk-edit { color: var(--mg-lavender); }
+
+/* ══════════════ Status do card (substitui botão salvar individual) ══════════════ */
+.bulk-card-status {
+    display: flex; align-items: center; justify-content: center;
+    padding: 0.4rem 0.5rem;
+    border-radius: 0.6rem;
+    font-size: 0.78rem; font-weight: 700;
+    border: 1px dashed rgba(164, 144, 194, 0.4);
+    background: rgba(164, 144, 194, 0.08);
+}
+.bulk-card-status.is-dirty {
+    border-style: solid;
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(251, 191, 36, 0.12);
+}
+.bulk-card-status-dirty { display: inline-flex; align-items: center; gap: 0.35rem; color: #b45309; }
+.dark .bulk-card-status-dirty { color: #fcd34d; }
+.bulk-card-status-idle { display: inline-flex; align-items: center; gap: 0.35rem; color: #8b80a8; }
+.dark .bulk-card-status-idle { color: #a490c2; }
+.dark .bulk-card-status { border-color: rgba(164, 144, 194, 0.35); background: rgba(164, 144, 194, 0.1); }
+.dark .bulk-card-status.is-dirty { border-color: rgba(245, 158, 11, 0.55); background: rgba(251, 191, 36, 0.15); }
 
 /* ══════════════ Carrinho de editados — badge + destaque ══════════════ */
 .bulk-card--dirty {
