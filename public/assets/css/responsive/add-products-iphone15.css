@@ -1,25 +1,46 @@
-/* Add Products - iPhone 15 (380–430px, h >= 780px) */
+/* Add Products - iPhone 15 (380–430px, h >= 780px) — 3 colunas compactas */
 @media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
     .add-products-page {
-        padding-bottom: calc(90px + env(safe-area-inset-bottom));
+        padding-bottom: calc(74px + env(safe-area-inset-bottom));
     }
 
-    .add-products-page .products-step-grid,
-    .add-products-pane .grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-        gap: 0.5rem !important;
+    /* Grid: 3 colunas */
+    .add-products-page .ap-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.4rem !important;
     }
 
+    /* Cards bem compactos para caber 3 por linha */
     .add-products-page .product-card-modern .product-img-area {
-        min-height: 148px !important;
-        height: 148px !important;
+        min-height: 92px !important;
+        height: 92px !important;
     }
-
     .add-products-page .product-card-modern .card-body {
-        padding: 2.45em 0.46em 2em 0.46em !important;
+        padding: 1.25em 0.34em 1.2em 0.34em !important;
     }
-
     .add-products-page .product-card-modern .product-title {
-        font-size: 0.77em !important;
+        font-size: 0.64em !important;
+        line-height: 1.15 !important;
+        min-height: 2.05em !important;
+        letter-spacing: 0.02em !important;
+    }
+    .add-products-page .product-card-modern .badge-product-code,
+    .add-products-page .product-card-modern .badge-quantity {
+        font-size: 0.52em !important;
+        padding: 0.1em 0.3em !important;
+    }
+    .add-products-page .product-card-modern .badge-price,
+    .add-products-page .product-card-modern .badge-price-sale {
+        font-size: 0.6em !important;
+        padding: 0.14em 0.55em !important;
+        min-width: 0 !important;
+    }
+    .add-products-page .product-card-modern .category-icon-wrapper {
+        transform: scale(0.8);
+    }
+    .add-products-page .selected-qty-badge {
+        min-width: 18px !important;
+        height: 18px !important;
+        font-size: 0.6rem !important;
     }
 }
