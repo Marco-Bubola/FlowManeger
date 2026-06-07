@@ -232,7 +232,7 @@
         {{-- Top: logo --}}
         <div style="position:relative;z-index:2;">
             <div class="auth-brand-logo-wrap">
-                <img src="/apple-touch-icon.png" alt="FlowManager" class="auth-brand-logo">
+                <img src="/logo-128.png" alt="FlowManager" class="auth-brand-logo">
                 <span class="auth-brand-name">{{ config('app.name', 'FlowManager') }}</span>
             </div>
         </div>
@@ -277,7 +277,7 @@
 
         {{-- Mobile Logo --}}
         <a href="{{ route('home') }}" class="auth-mobile-logo" wire:navigate>
-            <img src="/apple-touch-icon.png" alt="{{ config('app.name') }}" class="auth-mobile-logo img">
+            <img src="/logo-128.png" alt="{{ config('app.name') }}" class="auth-mobile-logo img">
             <span class="auth-mobile-logo-name">{{ config('app.name', 'FlowManager') }}</span>
         </a>
 
