@@ -36,90 +36,125 @@
     }
 }
 
-/* ─── Compact Sidebar Mode (somente ícones) ─── */
-body.sidebar-compact #modernSidebar { width: 88px !important; }
-body.sidebar-compact #mainContent   { margin-left: 88px !important; }
+/* ═══════════════════════════════════════════════════════════
+   COMPACT SIDEBAR MODE — Somente ícones, proporcional
+   ════════════════════════════════════════════════════════════ */
+body.sidebar-compact #modernSidebar { width: 72px !important; }
+body.sidebar-compact #mainContent   { margin-left: 72px !important; }
 body.sidebar-compact .sidebar-text  { display: none !important; }
 
-body.sidebar-compact .nav-item {
-    justify-content: center;
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-}
-body.sidebar-compact .nav-icon-wrapper { margin: 0 auto; }
+/* Esconde notificações/livewire components que ocupam espaço */
+body.sidebar-compact #modernSidebar [wire\:id] { display: none !important; }
+
 body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
 
-/* Section header cards (Vendas, Financeiro, ML, Shopee, Conta) — modo colapsado */
-body.sidebar-compact .sidebar-section-dashboard,
-body.sidebar-compact .sidebar-section-vendas,
-body.sidebar-compact .sidebar-section-financeiro,
-body.sidebar-compact .sidebar-section-mercadolivre,
-body.sidebar-compact .sidebar-section-shopee,
-body.sidebar-compact .sidebar-section-account {
-    padding: 0;
-}
-body.sidebar-compact .sidebar-section-vendas > button,
-body.sidebar-compact .sidebar-section-financeiro > button,
-body.sidebar-compact .sidebar-section-mercadolivre > button,
-body.sidebar-compact .sidebar-section-shopee > button,
-body.sidebar-compact .sidebar-section-account > button {
+/* Brand: só o quadrado do logo centralizado */
+body.sidebar-compact .sidebar-brand { justify-content: center; gap: 0; }
+body.sidebar-compact .sidebar-brand-mark { margin: 0; }
+
+/* Header — esconde o toggle de tema e fecha tudo num só ícone centralizado */
+body.sidebar-compact #modernSidebar .border-b > .flex.items-center.justify-between {
     justify-content: center !important;
-    padding: 0.55rem 0.4rem !important;
-    border-radius: 1rem !important;
 }
-body.sidebar-compact .sidebar-section-vendas > button > div:first-child,
-body.sidebar-compact .sidebar-section-financeiro > button > div:first-child,
-body.sidebar-compact .sidebar-section-mercadolivre > button > div:first-child,
-body.sidebar-compact .sidebar-section-shopee > button > div:first-child,
-body.sidebar-compact .sidebar-section-account > button > div:first-child {
-    gap: 0 !important;
+body.sidebar-compact #modernSidebar .border-b .flex.items-center.gap-2 { gap: 0 !important; }
+body.sidebar-compact #modernSidebar > div > div > div > div:first-child {
+    padding: 0.75rem 0.5rem !important;
 }
-/* Esconde subtítulo, badge, chevron na versão colapsada */
-body.sidebar-compact .sidebar-section-vendas > button > .sidebar-text,
-body.sidebar-compact .sidebar-section-financeiro > button > .sidebar-text,
-body.sidebar-compact .sidebar-section-mercadolivre > button > .sidebar-text,
-body.sidebar-compact .sidebar-section-shopee > button > .sidebar-text,
-body.sidebar-compact .sidebar-section-account > button > .sidebar-text {
+
+/* Section content (sub-itens, x-show) — escondido */
+body.sidebar-compact [x-show="open"],
+body.sidebar-compact [x-show="mlOpen"],
+body.sidebar-compact [x-show="shopeeOpen"],
+body.sidebar-compact .ml-4.border-l-2 {
     display: none !important;
 }
 
-/* Brand mark fica centralizado quando compacto */
-body.sidebar-compact .sidebar-brand { justify-content: center; }
-body.sidebar-compact .sidebar-brand-mark { margin: 0 auto; }
-
-/* Tooltips ao passar o mouse no modo compact */
-body.sidebar-compact #modernSidebar a[href],
-body.sidebar-compact #modernSidebar button[type="button"] {
-    position: relative;
+/* ─── Section headers no compact: vira só o gradient icon ─── */
+body.sidebar-compact .sidebar-section {
+    margin-bottom: 0.5rem !important;
 }
-body.sidebar-compact #modernSidebar a[href]:hover::after,
-body.sidebar-compact .sidebar-section-vendas > button:hover::after,
-body.sidebar-compact .sidebar-section-financeiro > button:hover::after,
-body.sidebar-compact .sidebar-section-mercadolivre > button:hover::after,
-body.sidebar-compact .sidebar-section-shopee > button:hover::after,
-body.sidebar-compact .sidebar-section-account > button:hover::after {
+body.sidebar-compact .sidebar-section-header,
+body.sidebar-compact .sidebar-portal-link {
+    border: none !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0.75rem !important;
+    justify-content: center !important;
+    width: 100% !important;
+    display: flex !important;
+}
+body.sidebar-compact .sidebar-section-header > div:first-child,
+body.sidebar-compact .sidebar-portal-link > div:first-child {
+    gap: 0 !important;
+    width: auto !important;
+}
+body.sidebar-compact .sidebar-section-icon {
+    height: 2.5rem !important;
+    width: 2.5rem !important;
+    border-radius: 0.85rem !important;
+    transition: transform .18s ease, box-shadow .18s ease !important;
+}
+body.sidebar-compact .sidebar-section-icon i { font-size: 1.05rem !important; }
+body.sidebar-compact .sidebar-section-header:hover .sidebar-section-icon,
+body.sidebar-compact .sidebar-portal-link:hover .sidebar-section-icon {
+    transform: scale(1.08);
+    box-shadow: 0 8px 20px -6px currentColor;
+}
+
+/* ─── Nav items soltos (Dashboard Geral) — só o ícone centralizado ─── */
+body.sidebar-compact #modernSidebar .sidebar-section-dashboard nav > a {
+    justify-content: center !important;
+    padding: 0.45rem !important;
+    background: transparent !important;
+    border-radius: 0.75rem !important;
+}
+body.sidebar-compact #modernSidebar .sidebar-section-dashboard nav > a > div:first-child {
+    margin: 0 auto !important;
+}
+/* Esconde label/indicador, mantém só o quadrado do ícone */
+body.sidebar-compact #modernSidebar .sidebar-section-dashboard nav > a .absolute,
+body.sidebar-compact #modernSidebar .sidebar-section-dashboard nav .ml-4 {
+    display: none !important;
+}
+
+/* ─── Tooltip ao hover (todos os botões que têm aria-label) ─── */
+body.sidebar-compact #modernSidebar [aria-label]:hover::after {
     content: attr(aria-label);
     position: absolute;
-    left: calc(100% + 0.5rem);
+    left: calc(100% + 0.55rem);
     top: 50%;
     transform: translateY(-50%);
     background: rgb(15 23 42);
     color: white;
-    padding: 0.35rem 0.65rem;
-    font-size: 0.7rem;
-    font-weight: 600;
-    border-radius: 0.5rem;
+    padding: 0.4rem 0.7rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border-radius: 0.55rem;
     white-space: nowrap;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-    z-index: 100;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35), 0 0 0 1px rgba(139,92,246,0.3);
+    z-index: 200;
     pointer-events: none;
+    opacity: 0;
+    animation: tooltipFadeIn .18s ease forwards;
+}
+@keyframes tooltipFadeIn {
+    from { opacity: 0; transform: translateY(-50%) translateX(-4px); }
+    to   { opacity: 1; transform: translateY(-50%) translateX(0); }
 }
 
-/* Esconde acordeões expandidos no compact */
-body.sidebar-compact [x-show="open"] { display: none !important; }
-body.sidebar-compact [x-show="mlOpen"],
-body.sidebar-compact [x-show="shopeeOpen"] { display: none !important; }
-body.sidebar-compact .ml-4.border-l-2 { display: none !important; }
+/* ─── Footer/Perfil no modo compact ─── */
+body.sidebar-compact #modernSidebar .border-t > * { padding: 0 !important; }
+body.sidebar-compact .sidebar-profile-card {
+    padding: 0.35rem !important;
+    border-radius: 1rem !important;
+}
+body.sidebar-compact .sidebar-profile-card > div { justify-content: center !important; gap: 0 !important; }
+body.sidebar-compact .sidebar-profile-card .h-12.w-12 {
+    height: 2.5rem !important;
+    width: 2.5rem !important;
+}
+body.sidebar-compact .sidebar-profile-card > div > div:nth-child(3) { display: none !important; }
 
 /* ─── iPad portrait (768-1024px): TabBar SEMPRE visível, sidebar SEMPRE drawer ─── */
 /* Sem escolha neste range: tabbar é a nav principal, sidebar é drawer de overlay */
