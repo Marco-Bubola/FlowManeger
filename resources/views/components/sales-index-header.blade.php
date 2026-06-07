@@ -32,7 +32,7 @@
     <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
     <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
 
-    <div class="relative px-5 py-4 sales-index-header-inner">
+    <div class="relative px-4 py-3 sales-index-header-inner">
         <!-- LINHA 1: Título + Badges + Busca + Nova Venda -->
         <div class="sales-index-header-row-1">
             <!-- Ícone + Título -->
