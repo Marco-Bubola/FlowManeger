@@ -39,6 +39,8 @@ class EditKit extends Component
     // Propriedades para filtros e busca
     public string $searchTerm = '';
     public string $selectedCategory = '';
+    public string $sortBy = 'name_asc';
+    public string $stockFilter = 'all';
 
     // Propriedades para steps
     public int $currentStep = 1;
@@ -499,7 +501,32 @@ class EditKit extends Component
             });
         }
 
+        // Filtro de estoque
+        if ($this->stockFilter === 'low') {
+            $query->where('stock_quantity', '<=', 5);
+        } elseif ($this->stockFilter === 'high') {
+            $query->where('stock_quantity', '>=', 20);
+        }
+
+        // Ordenação
+        match ($this->sortBy) {
+            'name_desc'  => $query->orderBy('name', 'desc'),
+            'price_asc'  => $query->orderBy('price_sale', 'asc'),
+            'price_desc' => $query->orderBy('price_sale', 'desc'),
+            'stock_desc' => $query->orderBy('stock_quantity', 'desc'),
+            'stock_asc'  => $query->orderBy('stock_quantity', 'asc'),
+            default      => $query->orderBy('name', 'asc'),
+        };
+
         return $query->get();
+    }
+
+    public function clearFilters(): void
+    {
+        $this->selectedCategory = '';
+        $this->searchTerm = '';
+        $this->sortBy = 'name_asc';
+        $this->stockFilter = 'all';
     }
 
     public function getCategoriesProperty()
