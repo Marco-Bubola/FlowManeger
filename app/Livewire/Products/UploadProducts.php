@@ -717,21 +717,45 @@ class UploadProducts extends Component
 
     private function separateProducts($text)
     {
-        $lines = explode("\n", $text);
+        $rawLines = explode("\n", $text);
+        $lines = [];
+        foreach ($rawLines as $l) {
+            $l = trim($l);
+            if ($l !== '') $lines[] = $l;
+        }
+
         $allProducts = [];
         $currentProduct = null;
         $productRegex = '/^(\d{2,5}\.\d{3})\s+(\d+)\s+(.*)/';
-        $valuesRegex = '/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+(Venda|Brinde)$/';
+        $valuesRegex = '/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+(Venda|Brinde|Doação|Bonificação|Troca)$/u';
 
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if (empty($line)) continue;
+        $finalizeValues = function (&$currentProduct, array $valueMatches, array $lines, int $i): int {
+            $currentProduct['values'] = array_slice($valueMatches, 1, 5);
+            $operation = end($valueMatches);
 
-            // Tenta casar o início de um produto
+            if ($operation === 'Doação') {
+                $next = $lines[$i + 1] ?? '';
+                $nextNext = $lines[$i + 2] ?? '';
+                if (stripos($next, 'FIDELIDADEVD') !== false) {
+                    $operation = 'Doação FIDELIDADEVD';
+                    $i++;
+                } elseif (stripos($nextNext, 'FIDELIDADEVD') !== false) {
+                    $operation = 'Doação FIDELIDADEVD';
+                    $i += 2;
+                }
+            }
+
+            $currentProduct['operation'] = $operation;
+            return $i;
+        };
+
+        $total = count($lines);
+        for ($i = 0; $i < $total; $i++) {
+            $line = $lines[$i];
+
             $isNewProductLine = preg_match($productRegex, $line, $matches);
 
             if ($isNewProductLine) {
-                // Se um produto estava sendo montado, salva ele (caso de linha órfã)
                 if ($currentProduct) {
                     $allProducts[] = $currentProduct;
                 }
@@ -745,27 +769,24 @@ class UploadProducts extends Component
                     'operation' => ''
                 ];
 
-                // VERIFICA SE A MESMA LINHA JÁ CONTÉM OS VALORES (PRODUTO DE LINHA ÚNICA)
                 if (preg_match($valuesRegex, $potentialName, $valueMatches)) {
-                    // Remove a parte dos valores do nome do produto
                     $currentProduct['name'] = trim(preg_replace($valuesRegex, '', $potentialName));
-                    $currentProduct['values'] = array_slice($valueMatches, 1, 5);
-                    $currentProduct['operation'] = end($valueMatches);
+                    $i = $finalizeValues($currentProduct, $valueMatches, $lines, $i);
 
                     $allProducts[] = $currentProduct;
-                    $currentProduct = null; // Reseta pois o produto está completo
+                    $currentProduct = null;
                 }
 
             } elseif ($currentProduct) {
-                // SE É CONTINUAÇÃO, VERIFICA SE É A LINHA DE VALORES
                 if (preg_match($valuesRegex, $line, $valueMatches)) {
-                    $currentProduct['values'] = array_slice($valueMatches, 1, 5);
-                    $currentProduct['operation'] = end($valueMatches);
+                    $i = $finalizeValues($currentProduct, $valueMatches, $lines, $i);
 
                     $allProducts[] = $currentProduct;
-                    $currentProduct = null; // Reseta
+                    $currentProduct = null;
                 } else {
-                    // SE NÃO, É CONTINUAÇÃO DO NOME
+                    if (stripos($line, 'FIDELIDADEVD') !== false) {
+                        continue;
+                    }
                     $currentProduct['name'] .= ' ' . $line;
                 }
             }
@@ -813,9 +834,13 @@ class UploadProducts extends Component
                 $products[] = [
                     'product_code' => $item['product_code'],
                     'name' => $item['name'],
-                    'price' => $item['price'],
-                    'price_sale' => $item['price_sale'],
+                    'price' => $item['price'] ?? 0,
+                    'price_sale' => $item['price_sale'] ?? 0,
+                    'price_resell' => $item['price_resell'] ?? 0,
+                    'price_to_pay' => $item['price_to_pay'] ?? 0,
+                    'profit' => $item['profit'] ?? 0,
                     'stock_quantity' => $item['stock_quantity'],
+                    'operation' => $item['operation'] ?? 'Venda',
                     'description' => '',
                     'status' => 'ativo',
                     'category_id' => 1,
