@@ -231,8 +231,8 @@
                          saving: false,
                          nameCopied: false,
                          get hasTempImage() { return this.tempImage !== null; },
-                         get isDirty() { return $store.bulkCart.has(this.idx); },
-                         markDirty(image) { $store.bulkCart.mark(this.idx, this.pid, image); },
+                         get isDirty() { return !!(this.$store.bulkCart && this.$store.bulkCart.has(this.idx)); },
+                         markDirty(image) { if (this.$store.bulkCart) this.$store.bulkCart.mark(this.idx, this.pid, image); },
                          copyNameAndPick(name, ref) {
                              window.fmCopyText(name);
                              this.nameCopied = true;
@@ -259,6 +259,13 @@
                     <div class="bulk-dirty-badge" x-show="isDirty" x-transition title="Editado — pendente de salvar">
                         <i class="bi bi-pencil-fill"></i>
                     </div>
+
+                    <!-- ── Animação "Salvo!" (dispara quando o card recebe a classe salva) ── -->
+                    @if($isSaved)
+                    <div class="bulk-saved-flash" aria-hidden="true">
+                        <div class="bulk-saved-flash-circle"><i class="bi bi-check-lg"></i></div>
+                    </div>
+                    @endif
 
                     <!-- ── Botões de ação (absolutos dentro do card, overlay na imagem) ── -->
                     <div class="btn-action-group">
@@ -443,23 +450,19 @@
                                    maxlength="30">
                         </div>
 
-                        <!-- Status de edição (sem botão — salva tudo via "Salvar Editados") -->
-                        <div class="bulk-card-status" :class="{ 'is-dirty': isDirty }">
-                            <template x-if="isDirty">
-                                <span class="bulk-card-status-dirty">
-                                    <i class="bi bi-pencil-fill"></i> Editado — pendente
-                                </span>
-                            </template>
-                            <template x-if="!isDirty">
-                                <span class="bulk-card-status-idle">
-                                    @if($isSaved)
-                                        <i class="bi bi-check-circle-fill"></i> Salvo
-                                    @else
-                                        <i class="bi bi-pencil"></i> Toque para editar
-                                    @endif
-                                </span>
-                            </template>
+                        <!-- Status de edição: só aparece quando há edição pendente -->
+                        <div class="bulk-card-status is-dirty" x-show="isDirty" x-transition style="display:none;">
+                            <span class="bulk-card-status-dirty">
+                                <i class="bi bi-pencil-fill"></i> Editado — pendente
+                            </span>
                         </div>
+                        @if($isSaved)
+                        <div class="bulk-card-status is-saved" x-show="!isDirty">
+                            <span class="bulk-card-status-saved">
+                                <i class="bi bi-check-circle-fill"></i> Salvo!
+                            </span>
+                        </div>
+                        @endif
                     </div>
                 </div>
                 @endforeach
@@ -609,9 +612,10 @@
 </div>
 
 <script>
-/* Store "carrinho" de editados — registrado uma vez */
-document.addEventListener('alpine:init', () => {
-    if (window.Alpine && Alpine.store('bulkCart')) return;
+/* Store "carrinho" de editados — registro robusto (load normal E wire:navigate) */
+function bulkRegisterCartStore() {
+    if (!window.Alpine) return;
+    if (Alpine.store('bulkCart')) return;
     Alpine.store('bulkCart', {
         items: {},
         mark(index, id, image) {
@@ -624,7 +628,9 @@ document.addEventListener('alpine:init', () => {
         has(index) { return Object.prototype.hasOwnProperty.call(this.items, index); },
         get count() { return Object.keys(this.items).length; }
     });
-});
+}
+if (window.Alpine) bulkRegisterCartStore();
+document.addEventListener('alpine:init', bulkRegisterCartStore);
 
 function bulkEditPage() {
     return {
