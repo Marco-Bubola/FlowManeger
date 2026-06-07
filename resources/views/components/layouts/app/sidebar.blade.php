@@ -46,11 +46,25 @@
                     <!-- Header Section -->
                     <div class="flex items-center justify-between gap-3 p-5 border-b border-slate-200/50 dark:border-slate-700/50">
                         <a href="{{ route('dashboard.index') }}" class="sidebar-brand flex items-center gap-3 transition-all duration-300 hover:scale-105" wire:navigate.hover>
-                            <span class="sidebar-brand-mark relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 text-white shadow-lg shadow-blue-500/30 ring-1 ring-white/30">
-                                <img src="{{ asset('logo-128.png') }}" alt="{{ config('app.name', 'FlowManager') }}"
-                                    class="h-9 w-9 object-contain drop-shadow"
-                                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
-                                <span class="absolute inset-0 hidden items-center justify-center text-sm font-black tracking-tight">FM</span>
+                            <span class="sidebar-brand-mark relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl shadow-lg shadow-blue-500/30 ring-1 ring-white/40">
+                                <svg viewBox="0 0 40 40" class="h-10 w-10" xmlns="http://www.w3.org/2000/svg" aria-label="FlowManager">
+                                    <defs>
+                                        <linearGradient id="fmLogoGrad" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#3b82f6"/>
+                                            <stop offset="50%" stop-color="#8b5cf6"/>
+                                            <stop offset="100%" stop-color="#ec4899"/>
+                                        </linearGradient>
+                                        <linearGradient id="fmLogoGlow" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35"/>
+                                            <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+                                        </linearGradient>
+                                    </defs>
+                                    <rect width="40" height="40" rx="10" fill="url(#fmLogoGrad)"/>
+                                    <rect width="40" height="20" rx="10" fill="url(#fmLogoGlow)"/>
+                                    {{-- Estilizada "F" + flow line --}}
+                                    <path d="M12 11 L28 11 L28 15 L17 15 L17 19 L25 19 L25 23 L17 23 L17 29 L12 29 Z" fill="white" opacity="0.96"/>
+                                    <circle cx="29.5" cy="28" r="2.2" fill="white" opacity="0.9"/>
+                                </svg>
                             </span>
                             <span class="sidebar-text font-black text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ config('app.name', 'FlowManager') }}</span>
                         </a>
@@ -140,31 +154,42 @@
                                         <span class="sidebar-text flex-1 font-medium truncate text-sm">Dashboard Vendas</span>
                                         <div class="{{ request()->routeIs('dashboard.sales') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-600 rounded-l-full"></div>
                                     </a>
+
+                                    <a href="{{ route('dashboard.clients') }}" class="relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('dashboard.clients') ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 text-blue-600 dark:text-blue-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('dashboard.clients') ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30' : '' }}">
+                                            <i class="bi bi-people-fill text-sm"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Dashboard Clientes</span>
+                                        <div class="{{ request()->routeIs('dashboard.clients') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('dashboard.banks') }}" class="relative flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('dashboard.banks') ? 'bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 text-blue-600 dark:text-blue-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('dashboard.banks') ? 'bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg shadow-blue-500/30' : '' }}">
+                                            <i class="bi bi-bank text-sm"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate text-sm">Dashboard Bancos</span>
+                                        <div class="{{ request()->routeIs('dashboard.banks') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-gradient-to-b from-blue-500 to-purple-600 rounded-l-full"></div>
+                                    </a>
                                 </div>
                             </nav>
                         </div>
 
                         <!-- Vendas e Produtos Section -->
-                        <div class="mb-4 sidebar-section-vendas" x-data="flowSidebarSection('vendas', true)" x-init="init()">
+                        <div class="mb-3 sidebar-section sidebar-section-vendas" x-data="flowSidebarSection('vendas', true)" x-init="init()" aria-label="Vendas">
                             <button
                                 type="button"
                                 @click="toggle()"
                                 :aria-expanded="open.toString()"
-                                class="flex w-full items-center justify-between rounded-2xl border border-violet-200/70 bg-violet-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-violet-300 hover:bg-violet-100/80 dark:border-violet-900/70 dark:bg-violet-950/30 dark:hover:border-violet-800 dark:hover:bg-violet-900/30"
+                                aria-label="Vendas"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-violet-200/60 bg-violet-50/60 px-3 py-2.5 text-left transition-all hover:border-violet-300 hover:bg-violet-100/70 dark:border-violet-900/60 dark:bg-violet-950/25 dark:hover:bg-violet-900/30"
                             >
-                                <div class="flex min-w-0 items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-lg shadow-violet-500/20">
-                                        <i class="bi bi-bag-check text-base"></i>
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-fuchsia-600 text-white shadow-md shadow-violet-500/25">
+                                        <i class="bi bi-bag-check text-sm"></i>
                                     </div>
-                                    <div class="sidebar-text min-w-0">
-                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Vendas</p>
-                                        <p class="truncate text-xs text-violet-700 dark:text-violet-300">CRM, catálogo e operação comercial</p>
-                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Vendas</p>
                                 </div>
-                                <div class="sidebar-text flex items-center gap-2 pl-3">
-                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-violet-700 shadow-sm dark:bg-slate-900/70 dark:text-violet-300">Operação</span>
-                                    <i class="bi bi-chevron-down text-xs text-violet-700 transition-transform duration-200 dark:text-violet-300" :class="open ? 'rotate-180' : ''"></i>
-                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-violet-700 transition-transform duration-200 dark:text-violet-300" :class="open ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div
@@ -259,31 +284,43 @@
                                     </button>
                                     <div class="{{ Request::is('categories') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
+
+                                <a href="{{ route('products.kit.create') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/kit*') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/kit*') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                        <i class="bi bi-boxes text-base"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Criar Kit</span>
+                                    <span class="sidebar-text inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-pink-500/15 text-pink-700 dark:text-pink-300">Novo</span>
+                                    <div class="{{ Request::is('products/kit*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ route('products.bulk-edit') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/bulk-edit') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/bulk-edit') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                        <i class="bi bi-pencil-square text-base"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Edição em massa</span>
+                                    <div class="{{ Request::is('products/bulk-edit') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
+                                </a>
                             </nav>
                             </div>
                         </div>
 
                         <!-- Financeiro Section -->
-                        <div class="mb-4 sidebar-section-financeiro" x-data="flowSidebarSection('financeiro', true)" x-init="init()">
+                        <div class="mb-3 sidebar-section sidebar-section-financeiro" x-data="flowSidebarSection('financeiro', true)" x-init="init()" aria-label="Financeiro">
                             <button
                                 type="button"
                                 @click="toggle()"
                                 :aria-expanded="open.toString()"
-                                class="flex w-full items-center justify-between rounded-2xl border border-emerald-200/70 bg-emerald-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-emerald-300 hover:bg-emerald-100/80 dark:border-emerald-900/70 dark:bg-emerald-950/30 dark:hover:border-emerald-800 dark:hover:bg-emerald-900/30"
+                                aria-label="Financeiro"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-emerald-200/60 bg-emerald-50/60 px-3 py-2.5 text-left transition-all hover:border-emerald-300 hover:bg-emerald-100/70 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:hover:bg-emerald-900/30"
                             >
-                                <div class="flex min-w-0 items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg shadow-emerald-500/20">
-                                        <i class="bi bi-wallet2 text-base"></i>
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25">
+                                        <i class="bi bi-wallet2 text-sm"></i>
                                     </div>
-                                    <div class="sidebar-text min-w-0">
-                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Financeiro</p>
-                                        <p class="truncate text-xs text-emerald-700 dark:text-emerald-300">Caixa, bancos e reservas</p>
-                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Financeiro</p>
                                 </div>
-                                <div class="sidebar-text flex items-center gap-2 pl-3">
-                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-emerald-700 shadow-sm dark:bg-slate-900/70 dark:text-emerald-300">Gestão</span>
-                                    <i class="bi bi-chevron-down text-xs text-emerald-700 transition-transform duration-200 dark:text-emerald-300" :class="open ? 'rotate-180' : ''"></i>
-                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-emerald-700 transition-transform duration-200 dark:text-emerald-300" :class="open ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div
@@ -470,27 +507,22 @@
                         </div>
 
 
-                        <!-- ============ MERCADO LIVRE — Seção própria (padrão Vendas/Financeiro) ============ -->
-                        <div class="mb-4 sidebar-section-mercadolivre" x-data="flowSidebarSection('mercadolivre', {{ Request::is('mercadolivre*') ? 'true' : 'false' }})" x-init="init()">
+                        <!-- ============ MERCADO LIVRE ============ -->
+                        <div class="mb-3 sidebar-section sidebar-section-mercadolivre" x-data="flowSidebarSection('mercadolivre', {{ Request::is('mercadolivre*') ? 'true' : 'false' }})" x-init="init()" aria-label="Mercado Livre">
                             <button
                                 type="button"
                                 @click="toggle()"
                                 :aria-expanded="open.toString()"
-                                class="flex w-full items-center justify-between rounded-2xl border border-yellow-200/70 bg-yellow-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-yellow-300 hover:bg-yellow-100/80 dark:border-yellow-900/70 dark:bg-yellow-950/30 dark:hover:border-yellow-800 dark:hover:bg-yellow-900/30"
+                                aria-label="Mercado Livre"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-yellow-200/60 bg-yellow-50/60 px-3 py-2.5 text-left transition-all hover:border-yellow-300 hover:bg-yellow-100/70 dark:border-yellow-900/60 dark:bg-yellow-950/25 dark:hover:bg-yellow-900/30"
                             >
-                                <div class="flex min-w-0 items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/25">
-                                        <i class="bi bi-shop text-base"></i>
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-md shadow-yellow-500/25">
+                                        <i class="bi bi-shop text-sm"></i>
                                     </div>
-                                    <div class="sidebar-text min-w-0">
-                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Mercado Livre</p>
-                                        <p class="truncate text-xs text-yellow-700 dark:text-yellow-300">Publicações, anúncios e conexão</p>
-                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Mercado Livre</p>
                                 </div>
-                                <div class="sidebar-text flex items-center gap-2 pl-3">
-                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-yellow-700 shadow-sm dark:bg-slate-900/70 dark:text-yellow-300">Marketplace</span>
-                                    <i class="bi bi-chevron-down text-xs text-yellow-700 transition-transform duration-200 dark:text-yellow-300" :class="open ? 'rotate-180' : ''"></i>
-                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-yellow-700 transition-transform duration-200 dark:text-yellow-300" :class="open ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div
@@ -532,6 +564,54 @@
                                         <div class="{{ Request::is('mercadolivre/products/publish/create') || Request::is('mercadolivre/products/*/publish') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                     </a>
 
+                                    <a href="{{ route('mercadolivre.orders') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/orders*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/orders*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-bag-check text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Pedidos</span>
+                                        <div class="{{ Request::is('mercadolivre/orders*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('mercadolivre.questions') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/questions*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/questions*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-patch-question text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Perguntas</span>
+                                        <div class="{{ Request::is('mercadolivre/questions*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('mercadolivre.messages') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/messages*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/messages*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-chat-dots text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Mensagens</span>
+                                        <div class="{{ Request::is('mercadolivre/messages*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('mercadolivre.mediations') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/mediations*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/mediations*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-exclamation-octagon text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Mediações</span>
+                                        <div class="{{ Request::is('mercadolivre/mediations*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('mercadolivre.promotions') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/promotions*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/promotions*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-megaphone text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Promoções</span>
+                                        <div class="{{ Request::is('mercadolivre/promotions*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('mercadolivre.reputation') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/reputation*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/reputation*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
+                                            <i class="bi bi-star-fill text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Reputação</span>
+                                        <div class="{{ Request::is('mercadolivre/reputation*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
+                                    </a>
+
                                     <a href="{{ route('mercadolivre.settings') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/settings') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/settings') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
                                             <i class="bi bi-gear text-base"></i>
@@ -551,27 +631,22 @@
                             </div>
                         </div>
 
-                        <!-- ============ SHOPEE — Seção própria (padrão Vendas/Financeiro) ============ -->
-                        <div class="mb-4 sidebar-section-shopee" x-data="flowSidebarSection('shopee', {{ Request::is('shopee*') ? 'true' : 'false' }})" x-init="init()">
+                        <!-- ============ SHOPEE ============ -->
+                        <div class="mb-3 sidebar-section sidebar-section-shopee" x-data="flowSidebarSection('shopee', {{ Request::is('shopee*') ? 'true' : 'false' }})" x-init="init()" aria-label="Shopee">
                             <button
                                 type="button"
                                 @click="toggle()"
                                 :aria-expanded="open.toString()"
-                                class="flex w-full items-center justify-between rounded-2xl border border-orange-200/70 bg-orange-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-orange-300 hover:bg-orange-100/80 dark:border-orange-900/70 dark:bg-orange-950/30 dark:hover:border-orange-800 dark:hover:bg-orange-900/30"
+                                aria-label="Shopee"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-orange-200/60 bg-orange-50/60 px-3 py-2.5 text-left transition-all hover:border-orange-300 hover:bg-orange-100/70 dark:border-orange-900/60 dark:bg-orange-950/25 dark:hover:bg-orange-900/30"
                             >
-                                <div class="flex min-w-0 items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25">
-                                        <i class="bi bi-bag-heart text-base"></i>
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-md shadow-orange-500/25">
+                                        <i class="bi bi-bag-heart text-sm"></i>
                                     </div>
-                                    <div class="sidebar-text min-w-0">
-                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Shopee</p>
-                                        <p class="truncate text-xs text-orange-700 dark:text-orange-300">Publicações, anúncios e conexão</p>
-                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Shopee</p>
                                 </div>
-                                <div class="sidebar-text flex items-center gap-2 pl-3">
-                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-orange-700 shadow-sm dark:bg-slate-900/70 dark:text-orange-300">Marketplace</span>
-                                    <i class="bi bi-chevron-down text-xs text-orange-700 transition-transform duration-200 dark:text-orange-300" :class="open ? 'rotate-180' : ''"></i>
-                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-orange-700 transition-transform duration-200 dark:text-orange-300" :class="open ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div
@@ -632,27 +707,33 @@
                             </div>
                         </div>
 
+                        <!-- ============ PORTAL ============ -->
+                        <a href="{{ route('portal.dashboard') }}" class="sidebar-portal-link group mb-3 flex items-center justify-between rounded-xl border border-sky-200/60 bg-gradient-to-r from-sky-50/70 to-cyan-50/70 px-3 py-2.5 transition-all hover:border-sky-300 hover:from-sky-100/80 hover:to-cyan-100/80 dark:border-sky-900/60 dark:from-sky-950/25 dark:to-cyan-950/25 dark:hover:from-sky-900/30 dark:hover:to-cyan-900/30" wire:navigate.hover aria-label="Portal do Cliente">
+                            <div class="flex min-w-0 items-center gap-2.5">
+                                <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-cyan-600 text-white shadow-md shadow-sky-500/25">
+                                    <i class="bi bi-box-arrow-up-right text-sm"></i>
+                                </div>
+                                <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Portal do Cliente</p>
+                            </div>
+                            <i class="sidebar-text bi bi-arrow-up-right text-[11px] text-sky-700 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 dark:text-sky-300"></i>
+                        </a>
+
                         <!-- Conta e Plano Section -->
-                        <div class="mb-4 sidebar-section-account" x-data="flowSidebarSection('account', true)" x-init="init()">
+                        <div class="mb-3 sidebar-section sidebar-section-account" x-data="flowSidebarSection('account', true)" x-init="init()" aria-label="Conta e Plano">
                             <button
                                 type="button"
                                 @click="toggle()"
                                 :aria-expanded="open.toString()"
-                                class="flex w-full items-center justify-between rounded-2xl border border-fuchsia-200/70 bg-fuchsia-50/80 px-3 py-3 text-left transition-all duration-200 hover:border-fuchsia-300 hover:bg-fuchsia-100/80 dark:border-fuchsia-900/70 dark:bg-fuchsia-950/30 dark:hover:border-fuchsia-800 dark:hover:bg-fuchsia-900/30"
+                                aria-label="Conta e Plano"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-fuchsia-200/60 bg-fuchsia-50/60 px-3 py-2.5 text-left transition-all hover:border-fuchsia-300 hover:bg-fuchsia-100/70 dark:border-fuchsia-900/60 dark:bg-fuchsia-950/25 dark:hover:bg-fuchsia-900/30"
                             >
-                                <div class="flex min-w-0 items-center gap-3">
-                                    <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/20">
-                                        <i class="bi bi-person-badge text-base"></i>
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-md shadow-fuchsia-500/25">
+                                        <i class="bi bi-person-badge text-sm"></i>
                                     </div>
-                                    <div class="sidebar-text min-w-0">
-                                        <p class="truncate text-sm font-bold text-slate-900 dark:text-white">Conta e Plano</p>
-                                        <p class="truncate text-xs text-fuchsia-700 dark:text-fuchsia-300">Equipe, assinatura e acesso pessoal</p>
-                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Conta e Plano</p>
                                 </div>
-                                <div class="sidebar-text flex items-center gap-2 pl-3">
-                                    <span class="rounded-full bg-white/90 px-2 py-1 text-[11px] font-semibold text-fuchsia-700 shadow-sm dark:bg-slate-900/70 dark:text-fuchsia-300">Conta</span>
-                                    <i class="bi bi-chevron-down text-xs text-fuchsia-700 transition-transform duration-200 dark:text-fuchsia-300" :class="open ? 'rotate-180' : ''"></i>
-                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-fuchsia-700 transition-transform duration-200 dark:text-fuchsia-300" :class="open ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div
@@ -667,12 +748,28 @@
                                 class="mt-2"
                             >
                                 <nav class="space-y-1">
+                                    <a href="{{ route('settings.profile') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.profile') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.profile') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-person-circle text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Perfil</span>
+                                        <div class="{{ request()->routeIs('settings.profile') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
                                     <a href="{{ route('access.center') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('access.center') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('access.center') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
                                             <i class="bi bi-person-lock text-base"></i>
                                         </div>
                                         <span class="sidebar-text flex-1 font-medium truncate">Acesso e permissoes</span>
                                         <div class="{{ request()->routeIs('access.center') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('settings.devices') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.devices') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ request()->routeIs('settings.devices') ? 'bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-lg shadow-fuchsia-500/30' : '' }}">
+                                            <i class="bi bi-laptop text-base"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Dispositivos</span>
+                                        <div class="{{ request()->routeIs('settings.devices') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-fuchsia-500 to-violet-600 rounded-l-full"></div>
                                     </a>
 
                                     <a href="{{ route('settings.team') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-fuchsia-50 dark:hover:bg-fuchsia-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ request()->routeIs('settings.team') ? 'bg-gradient-to-r from-fuchsia-500/10 to-violet-500/10 dark:from-fuchsia-500/20 dark:to-violet-500/20 text-fuchsia-600 dark:text-fuchsia-400 font-semibold' : '' }}" wire:navigate.hover>
@@ -1076,13 +1173,13 @@
                         </div>
                     </div>
 
-                    {{-- Card 6: Pessoal & ML --}}
+                    {{-- Card 6: Pessoal & Hábitos --}}
                     <div class="fab-area-card">
                         <div class="fab-area-header fab-acolor-lime">
                             <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#84cc16,#65a30d)">
                                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                             </div>
-                            <span>Pessoal &amp; ML</span>
+                            <span>Pessoal &amp; Metas</span>
                         </div>
                         <div class="fab-area-body fab-area-body-cols-2">
                             <a href="{{ route('daily-habits.create') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
@@ -1091,11 +1188,59 @@
                                 </div>
                                 <span>Hábito</span>
                             </a>
+                            <a href="{{ route('goals.dashboard') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#a855f7,#9333ea)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 2v1m0 18v1M4.22 4.22l.707.707M18.364 18.364l.707.707M2 12h1m18 0h1M4.22 19.778l.707-.707M18.364 5.636l.707-.707"/></svg>
+                                </div>
+                                <span>Meta</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Card 7: Mercado Livre --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-amber">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#fbbf24,#d97706)">
+                                <i class="bi bi-shop text-white text-base"></i>
+                            </div>
+                            <span>Mercado Livre</span>
+                        </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
                             <a href="{{ route('mercadolivre.products.publish.create') }}" class="fab-area-action fab-area-ml-action" wire:navigate.hover onclick="closeFabSheet()">
                                 <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)">
                                     <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
                                 </div>
                                 <span>Publicar ML</span>
+                            </a>
+                            <a href="{{ route('mercadolivre.auth.redirect') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
+                                    <i class="bi bi-plug text-white"></i>
+                                </div>
+                                <span>Conectar</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Card 8: Shopee --}}
+                    <div class="fab-area-card">
+                        <div class="fab-area-header fab-acolor-pink">
+                            <div class="fab-area-icon-wrap" style="background:linear-gradient(135deg,#EE4D2D,#FF6633)">
+                                <i class="bi bi-bag-heart text-white text-base"></i>
+                            </div>
+                            <span>Shopee</span>
+                        </div>
+                        <div class="fab-area-body fab-area-body-cols-2">
+                            <a href="{{ route('shopee.products.publish.create') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#EE4D2D,#FF6633)">
+                                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"/></svg>
+                                </div>
+                                <span>Publicar Shopee</span>
+                            </a>
+                            <a href="{{ route('shopee.auth.connect') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
+                                <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#fb923c,#f97316)">
+                                    <i class="bi bi-plug text-white"></i>
+                                </div>
+                                <span>Conectar</span>
                             </a>
                         </div>
                     </div>
