@@ -21,7 +21,7 @@
 
                     <div class="space-y-2">
                         <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
-                            Criar Novo Kit
+                            Editar Kit
                         </h1>
 
                         <!-- Progress Steps Horizontal -->
@@ -66,10 +66,10 @@
                         @if($currentStep == 2)
                         <button type="button" wire:click="store" wire:loading.attr="disabled" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50">
                             <span wire:loading.remove wire:target="store">
-                                <i class="bi bi-check-circle mr-2"></i>Criar Kit
+                                <i class="bi bi-check-circle mr-2"></i>Salvar Alterações
                             </span>
                             <span wire:loading wire:target="store">
-                                <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Criando...
+                                <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Salvando...
                             </span>
                         </button>
                         @endif
@@ -378,9 +378,10 @@
                                         name="image"
                                         id="image"
                                         wire-model="image"
-                                        title="Upload da Imagem"
+                                        title="Atualizar Imagem"
                                         description="Clique ou arraste"
                                         :new-image="$image"
+                                        :existing-image="$kit->image ? asset('storage/products/' . $kit->image) : null"
                                         height="h-[170px] md:h-[200px]" />
                                 </div>
                             </div>
