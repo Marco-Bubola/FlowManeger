@@ -391,14 +391,37 @@
     <style>
         [x-cloak] { display: none !important; }
 
-        /* Grid proporcional: mobile 2, sm 3, md 4, iPad portrait 4, desktop 4, ultrawide 5 */
+        /* Grid base (colunas finas ajustadas por device nos CSS responsivos) */
         .ap-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
-        @media (min-width: 480px)  { .ap-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
-        @media (min-width: 768px)  { .ap-grid { grid-template-columns: repeat(4, minmax(0,1fr)); } }
-        @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-            .ap-grid { grid-template-columns: repeat(4, minmax(0,1fr)); gap: .7rem; }
+
+        /* ===== COMPACTAÇÃO BASE DOS CARDS (remove o vazio de min-height:420px) ===== */
+        .add-products-page .product-card-modern {
+            min-height: 0 !important;
+            height: auto !important;
         }
-        @media (min-width: 1600px) { .ap-grid { grid-template-columns: repeat(5, minmax(0,1fr)); } }
+        .add-products-page .product-card-modern .product-img-area {
+            min-height: 150px !important;
+            height: 150px !important;
+        }
+        .add-products-page .product-card-modern .card-body {
+            min-height: 0 !important;
+            padding: 1.65em 0.6em 1.5em 0.6em !important;
+            gap: 0.2em !important;
+        }
+        .add-products-page .product-card-modern .product-title {
+            font-size: 0.82em !important;
+            line-height: 1.18 !important;
+            min-height: 2.1em !important;
+            margin: 0 !important;
+        }
+        .add-products-page .product-card-modern .price-area {
+            min-height: 1.5em !important;
+        }
+        .add-products-page .product-card-modern .badge-price,
+        .add-products-page .product-card-modern .badge-price-sale {
+            bottom: 0.2em !important;
+            font-size: 0.84em !important;
+        }
 
         .product-card-modern.selected {
             border-color: #10b981 !important;
