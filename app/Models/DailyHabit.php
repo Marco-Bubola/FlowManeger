@@ -20,14 +20,58 @@ class DailyHabit extends Model
         'reminder_time',
         'is_active',
         'order',
+        // novos campos do módulo unificado
+        'type',
+        'target_value',
+        'unit',
+        'frequency_type',
+        'frequency_days',
+        'start_date',
+        'end_date',
+        'is_archived',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'is_archived' => 'boolean',
         'goal_frequency' => 'integer',
         'order' => 'integer',
         'reminder_time' => 'datetime:H:i',
+        'target_value' => 'decimal:2',
+        'frequency_days' => 'array',
+        'start_date' => 'date',
+        'end_date' => 'date',
     ];
+
+    /**
+     * Hábito está agendado para a data informada (respeita frequency_type/days)?
+     */
+    public function isScheduledFor(Carbon $date): bool
+    {
+        if ($this->start_date && $date->lt($this->start_date)) return false;
+        if ($this->end_date && $date->gt($this->end_date)) return false;
+
+        $type = $this->frequency_type ?? 'daily';
+        if ($type === 'daily' || $type === 'times_per_week') {
+            return true;
+        }
+        if ($type === 'specific_days') {
+            $map = [0 => 'sun', 1 => 'mon', 2 => 'tue', 3 => 'wed', 4 => 'thu', 5 => 'fri', 6 => 'sat'];
+            $dow = $map[$date->dayOfWeek] ?? null;
+            return in_array($dow, (array) ($this->frequency_days ?? []), true);
+        }
+        if ($type === 'weekly') {
+            return true; // simplificado: conta na semana
+        }
+        return true;
+    }
+
+    public function metaGoals()
+    {
+        return $this->belongsToMany(Goal::class, 'goal_habit', 'daily_habit_id', 'goal_id')
+                    ->withPivot('peso')
+                    ->withTimestamps();
+    }
 
     // Relationships
     public function user()
