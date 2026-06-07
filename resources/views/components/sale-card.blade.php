@@ -45,7 +45,8 @@
         $progressToneClass = $isPaid ? 'is-paid' : 'is-pending';
         $progressStatusTitle = $isPaid ? 'Pagamento concluído' : 'Pagamento pendente';
         $progressStatusText = $isPaid ? 'Venda 100% paga' : 'Falta quitar R$ ' . number_format($remainingAmount, 2, ',', '.');
-        $actionItems = [
+        // Ações primárias (sempre visíveis) e secundárias (no "Mais")
+        $primaryActions = [
             [
                 'type' => 'link',
                 'href' => route('sales.show', $sale->id),
@@ -57,26 +58,36 @@
             [
                 'type' => 'link',
                 'href' => route('sales.edit', $sale->id),
-                'label' => 'Editar venda',
+                'label' => 'Editar',
                 'tooltip' => 'Editar dados gerais da venda',
                 'icon' => 'bi-pencil',
                 'tone' => 'amber',
             ],
             [
-                'type' => 'button',
-                'wireClick' => 'openExportSaleModalFromCard(' . $sale->id . ')',
-                'label' => 'Exportar PDF',
-                'tooltip' => 'Gerar PDF desta venda',
-                'icon' => 'bi-file-earmark-pdf',
-                'tone' => 'rose',
-            ],
-            [
                 'type' => 'link',
                 'href' => route('sales.add-products', $sale->id),
-                'label' => 'Add produtos',
+                'label' => 'Produtos',
                 'tooltip' => 'Adicionar produtos a esta venda',
                 'icon' => 'bi-plus-circle',
                 'tone' => 'teal',
+            ],
+            [
+                'type' => 'link',
+                'href' => route('sales.add-payments', $sale->id),
+                'label' => 'Pagar',
+                'tooltip' => 'Adicionar pagamento à venda',
+                'icon' => 'bi-credit-card',
+                'tone' => 'green',
+            ],
+        ];
+        $moreActions = [
+            [
+                'type' => 'button',
+                'wireClick' => 'payFull(' . $sale->id . ')',
+                'label' => 'Quitar saldo',
+                'tooltip' => 'Quitar o saldo restante da venda',
+                'icon' => 'bi-cash-stack',
+                'tone' => 'emerald',
             ],
             [
                 'type' => 'link',
@@ -88,14 +99,6 @@
             ],
             [
                 'type' => 'link',
-                'href' => route('sales.add-payments', $sale->id),
-                'label' => 'Add pagamento',
-                'tooltip' => 'Adicionar pagamento à venda',
-                'icon' => 'bi-credit-card',
-                'tone' => 'green',
-            ],
-            [
-                'type' => 'link',
                 'href' => route('sales.edit-payments', $sale->id),
                 'label' => 'Editar pagamento',
                 'tooltip' => 'Editar pagamentos já lançados',
@@ -104,11 +107,11 @@
             ],
             [
                 'type' => 'button',
-                'wireClick' => 'payFull(' . $sale->id . ')',
-                'label' => 'Quitar saldo',
-                'tooltip' => 'Quitar o saldo restante da venda',
-                'icon' => 'bi-cash-stack',
-                'tone' => 'emerald',
+                'wireClick' => 'openExportSaleModalFromCard(' . $sale->id . ')',
+                'label' => 'Exportar PDF',
+                'tooltip' => 'Gerar PDF desta venda',
+                'icon' => 'bi-file-earmark-pdf',
+                'tone' => 'rose',
             ],
             [
                 'type' => 'button',
@@ -237,34 +240,53 @@
     </div>
     </template>
 
-    <div class="sale-card-actions" aria-label="Ações da venda">
-        @foreach ($actionItems as $action)
-            <div class="sale-card-action-wrap">
+    <div class="sale-card-actions-v2" x-data="{ moreOpen: false }" aria-label="Ações da venda">
+        <!-- Ações primárias (sempre visíveis) -->
+        <div class="sale-actions-primary">
+            @foreach ($primaryActions as $action)
                 @if ($action['type'] === 'link')
-                    <a href="{{ $action['href'] }}"
-                        class="sale-card-action-chip sale-card-action-{{ $action['tone'] }}"
-                        data-tooltip="{{ $action['tooltip'] }}"
-                        title="{{ $action['tooltip'] }}"
-                        aria-label="{{ $action['tooltip'] }}">
-                        <span class="sale-card-action-icon">
-                            <i class="bi {{ $action['icon'] }}"></i>
-                        </span>
-                        <span class="sale-card-action-text">{{ $action['label'] }}</span>
+                    <a href="{{ $action['href'] }}" class="sale-action-btn sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
+                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
                     </a>
                 @else
-                    <button type="button"
-                        wire:click="{{ $action['wireClick'] }}"
-                        class="sale-card-action-chip sale-card-action-{{ $action['tone'] }}"
-                        data-tooltip="{{ $action['tooltip'] }}"
-                        title="{{ $action['tooltip'] }}"
-                        aria-label="{{ $action['tooltip'] }}">
-                        <span class="sale-card-action-icon">
-                            <i class="bi {{ $action['icon'] }}"></i>
-                        </span>
-                        <span class="sale-card-action-text">{{ $action['label'] }}</span>
+                    <button type="button" wire:click="{{ $action['wireClick'] }}" class="sale-action-btn sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
+                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
                     </button>
                 @endif
-            </div>
-        @endforeach
+            @endforeach
+
+            <!-- Botão "Mais" -->
+            <button type="button" @click="moreOpen = !moreOpen" class="sale-action-btn sale-action-more" :class="moreOpen ? 'is-open' : ''" aria-label="Mais ações" :aria-expanded="moreOpen.toString()">
+                <span class="sale-action-ico"><i class="bi bi-three-dots" x-show="!moreOpen"></i><i class="bi bi-chevron-up" x-show="moreOpen" x-cloak></i></span>
+                <span class="sale-action-lbl">Mais</span>
+            </button>
+        </div>
+
+        <!-- Ações secundárias (expansível) -->
+        <div class="sale-actions-more" x-show="moreOpen" x-cloak
+            x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-2"
+            x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150"
+            x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-2">
+            @foreach ($moreActions as $action)
+                @if ($action['type'] === 'link')
+                    <a href="{{ $action['href'] }}" class="sale-action-row sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
+                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
+                        <i class="bi bi-chevron-right sale-action-chevron"></i>
+                    </a>
+                @else
+                    <button type="button" wire:click="{{ $action['wireClick'] }}" @click="moreOpen = false" class="sale-action-row sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
+                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
+                        <i class="bi bi-chevron-right sale-action-chevron"></i>
+                    </button>
+                @endif
+            @endforeach
+        </div>
     </div>
 </div>
