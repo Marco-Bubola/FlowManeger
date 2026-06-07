@@ -4,6 +4,7 @@ namespace App\Services\MercadoLivre;
 
 use App\Models\MercadoLivreToken;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Exception;
 
@@ -67,16 +68,25 @@ class AuthService extends MercadoLivreService
             'random' => bin2hex(random_bytes(16)),
         ]));
 
+        // PKCE (obrigatório no Mercado Livre): gera code_verifier + code_challenge (S256)
+        $codeVerifier  = $this->generateCodeVerifier();
+        $codeChallenge = $this->generateCodeChallenge($codeVerifier);
+
+        // Guarda o code_verifier associado ao state (cache database, persiste entre redirect e callback)
+        Cache::put($this->pkceCacheKey($state), $codeVerifier, now()->addMinutes(10));
+
         $params = [
             'response_type' => 'code',
             'client_id' => $this->appId,
             'redirect_uri' => $this->redirectUri,
             'state' => $state,
+            'code_challenge' => $codeChallenge,
+            'code_challenge_method' => 'S256',
         ];
 
         $url = $this->authUrl . '?' . http_build_query($params);
 
-        Log::info('ML Authorization URL generated', [
+        Log::info('ML Authorization URL generated (PKCE)', [
             'user_id' => $userId,
             'redirect_uri' => $this->redirectUri,
         ]);
@@ -108,13 +118,21 @@ class AuthService extends MercadoLivreService
             throw new Exception('Authorization expired, please try again');
         }
 
-        // Trocar o código por tokens
+        // Recupera o code_verifier do PKCE (gerado no redirect)
+        $cacheKey = $this->pkceCacheKey($state);
+        $codeVerifier = Cache::pull($cacheKey); // pull = lê e remove
+        if (!$codeVerifier) {
+            throw new Exception('PKCE code_verifier ausente ou expirado. Tente conectar novamente.');
+        }
+
+        // Trocar o código por tokens (com PKCE: code_verifier)
         $data = [
             'grant_type' => 'authorization_code',
             'client_id' => $this->appId,
             'client_secret' => $this->secretKey,
             'code' => $code,
             'redirect_uri' => $this->redirectUri,
+            'code_verifier' => $codeVerifier,
         ];
 
         try {
@@ -367,7 +385,7 @@ class AuthService extends MercadoLivreService
 
     /**
      * Testa a conexão com a API usando um token
-     * 
+     *
      * @param MercadoLivreToken $token
      * @return bool
      */
@@ -379,5 +397,39 @@ class AuthService extends MercadoLivreService
         } catch (Exception $e) {
             return false;
         }
+    }
+
+    // ───────────────────────── PKCE helpers ─────────────────────────
+
+    /**
+     * Chave de cache para guardar o code_verifier ligado ao state.
+     */
+    protected function pkceCacheKey(string $state): string
+    {
+        return 'ml_pkce:' . hash('sha256', $state);
+    }
+
+    /**
+     * Gera um code_verifier aleatório (43-128 chars, URL-safe), conforme RFC 7636.
+     */
+    protected function generateCodeVerifier(): string
+    {
+        return $this->base64UrlEncode(random_bytes(64)); // ~86 chars
+    }
+
+    /**
+     * Gera o code_challenge (S256) a partir do code_verifier.
+     */
+    protected function generateCodeChallenge(string $codeVerifier): string
+    {
+        return $this->base64UrlEncode(hash('sha256', $codeVerifier, true));
+    }
+
+    /**
+     * Base64 URL-safe sem padding.
+     */
+    protected function base64UrlEncode(string $data): string
+    {
+        return rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
     }
 }
