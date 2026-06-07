@@ -1293,21 +1293,22 @@
 }
 .sales-index-header-icon {
     position: relative;
-    width: 3rem;
-    height: 3rem;
+    width: 2.6rem;
+    height: 2.6rem;
     background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
-    border-radius: 0.85rem;
+    border-radius: 0.8rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.28);
     flex-shrink: 0;
 }
+.sales-index-header-icon i { font-size: 1.25rem !important; }
 .sales-index-header-title-wrap {
     min-width: 0;
 }
 .sales-index-header-title {
-    font-size: 1.75rem;
+    font-size: 1.45rem;
     font-weight: 800;
     background: linear-gradient(90deg, #1e293b, #4338ca, #7c3aed);
     -webkit-background-clip: text;
@@ -2981,4 +2982,145 @@
 .sale-action-btn.prod-action-bulk-edit span { position: relative; z-index: 1; color: #fff !important; }
 .dark .sale-action-btn.prod-action-bulk-edit {
     box-shadow: 0 4px 16px rgba(43, 30, 62, 0.6) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SALE CARD ACTIONS V2 — modernas, fáceis de escolher
+   ════════════════════════════════════════════════════════════ */
+.sale-card-actions-v2 {
+    margin-top: 0.4rem;
+    padding-top: 0.75rem;
+    position: relative;
+}
+.sale-card-actions-v2::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99,102,241,0.4) 30%, rgba(139,92,246,0.55) 50%, rgba(99,102,241,0.4) 70%, transparent);
+    border-radius: 999px;
+}
+
+/* ─── Linha primária: 5 colunas (4 ações + Mais) ─── */
+.sale-actions-primary {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.sale-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.28rem;
+    padding: 0.55rem 0.25rem;
+    border-radius: 0.9rem;
+    border: 1px solid rgba(148,163,184,0.18);
+    background: rgba(255,255,255,0.6);
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease, background .18s ease;
+    min-width: 0;
+}
+.dark .sale-action-btn {
+    background: rgba(30,41,59,0.45);
+    border-color: rgba(71,85,105,0.4);
+}
+.sale-action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(15,23,42,0.14);
+}
+.sale-action-ico {
+    width: 2.05rem;
+    height: 2.05rem;
+    border-radius: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(15,23,42,0.18);
+}
+.sale-action-lbl {
+    font-size: 0.66rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: #475569;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+.dark .sale-action-lbl { color: #cbd5e1; }
+
+/* ─── Tons (gradiente do ícone) ─── */
+.sale-action-sky .sale-action-ico     { background: linear-gradient(135deg,#0ea5e9,#2563eb); }
+.sale-action-amber .sale-action-ico   { background: linear-gradient(135deg,#f59e0b,#f97316); }
+.sale-action-teal .sale-action-ico    { background: linear-gradient(135deg,#14b8a6,#0f766e); }
+.sale-action-green .sale-action-ico   { background: linear-gradient(135deg,#22c55e,#16a34a); }
+.sale-action-emerald .sale-action-ico { background: linear-gradient(135deg,#10b981,#059669); }
+.sale-action-violet .sale-action-ico  { background: linear-gradient(135deg,#8b5cf6,#7c3aed); }
+.sale-action-indigo .sale-action-ico  { background: linear-gradient(135deg,#6366f1,#4f46e5); }
+.sale-action-rose .sale-action-ico    { background: linear-gradient(135deg,#f43f5e,#ec4899); }
+.sale-action-red .sale-action-ico     { background: linear-gradient(135deg,#ef4444,#dc2626); }
+.sale-action-more .sale-action-ico    { background: linear-gradient(135deg,#64748b,#475569); }
+
+/* Hover por tom (borda colorida) */
+.sale-action-sky:hover     { border-color: rgba(14,165,233,.5); }
+.sale-action-amber:hover   { border-color: rgba(245,158,11,.5); }
+.sale-action-teal:hover    { border-color: rgba(20,184,166,.5); }
+.sale-action-green:hover   { border-color: rgba(34,197,94,.5); }
+.sale-action-more.is-open  { border-color: rgba(99,102,241,.5); background: rgba(99,102,241,.08); }
+
+/* ─── Ações secundárias (expansível) ─── */
+.sale-actions-more {
+    margin-top: 0.45rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    padding: 0.5rem;
+    border-radius: 0.9rem;
+    background: rgba(241,245,249,0.7);
+    border: 1px solid rgba(148,163,184,0.2);
+}
+.dark .sale-actions-more {
+    background: rgba(15,23,42,0.55);
+    border-color: rgba(71,85,105,0.4);
+}
+.sale-action-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0.6rem;
+    border-radius: 0.7rem;
+    border: none;
+    background: transparent;
+    text-decoration: none;
+    cursor: pointer;
+    width: 100%;
+    transition: background .15s ease, transform .15s ease;
+}
+.sale-action-row:hover {
+    background: rgba(255,255,255,0.9);
+    transform: translateX(2px);
+}
+.dark .sale-action-row:hover { background: rgba(30,41,59,0.8); }
+.sale-action-row .sale-action-ico {
+    width: 1.85rem;
+    height: 1.85rem;
+    font-size: 0.85rem;
+}
+.sale-action-row .sale-action-lbl {
+    flex: 1;
+    text-align: left;
+    font-size: 0.78rem;
+}
+.sale-action-chevron {
+    color: #94a3b8;
+    font-size: 0.7rem;
+    flex-shrink: 0;
 }
