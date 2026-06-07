@@ -111,7 +111,7 @@ class AuthController extends Controller
                 ]);
 
                 return redirect()
-                    ->route('dashboard')
+                    ->route('mercadolivre.settings')
                     ->with('warning', 'Autorização cancelada: ' . $errorDescription);
             }
 
@@ -132,10 +132,10 @@ class AuthController extends Controller
                 'nickname' => $token->ml_nickname,
             ]);
 
-            // Redirecionar com sucesso
+            // Redirecionar com sucesso de volta para a página de configurações do ML
             return redirect()
-                ->route('dashboard')
-                ->with('success', "Conectado com sucesso ao Mercado Livre! 🎉\nConta: {$token->ml_nickname}");
+                ->route('mercadolivre.settings')
+                ->with('success', "Conectado com sucesso ao Mercado Livre! 🎉 Conta: {$token->ml_nickname}");
 
         } catch (Exception $e) {
             Log::error('ML callback processing failed', [
@@ -146,7 +146,7 @@ class AuthController extends Controller
             ]);
 
             return redirect()
-                ->route('dashboard')
+                ->route('mercadolivre.settings')
                 ->with('error', 'Erro ao processar autorização: ' . $e->getMessage());
         }
     }
