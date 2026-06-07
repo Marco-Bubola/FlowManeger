@@ -793,12 +793,54 @@
     border-color: rgba(245, 158, 11, 0.5);
     background: rgba(251, 191, 36, 0.12);
 }
+.bulk-card-status.is-saved {
+    border-style: solid;
+    border-color: rgba(16, 185, 129, 0.5);
+    background: rgba(52, 211, 153, 0.14);
+}
 .bulk-card-status-dirty { display: inline-flex; align-items: center; gap: 0.35rem; color: #b45309; }
 .dark .bulk-card-status-dirty { color: #fcd34d; }
-.bulk-card-status-idle { display: inline-flex; align-items: center; gap: 0.35rem; color: #8b80a8; }
-.dark .bulk-card-status-idle { color: #a490c2; }
+.bulk-card-status-saved { display: inline-flex; align-items: center; gap: 0.35rem; color: #047857; }
+.dark .bulk-card-status-saved { color: #6ee7b7; }
 .dark .bulk-card-status { border-color: rgba(164, 144, 194, 0.35); background: rgba(164, 144, 194, 0.1); }
 .dark .bulk-card-status.is-dirty { border-color: rgba(245, 158, 11, 0.55); background: rgba(251, 191, 36, 0.15); }
+.dark .bulk-card-status.is-saved { border-color: rgba(16, 185, 129, 0.55); background: rgba(52, 211, 153, 0.16); }
+
+/* ── Animação "Salvo!" que aparece sobre o card ── */
+.bulk-saved-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+    opacity: 0;
+    animation: bulk-saved-flash-bg 1.1s ease forwards;
+    background: radial-gradient(circle at center, rgba(16, 185, 129, 0.25), transparent 70%);
+    border-radius: 1.5em;
+}
+.bulk-saved-flash-circle {
+    width: 4rem; height: 4rem;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 2rem;
+    background: linear-gradient(135deg, #34d399, #059669);
+    box-shadow: 0 8px 26px rgba(5, 150, 105, 0.6);
+    transform: scale(0);
+    animation: bulk-saved-pop 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes bulk-saved-flash-bg {
+    0% { opacity: 0; }
+    15% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes bulk-saved-pop {
+    0% { transform: scale(0) rotate(-25deg); }
+    45% { transform: scale(1.2) rotate(6deg); }
+    65% { transform: scale(0.95) rotate(0deg); }
+    80% { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 0; }
+}
 
 /* ══════════════ Carrinho de editados — badge + destaque ══════════════ */
 .bulk-card--dirty {
