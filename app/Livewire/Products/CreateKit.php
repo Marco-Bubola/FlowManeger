@@ -401,6 +401,21 @@ class CreateKit extends Component
     }
 
     /**
+     * Atualiza o preço de custo de um produto selecionado
+     */
+    public function updateProductCost($productId, $price)
+    {
+        foreach ($this->selectedProducts as &$product) {
+            if ($product['id'] == $productId) {
+                $product['price'] = (float)str_replace(',', '.', $price);
+                break;
+            }
+        }
+
+        $this->calculateTotals();
+    }
+
+    /**
      * Usa o preço sugerido como preço de venda real
      */
     public function usesSuggestedPrice()
