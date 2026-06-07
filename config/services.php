@@ -77,5 +77,11 @@ return [
         'redirect'      => env('GOOGLE_PORTAL_REDIRECT_URI', env('APP_URL') . '/portal/auth/google/callback'),
     ],
 
+    // IA — sugestões de metas/hábitos (Claude / Anthropic)
+    'anthropic' => [
+        'key'   => env('ANTHROPIC_API_KEY'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-3-5-haiku-latest'),
+    ],
+
 ];
 
