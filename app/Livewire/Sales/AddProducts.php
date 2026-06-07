@@ -302,7 +302,12 @@ class AddProducts extends Component
             $query->where('category_id', $this->selectedCategory);
         }
 
-        return $query->where('stock_quantity', '>', 0)
+        // Kits são salvos com stock_quantity = 0 e o estoque real é composto pelos componentes.
+        // Por isso, não podemos excluir todos os kits pelo filtro de estoque.
+        return $query->where(function ($q) {
+                        $q->where('stock_quantity', '>', 0)
+                          ->orWhere('tipo', 'kit');
+                    })
                     ->with('category')
                     ->orderBy($this->sortBy, $this->sortDirection)
                     ->get();
