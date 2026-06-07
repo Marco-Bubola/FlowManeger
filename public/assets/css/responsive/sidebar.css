@@ -36,9 +36,9 @@
     }
 }
 
-/* ─── Compact Sidebar Mode ─── */
-body.sidebar-compact #modernSidebar { width: 100px !important; }
-body.sidebar-compact #mainContent   { margin-left: 100px !important; }
+/* ─── Compact Sidebar Mode (somente ícones) ─── */
+body.sidebar-compact #modernSidebar { width: 88px !important; }
+body.sidebar-compact #mainContent   { margin-left: 88px !important; }
 body.sidebar-compact .sidebar-text  { display: none !important; }
 
 body.sidebar-compact .nav-item {
@@ -48,6 +48,78 @@ body.sidebar-compact .nav-item {
 }
 body.sidebar-compact .nav-icon-wrapper { margin: 0 auto; }
 body.sidebar-compact #sidebarToggle svg { transform: rotate(180deg); }
+
+/* Section header cards (Vendas, Financeiro, ML, Shopee, Conta) — modo colapsado */
+body.sidebar-compact .sidebar-section-dashboard,
+body.sidebar-compact .sidebar-section-vendas,
+body.sidebar-compact .sidebar-section-financeiro,
+body.sidebar-compact .sidebar-section-mercadolivre,
+body.sidebar-compact .sidebar-section-shopee,
+body.sidebar-compact .sidebar-section-account {
+    padding: 0;
+}
+body.sidebar-compact .sidebar-section-vendas > button,
+body.sidebar-compact .sidebar-section-financeiro > button,
+body.sidebar-compact .sidebar-section-mercadolivre > button,
+body.sidebar-compact .sidebar-section-shopee > button,
+body.sidebar-compact .sidebar-section-account > button {
+    justify-content: center !important;
+    padding: 0.55rem 0.4rem !important;
+    border-radius: 1rem !important;
+}
+body.sidebar-compact .sidebar-section-vendas > button > div:first-child,
+body.sidebar-compact .sidebar-section-financeiro > button > div:first-child,
+body.sidebar-compact .sidebar-section-mercadolivre > button > div:first-child,
+body.sidebar-compact .sidebar-section-shopee > button > div:first-child,
+body.sidebar-compact .sidebar-section-account > button > div:first-child {
+    gap: 0 !important;
+}
+/* Esconde subtítulo, badge, chevron na versão colapsada */
+body.sidebar-compact .sidebar-section-vendas > button > .sidebar-text,
+body.sidebar-compact .sidebar-section-financeiro > button > .sidebar-text,
+body.sidebar-compact .sidebar-section-mercadolivre > button > .sidebar-text,
+body.sidebar-compact .sidebar-section-shopee > button > .sidebar-text,
+body.sidebar-compact .sidebar-section-account > button > .sidebar-text {
+    display: none !important;
+}
+
+/* Brand mark fica centralizado quando compacto */
+body.sidebar-compact .sidebar-brand { justify-content: center; }
+body.sidebar-compact .sidebar-brand-mark { margin: 0 auto; }
+
+/* Tooltips ao passar o mouse no modo compact */
+body.sidebar-compact #modernSidebar a[href],
+body.sidebar-compact #modernSidebar button[type="button"] {
+    position: relative;
+}
+body.sidebar-compact #modernSidebar a[href]:hover::after,
+body.sidebar-compact .sidebar-section-vendas > button:hover::after,
+body.sidebar-compact .sidebar-section-financeiro > button:hover::after,
+body.sidebar-compact .sidebar-section-mercadolivre > button:hover::after,
+body.sidebar-compact .sidebar-section-shopee > button:hover::after,
+body.sidebar-compact .sidebar-section-account > button:hover::after {
+    content: attr(aria-label);
+    position: absolute;
+    left: calc(100% + 0.5rem);
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgb(15 23 42);
+    color: white;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* Esconde acordeões expandidos no compact */
+body.sidebar-compact [x-show="open"] { display: none !important; }
+body.sidebar-compact [x-show="mlOpen"],
+body.sidebar-compact [x-show="shopeeOpen"] { display: none !important; }
+body.sidebar-compact .ml-4.border-l-2 { display: none !important; }
 
 /* ─── iPad portrait (768-1024px): TabBar SEMPRE visível, sidebar SEMPRE drawer ─── */
 /* Sem escolha neste range: tabbar é a nav principal, sidebar é drawer de overlay */
