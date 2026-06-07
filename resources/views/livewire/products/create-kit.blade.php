@@ -357,81 +357,68 @@
                     <!-- ========== COLUNA DIREITA (4/12) ========== -->
                     <div class="create-kit-step2-right xl:col-span-4 space-y-5">
 
-                        <!-- Imagem do Kit -->
+                        <!-- Imagem do Kit (compacto) -->
                         <div class="step2-card relative overflow-hidden rounded-2xl border border-slate-700/60 shadow-2xl">
                             <div class="absolute inset-0 bg-gradient-to-br from-pink-600/20 via-purple-600/15 to-indigo-600/20"></div>
                             <div class="absolute -top-12 -right-12 w-40 h-40 rounded-full bg-pink-500/20 blur-3xl"></div>
 
-                            <div class="relative p-5 backdrop-blur-xl bg-slate-900/55 flex flex-col">
-                                <div class="flex items-center gap-3 mb-4">
-                                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-pink-500/30">
-                                        <i class="bi bi-image-fill text-white text-base"></i>
+                            <div class="relative p-4 backdrop-blur-xl bg-slate-900/55 flex flex-col">
+                                <div class="flex items-center gap-2.5 mb-3">
+                                    <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-pink-500/30 shrink-0">
+                                        <i class="bi bi-image-fill text-white text-sm"></i>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <h3 class="text-base font-bold text-white">Imagem do Kit</h3>
-                                        <p class="text-xs text-slate-400">Foto de alta qualidade</p>
+                                        <h3 class="text-sm font-bold text-white leading-tight">Imagem do Kit</h3>
+                                        <p class="text-[11px] text-slate-400 leading-tight">JPG, PNG • Máx 2MB</p>
                                     </div>
                                 </div>
 
-                                <div class="flex-1 flex items-center justify-center min-h-0 w-full overflow-hidden">
+                                <div class="w-full overflow-hidden rounded-xl">
                                     <x-image-upload
                                         name="image"
                                         id="image"
                                         wire-model="image"
                                         title="Upload da Imagem"
-                                        description="Clique ou arraste aqui"
+                                        description="Clique ou arraste"
                                         :new-image="$image"
-                                        height="h-[260px] md:h-[360px]" />
+                                        height="h-[170px] md:h-[200px]" />
                                 </div>
-
-                                <p class="mt-3 text-[11px] text-slate-400 flex items-center gap-1.5">
-                                    <i class="bi bi-info-circle text-blue-400"></i> JPG, PNG, JPEG • Máx 2MB
-                                </p>
                             </div>
                         </div>
 
-                        <!-- Produtos Selecionados (resumo) -->
-                        <div class="step2-card rounded-2xl border border-amber-700/40 bg-gradient-to-br from-slate-900/90 via-amber-900/10 to-slate-900/90 backdrop-blur-xl shadow-2xl p-5">
-                            <div class="flex items-center gap-3 mb-4">
-                                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30">
-                                    <i class="bi bi-grid-3x3-gap-fill text-white text-base"></i>
+                        <!-- Produtos Selecionados (resumo compacto) -->
+                        <div class="step2-card rounded-2xl border border-amber-700/40 bg-gradient-to-br from-slate-900/90 via-amber-900/10 to-slate-900/90 backdrop-blur-xl shadow-2xl p-4">
+                            <div class="flex items-center gap-2.5 mb-3">
+                                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30 shrink-0">
+                                    <i class="bi bi-grid-3x3-gap-fill text-white text-sm"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
-                                    <h3 class="text-base font-bold text-white">Itens do Kit</h3>
-                                    <p class="text-xs text-slate-400">{{ $kitSelectedCount }} {{ $kitSelectedCount === 1 ? 'produto' : 'produtos' }} · {{ $kitSelectedQty }} {{ $kitSelectedQty === 1 ? 'unidade' : 'unidades' }}</p>
+                                    <h3 class="text-sm font-bold text-white leading-tight">Itens do Kit</h3>
+                                    <p class="text-[11px] text-slate-400 leading-tight">{{ $kitSelectedCount }} {{ $kitSelectedCount === 1 ? 'produto' : 'produtos' }} · {{ $kitSelectedQty }} un.</p>
                                 </div>
                             </div>
 
                             @if(count($selectedProducts) > 0)
-                            <div class="grid grid-cols-1 gap-2 max-h-[380px] overflow-y-auto custom-scrollbar pr-1">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-1 gap-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-1">
                                 @foreach($selectedProducts as $item)
-                                <div class="rounded-xl border border-slate-700/60 bg-slate-950/50 hover:bg-slate-950/70 p-2.5 transition">
-                                    <div class="flex items-center gap-2.5">
-                                        <img src="{{ !empty($item['image']) ? asset('storage/products/' . $item['image']) : asset('storage/products/product-placeholder.png') }}"
-                                            alt="{{ $item['name'] ?? 'Produto' }}"
-                                            class="w-11 h-11 rounded-lg object-cover border border-slate-700 shrink-0" />
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-xs font-bold text-white truncate">{{ $item['name'] ?? 'Produto' }}</p>
-                                            <div class="flex flex-wrap items-center gap-1.5 mt-1">
-                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-slate-700/60 text-slate-200">
-                                                    <i class="bi bi-stack text-[9px]"></i>{{ $item['quantity'] ?? 1 }}x
-                                                </span>
-                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/25 text-indigo-200">
-                                                    <i class="bi bi-tag text-[9px]"></i>R$ {{ number_format($item['price'] ?? 0, 2, ',', '.') }}
-                                                </span>
-                                                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/25 text-purple-200">
-                                                    <i class="bi bi-currency-dollar text-[9px]"></i>R$ {{ number_format($item['salePrice'] ?? 0, 2, ',', '.') }}
-                                                </span>
-                                            </div>
+                                <div class="rounded-lg border border-slate-700/60 bg-slate-950/50 hover:bg-slate-950/70 p-2 transition flex items-center gap-2">
+                                    <img src="{{ !empty($item['image']) ? asset('storage/products/' . $item['image']) : asset('storage/products/product-placeholder.png') }}"
+                                        alt="{{ $item['name'] ?? 'Produto' }}"
+                                        class="w-9 h-9 rounded-md object-cover border border-slate-700 shrink-0" />
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-[11px] font-bold text-white truncate leading-tight">{{ $item['name'] ?? 'Produto' }}</p>
+                                        <div class="flex items-center gap-1 mt-0.5">
+                                            <span class="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-bold bg-slate-700/60 text-slate-200">{{ $item['quantity'] ?? 1 }}x</span>
+                                            <span class="inline-flex items-center px-1 py-0.5 rounded text-[9px] font-bold bg-purple-500/25 text-purple-200">R$ {{ number_format($item['salePrice'] ?? 0, 2, ',', '.') }}</span>
                                         </div>
                                     </div>
                                 </div>
                                 @endforeach
                             </div>
                             @else
-                            <div class="rounded-xl border border-dashed border-slate-700/60 bg-slate-950/30 px-4 py-6 text-center">
+                            <div class="rounded-xl border border-dashed border-slate-700/60 bg-slate-950/30 px-4 py-5 text-center">
                                 <i class="bi bi-cart-x text-2xl text-slate-500"></i>
-                                <p class="text-sm text-slate-400 mt-2">Nenhum produto selecionado</p>
+                                <p class="text-xs text-slate-400 mt-1.5">Nenhum produto selecionado</p>
                             </div>
                             @endif
                         </div>
