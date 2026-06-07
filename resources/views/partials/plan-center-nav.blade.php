@@ -179,7 +179,7 @@
 <div class="plan-center-nav">
     <div class="plan-center-nav__intro">
         <div class="plan-center-nav__logo" aria-hidden="true">
-            <img src="/favicon.svg" alt="{{ config('app.name', 'FlowManager') }}" class="h-5 w-5 object-contain" />
+            <img src="/logo-64.png" alt="{{ config('app.name', 'FlowManager') }}" class="h-5 w-5 object-contain" />
         </div>
         <div class="plan-center-nav__copy">
             <span class="plan-center-nav__kicker">{{ $kicker }}</span>
