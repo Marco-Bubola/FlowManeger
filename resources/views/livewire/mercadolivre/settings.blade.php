@@ -1,4 +1,4 @@
-<div class="ml-settings-page w-full mobile-393-base">
+<div class="ml-settings-page w-full mobile-393-base" x-data="{ showDisconnectModal: false }" @keydown.escape.window="showDisconnectModal = false">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/ml-settings-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/ml-settings-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/ml-settings-ipad-portrait.css') }}">
@@ -120,7 +120,7 @@
                                         <p class="text-sm text-slate-500 dark:text-slate-400">ID ML: {{ $token->ml_user_id }}</p>
                                     </div>
                                 </div>
-                                <button wire:click="disconnect" wire:confirm="Desconectar sua conta do Mercado Livre? Você precisará autorizar novamente para usar a integração."
+                                <button type="button" @click="showDisconnectModal = true"
                                     wire:loading.attr="disabled"
                                     class="inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-xl transition-all shadow-lg">
                                     <i class="bi bi-link-45deg"></i>
@@ -408,19 +408,55 @@
         </div>
     </div>
 
-    <script>
-        document.addEventListener('livewire:init', () => {
-            Livewire.on('notify', (event) => {
-                const type = event[0]?.type || 'info';
-                const message = event[0]?.message || 'Notificação';
-                if (type === 'success') {
-                    alert('✅ ' + message);
-                } else if (type === 'error') {
-                    alert('❌ ' + message);
-                } else {
-                    alert(message);
-                }
-            });
-        });
-    </script>
+    {{-- ───── Modal moderno de confirmação: Desconectar ───── --}}
+    <template x-teleport="body">
+        <div x-show="showDisconnectModal" x-cloak
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-150"
+             x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"
+             class="ml-modal-overlay" @click.self="showDisconnectModal = false" style="display:none;">
+            <div class="ml-modal-card"
+                 x-show="showDisconnectModal"
+                 x-transition:enter="transition ease-out duration-250"
+                 x-transition:enter-start="opacity-0 translate-y-6 scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 scale-100">
+                <div class="ml-modal-icon"><i class="bi bi-plug"></i></div>
+                <h3 class="ml-modal-title">Desconectar do Mercado Livre?</h3>
+                <p class="ml-modal-text">
+                    Você precisará <strong>autorizar novamente</strong> para voltar a usar a integração
+                    (publicações, pedidos, perguntas e mensagens).
+                </p>
+                <div class="ml-modal-actions">
+                    <button type="button" @click="showDisconnectModal = false" class="ml-modal-btn-cancel">
+                        <i class="bi bi-x-lg"></i> Cancelar
+                    </button>
+                    <button type="button" @click="showDisconnectModal = false; $wire.call('disconnect')" class="ml-modal-btn-confirm">
+                        <i class="bi bi-plug-fill"></i> Desconectar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        .ml-modal-overlay { position: fixed; inset: 0; z-index: 100000; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: rgba(43,30,62,0.55); backdrop-filter: blur(8px); }
+        .ml-modal-card { width: 100%; max-width: 420px; background: #fff; border-radius: 1.5rem; padding: 2rem 1.75rem 1.6rem; text-align: center; box-shadow: 0 30px 70px rgba(43,30,62,0.4); border: 1px solid rgba(164,144,194,0.25); }
+        .dark .ml-modal-card { background: linear-gradient(160deg,#2b1e3e,#241a35); border-color: rgba(164,144,194,0.3); }
+        .ml-modal-icon { width: 4.5rem; height: 4.5rem; margin: 0 auto 1.1rem; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.1rem; color: #fff; background: linear-gradient(135deg,#f87171,#dc2626); box-shadow: 0 10px 26px rgba(220,38,38,0.45); }
+        .ml-modal-title { font-size: 1.25rem; font-weight: 800; color: #2b1e3e; margin: 0 0 0.6rem; }
+        .dark .ml-modal-title { color: #e6e6fa; }
+        .ml-modal-text { font-size: 0.92rem; line-height: 1.55; color: #475569; margin: 0 0 1.4rem; }
+        .dark .ml-modal-text { color: #cbd5e1; }
+        .ml-modal-text strong { color: #dc2626; }
+        .dark .ml-modal-text strong { color: #fca5a5; }
+        .ml-modal-actions { display: flex; gap: 0.7rem; }
+        .ml-modal-btn-cancel, .ml-modal-btn-confirm { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.75rem 1rem; border-radius: 0.85rem; font-size: 0.9rem; font-weight: 800; cursor: pointer; border: none; transition: all 0.18s; }
+        .ml-modal-btn-cancel { background: rgba(148,163,184,0.18); color: #475569; }
+        .ml-modal-btn-cancel:hover { background: rgba(148,163,184,0.3); }
+        .dark .ml-modal-btn-cancel { background: rgba(148,163,184,0.18); color: #cbd5e1; }
+        .ml-modal-btn-confirm { background: linear-gradient(135deg,#f87171,#dc2626); color: #fff; box-shadow: 0 6px 18px rgba(220,38,38,0.4); }
+        .ml-modal-btn-confirm:hover { background: linear-gradient(135deg,#ef4444,#b91c1c); transform: translateY(-1px); box-shadow: 0 8px 22px rgba(220,38,38,0.5); }
+    </style>
 </div>
