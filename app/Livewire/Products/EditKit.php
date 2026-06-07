@@ -286,6 +286,28 @@ class EditKit extends Component
         $this->calculateTotals();
     }
 
+    public function updateProductPrice($productId, $price)
+    {
+        foreach ($this->selectedProducts as &$product) {
+            if ($product['id'] == $productId) {
+                $product['salePrice'] = (float)str_replace(',', '.', $price);
+                break;
+            }
+        }
+        $this->calculateTotals();
+    }
+
+    public function updateProductCost($productId, $price)
+    {
+        foreach ($this->selectedProducts as &$product) {
+            if ($product['id'] == $productId) {
+                $product['price'] = (float)str_replace(',', '.', $price);
+                break;
+            }
+        }
+        $this->calculateTotals();
+    }
+
     /**
      * Usa o preço sugerido como preço real
      */
