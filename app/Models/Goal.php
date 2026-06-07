@@ -20,6 +20,7 @@ class Goal extends Model
         'periodo',
         'recorrencia_dia',
         'prioridade',
+        'tipo_meta',
         'data_inicio',
         'data_vencimento',
         'progresso',
@@ -93,6 +94,16 @@ class Goal extends Model
         return $this->belongsToMany(DailyHabit::class, 'goal_habit', 'goal_id', 'daily_habit_id')
                     ->withPivot('peso')
                     ->withTimestamps();
+    }
+
+    public function milestones(): HasMany
+    {
+        return $this->hasMany(GoalMilestone::class)->orderBy('order');
+    }
+
+    public function reminders(): HasMany
+    {
+        return $this->hasMany(GoalReminder::class);
     }
 
     // Helper: obter todos os checklistItems
