@@ -68,9 +68,9 @@
 
                         <!-- Área da imagem com badges -->
                         <div class="product-img-area">
-                            <!-- Upload de imagem ao clicar -->
+                            <!-- Upload de imagem ao clicar: copia o nome e abre o seletor -->
                             <div class="relative cursor-pointer"
-                                 onclick="document.getElementById('image-input-{{ $index }}').click();">
+                                 onclick="copyProductName({{ $index }}, '{{ addslashes($product['name'] ?? '') }}'); document.getElementById('image-input-{{ $index }}').click();">
                                 @if(isset($product['temp_image']))
                                     <img src="{{ $product['temp_image'] }}"
                                          class="product-img"
@@ -84,10 +84,11 @@
                                 @endif
 
                                 <!-- Overlay para indicar que é clicável -->
-                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-20 transition-all duration-200 rounded-t-xl flex items-center justify-center opacity-0 hover:opacity-100">
+                                <div class="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-25 transition-all duration-200 rounded-t-xl flex flex-col items-center justify-center gap-1.5 opacity-0 hover:opacity-100">
                                     <div class="bg-white bg-opacity-90 rounded-full p-2">
                                         <i class="bi bi-camera text-gray-700 text-xl"></i>
                                     </div>
+                                    <span class="text-[10px] font-bold text-white bg-black/60 px-2 py-0.5 rounded-full whitespace-nowrap">Copiar nome + trocar foto</span>
                                 </div>
                             </div>
 
