@@ -273,6 +273,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/consortiums/contemplation/{contemplation}/products', AddContemplationProducts::class)->name('consortiums.contemplation.products');
     Route::get('/clients/{client}/consortiums', \App\Livewire\Consortiums\ShowClientConsortiums::class)->name('clients.consortiums');
 
+    // --- Centro de Conquistas: Metas + Hábitos unificados (Livewire) ---
+    Route::get('/conquistas', \App\Livewire\Conquistas\ConquistasHub::class)->name('conquistas.hub');
+
     // --- Rotas de Metas e Objetivos (Livewire) ---
     Route::get('/goals', GoalsDashboard::class)->name('goals.dashboard');
     Route::get('/goals/board/{boardId}', GoalsBoard::class)->name('goals.board');
