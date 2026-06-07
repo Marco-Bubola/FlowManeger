@@ -316,6 +316,9 @@ class EditKit extends Component
     public function update()
     {
         try {
+            // Garante que os custos adicionais estão sincronizados a partir dos itens
+            $this->syncAdditionalCostsFromItems();
+
             // Calcular totais antes de salvar
             $this->calculateTotals();
 
