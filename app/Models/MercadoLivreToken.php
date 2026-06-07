@@ -60,11 +60,19 @@ class MercadoLivreToken extends Model
     }
 
     /**
-     * Verifica se o token precisa ser renovado (menos de 24 horas para expirar)
+     * Verifica se o token precisa ser renovado de forma PREVENTIVA.
+     *
+     * IMPORTANTE: tokens do Mercado Livre duram apenas ~6h e o refresh_token
+     * é de uso único. Usar uma janela larga (ex.: 24h) fazia TODA requisição
+     * disparar um refresh, queimando refresh_tokens e derrubando a conexão.
+     * Por isso só renovamos quando faltam <= 30 minutos (e ainda não expirou).
      */
     public function needsRefresh(): bool
     {
-        return $this->expires_at->diffInHours(now()) < 24;
+        if ($this->isExpired()) {
+            return false; // já expirado → tratado por isExpired()/getActiveToken
+        }
+        return now()->diffInMinutes($this->expires_at, false) <= 30;
     }
 
     /**
