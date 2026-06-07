@@ -1,6 +1,6 @@
 <div class="fm-notify-stack" role="region" aria-label="Notificações"
      x-data
-     x-init="$store.fmNotify.seed(@js($flash))">
+     x-init="$nextTick(() => { if ($store.fmNotify) $store.fmNotify.seed(@js($flash)); })">
 
     <!-- Botão limpar tudo (aparece com 3+ notificações) -->
     <div x-show="$store.fmNotify.items.length >= 3" x-transition class="fm-notify-clear-wrap">
@@ -208,8 +208,9 @@
 </style>
 
 <script>
-/* Store global de notificações — registrado uma única vez, à prova de timing */
-document.addEventListener('alpine:init', () => {
+/* Store global de notificações — registrado de forma robusta (funciona em load normal E em wire:navigate) */
+function fmRegisterNotifyStore() {
+    if (!window.Alpine) return;
     if (Alpine.store('fmNotify')) return;
 
     Alpine.store('fmNotify', {
@@ -310,21 +311,35 @@ document.addEventListener('alpine:init', () => {
             setTimeout(() => { this.items = []; }, 240);
         }
     });
-});
+}
+
+// Registra já se Alpine existe (SPA navigate), senão no alpine:init (load normal)
+if (window.Alpine) fmRegisterNotifyStore();
+document.addEventListener('alpine:init', fmRegisterNotifyStore);
 
 /* Listeners globais — registrados em nível de documento (timing garantido) */
 (function () {
+    if (window.__fmNotifyListenersBound) return;
+    window.__fmNotifyListenersBound = true;
+
     function push(detail) {
         if (window.Alpine && Alpine.store('fmNotify')) {
             Alpine.store('fmNotify').add(detail);
+        } else {
+            // Alpine ainda não pronto — tenta de novo no próximo tick
+            setTimeout(() => {
+                if (window.Alpine && Alpine.store('fmNotify')) Alpine.store('fmNotify').add(detail);
+            }, 60);
         }
     }
     // Eventos JS puros: window.notify(...)
     window.addEventListener('notify', e => push(e.detail));
     // Eventos despachados por componentes Livewire ($this->dispatch('notify', ...))
-    document.addEventListener('livewire:init', () => {
-        window.Livewire.on('notify', payload => push(payload));
-    });
+    function bindLivewire() {
+        if (window.Livewire) window.Livewire.on('notify', payload => push(payload));
+    }
+    if (window.Livewire) bindLivewire();
+    document.addEventListener('livewire:init', bindLivewire);
 })();
 
 /* API global p/ uso em JS puro */
