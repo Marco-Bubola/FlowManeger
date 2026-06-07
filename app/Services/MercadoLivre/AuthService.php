@@ -191,10 +191,10 @@ class AuthService extends MercadoLivreService
                 throw new Exception('New access token not received');
             }
 
-            // Atualizar token
+            // Atualizar token — preserva o refresh_token atual se o ML não enviar um novo
             $token->update([
                 'access_token' => $response['access_token'],
-                'refresh_token' => $response['refresh_token'],
+                'refresh_token' => $response['refresh_token'] ?? $token->refresh_token,
                 'expires_at' => now()->addSeconds($response['expires_in'] ?? 21600),
                 'is_active' => true,
             ]);
