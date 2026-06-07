@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Portal do Cliente' }} — {{ config('app.name') }}</title>
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+    <link rel="icon" href="/favicon.ico" sizes="any">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -24,7 +25,7 @@
         <div class="px-6 py-6 border-b border-white/10">
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center shadow-lg overflow-hidden">
-                    <img src="{{ asset('favicon.svg') }}" alt="{{ config('app.name') }}" class="w-7 h-7 object-contain">
+                    <img src="/logo-64.png" alt="{{ config('app.name') }}" class="w-7 h-7 object-contain">
                 </div>
                 <div>
                     <p class="text-xs text-sky-200 font-medium uppercase tracking-widest">Portal</p>
