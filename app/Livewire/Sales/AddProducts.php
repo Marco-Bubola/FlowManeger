@@ -20,6 +20,7 @@ class AddProducts extends Component
     public $categories = [];
     public $sortBy = 'name';
     public $sortDirection = 'asc';
+    public $stockFilter = 'all'; // all | low | in_stock | kits
 
     public function mount(Sale $sale)
     {
@@ -137,6 +138,24 @@ class AddProducts extends Component
         $this->resetNewProducts();
     }
 
+    public function clearFilters()
+    {
+        $this->searchTerm = '';
+        $this->selectedCategory = '';
+        $this->stockFilter = 'all';
+        $this->sortBy = 'name';
+        $this->sortDirection = 'asc';
+    }
+
+    public function getActiveFiltersCount(): int
+    {
+        $n = 0;
+        if (!empty($this->selectedCategory)) $n++;
+        if ($this->stockFilter !== 'all') $n++;
+        if ($this->sortBy !== 'name' || $this->sortDirection !== 'asc') $n++;
+        return $n;
+    }
+
     public function setSortBy($field)
     {
         if ($this->sortBy === $field) {
@@ -168,6 +187,40 @@ class AddProducts extends Component
         return $total;
     }
 
+    /**
+     * Itens selecionados com detalhes completos (independente do filtro atual).
+     * Usado pelo modal de confirmação e pelo carrinho mobile.
+     */
+    public function getSelectedItemsProperty()
+    {
+        $ids = collect($this->newProducts)->pluck('product_id')->filter()->unique();
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        $products = Product::whereIn('id', $ids)->get()->keyBy('id');
+
+        return collect($this->newProducts)
+            ->filter(fn ($row) => !empty($row['product_id']) && $products->has($row['product_id']))
+            ->map(function ($row) use ($products) {
+                $p = $products[$row['product_id']];
+                $qty = (int) $row['quantity'];
+                $price = (float) $row['price_sale'];
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'code' => $p->product_code,
+                    'image' => $p->image,
+                    'is_kit' => ($p->tipo ?? 'simples') === 'kit',
+                    'stock' => (int) $p->stock_quantity,
+                    'quantity' => $qty,
+                    'price_sale' => $price,
+                    'subtotal' => $qty * $price,
+                ];
+            })
+            ->values();
+    }
+
     public function updatedNewProducts($value, $key)
     {
         if (str_contains($key, '.product_id')) {
@@ -191,47 +244,96 @@ class AddProducts extends Component
             'newProducts.*.price_sale' => 'required|numeric|min:0'
         ]);
 
-        DB::transaction(function () {
-            foreach ($this->newProducts as $productData) {
-                if ($productData['product_id']) {
-                    // Verificar estoque
-                    $product = Product::find($productData['product_id']);
-                    if ($product->stock_quantity < $productData['quantity']) {
-                        session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
+        // Linhas válidas (com produto selecionado)
+        $rows = array_values(array_filter($this->newProducts, fn ($p) => !empty($p['product_id'])));
+        if (empty($rows)) {
+            session()->flash('error', 'Selecione ao menos um produto.');
+            return;
+        }
+
+        // ========= 1ª PASSAGEM: VALIDAÇÃO (antes de qualquer alteração) =========
+        // Produtos simples checam o próprio estoque; kits checam o estoque de cada
+        // COMPONENTE e informam exatamente qual componente está faltando.
+        foreach ($rows as $productData) {
+            $product = Product::find($productData['product_id']);
+            if (!$product) {
+                session()->flash('error', 'Produto não encontrado.');
+                return;
+            }
+
+            $qty = (int) $productData['quantity'];
+
+            if (($product->tipo ?? 'simples') === 'kit') {
+                $componentes = $product->componentes()->get();
+                if ($componentes->isEmpty()) {
+                    session()->flash('error', "O kit '{$product->name}' não possui componentes definidos.");
+                    return;
+                }
+
+                foreach ($componentes as $pc) {
+                    $componentProduct = $pc->componente()->first();
+                    if (!$componentProduct) {
+                        session()->flash('error', "Componente do kit '{$product->name}' não encontrado (ID: {$pc->componente_produto_id}).");
                         return;
                     }
-
-                    // Verifica se o produto já existe na venda
-                    $existingItem = SaleItem::where('sale_id', $this->sale->id)
-                        ->where('product_id', $productData['product_id'])
-                        ->first();
-
-                    if ($existingItem) {
-                        // Atualiza a quantidade se o produto já existe
-                        $existingItem->quantity += $productData['quantity'];
-                        $existingItem->save();
-                    } else {
-                        // Cria novo item se não existe
-                        SaleItem::create([
-                            'sale_id' => $this->sale->id,
-                            'product_id' => $productData['product_id'],
-                            'quantity' => $productData['quantity'],
-                            'price' => $product->price, // Preço de custo
-                            'price_sale' => $productData['price_sale']
-                        ]);
+                    $requiredQty = (int) ($pc->quantidade ?? 0) * $qty;
+                    if ($componentProduct->stock_quantity < $requiredQty) {
+                        session()->flash('error', "Estoque insuficiente para o componente '{$componentProduct->name}' do kit '{$product->name}'. Necessário: {$requiredQty}, Disponível: {$componentProduct->stock_quantity}.");
+                        return;
                     }
+                }
+            } else {
+                if ($product->stock_quantity < $qty) {
+                    session()->flash('error', "Estoque insuficiente para o produto '{$product->name}'. Necessário: {$qty}, Disponível: {$product->stock_quantity}.");
+                    return;
+                }
+            }
+        }
 
-                    // Atualiza estoque do produto
-                    $product->stock_quantity -= $productData['quantity'];
+        // ========= 2ª PASSAGEM: PERSISTÊNCIA (atômica) =========
+        DB::transaction(function () use ($rows) {
+            foreach ($rows as $productData) {
+                $product = Product::find($productData['product_id']);
+                $qty = (int) $productData['quantity'];
+
+                // Cria ou incrementa o item da venda
+                $existingItem = SaleItem::where('sale_id', $this->sale->id)
+                    ->where('product_id', $productData['product_id'])
+                    ->first();
+
+                if ($existingItem) {
+                    $existingItem->quantity += $qty;
+                    $existingItem->save();
+                } else {
+                    SaleItem::create([
+                        'sale_id' => $this->sale->id,
+                        'product_id' => $productData['product_id'],
+                        'quantity' => $qty,
+                        'price' => $product->price, // Preço de custo
+                        'price_sale' => $productData['price_sale'],
+                    ]);
+                }
+
+                // Atualiza estoque: simples desconta o próprio; kit desconta componentes
+                if (($product->tipo ?? 'simples') === 'kit') {
+                    foreach ($product->componentes()->get() as $pc) {
+                        $componentProduct = $pc->componente()->first();
+                        if (!$componentProduct) {
+                            continue;
+                        }
+                        $requiredQty = (int) ($pc->quantidade ?? 0) * $qty;
+                        $componentProduct->stock_quantity = max(0, $componentProduct->stock_quantity - $requiredQty);
+                        $componentProduct->save();
+                    }
+                } else {
+                    $product->stock_quantity = max(0, $product->stock_quantity - $qty);
                     $product->save();
                 }
             }
 
             // Recalcula o total da venda
             $this->sale->refresh();
-            $totalPrice = $this->sale->saleItems->sum(function ($item) {
-                return $item->quantity * $item->price_sale;
-            });
+            $totalPrice = $this->sale->saleItems->sum(fn ($item) => $item->quantity * $item->price_sale);
             $this->sale->update(['total_price' => $totalPrice]);
 
             // Recalcular parcelas se a venda for parcelada
@@ -304,11 +406,20 @@ class AddProducts extends Component
 
         // Kits são salvos com stock_quantity = 0 e o estoque real é composto pelos componentes.
         // Por isso, não podemos excluir todos os kits pelo filtro de estoque.
-        return $query->where(function ($q) {
-                        $q->where('stock_quantity', '>', 0)
-                          ->orWhere('tipo', 'kit');
-                    })
-                    ->with('category')
+        $query->where(function ($q) {
+            $q->where('stock_quantity', '>', 0)
+              ->orWhere('tipo', 'kit');
+        });
+
+        // Filtro de estoque (modal)
+        match ($this->stockFilter) {
+            'low'      => $query->where('tipo', '!=', 'kit')->where('stock_quantity', '<=', 5)->where('stock_quantity', '>', 0),
+            'in_stock' => $query->where('tipo', '!=', 'kit')->where('stock_quantity', '>', 5),
+            'kits'     => $query->where('tipo', 'kit'),
+            default    => null,
+        };
+
+        return $query->with('category')
                     ->orderBy($this->sortBy, $this->sortDirection)
                     ->get();
     }
