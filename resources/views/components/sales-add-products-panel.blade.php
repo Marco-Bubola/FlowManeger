@@ -3,7 +3,8 @@
     'filteredProducts' => collect(),
     'hasSelectedProducts' => false,
     'totalPrice' => 0,
-    'sale'
+    'sale',
+    'confirmViaModal' => false,
 ])
 
 <!-- Header do painel direito -->
@@ -166,24 +167,38 @@
     @endif
 
     <!-- Botão Confirmar centralizado + link Cancelar -->
-    <button type="button"
-            wire:click="addProducts"
-            wire:loading.attr="disabled"
-            wire:target="addProducts"
-            @if(!$hasSelectedProducts) disabled @endif
-            class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-bold transition-all duration-300 shadow-md mb-2
-            {{ $hasSelectedProducts
-                ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95'
-                : 'bg-gray-300 dark:bg-zinc-600 cursor-not-allowed text-gray-500 dark:text-zinc-400' }}">
-        <span wire:loading.remove wire:target="addProducts" class="flex items-center gap-2">
+    @if($confirmViaModal)
+        {{-- Abre o modal de confirmação (Alpine) antes de efetivar --}}
+        <button type="button"
+                onclick="window.dispatchEvent(new CustomEvent('open-confirm-add'))"
+                @if(!$hasSelectedProducts) disabled @endif
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-bold transition-all duration-300 shadow-md mb-2
+                {{ $hasSelectedProducts
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95'
+                    : 'bg-gray-300 dark:bg-zinc-600 cursor-not-allowed text-gray-500 dark:text-zinc-400' }}">
             <i class="bi bi-check2-circle text-base"></i>
-            Confirmar Adição
-        </span>
-        <span wire:loading wire:target="addProducts" class="flex items-center gap-2">
-            <i class="bi bi-hourglass-split animate-spin"></i>
-            Adicionando...
-        </span>
-    </button>
+            Revisar e Confirmar
+        </button>
+    @else
+        <button type="button"
+                wire:click="addProducts"
+                wire:loading.attr="disabled"
+                wire:target="addProducts"
+                @if(!$hasSelectedProducts) disabled @endif
+                class="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-white text-sm font-bold transition-all duration-300 shadow-md mb-2
+                {{ $hasSelectedProducts
+                    ? 'bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 hover:shadow-lg hover:shadow-emerald-500/25 active:scale-95'
+                    : 'bg-gray-300 dark:bg-zinc-600 cursor-not-allowed text-gray-500 dark:text-zinc-400' }}">
+            <span wire:loading.remove wire:target="addProducts" class="flex items-center gap-2">
+                <i class="bi bi-check2-circle text-base"></i>
+                Confirmar Adição
+            </span>
+            <span wire:loading wire:target="addProducts" class="flex items-center gap-2">
+                <i class="bi bi-hourglass-split animate-spin"></i>
+                Adicionando...
+            </span>
+        </button>
+    @endif
 
     <a href="{{ route('sales.show', $sale->id) }}"
        class="w-full flex items-center justify-center gap-1 px-4 py-2 rounded-xl text-gray-600 dark:text-gray-400 text-xs font-medium hover:bg-gray-100 dark:hover:bg-zinc-700 transition-colors">
