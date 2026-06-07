@@ -1,8 +1,9 @@
-/* Create Kit - Ultrawide (>= 1441px) */
+/* Create Kit - Ultrawide (>= 1441px) — sem limite de largura */
 @media (min-width: 1441px) {
     .create-kit-page {
-        max-width: 1600px;
-        margin-inline: auto;
+        max-width: 100%;
+        margin-inline: 0;
+        padding-inline: 1.25rem;
     }
 
     .create-kit-page .create-kit-header-inner {
@@ -20,5 +21,12 @@
 
     .create-kit-page .grid.grid-cols-1.md\:grid-cols-2 {
         grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+/* >= 1920 — verdadeiramente ultrawide */
+@media (min-width: 1920px) {
+    .create-kit-page {
+        padding-inline: 2rem;
     }
 }
