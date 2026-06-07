@@ -370,9 +370,8 @@
     @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
         .mps-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
     }
+    /* Máximo de 5 colunas (inclusive em 1920+) para cards proporcionais */
     @media (min-width: 1280px) { .mps-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
-    @media (min-width: 1600px) { .mps-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); } }
-    @media (min-width: 1920px) { .mps-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
 
     /* ============ CHIPS ============ */
     .mps-chip {
