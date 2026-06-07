@@ -46,7 +46,7 @@
                     <!-- Header Section -->
                     <div class="flex items-center justify-between gap-3 p-5 border-b border-slate-200/50 dark:border-slate-700/50">
                         <a href="{{ route('dashboard.index') }}" class="flex items-center gap-3 transition-all duration-300 hover:scale-105" wire:navigate.hover>
-                            <img src="/favicon.svg" alt="{{ config('app.name', 'FlowManager') }}" class="h-10 w-10 shrink-0 object-contain" />
+                            <img src="/logo-128.png" alt="{{ config('app.name', 'FlowManager') }}" class="h-10 w-10 shrink-0 object-contain" />
                             <span class="sidebar-text font-black text-xl bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">{{ config('app.name', 'FlowManager') }}</span>
                         </a>
 
