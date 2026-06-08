@@ -48,6 +48,13 @@
 
                     <!-- Badges do produto -->
                     <div class="flex items-center gap-3 flex-wrap">
+                        @if(($mainProduct->tipo ?? 'simples') === 'kit')
+                        <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white shadow-lg shadow-purple-500/30">
+                            <i class="bi bi-boxes mr-2"></i>
+                            KIT
+                            <span class="ml-2 px-1.5 py-0.5 rounded-md bg-white/25 text-[11px]">{{ $kitMontaveis }} montáveis</span>
+                        </span>
+                        @endif
                         <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg">
                             <i class="bi bi-upc-scan mr-2"></i>
                             {{ $productCode }}
@@ -204,6 +211,102 @@
 
         <!-- Overview Tab -->
         <div x-show="activeTab === 'overview'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 transform translate-y-4" x-transition:enter-end="opacity-100 transform translate-y-0">
+
+            {{-- ============ COMPONENTES DO KIT (apenas para kits) ============ --}}
+            @if(($mainProduct->tipo ?? 'simples') === 'kit' && $kitComponents->isNotEmpty())
+            @php
+                $kitCustoTotal = $kitComponents->sum('cost_total');
+                $kitVendaTotal = $kitComponents->sum('sale_total');
+                $kitMargem = $kitVendaTotal > 0 ? (($kitVendaTotal - $kitCustoTotal) / $kitVendaTotal) * 100 : 0;
+            @endphp
+            <div class="kit-components-card relative overflow-hidden rounded-3xl border border-purple-200/60 dark:border-purple-800/50 bg-gradient-to-br from-white via-purple-50/40 to-indigo-50/30 dark:from-slate-900 dark:via-purple-950/30 dark:to-slate-900 shadow-2xl mb-8">
+                <div class="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-gradient-to-br from-purple-400/20 to-pink-400/15 blur-3xl pointer-events-none"></div>
+
+                {{-- Cabeçalho --}}
+                <div class="relative px-5 sm:px-6 py-4 border-b border-purple-200/50 dark:border-purple-800/40 flex flex-wrap items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30 shrink-0">
+                        <i class="bi bi-boxes text-white text-xl"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h3 class="text-base sm:text-lg font-black text-slate-800 dark:text-white leading-tight flex items-center gap-2">
+                            Composição do Kit
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-700 dark:text-purple-300">{{ $kitComponents->count() }} {{ $kitComponents->count() === 1 ? 'item' : 'itens' }}</span>
+                        </h3>
+                        <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">Produtos que compõem este kit e seu estoque</p>
+                    </div>
+                    {{-- Montáveis --}}
+                    <div class="shrink-0 text-right rounded-2xl px-4 py-2 bg-gradient-to-br {{ $kitMontaveis > 0 ? 'from-emerald-500/15 to-teal-500/15 border border-emerald-400/40' : 'from-rose-500/15 to-red-500/15 border border-rose-400/40' }}">
+                        <p class="text-[10px] font-bold uppercase tracking-wider {{ $kitMontaveis > 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300' }}">Montáveis agora</p>
+                        <p class="text-2xl font-black {{ $kitMontaveis > 0 ? 'text-emerald-700 dark:text-emerald-200' : 'text-rose-700 dark:text-rose-200' }} leading-none">{{ $kitMontaveis }}</p>
+                    </div>
+                </div>
+
+                {{-- Resumo financeiro do kit --}}
+                <div class="relative px-5 sm:px-6 py-3 grid grid-cols-3 gap-2 border-b border-purple-200/40 dark:border-purple-800/30">
+                    <div class="rounded-xl bg-slate-100/70 dark:bg-slate-800/50 px-3 py-2">
+                        <p class="text-[10px] font-bold uppercase text-slate-400">Custo dos itens</p>
+                        <p class="text-sm font-black text-slate-700 dark:text-slate-200">R$ {{ number_format($kitCustoTotal, 2, ',', '.') }}</p>
+                    </div>
+                    <div class="rounded-xl bg-purple-100/60 dark:bg-purple-900/30 px-3 py-2">
+                        <p class="text-[10px] font-bold uppercase text-purple-500 dark:text-purple-300">Venda dos itens</p>
+                        <p class="text-sm font-black text-purple-700 dark:text-purple-200">R$ {{ number_format($kitVendaTotal, 2, ',', '.') }}</p>
+                    </div>
+                    <div class="rounded-xl bg-emerald-100/60 dark:bg-emerald-900/30 px-3 py-2">
+                        <p class="text-[10px] font-bold uppercase text-emerald-500 dark:text-emerald-300">Margem</p>
+                        <p class="text-sm font-black text-emerald-700 dark:text-emerald-200">{{ number_format($kitMargem, 1) }}%</p>
+                    </div>
+                </div>
+
+                {{-- Grid de componentes --}}
+                <div class="relative p-4 sm:p-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        @foreach($kitComponents as $kc)
+                        <div class="group relative rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/60 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                            <div class="flex items-stretch gap-3 p-3">
+                                {{-- Imagem --}}
+                                <div class="relative w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-950 shrink-0 flex items-center justify-center">
+                                    <img src="{{ !empty($kc['image']) ? asset('storage/products/' . $kc['image']) : asset('storage/products/product-placeholder.png') }}"
+                                        alt="{{ $kc['name'] }}" class="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform" />
+                                    <span class="absolute top-1 left-1 w-5 h-5 rounded-md bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow">{{ $kc['quantity'] }}x</span>
+                                </div>
+                                {{-- Info --}}
+                                <div class="min-w-0 flex-1 flex flex-col justify-between">
+                                    <div>
+                                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate" title="{{ $kc['name'] }}">{{ $kc['name'] }}</p>
+                                        <p class="text-[10px] text-slate-400 font-mono">#{{ $kc['code'] }}</p>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                        {{-- Estoque do componente --}}
+                                        @php $stockLow = $kc['stock'] <= ($kc['quantity'] * 3); @endphp
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $stockLow ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300' }}">
+                                            <i class="bi bi-stack text-[9px]"></i>{{ $kc['stock'] }}
+                                        </span>
+                                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300">
+                                            <i class="bi bi-currency-dollar text-[9px]"></i>{{ number_format($kc['sale'], 2, ',', '.') }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- Barra de "quantos kits dá pra montar" --}}
+                            <div class="px-3 pb-2.5">
+                                <div class="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider mb-1">
+                                    <span class="text-slate-400">Rende</span>
+                                    <span class="{{ $kc['kits_possiveis'] <= $kitMontaveis ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">{{ $kc['kits_possiveis'] }} kits</span>
+                                </div>
+                                <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                    @php $w = $kitMontaveis > 0 && $kc['kits_possiveis'] > 0 ? min(100, ($kitMontaveis / $kc['kits_possiveis']) * 100) : ($kc['kits_possiveis'] > 0 ? 100 : 0); @endphp
+                                    <div class="h-full rounded-full bg-gradient-to-r {{ $kc['kits_possiveis'] <= $kitMontaveis ? 'from-amber-400 to-orange-500' : 'from-emerald-400 to-teal-500' }}" style="width: {{ $w }}%"></div>
+                                </div>
+                                @if($kc['kits_possiveis'] <= $kitMontaveis)
+                                    <p class="text-[9px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1"><i class="bi bi-exclamation-triangle-fill"></i> Item que limita a montagem</p>
+                                @endif
+                            </div>
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @endif
 
             <!-- KPI Cards -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
@@ -1905,22 +2008,14 @@ function showSaleDetails(saleId) {
 
 function printSale(saleId) {
     console.log('Imprimindo venda:', saleId);
-
-    // Exemplo de implementação
-    if (confirm(`Deseja imprimir a venda ${saleId}?`)) {
-        // Aqui você implementaria a impressão
-        window.print();
-    }
+    window.fmConfirm({ title: 'Imprimir venda', message: `Deseja imprimir a venda <strong>${saleId}</strong>?`, variant: 'info', confirmText: 'Imprimir' })
+        .then(function(ok) { if (ok) window.print(); });
 }
 
 function duplicateSale(saleId) {
     console.log('Duplicando venda:', saleId);
-
-    // Exemplo de implementação
-    if (confirm(`Deseja criar uma nova venda baseada em ${saleId}?`)) {
-        // Aqui você implementaria a duplicação
-        alert('Venda duplicada com sucesso!');
-    }
+    window.fmConfirm({ title: 'Duplicar venda', message: `Deseja criar uma nova venda baseada em <strong>${saleId}</strong>?`, variant: 'info', confirmText: 'Duplicar' })
+        .then(function(ok) { if (ok) window.notify && window.notify('success', 'Venda duplicada com sucesso!'); });
 }
 
 function editSale(saleId) {
