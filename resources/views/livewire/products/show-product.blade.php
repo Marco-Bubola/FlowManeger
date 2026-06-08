@@ -4,6 +4,7 @@
 }" class="show-product-page w-full mobile-393-base">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-ipad-portrait.css') }}">
@@ -20,119 +21,70 @@
     <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
     <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
 
-    <div class="relative px-8 py-6">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+    <div class="relative px-4 sm:px-5 py-3.5">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
             <!-- Título e Info do Produto -->
-            <div class="flex items-center gap-6">
+            <div class="flex items-center gap-3 min-w-0">
                 <!-- Voltar -->
                 <a href="{{ route('products.index') }}"
-                    class="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 transition-all duration-300 shadow-lg hover:shadow-xl group">
-                    <i class="bi bi-arrow-left text-white text-xl group-hover:scale-110 transition-transform duration-300"></i>
+                    class="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all shadow-sm group">
+                    <i class="bi bi-arrow-left group-hover:-translate-x-0.5 transition-transform"></i>
                 </a>
 
                 <!-- Imagem do produto -->
-                <div class="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-600 flex items-center justify-center group">
+                <div class="relative w-14 h-14 rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shrink-0 group">
                     @if($mainProduct->image)
-                    <img src="{{ asset('storage/products/' . $mainProduct->image) }}"
-                        alt="{{ $mainProduct->name }}"
+                    <img src="{{ asset('storage/products/' . $mainProduct->image) }}" alt="{{ $mainProduct->name }}"
                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
                     @else
-                    <i class="bi bi-box-seam text-3xl text-slate-400 dark:text-slate-500"></i>
+                    <i class="bi bi-box-seam text-2xl text-slate-400 dark:text-slate-500"></i>
                     @endif
                 </div>
 
-                <div class="space-y-2">
-                    <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
+                <div class="min-w-0">
+                    <h1 class="text-lg sm:text-2xl font-black bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent truncate leading-tight">
                         {{ $mainProduct->name }}
                     </h1>
-
-                    <!-- Badges do produto -->
-                    <div class="flex items-center gap-3 flex-wrap">
+                    <!-- Badges do produto (compactos) -->
+                    <div class="flex items-center gap-1.5 flex-wrap mt-1">
                         @if(($mainProduct->tipo ?? 'simples') === 'kit')
-                        <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white shadow-lg shadow-purple-500/30">
-                            <i class="bi bi-boxes mr-2"></i>
-                            KIT
-                            <span class="ml-2 px-1.5 py-0.5 rounded-md bg-white/25 text-[11px]">{{ $kitMontaveis }} montáveis</span>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-bold bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white shadow">
+                            <i class="bi bi-boxes mr-1"></i>KIT · {{ $kitMontaveis }} montáveis
                         </span>
                         @endif
-                        <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg">
-                            <i class="bi bi-upc-scan mr-2"></i>
-                            {{ $productCode }}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow">
+                            <i class="bi bi-upc-scan mr-1"></i>{{ $productCode }}
                         </span>
                         @if($category)
-                        <span class="inline-flex items-center px-3 py-1.5 rounded-xl text-sm font-semibold bg-white/80 dark:bg-slate-700/80 text-purple-700 dark:text-purple-300 shadow-lg border border-purple-200 dark:border-purple-700">
-                            <i class="{{ $this->getCategoryIcon($category->icone) }} mr-1.5"></i>
-                            {{ $category->name }}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-white/80 dark:bg-slate-700/80 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-700/60">
+                            <i class="{{ $this->getCategoryIcon($category->icone) }} mr-1"></i>{{ $category->name }}
                         </span>
                         @endif
-                        <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold shadow-lg border
-                            {{ $products->count() > 1 ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-300' : 'bg-gradient-to-r from-green-500 to-emerald-500 text-white border-green-300' }}">
-                            <i class="bi bi-layers mr-2"></i>
-                            {{ $products->count() }} {{ $products->count() === 1 ? 'variação' : 'variações' }}
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold {{ $products->count() > 1 ? 'bg-amber-500 text-white' : 'bg-emerald-500 text-white' }}">
+                            <i class="bi bi-layers mr-1"></i>{{ $products->count() }} {{ $products->count() === 1 ? 'var.' : 'vars.' }}
                         </span>
                     </div>
                 </div>
             </div>
 
-            <!-- Botões de Ação - Organização Melhorada -->
-            <div class="flex flex-col gap-3">
-                <!-- Linha 1: Quick Stats -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg">
-                            <i class="bi bi-cart-check text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">Vendas</div>
-                            <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_quantity_sold']) }}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg">
-                            <i class="bi bi-currency-dollar text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">Receita</div>
-                            <div class="text-lg font-bold text-slate-800 dark:text-slate-200">R$ {{ number_format($analytics['total_revenue'], 0, ',', '.') }}</div>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-2 px-4 py-2 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl border border-white/20 dark:border-slate-600/50">
-                        <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
-                            <i class="bi bi-boxes text-white text-sm"></i>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500 dark:text-slate-400">Estoque</div>
-                            <div class="text-lg font-bold text-slate-800 dark:text-slate-200">{{ number_format($analytics['total_stock']) }}</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Linha 2: Ações do Produto -->
-                <div class="flex flex-wrap items-center gap-3">
-                    <a href="{{ route('products.edit', $mainProduct) }}"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border-2 border-slate-300 dark:border-slate-600 transition-all duration-300 shadow-md hover:shadow-lg backdrop-blur-sm">
-                        <i class="bi bi-pencil-fill"></i>
-                        <span>Editar</span>
-                    </a>
-
-                    <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <i class="bi bi-file-earmark-arrow-down"></i>
-                        <span>Exportar</span>
-                    </button>
-
-                    <button wire:click="duplicateProduct({{ $mainProduct->id }})"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <i class="bi bi-files"></i>
-                        <span>Duplicar</span>
-                    </button>
-
-                    <button wire:click="confirmDelete({{ $mainProduct->id }})"
-                        class="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                        <i class="bi bi-trash3"></i>
-                        <span>Excluir</span>
-                    </button>
-                </div>
+            <!-- Ações (compactas, ícone + label) -->
+            <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                <a href="{{ route('products.edit', $mainProduct) }}"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 transition shadow-sm">
+                    <i class="bi bi-pencil-fill text-amber-500"></i><span class="hidden sm:inline">Editar</span>
+                </a>
+                <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow transition">
+                    <i class="bi bi-file-earmark-arrow-down"></i><span class="hidden sm:inline">Exportar</span>
+                </button>
+                <button wire:click="duplicateProduct({{ $mainProduct->id }})"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow transition">
+                    <i class="bi bi-files"></i><span class="hidden sm:inline">Duplicar</span>
+                </button>
+                <button wire:click="confirmDelete({{ $mainProduct->id }})"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 shadow transition">
+                    <i class="bi bi-trash3"></i><span class="hidden sm:inline">Excluir</span>
+                </button>
             </div>
         </div>
     </div>
@@ -308,104 +260,23 @@
             </div>
             @endif
 
-            <!-- KPI Cards -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
-                <!-- Total Vendido -->
-                <div class="group relative bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-2xl hover:shadow-blue-500/30 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 overflow-hidden">
-                    <!-- Background Pattern -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-
-                    <div class="relative flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-3">
-                                <i class="bi bi-cart-check text-blue-200 text-sm"></i>
-                                <p class="text-blue-100 text-sm font-semibold tracking-wide uppercase">Total Vendido</p>
-                            </div>
-                            <p class="text-4xl font-black mb-2 group-hover:scale-110 transition-transform duration-300">{{ number_format($analytics['total_quantity_sold']) }}</p>
-                            <p class="text-blue-200 text-sm font-medium">unidades vendidas</p>
-                        </div>
-                        <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 shadow-lg">
-                            <i class="bi bi-cart-check text-3xl text-white"></i>
-                        </div>
-                    </div>
-                    <!-- Animated Border -->
-                    <div class="absolute inset-0 rounded-3xl border-2 border-white/20 group-hover:border-white/40 transition-colors duration-500"></div>
-                </div>
-
-                <!-- Receita Total -->
-                <div class="group relative bg-gradient-to-br from-green-500 via-emerald-600 to-teal-700 rounded-3xl p-8 text-white shadow-2xl hover:shadow-green-500/30 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 overflow-hidden">
-                    <!-- Background Pattern -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-
-                    <div class="relative flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-3">
-                                <i class="bi bi-currency-dollar text-green-200 text-sm"></i>
-                                <p class="text-green-100 text-sm font-semibold tracking-wide uppercase">Receita Total</p>
-                            </div>
-                            <p class="text-4xl font-black mb-2 group-hover:scale-110 transition-transform duration-300">R$ {{ number_format($analytics['total_revenue'], 0, ',', '.') }}</p>
-                            <p class="text-green-200 text-sm font-medium">faturamento bruto</p>
-                        </div>
-                        <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 shadow-lg">
-                            <i class="bi bi-currency-dollar text-3xl text-white"></i>
-                        </div>
-                    </div>
-                    <!-- Animated Border -->
-                    <div class="absolute inset-0 rounded-3xl border-2 border-white/20 group-hover:border-white/40 transition-colors duration-500"></div>
-                </div>
-
-                <!-- Lucro -->
-                <div class="group relative bg-gradient-to-br from-purple-500 via-violet-600 to-pink-700 rounded-3xl p-8 text-white shadow-2xl hover:shadow-purple-500/30 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 overflow-hidden">
-                    <!-- Background Pattern -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-
-                    <div class="relative flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-3">
-                                <i class="bi bi-graph-up-arrow text-purple-200 text-sm"></i>
-                                <p class="text-purple-100 text-sm font-semibold tracking-wide uppercase">Lucro Total</p>
-                            </div>
-                            <p class="text-4xl font-black mb-2 group-hover:scale-110 transition-transform duration-300">R$ {{ number_format($analytics['total_profit'], 0, ',', '.') }}</p>
-                            <div class="flex items-center space-x-2">
-                                <p class="text-purple-200 text-sm font-medium">{{ number_format($analytics['profit_margin'], 1) }}% margem</p>
-                                <div class="flex items-center px-2 py-1 bg-white/20 rounded-full">
-                                    <i class="bi bi-trending-up text-xs text-white"></i>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 shadow-lg">
-                            <i class="bi bi-graph-up-arrow text-3xl text-white"></i>
-                        </div>
-                    </div>
-                    <!-- Animated Border -->
-                    <div class="absolute inset-0 rounded-3xl border-2 border-white/20 group-hover:border-white/40 transition-colors duration-500"></div>
-                </div>
-
-                <!-- Estoque -->
-                <div class="group relative bg-gradient-to-br from-orange-500 via-red-600 to-pink-700 rounded-3xl p-8 text-white shadow-2xl hover:shadow-orange-500/30 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2 overflow-hidden">
-                    <!-- Background Pattern -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <div class="absolute -top-4 -right-4 w-24 h-24 bg-white/5 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
-
-                    <div class="relative flex items-start justify-between">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-2 mb-3">
-                                <i class="bi bi-boxes text-orange-200 text-sm"></i>
-                                <p class="text-orange-100 text-sm font-semibold tracking-wide uppercase">Em Estoque</p>
-                            </div>
-                            <p class="text-4xl font-black mb-2 group-hover:scale-110 transition-transform duration-300">{{ number_format($analytics['total_stock']) }}</p>
-                            <p class="text-orange-200 text-sm font-medium">R$ {{ number_format($analytics['stock_value'], 0, ',', '.') }} em valor</p>
-                        </div>
-                        <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center group-hover:rotate-12 transition-transform duration-500 shadow-lg">
-                            <i class="bi bi-boxes text-3xl text-white"></i>
-                        </div>
-                    </div>
-                    <!-- Animated Border -->
-                    <div class="absolute inset-0 rounded-3xl border-2 border-white/20 group-hover:border-white/40 transition-colors duration-500"></div>
-                </div>
+            <!-- KPI Cards (compactos + sparkline + countup) -->
+            <div class="dash-kpis mb-8">
+                <x-dash.kpi label="Total vendido" tone="sky" icon="bi-cart-check"
+                    :value="number_format($analytics['total_quantity_sold'])" countup
+                    :spark="$chartData['sales'] ?? []" spark-color="#0ea5e9" />
+                <x-dash.kpi label="Receita total" tone="emerald" icon="bi-currency-dollar"
+                    :value="'R$ ' . number_format($analytics['total_revenue'], 0, ',', '.')"
+                    :spark="$chartData['revenue'] ?? []" spark-color="#10b981" />
+                <x-dash.kpi label="Lucro total" tone="purple" icon="bi-graph-up-arrow"
+                    :value="'R$ ' . number_format($analytics['total_profit'], 0, ',', '.')"
+                    :delta="round($analytics['profit_margin'] ?? 0)" />
+                <x-dash.kpi label="Margem" tone="indigo" icon="bi-percent"
+                    :value="number_format($analytics['profit_margin'], 1) . '%'" />
+                <x-dash.kpi label="Em estoque" tone="amber" icon="bi-boxes"
+                    :value="number_format($analytics['total_stock'])" countup />
+                <x-dash.kpi label="Valor estoque" tone="rose" icon="bi-cash-stack"
+                    :value="'R$ ' . number_format($analytics['stock_value'], 0, ',', '.')" />
             </div>
 
             <!-- Charts Section -->
