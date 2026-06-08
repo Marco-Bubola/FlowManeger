@@ -239,7 +239,7 @@
                                     </button>
                                 </form>
                                 @if(($plan->active_subscriptions_count ?? 0) == 0)
-                                    <form method="POST" action="{{ route('admin.plans.destroy', $plan) }}" style="display:inline" onsubmit="return confirm('Excluir plano {{ $plan->name }}?')">
+                                    <form method="POST" action="{{ route('admin.plans.destroy', $plan) }}" style="display:inline" onsubmit="return fmConfirmSubmit(event, 'Excluir plano {{ $plan->name }}?')">
                                         @csrf @method('DELETE')
                                         <button class="btn btn-sm btn-danger">Excluir</button>
                                     </form>
