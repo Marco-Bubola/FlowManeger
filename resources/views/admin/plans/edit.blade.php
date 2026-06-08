@@ -75,7 +75,7 @@
                 <div class="page-sub">{{ $subscribersCount }} assinante(s) ativo(s) neste plano.</div>
             </div>
             @if($subscribersCount == 0)
-                <form method="POST" action="{{ route('admin.plans.destroy', $plan) }}" onsubmit="return confirm('Excluir o plano {{ $plan->name }}? Esta ação não pode ser desfeita.')">
+                <form method="POST" action="{{ route('admin.plans.destroy', $plan) }}" onsubmit="return fmConfirmSubmit(event, 'Excluir o plano {{ $plan->name }}? Esta ação não pode ser desfeita.')">
                     @csrf @method('DELETE')
                     <button class="btn btn-danger">Excluir Plano</button>
                 </form>
