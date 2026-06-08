@@ -61,7 +61,7 @@ class HabitService
 
             if ($existing) {
                 // Incrementar contador
-                $existing->increment('completion_count');
+                $existing->increment('times_completed');
                 $completion = $existing;
             } else {
                 // Criar nova conclusão
@@ -69,7 +69,7 @@ class HabitService
                     'habit_id' => $habit->id,
                     'user_id' => $userId,
                     'completion_date' => $date,
-                    'completion_count' => 1,
+                    'times_completed' => 1,
                 ]);
             }
 
@@ -94,8 +94,8 @@ class HabitService
                 ->first();
 
             if ($completion) {
-                if ($completion->completion_count > 1) {
-                    $completion->decrement('completion_count');
+                if ($completion->times_completed > 1) {
+                    $completion->decrement('times_completed');
                 } else {
                     $completion->delete();
                 }
@@ -186,17 +186,17 @@ class HabitService
             ->get();
 
         $totalDays = $completions->count();
-        $totalCompletions = $completions->sum('completion_count');
+        $totalCompletions = $completions->sum('times_completed');
 
         return [
             'current_streak' => $streak->current_streak ?? 0,
             'longest_streak' => $streak->longest_streak ?? 0,
             'total_days' => $totalDays,
             'total_completions' => $totalCompletions,
-            'today_count' => $today ? $today->completion_count : 0,
+            'today_count' => $today ? $today->times_completed : 0,
             'goal_frequency' => $habit->goal_frequency,
             'today_progress' => $habit->goal_frequency > 0
-                ? round((($today->completion_count ?? 0) / $habit->goal_frequency) * 100, 2)
+                ? round((($today->times_completed ?? 0) / $habit->goal_frequency) * 100, 2)
                 : 0,
             'is_completed_today' => $habit->isCompletedToday(),
         ];
@@ -229,7 +229,7 @@ class HabitService
 
         foreach ($habits as $habit) {
             $todayCompletion = $habit->getTodayCompletion();
-            $count = $todayCompletion ? $todayCompletion->completion_count : 0;
+            $count = $todayCompletion ? $todayCompletion->times_completed : 0;
 
             if ($count >= $habit->goal_frequency) {
                 $completedToday++;
