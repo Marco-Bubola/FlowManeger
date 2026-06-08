@@ -185,7 +185,7 @@
                         <td>
                             <div style="display:flex;gap:.35rem;flex-wrap:wrap">
                                 @if(in_array($sub->status, ['active', 'trialing']))
-                                    <form method="POST" action="{{ route('admin.subscriptions.revoke', $sub) }}" onsubmit="return confirm('Revogar acesso de {{ $sub->user->name }}?')">
+                                    <form method="POST" action="{{ route('admin.subscriptions.revoke', $sub) }}" onsubmit="return fmConfirmSubmit(event, 'Revogar acesso de {{ $sub->user->name }}?')">
                                         @csrf
                                         <button class="btn btn-sm btn-danger">Revogar</button>
                                     </form>
