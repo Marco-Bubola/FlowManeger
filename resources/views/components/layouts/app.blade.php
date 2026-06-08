@@ -24,6 +24,7 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+    <script src="{{ asset('assets/js/dash-charts.js') }}" defer></script>
 
 
     <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">
@@ -218,6 +219,9 @@
 
     <!-- Sistema de Notificações Global -->
     @livewire('components.notifications')
+
+    <!-- Modal de confirmação global moderno (substitui confirm()/alert() nativos) -->
+    @include('components.confirm-modal')
 
     <!-- Sistema de Notificações de Achievements -->
     @livewire('components.achievement-notifier')
