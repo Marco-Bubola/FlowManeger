@@ -157,33 +157,19 @@
                 }
             @endphp
 
+            {{-- Botão "Carrinho" no header (abre o modal de carrinho/resumo) — apenas no Step 1 --}}
             <button
                 type="button"
-                @if($canProceed)
-                    @click="currentStep = 2"
-                @endif
-                title="{{ $tooltip }}"
-                @if(!$canProceed) disabled @endif
-                class="create-header-next-btn
-                    group relative inline-flex items-center justify-center px-6 py-2.5 rounded-lg font-semibold tracking-wide text-white transition-all duration-300
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900
-                    {{ $canProceed
-                        ? 'bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/20 shadow-lg shadow-indigo-500/20 hover:bg-gradient-to-r from-indigo-500 to-purple-600'
-                        : 'bg-slate-400/50 dark:bg-slate-700/50 cursor-not-allowed opacity-60'
-                    }}
-                "
+                x-show="currentStep === 1"
+                @click="openCart()"
+                title="Abrir carrinho e resumo da venda"
+                class="create-header-cart-btn group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 transition-all"
             >
-                <span class="create-header-next-content">
-                    <span class="create-header-next-copy">
-                        <span class="create-header-next-label">Ir para Resumo</span>
-                        <span class="create-header-next-meta">{{ $canProceed ? 'Conferir cliente, parcelas e total antes de salvar' : 'Complete cliente e produtos para liberar a revisao' }}</span>
-                    </span>
-                    <span class="create-header-next-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
-                    </span>
-                </span>
+                <i class="bi bi-cart3 text-lg"></i>
+                <span class="hidden sm:inline">Carrinho</span>
+                @if(count($selectedProducts) > 0)
+                    <span class="inline-flex items-center justify-center min-w-[1.4rem] h-5 px-1.5 rounded-full bg-white text-purple-700 text-[11px] font-black shadow ring-2 ring-white/40">{{ count($selectedProducts) }}</span>
+                @endif
             </button>
         </x-slot>
     </x-sales-header>
@@ -383,10 +369,45 @@
                     </div>
                 </div>
 
-                <!-- Lado Direito: Painel de Resumo & Produtos Selecionados (1/4 da tela) -->
-                <div class="w-full lg:w-1/4 flex flex-col create-sale-summary-pane">
+                <!-- FAB Carrinho flutuante (abre o modal) -->
+                <template x-teleport="body">
+                    <button type="button" x-show="currentStep === 1" @click="openCart()"
+                        class="cs-cart-fab fixed bottom-24 right-4 z-[90] w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-2xl shadow-purple-500/40 flex items-center justify-center active:scale-95 transition-transform" aria-label="Abrir carrinho">
+                        <i class="bi bi-cart3 text-2xl"></i>
+                        @if(count($selectedProducts) > 0)
+                            <span class="absolute -top-1.5 -right-1.5 min-w-[1.5rem] h-6 px-1.5 rounded-full bg-rose-500 text-white text-xs font-black flex items-center justify-center ring-4 ring-white dark:ring-slate-900 shadow-lg animate-pulse">{{ count($selectedProducts) }}</span>
+                        @endif
+                    </button>
+                </template>
+
+                <!-- ===== CARRINHO em MODAL (resumo + cliente + pagamento + produtos selecionados) ===== -->
+                <template x-teleport="body">
+                <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition.opacity>
+                    <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="closeCart()"></div>
+                    <div class="cs-cart-panel relative w-full sm:max-w-md md:max-w-lg max-h-[94vh] sm:max-h-[90vh] overflow-hidden rounded-t-3xl sm:rounded-3xl shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
+                        x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave="transition ease-in duration-200"
+                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95">
+
+                        <!-- Header do modal -->
+                        <div class="shrink-0 px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                                <i class="bi bi-cart-check-fill text-white text-lg"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h3 class="text-base font-bold text-slate-800 dark:text-white leading-tight">Carrinho da Venda</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'produto' : 'produtos' }} · revise antes do resumo</p>
+                            </div>
+                            <button type="button" @click="closeCart()" class="w-9 h-9 inline-flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition"><i class="bi bi-x-lg"></i></button>
+                        </div>
+
+                        <!-- Corpo rolável -->
+                        <div class="cs-cart-body flex-1 min-h-0 overflow-y-auto p-4 create-sale-summary-pane">
                     <!-- Painel de Resumo da Venda Modernizado -->
-                    <div class="p-4 create-sale-summary-card">
+                    <div class="p-0 create-sale-summary-card">
                         @php
                             $selectedItemsCount = count($selectedProducts);
                             $selectedUnitsCount = collect($products)->sum('quantity');
@@ -637,6 +658,32 @@
                                 @error('tipo_pagamento') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
                             </div>
 
+                            <!-- Marcar venda como JÁ PAGA -->
+                            <div class="p-3 rounded-xl shadow-sm bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/25 dark:to-green-900/15 border border-emerald-200/60 dark:border-emerald-700/40 sm:col-span-2">
+                                <label class="flex items-center gap-3 cursor-pointer select-none">
+                                    <span class="relative inline-flex shrink-0">
+                                        <input type="checkbox" wire:model.live="marcar_como_pago" class="sr-only peer" />
+                                        <span class="w-11 h-6 rounded-full bg-slate-300 dark:bg-slate-600 peer-checked:bg-gradient-to-r peer-checked:from-emerald-500 peer-checked:to-green-500 transition-colors block"></span>
+                                        <span class="absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform peer-checked:translate-x-5"></span>
+                                    </span>
+                                    <span class="flex-1 min-w-0">
+                                        <span class="text-sm font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5"><i class="bi bi-check-circle-fill"></i> Já está paga</span>
+                                        <span class="block text-[11px] text-emerald-600/80 dark:text-emerald-400/70">Quita a venda inteira ({{ $tipo_pagamento === 'parcelado' ? 'todas as parcelas' : 'à vista' }})</span>
+                                    </span>
+                                </label>
+                                @if($marcar_como_pago)
+                                <div class="mt-3">
+                                    <label class="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-300 block mb-1.5">Forma do pagamento</label>
+                                    <div class="grid grid-cols-3 gap-1.5">
+                                        @foreach(['dinheiro'=>'Dinheiro','pix'=>'PIX','cartao'=>'Cartão'] as $val=>$lbl)
+                                        <button type="button" wire:click="$set('metodo_pago','{{ $val }}')"
+                                            class="px-2 py-1.5 rounded-lg text-[11px] font-bold border transition {{ $metodo_pago === $val ? 'bg-emerald-500 text-white border-emerald-500 shadow' : 'bg-white/70 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-emerald-400' }}">{{ $lbl }}</button>
+                                        @endforeach
+                                    </div>
+                                </div>
+                                @endif
+                            </div>
+
                             <!-- Bloco Parcelas -->
                             <div class="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-xl shadow-sm">
                                 @if($tipo_pagamento == 'parcelado')
@@ -859,7 +906,36 @@
                         @endif
                     </div>
 
-                </div>
+                        </div>{{-- /.cs-cart-body --}}
+
+                        {{-- Footer fixo do carrinho: total + Ir para Resumo --}}
+                        @php $cartCanProceed = count($selectedProducts) > 0 && !empty($client_id); @endphp
+                        <div class="shrink-0 px-5 py-4 border-t border-slate-200/60 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/50">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Total da venda</span>
+                                <span class="text-xl font-black text-emerald-600 dark:text-emerald-400">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</span>
+                            </div>
+                            <button type="button"
+                                @if($cartCanProceed) @click="goToResumo()" @endif
+                                @if(!$cartCanProceed) disabled @endif
+                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white transition
+                                    {{ $cartCanProceed
+                                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/30'
+                                        : 'bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed' }}">
+                                <i class="bi bi-arrow-right-circle"></i>
+                                Ir para Resumo
+                            </button>
+                            @unless($cartCanProceed)
+                                <p class="mt-2 text-[11px] text-center text-slate-500 dark:text-slate-400">
+                                    @if(empty($client_id) && count($selectedProducts) === 0) Selecione um cliente e adicione produtos
+                                    @elseif(empty($client_id)) Selecione um cliente
+                                    @else Adicione ao menos um produto @endif
+                                </p>
+                            @endunless
+                        </div>
+                    </div>{{-- /.cs-cart-panel --}}
+                </div>{{-- /.cs-cart-overlay --}}
+                </template>
             </div>
 
             <!-- Step 3: Resumo e Finalização - Layout em duas colunas -->
@@ -1365,6 +1441,10 @@
         return {
             currentStep: Number.parseInt(currentStepModel, 10) || 1,
             openScannerOnLoad: Boolean(openScannerOnLoad),
+            showCart: false,
+            openCart() { this.showCart = true; document.body.style.overflow = 'hidden'; },
+            closeCart() { this.showCart = false; document.body.style.overflow = ''; },
+            goToResumo() { this.showCart = false; document.body.style.overflow = ''; this.currentStep = 2; },
             scannerOpen: false,
             scannerStatus: 'Inicie o scanner para ler o codigo de barras.',
             scannerFacing: 'environment',
