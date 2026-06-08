@@ -617,4 +617,39 @@ class DashboardSales extends Component
     {
         return view('livewire.dashboard.dashboard-sales');
     }
+
+    /**
+     * Séries para os gráficos do dashboard de vendas (cache 5 min).
+     */
+    public function buildSalesCharts(): array
+    {
+        $userId = Auth::id();
+        return \Illuminate\Support\Facades\Cache::remember("dash:sales:{$userId}", 300, function () use ($userId) {
+            // Vendas por dia (últimos 14 dias) — valor
+            $start = now()->subDays(13)->startOfDay();
+            $rows = \App\Models\Sale::where('user_id', $userId)
+                ->where('created_at', '>=', $start)
+                ->selectRaw('DATE(created_at) as d, SUM(total_price) as t')
+                ->groupBy('d')->pluck('t', 'd');
+            $labels = []; $series = [];
+            for ($i = 0; $i < 14; $i++) {
+                $day = now()->subDays(13 - $i);
+                $labels[] = $day->format('d/m');
+                $series[] = round((float) ($rows[$day->format('Y-m-d')] ?? 0), 2);
+            }
+
+            // Por forma de pagamento
+            $pay = \App\Models\Sale::where('user_id', $userId)
+                ->selectRaw("COALESCE(NULLIF(tipo_pagamento,''),'a_vista') as m, COUNT(*) as c")
+                ->groupBy('m')->pluck('c', 'm');
+            $payMap = ['a_vista' => 'À vista', 'parcelado' => 'Parcelado'];
+            $payLabels = []; $paySeries = [];
+            foreach ($pay as $m => $c) { $payLabels[] = $payMap[$m] ?? ucfirst((string)$m); $paySeries[] = (int)$c; }
+
+            return [
+                'dayLabels' => $labels, 'daySeries' => $series,
+                'payLabels' => $payLabels, 'paySeries' => $paySeries,
+            ];
+        });
+    }
 }
