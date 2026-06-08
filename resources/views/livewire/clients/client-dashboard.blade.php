@@ -1337,7 +1337,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         @csrf
                         @method('DELETE')
                         <button type="submit"
-                            onclick="return confirm('Revogar o acesso de {{ addslashes($client->name) }} ao portal?')"
+                            onclick="return fmConfirmSubmit(event, 'Revogar o acesso de {{ addslashes($client->name) }} ao portal?')"
                             class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 text-sm font-semibold rounded-xl transition-colors border border-red-200 dark:border-red-800">
                             <i class="fas fa-ban text-sm"></i>
                             Revogar Acesso
