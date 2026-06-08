@@ -1304,7 +1304,54 @@ class DashboardIndex extends Component
             'aiSummary' => $this->aiSummary,
             'aiSummaryLoading' => $this->aiSummaryLoading,
             'showAiPanel' => $this->showAiPanel,
+            'overviewCharts' => $this->buildOverviewCharts(),
         ]);
+    }
+
+    /**
+     * Séries para os gráficos do cockpit (Dashboard Geral redesenhado).
+     * Cacheado por 5 minutos para evitar consultas repetidas.
+     */
+    protected function buildOverviewCharts(): array
+    {
+        $userId = Auth::id();
+        return \Illuminate\Support\Facades\Cache::remember("dash:overview:{$userId}", 300, function () use ($userId) {
+            // Receita por dia (últimos 14 dias)
+            $start = now()->subDays(13)->startOfDay();
+            $rows = Sale::where('user_id', $userId)
+                ->where('created_at', '>=', $start)
+                ->selectRaw('DATE(created_at) as d, SUM(total_price) as t')
+                ->groupBy('d')->pluck('t', 'd');
+
+            $revLabels = [];
+            $revSeries = [];
+            for ($i = 0; $i < 14; $i++) {
+                $day = now()->subDays(13 - $i);
+                $key = $day->format('Y-m-d');
+                $revLabels[] = $day->format('d/m');
+                $revSeries[] = round((float) ($rows[$key] ?? 0), 2);
+            }
+
+            // Distribuição de vendas por status
+            $statusRows = Sale::where('user_id', $userId)
+                ->selectRaw("status, COUNT(*) as c")
+                ->groupBy('status')->pluck('c', 'status');
+
+            $statusMap = ['pago' => 'Pago', 'pendente' => 'Pendente', 'finalizada' => 'Finalizada', 'cancelada' => 'Cancelada'];
+            $statusLabels = [];
+            $statusSeries = [];
+            foreach ($statusRows as $st => $count) {
+                $statusLabels[] = $statusMap[strtolower((string) $st)] ?? ucfirst((string) $st);
+                $statusSeries[] = (int) $count;
+            }
+
+            return [
+                'revenueLabels' => $revLabels,
+                'revenueSeries' => $revSeries,
+                'statusLabels' => $statusLabels,
+                'statusSeries' => $statusSeries,
+            ];
+        });
     }
 
     protected function getReferenceDate(): Carbon
