@@ -206,35 +206,8 @@ class DailyHabitsDashboard extends Component
             session()->flash('message', '❌ Erro ao atualizar hábito: ' . $e->getMessage());
             session()->flash('message_type', 'error');
         }
-
-
-        $today = Carbon::today();
-        $lastCompletion = $streak->last_completion_date ? Carbon::parse($streak->last_completion_date) : null;
-
-        if ($completed) {
-            // Incrementar streak
-            if ($lastCompletion && $lastCompletion->isYesterday()) {
-                $streak->current_streak++;
-            } elseif (!$lastCompletion || !$lastCompletion->isToday()) {
-                $streak->current_streak = 1;
-            }
-
-            $streak->total_completions++;
-            $streak->last_completion_date = $today;
-
-            if ($streak->current_streak > $streak->longest_streak) {
-                $streak->longest_streak = $streak->current_streak;
-            }
-        } else {
-            // Decrementar (desmarcou)
-            if ($lastCompletion && $lastCompletion->isToday()) {
-                $streak->current_streak = max(0, $streak->current_streak - 1);
-                $streak->total_completions = max(0, $streak->total_completions - 1);
-                $streak->last_completion_date = $streak->total_completions > 0 ? $today->copy()->subDay() : null;
-            }
-        }
-
-        $streak->save();
+        // NOTA: a atualização de streak é feita dentro de HabitService::complete/uncomplete.
+        // (Removido bloco morto que referenciava variáveis inexistentes $streak/$completed.)
     }
 
     public function openCreateModal()
