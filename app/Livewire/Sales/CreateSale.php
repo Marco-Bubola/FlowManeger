@@ -6,6 +6,7 @@ use App\Models\Sale;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\SaleItem;
+use App\Models\SalePayment;
 use App\Models\VendaParcela;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -23,6 +24,8 @@ class CreateSale extends Component
     public $sale_date;
     public $tipo_pagamento = 'a_vista';
     public $parcelas = 1;
+    public bool $marcar_como_pago = false; // marca a venda inteira como já paga
+    public string $metodo_pago = 'dinheiro'; // método usado quando paga na criação
     public $products = []; // Array de produtos adicionados
     public $clients = [];
     public $availableProducts = [];
@@ -297,9 +300,34 @@ class CreateSale extends Component
             if ($sale->tipo_pagamento === 'parcelado' && $sale->parcelas > 1) {
                 $this->gerarParcelasVenda($sale, $saleTimestamp->copy()->startOfDay());
             }
+
+            // ===== Marcar a venda inteira como PAGA (à vista ou parcelado) =====
+            if ($this->marcar_como_pago) {
+                // Registra um pagamento integral
+                SalePayment::create([
+                    'sale_id' => $sale->id,
+                    'amount_paid' => $totalPrice,
+                    'payment_method' => $this->metodo_pago ?: 'dinheiro',
+                    'payment_date' => $saleTimestamp->format('Y-m-d'),
+                ]);
+
+                // Atualiza a venda: valor pago + status pago
+                $sale->update([
+                    'amount_paid' => $totalPrice,
+                    'status' => 'pago',
+                ]);
+
+                // Se parcelado, quita todas as parcelas
+                if ($sale->tipo_pagamento === 'parcelado') {
+                    VendaParcela::where('sale_id', $sale->id)->update([
+                        'status' => 'paga',
+                        'pago_em' => $saleTimestamp->format('Y-m-d'),
+                    ]);
+                }
+            }
         });
 
-        session()->flash('success', 'Venda criada com sucesso!');
+        session()->flash('success', $this->marcar_como_pago ? 'Venda criada e quitada com sucesso!' : 'Venda criada com sucesso!');
         return redirect()->route('sales.index');
 
         } catch (\Exception $e) {
