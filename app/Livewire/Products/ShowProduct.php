@@ -331,10 +331,60 @@ class ShowProduct extends Component
         ];
     }
 
+    /**
+     * Componentes do kit (quando o produto for um kit).
+     * Retorna lista com produto, quantidade, estoque e preços.
+     */
+    public function getKitComponentsProperty()
+    {
+        if (!$this->mainProduct || ($this->mainProduct->tipo ?? 'simples') !== 'kit') {
+            return collect();
+        }
+
+        return \App\Models\ProdutoComponente::where('kit_produto_id', $this->mainProduct->id)
+            ->with('componente')
+            ->get()
+            ->map(function ($pc) {
+                $p = $pc->componente;
+                $qty = (int) ($pc->quantidade ?? 1);
+                $cost = (float) ($pc->preco_custo_unitario ?? ($p->price ?? 0));
+                $sale = (float) ($pc->preco_venda_unitario ?? ($p->price_sale ?? 0));
+                $stock = (int) ($p->stock_quantity ?? 0);
+                return [
+                    'id' => $p->id ?? null,
+                    'name' => $p->name ?? 'Componente',
+                    'code' => $p->product_code ?? '',
+                    'image' => $p->image ?? null,
+                    'quantity' => $qty,
+                    'stock' => $stock,
+                    'cost' => $cost,
+                    'sale' => $sale,
+                    'cost_total' => $cost * $qty,
+                    'sale_total' => $sale * $qty,
+                    // quantos kits dá pra montar com o estoque deste componente
+                    'kits_possiveis' => $qty > 0 ? intdiv($stock, $qty) : 0,
+                ];
+            });
+    }
+
+    /**
+     * Quantos kits completos é possível montar com o estoque atual dos componentes.
+     */
+    public function getKitMontaveisProperty(): int
+    {
+        $components = $this->kitComponents;
+        if ($components->isEmpty()) {
+            return 0;
+        }
+        return (int) $components->min('kits_possiveis');
+    }
+
     public function render()
     {
         return view('livewire.products.show-product', [
             'chartData' => $this->chartData,
+            'kitComponents' => $this->kitComponents,
+            'kitMontaveis' => $this->kitMontaveis,
         ]);
     }
 }
