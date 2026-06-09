@@ -140,7 +140,7 @@
             <div class="rounded-xl bg-emerald-100/60 dark:bg-emerald-900/30 px-3 py-2"><p class="text-[10px] font-bold uppercase text-emerald-500 dark:text-emerald-300">Margem</p><p class="text-sm font-black text-emerald-700 dark:text-emerald-200">{{ number_format($kitMargem, 1) }}%</p></div>
         </div>
         <div class="relative p-4 sm:p-5">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div class="kit-comp-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                 @foreach($kitComponents as $kc)
                 <div class="group relative rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/60 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
                     <div class="flex items-stretch gap-3 p-3">
