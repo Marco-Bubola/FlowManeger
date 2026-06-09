@@ -9,6 +9,25 @@
         $greeting = $hour < 12 ? 'Bom dia' : ($hour < 18 ? 'Boa tarde' : 'Boa noite');
         $fmt = fn($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
         $ov = $overviewCharts ?? ['revenueLabels'=>[], 'revenueSeries'=>[], 'statusLabels'=>[], 'statusSeries'=>[]];
+
+        // Fluxo de caixa mensal (receitas x despesas)
+        $cf = collect($cashflowMonthly ?? []);
+        $cfLabels   = $cf->pluck('label')->values()->all();
+        $cfReceitas = $cf->pluck('receitas')->map(fn($v)=>round((float)$v,2))->values()->all();
+        $cfDespesas = $cf->pluck('despesas')->map(fn($v)=>round((float)$v,2))->values()->all();
+
+        // Despesas por categoria
+        $ec = collect($expensesByCategory ?? []);
+        $ecLabels = $ec->pluck('label')->values()->all();
+        $ecSeries = $ec->pluck('total')->map(fn($v)=>round((float)$v,2))->values()->all();
+
+        // Comparativo de períodos
+        $pc = $periodComparison ?? ['labels'=>[], 'income'=>[], 'expenses'=>[]];
+
+        // Orçamento do mês
+        $orcTotal = (float)($orcamentoMesTotal ?? 0);
+        $orcUsado = (float)($orcamentoMesUsado ?? 0);
+        $orcPct   = $orcTotal > 0 ? min(100, round($orcUsado / $orcTotal * 100)) : 0;
     @endphp
 
     {{-- ============ HEADER COMPACTO ============ --}}
@@ -58,16 +77,18 @@
         @endif
     </div>
 
-    {{-- ============ KPIs (8 no desktop) ============ --}}
+    {{-- ============ KPIs (10 — denso) ============ --}}
     <div class="dash-kpis">
         <x-dash.kpi label="Faturamento" tone="emerald" icon="bi-cash-coin" :value="$fmt($totalFaturamento ?? 0)" :delta="round($taxaCrescimento ?? 0)" countup />
         <x-dash.kpi label="Vendas no mês" tone="indigo" icon="bi-bag-check" :value="$salesMonth ?? 0" countup />
         <x-dash.kpi label="Ticket médio" tone="purple" icon="bi-receipt" :value="$fmt($ticketMedio ?? 0)" />
         <x-dash.kpi label="A receber" tone="amber" icon="bi-hourglass-split" :value="$fmt($contasReceberPendentes ?? 0)" />
+        <x-dash.kpi label="A pagar" tone="rose" icon="bi-credit-card" :value="$fmt($contasPagarPendentes ?? 0)" />
+        <x-dash.kpi label="Saldo em caixa" tone="teal" icon="bi-wallet2" :value="$fmt($saldoCaixa ?? 0)" />
+        <x-dash.kpi label="Lucro líquido" tone="emerald" icon="bi-graph-up-arrow" :value="$fmt($lucroLiquido ?? 0)" :delta="round($margemLucro ?? 0)" />
         <x-dash.kpi label="Produtos" tone="sky" icon="bi-box-seam" :value="$totalProdutos ?? 0" countup />
         <x-dash.kpi label="Clientes" tone="blue" icon="bi-people" :value="$totalClientes ?? 0" countup />
-        <x-dash.kpi label="Saldo em caixa" tone="teal" icon="bi-wallet2" :value="$fmt($saldoCaixa ?? 0)" />
-        <x-dash.kpi label="Lucro líquido" tone="rose" icon="bi-graph-up-arrow" :value="$fmt($lucroLiquido ?? 0)" :delta="round($margemLucro ?? 0)" />
+        <x-dash.kpi label="Recorrências" tone="slate" icon="bi-arrow-repeat" :value="$recorrentesAtivas ?? 0" countup />
     </div>
 
     {{-- ============ GRID DE CONTEÚDO ============ --}}
