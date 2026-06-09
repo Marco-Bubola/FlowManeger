@@ -1,21 +1,9 @@
 /* Show Product - Notebook (1025-1440px) */
-
-/* 1025-1279px */
-@media (min-width: 1025px) and (max-width: 1279px) {
-    .show-product-page h1.text-2xl,
-    .show-product-page h1.text-3xl {
-        font-size: 1.6rem !important;
+@media (min-width: 1025px) and (max-width: 1440px) {
+    .show-product-page { padding-inline: 1.1rem; padding-bottom: 1.5rem; }
+    .show-product-page .kit-comp-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.65rem !important;
     }
-
-    .show-product-page .grid.grid-cols-1.lg\:grid-cols-3 {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-    }
-}
-
-/* 1280-1440px */
-@media (min-width: 1280px) and (max-width: 1440px) {
-    .show-product-page h1.text-2xl,
-    .show-product-page h1.text-3xl {
-        font-size: 1.75rem !important;
-    }
+    .show-product-page .dash-chart { min-height: 240px !important; }
 }
