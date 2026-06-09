@@ -91,7 +91,7 @@
         <x-dash.kpi label="Recorrências" tone="slate" icon="bi-arrow-repeat" :value="$recorrentesAtivas ?? 0" countup />
     </div>
 
-    {{-- ============ GRID DE CONTEÚDO ============ --}}
+    {{-- ============ GRID DE CONTEÚDO (denso) ============ --}}
     <div class="dash-grid">
 
         {{-- Receita 14 dias (área gradiente) --}}
@@ -118,10 +118,86 @@
             @endif
         </x-dash.card>
 
+        {{-- Fluxo de caixa mensal (receitas x despesas) --}}
+        <x-dash.card title="Fluxo de caixa" sub="Receitas x Despesas por mês" icon="bi-bar-chart-line" tone="emerald" span="dash-col-6">
+            @if(!empty($cfLabels))
+                <x-dash.chart id="dashCashflowChart" type="bar"
+                    :series="[['name' => 'Receitas', 'data' => $cfReceitas], ['name' => 'Despesas', 'data' => $cfDespesas]]"
+                    :labels="$cfLabels"
+                    :colors="['#10b981','#f43f5e']" />
+            @else
+                <x-dash.empty icon="bi-bar-chart" message="Sem dados de fluxo de caixa" />
+            @endif
+        </x-dash.card>
+
+        {{-- Despesas por categoria (donut) --}}
+        <x-dash.card title="Despesas por categoria" sub="Para onde vai o dinheiro" icon="bi-pie-chart-fill" tone="rose" span="dash-col-6">
+            @if(array_sum($ecSeries) > 0)
+                <x-dash.chart id="dashExpCatChart" type="donut"
+                    :series="$ecSeries"
+                    :labels="$ecLabels"
+                    :colors="['#f43f5e','#f59e0b','#6366f1','#14b8a6','#8b5cf6','#0ea5e9','#64748b']" />
+            @else
+                <x-dash.empty icon="bi-pie-chart" message="Sem despesas categorizadas" />
+            @endif
+        </x-dash.card>
+
+        {{-- Comparativo de períodos (barras) --}}
+        <x-dash.card title="Comparativo de períodos" sub="Atual x anterior x ano passado" icon="bi-clipboard-data" tone="blue" span="dash-col-4">
+            @if(!empty($pc['labels']))
+                <x-dash.chart id="dashComparisonChart" type="bar"
+                    :series="[['name' => 'Receitas', 'data' => $pc['income'] ?? []], ['name' => 'Despesas', 'data' => $pc['expenses'] ?? []]]"
+                    :labels="$pc['labels']"
+                    :colors="['#10b981','#f43f5e']" />
+            @else
+                <x-dash.empty icon="bi-clipboard-data" message="Sem comparativo disponível" />
+            @endif
+        </x-dash.card>
+
+        {{-- Orçamento do mês (progresso) --}}
+        <x-dash.card title="Orçamento do mês" sub="Usado x planejado" icon="bi-speedometer2" tone="amber" span="dash-col-4">
+            @if($orcTotal > 0)
+                <div class="flex flex-col gap-2 py-1">
+                    <div class="flex items-end justify-between">
+                        <span class="text-lg font-black text-slate-800 dark:text-white">{{ $orcPct }}%</span>
+                        <span class="text-[11px] text-slate-500 dark:text-slate-400">{{ $fmt($orcUsado) }} / {{ $fmt($orcTotal) }}</span>
+                    </div>
+                    <div class="h-2.5 rounded-full bg-slate-200/70 dark:bg-slate-700/60 overflow-hidden">
+                        <div class="h-full rounded-full {{ $orcPct >= 100 ? 'bg-rose-500' : ($orcPct >= 80 ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ $orcPct }}%"></div>
+                    </div>
+                    @if(!empty($orcamentosTopEstouro))
+                        <div class="dash-list mt-1">
+                            @foreach(array_slice($orcamentosTopEstouro, 0, 3) as $oe)
+                                <x-dash.list-item :title="$oe['category'] ?? 'Categoria'" sub="Acima do orçado" icon="bi-arrow-up-right" tone="rose" :value="$fmt($oe['estouro'] ?? 0)" />
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @else
+                <x-dash.empty icon="bi-speedometer2" message="Nenhum orçamento definido" />
+            @endif
+        </x-dash.card>
+
+        {{-- Destaques --}}
+        <x-dash.card title="Destaques" sub="Indicadores do período" icon="bi-trophy" tone="rose" span="dash-col-4">
+            <div class="dash-list">
+                @if($produtoMaisVendido)
+                    <x-dash.list-item
+                        :title="$produtoMaisVendido->name ?? 'Produto'"
+                        sub="Mais vendido"
+                        icon="bi-star-fill" tone="amber"
+                        :value="(int)($produtoMaisVendido->total_vendido ?? 0) . 'x'" />
+                @endif
+                <x-dash.list-item title="Novos clientes" sub="No mês atual" icon="bi-person-plus-fill" tone="emerald" :value="$clientesNovosMes ?? 0" trend="up" />
+                <x-dash.list-item title="Produtos vendidos" sub="No mês" icon="bi-box-seam-fill" tone="indigo" :value="$produtosVendidosMes ?? 0" />
+                <x-dash.list-item title="Estoque baixo" sub="Produtos a repor" icon="bi-exclamation-triangle-fill" tone="rose" :value="$produtosEstoqueBaixo ?? 0" :trend="($produtosEstoqueBaixo ?? 0) > 0 ? 'down' : null" />
+            </div>
+        </x-dash.card>
+
         {{-- Atividades recentes --}}
-        <x-dash.card title="Atividades recentes" sub="Últimas movimentações" icon="bi-activity" tone="sky" span="dash-col-6">
+        <x-dash.card title="Atividades recentes" sub="Últimas movimentações" icon="bi-activity" tone="sky" span="dash-col-4">
             @if(!empty($atividades))
-                <div class="dash-list dash-scroll max-h-[280px] overflow-y-auto pr-1">
+                <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
                     @foreach(array_slice($atividades, 0, 8) as $a)
                         <a href="{{ $a['link'] ?? '#' }}" class="block">
                             <x-dash.list-item
@@ -138,9 +214,9 @@
         </x-dash.card>
 
         {{-- Alertas --}}
-        <x-dash.card title="Alertas" sub="Itens que precisam de atenção" icon="bi-exclamation-triangle" tone="amber" span="dash-col-6">
+        <x-dash.card title="Alertas" sub="Itens que precisam de atenção" icon="bi-exclamation-triangle" tone="amber" span="dash-col-4">
             @if(!empty($alertas))
-                <div class="dash-list">
+                <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
                     @foreach($alertas as $al)
                         @php
                             $tone = ($al['type'] ?? '') === 'danger' ? 'rose' : (($al['type'] ?? '') === 'warning' ? 'amber' : 'sky');
@@ -156,7 +232,7 @@
         </x-dash.card>
 
         {{-- Resumo financeiro rápido --}}
-        <x-dash.card title="Resumo financeiro" sub="Contas e reservas" icon="bi-bank" tone="teal" span="dash-col-6">
+        <x-dash.card title="Resumo financeiro" sub="Contas e reservas" icon="bi-bank" tone="teal" span="dash-col-4">
             <div class="grid grid-cols-2 gap-2">
                 <div class="rounded-xl bg-emerald-500/10 border border-emerald-400/30 px-3 py-2.5">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">A receber</p>
@@ -174,22 +250,6 @@
                     <p class="text-[10px] font-bold uppercase tracking-wider text-amber-600 dark:text-amber-300">Parcelas vencidas</p>
                     <p class="text-sm font-black text-amber-700 dark:text-amber-200">{{ $parcelasVencidasCount ?? 0 }}</p>
                 </div>
-            </div>
-        </x-dash.card>
-
-        {{-- Destaques --}}
-        <x-dash.card title="Destaques" sub="Indicadores do período" icon="bi-trophy" tone="rose" span="dash-col-6">
-            <div class="dash-list">
-                @if($produtoMaisVendido)
-                    <x-dash.list-item
-                        :title="$produtoMaisVendido->name ?? 'Produto'"
-                        sub="Mais vendido"
-                        icon="bi-star-fill" tone="amber"
-                        :value="(int)($produtoMaisVendido->total_vendido ?? 0) . 'x'" />
-                @endif
-                <x-dash.list-item title="Novos clientes" sub="No mês atual" icon="bi-person-plus-fill" tone="emerald" :value="$clientesNovosMes ?? 0" trend="up" />
-                <x-dash.list-item title="Produtos vendidos" sub="No mês" icon="bi-box-seam-fill" tone="indigo" :value="$produtosVendidosMes ?? 0" />
-                <x-dash.list-item title="Estoque baixo" sub="Produtos a repor" icon="bi-exclamation-triangle-fill" tone="rose" :value="$produtosEstoqueBaixo ?? 0" :trend="($produtosEstoqueBaixo ?? 0) > 0 ? 'down' : null" />
             </div>
         </x-dash.card>
     </div>
