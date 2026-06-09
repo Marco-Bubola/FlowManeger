@@ -384,7 +384,7 @@
                 <template x-teleport="body">
                 <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition.opacity>
                     <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="closeCart()"></div>
-                    <div class="cs-cart-panel relative w-full sm:max-w-md md:max-w-lg max-h-[94vh] sm:max-h-[90vh] overflow-hidden rounded-t-3xl sm:rounded-3xl shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
+                    <div class="cs-cart-panel relative w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[94vh] sm:max-h-[90vh] overflow-hidden rounded-t-3xl sm:rounded-3xl shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
                         x-transition:enter="transition ease-out duration-300"
                         x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95"
                         x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -404,8 +404,8 @@
                             <button type="button" @click="closeCart()" class="w-9 h-9 inline-flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition"><i class="bi bi-x-lg"></i></button>
                         </div>
 
-                        <!-- Corpo rolável -->
-                        <div class="cs-cart-body flex-1 min-h-0 overflow-y-auto p-4 create-sale-summary-pane">
+                        <!-- Corpo rolável (sales-create-page reativa o CSS escopado dos itens) -->
+                        <div class="cs-cart-body sales-create-page flex-1 min-h-0 overflow-y-auto p-4 create-sale-summary-pane">
                     <!-- Painel de Resumo da Venda Modernizado -->
                     <div class="p-0 create-sale-summary-card">
                         @php
