@@ -804,3 +804,50 @@
         padding: 0.9rem 1rem;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MODAL DO CARRINHO (teleportado p/ body) — corrige escopo e
+   adapta para web (mais largo + produtos em colunas)
+   ════════════════════════════════════════════════════════════ */
+
+/* O corpo do modal recebe a classe .sales-create-page para reativar as
+   variáveis (--sale-*) e o CSS escopado dos itens. Aqui neutralizamos o
+   fundo/padding/clip da página para não vazar dentro do modal. */
+.cs-cart-body.sales-create-page {
+    background: none !important;
+    padding: 1rem !important;
+    overflow-x: visible !important;
+}
+
+/* Garante miniatura pequena mesmo se algum reset escapar */
+.cs-cart-panel .create-sale-selected-thumb {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+    object-fit: cover !important;
+    border-radius: 0.75rem !important;
+    flex-shrink: 0 !important;
+}
+
+/* Imagens genéricas dentro do modal nunca explodem */
+.cs-cart-panel img { max-width: 100%; height: auto; }
+
+/* ── Web: usa o espaço horizontal ── */
+/* Tablet/desktop: produtos selecionados em 2 colunas */
+@media (min-width: 768px) {
+    .cs-cart-panel .create-sale-selected-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+        align-content: start;
+    }
+    .cs-cart-panel .create-sale-selected-empty { grid-column: 1 / -1; }
+}
+/* Desktop grande: 3 colunas */
+@media (min-width: 1280px) {
+    .cs-cart-panel .create-sale-selected-list {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Resumo (cliente/pagamento/totais) sempre ocupa a largura toda acima dos produtos */
+.cs-cart-panel .create-sale-summary-card { margin-bottom: 0.85rem; }
