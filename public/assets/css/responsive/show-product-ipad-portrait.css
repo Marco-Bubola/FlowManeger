@@ -1,24 +1,17 @@
-/* Show Product - iPad Portrait (768-1024px, orientação retrato) */
+/* Show Product - iPad Portrait (768-1024px, retrato) */
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
     .show-product-page {
         padding-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding-inline: 0.85rem;
     }
-
-    .show-product-page h1.text-2xl,
-    .show-product-page h1.text-3xl {
-        font-size: 1.45rem !important;
+    /* Kit: 3 colunas */
+    .show-product-page .kit-comp-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
     }
-
-    .show-product-page .grid.grid-cols-1.lg\:grid-cols-3 {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    /* Variações: 3 colunas */
+    .show-product-page .dash-card .grid.sm\:grid-cols-2.lg\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     }
-
-    .show-product-page .grid.grid-cols-2.md\:grid-cols-4 {
-        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    }
-
-    .show-product-page .w-20.h-20.rounded-2xl {
-        width: 4rem !important;
-        height: 4rem !important;
-    }
+    .show-product-page .dash-chart { min-height: 200px !important; }
 }
