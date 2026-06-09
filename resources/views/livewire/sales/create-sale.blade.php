@@ -405,7 +405,7 @@
                         </div>
 
                         <!-- Corpo rolável (sales-create-page reativa o CSS escopado dos itens) -->
-                        <div class="cs-cart-body sales-create-page flex-1 min-h-0 overflow-y-auto p-4 create-sale-summary-pane">
+                        <div class="cs-cart-body sales-create-page flex-1 min-h-0 overflow-y-auto p-4">
                     <!-- Painel de Resumo da Venda Modernizado -->
                     <div class="p-0 create-sale-summary-card">
                         @php
