@@ -66,9 +66,9 @@
         </x-dash.card>
 
         {{-- Aniversariantes --}}
-        <x-dash.card title="Aniversariantes" sub="No mês" icon="bi-balloon" tone="rose" span="dash-col-6">
+        <x-dash.card title="Aniversariantes" sub="No mês" icon="bi-balloon" tone="rose" span="dash-col-4">
             @if(!empty($aniversariantesLista))
-                <div class="dash-list dash-scroll max-h-[260px] overflow-y-auto pr-1">
+                <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
                     @foreach(array_slice(is_array($aniversariantesLista) ? $aniversariantesLista : $aniversariantesLista->toArray(), 0, 8) as $c)
                         @php
                             $nome = $c['name'] ?? $c['nome'] ?? 'Cliente';
@@ -83,9 +83,9 @@
         </x-dash.card>
 
         {{-- Pendentes --}}
-        <x-dash.card title="Clientes pendentes" sub="Com saldo a pagar" icon="bi-person-exclamation" tone="amber" span="dash-col-6">
+        <x-dash.card title="Clientes pendentes" sub="Com saldo a pagar" icon="bi-person-exclamation" tone="amber" span="dash-col-4">
             @if(!empty($clientesPendentes))
-                <div class="dash-list dash-scroll max-h-[260px] overflow-y-auto pr-1">
+                <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
                     @foreach(array_slice(is_array($clientesPendentes) ? $clientesPendentes : $clientesPendentes->toArray(), 0, 8) as $c)
                         @php
                             $nome = $c['name'] ?? $c['nome'] ?? 'Cliente';
@@ -96,6 +96,24 @@
                 </div>
             @else
                 <x-dash.empty icon="bi-check-circle" message="Nenhum cliente pendente 🎉" />
+            @endif
+        </x-dash.card>
+
+        {{-- Clientes recentes --}}
+        <x-dash.card title="Clientes recentes" sub="Últimos cadastrados" icon="bi-person-plus-fill" tone="emerald" span="dash-col-4">
+            @if(!empty($clientesRecentes))
+                <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
+                    @foreach(array_slice(is_array($clientesRecentes) ? $clientesRecentes : $clientesRecentes->toArray(), 0, 8) as $c)
+                        @php
+                            $nome = $c['name'] ?? $c['nome'] ?? 'Cliente';
+                            $quando = $c['created_at'] ?? $c['date'] ?? '';
+                            if ($quando) { try { $quando = \Carbon\Carbon::parse($quando)->diffForHumans(); } catch (\Throwable $e) {} }
+                        @endphp
+                        <x-dash.list-item :title="$nome" :sub="$quando ?: 'Novo cliente'" icon="bi-person-badge" tone="emerald" />
+                    @endforeach
+                </div>
+            @else
+                <x-dash.empty icon="bi-person-plus" message="Nenhum cliente recente" />
             @endif
         </x-dash.card>
     </div>
