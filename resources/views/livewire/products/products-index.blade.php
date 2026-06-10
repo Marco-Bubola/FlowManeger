@@ -538,21 +538,7 @@
                                     {{ ucwords($product->name) }}
                                 </div>
 
-                                <!-- Badge de status -->
-                                <div class="mt-2 mb-3 flex items-center gap-2 flex-wrap">
-                                    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-100 text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-800 dark:bg-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-900 dark:text-{{ $product->status == 'ativo' ? 'green' : ($product->status == 'inativo' ? 'gray' : 'red') }}-200">
-                                        <i class="bi bi-circle-fill mr-1"></i> {{ ucfirst($product->status) }}
-                                    </span>
-
-                                    <!-- Badge de novo -->
-                                    @if (\Carbon\Carbon::parse($product->created_at)->diffInDays(now()) <= 7)
-                                        <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                                            <i class="bi bi-stars mr-1"></i> Novo
-                                        </span>
-                                    @endif
-                                </div>
-
-                                <!-- Área de preços dentro do card-body -->
+                                <!-- Área de preços dentro do card-body (mesmo formato do simples) -->
                                 <div class="price-area mt-3">
                                     <div class="flex flex-col gap-2">
                                         <span class="badge-price" title="Preço de Custo Total">
