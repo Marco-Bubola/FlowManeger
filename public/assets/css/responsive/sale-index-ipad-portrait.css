@@ -127,17 +127,18 @@
         font-size: 0.65rem !important;
         padding: 0.18rem 0.32rem !important;
     }
-    /* botões de ação — só ícone */
+    /* botões de ação — só ícone (mantém o ícone, esconde só o rótulo) */
     .sale-action-btn {
-        padding: 0.2rem 0.38rem !important;
-        font-size: 0.65rem !important;
-        border-radius: 0.45rem !important;
-        width: auto !important;
-        height: auto !important;
-        flex-shrink: 0 !important;
+        padding: 0.4rem 0.3rem !important;
+        border-radius: 0.7rem !important;
     }
-    .sale-action-btn span {
+    .sale-action-btn .sale-action-lbl {
         display: none !important;
+    }
+    .sale-action-btn .sale-action-ico {
+        width: 2rem !important;
+        height: 2rem !important;
+        font-size: 0.9rem !important;
     }
     /* paginação compacta */
     .sale-pagination-compact {
