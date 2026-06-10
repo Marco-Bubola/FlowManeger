@@ -3136,3 +3136,33 @@
 }
 @keyframes csCartFabPulse { 0%{transform:scale(.9);opacity:.7;} 100%{transform:scale(1.25);opacity:0;} }
 @media (max-width: 450px){ .cs-cart-fab{ bottom:5.5rem !important; right:1rem !important; } }
+
+/* ═══════════════════════════════════════════════════════════
+   PRODUCTS INDEX — cards proporcionais (mesmo tamanho/formato)
+   Preço sempre ancorado na parte inferior, título reserva 2 linhas
+   ════════════════════════════════════════════════════════════ */
+.products-index-page .products-grid .product-card-modern {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100%;
+}
+.products-index-page .products-grid .product-card-modern .card-body {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+}
+/* Título sempre 2 linhas (1 linha não sobe o preço) */
+.products-index-page .products-grid .product-card-modern .product-title {
+    min-height: 2.5em !important;
+    line-height: 1.25 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden !important;
+    width: 100%;
+}
+/* Preço empurrado para o fim do card */
+.products-index-page .products-grid .product-card-modern .price-area {
+    margin-top: auto !important;
+}
