@@ -6,6 +6,7 @@
     class="show-product-page w-full mobile-393-base">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-mobile.css') }}">
 
@@ -140,27 +141,42 @@
             <div class="rounded-xl bg-emerald-100/60 dark:bg-emerald-900/30 px-3 py-2"><p class="text-[10px] font-bold uppercase text-emerald-500 dark:text-emerald-300">Margem</p><p class="text-sm font-black text-emerald-700 dark:text-emerald-200">{{ number_format($kitMargem, 1) }}%</p></div>
         </div>
         <div class="relative p-4 sm:p-5">
-            <div class="kit-comp-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            <div class="kit-comp-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 @foreach($kitComponents as $kc)
-                <div class="group relative rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/60 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                    <div class="flex items-stretch gap-3 p-3">
-                        <div class="relative w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-950 shrink-0 flex items-center justify-center">
-                            <img src="{{ !empty($kc['image']) ? asset('storage/products/' . $kc['image']) : asset('storage/products/product-placeholder.png') }}" alt="{{ $kc['name'] }}" class="w-full h-full object-contain p-1 group-hover:scale-105 transition-transform" />
-                            <span class="absolute top-1 left-1 w-5 h-5 rounded-md bg-purple-600 text-white text-[10px] font-black flex items-center justify-center shadow">{{ $kc['quantity'] }}x</span>
+                @php
+                    $stockLow = $kc['stock'] <= ($kc['quantity'] * 3);
+                    $isLimit = $kc['kits_possiveis'] <= $kitMontaveis;
+                    $w = $kitMontaveis > 0 && $kc['kits_possiveis'] > 0 ? min(100, ($kitMontaveis / $kc['kits_possiveis']) * 100) : ($kc['kits_possiveis'] > 0 ? 100 : 0);
+                @endphp
+                <div class="kit-comp-card group relative rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/60 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col">
+                    {{-- Imagem --}}
+                    <div class="relative h-24 sm:h-28 bg-gradient-to-br from-slate-50 to-slate-200 dark:from-slate-800 dark:to-slate-950 flex items-center justify-center overflow-hidden">
+                        <img src="{{ !empty($kc['image']) ? asset('storage/products/' . $kc['image']) : asset('storage/products/product-placeholder.png') }}" alt="{{ $kc['name'] }}" class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300" />
+                        <span class="absolute top-2 left-2 inline-flex items-center justify-center min-w-[1.4rem] h-6 px-1.5 rounded-lg bg-purple-600 text-white text-xs font-black shadow-lg">{{ $kc['quantity'] }}x</span>
+                        @if($isLimit)
+                            <span class="absolute top-2 right-2 inline-flex items-center justify-center w-6 h-6 rounded-lg bg-amber-500 text-white shadow-lg" title="Item que limita a montagem"><i class="bi bi-exclamation-triangle-fill text-[10px]"></i></span>
+                        @endif
+                    </div>
+                    {{-- Corpo --}}
+                    <div class="p-2.5 flex flex-col gap-1.5 flex-1">
+                        <div>
+                            <p class="text-xs font-bold text-slate-800 dark:text-white leading-tight line-clamp-2" title="{{ $kc['name'] }}" style="min-height:2.2em">{{ $kc['name'] }}</p>
+                            <p class="text-[10px] text-slate-400 font-mono">#{{ $kc['code'] }}</p>
                         </div>
-                        <div class="min-w-0 flex-1 flex flex-col justify-between">
-                            <div><p class="text-xs font-bold text-slate-800 dark:text-white truncate" title="{{ $kc['name'] }}">{{ $kc['name'] }}</p><p class="text-[10px] text-slate-400 font-mono">#{{ $kc['code'] }}</p></div>
-                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                @php $stockLow = $kc['stock'] <= ($kc['quantity'] * 3); @endphp
-                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $stockLow ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300' }}"><i class="bi bi-stack text-[9px]"></i>{{ $kc['stock'] }}</span>
-                                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300"><i class="bi bi-currency-dollar text-[9px]"></i>{{ number_format($kc['sale'], 2, ',', '.') }}</span>
+                        <div class="flex items-center gap-1.5 flex-wrap mt-auto">
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ $stockLow ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300' }}" title="Estoque"><i class="bi bi-stack text-[9px]"></i>{{ $kc['stock'] }}</span>
+                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-purple-500/15 text-purple-600 dark:text-purple-300" title="Preço de venda"><i class="bi bi-currency-dollar text-[9px]"></i>{{ number_format($kc['sale'], 2, ',', '.') }}</span>
+                        </div>
+                        {{-- Rende --}}
+                        <div>
+                            <div class="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider mb-1">
+                                <span class="text-slate-400">Rende</span>
+                                <span class="{{ $isLimit ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">{{ $kc['kits_possiveis'] }} kits</span>
+                            </div>
+                            <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                <div class="h-full rounded-full bg-gradient-to-r {{ $isLimit ? 'from-amber-400 to-orange-500' : 'from-emerald-400 to-teal-500' }}" style="width: {{ $w }}%"></div>
                             </div>
                         </div>
-                    </div>
-                    <div class="px-3 pb-2.5">
-                        <div class="flex items-center justify-between text-[9px] font-bold uppercase tracking-wider mb-1"><span class="text-slate-400">Rende</span><span class="{{ $kc['kits_possiveis'] <= $kitMontaveis ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">{{ $kc['kits_possiveis'] }} kits</span></div>
-                        <div class="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">@php $w = $kitMontaveis > 0 && $kc['kits_possiveis'] > 0 ? min(100, ($kitMontaveis / $kc['kits_possiveis']) * 100) : ($kc['kits_possiveis'] > 0 ? 100 : 0); @endphp<div class="h-full rounded-full bg-gradient-to-r {{ $kc['kits_possiveis'] <= $kitMontaveis ? 'from-amber-400 to-orange-500' : 'from-emerald-400 to-teal-500' }}" style="width: {{ $w }}%"></div></div>
-                        @if($kc['kits_possiveis'] <= $kitMontaveis)<p class="text-[9px] text-amber-600 dark:text-amber-400 mt-1 flex items-center gap-1"><i class="bi bi-exclamation-triangle-fill"></i> Item que limita a montagem</p>@endif
                     </div>
                 </div>
                 @endforeach
@@ -261,25 +277,38 @@
             @endif
         </x-dash.card>
 
-        {{-- Variações detalhadas --}}
+        {{-- Variações — mesmos cards da listagem de produtos --}}
         @if($products->count() > 1)
-        <x-dash.card title="Variações" sub="Estoque e preço de cada uma" icon="bi-layers" tone="rose" span="dash-col-12">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                @foreach($products as $variant)
-                <div class="rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-900/60 p-3 flex items-center gap-3 hover:shadow-lg transition">
-                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 shrink-0 flex items-center justify-center">
-                        <img src="{{ $variant->image ? asset('storage/products/' . $variant->image) : asset('storage/products/product-placeholder.png') }}" alt="" class="w-full h-full object-contain p-1" />
-                    </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-xs font-bold text-slate-800 dark:text-white truncate">{{ $variant->name }}</p>
-                        <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ ($variant->stock_quantity ?? 0) <= 5 ? 'bg-rose-500/15 text-rose-600 dark:text-rose-300' : 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300' }}"><i class="bi bi-stack text-[9px]"></i>{{ $variant->stock_quantity ?? 0 }}</span>
-                            <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-indigo-500/15 text-indigo-600 dark:text-indigo-300">R$ {{ number_format($variant->price_sale ?? 0, 2, ',', '.') }}</span>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold {{ ($variant->status ?? '') === 'ativo' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300' : 'bg-slate-400/20 text-slate-500' }}">{{ ucfirst($variant->status ?? '—') }}</span>
+        <x-dash.card title="Variações" :sub="$products->count() . ' variações deste produto'" icon="bi-layers" tone="rose" span="dash-col-12">
+            <div class="products-index-page">
+                <div class="products-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                    @foreach($products as $variant)
+                    <div class="product-card-modern {{ ($variant->id ?? null) === ($mainProduct->id ?? null) ? 'ring-2 ring-purple-400' : '' }}">
+                        <div class="btn-action-group">
+                            <a href="{{ route('products.show', $variant->product_code) }}" class="btn btn-secondary" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
+                            <a href="{{ route('products.edit', $variant) }}" class="btn btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></a>
+                        </div>
+                        <div class="product-img-area">
+                            <img src="{{ $variant->image ? asset('storage/products/' . $variant->image) : asset('storage/products/product-placeholder.png') }}" class="product-img" alt="{{ $variant->name }}">
+                            @if(($variant->stock_quantity ?? 0) == 0)
+                                <div class="out-of-stock"><i class="bi bi-x-circle"></i> Fora de Estoque</div>
+                            @endif
+                            <span class="badge-product-code" title="Código"><i class="bi bi-upc-scan"></i> {{ $variant->product_code }}</span>
+                            <span class="badge-quantity" title="Estoque"><i class="bi bi-stack"></i> {{ $variant->stock_quantity ?? 0 }}</span>
+                            <div class="category-icon-wrapper"><i class="{{ optional($variant->category)->icone ?? 'bi bi-box' }} category-icon"></i></div>
+                        </div>
+                        <div class="card-body">
+                            <div class="product-title" title="{{ $variant->name }}">{{ ucwords($variant->name) }}</div>
+                            <div class="price-area mt-3">
+                                <div class="flex flex-col gap-2">
+                                    <span class="badge-price" title="Preço de Custo"><i class="bi bi-tag"></i> R$ {{ number_format($variant->price ?? 0, 2, ',', '.') }}</span>
+                                    <span class="badge-price-sale" title="Preço de Venda"><i class="bi bi-currency-dollar"></i> R$ {{ number_format($variant->price_sale ?? 0, 2, ',', '.') }}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
+                    @endforeach
                 </div>
-                @endforeach
             </div>
         </x-dash.card>
         @endif
