@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductImage;
 use App\Services\MercadoLivre\ProductService;
+use App\Services\Products\VariationService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -39,6 +40,17 @@ class EditProduct extends Component
     public string $condition = 'new';
 
     public bool $showTipsModal = false;
+
+    // ─── Variações (produto-pai + variantes) ─────────────────────────────────
+    public bool $showVariationsPanel = false;
+    public string $variationAttribute = 'Variação';   // ex.: Cor, Tamanho, Voltagem
+    public string $newVariantValue = '';              // ex.: Azul, M, 220V
+    public string $newVariantName = '';               // nome do novo produto-variante
+    public string $newVariantPrice = '';
+    public string $newVariantPriceSale = '';
+    public string $newVariantStock = '0';
+    public string $linkVariantId = '';                // produto existente p/ vincular
+    public string $linkVariantValue = '';             // valor da variação ao vincular
 
     // Galeria de imagens adicionais
     public array $extraImages = [];
@@ -79,6 +91,11 @@ class EditProduct extends Component
         $this->model = $product->model ?? '';
         $this->warranty_months = $product->warranty_months ? (string)$product->warranty_months : '3';
         $this->condition = $product->condition ?? 'new';
+
+        // Atributo de variação herdado (se já for pai)
+        if ($product->variation_attribute) {
+            $this->variationAttribute = $product->variation_attribute;
+        }
 
         // Carrega galeria extra
         $this->loadExtraImages();
@@ -477,12 +494,126 @@ class EditProduct extends Component
         }
     }
 
+    // ─── Variações ────────────────────────────────────────────────────────────
+
+    /**
+     * Variantes já vinculadas a este produto (quando ele é pai).
+     */
+    public function getVariantsProperty()
+    {
+        return $this->product->variants()->orderBy('variation_sort')->get();
+    }
+
+    /**
+     * Produtos que podem ser vinculados como variação:
+     * mesmo dono, simples, standalone (sem pai e sem filhos), e não o próprio.
+     */
+    public function getLinkableProductsProperty()
+    {
+        return Product::where('user_id', Auth::id())
+            ->where('id', '!=', $this->product->id)
+            ->whereNull('parent_id')
+            ->where('is_variation_parent', false)
+            ->where('tipo', 'simples')
+            ->orderBy('name')
+            ->limit(200)
+            ->get(['id', 'name', 'product_code']);
+    }
+
+    public function toggleVariationsPanel(): void
+    {
+        $this->showVariationsPanel = !$this->showVariationsPanel;
+    }
+
+    /**
+     * Cria um novo produto e o anexa como variação deste.
+     */
+    public function addVariation(VariationService $variations): void
+    {
+        $this->validate([
+            'newVariantName'  => 'required|string|max:255',
+            'newVariantValue' => 'required|string|max:120',
+        ], [], [
+            'newVariantName'  => 'nome da variação',
+            'newVariantValue' => 'valor da variação',
+        ]);
+
+        try {
+            $variations->createVariant($this->product, [
+                'name'           => preg_replace('/\s+/', ' ', trim($this->newVariantName)),
+                'price'          => (float) str_replace(',', '.', $this->newVariantPrice ?: '0'),
+                'price_sale'     => (float) str_replace(',', '.', $this->newVariantPriceSale ?: '0'),
+                'stock_quantity' => (int) ($this->newVariantStock ?: 0),
+                'category_id'    => $this->product->category_id,
+            ], trim($this->newVariantValue));
+
+            // Garante que o atributo escolhido fica registrado no pai
+            if ($this->variationAttribute && $this->product->variation_attribute !== $this->variationAttribute) {
+                $this->product->update(['variation_attribute' => $this->variationAttribute]);
+            }
+
+            $this->product->refresh();
+            $this->reset(['newVariantName', 'newVariantValue', 'newVariantPrice', 'newVariantPriceSale', 'newVariantStock']);
+            $this->dispatch('product-updated');
+            $this->notifySuccess('Variação criada com sucesso!');
+        } catch (\Throwable $e) {
+            $this->notifyError('Erro ao criar variação: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Vincula um produto já existente como variação deste.
+     */
+    public function linkVariation(VariationService $variations): void
+    {
+        $this->validate([
+            'linkVariantId'    => 'required',
+            'linkVariantValue' => 'required|string|max:120',
+        ], [], [
+            'linkVariantId'    => 'produto',
+            'linkVariantValue' => 'valor da variação',
+        ]);
+
+        try {
+            $child = Product::where('user_id', Auth::id())->findOrFail((int) $this->linkVariantId);
+            $variations->attach($this->product, $child, $this->variationAttribute ?: 'Variação', trim($this->linkVariantValue));
+
+            $this->product->refresh();
+            $this->reset(['linkVariantId', 'linkVariantValue']);
+            $this->dispatch('product-updated');
+            $this->notifySuccess('Produto vinculado como variação!');
+        } catch (\Throwable $e) {
+            $this->notifyError('Erro ao vincular variação: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Desanexa uma variante (volta a ser produto standalone).
+     */
+    public function detachVariation(int $variantId, VariationService $variations): void
+    {
+        try {
+            $variant = Product::where('user_id', Auth::id())
+                ->where('parent_id', $this->product->id)
+                ->findOrFail($variantId);
+
+            $variations->detach($variant);
+            $this->product->refresh();
+            $this->dispatch('product-updated');
+            $this->notifySuccess('Variação desvinculada.');
+        } catch (\Throwable $e) {
+            $this->notifyError('Erro ao desvincular: ' . $e->getMessage());
+        }
+    }
+
     public function render()
     {
         return view('livewire.products.edit-product', [
             'categories' => $this->categories,
             'selectedCategoryName' => $this->selectedCategoryName,
             'selectedCategoryIcon' => $this->selectedCategoryIcon,
+            'variants' => $this->variants,
+            'linkableProducts' => $this->linkableProducts,
         ]);
     }
 }
