@@ -23,8 +23,11 @@
         margin-bottom: 0.875rem !important;
     }
     .sales-index-header-inner {
-        padding: 0.8rem 1.1rem !important;
+        padding: 0.65rem 0.9rem !important;
+        gap: 0.5rem !important;
     }
+    /* Linhas do header mais juntas */
+    .sales-index-header-row-1 { margin-bottom: 0.5rem !important; }
 
     /* ROW 1 — nowrap: ícone+título | busca | botão */
     .sales-index-header-row-1 {
@@ -127,18 +130,18 @@
         font-size: 0.65rem !important;
         padding: 0.18rem 0.32rem !important;
     }
-    /* botões de ação — só ícone (mantém o ícone, esconde só o rótulo) */
-    .sale-action-btn {
-        padding: 0.4rem 0.3rem !important;
+    /* botões de ação do card — só ícone (mantém o ícone, esconde só o rótulo) */
+    .sc-act-btn {
+        padding: 0.45rem 0.3rem !important;
         border-radius: 0.7rem !important;
     }
-    .sale-action-btn .sale-action-lbl {
+    .sc-act-btn .sc-act-lbl {
         display: none !important;
     }
-    .sale-action-btn .sale-action-ico {
-        width: 2rem !important;
-        height: 2rem !important;
-        font-size: 0.9rem !important;
+    .sc-act-btn .sc-act-ico {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        font-size: 0.95rem !important;
     }
     /* paginação compacta */
     .sale-pagination-compact {
