@@ -6,6 +6,8 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\Sale;
 use App\Models\SaleItem;
+use App\Services\Products\ComboSplitService;
+use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
@@ -13,6 +15,8 @@ use Carbon\Carbon;
 
 class ShowProduct extends Component
 {
+    use HasNotifications;
+
     public string $productCode;
     public $products;
     public $mainProduct;
@@ -24,6 +28,12 @@ class ShowProduct extends Component
     public string $period = 'all'; // 30days, 3months, 6months, 1year, all
     public string $chartType = 'sales'; // sales, profit, quantity
 
+    // ─── Divisão de combo/kit ─────────────────────────────────────────────────
+    public bool $showSplitModal = false;
+    public array $splitItems = [];          // um item por componente do kit
+    public string $splitSourceAction = 'kept';   // kept | archived | converted
+    public bool $splitDistributeStock = false;
+
     public function mount($productCode)
     {
         $this->productCode = $productCode;
@@ -33,17 +43,26 @@ class ShowProduct extends Component
 
     public function loadProductData()
     {
-        // Buscar todos os produtos com este código
-        $this->products = Product::where('product_code', $this->productCode)
+        // Produto base pelo código
+        $base = Product::where('product_code', $this->productCode)
             ->where('user_id', Auth::id())
-            ->get();
+            ->first();
 
-        if ($this->products->isEmpty()) {
+        if (!$base) {
             abort(404, 'Produto não encontrado');
         }
 
-        // Produto principal (primeiro encontrado ou ativo)
-        $this->mainProduct = $this->products->where('status', 'ativo')->first() ?? $this->products->first();
+        if ($base->hasVariations()) {
+            // Nova lógica: família por parent_id (pai + variantes)
+            $this->products = $base->family()->get();
+            $this->mainProduct = $base->parent_id ? ($base->parent ?? $base) : $base;
+        } else {
+            // Fallback compatível: produtos antigos que compartilham product_code
+            $this->products = Product::where('product_code', $this->productCode)
+                ->where('user_id', Auth::id())
+                ->get();
+            $this->mainProduct = $this->products->where('status', 'ativo')->first() ?? $this->products->first();
+        }
 
         // Categoria do produto
         $this->category = Category::find($this->mainProduct->category_id);
@@ -379,12 +398,124 @@ class ShowProduct extends Component
         return (int) $components->min('kits_possiveis');
     }
 
+    // ─── Divisão de combo/kit ─────────────────────────────────────────────────
+
+    /**
+     * Produtos-pai existentes (para "variação de") e produtos vinculáveis.
+     */
+    public function getParentCandidatesProperty()
+    {
+        return Product::where('user_id', Auth::id())
+            ->whereNull('parent_id')
+            ->where('tipo', 'simples')
+            ->orderBy('name')
+            ->limit(300)
+            ->get(['id', 'name', 'product_code', 'is_variation_parent']);
+    }
+
+    public function openSplitModal(): void
+    {
+        if (!$this->mainProduct || ($this->mainProduct->tipo ?? 'simples') !== 'kit') {
+            $this->notifyError('Apenas combos/kits podem ser divididos.');
+            return;
+        }
+
+        // Pré-preenche um item por componente do kit
+        $this->splitItems = $this->kitComponents->map(function ($c) {
+            return [
+                'mode'              => 'new',          // new | linked | variation
+                'name'              => $c['name'],
+                'price'             => number_format($c['cost'], 2, '.', ''),
+                'price_sale'        => number_format($c['sale'], 2, '.', ''),
+                'stock_quantity'    => 0,
+                'quantity'          => $c['quantity'],
+                'stock'             => $c['quantity'],  // estoque a distribuir
+                'target_product_id' => $c['id'],        // por padrão, o próprio componente
+                'parent_id'         => '',
+                'value'             => $c['name'],
+            ];
+        })->values()->toArray();
+
+        $this->splitSourceAction = 'kept';
+        $this->splitDistributeStock = false;
+        $this->showSplitModal = true;
+    }
+
+    public function closeSplitModal(): void
+    {
+        $this->showSplitModal = false;
+        $this->splitItems = [];
+    }
+
+    public function confirmSplit(ComboSplitService $splitter)
+    {
+        if (empty($this->splitItems)) {
+            $this->notifyError('Nenhum item para dividir.');
+            return;
+        }
+
+        // Validação leve por item
+        foreach ($this->splitItems as $i => $item) {
+            $mode = $item['mode'] ?? 'new';
+            if ($mode === 'new' && empty(trim($item['name'] ?? ''))) {
+                $this->notifyError("Informe o nome do item #" . ($i + 1) . ".");
+                return;
+            }
+            if ($mode === 'linked' && empty($item['target_product_id'])) {
+                $this->notifyError("Selecione o produto a vincular no item #" . ($i + 1) . ".");
+                return;
+            }
+            if ($mode === 'variation' && empty($item['parent_id'])) {
+                $this->notifyError("Selecione o produto-pai da variação no item #" . ($i + 1) . ".");
+                return;
+            }
+        }
+
+        try {
+            $plan = [
+                'source_action'   => $this->splitSourceAction,
+                'distribute_stock' => $this->splitDistributeStock,
+                'items'           => array_map(function ($item) {
+                    $mode = $item['mode'] ?? 'new';
+                    // Em modo "variation" criamos SEMPRE um produto novo a partir do
+                    // combo e o vinculamos ao pai escolhido — não reaproveitamos o
+                    // target pré-preenchido (que é o próprio componente do kit).
+                    $target = $mode === 'linked' ? ($item['target_product_id'] ?: null) : null;
+                    return [
+                        'mode'              => $mode,
+                        'name'              => trim($item['name'] ?? 'Produto da divisão'),
+                        'price'             => (float) str_replace(',', '.', (string) ($item['price'] ?? 0)),
+                        'price_sale'        => (float) str_replace(',', '.', (string) ($item['price_sale'] ?? 0)),
+                        'stock_quantity'    => (int) ($item['stock_quantity'] ?? 0),
+                        'quantity'          => (int) ($item['quantity'] ?? 1),
+                        'stock'             => (int) ($item['stock'] ?? 0),
+                        'target_product_id' => $target,
+                        'parent_id'         => $item['parent_id'] ?: null,
+                        'value'             => $item['value'] ?? null,
+                        'category_id'       => $this->mainProduct->category_id,
+                    ];
+                }, $this->splitItems),
+            ];
+
+            $results = $splitter->split($this->mainProduct, $plan);
+
+            $this->closeSplitModal();
+            $this->dispatch('product-updated');
+            $this->notifySuccess(count($results) . ' produto(s) criados/vinculados a partir do combo!');
+
+            return redirect()->route('products.index');
+        } catch (\Throwable $e) {
+            $this->notifyError('Erro ao dividir combo: ' . $e->getMessage());
+        }
+    }
+
     public function render()
     {
         return view('livewire.products.show-product', [
             'chartData' => $this->chartData,
             'kitComponents' => $this->kitComponents,
             'kitMontaveis' => $this->kitMontaveis,
+            'parentCandidates' => $this->parentCandidates,
         ]);
     }
 }
