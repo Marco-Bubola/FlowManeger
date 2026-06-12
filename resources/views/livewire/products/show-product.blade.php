@@ -134,6 +134,10 @@
                 <p class="text-[10px] font-bold uppercase tracking-wider {{ $kitMontaveis > 0 ? 'text-emerald-600 dark:text-emerald-300' : 'text-rose-600 dark:text-rose-300' }}">Montáveis agora</p>
                 <p class="text-2xl font-black {{ $kitMontaveis > 0 ? 'text-emerald-700 dark:text-emerald-200' : 'text-rose-700 dark:text-rose-200' }} leading-none">{{ $kitMontaveis }}</p>
             </div>
+            <button type="button" wire:click="openSplitModal"
+                class="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white text-sm font-bold shadow-lg shadow-violet-500/30 transition-all">
+                <i class="bi bi-scissors"></i> Dividir combo
+            </button>
         </div>
         <div class="relative px-5 sm:px-6 py-3 grid grid-cols-3 gap-2 border-b border-purple-200/40 dark:border-purple-800/30">
             <div class="rounded-xl bg-slate-100/70 dark:bg-slate-800/50 px-3 py-2"><p class="text-[10px] font-bold uppercase text-slate-400">Custo dos itens</p><p class="text-sm font-black text-slate-700 dark:text-slate-200">R$ {{ number_format($kitCustoTotal, 2, ',', '.') }}</p></div>
@@ -314,6 +318,119 @@
         @endif
     </div>{{-- /.dash-grid --}}
 </div>{{-- /.space-y-4 (página única) --}}
+
+    {{-- ══════════ MODAL: DIVIDIR COMBO ══════════ --}}
+    @if($showSplitModal)
+    <div class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" wire:click="closeSplitModal"></div>
+        <div class="relative w-full sm:max-w-3xl max-h-[92vh] sm:max-h-[88vh] overflow-hidden flex flex-col rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl">
+            {{-- Header --}}
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <i class="bi bi-scissors text-white text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-base font-black text-slate-800 dark:text-white leading-tight">Dividir combo em produtos</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Cada item do kit "{{ $mainProduct->name }}" vira um produto novo, vincula a um existente ou entra como variação</p>
+                </div>
+                <button type="button" wire:click="closeSplitModal" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            {{-- Body --}}
+            <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+                @foreach($splitItems as $i => $item)
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-slate-50/60 dark:bg-slate-800/40 p-3.5">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="w-6 h-6 rounded-lg bg-violet-500/15 text-violet-600 dark:text-violet-300 text-xs font-black flex items-center justify-center">{{ $i + 1 }}</span>
+                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200 flex-1 truncate">{{ $item['name'] }}</p>
+                        <span class="text-[10px] font-bold text-slate-400">{{ $item['quantity'] }}x no kit</span>
+                    </div>
+
+                    {{-- Seletor de modo --}}
+                    <div class="grid grid-cols-3 gap-1.5 mb-3">
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="splitItems.{{ $i }}.mode" value="new" class="sr-only peer">
+                            <div class="text-center py-1.5 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-700 text-slate-500 peer-checked:bg-emerald-500 peer-checked:text-white peer-checked:border-emerald-500 transition-colors"><i class="bi bi-plus-circle"></i> Novo</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="splitItems.{{ $i }}.mode" value="linked" class="sr-only peer">
+                            <div class="text-center py-1.5 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-700 text-slate-500 peer-checked:bg-sky-500 peer-checked:text-white peer-checked:border-sky-500 transition-colors"><i class="bi bi-link-45deg"></i> Vincular</div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.live="splitItems.{{ $i }}.mode" value="variation" class="sr-only peer">
+                            <div class="text-center py-1.5 rounded-lg text-[11px] font-bold border border-slate-200 dark:border-slate-700 text-slate-500 peer-checked:bg-violet-500 peer-checked:text-white peer-checked:border-violet-500 transition-colors"><i class="bi bi-diagram-3"></i> Variação</div>
+                        </label>
+                    </div>
+
+                    {{-- Campos por modo --}}
+                    @if($item['mode'] === 'new')
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <input type="text" wire:model="splitItems.{{ $i }}.name" placeholder="Nome" class="col-span-2 px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                            <input type="text" wire:model="splitItems.{{ $i }}.price" placeholder="Custo" class="px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                            <input type="text" wire:model="splitItems.{{ $i }}.price_sale" placeholder="Venda" class="px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                        </div>
+                    @elseif($item['mode'] === 'linked')
+                        <select wire:model="splitItems.{{ $i }}.target_product_id" class="w-full px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                            <option value="">Selecione o produto a vincular…</option>
+                            @foreach($parentCandidates as $pc)
+                                <option value="{{ $pc->id }}">{{ $pc->name }} ({{ $pc->product_code }})</option>
+                            @endforeach
+                        </select>
+                    @elseif($item['mode'] === 'variation')
+                        <div class="space-y-2">
+                            <select wire:model="splitItems.{{ $i }}.parent_id" class="w-full px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                                <option value="">Variação de qual produto-pai?…</option>
+                                @foreach($parentCandidates as $pc)
+                                    <option value="{{ $pc->id }}">{{ $pc->name }} ({{ $pc->product_code }})</option>
+                                @endforeach
+                            </select>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="text" wire:model="splitItems.{{ $i }}.value" placeholder="Valor (ex.: Azul, M)" class="px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                                <input type="text" wire:model="splitItems.{{ $i }}.name" placeholder="Nome do novo produto" class="px-2.5 py-1.5 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                            </div>
+                            <p class="text-[10px] text-slate-400">Cria um novo produto e o vincula como variação do pai selecionado.</p>
+                        </div>
+                    @endif
+
+                    {{-- Estoque a distribuir (quando habilitado) --}}
+                    @if($splitDistributeStock)
+                        <div class="mt-2 flex items-center gap-2">
+                            <span class="text-[11px] font-bold text-slate-400">Estoque p/ este item:</span>
+                            <input type="number" wire:model="splitItems.{{ $i }}.stock" min="0" class="w-24 px-2.5 py-1 rounded-lg text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                        </div>
+                    @endif
+                </div>
+                @endforeach
+            </div>
+
+            {{-- Footer / opções --}}
+            <div class="px-5 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50 space-y-3">
+                <div class="flex flex-wrap items-center gap-3">
+                    <label class="flex items-center gap-2 text-xs font-semibold text-slate-600 dark:text-slate-300 cursor-pointer">
+                        <input type="checkbox" wire:model.live="splitDistributeStock" class="rounded border-slate-300 text-violet-600 focus:ring-violet-500">
+                        Distribuir estoque entre os itens
+                    </label>
+                    <div class="flex items-center gap-2 ml-auto">
+                        <span class="text-[11px] font-bold text-slate-400">Combo original:</span>
+                        <select wire:model="splitSourceAction" class="px-2.5 py-1.5 rounded-lg text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200">
+                            <option value="kept">Manter como está</option>
+                            <option value="archived">Arquivar (inativar)</option>
+                            <option value="converted">Converter em simples</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" wire:click="closeSplitModal" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-700/60 hover:bg-slate-300/70 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                    <button type="button" wire:click="confirmSplit" wire:loading.attr="disabled" wire:target="confirmSplit"
+                        class="flex-[2] py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-br from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-2">
+                        <span wire:loading.remove wire:target="confirmSplit"><i class="bi bi-scissors"></i> Confirmar divisão</span>
+                        <span wire:loading wire:target="confirmSplit"><i class="bi bi-arrow-repeat animate-spin"></i> Dividindo…</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 
     <!-- Export Modal Component -->
     @livewire('products.export-product-card')
