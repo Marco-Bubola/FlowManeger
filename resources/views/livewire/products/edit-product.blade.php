@@ -477,59 +477,77 @@
     </form>
 
     {{-- ══════════ VARIAÇÕES ══════════ --}}
-    <div class="mt-6 rounded-2xl border border-slate-700/60 bg-slate-800/40 backdrop-blur-xl overflow-hidden">
+    @php
+        $familyStock = $product->stock_quantity + $variants->sum('stock_quantity');
+    @endphp
+    <div class="mt-6 rounded-3xl border border-violet-500/20 bg-gradient-to-br from-slate-800/60 via-slate-900/40 to-violet-950/20 backdrop-blur-xl overflow-hidden shadow-2xl shadow-violet-950/20">
+        {{-- Header --}}
         <button type="button" wire:click="toggleVariationsPanel"
-            class="w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-700/30 transition-colors">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-                    <i class="bi bi-diagram-3 text-white text-lg"></i>
+            class="group w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-white/5 transition-colors">
+            <div class="flex items-center gap-3.5 min-w-0">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40 group-hover:scale-105 transition-transform">
+                    <i class="bi bi-diagram-3-fill text-white text-xl"></i>
                 </div>
-                <div>
-                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                        Variações deste produto
+                <div class="min-w-0">
+                    <h3 class="text-base font-black text-white flex items-center gap-2 flex-wrap">
+                        Variações
                         @if($variants->count() > 0)
-                            <span class="px-2 py-0.5 bg-violet-500/20 text-violet-300 text-xs font-bold rounded-full">{{ $variants->count() }}</span>
+                            <span class="px-2 py-0.5 bg-violet-500/25 text-violet-200 text-[11px] font-black rounded-full ring-1 ring-violet-400/30">{{ $variants->count() + 1 }} no grupo</span>
                         @endif
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5">Agrupe produtos como cores, tamanhos ou voltagens deste item</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5 truncate">Cores, tamanhos, voltagens… agrupe variantes deste produto</p>
                 </div>
             </div>
-            <i class="bi {{ $showVariationsPanel ? 'bi-chevron-up' : 'bi-chevron-down' }} text-slate-400"></i>
+            <div class="flex items-center gap-3 shrink-0">
+                @if($variants->count() > 0)
+                    <div class="hidden sm:flex flex-col items-end">
+                        <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Estoque grupo</span>
+                        <span class="text-sm font-black text-violet-200">{{ $familyStock }}</span>
+                    </div>
+                @endif
+                <span class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
+                    <i class="bi {{ $showVariationsPanel ? 'bi-chevron-up' : 'bi-chevron-down' }} text-slate-300 text-sm"></i>
+                </span>
+            </div>
         </button>
 
         @if($showVariationsPanel)
-        <div class="px-5 pb-5 border-t border-slate-700/50 pt-4 space-y-5">
+        <div class="px-5 pb-5 border-t border-white/5 pt-5 space-y-5">
             {{-- Atributo de variação --}}
-            <div>
-                <label class="block text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-1.5">Atributo de variação</label>
-                <input type="text" wire:model="variationAttribute" placeholder="Ex.: Cor, Tamanho, Voltagem"
-                    class="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-violet-500">
-                <p class="text-[10px] text-slate-500 mt-1">Define o nome do atributo que diferencia as variações (ex.: "Cor").</p>
+            <div class="rounded-2xl bg-slate-900/50 border border-slate-700/50 p-4">
+                <label class="flex items-center gap-1.5 text-[11px] font-bold text-violet-300 uppercase tracking-wider mb-2">
+                    <i class="bi bi-tag-fill"></i> Atributo de variação
+                </label>
+                <input type="text" wire:model.blur="variationAttribute" placeholder="Ex.: Cor, Tamanho, Voltagem"
+                    class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition">
+                <p class="text-[10px] text-slate-500 mt-1.5">É o que diferencia as variações entre si (cada variante terá um <span class="text-slate-400">valor</span> desse atributo).</p>
             </div>
 
             {{-- Lista de variantes atuais --}}
             @if($variants->count() > 0)
             <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Variações vinculadas</p>
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> Variações vinculadas</p>
                 <div class="space-y-2">
                     @foreach($variants as $variant)
-                    <div class="flex items-center gap-3 rounded-xl bg-slate-900/50 border border-slate-700/60 px-3 py-2.5">
+                    <div class="group flex items-center gap-3 rounded-2xl bg-slate-900/60 border border-slate-700/60 px-3 py-2.5 hover:border-violet-500/40 transition-colors">
                         <img src="{{ $variant->image ? asset('storage/products/' . $variant->image) : asset('storage/products/product-placeholder.png') }}"
-                            class="w-10 h-10 rounded-lg object-cover border border-slate-700 flex-shrink-0" alt="{{ $variant->name }}">
+                            class="w-11 h-11 rounded-xl object-cover border border-slate-700 flex-shrink-0" alt="{{ $variant->name }}">
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-bold text-white truncate">{{ $variant->name }}</p>
-                            <p class="text-[11px] text-slate-400 truncate">
-                                <span class="text-violet-300 font-semibold">{{ $variant->variation_value }}</span>
-                                · {{ $variant->product_code }} · estoque {{ $variant->stock_quantity }}
-                            </p>
+                            <div class="flex items-center gap-1.5 mt-1 flex-wrap">
+                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-500/15 text-violet-300">{{ $variant->variation_value }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-700/40 text-slate-400"><i class="bi bi-upc"></i>{{ $variant->product_code }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold {{ $variant->stock_quantity > 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300' }}"><i class="bi bi-stack"></i>{{ $variant->stock_quantity }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-500/10 text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
+                            </div>
                         </div>
-                        <a href="{{ route('products.edit', $variant) }}" class="px-2.5 py-1.5 text-xs font-semibold text-slate-300 bg-slate-700/50 hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
+                        <a href="{{ route('products.edit', $variant) }}" class="w-8 h-8 flex items-center justify-center text-xs text-slate-300 bg-slate-700/50 hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
                             <i class="bi bi-pencil"></i>
                         </a>
                         <button type="button" wire:click="detachVariation({{ $variant->id }})"
                             wire:confirm="Desvincular esta variação? O produto volta a ser independente (não será excluído)."
-                            class="px-2.5 py-1.5 text-xs font-semibold text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
-                            <i class="bi bi-link-45deg"></i>
+                            class="w-8 h-8 flex items-center justify-center text-xs text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
+                            <i class="bi bi-x-lg"></i>
                         </button>
                     </div>
                     @endforeach
@@ -539,52 +557,83 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {{-- Criar nova variação --}}
-                <div class="rounded-xl border border-slate-700/60 bg-slate-900/40 p-4">
-                    <p class="text-xs font-bold text-emerald-300 mb-3 flex items-center gap-1.5"><i class="bi bi-plus-circle"></i> Criar nova variação</p>
+                <div class="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4">
+                    <p class="text-xs font-black text-emerald-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-plus-circle-fill"></i> Criar nova variação</p>
                     <div class="space-y-2.5">
                         <input type="text" wire:model="newVariantName" placeholder="Nome do produto-variante"
-                            class="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-                        @error('newVariantName') <p class="text-[10px] text-red-400">{{ $message }}</p> @enderror
+                            class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition">
+                        @error('newVariantName') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
                         <input type="text" wire:model="newVariantValue" placeholder="Valor (ex.: Azul, M, 220V)"
-                            class="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
-                        @error('newVariantValue') <p class="text-[10px] text-red-400">{{ $message }}</p> @enderror
+                            class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition">
+                        @error('newVariantValue') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
                         <div class="grid grid-cols-3 gap-2">
                             <input type="text" wire:model="newVariantPrice" placeholder="Custo"
-                                class="px-2 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                                class="px-2.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
                             <input type="text" wire:model="newVariantPriceSale" placeholder="Venda"
-                                class="px-2 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                                class="px-2.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
                             <input type="number" wire:model="newVariantStock" placeholder="Estoque"
-                                class="px-2 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500">
+                                class="px-2.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
                         </div>
                         <button type="button" wire:click="addVariation" wire:loading.attr="disabled" wire:target="addVariation"
-                            class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm rounded-lg transition-colors flex items-center justify-center gap-2">
+                            class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2">
                             <span wire:loading.remove wire:target="addVariation"><i class="bi bi-plus-lg"></i> Criar variação</span>
                             <span wire:loading wire:target="addVariation"><i class="bi bi-arrow-repeat animate-spin"></i> Criando…</span>
                         </button>
                     </div>
                 </div>
 
-                {{-- Vincular produto existente --}}
-                <div class="rounded-xl border border-slate-700/60 bg-slate-900/40 p-4">
-                    <p class="text-xs font-bold text-sky-300 mb-3 flex items-center gap-1.5"><i class="bi bi-link-45deg"></i> Vincular produto existente</p>
+                {{-- Vincular produto existente (busca por código/nome) --}}
+                <div class="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-950/20 to-slate-900/40 p-4">
+                    <p class="text-xs font-black text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular produto existente</p>
                     <div class="space-y-2.5">
-                        <select wire:model="linkVariantId"
-                            class="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 focus:outline-none focus:border-sky-500">
-                            <option value="">Selecione um produto…</option>
-                            @foreach($linkableProducts as $lp)
-                                <option value="{{ $lp->id }}">{{ $lp->name }} ({{ $lp->product_code }})</option>
-                            @endforeach
-                        </select>
-                        @error('linkVariantId') <p class="text-[10px] text-red-400">{{ $message }}</p> @enderror
+                        {{-- Produto selecionado OU busca --}}
+                        @if($linkVariantId && $linkSelectedLabel)
+                            <div class="flex items-center gap-2 rounded-xl bg-sky-500/10 border border-sky-500/30 px-3 py-2.5">
+                                <i class="bi bi-check-circle-fill text-sky-400"></i>
+                                <span class="text-sm font-bold text-sky-100 flex-1 truncate">{{ $linkSelectedLabel }}</span>
+                                <button type="button" wire:click="clearLinkTarget" class="text-slate-400 hover:text-white" title="Trocar">
+                                    <i class="bi bi-x-lg text-xs"></i>
+                                </button>
+                            </div>
+                        @else
+                            <div class="relative">
+                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                                <input type="text" wire:model.live.debounce.300ms="linkSearch" placeholder="Buscar por código ou nome…"
+                                    class="w-full pl-9 pr-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
+                            </div>
+                            {{-- Resultados --}}
+                            <div class="max-h-56 overflow-y-auto rounded-xl border border-slate-700/50 divide-y divide-slate-800/60 bg-slate-950/40">
+                                @forelse($linkSearchResults as $lp)
+                                    <button type="button"
+                                        wire:click="selectLinkTarget({{ $lp->id }})"
+                                        class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-sky-500/10 transition-colors">
+                                        <img src="{{ $lp->image ? asset('storage/products/' . $lp->image) : asset('storage/products/product-placeholder.png') }}"
+                                            class="w-9 h-9 rounded-lg object-cover border border-slate-700 flex-shrink-0" alt="">
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-semibold text-slate-100 truncate">{{ $lp->name }}</p>
+                                            <p class="text-[10px] text-slate-400 truncate"><i class="bi bi-upc"></i> {{ $lp->product_code }} · estoque {{ $lp->stock_quantity }}</p>
+                                        </div>
+                                        <i class="bi bi-plus-circle text-sky-400"></i>
+                                    </button>
+                                @empty
+                                    <p class="px-3 py-4 text-center text-[11px] text-slate-500">
+                                        {{ trim($linkSearch) !== '' ? 'Nenhum produto encontrado.' : 'Digite para buscar produtos simples e independentes.' }}
+                                    </p>
+                                @endforelse
+                            </div>
+                        @endif
+                        @error('linkVariantId') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
+
                         <input type="text" wire:model="linkVariantValue" placeholder="Valor (ex.: Vermelho, G, 110V)"
-                            class="w-full px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500">
-                        @error('linkVariantValue') <p class="text-[10px] text-red-400">{{ $message }}</p> @enderror
+                            class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
+                        @error('linkVariantValue') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
+
                         <button type="button" wire:click="linkVariation" wire:loading.attr="disabled" wire:target="linkVariation"
-                            class="w-full py-2 bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm rounded-lg transition-colors flex items-center justify-center gap-2">
+                            @disabled(!$linkVariantId)
+                            class="w-full py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-900/30 transition-all flex items-center justify-center gap-2">
                             <span wire:loading.remove wire:target="linkVariation"><i class="bi bi-link"></i> Vincular como variação</span>
                             <span wire:loading wire:target="linkVariation"><i class="bi bi-arrow-repeat animate-spin"></i> Vinculando…</span>
                         </button>
-                        <p class="text-[10px] text-slate-500">Só aparecem produtos simples e independentes (sem pai/variações).</p>
                     </div>
                 </div>
             </div>
