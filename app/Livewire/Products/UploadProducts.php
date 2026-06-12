@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductCategoryLearning;
 use App\Models\ProductUploadHistory;
+use App\Services\Products\VariationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -326,7 +327,7 @@ class UploadProducts extends Component
         }
     }
 
-    public function store()
+    public function store(VariationService $variations)
     {
         if (empty($this->productsUpload)) {
             session()->flash('error', 'Nenhum produto para salvar.');
@@ -400,95 +401,46 @@ class UploadProducts extends Component
             }
 
             try {
-                // Buscar produto existente apenas por código e usuário
-                $existingProduct = Product::where('product_code', $product['product_code'])
-                    ->where('user_id', Auth::id())
-                    ->where('price', $product['price'])
-                    ->where('price_sale', $product['price_sale'])
-                    ->first();
+                // Lógica unificada de variações (mesmo serviço do cadastro manual):
+                //  - código/nome igual + mesmo preço → soma estoque  (updated)
+                //  - código/nome igual + preço diferente → variação  (created)
+                //  - não existe → produto novo                       (created)
+                $result = $variations->intake(Auth::id(), [
+                    'name'           => $this->sanitizeName($product['name'] ?? ''),
+                    'description'    => $product['description'] ?? null,
+                    'price'          => $product['price'],
+                    'price_sale'     => $product['price_sale'],
+                    'stock_quantity' => $product['stock_quantity'],
+                    'product_code'   => $product['product_code'],
+                    'status'         => $product['status'] ?? 'ativo',
+                    'category_id'    => $product['category_id'] ?? 1,
+                    'image'          => $imageName,
+                ]);
 
-                if ($existingProduct) {
-                    // ✅ CENÁRIO A: Produto existe com EXATAMENTE mesmo preço custo E venda
-                    // Ação: SOMA ESTOQUE + Mantém imagem se não enviar nova
-                    Log::info("Produto {$product['product_code']} já existe, somando estoque");
-                    $existingProduct->stock_quantity += $product['stock_quantity'];
+                $resultProduct = $result['product'];
 
-                    // Atualizar imagem apenas se foi enviada uma nova
-                    if ($shouldUpdateImage) {
-                        $existingProduct->image = $imageName;
-                        Log::info("Imagem atualizada para produto existente: {$imageName}");
-                    } else {
-                        Log::info("Mantendo imagem existente: {$existingProduct->image}");
+                if ($result['action'] === 'stock') {
+                    // Atualiza imagem do existente apenas se foi enviada uma nova
+                    if ($shouldUpdateImage && $imageName !== 'product-placeholder.png') {
+                        $resultProduct->update(['image' => $imageName]);
                     }
-
-                    $existingProduct->save();
+                    Log::info("Produto {$product['product_code']} já existe, estoque somado");
                     $productsUpdated++;
                     $updatedList[] = [
-                        'name' => $existingProduct->name,
-                        'code' => $existingProduct->product_code,
-                        'price' => $existingProduct->price,
+                        'name'  => $resultProduct->name,
+                        'code'  => $resultProduct->product_code,
+                        'price' => $resultProduct->price,
                     ];
                 } else {
-                    // Verificar se existe produto com mesmo código mas preço diferente
-                    $similarProduct = Product::where('product_code', $product['product_code'])
-                        ->where('user_id', Auth::id())
-                        ->first();
-
-                    if ($similarProduct) {
-                        // ✅ CENÁRIO B: Produto existe mas com preço DIFERENTE
-                        // Ação: CRIA NOVA VARIAÇÃO
-                        Log::info("Criando nova variação para {$product['product_code']} com preço diferente");
-                        $newProduct = Product::create([
-                            'name' => $this->sanitizeName($product['name'] ?? ''),
-                            'description' => $product['description'] ?? null,
-                            'price' => $product['price'],
-                            'price_sale' => $product['price_sale'],
-                            'stock_quantity' => $product['stock_quantity'],
-                            'product_code' => $product['product_code'],
-                            'status' => $product['status'] ?? 'ativo',
-                            'tipo' => $product['tipo'] ?? 'simples',
-                            'custos_adicionais' => $product['custos_adicionais'] ?? 0,
-                            'image' => $imageName,
-                            'user_id' => Auth::id(),
-                            'category_id' => $similarProduct->category_id, // Usa categoria do produto similar
-                        ]);
-
-                        // Aprender categorização
-                        $this->learnCategorization($newProduct);
-                        $productsCreated++;
-                        $createdList[] = [
-                            'name' => $newProduct->name,
-                            'code' => $newProduct->product_code,
-                            'price' => $newProduct->price,
-                        ];
-                    } else {
-                        // ✅ CENÁRIO C: Produto NÃO EXISTE
-                        // Ação: CRIA NOVO PRODUTO
-                        Log::info("Criando produto novo: {$product['product_code']}");
-                        $newProduct = Product::create([
-                            'name' => $this->sanitizeName($product['name'] ?? ''),
-                            'description' => $product['description'] ?? null,
-                            'price' => $product['price'],
-                            'price_sale' => $product['price_sale'],
-                            'stock_quantity' => $product['stock_quantity'],
-                            'product_code' => $product['product_code'],
-                            'status' => $product['status'] ?? 'ativo',
-                            'tipo' => $product['tipo'] ?? 'simples',
-                            'custos_adicionais' => $product['custos_adicionais'] ?? 0,
-                            'image' => $imageName,
-                            'user_id' => Auth::id(),
-                            'category_id' => $product['category_id'] ?? 1,
-                        ]);
-
-                        // Aprender categorização para futuros produtos similares
-                        $this->learnCategorization($newProduct);
-                        $productsCreated++;
-                        $createdList[] = [
-                            'name' => $newProduct->name,
-                            'code' => $newProduct->product_code,
-                            'price' => $newProduct->price,
-                        ];
-                    }
+                    // 'variation' ou 'created' → produto novo
+                    $this->learnCategorization($resultProduct);
+                    Log::info(($result['action'] === 'variation' ? 'Variação criada' : 'Produto criado') . " para {$product['product_code']}");
+                    $productsCreated++;
+                    $createdList[] = [
+                        'name'  => $resultProduct->name,
+                        'code'  => $resultProduct->product_code,
+                        'price' => $resultProduct->price,
+                    ];
                 }
             } catch (\Exception $e) {
                 // Log: Erro durante o processamento
