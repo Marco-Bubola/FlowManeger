@@ -537,6 +537,13 @@ class ProductsIndex extends Component
     {
         $query = Product::query();
 
+        // Variações: ocultar variantes filhas da listagem principal.
+        // Mostra apenas produtos-pai e standalone (parent_id NULL).
+        // Exceção: ao pesquisar, permitimos encontrar variantes diretamente.
+        if (empty($this->search)) {
+            $query->whereNull('parent_id');
+        }
+
         // Filtro de pesquisa por nome ou código
         if (!empty($this->search)) {
             $searchTerm = str_replace('.', '', $this->search);
