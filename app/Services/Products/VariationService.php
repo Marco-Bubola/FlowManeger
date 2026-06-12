@@ -105,4 +105,99 @@ class VariationService
         } while (Product::where('product_code', $code)->exists());
         return $code;
     }
+
+    /**
+     * Resolve a entrada de um produto (criação manual ou importação):
+     *  - Procura um produto existente do mesmo usuário por CÓDIGO ou NOME.
+     *  - Se achar e já houver um membro da família com o MESMO price e price_sale
+     *    → soma o estoque nesse membro.            (action: 'stock')
+     *  - Se achar mas o preço/preço de venda DIFERE
+     *    → cria uma variação real (parent_id).      (action: 'variation')
+     *  - Se não achar nada
+     *    → cria um produto standalone.              (action: 'created')
+     *
+     * @return array{action:string, product:\App\Models\Product}
+     */
+    public function intake(int $userId, array $data): array
+    {
+        $code      = trim((string) ($data['product_code'] ?? ''));
+        $name      = trim((string) ($data['name'] ?? ''));
+        $price     = round((float) ($data['price'] ?? 0), 2);
+        $priceSale = round((float) ($data['price_sale'] ?? 0), 2);
+        $stock     = max(0, (int) ($data['stock_quantity'] ?? 0));
+
+        // 1) Âncora: produto existente por código OU nome (prioriza código exato)
+        $anchor = Product::where('user_id', $userId)
+            ->where(function ($q) use ($code, $name) {
+                $applied = false;
+                if ($code !== '') { $q->where('product_code', $code); $applied = true; }
+                if ($name !== '') { $applied ? $q->orWhere('name', $name) : $q->where('name', $name); }
+            })
+            ->when($code !== '', fn ($q) => $q->orderByRaw('CASE WHEN product_code = ? THEN 0 ELSE 1 END', [$code]))
+            ->first();
+
+        if (!$anchor) {
+            return ['action' => 'created', 'product' => $this->createStandalone($userId, $data, $code, $price, $priceSale, $stock)];
+        }
+
+        // Raiz da família (se a âncora já for uma variante, sobe pro pai)
+        $root = $anchor->parent_id ? ($anchor->parent ?? $anchor) : $anchor;
+
+        // 2) Existe membro da família com MESMO preço e preço de venda?
+        $match = $root->family()->get()->first(function ($p) use ($price, $priceSale) {
+            return abs((float) $p->price - $price) < 0.005
+                && abs((float) $p->price_sale - $priceSale) < 0.005;
+        });
+
+        if ($match) {
+            if ($stock > 0) {
+                $match->increment('stock_quantity', $stock);
+            }
+            return ['action' => 'stock', 'product' => $match->fresh()];
+        }
+
+        // 3) Preço diferente → cria variação real anexada à raiz
+        $value   = 'R$ ' . number_format($priceSale, 2, ',', '.');
+        $variant = $this->createVariant($root, [
+            'name'           => $name !== '' ? $name : $root->name,
+            'product_code'   => $code !== '' ? $code : $this->generateCode(),
+            'price'          => $price,
+            'price_sale'     => $priceSale,
+            'stock_quantity' => $stock,
+            'category_id'    => $data['category_id'] ?? $root->category_id,
+            'image'          => $data['image'] ?? ($root->image ?: 'product-placeholder.png'),
+            'description'    => $data['description'] ?? null,
+            'status'         => $data['status'] ?? 'ativo',
+        ], $value);
+
+        return ['action' => 'variation', 'product' => $variant];
+    }
+
+    private function createStandalone(int $userId, array $data, string $code, float $price, float $priceSale, int $stock): Product
+    {
+        $attrs = [
+            'user_id'           => $userId,
+            'name'              => trim((string) ($data['name'] ?? 'Produto')),
+            'product_code'      => $code !== '' ? $code : $this->generateCode(),
+            'price'             => $price,
+            'price_sale'        => $priceSale,
+            'stock_quantity'    => $stock,
+            'category_id'       => $data['category_id'] ?? null,
+            'image'             => $data['image'] ?? 'product-placeholder.png',
+            'tipo'              => 'simples',
+            'status'            => $data['status'] ?? 'ativo',
+            'custos_adicionais' => 0,
+            'description'       => $data['description'] ?? null,
+        ];
+
+        // Colunas opcionais (algumas são NOT NULL com default no banco):
+        // só incluímos quando vierem preenchidas, deixando o default agir.
+        foreach (['barcode', 'brand', 'model', 'warranty_months', 'condition'] as $opt) {
+            if (isset($data[$opt]) && $data[$opt] !== null && $data[$opt] !== '') {
+                $attrs[$opt] = $data[$opt];
+            }
+        }
+
+        return Product::create($attrs);
+    }
 }
