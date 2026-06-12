@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductImage;
 use App\Services\MercadoLivre\ProductService;
+use App\Services\Products\VariationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -132,7 +133,7 @@ class CreateProduct extends Component
         $this->currentStep = 1;
     }
 
-    public function store()
+    public function store(VariationService $variations)
     {
         Log::channel('single')->info('CreateProduct store() INÍCIO', [
             'price_raw' => $this->price,
@@ -200,49 +201,35 @@ class CreateProduct extends Component
             }
         }
 
-        // Verifica se já existe um produto com o mesmo código e preço
-        $existingProduct = Product::where('product_code', $this->product_code)
-            ->where('price', $this->price)
-            ->where('price_sale', $this->price_sale)
-            ->first();
+        // Lógica unificada de variações:
+        //  - código/nome igual + mesmo preço → soma estoque
+        //  - código/nome igual + preço diferente → cria variação (parent_id)
+        //  - não existe → cria produto novo
+        $result = $variations->intake(Auth::id(), [
+            'name'            => $this->name,
+            'description'     => $this->description,
+            'price'           => $this->price,
+            'price_sale'      => $this->price_sale,
+            'stock_quantity'  => $this->stock_quantity,
+            'category_id'     => $this->category_id,
+            'product_code'    => $this->product_code,
+            'image'           => $imageName ?: 'product-placeholder.png',
+            'status'          => 'ativo',
+            'barcode'         => $this->barcode ?: null,
+            'brand'           => $this->brand ?: null,
+            'model'           => $this->model ?: null,
+            'warranty_months' => $this->warranty_months ?: 3,
+            'condition'       => $this->condition ?: 'new',
+        ]);
 
-        if ($existingProduct) {
-            // Se o produto já existe com o mesmo código e preço, apenas atualizamos a quantidade
-            $existingProduct->stock_quantity += (int) $this->stock_quantity;
-            $existingProduct->save();
+        // Importa imagens ML selecionadas para o produto resultante
+        $this->importPendingMlImages($result['product']->id);
 
-            // Importa imagens ML selecionadas para o produto existente
-            $this->importPendingMlImages($existingProduct->id);
-
-            session()->flash('success', 'Produto atualizado com sucesso!');
-        } else {
-            // Se o produto não existe com o mesmo código e preço, cria um novo
-            $product = Product::create([
-                'name' => $this->name,
-                'description' => $this->description,
-                'price' => $this->price,
-                'price_sale' => $this->price_sale,
-                'stock_quantity' => $this->stock_quantity,
-                'category_id' => $this->category_id,
-                'user_id' => Auth::id(),
-                'product_code' => $this->product_code,
-                'image' => $imageName,
-                'status' => 'ativo', // Padrão sempre ativo
-                'tipo' => 'simples',
-                'custos_adicionais' => 0,
-                // Campos Mercado Livre
-                'barcode' => $this->barcode ?: null,
-                'brand' => $this->brand ?: null,
-                'model' => $this->model ?: null,
-                'warranty_months' => $this->warranty_months ?: 3,
-                'condition' => $this->condition ?: 'new',
-            ]);
-
-            // Importa imagens ML selecionadas
-            $this->importPendingMlImages($product->id);
-
-            session()->flash('success', 'Produto adicionado com sucesso!');
-        }
+        session()->flash('success', match ($result['action']) {
+            'stock'     => 'Produto já existia com esse preço — estoque somado!',
+            'variation' => 'Preço diferente detectado — cadastrado como nova variação!',
+            default     => 'Produto adicionado com sucesso!',
+        });
 
         // Reset do formulário
         $this->reset();
