@@ -37,6 +37,12 @@ class Product extends Model
         'length_cm',     // Comprimento do pacote
         'width_cm',      // Largura do pacote
         'height_cm',     // Altura do pacote
+        // Variações (produto-pai + variantes)
+        'parent_id',
+        'is_variation_parent',
+        'variation_attribute',
+        'variation_value',
+        'variation_sort',
     ];
 
     /**
@@ -54,6 +60,9 @@ class Product extends Model
         'length_cm'        => 'decimal:2',
         'width_cm'         => 'decimal:2',
         'height_cm'        => 'decimal:2',
+        'parent_id'           => 'integer',
+        'is_variation_parent' => 'boolean',
+        'variation_sort'      => 'integer',
     ];
 
     protected $appends = ['image_url', 'all_images'];
@@ -116,6 +125,50 @@ class Product extends Model
     public function componentes()
     {
         return $this->hasMany(\App\Models\ProdutoComponente::class, 'kit_produto_id');
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // VARIAÇÕES (produto-pai + variantes) — Estratégia B
+    // ─────────────────────────────────────────────────────────────
+
+    /** Variantes deste produto (quando ele é pai). */
+    public function variants()
+    {
+        return $this->hasMany(Product::class, 'parent_id')->orderBy('variation_sort');
+    }
+
+    /** Pai deste produto (quando ele é variante). */
+    public function parent()
+    {
+        return $this->belongsTo(Product::class, 'parent_id');
+    }
+
+    /**
+     * Toda a "família" da variação (pai + variantes), independente de quem chamou.
+     * Inclui o próprio produto raiz.
+     */
+    public function family()
+    {
+        $rootId = $this->parent_id ?? $this->id;
+        return Product::where('user_id', $this->user_id)
+            ->where(function ($q) use ($rootId) {
+                $q->where('id', $rootId)->orWhere('parent_id', $rootId);
+            })
+            ->orderBy('is_variation_parent', 'desc') // pai primeiro
+            ->orderBy('variation_sort');
+    }
+
+    public function isParent(): bool      { return (bool) $this->is_variation_parent; }
+    public function isVariant(): bool     { return $this->parent_id !== null; }
+    public function hasVariations(): bool { return $this->is_variation_parent || $this->parent_id !== null; }
+
+    /** Estoque somado da família (para exibir no card do pai). */
+    public function getFamilyStockAttribute(): int
+    {
+        if (!$this->is_variation_parent) {
+            return (int) $this->stock_quantity;
+        }
+        return (int) $this->stock_quantity + (int) $this->variants()->sum('stock_quantity');
     }
 
     /**
