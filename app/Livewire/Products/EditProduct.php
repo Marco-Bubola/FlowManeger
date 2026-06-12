@@ -51,6 +51,8 @@ class EditProduct extends Component
     public string $newVariantStock = '0';
     public string $linkVariantId = '';                // produto existente p/ vincular
     public string $linkVariantValue = '';             // valor da variação ao vincular
+    public string $linkSearch = '';                   // busca por código/nome
+    public string $linkSelectedLabel = '';            // rótulo do produto selecionado
 
     // Galeria de imagens adicionais
     public array $extraImages = [];
@@ -505,19 +507,46 @@ class EditProduct extends Component
     }
 
     /**
-     * Produtos que podem ser vinculados como variação:
+     * Busca ao vivo (por código OU nome) de produtos vinculáveis como variação:
      * mesmo dono, simples, standalone (sem pai e sem filhos), e não o próprio.
      */
-    public function getLinkableProductsProperty()
+    public function getLinkSearchResultsProperty()
     {
-        return Product::where('user_id', Auth::id())
+        $term = trim($this->linkSearch);
+
+        $query = Product::where('user_id', Auth::id())
             ->where('id', '!=', $this->product->id)
             ->whereNull('parent_id')
             ->where('is_variation_parent', false)
-            ->where('tipo', 'simples')
-            ->orderBy('name')
-            ->limit(200)
-            ->get(['id', 'name', 'product_code']);
+            ->where('tipo', 'simples');
+
+        if ($term !== '') {
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('product_code', 'like', "%{$term}%");
+            });
+        }
+
+        return $query->orderBy('name')->limit(8)->get(['id', 'name', 'product_code', 'image', 'stock_quantity']);
+    }
+
+    public function selectLinkTarget(int $id): void
+    {
+        $product = Product::where('user_id', Auth::id())->find($id);
+        if (!$product) {
+            $this->notifyError('Produto não encontrado.');
+            return;
+        }
+        $this->linkVariantId = (string) $id;
+        $this->linkSelectedLabel = $product->name . ' (' . $product->product_code . ')';
+        $this->linkSearch = '';
+    }
+
+    public function clearLinkTarget(): void
+    {
+        $this->linkVariantId = '';
+        $this->linkSelectedLabel = '';
+        $this->linkSearch = '';
     }
 
     public function toggleVariationsPanel(): void
@@ -579,7 +608,7 @@ class EditProduct extends Component
             $variations->attach($this->product, $child, $this->variationAttribute ?: 'Variação', trim($this->linkVariantValue));
 
             $this->product->refresh();
-            $this->reset(['linkVariantId', 'linkVariantValue']);
+            $this->reset(['linkVariantId', 'linkVariantValue', 'linkSearch', 'linkSelectedLabel']);
             $this->dispatch('product-updated');
             $this->notifySuccess('Produto vinculado como variação!');
         } catch (\Throwable $e) {
@@ -613,7 +642,7 @@ class EditProduct extends Component
             'selectedCategoryName' => $this->selectedCategoryName,
             'selectedCategoryIcon' => $this->selectedCategoryIcon,
             'variants' => $this->variants,
-            'linkableProducts' => $this->linkableProducts,
+            'linkSearchResults' => $this->linkSearchResults,
         ]);
     }
 }
