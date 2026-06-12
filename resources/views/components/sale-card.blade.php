@@ -240,32 +240,32 @@
     </div>
     </template>
 
-    <div class="sale-card-actions-v2" x-data="{ moreOpen: false }" aria-label="Ações da venda">
+    <div class="sc-acts-wrap" x-data="{ moreOpen: false }" aria-label="Ações da venda">
         <!-- Ações primárias (sempre visíveis) -->
-        <div class="sale-actions-primary">
+        <div class="sc-acts-primary">
             @foreach ($primaryActions as $action)
                 @if ($action['type'] === 'link')
-                    <a href="{{ $action['href'] }}" class="sale-action-btn sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
-                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
+                    <a href="{{ $action['href'] }}" class="sc-act-btn sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
+                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
                     </a>
                 @else
-                    <button type="button" wire:click="{{ $action['wireClick'] }}" class="sale-action-btn sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
-                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
+                    <button type="button" wire:click="{{ $action['wireClick'] }}" class="sc-act-btn sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
+                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
                     </button>
                 @endif
             @endforeach
 
             <!-- Botão "Mais" -->
-            <button type="button" @click="moreOpen = !moreOpen" class="sale-action-btn sale-action-more" :class="moreOpen ? 'is-open' : ''" aria-label="Mais ações" :aria-expanded="moreOpen.toString()">
-                <span class="sale-action-ico"><i class="bi bi-three-dots" x-show="!moreOpen"></i><i class="bi bi-chevron-up" x-show="moreOpen" x-cloak></i></span>
-                <span class="sale-action-lbl">Mais</span>
+            <button type="button" @click="moreOpen = !moreOpen" class="sc-act-btn sc-act-more" :class="moreOpen ? 'is-open' : ''" aria-label="Mais ações" :aria-expanded="moreOpen.toString()">
+                <span class="sc-act-ico"><i class="bi bi-three-dots" x-show="!moreOpen"></i><i class="bi bi-chevron-up" x-show="moreOpen" x-cloak></i></span>
+                <span class="sc-act-lbl">Mais</span>
             </button>
         </div>
 
         <!-- Ações secundárias (expansível) -->
-        <div class="sale-actions-more" x-show="moreOpen" x-cloak
+        <div class="sc-acts-more" x-show="moreOpen" x-cloak
             x-transition:enter="transition ease-out duration-200"
             x-transition:enter-start="opacity-0 -translate-y-2"
             x-transition:enter-end="opacity-100 translate-y-0"
@@ -274,16 +274,16 @@
             x-transition:leave-end="opacity-0 -translate-y-2">
             @foreach ($moreActions as $action)
                 @if ($action['type'] === 'link')
-                    <a href="{{ $action['href'] }}" class="sale-action-row sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
-                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
-                        <i class="bi bi-chevron-right sale-action-chevron"></i>
+                    <a href="{{ $action['href'] }}" class="sc-act-row sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
+                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
+                        <i class="bi bi-chevron-right sc-act-chevron"></i>
                     </a>
                 @else
-                    <button type="button" wire:click="{{ $action['wireClick'] }}" @click="moreOpen = false" class="sale-action-row sale-action-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
-                        <span class="sale-action-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sale-action-lbl">{{ $action['label'] }}</span>
-                        <i class="bi bi-chevron-right sale-action-chevron"></i>
+                    <button type="button" wire:click="{{ $action['wireClick'] }}" @click="moreOpen = false" class="sc-act-row sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
+                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
+                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
+                        <i class="bi bi-chevron-right sc-act-chevron"></i>
                     </button>
                 @endif
             @endforeach
