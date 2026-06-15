@@ -243,6 +243,13 @@
                      @change="markDirty()"
                      :class="{ 'dropdown-open': dropdownOpen, 'bulk-card--saving': saving, 'bulk-card--dirty': isDirty }">
 
+                    <!-- ── Checkbox de seleção (vincular como variação) ── -->
+                    <label class="absolute top-2 left-2 z-30 w-7 h-7 rounded-lg bg-slate-900/75 border border-white/25 flex items-center justify-center cursor-pointer backdrop-blur-sm hover:border-violet-400 transition-colors"
+                           @click.stop title="Selecionar para vincular como variação">
+                        <input type="checkbox" wire:model.live="selectedToLink" value="{{ $product['id'] }}"
+                               class="w-4 h-4 accent-violet-500 cursor-pointer">
+                    </label>
+
                     <!-- ── Overlay de loading individual ── -->
                     <div class="bulk-card-loading-overlay" x-show="saving" x-transition.opacity>
                         <div class="bulk-card-loading-content">
