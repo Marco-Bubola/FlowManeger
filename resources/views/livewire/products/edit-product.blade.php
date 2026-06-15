@@ -495,7 +495,7 @@
                             <span class="px-2 py-0.5 bg-violet-500/25 text-violet-200 text-[11px] font-black rounded-full ring-1 ring-violet-400/30">{{ $variants->count() + 1 }} no grupo</span>
                         @endif
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5 truncate">Cores, tamanhos, voltagens… agrupe variantes deste produto</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5 truncate">Vincule produtos do mesmo item que variam só no preço</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 shrink-0">
@@ -513,20 +513,10 @@
 
         @if($showVariationsPanel)
         <div class="px-5 pb-5 border-t border-white/5 pt-5 space-y-5">
-            {{-- Atributo de variação --}}
-            <div class="rounded-2xl bg-slate-900/50 border border-slate-700/50 p-4">
-                <label class="flex items-center gap-1.5 text-[11px] font-bold text-violet-300 uppercase tracking-wider mb-2">
-                    <i class="bi bi-tag-fill"></i> Atributo de variação
-                </label>
-                <input type="text" wire:model.blur="variationAttribute" placeholder="Ex.: Cor, Tamanho, Voltagem"
-                    class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 transition">
-                <p class="text-[10px] text-slate-500 mt-1.5">É o que diferencia as variações entre si (cada variante terá um <span class="text-slate-400">valor</span> desse atributo).</p>
-            </div>
-
-            {{-- Lista de variantes atuais --}}
+            {{-- Lista de variações vinculadas --}}
             @if($variants->count() > 0)
             <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> Variações vinculadas</p>
+                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> Variações vinculadas ({{ $variants->count() }})</p>
                 <div class="space-y-2">
                     @foreach($variants as $variant)
                     <div class="group flex items-center gap-3 rounded-2xl bg-slate-900/60 border border-slate-700/60 px-3 py-2.5 hover:border-violet-500/40 transition-colors">
@@ -535,10 +525,9 @@
                         <div class="min-w-0 flex-1">
                             <p class="text-sm font-bold text-white truncate">{{ $variant->name }}</p>
                             <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-violet-500/15 text-violet-300">{{ $variant->variation_value }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/15 text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-700/40 text-slate-400"><i class="bi bi-upc"></i>{{ $variant->product_code }}</span>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold {{ $variant->stock_quantity > 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300' }}"><i class="bi bi-stack"></i>{{ $variant->stock_quantity }}</span>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-500/10 text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
                             </div>
                         </div>
                         <a href="{{ route('products.edit', $variant) }}" class="w-8 h-8 flex items-center justify-center text-xs text-slate-300 bg-slate-700/50 hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
@@ -553,89 +542,78 @@
                     @endforeach
                 </div>
             </div>
+            @else
+            <div class="flex items-center gap-3 rounded-2xl bg-slate-900/40 border border-dashed border-slate-700/60 px-4 py-3 text-slate-400">
+                <i class="bi bi-info-circle text-violet-400"></i>
+                <p class="text-xs">Nenhuma variação vinculada ainda. Busque um produto abaixo para vincular.</p>
+            </div>
             @endif
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {{-- Criar nova variação --}}
-                <div class="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/20 to-slate-900/40 p-4">
-                    <p class="text-xs font-black text-emerald-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-plus-circle-fill"></i> Criar nova variação</p>
+            {{-- Vincular produto existente (busca por código/nome) --}}
+            <div class="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-950/20 to-slate-900/40 p-4">
+                <p class="text-xs font-black text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular variação</p>
+
+                @if($linkVariantId && $linkSelectedLabel)
+                    {{-- Produto escolhido + confirmar --}}
                     <div class="space-y-2.5">
-                        <input type="text" wire:model="newVariantName" placeholder="Nome do produto-variante"
-                            class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition">
-                        @error('newVariantName') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
-                        <input type="text" wire:model="newVariantValue" placeholder="Valor (ex.: Azul, M, 220V)"
-                            class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition">
-                        @error('newVariantValue') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
-                        <div class="grid grid-cols-3 gap-2">
-                            <input type="text" wire:model="newVariantPrice" placeholder="Custo"
-                                class="px-2.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
-                            <input type="text" wire:model="newVariantPriceSale" placeholder="Venda"
-                                class="px-2.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
-                            <input type="number" wire:model="newVariantStock" placeholder="Estoque"
-                                class="px-2.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition">
+                        <div class="flex items-center gap-2 rounded-xl bg-sky-500/10 border border-sky-500/30 px-3 py-2.5">
+                            <i class="bi bi-check-circle-fill text-sky-400"></i>
+                            <span class="text-sm font-bold text-sky-100 flex-1 truncate">{{ $linkSelectedLabel }}</span>
+                            <button type="button" wire:click="clearLinkTarget" class="text-slate-400 hover:text-white" title="Trocar">
+                                <i class="bi bi-x-lg text-xs"></i>
+                            </button>
                         </div>
-                        <button type="button" wire:click="addVariation" wire:loading.attr="disabled" wire:target="addVariation"
-                            class="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2">
-                            <span wire:loading.remove wire:target="addVariation"><i class="bi bi-plus-lg"></i> Criar variação</span>
-                            <span wire:loading wire:target="addVariation"><i class="bi bi-arrow-repeat animate-spin"></i> Criando…</span>
-                        </button>
-                    </div>
-                </div>
-
-                {{-- Vincular produto existente (busca por código/nome) --}}
-                <div class="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-950/20 to-slate-900/40 p-4">
-                    <p class="text-xs font-black text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular produto existente</p>
-                    <div class="space-y-2.5">
-                        {{-- Produto selecionado OU busca --}}
-                        @if($linkVariantId && $linkSelectedLabel)
-                            <div class="flex items-center gap-2 rounded-xl bg-sky-500/10 border border-sky-500/30 px-3 py-2.5">
-                                <i class="bi bi-check-circle-fill text-sky-400"></i>
-                                <span class="text-sm font-bold text-sky-100 flex-1 truncate">{{ $linkSelectedLabel }}</span>
-                                <button type="button" wire:click="clearLinkTarget" class="text-slate-400 hover:text-white" title="Trocar">
-                                    <i class="bi bi-x-lg text-xs"></i>
-                                </button>
-                            </div>
-                        @else
-                            <div class="relative">
-                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                                <input type="text" wire:model.live.debounce.300ms="linkSearch" placeholder="Buscar por código ou nome…"
-                                    class="w-full pl-9 pr-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
-                            </div>
-                            {{-- Resultados --}}
-                            <div class="max-h-56 overflow-y-auto rounded-xl border border-slate-700/50 divide-y divide-slate-800/60 bg-slate-950/40">
-                                @forelse($linkSearchResults as $lp)
-                                    <button type="button"
-                                        wire:click="selectLinkTarget({{ $lp->id }})"
-                                        class="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-sky-500/10 transition-colors">
-                                        <img src="{{ $lp->image ? asset('storage/products/' . $lp->image) : asset('storage/products/product-placeholder.png') }}"
-                                            class="w-9 h-9 rounded-lg object-cover border border-slate-700 flex-shrink-0" alt="">
-                                        <div class="min-w-0 flex-1">
-                                            <p class="text-sm font-semibold text-slate-100 truncate">{{ $lp->name }}</p>
-                                            <p class="text-[10px] text-slate-400 truncate"><i class="bi bi-upc"></i> {{ $lp->product_code }} · estoque {{ $lp->stock_quantity }}</p>
-                                        </div>
-                                        <i class="bi bi-plus-circle text-sky-400"></i>
-                                    </button>
-                                @empty
-                                    <p class="px-3 py-4 text-center text-[11px] text-slate-500">
-                                        {{ trim($linkSearch) !== '' ? 'Nenhum produto encontrado.' : 'Digite para buscar produtos simples e independentes.' }}
-                                    </p>
-                                @endforelse
-                            </div>
-                        @endif
-                        @error('linkVariantId') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
-
-                        <input type="text" wire:model="linkVariantValue" placeholder="Valor (ex.: Vermelho, G, 110V)"
-                            class="w-full px-3.5 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
-                        @error('linkVariantValue') <p class="text-[10px] text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
-
                         <button type="button" wire:click="linkVariation" wire:loading.attr="disabled" wire:target="linkVariation"
-                            @disabled(!$linkVariantId)
-                            class="w-full py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-900/30 transition-all flex items-center justify-center gap-2">
+                            class="w-full py-2.5 bg-gradient-to-r from-sky-600 to-blue-600 hover:from-sky-500 hover:to-blue-500 text-white font-bold text-sm rounded-xl shadow-lg shadow-sky-900/30 transition-all flex items-center justify-center gap-2">
                             <span wire:loading.remove wire:target="linkVariation"><i class="bi bi-link"></i> Vincular como variação</span>
                             <span wire:loading wire:target="linkVariation"><i class="bi bi-arrow-repeat animate-spin"></i> Vinculando…</span>
                         </button>
                     </div>
-                </div>
+                @else
+                    {{-- Filtro opcional (a lista já vem pronta, sem precisar digitar) --}}
+                    <div class="relative mb-2.5">
+                        <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
+                        <input type="text" wire:model.live.debounce.300ms="linkSearch" placeholder="Filtrar (opcional) por nome ou código…"
+                            class="w-full pl-9 pr-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
+                    </div>
+
+                    {{-- Rótulo da lista --}}
+                    <p class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1">
+                        @if(trim($linkSearch) === '')
+                            <i class="bi bi-stars text-sky-400"></i> Sugeridos (clique para vincular)
+                        @else
+                            <i class="bi bi-search text-sky-400"></i> Resultados
+                        @endif
+                    </p>
+
+                    <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-700/50 divide-y divide-slate-800/60 bg-slate-950/40">
+                        @forelse($linkSearchResults as $lp)
+                            @php $sameName = mb_strtolower(trim($lp->name)) === mb_strtolower(trim($product->name)); @endphp
+                            <button type="button" wire:click="selectLinkTarget({{ $lp->id }})"
+                                class="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-sky-500/10 transition-colors">
+                                <img src="{{ $lp->image ? asset('storage/products/' . $lp->image) : asset('storage/products/product-placeholder.png') }}"
+                                    class="w-10 h-10 rounded-lg object-cover border border-slate-700 flex-shrink-0" alt="">
+                                <div class="min-w-0 flex-1">
+                                    <p class="text-sm font-semibold text-slate-100 truncate flex items-center gap-1.5">
+                                        {{ $lp->name }}
+                                        @if($sameName)<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300">mesmo nome</span>@endif
+                                    </p>
+                                    <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400"><i class="bi bi-upc"></i>{{ $lp->product_code }}</span>
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($lp->price_sale, 2, ',', '.') }}</span>
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400"><i class="bi bi-stack"></i>{{ $lp->stock_quantity }}</span>
+                                    </div>
+                                </div>
+                                <i class="bi bi-plus-circle-fill text-sky-400 text-lg"></i>
+                            </button>
+                        @empty
+                            <p class="px-3 py-5 text-center text-[11px] text-slate-500">
+                                {{ trim($linkSearch) !== '' ? 'Nenhum produto encontrado para "' . $linkSearch . '".' : 'Nenhum produto disponível para vincular.' }}
+                            </p>
+                        @endforelse
+                    </div>
+                    @error('linkVariantId') <p class="text-[10px] text-red-400 flex items-center gap-1 mt-2"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
+                @endif
             </div>
         </div>
         @endif
