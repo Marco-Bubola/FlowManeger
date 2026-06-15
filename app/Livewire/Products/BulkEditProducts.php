@@ -17,7 +17,7 @@ class BulkEditProducts extends Component
     public array $productsData = [];
     public string $search = '';
     public string $filterStatus = '';
-    public string $sortBy = 'updated_at';
+    public string $sortBy = 'product_code';
     public array $savedStatus = [];
 
     public int $currentPage = 1;
