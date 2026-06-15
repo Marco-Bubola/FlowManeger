@@ -47,7 +47,10 @@ class BulkEditProducts extends Component
             ->when($this->filterStatus, fn($q) => $q->where('status', $this->filterStatus))
             ->when($this->sortBy === 'name', fn($q) => $q->orderBy('name'))
             ->when($this->sortBy === 'updated_at', fn($q) => $q->orderByDesc('updated_at'))
-            ->when($this->sortBy === 'price_sale', fn($q) => $q->orderByDesc('price_sale'));
+            ->when($this->sortBy === 'price_sale', fn($q) => $q->orderByDesc('price_sale'))
+            // Ordenar por código agrupa os produtos iguais (mesmo código) lado a lado,
+            // facilitando selecioná-los para vincular como variações.
+            ->when($this->sortBy === 'product_code', fn($q) => $q->orderBy('product_code')->orderByDesc('price_sale'));
     }
 
     public function loadProducts(): void
@@ -283,6 +286,46 @@ class BulkEditProducts extends Component
         $this->selectedToLink = [];
         $this->linkParentId = '';
         $this->showLinkModal = false;
+    }
+
+    /**
+     * Expande a seleção para incluir TODOS os produtos que compartilham o(s)
+     * código(s) dos já marcados (mesmo produto, preços diferentes).
+     */
+    public function selectSameCode(): void
+    {
+        if (empty($this->selectedToLink)) {
+            $this->notifyError('Marque ao menos um produto primeiro.');
+            return;
+        }
+
+        $codes = Product::where('user_id', Auth::id())
+            ->whereIn('id', array_map('intval', $this->selectedToLink))
+            ->pluck('product_code')
+            ->filter()
+            ->unique()
+            ->all();
+
+        if (empty($codes)) {
+            return;
+        }
+
+        $ids = Product::where('user_id', Auth::id())
+            ->whereIn('product_code', $codes)
+            ->where('tipo', '!=', 'kit')
+            ->whereNull('parent_id')           // ignora os que já são variações
+            ->where('is_variation_parent', false)
+            ->pluck('id')
+            ->map(fn ($i) => (string) $i)
+            ->all();
+
+        $before = count($this->selectedToLink);
+        $this->selectedToLink = array_values(array_unique(array_merge($this->selectedToLink, $ids)));
+        $added = count($this->selectedToLink) - $before;
+
+        $this->notifySuccess($added > 0
+            ? "+{$added} produto(s) do mesmo código adicionados à seleção."
+            : 'Nenhum outro produto com esse código foi encontrado.');
     }
 
     public function openLinkModal(): void
