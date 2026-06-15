@@ -507,8 +507,10 @@ class EditProduct extends Component
     }
 
     /**
-     * Busca ao vivo (por código OU nome) de produtos vinculáveis como variação:
-     * mesmo dono, simples, standalone (sem pai e sem filhos), e não o próprio.
+     * Lista de produtos vinculáveis como variação (mesmo dono, simples, standalone,
+     * e não o próprio). Carrega automaticamente — sem precisar digitar:
+     *  - sem busca → sugere primeiro os de MESMO NOME (prováveis variações deste produto);
+     *  - com busca → filtra por nome OU código (ignorando pontos no código).
      */
     public function getLinkSearchResultsProperty()
     {
@@ -520,14 +522,35 @@ class EditProduct extends Component
             ->where('is_variation_parent', false)
             ->where('tipo', 'simples');
 
+        $cols = ['id', 'name', 'product_code', 'image', 'stock_quantity', 'price_sale'];
+
         if ($term !== '') {
-            $query->where(function ($q) use ($term) {
+            // Filtro opcional por nome OU código — ignorando pontos no código (ex.: 1234.567)
+            $codeTerm = str_replace('.', '', $term);
+            $query->where(function ($q) use ($term, $codeTerm) {
                 $q->where('name', 'like', "%{$term}%")
-                  ->orWhere('product_code', 'like', "%{$term}%");
+                  ->orWhereRaw("REPLACE(product_code, '.', '') like ?", ["%{$codeTerm}%"]);
             });
+
+            return $query->orderBy('name')->limit(25)->get($cols);
         }
 
-        return $query->orderBy('name')->limit(8)->get(['id', 'name', 'product_code', 'image', 'stock_quantity']);
+        // Sem digitar nada: prioriza os de MESMO NOME (as variações mais prováveis)
+        $name = $this->product->name;
+
+        return $query
+            ->orderByRaw('CASE WHEN name = ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END', [$name, $name . '%'])
+            ->orderBy('name')
+            ->limit(30)
+            ->get($cols);
+    }
+
+    /**
+     * Indica se a lista atual está em "modo sugestão" (sem busca digitada).
+     */
+    public function getHasLinkSearchProperty(): bool
+    {
+        return trim($this->linkSearch) !== '';
     }
 
     public function selectLinkTarget(int $id): void
@@ -595,17 +618,14 @@ class EditProduct extends Component
      */
     public function linkVariation(VariationService $variations): void
     {
-        $this->validate([
-            'linkVariantId'    => 'required',
-            'linkVariantValue' => 'required|string|max:120',
-        ], [], [
-            'linkVariantId'    => 'produto',
-            'linkVariantValue' => 'valor da variação',
-        ]);
+        $this->validate(['linkVariantId' => 'required'], [], ['linkVariantId' => 'produto']);
 
         try {
             $child = Product::where('user_id', Auth::id())->findOrFail((int) $this->linkVariantId);
-            $variations->attach($this->product, $child, $this->variationAttribute ?: 'Variação', trim($this->linkVariantValue));
+
+            // Variação só de valor: o "valor" é derivado automaticamente do preço de venda.
+            $value = 'R$ ' . number_format((float) $child->price_sale, 2, ',', '.');
+            $variations->attach($this->product, $child, 'Valor', $value);
 
             $this->product->refresh();
             $this->reset(['linkVariantId', 'linkVariantValue', 'linkSearch', 'linkSelectedLabel']);
