@@ -4,6 +4,7 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Services\Products\VariationService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -23,6 +24,11 @@ class BulkEditProducts extends Component
     public int $perPage = 120;
     public int $totalProducts = 0;
     public int $totalPages = 1;
+
+    // ─── Vincular em massa (variações) ────────────────────────────────────────
+    public array $selectedToLink = [];   // IDs marcados
+    public bool $showLinkModal = false;
+    public string $linkParentId = '';    // qual vira o produto-pai
 
     public function mount(): void
     {
@@ -258,6 +264,94 @@ class BulkEditProducts extends Component
         $this->notifySuccess('Produto removido!');
     }
 
+    // ─── Vincular em massa como variações ─────────────────────────────────────
+
+    /** Produtos atualmente selecionados (para mostrar no modal). */
+    public function getSelectedLinkProductsProperty()
+    {
+        if (empty($this->selectedToLink)) {
+            return collect();
+        }
+        $ids = array_map('intval', $this->selectedToLink);
+        return Product::where('user_id', Auth::id())
+            ->whereIn('id', $ids)
+            ->get(['id', 'name', 'product_code', 'image', 'stock_quantity', 'price_sale', 'tipo', 'parent_id', 'is_variation_parent']);
+    }
+
+    public function clearLinkSelection(): void
+    {
+        $this->selectedToLink = [];
+        $this->linkParentId = '';
+        $this->showLinkModal = false;
+    }
+
+    public function openLinkModal(): void
+    {
+        if (count($this->selectedToLink) < 2) {
+            $this->notifyError('Selecione pelo menos 2 produtos para agrupar como variações.');
+            return;
+        }
+        // Pai padrão = o primeiro selecionado (de preferência um que não seja kit/variante)
+        $candidates = $this->selectedLinkProducts;
+        $best = $candidates->first(fn ($p) => $p->tipo !== 'kit' && !$p->parent_id) ?? $candidates->first();
+        $this->linkParentId = (string) ($best->id ?? $this->selectedToLink[0]);
+        $this->showLinkModal = true;
+    }
+
+    public function confirmBulkLink(VariationService $variations): void
+    {
+        if (count($this->selectedToLink) < 2 || !$this->linkParentId) {
+            $this->notifyError('Seleção inválida.');
+            return;
+        }
+
+        $parent = Product::where('user_id', Auth::id())->find((int) $this->linkParentId);
+        if (!$parent) {
+            $this->notifyError('Produto-pai não encontrado.');
+            return;
+        }
+        if ($parent->tipo === 'kit') {
+            $this->notifyError('Um kit não pode ser o produto-pai de variações.');
+            return;
+        }
+
+        $childIds = array_filter(
+            array_map('intval', $this->selectedToLink),
+            fn ($id) => $id !== (int) $this->linkParentId
+        );
+
+        $linked = 0;
+        $skipped = 0;
+        foreach ($childIds as $cid) {
+            $child = Product::where('user_id', Auth::id())->find($cid);
+            if (!$child || $child->tipo === 'kit') {
+                $skipped++;
+                continue;
+            }
+            try {
+                $value = 'R$ ' . number_format((float) $child->price_sale, 2, ',', '.');
+                $variations->attach($parent, $child, 'Valor', $value);
+                $linked++;
+            } catch (\Throwable $e) {
+                $skipped++;
+            }
+        }
+
+        $this->clearLinkSelection();
+        $this->loadProducts();
+        $this->dispatch('product-updated');
+
+        if ($linked > 0) {
+            $msg = "{$linked} produto(s) vinculados como variações!";
+            if ($skipped > 0) {
+                $msg .= " ({$skipped} ignorado(s) — kit ou já agrupado)";
+            }
+            $this->notifySuccess($msg);
+        } else {
+            $this->notifyError('Nenhum produto pôde ser vinculado (verifique se não são kits ou já são variações).');
+        }
+    }
+
     public function render()
     {
         $categories = Category::where('user_id', Auth::id())->get();
@@ -265,6 +359,7 @@ class BulkEditProducts extends Component
         return view('livewire.products.bulk-edit-products', [
             'categories' => $categories,
             'pagesArray' => $this->getPagesArrayProperty(),
+            'selectedLinkProducts' => $this->selectedLinkProducts,
         ])->layout('components.layouts.app');
     }
 }
