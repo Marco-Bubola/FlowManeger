@@ -90,6 +90,10 @@
                             class="sale-filter-pill {{ $sortBy === 'price_sale' ? 'active' : '' }}">
                             <span>Preço</span>
                         </button>
+                        <button type="button" wire:click="$set('sortBy', 'product_code')"
+                            class="sale-filter-pill {{ $sortBy === 'product_code' ? 'active' : '' }}" title="Agrupa produtos do mesmo código (ideal p/ vincular variações)">
+                            <span><i class="bi bi-upc-scan"></i> Código</span>
+                        </button>
                     </div>
 
                     <!-- Contagem -->
@@ -574,9 +578,13 @@
             <span class="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-lg bg-violet-500/25 text-violet-200 text-xs font-black">{{ count($selectedToLink) }}</span>
             <span class="hidden sm:inline ml-1">selecionado(s)</span>
         </span>
+        <button type="button" wire:click="selectSameCode"
+            class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-700/70 hover:bg-slate-600/70 text-slate-100 font-semibold text-xs sm:text-sm transition-colors" title="Adicionar todos do mesmo código à seleção">
+            <i class="bi bi-upc-scan"></i><span class="hidden sm:inline"> Mesmos códigos</span>
+        </button>
         <button type="button" wire:click="openLinkModal"
             class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-500/30 transition-all">
-            <i class="bi bi-diagram-3-fill"></i> Vincular como variações
+            <i class="bi bi-diagram-3-fill"></i> <span class="hidden sm:inline">Vincular como variações</span><span class="sm:hidden">Vincular</span>
         </button>
         <button type="button" wire:click="clearLinkSelection"
             class="px-2.5 sm:px-3 py-2 rounded-xl bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 text-xs sm:text-sm font-semibold transition-colors" title="Limpar seleção">
