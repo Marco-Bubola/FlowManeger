@@ -567,6 +567,81 @@
         </span>
     </button>
 
+    <!-- ───────────────── BARRA FLUTUANTE: VINCULAR SELECIONADOS ───────────────── -->
+    @if(count($selectedToLink) > 0)
+    <div class="fixed left-1/2 -translate-x-1/2 bottom-5 z-40 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 rounded-2xl bg-slate-900/95 border border-violet-500/40 shadow-2xl shadow-violet-950/40 backdrop-blur">
+        <span class="text-xs sm:text-sm font-bold text-white whitespace-nowrap">
+            <span class="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-1.5 rounded-lg bg-violet-500/25 text-violet-200 text-xs font-black">{{ count($selectedToLink) }}</span>
+            <span class="hidden sm:inline ml-1">selecionado(s)</span>
+        </span>
+        <button type="button" wire:click="openLinkModal"
+            class="inline-flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 text-white font-bold text-xs sm:text-sm shadow-lg shadow-violet-500/30 transition-all">
+            <i class="bi bi-diagram-3-fill"></i> Vincular como variações
+        </button>
+        <button type="button" wire:click="clearLinkSelection"
+            class="px-2.5 sm:px-3 py-2 rounded-xl bg-slate-700/60 hover:bg-slate-600/60 text-slate-300 text-xs sm:text-sm font-semibold transition-colors" title="Limpar seleção">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    @endif
+
+    <!-- ───────────────── MODAL: AGRUPAR COMO VARIAÇÕES ───────────────── -->
+    @if($showLinkModal)
+    <div class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="absolute inset-0 bg-slate-900/70 backdrop-blur-sm" wire:click="clearLinkSelection"></div>
+        <div class="relative w-full sm:max-w-lg max-h-[92vh] sm:max-h-[88vh] overflow-hidden flex flex-col rounded-t-3xl sm:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 shadow-2xl">
+            {{-- Header --}}
+            <div class="flex items-center gap-3 px-5 py-4 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-r from-violet-50 to-purple-50 dark:from-slate-800 dark:to-slate-900">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+                    <i class="bi bi-diagram-3-fill text-white text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-base font-black text-slate-800 dark:text-white leading-tight">Agrupar como variações</h3>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400">Escolha o produto principal — os demais viram variações dele (valor pelo preço)</p>
+                </div>
+                <button type="button" wire:click="clearLinkSelection" class="w-8 h-8 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center"><i class="bi bi-x-lg"></i></button>
+            </div>
+
+            {{-- Lista de selecionados c/ radio p/ escolher o pai --}}
+            <div class="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+                @foreach($selectedLinkProducts as $sp)
+                    @php $blocked = $sp->tipo === 'kit'; @endphp
+                    <label class="flex items-center gap-3 rounded-2xl border px-3 py-2.5 cursor-pointer transition-colors
+                        {{ (string)$linkParentId === (string)$sp->id ? 'border-violet-500 bg-violet-500/10' : 'border-slate-200 dark:border-slate-700 hover:border-violet-400/50' }}">
+                        <input type="radio" wire:model="linkParentId" value="{{ $sp->id }}" @disabled($blocked)
+                            class="w-4 h-4 accent-violet-500 shrink-0">
+                        <img src="{{ $sp->image ? asset('storage/products/' . $sp->image) : asset('storage/products/product-placeholder.png') }}"
+                            class="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 shrink-0" alt="">
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-bold text-slate-800 dark:text-white truncate">{{ $sp->name }}</p>
+                            <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <span class="text-[10px] font-semibold text-slate-500"><i class="bi bi-upc"></i> {{ $sp->product_code }}</span>
+                                <span class="text-[10px] font-bold text-sky-600 dark:text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($sp->price_sale, 2, ',', '.') }}</span>
+                                <span class="text-[10px] font-semibold text-slate-500"><i class="bi bi-stack"></i>{{ $sp->stock_quantity }}</span>
+                                @if($blocked)<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-500">kit — será ignorado</span>@endif
+                                @if($sp->is_variation_parent)<span class="text-[9px] font-black px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-600">já é pai</span>@endif
+                            </div>
+                        </div>
+                        @if((string)$linkParentId === (string)$sp->id)
+                            <span class="text-[10px] font-black px-2 py-1 rounded-lg bg-violet-500/20 text-violet-600 dark:text-violet-300 shrink-0">PRINCIPAL</span>
+                        @endif
+                    </label>
+                @endforeach
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-5 py-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/50 flex gap-2">
+                <button type="button" wire:click="clearLinkSelection" class="flex-1 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-700/60 hover:bg-slate-300/70 dark:hover:bg-slate-700 transition-colors">Cancelar</button>
+                <button type="button" wire:click="confirmBulkLink" wire:loading.attr="disabled" wire:target="confirmBulkLink"
+                    class="flex-[2] py-2.5 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-lg shadow-violet-500/30 transition-all flex items-center justify-center gap-2">
+                    <span wire:loading.remove wire:target="confirmBulkLink"><i class="bi bi-link-45deg"></i> Vincular variações</span>
+                    <span wire:loading wire:target="confirmBulkLink"><i class="bi bi-arrow-repeat animate-spin"></i> Vinculando…</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     <!-- ───────────────── MODAL MODERNO: CONFIRMAR SALVAR EDITADOS ───────────────── -->
     <template x-teleport="body">
         <div x-show="showSaveAllModal"
