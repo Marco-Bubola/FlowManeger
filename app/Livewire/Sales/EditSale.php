@@ -280,17 +280,23 @@ class EditSale extends Component
             // Se diff > 0, precisamos reduzir estoque; se diff < 0, devemos restaurar estoque.
             $productIds = array_unique(array_merge(array_keys($oldQuantities), array_keys($newQuantities)));
 
-            // Verificar disponibilidade antes de aplicar alterações
-            foreach ($productIds as $pid) {
-                $oldQ = $oldQuantities[$pid] ?? 0;
-                $newQ = $newQuantities[$pid] ?? 0;
-                $diff = $newQ - $oldQ;
+            // Só mexe em estoque se a venda já teve o estoque debitado (confirmada).
+            // Venda pendente não reservou estoque, então editar itens não altera saldo.
+            $mexeEstoque = (bool) $this->sale->stock_applied;
 
-                if ($diff > 0) {
-                    $product = Product::find($pid);
-                    if (!$product || $product->stock_quantity < $diff) {
-                        // Falha: estoque insuficiente para aplicar incremento
-                        throw new \Exception("Estoque insuficiente para o produto: {$product->name}");
+            // Verificar disponibilidade antes de aplicar alterações
+            if ($mexeEstoque) {
+                foreach ($productIds as $pid) {
+                    $oldQ = $oldQuantities[$pid] ?? 0;
+                    $newQ = $newQuantities[$pid] ?? 0;
+                    $diff = $newQ - $oldQ;
+
+                    if ($diff > 0) {
+                        $product = Product::find($pid);
+                        if (!$product || $product->stock_quantity < $diff) {
+                            // Falha: estoque insuficiente para aplicar incremento
+                            throw new \Exception("Estoque insuficiente para o produto: {$product->name}");
+                        }
                     }
                 }
             }
@@ -320,16 +326,18 @@ class EditSale extends Component
                 ]);
             }
 
-            // Aplicar alterações de estoque por produto (novo - antigo)
-            foreach ($productIds as $pid) {
-                $oldQ = $oldQuantities[$pid] ?? 0;
-                $newQ = $newQuantities[$pid] ?? 0;
-                $diff = $newQ - $oldQ; // se positivo -> diminuir estoque; se negativo -> aumentar
+            // Aplicar alterações de estoque por produto (novo - antigo) — só se confirmada
+            if ($mexeEstoque) {
+                foreach ($productIds as $pid) {
+                    $oldQ = $oldQuantities[$pid] ?? 0;
+                    $newQ = $newQuantities[$pid] ?? 0;
+                    $diff = $newQ - $oldQ; // se positivo -> diminuir estoque; se negativo -> aumentar
 
-                $product = Product::find($pid);
-                if ($product && $diff !== 0) {
-                    $product->stock_quantity -= $diff; // subtrair diff (se diff negativo, soma)
-                    $product->save();
+                    $product = Product::find($pid);
+                    if ($product && $diff !== 0) {
+                        $product->stock_quantity -= $diff; // subtrair diff (se diff negativo, soma)
+                        $product->save();
+                    }
                 }
             }
 
