@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\MercadoLivre;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessMercadoLivreWebhook;
+use App\Models\MercadoLivreWebhook;
 use App\Services\MercadoLivre\WebhookService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -61,16 +63,11 @@ class WebhookController extends Controller
                 ], 400);
             }
             
-            // Processar webhook de forma assíncrona (job)
-            // Por enquanto, processar síncrono
-            $result = $this->webhookService->processWebhook(
-                $topic,
-                $resource,
-                $request->all()
-            );
-            
-            // Mercado Livre espera resposta rápida (< 3 segundos)
-            // Sempre retornar 200 OK se webhook foi recebido
+            // Registra o webhook e processa de forma ASSÍNCRONA (fila),
+            // respondendo rápido ao ML (< 3s) para evitar reenvios.
+            $webhook = $this->webhookService->record($topic, $resource, $request->all());
+            ProcessMercadoLivreWebhook::dispatch($webhook);
+
             return response()->json([
                 'success' => true,
                 'message' => 'Webhook received',
@@ -91,8 +88,16 @@ class WebhookController extends Controller
     }
     
     /**
+     * Processa um webhook já registrado (chamado pelo job ProcessMercadoLivreWebhook).
+     */
+    public function process(MercadoLivreWebhook $webhook): array
+    {
+        return $this->webhookService->processLogged($webhook);
+    }
+
+    /**
      * Endpoint de teste para webhooks
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
