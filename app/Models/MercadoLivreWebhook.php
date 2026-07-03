@@ -52,6 +52,14 @@ class MercadoLivreWebhook extends Model
     }
 
     /**
+     * Incrementa o contador de tentativas de processamento.
+     */
+    public function incrementAttempts(): void
+    {
+        $this->increment('attempts');
+    }
+
+    /**
      * Marca como erro e incrementa tentativas
      */
     public function markAsError(string $errorMessage)
