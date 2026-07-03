@@ -20,3 +20,9 @@ Schedule::command('ml:sync-publications --limit=100')
     ->onFailure(function () {
         \Log::error('Falha na sincronização automática de publicações ML');
     });
+
+// Renovação preventiva dos tokens OAuth do Mercado Livre (a cada hora)
+Schedule::command('ml:refresh-tokens')
+    ->hourly()
+    ->withoutOverlapping()
+    ->runInBackground();
