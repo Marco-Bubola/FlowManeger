@@ -22,6 +22,7 @@ class Sale extends Model
         'total_price',
         'amount_paid',
         'status', // pendente, orcamento, confirmada, concluida, cancelada
+        'stock_applied', // estoque já debitado? (true quando confirmada)
         'payment_method',
         'tipo_pagamento', // a_vista, parcelado
         'parcelas', // int
@@ -34,6 +35,7 @@ class Sale extends Model
         'amount_paid' => 'decimal:2',
         'parcelas' => 'integer',
         'tipo_pagamento' => 'string',
+        'stock_applied' => 'boolean',
     ];
     /**
      * status: pendente, orcamento, confirmada, concluida, cancelada
@@ -85,5 +87,134 @@ class Sale extends Model
     $total = $this->saleItems()->sum(DB::raw('quantity * price_sale'));
         $this->update(['total_price' => $total]);
         return $total;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ESTOQUE NA CONFIRMAÇÃO + SYNC MERCADO LIVRE
+    |--------------------------------------------------------------------------
+    | O estoque só é debitado quando a venda é confirmada (paga/quitada).
+    | Idempotente via flag `stock_applied`. Após mexer no estoque, dispara
+    | a sincronização das publicações ML afetadas (App→ML).
+    */
+
+    /**
+     * Debita o estoque dos itens da venda (uma única vez).
+     */
+    public function applyStockDecrement(): void
+    {
+        if ($this->stock_applied) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $this->load('saleItems.product');
+
+            foreach ($this->saleItems as $item) {
+                $product = $item->product ?: Product::find($item->product_id);
+                if (!$product) {
+                    continue;
+                }
+
+                if (($product->tipo ?? 'simples') === 'kit') {
+                    foreach ($product->componentes()->get() as $pc) {
+                        $comp = $pc->componente()->first();
+                        if (!$comp) {
+                            continue;
+                        }
+                        $need = max(0, (int) ($pc->quantidade ?? 0) * (int) $item->quantity);
+                        $comp->update(['stock_quantity' => max(0, (int) $comp->stock_quantity - $need)]);
+                    }
+                } else {
+                    $product->update(['stock_quantity' => max(0, (int) $product->stock_quantity - (int) $item->quantity)]);
+                }
+            }
+
+            $this->forceFill(['stock_applied' => true])->save();
+        });
+
+        $this->dispatchMlStockSync();
+    }
+
+    /**
+     * Devolve o estoque (cancelamento/exclusão), só se tiver sido aplicado.
+     */
+    public function restoreStock(): void
+    {
+        if (!$this->stock_applied) {
+            return;
+        }
+
+        DB::transaction(function () {
+            $this->load('saleItems.product');
+
+            foreach ($this->saleItems as $item) {
+                $product = $item->product ?: Product::find($item->product_id);
+                if (!$product) {
+                    continue;
+                }
+
+                if (($product->tipo ?? 'simples') === 'kit') {
+                    foreach ($product->componentes()->get() as $pc) {
+                        $comp = $pc->componente()->first();
+                        if (!$comp) {
+                            continue;
+                        }
+                        $back = max(0, (int) ($pc->quantidade ?? 0) * (int) $item->quantity);
+                        $comp->increment('stock_quantity', $back);
+                    }
+                } else {
+                    $product->increment('stock_quantity', (int) $item->quantity);
+                }
+            }
+
+            $this->forceFill(['stock_applied' => false])->save();
+        });
+
+        $this->dispatchMlStockSync();
+    }
+
+    /**
+     * Dispara o sync de estoque App→ML para as publicações que contêm os
+     * produtos (ou componentes de kit) desta venda.
+     */
+    public function dispatchMlStockSync(): void
+    {
+        try {
+            $this->loadMissing('saleItems.product');
+
+            $affected = collect();
+            foreach ($this->saleItems as $item) {
+                $product = $item->product ?: Product::find($item->product_id);
+                if (!$product) {
+                    continue;
+                }
+                if (($product->tipo ?? 'simples') === 'kit') {
+                    foreach ($product->componentes()->get() as $pc) {
+                        if ($pc->componente_produto_id) {
+                            $affected->push($pc->componente_produto_id);
+                        }
+                    }
+                } else {
+                    $affected->push($product->id);
+                }
+            }
+
+            $affected = $affected->filter()->unique()->values();
+            if ($affected->isEmpty()) {
+                return;
+            }
+
+            \App\Models\MlPublication::query()
+                ->where('user_id', $this->user_id)
+                ->whereHas('products', fn ($q) => $q->whereIn('products.id', $affected->all()))
+                ->get()
+                ->each(fn ($pub) => \App\Jobs\SyncPublicationToMercadoLivre::dispatch($pub));
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Falha ao despachar sync ML da venda', [
+                'sale_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }
