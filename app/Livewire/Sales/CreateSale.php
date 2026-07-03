@@ -208,9 +208,14 @@ class CreateSale extends Component
                     return;
                 }
 
+                // A checagem de estoque suficiente só é exigida quando a venda
+                // será confirmada na criação (marcar_como_pago). Venda pendente
+                // não reserva estoque, então pode ser criada mesmo sem saldo.
+                $exigeEstoque = $this->marcar_como_pago;
+
                 // Verifica estoque do próprio produto se for simples
                 if (($product->tipo ?? 'simples') === 'simples') {
-                    if ($product->stock_quantity < $item['quantity']) {
+                    if ($exigeEstoque && $product->stock_quantity < $item['quantity']) {
                         session()->flash('error', "Estoque insuficiente para o produto: {$product->name}");
                         return;
                     }
@@ -231,7 +236,7 @@ class CreateSale extends Component
                             return;
                         }
                         $requiredQty = ($pc->quantidade ?? 0) * $item['quantity'];
-                        if ($componentProduct->stock_quantity < $requiredQty) {
+                        if ($exigeEstoque && $componentProduct->stock_quantity < $requiredQty) {
                             session()->flash('error', "Estoque insuficiente para o componente '{$componentProduct->name}' do kit '{$product->name}'. Pedido: {$requiredQty}, Disponível: {$componentProduct->stock_quantity}.");
                             return;
                         }
@@ -242,7 +247,7 @@ class CreateSale extends Component
         $totalPrice = $this->getTotalPrice();
 
         // Fazer as alterações em transação para garantir atomicidade entre criação da venda e atualização do estoque
-        DB::transaction(function () use ($totalPrice, $saleTimestamp) {
+        $sale = DB::transaction(function () use ($totalPrice, $saleTimestamp) {
             // Criar a venda
             $sale = Sale::create([
                 'client_id' => $this->client_id,
@@ -271,29 +276,9 @@ class CreateSale extends Component
                     'price_sale' => $item['unit_price'],
                 ]);
 
-                // Atualizar estoque somente para produtos simples.
-                if (($product->tipo ?? 'simples') === 'simples') {
-                    $product->stock_quantity -= $item['quantity'];
-                    $product->save();
-                }
-
-                // Se for kit, decrementar estoque dos componentes conforme quantidade do kit vendida
-                if (($product->tipo ?? '') === 'kit') {
-                    $componentes = $product->componentes()->get();
-                    foreach ($componentes as $pc) {
-                        $componentProduct = $pc->componente()->first();
-                        if (!$componentProduct) {
-                            // Pula se componente não encontrado (já validamos antes)
-                            continue;
-                        }
-                        $requiredQty = ($pc->quantidade ?? 0) * $item['quantity'];
-                        $componentProduct->stock_quantity -= $requiredQty;
-                        if ($componentProduct->stock_quantity < 0) {
-                            $componentProduct->stock_quantity = 0;
-                        }
-                        $componentProduct->save();
-                    }
-                }
+                // OBS.: o estoque NÃO é debitado aqui. Só é debitado quando a
+                // venda for confirmada (marcar_como_pago abaixo, ou ao pagar na
+                // Sales Index) via Sale::applyStockDecrement().
             }
 
             // Gerar parcelas se for parcelado
@@ -325,7 +310,15 @@ class CreateSale extends Component
                     ]);
                 }
             }
+
+            return $sale;
         });
+
+        // Estoque só é debitado quando a venda é confirmada na criação.
+        // (após o commit, para o dispatch do sync ML rodar com dados persistidos)
+        if ($this->marcar_como_pago && $sale) {
+            $sale->applyStockDecrement();
+        }
 
         session()->flash('success', $this->marcar_como_pago ? 'Venda criada e quitada com sucesso!' : 'Venda criada com sucesso!');
         return redirect()->route('sales.index');
