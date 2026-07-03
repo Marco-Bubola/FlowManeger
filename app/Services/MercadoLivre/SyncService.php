@@ -3,8 +3,7 @@
 namespace App\Services\MercadoLivre;
 
 use App\Models\Product;
-use App\Models\MercadoLivre\MercadoLivreProduct;
-use App\Models\MercadoLivre\MercadoLivreSync;
+use App\Models\MercadoLivreProduct;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -534,19 +533,12 @@ class SyncService extends MercadoLivreService
      */
     protected function logSync(string $type, string $action, array $result): void
     {
-        try {
-            MercadoLivreSync::create([
-                'type' => $type,
-                'action' => $action,
-                'status' => $result['success'] ?? true ? 'success' : 'failed',
-                'result' => json_encode($result),
-                'synced_at' => Carbon::now(),
-            ]);
-        } catch (\Exception $e) {
-            Log::error('Erro ao registrar sincronização', [
-                'error' => $e->getMessage(),
-            ]);
-        }
+        // Auditoria de sync via log (não há tabela dedicada mercadolivre_syncs).
+        Log::info('ML sync', [
+            'type' => $type,
+            'action' => $action,
+            'status' => ($result['success'] ?? true) ? 'success' : 'failed',
+        ]);
     }
     
     /**
@@ -557,22 +549,11 @@ class SyncService extends MercadoLivreService
      */
     public function getSyncHistory(int $limit = 50): array
     {
-        try {
-            $syncs = MercadoLivreSync::orderBy('synced_at', 'desc')
-                ->limit($limit)
-                ->get();
-            
-            return [
-                'success' => true,
-                'syncs' => $syncs,
-            ];
-            
-        } catch (\Exception $e) {
-            return [
-                'success' => false,
-                'message' => 'Erro ao buscar histórico: ' . $e->getMessage(),
-            ];
-        }
+        // Histórico dedicado não persistido (sem tabela); retorna vazio.
+        return [
+            'success' => true,
+            'syncs' => [],
+        ];
     }
     
     /**
@@ -583,21 +564,7 @@ class SyncService extends MercadoLivreService
      */
     public function cleanupOldSyncs(int $days = 90): int
     {
-        try {
-            $date = Carbon::now()->subDays($days);
-            
-            $deleted = MercadoLivreSync::where('synced_at', '<', $date)->delete();
-            
-            Log::info("Logs de sincronização limpos: {$deleted} registros");
-            
-            return $deleted;
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao limpar logs de sincronização', [
-                'error' => $e->getMessage(),
-            ]);
-            
-            return 0;
-        }
+        // Sem tabela dedicada de logs de sync; nada a limpar.
+        return 0;
     }
 }
