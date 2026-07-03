@@ -1,4 +1,4 @@
-<div class="relative" x-data="{ open: @entangle('showDropdown') }">
+<div class="relative" x-data="{ open: @entangle('showDropdown') }" wire:poll.30s="loadNotifications">
     <button wire:click="toggleDropdown" @click.away="open = false" type="button"
         class="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/70 bg-slate-50/90 text-slate-600 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-100 hover:text-blue-600 dark:border-slate-700 dark:bg-slate-800/95 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-blue-400"
         title="Notificações">
