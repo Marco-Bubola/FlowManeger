@@ -53,11 +53,21 @@ class ShowSale extends Component
         $this->ensureOwner();
         $saleItem = $this->sale->saleItems()->findOrFail($itemId);
 
-        // Restaurar estoque
-        $product = Product::find($saleItem->product_id);
-        if ($product) {
-            $product->stock_quantity += $saleItem->quantity;
-            $product->save();
+        // Restaurar estoque apenas se a venda já teve estoque debitado (confirmada).
+        if ($this->sale->stock_applied) {
+            $product = Product::find($saleItem->product_id);
+            if ($product) {
+                if (($product->tipo ?? 'simples') === 'kit') {
+                    foreach ($product->componentes()->get() as $pc) {
+                        $comp = $pc->componente()->first();
+                        if ($comp) {
+                            $comp->increment('stock_quantity', max(0, (int) ($pc->quantidade ?? 0) * (int) $saleItem->quantity));
+                        }
+                    }
+                } else {
+                    $product->increment('stock_quantity', (int) $saleItem->quantity);
+                }
+            }
         }
 
         // Remover item
@@ -137,6 +147,8 @@ class ShowSale extends Component
         if ($this->sale->total_paid >= $this->sale->total_price) {
             $this->sale->status = 'pago';
             $this->sale->save();
+            // Confirmação: debita estoque (idempotente) + sync App→ML
+            $this->sale->applyStockDecrement();
         }
 
         $this->toggleAddPaymentForm();
@@ -168,10 +180,13 @@ class ShowSale extends Component
         // Atualizar status da venda se necessário
         if ($this->sale->total_paid >= $this->sale->total_price) {
             $this->sale->status = 'pago';
+            $this->sale->save();
+            // Confirmação: debita estoque (idempotente) + sync App→ML
+            $this->sale->applyStockDecrement();
         } else {
             $this->sale->status = 'pendente';
+            $this->sale->save();
         }
-        $this->sale->save();
 
         $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)
             ->orderBy('numero_parcela')
