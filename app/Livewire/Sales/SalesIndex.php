@@ -333,14 +333,9 @@ class SalesIndex extends Component
                 return;
             }
 
-            // Restaurar o estoque dos produtos
-            foreach ($this->deletingSale->saleItems as $saleItem) {
-                $product = Product::find($saleItem->product_id);
-                if ($product) {
-                    $product->stock_quantity += $saleItem->quantity;
-                    $product->save();
-                }
-            }
+            // Restaurar o estoque (somente se tiver sido debitado — venda confirmada).
+            // Trata kits corretamente e dispara o sync App→ML.
+            $this->deletingSale->restoreStock();
 
             // Excluir os itens da venda e a venda
             $this->deletingSale->saleItems()->delete();
@@ -387,6 +382,9 @@ class SalesIndex extends Component
         $sale->amount_paid = $totalPaid;
         $sale->status = 'pago';
         $sale->save();
+
+        // Confirmação: debita estoque (idempotente) e dispara sync App→ML
+        $sale->applyStockDecrement();
 
         // Notificar e atualizar interface
         $this->dispatch('sale-updated', ['saleId' => $sale->id]);
