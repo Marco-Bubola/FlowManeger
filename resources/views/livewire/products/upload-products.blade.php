@@ -269,6 +269,61 @@
                                 </label>
                             </div>
 
+                            {{-- ══════════ SELETOR DE FORMATO DE EXTRAÇÃO ══════════ --}}
+                            <div class="mb-4">
+                                <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
+                                    <i class="bi bi-sliders"></i> Formato de leitura
+                                </p>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    {{-- Padrão (regex) --}}
+                                    <button type="button" wire:click="$set('extractionMode', 'standard')"
+                                        class="group flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all
+                                            {{ $extractionMode === 'standard'
+                                                ? 'border-amber-400 bg-amber-50/80 dark:bg-amber-900/20 shadow-lg shadow-amber-500/10'
+                                                : 'border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 hover:border-amber-300' }}">
+                                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shrink-0 text-white
+                                            {{ $extractionMode === 'standard' ? 'bg-gradient-to-br from-amber-500 to-orange-500' : 'bg-gradient-to-br from-slate-400 to-slate-500' }}">
+                                            <i class="bi bi-lightning-charge-fill text-lg"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                                Formato padrão
+                                                @if($extractionMode === 'standard')
+                                                    <i class="bi bi-check-circle-fill text-amber-500 text-xs"></i>
+                                                @endif
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">Rápido e preciso para extratos (Eudora/Boticário)</p>
+                                        </div>
+                                    </button>
+
+                                    {{-- IA (Gemini) --}}
+                                    <button type="button"
+                                        @if($geminiEnabled) wire:click="$set('extractionMode', 'ai')" @endif
+                                        @disabled(!$geminiEnabled)
+                                        class="group flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all
+                                            {{ !$geminiEnabled ? 'opacity-50 cursor-not-allowed border-slate-200/70 dark:border-slate-700 bg-white/60 dark:bg-slate-800/50' :
+                                               ($extractionMode === 'ai'
+                                                ? 'border-indigo-400 bg-indigo-50/80 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/10'
+                                                : 'border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 hover:border-indigo-300') }}">
+                                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shrink-0 text-white
+                                            {{ $extractionMode === 'ai' && $geminiEnabled ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-slate-400 to-slate-500' }}">
+                                            <i class="bi bi-robot text-lg"></i>
+                                        </div>
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-black text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
+                                                Extração com IA
+                                                @if($extractionMode === 'ai' && $geminiEnabled)
+                                                    <i class="bi bi-check-circle-fill text-indigo-500 text-xs"></i>
+                                                @endif
+                                            </p>
+                                            <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                                                {{ $geminiEnabled ? 'Gemini — para formatos variados/desconhecidos' : 'Configure o Gemini para habilitar' }}
+                                            </p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
                                     <div class="flex items-center gap-3">
