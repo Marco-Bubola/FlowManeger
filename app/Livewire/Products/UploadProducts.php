@@ -20,6 +20,7 @@ class UploadProducts extends Component
     use WithFileUploads, WithPagination;
 
     public $pdf_file;
+    public string $extractionMode = 'standard'; // 'standard' (regex) | 'ai' (Gemini)
     public $productsUpload = [];
     public $showProductsTable = false;
     public $uploadProgress = 0;
@@ -240,7 +241,9 @@ class UploadProducts extends Component
 
                 $geminiService = new \App\Services\GeminiPdfExtractorService();
 
-                if ($geminiService->isConfigured()) {
+                // Só usa o Gemini quando o usuário escolher "Extração com IA".
+                // No modo padrão (regex) pulamos a IA e vamos direto pro parser tradicional.
+                if ($this->extractionMode === 'ai' && $geminiService->isConfigured()) {
                     Log::info('🤖 Tentando extração com IA (Gemini)...');
 
                     try {
@@ -270,7 +273,7 @@ class UploadProducts extends Component
                         Log::warning('Erro ao usar IA, fallback para regex: ' . $e->getMessage());
                     }
                 } else {
-                    Log::info('Gemini não configurado, usando extração tradicional');
+                    Log::info('Modo padrão (regex) selecionado ou Gemini não configurado, usando extração tradicional');
                 }
 
                 Log::info('📄 Usando extração tradicional (regex)...');
@@ -1036,6 +1039,7 @@ class UploadProducts extends Component
         return view('livewire.products.upload-products', [
             'categories' => $categories,
             'uploadHistory' => $uploadHistory,
+            'geminiEnabled' => (new \App\Services\GeminiPdfExtractorService())->isConfigured(),
         ]);
     }
 }
