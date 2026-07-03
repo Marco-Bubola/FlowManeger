@@ -2,7 +2,7 @@
 
 namespace App\Services\MercadoLivre;
 
-use App\Models\MercadoLivre\MercadoLivreOrder;
+use App\Models\MercadoLivreOrder;
 use App\Models\Sale;
 use App\Models\Client;
 use App\Models\Product;
@@ -311,7 +311,7 @@ class OrderService extends MercadoLivreService
     protected function findOrCreateProduct(array $itemData): Product
     {
         // Buscar produto existente pelo ML Item ID
-        $mlProduct = \App\Models\MercadoLivre\MercadoLivreProduct::where('ml_item_id', $itemData['item']['id'])
+        $mlProduct = \App\Models\MercadoLivreProduct::where('ml_item_id', $itemData['item']['id'])
             ->where('user_id', Auth::id())
             ->first();
         
