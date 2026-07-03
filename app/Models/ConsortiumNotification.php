@@ -159,6 +159,11 @@ class ConsortiumNotification extends Model
             'payment_received' => 'bi-cash-coin',
             'client_new' => 'bi-person-plus-fill',
             'client_birthday' => 'bi-cake-fill',
+            'order_received' => 'bi-bag-check-fill',
+            'question_received' => 'bi-patch-question-fill',
+            'message_received' => 'bi-chat-dots-fill',
+            'claim_opened' => 'bi-exclamation-octagon-fill',
+            'sync_error' => 'bi-arrow-repeat',
             default => 'bi-bell-fill',
         };
     }
@@ -181,6 +186,11 @@ class ConsortiumNotification extends Model
             'payment_received' => 'green',
             'client_new' => 'blue',
             'client_birthday' => 'pink',
+            'order_received' => 'green',
+            'question_received' => 'blue',
+            'message_received' => 'blue',
+            'claim_opened' => 'red',
+            'sync_error' => 'amber',
             default => 'blue',
         };
     }
@@ -199,6 +209,11 @@ class ConsortiumNotification extends Model
             'payment_received' => 'Pagamento Recebido',
             'client_new' => 'Novo Cliente',
             'client_birthday' => 'Aniversário de Cliente',
+            'order_received' => 'Pedido Mercado Livre',
+            'question_received' => 'Pergunta Mercado Livre',
+            'message_received' => 'Mensagem Mercado Livre',
+            'claim_opened' => 'Reclamação Mercado Livre',
+            'sync_error' => 'Erro de Sincronização ML',
             default => 'Notificação',
         };
     }
