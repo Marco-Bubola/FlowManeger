@@ -1045,7 +1045,7 @@
         </nav>
 
         <!-- FAB Sheet: Criar & Importar — Cards por Área -->
-        <div id="mobileFabSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
+        <div id="mobileFabSheet" class="mobile-action-sheet" aria-hidden="true">
             <div class="mobile-sheet-backdrop" onclick="closeFabSheet()"></div>
             <div class="mobile-sheet-panel fab-sheet">
                 <div class="mobile-sheet-handle"></div>
@@ -1316,7 +1316,7 @@
         </div>
 
         <!-- Mais Sheet: Navegação Completa (espelho da sidebar) -->
-        <div id="mobileMoreSheet" class="mobile-action-sheet lg:hidden" aria-hidden="true">
+        <div id="mobileMoreSheet" class="mobile-action-sheet" aria-hidden="true">
             <div class="mobile-sheet-backdrop" onclick="closeMoreSheet()"></div>
             <div class="mobile-sheet-panel">
                 <div class="mobile-sheet-handle"></div>
