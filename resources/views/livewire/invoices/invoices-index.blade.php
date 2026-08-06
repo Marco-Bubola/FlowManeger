@@ -5,6 +5,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-ultrawide.css') }}">
+    {{-- Escala proporcional (carregar por último: sobrepõe os tamanhos acima) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/invoices-index-compact.css') }}?v=20260805">
 
     <x-loading-overlay message="Carregando faturas..." />
 
@@ -427,27 +429,27 @@
                                                     <!-- Direita: Botão Toggle (apenas ícone) -->
                                                     <!-- Toggle Switch Estilizado -->
                                                     <button type="button"
-                                                        class="category-toggle-btn flex items-center gap-3 px-4 py-2 rounded-xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl transition-all duration-300 border-2 border-transparent"
+                                                        class="category-toggle-btn bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-lg hover:shadow-xl"
                                                         data-category-id="{{ $catId }}"
                                                         data-expanded="false"
                                                         aria-expanded="false"
+                                                        aria-controls="invoices-group-{{ $catId }}"
                                                         style="--cat-color: {{ $catColor }};"
                                                         aria-label="Alternar visibilidade da categoria {{ $catName }}">
 
-                                                        <span class="text-xs font-semibold text-gray-700 dark:text-gray-300 toggle-label">Mostrar</span>
+                                                        <span class="toggle-label">Mostrar</span>
 
                                                         <!-- Toggle Switch -->
-                                                         <div class="relative w-11 h-6 rounded-full transition-colors duration-300 toggle-switch"
-                                                             style="background: linear-gradient(135deg, {{ $catColor }} 0%, {{ $catColor }}CC 100%); --cat-color: {{ $catColor }};">
-                                                            <div class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-transform duration-300 toggle-thumb" style="transform: translateX(0);"></div>
-                                                        </div>
+                                                        <span class="toggle-switch" aria-hidden="true">
+                                                            <span class="toggle-thumb"></span>
+                                                        </span>
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <!-- Conteúdo (Grid de invoices) -->
-                                            <div
-                                                class="group-invoices-wrapper overflow-hidden transition-all duration-500">
+                                            <div class="group-invoices-wrapper"
+                                                id="invoices-group-{{ $catId }}">
                                                 <div class="px-6 pb-6">
                                                     <div
                                                         class="group-invoices invoice-category-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ultrawind:grid-cols-6 gap-5">
@@ -719,137 +721,8 @@
                             </div>
                         @endif
 
-            <!-- Debug panel removed -->
-
-            <script>
-                (function () {
-                    'use strict';
-
-                    var STORAGE_KEY = 'invoices-category-visibility-v2';
-                    var stateCache = null;
-
-                    function readState() {
-                        if (stateCache) {
-                            return stateCache;
-                        }
-
-                        try {
-                            stateCache = JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || '{}');
-                        } catch (error) {
-                            stateCache = {};
-                        }
-
-                        return stateCache;
-                    }
-
-                    function saveState() {
-                        try {
-                            window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(readState()));
-                        } catch (error) {
-                            // noop
-                        }
-                    }
-
-                    function setExpandedState(categoryId, expanded) {
-                        var group = document.querySelector('.category-group[data-category-id="' + categoryId + '"]');
-                        var button = document.querySelector('.category-toggle-btn[data-category-id="' + categoryId + '"]');
-
-                        if (!group || !button) {
-                            return;
-                        }
-
-                        var wrapper = group.querySelector('.group-invoices-wrapper');
-                        var thumb = button.querySelector('.toggle-thumb');
-                        var label = button.querySelector('.toggle-label');
-                        var content = group.querySelector('.group-invoices');
-                        var contentHeight = content ? content.scrollHeight : 400;
-
-                        group.classList.toggle('expanded', expanded);
-                        group.classList.toggle('collapsed', !expanded);
-                        button.setAttribute('data-expanded', expanded ? 'true' : 'false');
-                        button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-
-                        if (label) {
-                            label.textContent = expanded ? 'Ocultar' : 'Mostrar';
-                        }
-
-                        if (thumb) {
-                            thumb.style.transform = expanded ? 'translateX(20px)' : 'translateX(0)';
-                        }
-
-                        if (wrapper) {
-                            wrapper.style.opacity = expanded ? '1' : '0';
-                            wrapper.style.maxHeight = expanded ? contentHeight + 'px' : '0px';
-
-                            if (expanded) {
-                                window.setTimeout(function () {
-                                    if (group.classList.contains('expanded')) {
-                                        wrapper.style.maxHeight = 'none';
-                                    }
-                                }, 520);
-                            }
-                        }
-                    }
-
-                    function syncAllCategories() {
-                        var savedState = readState();
-
-                        document.querySelectorAll('.category-group').forEach(function (group) {
-                            var categoryId = group.getAttribute('data-category-id');
-
-                            if (!categoryId) {
-                                return;
-                            }
-
-                            var expanded = Object.prototype.hasOwnProperty.call(savedState, categoryId)
-                                ? Boolean(savedState[categoryId])
-                                : false;
-
-                            setExpandedState(categoryId, expanded);
-                        });
-                    }
-
-                    function handleToggleClick(event) {
-                        var button = event.target.closest('.category-toggle-btn');
-
-                        if (!button) {
-                            return;
-                        }
-
-                        event.preventDefault();
-                        event.stopPropagation();
-
-                        var categoryId = button.getAttribute('data-category-id');
-                        var expanded = button.getAttribute('data-expanded') === 'true';
-
-                        readState()[categoryId] = !expanded;
-                        saveState();
-                        setExpandedState(categoryId, !expanded);
-                    }
-
-                    if (!window.__invoicesCategoryToggleBound) {
-                        document.addEventListener('click', handleToggleClick, true);
-                        window.__invoicesCategoryToggleBound = true;
-                    }
-
-                    if (document.readyState === 'loading') {
-                        document.addEventListener('DOMContentLoaded', syncAllCategories, { once: true });
-                    } else {
-                        syncAllCategories();
-                    }
-
-                    document.addEventListener('livewire:update', syncAllCategories);
-                    document.addEventListener('livewire:load', syncAllCategories);
-                    document.addEventListener('livewire:navigated', syncAllCategories);
-
-                    if (window.Livewire && typeof window.Livewire.hook === 'function' && !window.__invoicesCategoryHookBound) {
-                        window.Livewire.hook('message.processed', function () {
-                            window.setTimeout(syncAllCategories, 30);
-                        });
-                        window.__invoicesCategoryHookBound = true;
-                    }
-                })();
-            </script>
+            {{-- O script do toggle "Mostrar/Ocultar" vive fora deste @if (ver final do arquivo),
+                 pois <script> injetado pelo morph do Livewire nunca é executado. --}}
                     @else
                         <!-- Empty State -->
                         <div
@@ -1355,36 +1228,121 @@
             background: rgba(255, 255, 255, 0.06);
         }
 
-        /* Animações e transições suaves para category groups */
+        /* ── Abrir/fechar categoria: 100% dirigido por classe (sobrevive ao morph do Livewire) ── */
         .category-group .group-invoices-wrapper {
-            overflow: hidden;
-            transition: max-height 0.5s cubic-bezier(.4,0,.2,1), opacity 0.3s ease;
-            max-height: 0;
+            display: grid;
+            grid-template-rows: 0fr;
             opacity: 0;
+            transition: grid-template-rows 0.38s cubic-bezier(.4, 0, .2, 1), opacity 0.28s ease;
+        }
+
+        /* classe duplicada de propósito: precisa vencer os arquivos por dispositivo,
+           que estilizam este mesmo elemento via `.category-group .px-6.pb-6` */
+        .invoices-index-page.invoices-index-page .category-group .group-invoices-wrapper > * {
+            min-height: 0;
+            overflow: hidden;
+            /* zera o padding quando fechado — senão sobra uma faixa vazia */
+            padding-top: 0 !important;
+            padding-bottom: 0 !important;
+            transition: padding 0.38s cubic-bezier(.4, 0, .2, 1);
         }
 
         .category-group.expanded .group-invoices-wrapper {
-            max-height: 5000px;
+            grid-template-rows: 1fr;
             opacity: 1;
         }
 
-        /* Toggle button hover/active styles */
+        .invoices-index-page.invoices-index-page .category-group.expanded .group-invoices-wrapper > * {
+            padding-bottom: calc(1.5rem * var(--inv-s, 1)) !important;
+        }
+
+        /* ── Botão / switch "Mostrar · Ocultar" ── */
+        .category-toggle-btn {
+            --sw-w: max(2.2rem, calc(2.6rem * var(--inv-s, 1)));
+            --sw-h: max(1.2rem, calc(1.4rem * var(--inv-s, 1)));
+            --sw-thumb: max(0.95rem, calc(1.1rem * var(--inv-s, 1)));
+            --sw-pad: 0.125rem;
+            display: inline-flex;
+            align-items: center;
+            gap: calc(0.6rem * var(--inv-s, 1));
+            padding: calc(0.45rem * var(--inv-s, 1)) calc(0.85rem * var(--inv-s, 1));
+            border-radius: calc(0.75rem * var(--inv-s, 1));
+            border: 2px solid transparent;
+            cursor: pointer;
+            flex-shrink: 0;
+            transition: transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+        }
+
         .category-toggle-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
             border-color: var(--cat-color);
         }
 
+        .category-toggle-btn:focus-visible {
+            outline: none;
+            border-color: var(--cat-color);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--cat-color) 35%, transparent);
+        }
+
+        .category-toggle-btn .toggle-label {
+            font-size: max(0.66rem, calc(0.75rem * var(--inv-s, 1)));
+            font-weight: 600;
+            letter-spacing: .01em;
+            color: #374151;
+            white-space: nowrap;
+        }
+
+        .dark .category-toggle-btn .toggle-label {
+            color: #d1d5db;
+        }
+
         .category-toggle-btn .toggle-switch {
-            box-shadow: inset 0 0 6px rgba(0,0,0,0.06);
+            position: relative;
+            display: inline-block;
+            flex-shrink: 0;
+            width: var(--sw-w);
+            height: var(--sw-h);
+            border-radius: 9999px;
+            background: #cbd5e1;
+            box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.12);
+            transition: background .3s ease;
+        }
+
+        .dark .category-toggle-btn .toggle-switch {
+            background: #475569;
+        }
+
+        .category-toggle-btn[data-expanded="true"] .toggle-switch {
+            background: linear-gradient(135deg, var(--cat-color) 0%, color-mix(in srgb, var(--cat-color) 80%, #000) 100%);
         }
 
         .category-toggle-btn .toggle-thumb {
+            position: absolute;
+            top: 50%;
+            left: var(--sw-pad);
+            width: var(--sw-thumb);
+            height: var(--sw-thumb);
+            border-radius: 9999px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, .3);
+            transform: translateY(-50%);
+            transition: transform .3s cubic-bezier(.4, 0, .2, 1);
             will-change: transform;
         }
 
-        .toggle-icon.rotate {
-            transform: rotate(180deg);
+        /* desloca o thumb até a borda oposta, seja qual for a escala */
+        .category-toggle-btn[data-expanded="true"] .toggle-thumb {
+            transform: translate(calc(var(--sw-w) - var(--sw-thumb) - (var(--sw-pad) * 2)), -50%);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .category-group .group-invoices-wrapper,
+            .category-toggle-btn,
+            .category-toggle-btn .toggle-thumb,
+            .category-toggle-btn .toggle-switch {
+                transition: none !important;
+            }
         }
 
         .category-group {
@@ -1430,16 +1388,6 @@
                 0 0 0 1px rgba(0, 0, 0, 0.05);
         }
 
-        /* Transição suave para wrapper de invoices */
-        .group-invoices-wrapper {
-            transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1),
-                opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Toggle icon animation */
-        .toggle-icon {
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
 
         /* Efeito de shimmer para loading */
         @keyframes shimmer {
@@ -1458,6 +1406,122 @@
             background-size: 1000px 100%;
         }
     </style>
+
+    {{-- Toggle "Mostrar / Ocultar" das categorias.
+         Fica FORA de qualquer @if para garantir execução no carregamento inicial:
+         um <script> injetado por um morph do Livewire nunca é executado pelo browser. --}}
+    <script>
+        (function () {
+            'use strict';
+
+            if (window.__invoicesCategoryToggle) {
+                window.__invoicesCategoryToggle.sync();
+                return;
+            }
+
+            var STORAGE_KEY = 'invoices-category-visibility-v3';
+
+            function readState() {
+                try {
+                    return JSON.parse(window.sessionStorage.getItem(STORAGE_KEY) || '{}') || {};
+                } catch (error) {
+                    return {};
+                }
+            }
+
+            function writeState(state) {
+                try {
+                    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                } catch (error) {
+                    /* sessionStorage indisponível (modo privado): estado só não persiste */
+                }
+            }
+
+            function apply(group, expanded) {
+                var button = group.querySelector('.category-toggle-btn');
+                var label = button && button.querySelector('.toggle-label');
+
+                group.classList.toggle('expanded', expanded);
+                group.classList.toggle('collapsed', !expanded);
+
+                if (button) {
+                    button.setAttribute('data-expanded', expanded ? 'true' : 'false');
+                    button.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                }
+
+                if (label) {
+                    label.textContent = expanded ? 'Ocultar' : 'Mostrar';
+                }
+            }
+
+            /* Reaplica o estado salvo: o morph do Livewire devolve o HTML do servidor
+               (sempre "collapsed"), então precisamos sincronizar a cada re-render. */
+            function sync() {
+                var state = readState();
+
+                document.querySelectorAll('.category-group[data-category-id]').forEach(function (group) {
+                    var id = group.getAttribute('data-category-id');
+                    apply(group, Boolean(state[id]));
+                });
+            }
+
+            function onClick(event) {
+                var button = event.target.closest('.category-toggle-btn');
+
+                if (!button) {
+                    return;
+                }
+
+                event.preventDefault();
+                event.stopPropagation();
+
+                var group = button.closest('.category-group');
+                var id = button.getAttribute('data-category-id');
+
+                if (!group || !id) {
+                    return;
+                }
+
+                var expanded = button.getAttribute('data-expanded') !== 'true';
+                var state = readState();
+
+                state[id] = expanded;
+                writeState(state);
+                apply(group, expanded);
+            }
+
+            document.addEventListener('click', onClick, true);
+            document.addEventListener('livewire:navigated', sync);
+            document.addEventListener('livewire:init', function () {
+                // Livewire v3: 'message.processed' (v2) não existe mais.
+                window.Livewire.hook('morph.updated', function () {
+                    sync();
+                });
+                window.Livewire.hook('commit', function (payload) {
+                    if (payload && typeof payload.succeed === 'function') {
+                        payload.succeed(function () {
+                            window.setTimeout(sync, 0);
+                        });
+                    }
+                });
+            });
+
+            if (window.Livewire && typeof window.Livewire.hook === 'function') {
+                window.Livewire.hook('morph.updated', function () {
+                    sync();
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', sync, { once: true });
+            } else {
+                sync();
+            }
+
+            window.__invoicesCategoryToggle = { sync: sync };
+        })();
+    </script>
+
     <!-- Include ApexCharts -->
     <script src="https://cdn.jsdelivr.net/npm/apexcharts" onload="window.__apexChartsLoaded = true;"></script>
     <script src="{{ asset('js/invoices-charts.js') }}?v=20260401"></script>
