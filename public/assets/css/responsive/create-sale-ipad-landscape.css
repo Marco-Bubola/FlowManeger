@@ -167,18 +167,19 @@
     }
 
     /* ── STEP PRODUTOS ──────────────────────────────────── */
+    /* Resumo virou MODAL → produtos ocupam largura total (sem buraco lateral). */
     .sales-create-page .create-sale-step-products-shell {
-        flex-direction: row !important;
-        align-items: flex-start !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
         gap: 0.7rem !important;
         height: auto !important;
         min-height: 0 !important;
         margin-top: 0.5rem;
     }
 
-    /* Painel esquerdo — produtos no landscape (mais colunas) */
+    /* Painel de produtos — largura total no landscape */
     .sales-create-page .create-sale-products-pane {
-        width: 68% !important;
+        width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
         display: flex !important;
@@ -192,15 +193,14 @@
         max-height: none !important;
     }
 
-    /* Painel direito — resumo + selecionados: sticky ajustado para header compacto */
+    /* Compatibilidade: painel lateral (se existir) ocupa largura total */
     .sales-create-page .create-sale-summary-pane {
-        width: 32% !important;
+        width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
         display: flex !important;
         flex-direction: column !important;
         overflow: visible !important;
-        top: 4.25rem; /* header compacto no landscape */
     }
 
     /* Lista de selecionados proporcional */
@@ -223,10 +223,10 @@
     }
 
     /* ── GRID DE CARDS — PRODUTOS PARA SELECIONAR ───────── */
-    /* Landscape comporta 5 colunas sem ficar apertado */
+    /* Largura total no landscape → 6 colunas ficam proporcionais */
     .sales-create-page .products-step-grid {
-        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-        gap: 0.45rem !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
     }
 
     /* Zera altura mínima global */
