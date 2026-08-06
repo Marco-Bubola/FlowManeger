@@ -9,7 +9,7 @@
 ])
 
 <!-- Header Moderno com Gradiente e Glassmorphism (estilo sales) -->
-<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg mb-4">
+<div class="upload-header-component relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-lg mb-4">
     <!-- Efeito de brilho sutil -->
     <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
 
@@ -17,7 +17,7 @@
     <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
     <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
 
-    <div class="relative px-6 py-4">
+    <div class="upload-header-inner relative px-6 py-4">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-4">
                 @if($backRoute)
@@ -30,7 +30,7 @@
                 @endif
 
                 <!-- Ícone principal e título (compacto) -->
-                <div class="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-lg shadow-md shadow-purple-500/15">
+                <div class="upload-header-icon relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-lg shadow-md shadow-purple-500/15">
                     <i class="bi bi-file-earmark-arrow-up text-white text-2xl"></i>
                     <div class="absolute inset-0 rounded-lg bg-gradient-to-r from-white/20 to-transparent opacity-40"></div>
                 </div>
@@ -45,7 +45,7 @@
                 </div>
             </div>
 
-            <div class="flex items-center gap-3">
+            <div class="upload-header-actions flex items-center gap-3">
                 @if (!$showConfirmation)
                     <!-- Botão Dicas -->
                     <button wire:click="toggleTips" type="button"
