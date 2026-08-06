@@ -45,7 +45,6 @@
             </div>
         </div>
     </template>
-</div>
 
 @once
 <style>
@@ -352,3 +351,4 @@ window.notifyWarning = (m, d = 5000) => window.notify('warning', m, d);
 window.notifyInfo    = (m, d = 4000) => window.notify('info', m, d);
 </script>
 @endonce
+</div>
