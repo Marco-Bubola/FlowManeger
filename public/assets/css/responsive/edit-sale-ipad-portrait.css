@@ -95,10 +95,10 @@
         overflow-y: auto !important; overflow-x: hidden !important;
     }
 
-    /* Grid: 3 colunas no iPad portrait */
+    /* Resumo virou MODAL → produtos ocupam a largura total → 4 colunas */
     .edit-sale-page .products-step-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 0.48rem !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
     }
     .edit-sale-page .products-step-grid .product-card-modern { min-height: 0 !important; height: auto !important; border-radius: 0.95rem !important; }
     .edit-sale-page .products-step-grid .product-card-modern .product-img-area,
