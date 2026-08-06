@@ -177,18 +177,20 @@
     }
 
     /* ── STEP PRODUTOS ──────────────────────────────────── */
+    /* O resumo virou MODAL (carrinho), não há mais painel lateral.
+       Produtos ocupam a largura inteira — sem o "buraco" de 38% do antigo resumo. */
     .sales-create-page .create-sale-step-products-shell {
-        flex-direction: row !important;
-        align-items: flex-start !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
         gap: 0.65rem !important;
         height: auto !important;
         min-height: 0 !important;
         margin-top: 0.55rem;
     }
 
-    /* Painel esquerdo — produtos (62% da largura no iPad em pé) */
+    /* Painel de produtos — largura total no iPad em pé */
     .sales-create-page .create-sale-products-pane {
-        width: 62% !important;
+        width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
         display: flex !important;
@@ -202,12 +204,10 @@
         max-height: none !important;
     }
 
-    /* Painel direito — sticky para acompanhar o scroll da página */
+    /* Compatibilidade: se o painel lateral existir em alguma tela, ocupa largura total */
     .sales-create-page .create-sale-summary-pane {
-        position: sticky !important;
-        top: 4.5rem !important;
-        align-self: flex-start !important;
-        width: 38% !important;
+        position: static !important;
+        width: 100% !important;
         height: auto !important;
         min-height: 0 !important;
         display: flex !important;
@@ -235,9 +235,10 @@
     }
 
     /* ── GRID DE CARDS — PRODUTOS PARA SELECIONAR ───────── */
+    /* Largura total agora → 4 colunas ficam proporcionais no iPad em pé */
     .sales-create-page .products-step-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        gap: 0.48rem !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.6rem !important;
     }
 
     /* Zera altura mínima global herdada */
@@ -502,13 +503,15 @@
         overflow: visible !important;
     }
 
-    /* Painel esquerdo — info + ações */
+    /* Painel esquerdo — info + ações (sticky p/ acompanhar o scroll dos produtos) */
     .sales-create-page .create-sale-review-info-pane {
-        width: 42% !important;
+        width: 40% !important;
         padding: 0.72rem !important;
         overflow-y: auto;
         border-radius: 1.2rem !important;
         align-self: flex-start !important;
+        position: sticky !important;
+        top: 4.5rem !important;
         background: linear-gradient(155deg,
             rgba(67, 56, 202, 0.24) 0%,
             rgba(91, 33, 182, 0.18) 55%,
@@ -525,7 +528,7 @@
 
     /* Painel direito — produtos */
     .sales-create-page .create-sale-review-products-pane {
-        width: 58% !important;
+        width: 60% !important;
         padding: 0.72rem !important;
         overflow-y: auto;
         border-radius: 1.2rem !important;
