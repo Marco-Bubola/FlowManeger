@@ -382,18 +382,23 @@
 
                 <!-- ===== CARRINHO em MODAL (resumo + cliente + pagamento + produtos selecionados) ===== -->
                 <template x-teleport="body">
-                <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4" x-transition.opacity>
+                <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end lg:items-center justify-center p-0 lg:p-4" x-transition.opacity>
                     <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="closeCart()"></div>
-                    <div class="cs-cart-panel relative w-full sm:max-w-md md:max-w-2xl lg:max-w-4xl xl:max-w-5xl max-h-[94vh] sm:max-h-[90vh] overflow-hidden rounded-t-3xl sm:rounded-3xl shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
-                        x-transition:enter="transition ease-out duration-300"
-                        x-transition:enter-start="opacity-0 translate-y-8 sm:scale-95"
-                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                    <div class="cs-cart-panel cs-ios-sheet relative w-full lg:max-w-4xl xl:max-w-5xl max-h-[92vh] lg:max-h-[88vh] overflow-hidden rounded-t-[1.75rem] lg:rounded-[1.75rem] shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
+                        x-transition:enter="transition ease-out duration-[350ms]"
+                        x-transition:enter-start="opacity-0 translate-y-full lg:translate-y-0 lg:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 lg:scale-100"
                         x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                        x-transition:leave-end="opacity-0 translate-y-8 sm:scale-95">
+                        x-transition:leave-start="opacity-100 translate-y-0 lg:scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-full lg:translate-y-0 lg:scale-95">
+
+                        <!-- Grabber (alça) estilo iOS — só no modo bottom-sheet -->
+                        <div class="lg:hidden shrink-0 flex items-center justify-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing" @click="closeCart()">
+                            <span class="h-1.5 w-11 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                        </div>
 
                         <!-- Header do modal -->
-                        <div class="shrink-0 px-5 py-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center gap-3">
+                        <div class="shrink-0 px-5 py-3.5 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                                 <i class="bi bi-cart-check-fill text-white text-lg"></i>
                             </div>
