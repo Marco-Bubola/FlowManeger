@@ -29,6 +29,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-ultrawide.css') }}">
+    {{-- Escala proporcional (carregar por último: sobrepõe os tamanhos acima) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-invoice-compact.css') }}?v=20260805">
     @push('styles')
         @vite('resources/css/upload-animations.css')
     @endpush
@@ -61,10 +63,10 @@
         <div class="w-full px-4 sm:px-6 lg:px-8">
             @if (!$showConfirmation)
                 <!-- Grid Layout: Upload + Histórico -->
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <div class="upload-grid grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <!-- Coluna 1: Upload Form -->
                     <div class="w-full xl:w-auto">
-                        <div class="bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
+                        <div class="upload-card bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
                             <div class="flex items-center gap-3 mb-6">
                                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                                     <i class="bi bi-file-earmark-arrow-up-fill text-white text-lg"></i>
@@ -105,7 +107,7 @@
                     </div>
 
                     <!-- Coluna 2: Histórico de Uploads -->
-                    <div class="space-y-4">
+                    <div class="upload-history space-y-4">
                         <div class="flex items-center justify-between">
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico de Uploads</h3>
                             <span class="text-sm text-gray-500 dark:text-gray-400">Últimos 10</span>
@@ -115,7 +117,7 @@
                             <div class="space-y-3 max-h-[600px] overflow-y-auto custom-scrollbar">
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     @foreach($uploadHistory as $upload)
-                                        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                                        <div class="upload-history-card bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-xl transform hover:scale-105 transition-all duration-300">
                                             <!-- Header com cor baseada no tipo de arquivo -->
                                             <div class="px-4 py-3 bg-gradient-to-r {{ strtolower($upload->file_type) === 'pdf' ? 'from-red-500 to-red-600' : 'from-emerald-500 to-emerald-600' }} relative overflow-hidden">
                                                 <!-- Padrão decorativo -->
