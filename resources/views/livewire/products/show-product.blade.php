@@ -260,6 +260,7 @@
                 <div class="rounded-xl bg-amber-500/10 border border-amber-400/30 px-3 py-2.5"><p class="text-[10px] font-bold uppercase text-amber-500">Variações</p><p class="text-sm font-black text-amber-700 dark:text-amber-300">{{ $products->count() }}</p></div>
             </div>
             <div class="mt-2 space-y-1.5 text-xs">
+                <div class="flex justify-between items-center rounded-lg bg-violet-50 dark:bg-violet-950/30 px-3 py-2"><span class="text-slate-500 flex items-center gap-1"><i class="bi bi-calendar-plus text-violet-500"></i> Criado em</span><span class="font-bold text-slate-700 dark:text-slate-200">{{ optional($mainProduct->created_at)->format('d/m/Y H:i') ?? '—' }}</span></div>
                 <div class="flex justify-between items-center rounded-lg bg-slate-50 dark:bg-slate-950/40 px-3 py-2"><span class="text-slate-500">1ª venda</span><span class="font-bold text-slate-700 dark:text-slate-200">{{ !empty($analytics['first_sale_date']) ? \Carbon\Carbon::parse($analytics['first_sale_date'])->format('d/m/Y') : '—' }}</span></div>
                 <div class="flex justify-between items-center rounded-lg bg-slate-50 dark:bg-slate-950/40 px-3 py-2"><span class="text-slate-500">Última venda</span><span class="font-bold text-slate-700 dark:text-slate-200">{{ !empty($analytics['last_sale_date']) ? \Carbon\Carbon::parse($analytics['last_sale_date'])->format('d/m/Y') : '—' }}</span></div>
             </div>
