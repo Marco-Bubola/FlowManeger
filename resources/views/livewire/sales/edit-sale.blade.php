@@ -1,4 +1,4 @@
-<div x-data="{ currentStep: $wire.currentStep, init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; $wire.set('currentStep', e.detail); }); $watch('currentStep', v => $wire.set('currentStep', v)); } }" x-init="init()" class="edit-sale-page mobile-393-base w-full" style="overflow-x:clip">
+<div x-data="{ currentStep: $wire.currentStep, showCart: false, openCart() { this.showCart = true; document.body.style.overflow = 'hidden'; }, closeCart() { this.showCart = false; document.body.style.overflow = ''; }, goToResumo() { this.showCart = false; document.body.style.overflow = ''; this.currentStep = 2; $wire.set('currentStep', 2); }, init() { window.addEventListener('gotoStep', e => { this.currentStep = e.detail; $wire.set('currentStep', e.detail); }); $watch('currentStep', v => $wire.set('currentStep', v)); } }" x-init="init()" class="edit-sale-page mobile-393-base w-full" style="overflow-x:clip">
     <!-- Custom CSS para manter o estilo dos cards -->
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
@@ -61,8 +61,24 @@
                 }
             @endphp
 
+            {{-- Botão "Carrinho" (abre o modal de carrinho/resumo) — só no Step 1 --}}
             <button
                 type="button"
+                x-show="currentStep === 1"
+                @click="openCart()"
+                title="Abrir carrinho e resumo da venda"
+                class="create-header-cart-btn group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 transition-all"
+            >
+                <i class="bi bi-cart3 text-lg"></i>
+                <span class="hidden sm:inline">Carrinho</span>
+                @if(count($selectedProducts) > 0)
+                    <span class="inline-flex items-center justify-center min-w-[1.4rem] h-5 px-1.5 rounded-full bg-white text-purple-700 text-[11px] font-black shadow ring-2 ring-white/40">{{ count($selectedProducts) }}</span>
+                @endif
+            </button>
+
+            <button
+                type="button"
+                x-show="currentStep === 1"
                 @if($canProceed)
                     @click="currentStep = 2; $wire.set('currentStep', 2)"
                 @endif
@@ -231,9 +247,35 @@
                         </div>
                     </div>
 
-                    <!-- Lado Direito: Painel de Resumo Modernizado -->
-                    <div class="w-full lg:w-1/4 shrink-0 flex flex-col create-sale-summary-pane">
-                        <div class="p-4 create-sale-summary-card">
+                    <!-- ===== CARRINHO em MODAL (resumo + cliente + pagamento) — igual ao Create ===== -->
+                    <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end lg:items-center justify-center p-0 lg:p-4" x-transition.opacity>
+                        <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="closeCart()"></div>
+                        <div class="cs-cart-panel cs-ios-sheet relative w-full lg:max-w-4xl xl:max-w-5xl max-h-[92vh] lg:max-h-[88vh] overflow-hidden rounded-t-[1.75rem] lg:rounded-[1.75rem] shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
+                            x-transition:enter="transition ease-out duration-[350ms]"
+                            x-transition:enter-start="opacity-0 translate-y-full lg:translate-y-0 lg:scale-95"
+                            x-transition:enter-end="opacity-100 translate-y-0 lg:scale-100"
+                            x-transition:leave="transition ease-in duration-200"
+                            x-transition:leave-start="opacity-100 translate-y-0 lg:scale-100"
+                            x-transition:leave-end="opacity-0 translate-y-full lg:translate-y-0 lg:scale-95">
+
+                            <!-- Grabber (alça) estilo iOS — só no modo bottom-sheet -->
+                            <div class="lg:hidden shrink-0 flex items-center justify-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing" @click="closeCart()">
+                                <span class="h-1.5 w-11 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+                            </div>
+
+                            <!-- Header do modal -->
+                            <div class="shrink-0 px-5 py-3.5 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30"><i class="bi bi-cart-check-fill text-white text-lg"></i></div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-base font-bold text-slate-800 dark:text-white leading-tight">Carrinho da Venda</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'produto' : 'produtos' }} · edite antes do resumo</p>
+                                </div>
+                                <button type="button" @click="closeCart()" class="w-9 h-9 inline-flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition"><i class="bi bi-x-lg"></i></button>
+                            </div>
+
+                            <!-- Corpo rolável -->
+                            <div class="cs-cart-body sales-create-page edit-sale-page flex-1 min-h-0 overflow-y-auto p-4">
+                        <div class="p-0 create-sale-summary-card">
                             @php
                                 $selectedItemsCount = count($selectedProducts);
                                 $selectedUnitsCount = collect($selectedProducts)->sum('quantity');
@@ -551,10 +593,10 @@
                             <button
                                 type="button"
                                 @if($canProceedMobile)
-                                    @click="currentStep = 2; $wire.set('currentStep', 2)"
+                                    @click="goToResumo()"
                                 @endif
                                 @if(!$canProceedMobile) disabled @endif
-                                class="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-all duration-300
+                                class="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-all duration-300
                                     {{ $canProceedMobile
                                         ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md'
                                         : 'bg-slate-400/60 dark:bg-slate-700/60 cursor-not-allowed opacity-60'
@@ -674,9 +716,11 @@
                                 @endforeach
                             </div>
                             @endif
-                        </div>
-                    </div>
-                </div>
+                        </div>{{-- /create-sale-summary-card --}}
+                            </div>{{-- /cs-cart-body --}}
+                        </div>{{-- /cs-cart-panel --}}
+                    </div>{{-- /cart overlay (antigo summary-pane) --}}
+                </div>{{-- /edit-sale-step1-shell --}}
 
                 <!-- Step 2: Resumo e Finalização - Layout em duas colunas (igual ao Create) -->
                 <div x-show="currentStep === 2"
