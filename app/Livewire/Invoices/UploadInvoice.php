@@ -9,6 +9,7 @@ use App\Models\Invoice;
 use App\Models\InvoiceCategoryLearning;
 use App\Models\InvoiceUploadHistory;
 use App\Services\GeminiTransactionProcessorService;
+use App\Services\Invoices\CreditCardStatementParser;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
@@ -36,6 +37,10 @@ class UploadInvoice extends Component
 
     public $uploadHistory = [];
     public $currentUploadId = null;
+
+    // Resultado da última leitura de PDF (exibido na confirmação)
+    public ?string $detectedBank = null;
+    public int $skippedCredits = 0;
 
     // Modais
     public $showDetailsModal = false;
@@ -112,7 +117,21 @@ class UploadInvoice extends Component
 
     public function uploadFile()
     {
+        // Cliques repetidos enquanto o PDF ainda está sendo lido geravam
+        // processamentos concorrentes (e erro 500 na tela).
+        if ($this->processing) {
+            session()->flash('info', 'O arquivo já está sendo processado. Aguarde um instante.');
+            return;
+        }
+
+        if ($this->showConfirmation) {
+            session()->flash('info', 'Confirme ou cancele as transações já lidas antes de enviar outro arquivo.');
+            return;
+        }
+
         $this->validate();
+
+        $this->processing = true;
 
         try {
             // Log de início do processamento
@@ -149,11 +168,15 @@ class UploadInvoice extends Component
 
             Log::info('Transações extraídas', [
                 'count' => count($this->transactions),
-                'transactions' => $this->transactions
+                'bank' => $this->detectedBank,
             ]);
 
             if (empty($this->transactions)) {
-                session()->flash('error', 'Nenhuma transação foi encontrada no arquivo.');
+                $detail = $this->skippedCredits > 0
+                    ? ' Só foram encontrados pagamentos/estornos, que não viram despesa.'
+                    : '';
+
+                session()->flash('error', 'Nenhuma transação foi encontrada no arquivo.' . $detail);
                 $this->dispatch('file-error', 'Nenhuma transação encontrada');
                 return;
             }
@@ -191,10 +214,17 @@ class UploadInvoice extends Component
             $this->currentUploadId = $uploadHistory->id;
 
             $this->showConfirmation = true;
-            session()->flash('success', count($this->transactions) . ' transações foram encontradas no arquivo.');
+
+            $extra = $this->skippedCredits > 0
+                ? " ({$this->skippedCredits} pagamentos/estornos ignorados)"
+                : '';
+
+            session()->flash('success', count($this->transactions) . ' transações foram encontradas no arquivo.' . $extra);
             $this->dispatch('file-processed', count($this->transactions) . ' transações encontradas');
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // \Throwable (e não \Exception): erros do parser de PDF chegavam como
+            // \Error e escapavam do catch, devolvendo 500 para o Livewire.
             Log::error('Erro ao processar arquivo', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
@@ -204,6 +234,8 @@ class UploadInvoice extends Component
 
             session()->flash('error', 'Erro ao processar o arquivo: ' . $e->getMessage());
             $this->dispatch('file-error', 'Erro ao processar arquivo: ' . $e->getMessage());
+        } finally {
+            $this->processing = false;
         }
     }
 
@@ -322,7 +354,7 @@ class UploadInvoice extends Component
             }
 
             // Limpar estado completamente
-            $this->reset(['file', 'transactions', 'showConfirmation', 'currentUploadId']);
+            $this->reset(['file', 'transactions', 'showConfirmation', 'currentUploadId', 'detectedBank', 'skippedCredits']);
             $this->processing = false;
 
             // Recarregar histórico
@@ -336,7 +368,7 @@ class UploadInvoice extends Component
             // Redirecionar para a index do banco
             return redirect()->route('invoices.index', ['bankId' => $this->bankId]);
 
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             $this->processing = false;
 
             Log::error('Erro ao confirmar transações', [
@@ -599,7 +631,7 @@ class UploadInvoice extends Component
         }
 
         // Resetar tudo
-        $this->reset(['file', 'transactions', 'showConfirmation', 'currentUploadId', 'processing']);
+        $this->reset(['file', 'transactions', 'showConfirmation', 'currentUploadId', 'processing', 'detectedBank', 'skippedCredits']);
 
         // Recarregar histórico
         $this->loadUploadHistory();
@@ -848,99 +880,78 @@ class UploadInvoice extends Component
         ]);
 
         return $transactions;
-    }    protected function extractTransactionsFromPdf($pdfPath)
+    }
+
+    /**
+     * Lê a fatura em PDF usando o parser específico do emissor
+     * (Inter, Nubank, Mercado Pago) e converte para o formato da tela.
+     */
+    protected function extractTransactionsFromPdf($pdfPath)
     {
-        $transactions = [];
-        $categoryMapping = $this->getCategoryMapping();
+        $text = $this->readPdfText($pdfPath);
 
-        try {
-            $pdf = new Parser();
-            $document = $pdf->parseFile($pdfPath);
-            $text = $document->getText();
-
-            if (empty($text)) {
-                Log::error('Erro: Nenhum texto extraído do PDF.');
-                return $transactions;
-            }
-
-            $lines = explode("\n", $text);
-            $currentTransaction = [
-                'description' => '',
-                'installments' => '-',
-                'value' => null,
-                'category_id' => null,
-                'date' => null,
-                'client_id' => null,
-            ];
-
-            $monthMapping = [
-                'jan' => '01', 'fev' => '02', 'mar' => '03', 'abr' => '04',
-                'mai' => '05', 'jun' => '06', 'jul' => '07', 'ago' => '08',
-                'set' => '09', 'out' => '10', 'nov' => '11', 'dez' => '12',
-            ];
-
-            foreach ($lines as $line) {
-                $trimmedLine = trim($line);
-                if (empty($trimmedLine)) continue;
-
-                // Processar data
-                if (preg_match('/(\d{1,2})\sde\s([a-záàâãäéèêíóòôõöúç]{3})\.\s(\d{4})/', $trimmedLine, $dateMatches)) {
-                    $day = $dateMatches[1];
-                    $month = strtolower($dateMatches[2]);
-                    $year = $dateMatches[3];
-
-                    if (isset($monthMapping[$month])) {
-                        $currentTransaction['date'] = $year . '-' . $monthMapping[$month] . '-' . str_pad($day, 2, '0', STR_PAD_LEFT);
-                    }
-                }
-
-                // Processar valor
-                if (strpos($trimmedLine, 'R$') !== false) {
-                    if (preg_match('/R\$\s*([-]?\d{1,3}(?:\.\d{3})*(?:,\d{2})?)/', $trimmedLine, $valueMatches)) {
-                        $currentTransaction['value'] = abs(floatval(str_replace(',', '.', str_replace('.', '', $valueMatches[1]))));
-                    }
-                }
-
-                // Processar parcelas - Múltiplos formatos:
-                // 1. (8 de 10) ou (8/10)
-                // 2. Pcl8de10 ou Pcl 8 de 10
-                // 3. Parc8/10
-                // 4. 8de10
-                if (preg_match('/\(?\s*(\d+)\s*(?:de|\/)\s*(\d+)\s*\)?/', $trimmedLine, $parcelMatches)) {
-                    $currentTransaction['installments'] = "{$parcelMatches[1]} de {$parcelMatches[2]}";
-                } elseif (preg_match('/(?:pcl|parc|parcela)\s*(\d+)\s*(?:de|\/)\s*(\d+)/i', $trimmedLine, $parcelMatches)) {
-                    $currentTransaction['installments'] = "{$parcelMatches[1]} de {$parcelMatches[2]}";
-                } elseif (preg_match('/(?:^|\*|_)(\d+)\s*de\s*(\d+)(?:$|\*|_)/i', $trimmedLine, $parcelMatches)) {
-                    $currentTransaction['installments'] = "{$parcelMatches[1]} de {$parcelMatches[2]}";
-                }
-
-                // Processar descrição
-                if (!empty($trimmedLine) && !$this->shouldExcludeLine($trimmedLine)) {
-                    $currentTransaction['description'] .= empty($currentTransaction['description']) ? $trimmedLine : ' ' . $trimmedLine;
-                }
-
-                // Se tiver todos os dados, adicionar à lista
-                if (!empty($currentTransaction['date']) && !empty($currentTransaction['value']) && !empty($currentTransaction['description'])) {
-                    $currentTransaction['category_id'] = $this->determineCategoryId($currentTransaction['description'], $categoryMapping);
-                    $transactions[] = $currentTransaction;
-
-                    // Reset para próxima transação
-                    $currentTransaction = [
-                        'description' => '',
-                        'installments' => '-',
-                        'value' => null,
-                        'category_id' => null,
-                        'date' => null,
-                        'client_id' => null,
-                    ];
-                }
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Erro ao processar PDF: ' . $e->getMessage());
+        if (trim($text) === '') {
+            Log::error('Nenhum texto extraído do PDF', ['path' => $pdfPath]);
+            throw new \RuntimeException(
+                'Não foi possível ler o texto deste PDF. Se ele for digitalizado (imagem), exporte a fatura em PDF ou CSV pelo app do banco.'
+            );
         }
 
+        $result = (new CreditCardStatementParser())->parse($text);
+        $categoryMapping = $this->getCategoryMapping();
+
+        $this->detectedBank = $result['bank'];
+        $this->skippedCredits = $result['credits'];
+
+        $transactions = [];
+
+        foreach ($result['transactions'] as $item) {
+            // Pagamentos, estornos e lançamentos de financiamento que se anulam
+            // não são despesas — não devem virar invoice.
+            if ($item['is_credit']) {
+                continue;
+            }
+
+            $transactions[] = [
+                'description' => $item['description'],
+                'installments' => $item['installments'],
+                'value' => $item['value'],
+                'category_id' => $this->determineCategoryId($item['description'], $categoryMapping),
+                'date' => $item['date'],
+                'client_id' => null,
+            ];
+        }
+
+        Log::info('Fatura extraída', [
+            'bank' => $result['bank'],
+            'transactions' => count($transactions),
+            'credits_ignored' => $result['credits'],
+        ]);
+
         return $transactions;
+    }
+
+    /**
+     * PDFs de fatura costumam vir protegidos por senha (CPF/data de nascimento).
+     * O smalot/pdfparser lança nesse caso — traduzimos para uma mensagem útil.
+     */
+    private function readPdfText(string $pdfPath): string
+    {
+        try {
+            return (new Parser())->parseFile($pdfPath)->getText();
+        } catch (\Throwable $e) {
+            Log::error('Falha ao ler PDF', ['error' => $e->getMessage(), 'path' => $pdfPath]);
+
+            $message = mb_strtolower($e->getMessage());
+
+            if (str_contains($message, 'secur') || str_contains($message, 'encrypt') || str_contains($message, 'password')) {
+                throw new \RuntimeException(
+                    'Este PDF está protegido por senha. Abra o arquivo, salve uma cópia sem senha e envie novamente.'
+                );
+            }
+
+            throw new \RuntimeException('Não foi possível ler este PDF: ' . $e->getMessage());
+        }
     }
 
     private function parseDate($dateString)
