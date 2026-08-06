@@ -386,10 +386,17 @@
         display: grid !important;
     }
     /* Default sem classe = sidebar */
-    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) .mobile-bottom-tabbar {
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) .mobile-bottom-tabbar,
+    body:not(.tablet-nav-tabbar):not(.tablet-nav-sidebar) .mobile-action-sheet {
         display: none !important;
     }
 }
+
+/* Os sheets (FAB "Criar & Importar" e "Mais") acompanham a tabbar.
+   Antes eles tinham `lg:hidden` no HTML, o que os deixava display:none a
+   partir de 1024px — justamente onde o iPad deitado mantém a tabbar visível.
+   Como .is-open só alterna `visibility`, o botão central acendia mas o painel
+   nunca aparecia. A visibilidade agora é decidida só aqui. */
 
 
 /* ═══════════════════════════════════════════════════════════
