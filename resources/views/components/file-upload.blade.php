@@ -14,7 +14,7 @@
 ])
 
 <div class="flex items-center justify-center {{ $width }}">
-    <label for="{{ $id }}" class="group relative flex flex-col items-center justify-center {{ $width }} {{ $height }} border-3 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl cursor-pointer
+    <label for="{{ $id }}" class="fm-dropzone group relative flex flex-col items-center justify-center {{ $width }} {{ $height }} border-3 border-dashed border-slate-300 dark:border-slate-600 rounded-3xl cursor-pointer
            bg-gradient-to-br from-white/80 via-blue-50/50 to-indigo-50/30
            dark:from-slate-800/80 dark:via-blue-900/20 dark:to-indigo-900/10
            hover:from-blue-50/80 hover:via-indigo-50/60 hover:to-purple-50/40
@@ -34,7 +34,7 @@
             <div class="absolute w-3 h-3 bg-indigo-300/20 rounded-full animate-float" style="bottom: 30%; left: 30%; animation-delay: 1.2s;"></div>
         </div>
 
-        <div class="relative flex flex-col items-center justify-center px-10 py-10 z-10">
+        <div class="fm-dropzone-inner relative flex flex-col items-center justify-center px-10 py-10 z-10">
             @if($newFile)
                 <!-- Preview do Arquivo Selecionado -->
                 <div class="relative group/file w-full h-full flex flex-col items-center justify-center">
@@ -45,7 +45,7 @@
                             $isPdf = $extension === 'pdf';
                         @endphp
 
-                        <div class="w-32 h-32 bg-gradient-to-br {{ $isPdf ? 'from-red-500 to-red-600' : 'from-emerald-500 to-emerald-600' }} rounded-3xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-500">
+                        <div class="fm-dropzone-file-icon w-32 h-32 bg-gradient-to-br {{ $isPdf ? 'from-red-500 to-red-600' : 'from-emerald-500 to-emerald-600' }} rounded-3xl flex items-center justify-center shadow-2xl group-hover:scale-110 transition-all duration-500">
                             <i class="bi {{ $isPdf ? 'bi-file-pdf-fill' : 'bi-file-earmark-spreadsheet-fill' }} text-white text-6xl"></i>
                         </div>
 
@@ -56,7 +56,7 @@
                     </div>
 
                     <!-- Informações do arquivo -->
-                    <div class="text-center space-y-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-sm">
+                    <div class="fm-dropzone-file-info text-center space-y-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md px-6 py-4 rounded-2xl shadow-lg max-w-sm">
                         <p class="text-sm font-bold text-gray-900 dark:text-white truncate max-w-[250px]" title="{{ $newFile->getClientOriginalName() }}">
                             {{ $newFile->getClientOriginalName() }}
                         </p>
@@ -82,7 +82,7 @@
                     <div class="relative">
                         <!-- Ícone principal com efeitos -->
                         <div class="relative">
-                            <i class="bi bi-cloud-upload text-8xl text-slate-300 dark:text-slate-600 group-hover:text-blue-400 dark:group-hover:text-blue-500 transition-all duration-500 transform group-hover:scale-110"></i>
+                            <i class="fm-dropzone-empty-icon bi bi-cloud-upload text-8xl text-slate-300 dark:text-slate-600 group-hover:text-blue-400 dark:group-hover:text-blue-500 transition-all duration-500 transform group-hover:scale-110"></i>
 
                             <!-- Ícone de + flutuante -->
                             <div class="absolute -top-3 -right-3 w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-xl shadow-blue-500/50 group-hover:scale-110 transition-transform duration-300">
