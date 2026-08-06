@@ -1,0 +1,457 @@
+/* ============================================================================
+   Invoices Index — Camada COMPACTA / PROPORCIONAL
+   ----------------------------------------------------------------------------
+   Carregado DEPOIS dos arquivos por dispositivo. Toda a página é dimensionada
+   a partir de uma única variável: --inv-s (escala).
+
+   Quer a página maior/menor num aparelho? Mude só o --inv-s daquele breakpoint.
+
+   Observações:
+   - `.invoices-index-page.invoices-index-page` é intencional: os arquivos por
+     dispositivo usam seletores mais específicos (ex.: `h3.text-2xl`), então
+     precisamos empatar a especificidade e vencer pela ordem de carregamento.
+   - Textos pequenos usam `max(piso, calc(...))` para nunca ficarem ilegíveis.
+   ============================================================================ */
+
+.invoices-index-page {
+    --inv-s: 0.86;
+}
+
+/* Mobile (<=767px) */
+@media (max-width: 767px) {
+    .invoices-index-page { --inv-s: 0.84; }
+}
+
+/* iPhone 15 e similares (tela alta e estreita) */
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .invoices-index-page { --inv-s: 0.80; }
+}
+
+/* iPad retrato */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .invoices-index-page { --inv-s: 0.84; }
+}
+
+/* iPad paisagem */
+@media (min-width: 768px) and (max-width: 1366px) and (orientation: landscape) {
+    .invoices-index-page { --inv-s: 0.82; }
+}
+
+/* Notebook / desktop pequeno */
+@media (min-width: 1025px) and (max-width: 1600px) {
+    .invoices-index-page { --inv-s: 0.80; }
+}
+
+/* Full HD (1920x1080) */
+@media (min-width: 1601px) and (max-width: 2100px) {
+    .invoices-index-page { --inv-s: 0.78; }
+}
+
+/* Ultrawide (2560px+) */
+@media (min-width: 2101px) {
+    .invoices-index-page { --inv-s: 0.80; }
+}
+
+/* ============================================================================
+   1. HEADER (Transações Financeiras)
+   ============================================================================ */
+
+.invoices-index-page.invoices-index-page .invoice-header-component {
+    border-radius: calc(1rem * var(--inv-s)) !important;
+    margin-bottom: calc(1rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-component > .relative {
+    padding: calc(1.15rem * var(--inv-s)) calc(1.5rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-top {
+    gap: calc(1rem * var(--inv-s)) !important;
+    margin-bottom: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-brand {
+    gap: calc(1rem * var(--inv-s)) !important;
+}
+
+/* Botão voltar */
+.invoices-index-page.invoices-index-page .invoice-header-brand > a {
+    width: calc(2.5rem * var(--inv-s)) !important;
+    height: calc(2.5rem * var(--inv-s)) !important;
+    border-radius: calc(0.6rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-brand > a i {
+    font-size: max(0.85rem, calc(1.05rem * var(--inv-s))) !important;
+}
+
+/* Logo do banco */
+.invoices-index-page.invoices-index-page .invoice-header-brand > div.relative {
+    width: calc(5.75rem * var(--inv-s)) !important;
+    height: calc(5.75rem * var(--inv-s)) !important;
+    min-width: calc(5.75rem * var(--inv-s)) !important;
+    min-height: calc(5.75rem * var(--inv-s)) !important;
+    max-width: calc(5.75rem * var(--inv-s)) !important;
+    max-height: calc(5.75rem * var(--inv-s)) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-brand > div.relative > div.relative {
+    width: 86% !important;
+    height: 86% !important;
+    border-radius: calc(0.75rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-brand > div.relative img {
+    padding: calc(0.35rem * var(--inv-s)) !important;
+}
+
+/* Títulos */
+.invoices-index-page.invoices-index-page .invoice-header-component h1 {
+    font-size: max(1.15rem, calc(2rem * var(--inv-s))) !important;
+    line-height: 1.15 !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-meta p {
+    font-size: max(0.78rem, calc(0.95rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-meta span {
+    font-size: max(0.7rem, calc(0.82rem * var(--inv-s))) !important;
+}
+
+/* Métricas (Despesas / Transações / Média) */
+.invoices-index-page.invoices-index-page .invoice-header-metrics {
+    gap: calc(1.15rem * var(--inv-s)) !important;
+    padding: calc(0.6rem * var(--inv-s)) calc(0.9rem * var(--inv-s)) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-metric > span:first-child,
+.invoices-index-page.invoices-index-page .invoice-header-metric > span:last-child {
+    font-size: max(0.62rem, calc(0.72rem * var(--inv-s))) !important;
+    line-height: 1.35 !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-metric > span:nth-child(2) {
+    font-size: max(1rem, calc(1.6rem * var(--inv-s))) !important;
+    line-height: 1.2 !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-divider {
+    height: calc(3rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-side-divider {
+    height: calc(4rem * var(--inv-s)) !important;
+}
+
+/* Ações (Dicas / Criar / Upload) */
+.invoices-index-page.invoices-index-page .invoice-header-actions {
+    gap: calc(0.7rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-extra button {
+    padding: calc(0.6rem * var(--inv-s)) calc(1rem * var(--inv-s)) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+    gap: calc(0.5rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-extra button span {
+    font-size: max(0.65rem, calc(0.72rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-primary-actions {
+    gap: calc(0.7rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-primary-actions > a {
+    padding: calc(0.7rem * var(--inv-s)) calc(1.2rem * var(--inv-s)) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-primary-actions > a i {
+    font-size: max(0.9rem, calc(1.15rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-primary-actions > a span {
+    font-size: max(0.7rem, calc(0.8rem * var(--inv-s))) !important;
+}
+
+/* Cards / Lista */
+.invoices-index-page.invoices-index-page .invoice-header-view-toggle {
+    padding: calc(0.3rem * var(--inv-s)) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-view-toggle button {
+    padding: calc(0.55rem * var(--inv-s)) calc(1.1rem * var(--inv-s)) !important;
+    font-size: max(0.7rem, calc(0.8rem * var(--inv-s))) !important;
+    border-radius: calc(0.7rem * var(--inv-s)) !important;
+    gap: calc(0.45rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-header-view-toggle button i {
+    font-size: max(0.78rem, calc(0.9rem * var(--inv-s))) !important;
+}
+
+/* ============================================================================
+   2. CALENDÁRIO
+   ============================================================================ */
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel,
+.invoices-index-page.invoices-index-page .invoices-chart-panel {
+    border-radius: calc(1.3rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel > .relative:not(.absolute) {
+    padding: calc(1rem * var(--inv-s)) calc(1.1rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .w-12.h-12 {
+    width: calc(2.75rem * var(--inv-s)) !important;
+    height: calc(2.75rem * var(--inv-s)) !important;
+    border-radius: calc(0.85rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .w-12.h-12 svg {
+    width: calc(1.4rem * var(--inv-s)) !important;
+    height: calc(1.4rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel h3 {
+    font-size: max(0.95rem, calc(1.2rem * var(--inv-s))) !important;
+    line-height: 1.25 !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel h3 + p {
+    font-size: max(0.62rem, calc(0.72rem * var(--inv-s))) !important;
+}
+
+/* Setas < > */
+.invoices-index-page.invoices-index-page .invoices-calendar-panel > .relative > .flex.items-center.justify-between > button {
+    padding: calc(0.45rem * var(--inv-s)) !important;
+    border-radius: calc(0.65rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel > .relative > .flex.items-center.justify-between > button svg {
+    width: calc(0.95rem * var(--inv-s)) !important;
+    height: calc(0.95rem * var(--inv-s)) !important;
+}
+
+/* Selects de mês/ano */
+.invoices-index-page.invoices-index-page .inv-cs-trigger {
+    padding: calc(0.45rem * var(--inv-s)) calc(0.65rem * var(--inv-s)) !important;
+    font-size: max(0.68rem, calc(0.78rem * var(--inv-s))) !important;
+    border-radius: calc(0.65rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .inv-cs-opt {
+    font-size: max(0.7rem, calc(0.8rem * var(--inv-s))) !important;
+    padding: calc(0.45rem * var(--inv-s)) calc(0.6rem * var(--inv-s)) !important;
+}
+
+/* Conteúdo do calendário */
+.invoices-index-page.invoices-index-page .invoices-calendar-panel > .px-5.pb-5 {
+    padding: 0 calc(1.1rem * var(--inv-s)) calc(1.1rem * var(--inv-s)) !important;
+}
+
+/* Cabeçalho D S T Q Q S S */
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .grid.grid-cols-7.mb-3 {
+    gap: calc(0.25rem * var(--inv-s)) !important;
+    margin-bottom: calc(0.6rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .grid.grid-cols-7.mb-3 > div {
+    font-size: max(0.62rem, calc(0.7rem * var(--inv-s))) !important;
+    padding: calc(0.4rem * var(--inv-s)) 0 !important;
+    border-radius: calc(0.55rem * var(--inv-s)) !important;
+}
+
+/* Células dos dias */
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .grid.grid-cols-7:last-child > div {
+    min-height: calc(2.5rem * var(--inv-s)) !important;
+    padding: calc(0.35rem * var(--inv-s)) !important;
+    border-radius: calc(0.55rem * var(--inv-s)) !important;
+    border-width: 1px !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .grid.grid-cols-7:last-child > div > div {
+    font-size: max(0.7rem, calc(0.82rem * var(--inv-s))) !important;
+    line-height: 1.1 !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-calendar-panel .grid.grid-cols-7:last-child .w-2.h-2 {
+    width: calc(0.4rem * var(--inv-s)) !important;
+    height: calc(0.4rem * var(--inv-s)) !important;
+}
+
+/* ============================================================================
+   3. GRÁFICO "Por Categoria"
+   ============================================================================ */
+
+.invoices-index-page.invoices-index-page .invoices-chart-panel > .relative:not(.absolute) {
+    padding: calc(1.1rem * var(--inv-s)) calc(1.25rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-chart-panel .w-14.h-14 {
+    width: calc(3rem * var(--inv-s)) !important;
+    height: calc(3rem * var(--inv-s)) !important;
+    border-radius: calc(0.85rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-chart-panel .w-14.h-14 svg {
+    width: calc(1.5rem * var(--inv-s)) !important;
+    height: calc(1.5rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-chart-panel h3 {
+    font-size: max(1rem, calc(1.35rem * var(--inv-s))) !important;
+    line-height: 1.2 !important;
+    margin-bottom: calc(0.2rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-chart-panel h3 + p {
+    font-size: max(0.68rem, calc(0.8rem * var(--inv-s))) !important;
+    line-height: 1.3 !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-chart-canvas,
+.invoices-index-page.invoices-index-page .invoices-chart-canvas-wrap {
+    height: calc(280px * var(--inv-s)) !important;
+    min-height: calc(280px * var(--inv-s)) !important;
+}
+
+/* ============================================================================
+   4. CARDS DE CATEGORIA (Combustíveis, Pagamento, ...)
+   ============================================================================ */
+
+.invoices-index-page.invoices-index-page .category-group {
+    margin-bottom: calc(1.5rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group > div {
+    border-radius: calc(1.3rem * var(--inv-s)) !important;
+}
+
+/* Header do card de categoria */
+.invoices-index-page.invoices-index-page .category-group .px-6.py-5 {
+    padding: calc(1rem * var(--inv-s)) calc(1.3rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group .w-16.h-16 {
+    width: calc(3.4rem * var(--inv-s)) !important;
+    height: calc(3.4rem * var(--inv-s)) !important;
+    min-width: calc(3.4rem * var(--inv-s)) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group .w-16.h-16 i {
+    font-size: max(1rem, calc(1.4rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group .px-6.py-5 .flex.items-center.gap-4 {
+    gap: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group h3 {
+    font-size: max(0.95rem, calc(1.35rem * var(--inv-s))) !important;
+    line-height: 1.2 !important;
+    margin-bottom: calc(0.25rem * var(--inv-s)) !important;
+}
+
+/* Badges "N transações" e "R$ ..." */
+.invoices-index-page.invoices-index-page .category-group h3 + div {
+    gap: calc(0.7rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group h3 + div > span {
+    padding: calc(0.22rem * var(--inv-s)) calc(0.7rem * var(--inv-s)) !important;
+    gap: calc(0.35rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group h3 + div span {
+    font-size: max(0.7rem, calc(0.8rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .category-group h3 + div svg {
+    width: calc(0.85rem * var(--inv-s)) !important;
+    height: calc(0.85rem * var(--inv-s)) !important;
+}
+
+/* Área interna com os cards */
+.invoices-index-page.invoices-index-page .category-group .px-6.pb-6 {
+    padding-left: calc(1.3rem * var(--inv-s)) !important;
+    padding-right: calc(1.3rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-category-grid {
+    gap: calc(1rem * var(--inv-s)) !important;
+}
+
+/* ============================================================================
+   5. CARDS DE TRANSAÇÃO
+   ============================================================================ */
+
+.invoices-index-page.invoices-index-page .invoice-card {
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-card .p-4.pt-5.pb-3 {
+    padding: calc(0.9rem * var(--inv-s)) calc(0.85rem * var(--inv-s)) calc(0.6rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-card h4 {
+    font-size: max(0.8rem, calc(0.95rem * var(--inv-s))) !important;
+    line-height: 1.3 !important;
+    margin-bottom: calc(0.4rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-card .text-xs span {
+    font-size: max(0.66rem, calc(0.72rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-card .flex-shrink-0 > div {
+    padding: calc(0.35rem * var(--inv-s)) calc(0.65rem * var(--inv-s)) !important;
+    font-size: max(0.72rem, calc(0.82rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-card .card-actions a,
+.invoices-index-page.invoices-index-page .invoice-card .card-actions button {
+    padding: calc(0.4rem * var(--inv-s)) calc(0.7rem * var(--inv-s)) !important;
+    font-size: max(0.66rem, calc(0.72rem * var(--inv-s))) !important;
+    gap: calc(0.35rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoice-card .card-actions svg {
+    width: calc(0.85rem * var(--inv-s)) !important;
+    height: calc(0.85rem * var(--inv-s)) !important;
+}
+
+/* ============================================================================
+   6. ESTADO VAZIO
+   ============================================================================ */
+
+.invoices-index-page.invoices-index-page .invoices-empty-state {
+    padding: calc(2.5rem * var(--inv-s)) calc(2rem * var(--inv-s)) !important;
+    border-radius: calc(1rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-empty-hero {
+    width: calc(5rem * var(--inv-s)) !important;
+    height: calc(5rem * var(--inv-s)) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-empty-title {
+    font-size: max(1.05rem, calc(1.5rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-empty-copy {
+    font-size: max(0.78rem, calc(0.92rem * var(--inv-s))) !important;
+}
+
+.invoices-index-page.invoices-index-page .invoices-empty-action {
+    padding: calc(0.75rem * var(--inv-s)) calc(1.4rem * var(--inv-s)) !important;
+    font-size: max(0.78rem, calc(0.88rem * var(--inv-s))) !important;
+    border-radius: calc(0.9rem * var(--inv-s)) !important;
+}
