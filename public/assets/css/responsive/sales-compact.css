@@ -1,0 +1,255 @@
+/* ==========================================================
+   VENDAS — camada compacta/proporcional comum
+   ----------------------------------------------------------
+   Um único arquivo para todas as telas de venda. A escala vem
+   de --sc, definida uma vez por dispositivo e herdada por
+   qualquer raiz `*-page` de venda.
+
+   Carregar SEMPRE por último, depois dos arquivos por tela.
+   ========================================================== */
+
+.sales-index-page,
+.sale-show-page,
+.sales-create-page,
+.edit-sale-page,
+.add-products-page,
+.edit-prices-page,
+.add-payments-page,
+.edit-payments-page {
+    --sc: 0.88;
+}
+
+@media (max-width: 767.98px) {
+    .sales-index-page, .sale-show-page, .sales-create-page, .edit-sale-page,
+    .add-products-page, .edit-prices-page, .add-payments-page, .edit-payments-page { --sc: 0.86; }
+}
+
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .sales-index-page, .sale-show-page, .sales-create-page, .edit-sale-page,
+    .add-products-page, .edit-prices-page, .add-payments-page, .edit-payments-page { --sc: 0.82; }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .sales-index-page, .sale-show-page, .sales-create-page, .edit-sale-page,
+    .add-products-page, .edit-prices-page, .add-payments-page, .edit-payments-page { --sc: 0.84; }
+}
+
+@media (min-width: 1025px) and (max-width: 1600px) {
+    .sales-index-page, .sale-show-page, .sales-create-page, .edit-sale-page,
+    .add-products-page, .edit-prices-page, .add-payments-page, .edit-payments-page { --sc: 0.82; }
+}
+
+@media (min-width: 1601px) {
+    .sales-index-page, .sale-show-page, .sales-create-page, .edit-sale-page,
+    .add-products-page, .edit-prices-page, .add-payments-page, .edit-payments-page { --sc: 0.80; }
+}
+
+/* iPad deitado por último: a faixa 1025–1600 acima também casa com ele */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .sales-index-page, .sale-show-page, .sales-create-page, .edit-sale-page,
+    .add-products-page, .edit-prices-page, .add-payments-page, .edit-payments-page { --sc: 0.78; }
+}
+
+/* ==========================================================
+   1. TIPOGRAFIA COMUM
+   Pisos com max() para nada ficar ilegível na escala menor.
+   ========================================================== */
+
+.sales-index-page h1, .sale-show-page h1,
+.edit-prices-page h1, .add-payments-page h1, .edit-payments-page h1 {
+    font-size: max(1.05rem, calc(1.8rem * var(--sc))) !important;
+    line-height: 1.2 !important;
+}
+
+.sales-index-page h2, .sale-show-page h2,
+.edit-prices-page h2, .add-payments-page h2, .edit-payments-page h2 {
+    font-size: max(0.95rem, calc(1.35rem * var(--sc))) !important;
+    line-height: 1.25 !important;
+}
+
+.sales-index-page h3, .sale-show-page h3,
+.edit-prices-page h3, .add-payments-page h3, .edit-payments-page h3 {
+    font-size: max(0.85rem, calc(1.05rem * var(--sc))) !important;
+}
+
+.sale-show-page .text-2xl,
+.edit-prices-page .text-2xl,
+.add-payments-page .text-2xl,
+.edit-payments-page .text-2xl {
+    font-size: max(1rem, calc(1.4rem * var(--sc))) !important;
+}
+
+.sale-show-page .text-xl,
+.edit-prices-page .text-xl,
+.add-payments-page .text-xl,
+.edit-payments-page .text-xl {
+    font-size: max(0.9rem, calc(1.2rem * var(--sc))) !important;
+}
+
+/* ==========================================================
+   2. BOTÕES E CAMPOS (altura de toque preservada)
+   ========================================================== */
+
+.sales-index-page button, .sales-index-page a.inline-flex,
+.sale-show-page button, .sale-show-page a.inline-flex,
+.edit-prices-page button, .add-payments-page button, .edit-payments-page button {
+    font-size: max(0.72rem, calc(0.85rem * var(--sc))) !important;
+}
+
+.edit-prices-page input, .add-payments-page input, .edit-payments-page input,
+.edit-prices-page select, .add-payments-page select, .edit-payments-page select {
+    font-size: max(0.8rem, calc(0.95rem * var(--sc))) !important;
+    padding-top: calc(0.55rem * var(--sc)) !important;
+    padding-bottom: calc(0.55rem * var(--sc)) !important;
+    /* nunca abaixo do alvo de toque confortável */
+    min-height: 2.5rem !important;
+}
+
+/* ==========================================================
+   3. LISTA DE VENDAS — cards mais baixos e mais por linha
+   ========================================================== */
+
+.sales-index-page.sales-index-page .sales-index-header-title {
+    font-size: max(1.05rem, calc(1.5rem * var(--sc))) !important;
+}
+
+.sales-index-page.sales-index-page .sale-card {
+    border-radius: calc(1rem * var(--sc)) !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-body {
+    padding: calc(0.75rem * var(--sc)) !important;
+    gap: calc(0.5rem * var(--sc)) !important;
+}
+
+/* A vitrine de produtos ocupava 229px dos 506px do card: é ela que
+   deixava a lista com menos de dois cards por tela no iPad. */
+.sales-index-page.sales-index-page .sale-card-products-wrapper {
+    padding-bottom: calc(0.45rem * var(--sc)) !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-products {
+    max-height: calc(9.5rem * var(--sc)) !important;
+    overflow: hidden !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-avatar {
+    width: calc(2.5rem * var(--sc)) !important;
+    height: calc(2.5rem * var(--sc)) !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-fin-icon {
+    width: calc(1.5rem * var(--sc)) !important;
+    height: calc(1.5rem * var(--sc)) !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-financial-grid {
+    gap: calc(0.4rem * var(--sc)) !important;
+}
+
+.sales-index-page.sales-index-page .sc-act-btn {
+    width: calc(2.3rem * var(--sc)) !important;
+    height: calc(2.3rem * var(--sc)) !important;
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .sales-index-page .grid.grid-cols-1.md\:grid-cols-2,
+    .sales-index-page .sales-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: calc(0.8rem * var(--sc)) !important;
+    }
+}
+
+@media (min-width: 1024px) and (max-width: 1600px) {
+    .sales-index-page .sales-grid,
+    .sales-index-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: calc(0.8rem * var(--sc)) !important;
+    }
+}
+
+@media (min-width: 1601px) {
+    .sales-index-page .sales-grid,
+    .sales-index-page .grid.grid-cols-1.md\:grid-cols-2 {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: calc(0.85rem * var(--sc)) !important;
+    }
+}
+
+/* ==========================================================
+   4. DETALHE DA VENDA — aproveitar a largura do tablet
+   ========================================================== */
+
+.sale-show-page .rounded-2xl,
+.sale-show-page .rounded-3xl {
+    border-radius: calc(0.9rem * var(--sc)) !important;
+}
+
+/* Parcelas: quebra em colunas SÓ quando o painel realmente tem
+   largura. Fixar 2 colunas espremia cada parcela em ~138px e
+   cortava badge e data — o painel é estreito, não a tela. */
+@media (min-width: 768px) {
+    .sale-show-page .parcelas-list {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)) !important;
+        gap: calc(0.6rem * var(--sc)) !important;
+        max-height: min(28rem, 60vh) !important;
+    }
+}
+
+/* ==========================================================
+   5. TELAS DE PAGAMENTO E PREÇOS — cards de formulário
+   ========================================================== */
+
+.edit-prices-page .rounded-2xl,
+.add-payments-page .rounded-2xl,
+.edit-payments-page .rounded-2xl {
+    border-radius: calc(0.9rem * var(--sc)) !important;
+}
+
+.edit-prices-page .p-5, .edit-prices-page .p-6,
+.add-payments-page .p-5, .add-payments-page .p-6,
+.edit-payments-page .p-5, .edit-payments-page .p-6 {
+    padding: calc(0.9rem * var(--sc)) !important;
+}
+
+.edit-prices-page label,
+.add-payments-page label,
+.edit-payments-page label {
+    font-size: max(0.68rem, calc(0.8rem * var(--sc))) !important;
+    margin-bottom: calc(0.35rem * var(--sc)) !important;
+}
+
+/* ==========================================================
+   6. BARRA DE FILTROS DA LISTA — parava de caber e era cortada
+   ----------------------------------------------------------
+   `.sales-index-header-row-2` e sua metade direita são flex sem
+   wrap: no iPad os controles (paginação, ordenação, Dicas,
+   Filtros) estouravam a largura e ficavam clipados.
+   ========================================================== */
+
+.sales-index-page.sales-index-page .sales-index-header-row-2,
+.sales-index-page.sales-index-page .sales-index-header-row-2-right {
+    flex-wrap: wrap !important;
+    row-gap: calc(0.4rem * var(--sc)) !important;
+    min-width: 0 !important;
+}
+
+/* Só declarar wrap não bastava: como itens flex encolhem antes de
+   quebrar linha, a metade direita era espremida a 145px e os rótulos
+   "Dicas"/"Filtros" ficavam cortados dentro dos próprios botões. */
+.sales-index-page.sales-index-page .sales-index-header-row-2 > * {
+    flex-shrink: 0 !important;
+}
+
+.sales-index-page.sales-index-page .sales-index-header-row-2-right .sale-action-btn {
+    flex-shrink: 0 !important;
+    width: auto !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 1366px) {
+    .sales-index-page.sales-index-page .sales-index-header-row-2-right {
+        justify-content: flex-start !important;
+    }
+}
