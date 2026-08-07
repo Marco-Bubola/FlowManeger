@@ -3,7 +3,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
 @endpush
 
-<div class="w-full min-h-screenapp-viewport-fit sales-index-page mobile-393-base relative" x-data="{
+<div class="w-full min-h-screen app-viewport-fit sales-index-page mobile-393-base relative" x-data="{
     showFilters: false,
     fullHd: false,
     ultra: false,
@@ -49,6 +49,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/sale-index-ultrawide.css') }}">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
     <style>
         [x-cloak] {
             display: none !important;
