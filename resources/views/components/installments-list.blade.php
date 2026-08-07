@@ -9,7 +9,7 @@
         Parcelas ({{ $parcelas->count() }})
     </h3>
 
-    <div class="space-y-3 max-h-96 overflow-y-auto">
+    <div class="parcelas-list space-y-3 max-h-96 overflow-y-auto">
         @foreach($parcelas as $parcela)
         <div class="flex items-center justify-between p-4 bg-white/60 dark:bg-zinc-800/60 rounded-xl border border-gray-200/50 dark:border-zinc-700/50 hover:bg-white/80 dark:hover:bg-zinc-800/80 transition-all duration-200">
             <!-- Número da Parcela -->
