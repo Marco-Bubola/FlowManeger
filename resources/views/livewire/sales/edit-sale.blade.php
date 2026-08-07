@@ -10,6 +10,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-sale-ultrawide.css') }}">
+    {{-- Mesma camada compacta do carrinho usada no Create --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-cart-ipad.css') }}?v=20260806">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
     <!-- Header Sticky (mesmo estilo do Create) -->
     <div class="create-sale-sticky-header">
@@ -246,6 +250,17 @@
                             @endif
                         </div>
                     </div>
+
+                    <!-- FAB Carrinho flutuante — mesmo do Create -->
+                    <template x-teleport="body">
+                        <button type="button" x-show="currentStep === 1" @click="openCart()"
+                            class="cs-cart-fab fixed bottom-24 right-4 z-[90] w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white shadow-2xl shadow-purple-500/40 flex items-center justify-center active:scale-95 transition-transform" aria-label="Abrir carrinho">
+                            <i class="bi bi-cart3 text-2xl"></i>
+                            @if(count($selectedProducts) > 0)
+                                <span class="absolute -top-1.5 -right-1.5 min-w-[1.5rem] h-6 px-1.5 rounded-full bg-rose-500 text-white text-xs font-black flex items-center justify-center ring-4 ring-white dark:ring-slate-900 shadow-lg animate-pulse">{{ count($selectedProducts) }}</span>
+                            @endif
+                        </button>
+                    </template>
 
                     <!-- ===== CARRINHO em MODAL (resumo + cliente + pagamento) — igual ao Create ===== -->
                     <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end lg:items-center justify-center p-0 lg:p-4" x-transition.opacity>
@@ -700,6 +715,7 @@
                                                            inputmode="numeric"
                                                            id="price-edit-{{ $selectedProduct->id }}"
                                                            x-init="$el.value = fmt()"
+                                                           @focus="$el.select()"
                                                            @input="inp($event)"
                                                            @blur="$wire.set('selectedProducts.{{ $index }}.price_sale', (cts / 100).toFixed(2))"
                                                            class="pl-6 text-green-600 dark:text-green-400">
