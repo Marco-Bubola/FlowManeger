@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sales;
 
+use App\Services\Sales\SaleInstallmentService;
 use Livewire\Component;
 use App\Models\Sale;
 use App\Models\SaleItem;
@@ -55,6 +56,12 @@ class EditPrices extends Component
 
     public function updatePrice($index, $price)
     {
+        $price = round((float) $price, 2);
+
+        if (! isset($this->saleItems[$index])) {
+            return;
+        }
+
         if ($price <= 0) {
             $this->addError("saleItems.{$index}.price_sale", 'O preço deve ser maior que zero.');
             return;
@@ -123,53 +130,11 @@ class EditPrices extends Component
     }
 
     /**
-     * Recalcula e atualiza as parcelas da venda
-     * Protegido contra divisão por zero e modificação de parcelas pagas
+     * Delegado ao SaleInstallmentService: regra única para todas as telas.
      */
     private function recalcularParcelas()
     {
-        // Se a venda não for parcelada, não há parcelas para atualizar
-        if ($this->sale->tipo_pagamento !== 'parcelado' || $this->sale->parcelas <= 1) {
-            return;
-        }
-
-        // Buscar parcelas existentes
-        $parcelasExistentes = VendaParcela::where('sale_id', $this->sale->id)
-            ->orderBy('numero_parcela')
-            ->get();
-
-        // Se não há parcelas, não há nada para atualizar
-        if ($parcelasExistentes->isEmpty()) {
-            return;
-        }
-
-        // Contar apenas parcelas pendentes para recalcular
-        $parcelasPendentes = $parcelasExistentes->where('status', '!=', 'paga');
-        $numeroParcelas = $parcelasPendentes->count();
-
-        // Proteção contra divisão por zero
-        if ($numeroParcelas === 0) {
-            return; // Todas as parcelas já foram pagas
-        }
-
-        $totalVenda = $this->sale->total_price;
-
-        // Calcular quanto já foi pago
-        $totalPago = $parcelasExistentes->where('status', 'paga')->sum('valor');
-
-        // Valor restante a ser dividido entre parcelas pendentes
-        $valorRestante = $totalVenda - $totalPago;
-        $valorParcela = round($valorRestante / $numeroParcelas, 2);
-
-        // Atualizar apenas as parcelas pendentes
-        foreach ($parcelasExistentes as $parcela) {
-            // IMPORTANTE: Não modificar parcelas pagas
-            if ($parcela->status !== 'paga') {
-                $parcela->update([
-                    'valor' => $valorParcela
-                ]);
-            }
-        }
+        app(SaleInstallmentService::class)->sync($this->sale->refresh());
     }
 
     public function getTotalProperty()
