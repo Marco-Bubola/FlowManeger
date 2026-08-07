@@ -10,6 +10,7 @@ use App\Models\VendaParcela;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use App\Services\Sales\SaleInstallmentService;
 use Livewire\Component;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
@@ -304,11 +305,31 @@ class EditSale extends Component
             // Atualizar dados da venda
             $this->sale->update([
                 'client_id' => $this->client_id,
-                'sale_date' => $this->sale_date,
                 'tipo_pagamento' => $this->tipo_pagamento,
                 'parcelas' => $this->tipo_pagamento === 'parcelado' ? $this->getSafeParcelas() : 1,
                 'total_price' => $this->getTotalPrice(),
             ]);
+
+            // A tabela `sales` não tem coluna `sale_date`: a data da venda mora
+            // em `created_at` (é assim que o CreateSale grava). Passar
+            // 'sale_date' no update() era descartado em silêncio pelo
+            // $fillable — a data escolhida na edição nunca era salva.
+            $novaData = \Carbon\Carbon::parse($this->sale_date);
+            $atual = $this->sale->created_at;
+
+            if (! $atual || ! $novaData->isSameDay($atual)) {
+                // Preserva a hora original; só troca o dia.
+                $novoTimestamp = $novaData->setTime(
+                    $atual?->hour ?? now()->hour,
+                    $atual?->minute ?? now()->minute,
+                    $atual?->second ?? now()->second
+                );
+
+                $this->sale->timestamps = false;
+                $this->sale->created_at = $novoTimestamp;
+                $this->sale->save();
+                $this->sale->timestamps = true;
+            }
 
             // Apagar itens antigos
             $this->sale->saleItems()->delete();
@@ -350,54 +371,11 @@ class EditSale extends Component
     }
 
     /**
-     * Recalcula e atualiza as parcelas da venda
+     * Delegado ao SaleInstallmentService: regra única para todas as telas.
      */
     private function recalcularParcelas($sale)
     {
-        // Se a venda não for parcelada, não há parcelas para atualizar
-        if ($sale->tipo_pagamento !== 'parcelado' || $sale->parcelas <= 1) {
-            // Se existirem parcelas antigas, excluir
-            VendaParcela::where('sale_id', $sale->id)->delete();
-            return;
-        }
-
-        // Buscar parcelas existentes
-        $parcelasExistentes = VendaParcela::where('sale_id', $sale->id)
-            ->orderBy('numero_parcela')
-            ->get();
-
-        $totalVenda = $sale->total_price;
-        $numeroParcelas = $sale->parcelas;
-        $valorParcela = round($totalVenda / $numeroParcelas, 2);
-        $dataPrimeira = $sale->sale_date ? \Carbon\Carbon::parse($sale->sale_date) : now();
-
-        // Se o número de parcelas mudou
-        if ($parcelasExistentes->count() !== $numeroParcelas) {
-            // Excluir todas as parcelas antigas
-            VendaParcela::where('sale_id', $sale->id)->delete();
-
-            // Criar novas parcelas
-            for ($i = 1; $i <= $numeroParcelas; $i++) {
-                $dataVencimento = $dataPrimeira->copy()->addMonths($i - 1);
-                VendaParcela::create([
-                    'sale_id' => $sale->id,
-                    'numero_parcela' => $i,
-                    'valor' => $valorParcela,
-                    'data_vencimento' => $dataVencimento->format('Y-m-d'),
-                    'status' => 'pendente',
-                ]);
-            }
-        } else {
-            // Atualizar apenas os valores das parcelas existentes (manter datas e status)
-            foreach ($parcelasExistentes as $index => $parcela) {
-                // Não atualizar parcelas já pagas
-                if ($parcela->status !== 'paga') {
-                    $parcela->update([
-                        'valor' => $valorParcela
-                    ]);
-                }
-            }
-        }
+        app(SaleInstallmentService::class)->sync($sale->refresh());
     }
 
     public function getFilteredProducts()
