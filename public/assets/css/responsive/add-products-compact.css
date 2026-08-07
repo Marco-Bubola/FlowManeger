@@ -1,0 +1,140 @@
+/* ==========================================================
+   Adicionar Produtos à Venda — escala proporcional
+   ----------------------------------------------------------
+   Mesmo sistema das faturas: uma variável (--ap-s) por
+   dispositivo comanda imagem, textos e espaçamentos do card.
+
+   O problema original: no iPad deitado os cards ficavam
+   131x264 (proporção 1:2), com a imagem ocupando quase tudo
+   e o nome do produto em 16px dentro de 131px de largura.
+   ========================================================== */
+
+.add-products-page {
+    --ap-s: 0.88;
+}
+
+@media (max-width: 767.98px) {
+    .add-products-page { --ap-s: 0.86; }
+}
+
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .add-products-page { --ap-s: 0.82; }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .add-products-page { --ap-s: 0.84; }
+}
+
+@media (min-width: 1025px) and (max-width: 1600px) {
+    .add-products-page { --ap-s: 0.82; }
+}
+
+@media (min-width: 1601px) {
+    .add-products-page { --ap-s: 0.80; }
+}
+
+/* iPad deitado por último: a faixa 1025–1600 acima também casa com ele */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .add-products-page { --ap-s: 0.78; }
+}
+
+/* ==========================================================
+   CARD DE PRODUTO
+   ========================================================== */
+
+.add-products-page.add-products-page .product-card-modern {
+    border-radius: calc(0.9rem * var(--ap-s)) !important;
+}
+
+/* A área da imagem era o que esticava o card: passa a ser
+   proporcional à largura, não uma altura fixa. */
+.add-products-page.add-products-page .product-card-modern .product-img-area {
+    aspect-ratio: 1 / 1 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(9rem * var(--ap-s)) !important;
+}
+
+.add-products-page.add-products-page .product-card-modern .product-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+}
+
+.add-products-page.add-products-page .product-card-modern .card-body {
+    padding: calc(0.5rem * var(--ap-s)) calc(0.55rem * var(--ap-s)) !important;
+    gap: calc(0.3rem * var(--ap-s)) !important;
+}
+
+/* Nome do produto: 16px num card de 131px não cabia */
+.add-products-page.add-products-page .product-card-modern .product-title,
+.add-products-page.add-products-page .product-card-modern .card-body h3,
+.add-products-page.add-products-page .product-card-modern .card-body h4 {
+    font-size: max(0.68rem, calc(0.82rem * var(--ap-s))) !important;
+    line-height: 1.25 !important;
+}
+
+.add-products-page.add-products-page .product-card-modern .badge-price-sale,
+.add-products-page.add-products-page .product-card-modern .badge-stock,
+.add-products-page.add-products-page .product-card-modern [class*="badge-"] {
+    font-size: max(0.6rem, calc(0.68rem * var(--ap-s))) !important;
+    padding: calc(0.18rem * var(--ap-s)) calc(0.42rem * var(--ap-s)) !important;
+}
+
+.add-products-page.add-products-page .product-card-modern .selected-qty-badge {
+    font-size: max(0.62rem, calc(0.72rem * var(--ap-s))) !important;
+    min-width: calc(1.4rem * var(--ap-s)) !important;
+    height: calc(1.4rem * var(--ap-s)) !important;
+}
+
+.add-products-page.add-products-page .product-card-modern .btn-action-group .w-6 {
+    width: calc(1.3rem * var(--ap-s)) !important;
+    height: calc(1.3rem * var(--ap-s)) !important;
+}
+
+/* ==========================================================
+   CABEÇALHO E CONTROLES
+   ========================================================== */
+
+.add-products-page.add-products-page .ap-header {
+    border-radius: calc(1rem * var(--ap-s)) !important;
+    margin-bottom: calc(0.85rem * var(--ap-s)) !important;
+}
+
+.add-products-page.add-products-page .ap-header > .relative {
+    padding: calc(0.7rem * var(--ap-s)) calc(1.1rem * var(--ap-s)) !important;
+}
+
+.add-products-page.add-products-page .ap-header h1,
+.add-products-page.add-products-page .ap-header h2 {
+    font-size: max(0.95rem, calc(1.3rem * var(--ap-s))) !important;
+}
+
+.add-products-page.add-products-page .ap-header p {
+    font-size: max(0.66rem, calc(0.78rem * var(--ap-s))) !important;
+}
+
+.add-products-page.add-products-page input[type="text"],
+.add-products-page.add-products-page input[type="search"] {
+    font-size: max(0.75rem, calc(0.85rem * var(--ap-s))) !important;
+    padding-top: calc(0.5rem * var(--ap-s)) !important;
+    padding-bottom: calc(0.5rem * var(--ap-s)) !important;
+}
+
+/* ==========================================================
+   GRADE — mais colunas onde sobra largura
+   ========================================================== */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .add-products-page.add-products-page .product-card-modern {
+        min-height: 0 !important;
+    }
+}
+
+@media (min-width: 1601px) {
+    /* Ultrawide: aproveita a largura em vez de esticar os cards */
+    .add-products-page.add-products-page .products-grid,
+    .add-products-page.add-products-page [class*="grid-cols"] {
+        gap: calc(0.75rem * var(--ap-s)) !important;
+    }
+}
