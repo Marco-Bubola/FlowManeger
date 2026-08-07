@@ -1,0 +1,417 @@
+/* ==========================================================
+   Create Sale — CARRINHO (modal) no iPad
+   ----------------------------------------------------------
+   Layout compacto e denso para o modal "Carrinho da Venda":
+   resumo em linhas de 4 blocos, produtos 3 por linha, texto
+   ainda legível. Vale para retrato e paisagem.
+
+   Carregado por último: sobrepõe create-sale-ipad-*.css.
+   ========================================================== */
+
+/* ──────────────────────────────────────────────────────────
+   REDE DE SEGURANÇA de empilhamento/posição (todos os tamanhos)
+
+   O overlay do carrinho usa `z-[120]` e o FAB `bottom-24 z-[90]`.
+   São utilitários do Tailwind que existem no CSS apenas quando o
+   bundle é compilado a partir da blade atual. Se o `public/build`
+   ficar defasado (build antigo, deploy que falhou antes do
+   `npm run build`), essas classes somem e o resultado é grave:
+
+     · overlay sem z-index  → o grid de produtos (`z-index:1`) é
+       pintado por cima do carrinho e rouba os cliques do centro;
+     · FAB sem `bottom`     → o elemento fixo cai na posição
+       estática, no fim do <body>, e some da tela.
+
+   Estas regras replicam os mesmos valores fora do bundle, então a
+   tela continua correta mesmo com build desatualizado. Com build
+   em dia elas são redundantes e inofensivas.
+   ────────────────────────────────────────────────────────── */
+.cs-cart-overlay {
+    z-index: 120;
+}
+
+.cs-cart-fab {
+    position: fixed;
+    right: 1rem;
+    /* respeita o home indicator do iPhone/iPad */
+    bottom: calc(6rem + env(safe-area-inset-bottom));
+    z-index: 90;
+}
+
+@media (min-width: 768px) and (max-width: 1366px) {
+    .cs-cart-panel {
+        --cart-s: 1;
+        --cart-cols: 3;
+    }
+}
+
+/* ── Retrato (768–1024) ─────────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+
+    .cs-cart-overlay .cs-cart-panel {
+        max-width: min(96vw, 60rem) !important;
+        max-height: 94vh !important;
+        border-radius: 1.25rem !important;
+    }
+
+    .cs-cart-overlay .cs-cart-body {
+        padding: 0.7rem !important;
+    }
+}
+
+/* ── Paisagem (1024–1366) ───────────────────────────────── */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+
+    .cs-cart-overlay .cs-cart-panel {
+        max-width: min(94vw, 68rem) !important;
+        max-height: 92vh !important;
+        border-radius: 1.25rem !important;
+    }
+
+    .cs-cart-overlay .cs-cart-body {
+        padding: 0.65rem 0.8rem !important;
+    }
+
+    /* Deitado sobra largura: 4 produtos por linha */
+    .cs-cart-panel {
+        --cart-cols: 4;
+    }
+}
+
+/* ==========================================================
+   Regras comuns aos dois modos do iPad
+   ========================================================== */
+@media (min-width: 768px) and (max-width: 1366px) {
+
+    /* ── Cabeçalho do modal ─────────────────────────────── */
+    .cs-cart-panel > .shrink-0.px-5 {
+        padding: 0.6rem 0.9rem !important;
+        gap: 0.6rem !important;
+    }
+
+    .cs-cart-panel > .shrink-0.px-5 > .w-10 {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        border-radius: 0.7rem !important;
+    }
+
+    .cs-cart-panel > .shrink-0.px-5 h3 {
+        font-size: 0.92rem !important;
+    }
+
+    .cs-cart-panel > .shrink-0.px-5 p {
+        font-size: 0.7rem !important;
+    }
+
+    /* ── Card de resumo ─────────────────────────────────── */
+    .cs-cart-body .create-sale-summary-card {
+        padding: 0.7rem !important;
+        border-radius: 0.9rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-topbar {
+        padding: 0 !important;
+        margin-bottom: 0.55rem !important;
+        gap: 0.5rem !important;
+        align-items: center !important;
+    }
+
+    .cs-cart-body .create-sale-summary-icon {
+        width: 1.9rem !important;
+        height: 1.9rem !important;
+        border-radius: 0.6rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-icon i {
+        font-size: 0.85rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-topbar h3 {
+        font-size: 0.85rem !important;
+        line-height: 1.2 !important;
+    }
+
+    /* A frase longa de apoio só rouba altura no modal */
+    .cs-cart-body .create-sale-summary-title-wrap p {
+        display: none !important;
+    }
+
+    .cs-cart-body .create-sale-summary-status {
+        font-size: 0.66rem !important;
+        padding: 0.22rem 0.55rem !important;
+        white-space: nowrap !important;
+    }
+
+    /* Produtos / Unidades / Modo — linha única enxuta */
+    .cs-cart-body .create-sale-summary-stats {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: 0.4rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-stat {
+        padding: 0.4rem 0.55rem !important;
+        border-radius: 0.6rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-stat-label {
+        font-size: 0.65rem !important;
+        letter-spacing: 0.08em !important;
+    }
+
+    .cs-cart-body .create-sale-summary-stat-value {
+        font-size: 0.88rem !important;
+    }
+
+    /* Cliente · Data · Pagamento · Parcelas: 4 por linha */
+    .cs-cart-body .create-sale-summary-info-grid {
+        display: grid !important;
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.4rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid > div {
+        padding: 0.45rem 0.55rem !important;
+        border-radius: 0.6rem !important;
+        min-width: 0 !important;
+    }
+
+    /* "Já está paga" ocupa a linha inteira e vai para o fim: no DOM ele fica
+       entre Pagamento e Parcelas, o que deixava um buraco na 1ª linha e
+       jogava Parcelas sozinho lá embaixo. */
+    .cs-cart-body .create-sale-summary-info-grid > div {
+        order: 1;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid > div.sm\:col-span-2 {
+        order: 2;
+        grid-column: 1 / -1 !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid label {
+        font-size: 0.65rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid .text-sm {
+        font-size: 0.76rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid i {
+        font-size: 0.85rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid button[type="button"] {
+        min-height: 2.1rem !important;
+    }
+
+    /* Toggle "Já está paga" + formas de pagamento na mesma linha */
+    .cs-cart-body .create-sale-summary-info-grid > div.sm\:col-span-2 > label {
+        gap: 0.6rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid > div.sm\:col-span-2 .text-\[11px\] {
+        font-size: 0.68rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid > div.sm\:col-span-2 .grid-cols-3 {
+        gap: 0.35rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-info-grid > div.sm\:col-span-2 .grid-cols-3 button {
+        padding: 0.35rem 0.4rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* ── Painel de totais ───────────────────────────────── */
+    .cs-cart-body .create-sale-total-panel {
+        padding: 0.6rem 0.7rem !important;
+        border-radius: 0.8rem !important;
+        margin-top: 0.5rem !important;
+    }
+
+    .cs-cart-body .create-sale-total-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.4rem !important;
+    }
+
+    .cs-cart-body .create-sale-total-metric {
+        padding: 0.4rem 0.55rem !important;
+        border-radius: 0.6rem !important;
+    }
+
+    .cs-cart-body .create-sale-total-metric span {
+        font-size: 0.65rem !important;
+    }
+
+    .cs-cart-body .create-sale-total-metric strong {
+        font-size: 0.85rem !important;
+    }
+
+    .cs-cart-body .create-sale-total-panel .text-2xl {
+        font-size: 1.15rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-alert {
+        padding: 0.5rem 0.65rem !important;
+        border-radius: 0.7rem !important;
+        margin-top: 0.5rem !important;
+    }
+
+    .cs-cart-body .create-sale-summary-alert p,
+    .cs-cart-body .create-sale-summary-alert li {
+        font-size: 0.68rem !important;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       PRODUTOS — 3 (retrato) / 4 (paisagem) por linha
+       ══════════════════════════════════════════════════════ */
+
+    /* `display:block`: fora do modal esta lista é grid, o que fazia o
+       container interno encolher para o tamanho do conteúdo. */
+    .cs-cart-body .create-sale-selected-list {
+        display: block !important;
+        max-height: none !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        margin-top: 0.5rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-list > div {
+        display: grid !important;
+        grid-template-columns: repeat(var(--cart-cols, 3), minmax(0, 1fr)) !important;
+        align-items: stretch !important;
+        gap: 0.5rem !important;
+        padding: 0 !important;
+    }
+
+    /* Card do produto — mais moderno: coluna, borda suave, topo colorido */
+    .cs-cart-body .create-sale-selected-item {
+        position: relative !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        padding: 0.6rem 0.55rem 0.55rem !important;
+        border-radius: 0.85rem !important;
+        margin-bottom: 0 !important;
+        overflow: hidden !important;
+        transition: transform .18s ease, box-shadow .18s ease !important;
+    }
+
+    .cs-cart-body .create-sale-selected-item::before {
+        content: '';
+        position: absolute;
+        inset: 0 0 auto 0;
+        height: 3px;
+        background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+        opacity: .85;
+    }
+
+    .cs-cart-body .create-sale-selected-item:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 10px 24px rgba(79, 70, 229, .16) !important;
+    }
+
+    /* Cabeçalho do card: thumb + nome + remover */
+    .cs-cart-body .create-sale-selected-item > .flex {
+        gap: 0.5rem !important;
+        align-items: flex-start !important;
+    }
+
+    .cs-cart-body .create-sale-selected-item .create-sale-selected-thumb {
+        width: 2.4rem !important;
+        height: 2.4rem !important;
+        min-width: 2.4rem !important;
+        border-radius: 0.55rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-item h4 {
+        font-size: 0.74rem !important;
+        line-height: 1.25 !important;
+        white-space: normal !important;
+        display: -webkit-box !important;
+        -webkit-line-clamp: 2 !important;
+        -webkit-box-orient: vertical !important;
+        overflow: hidden !important;
+    }
+
+    /* Metadados (código, estoque, preço de tabela) */
+    .cs-cart-body .create-sale-selected-item .text-\[10px\] {
+        font-size: 0.66rem !important;
+    }
+
+    .cs-cart-body .create-sale-remove-btn {
+        width: 1.5rem !important;
+        height: 1.5rem !important;
+        font-size: 0.6rem !important;
+    }
+
+    /* Qtd | Preço | Total */
+    .cs-cart-body .create-sale-selected-grid {
+        grid-template-columns: 3.6rem minmax(0, 1fr) !important;
+        grid-template-areas:
+            'qtd preco'
+            'total total' !important;
+        gap: 0.35rem !important;
+        margin-top: 0.45rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-grid > .create-sale-selected-field:nth-of-type(1) {
+        grid-area: qtd;
+    }
+
+    .cs-cart-body .create-sale-selected-grid > .create-sale-selected-field:nth-of-type(2) {
+        grid-area: preco;
+    }
+
+    .cs-cart-body .create-sale-selected-subtotal {
+        grid-area: total;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-field {
+        padding: 0.3rem 0.4rem !important;
+        border-radius: 0.55rem !important;
+        gap: 0.15rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-field label {
+        font-size: 0.65rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-field input {
+        height: 1.7rem !important;
+        font-size: 0.75rem !important;
+        padding-left: 0.2rem !important;
+        padding-right: 0.2rem !important;
+    }
+
+    /* O campo de preço tem o prefixo "R$" sobreposto à esquerda */
+    .cs-cart-body .create-sale-selected-field input.pl-6 {
+        padding-left: 1.4rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-subtotal .csi-total-label {
+        font-size: 0.65rem !important;
+    }
+
+    .cs-cart-body .create-sale-selected-subtotal .csi-total-value {
+        font-size: 0.82rem !important;
+    }
+
+    /* ── Rodapé fixo ────────────────────────────────────── */
+    .cs-cart-panel > .shrink-0.px-5.py-4 {
+        padding: 0.6rem 0.9rem !important;
+    }
+
+    .cs-cart-panel > .shrink-0.px-5.py-4 .text-xl {
+        font-size: 1.15rem !important;
+    }
+
+    .cs-cart-panel > .shrink-0.px-5.py-4 > button {
+        padding: 0.6rem 1rem !important;
+        font-size: 0.82rem !important;
+    }
+}
