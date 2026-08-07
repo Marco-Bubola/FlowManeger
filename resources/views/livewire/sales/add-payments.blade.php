@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-payments-ultrawide.css') }}">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
     <x-sales-header
         title="Adicionar Pagamentos"
