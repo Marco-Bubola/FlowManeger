@@ -9,6 +9,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-ultrawide.css') }}">
+    {{-- Carrinho compacto no iPad (carregar por último: sobrepõe os arquivos acima) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-sale-cart-ipad.css') }}?v=20260806">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
     {{-- Remove o padding do flux:main para que o create-sale use todo o espaço disponível --}}
     <style>
         [data-flux-main]:has(.sales-create-page) {
@@ -893,6 +897,7 @@
                                                        inputmode="numeric"
                                                        id="price-{{ $selectedProduct->id }}"
                                                        x-init="$el.value = fmt()"
+                                                       @focus="$el.select()"
                                                        @input="inp($event)"
                                                        @blur="$wire.updateProductPrice({{ $selectedProduct->id }}, (cts / 100).toFixed(2))"
                                                        class="pl-6 text-green-600 dark:text-green-400">
