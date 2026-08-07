@@ -58,36 +58,55 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
                 <label class="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Valor (R$)</label>
+                {{-- Máscara de centavos: 1 → 0,01 · 12 → 0,12 · 123 → 1,23.
+                     O x-data envolve o campo E o botão "Usar restante": o campo
+                     é `wire:ignore`, então quem muda o valor pelo servidor
+                     precisa atualizar a tela também — senão o usuário vê um
+                     valor e o sistema grava outro. --}}
                 <div x-data="{
-                        displayValue: '{{ isset($payment['amount_paid']) && $payment['amount_paid'] ? number_format((float)$payment['amount_paid'], 2, ',', '.') : '0,00' }}',
-                        formatCurrency(value) {
-                            let numeric = value.replace(/\D/g, '');
-                            if (!numeric || numeric === '0') return '0,00';
-                            let cents = parseInt(numeric);
-                            return (cents / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                        cts: {{ (int) round((float) ($payment['amount_paid'] ?? 0) * 100) }},
+                        fmt() {
+                            let s = String(this.cts).padStart(3, '0');
+                            let d = s.slice(-2);
+                            let i = s.slice(0, -2).replace(/^0+/, '') || '0';
+                            i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                            return i + ',' + d;
+                        },
+                        push() {
+                            $wire.set('payments.{{ $index }}.amount_paid', (this.cts / 100).toFixed(2));
+                        },
+                        inp(e) {
+                            let digs = e.target.value.replace(/\D/g, '');
+                            this.cts = digs ? parseInt(digs) : 0;
+                            e.target.value = this.fmt();
+                            this.push();
+                        },
+                        setValor(centavos) {
+                            this.cts = centavos;
+                            this.$refs.valor.value = this.fmt();
+                            this.push();
                         }
-                    }" class="relative">
-                    <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-sm pointer-events-none">R$</span>
-                    <input type="text"
-                           x-model="displayValue"
-                           x-on:input="
-                               displayValue = formatCurrency($event.target.value);
-                               let numericValue = displayValue.replace(/\./g, '').replace(',', '.');
-                               @this.set('payments.{{ $index }}.amount_paid', numericValue);
-                           "
-                           x-on:focus="if (displayValue === '0,00') $event.target.select()"
-                           x-on:blur="if (!displayValue) displayValue = '0,00'"
-                           wire:ignore
-                           placeholder="0,00"
-                           class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 dark:border-zinc-600 rounded-xl text-base font-bold bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-0 focus:border-emerald-500 transition-colors">
+                    }">
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-emerald-500 font-bold text-sm pointer-events-none">R$</span>
+                        <input type="text"
+                               inputmode="numeric"
+                               x-ref="valor"
+                               x-init="$el.value = fmt()"
+                               x-on:focus="$el.select()"
+                               x-on:input="inp($event)"
+                               wire:ignore
+                               placeholder="0,00"
+                               class="w-full pl-10 pr-4 py-3 border-2 border-gray-200 dark:border-zinc-600 rounded-xl text-base font-bold bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-0 focus:border-emerald-500 transition-colors">
+                    </div>
+                    @if($remainingAmount > 0)
+                        <button type="button"
+                                x-on:click="setValor({{ (int) round((float) $remainingAmount * 100) }})"
+                                class="mt-1 text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
+                            Usar restante (R$ {{ number_format((float)$remainingAmount, 2, ',', '.') }})
+                        </button>
+                    @endif
                 </div>
-                @if($remainingAmount > 0)
-                    <button type="button"
-                            wire:click="$set('payments.{{ $index }}.amount_paid', '{{ number_format((float)$remainingAmount, 2, '.', '') }}')"
-                            class="mt-1 text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-medium">
-                        Usar restante (R$ {{ number_format((float)$remainingAmount, 2, ',', '.') }})
-                    </button>
-                @endif
                 @error("payments.{$index}.amount_paid")
                     <p class="mt-1 text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
                         <i class="bi bi-exclamation-circle"></i> {{ $message }}
