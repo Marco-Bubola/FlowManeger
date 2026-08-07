@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-ultrawide.css') }}">
+    {{-- Escala proporcional (carregar por último: sobrepõe os arquivos acima) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-compact.css') }}?v=20260806">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
     @php
         $selectedCount = count(array_filter($newProducts, fn($p) => !empty($p['product_id'])));
