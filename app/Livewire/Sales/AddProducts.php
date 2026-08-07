@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Sales;
 
+use App\Services\Sales\SaleInstallmentService;
 use Livewire\Component;
 use App\Models\Sale;
 use App\Models\Product;
@@ -348,42 +349,12 @@ class AddProducts extends Component
      * Recalcula e atualiza as parcelas da venda
      * Protegido contra divisão por zero
      */
+    /**
+     * Delegado ao SaleInstallmentService: regra única para todas as telas.
+     */
     private function recalcularParcelas()
     {
-        // Se a venda não for parcelada, não há parcelas para atualizar
-        if ($this->sale->tipo_pagamento !== 'parcelado' || $this->sale->parcelas <= 1) {
-            return;
-        }
-
-        // Buscar parcelas existentes
-        $parcelasExistentes = VendaParcela::where('sale_id', $this->sale->id)
-            ->orderBy('numero_parcela')
-            ->get();
-
-        // Se não há parcelas, não há nada para atualizar
-        if ($parcelasExistentes->isEmpty()) {
-            return;
-        }
-
-        $numeroParcelas = $parcelasExistentes->count();
-
-        // Proteção contra divisão por zero
-        if ($numeroParcelas === 0) {
-            return;
-        }
-
-        $totalVenda = $this->sale->total_price;
-        $valorParcela = round($totalVenda / $numeroParcelas, 2);
-
-        // Atualizar apenas os valores das parcelas existentes (manter datas e status)
-        foreach ($parcelasExistentes as $parcela) {
-            // Não atualizar parcelas já pagas
-            if ($parcela->status !== 'paga') {
-                $parcela->update([
-                    'valor' => $valorParcela
-                ]);
-            }
-        }
+        app(SaleInstallmentService::class)->sync($this->sale->refresh());
     }
 
     public function getFilteredProducts()
