@@ -115,17 +115,36 @@
                     Preço Unitário
                 </label>
 
-                <div class="relative">
+                {{-- Máscara de centavos (mesma do carrinho): cada dígito entra
+                     pela direita — 1 → 0,01 · 12 → 0,12 · 123 → 1,23.
+                     Em Alpine, e não nas funções globais do <script> da view:
+                     script dentro de componente Livewire não roda após o morph. --}}
+                <div class="relative"
+                     x-data="{
+                         cts: {{ (int) round(($item['price_sale'] ?? 0) * 100) }},
+                         fmt() {
+                             let s = String(this.cts).padStart(3, '0');
+                             let d = s.slice(-2);
+                             let i = s.slice(0, -2).replace(/^0+/, '') || '0';
+                             i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                             return i + ',' + d;
+                         },
+                         inp(e) {
+                             let digs = e.target.value.replace(/\D/g, '');
+                             this.cts = digs ? parseInt(digs) : 0;
+                             e.target.value = this.fmt();
+                         }
+                     }">
                     <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">R$</span>
                     <input type="text"
+                           inputmode="numeric"
                            id="price_input_{{ $index }}"
-                           value="{{ number_format($item['price_sale'], 2, ',', '') }}"
+                           x-init="$el.value = fmt()"
+                           @focus="$el.select()"
+                           @input="inp($event)"
+                           @blur="$wire.call('updatePrice', {{ $index }}, (cts / 100).toFixed(2))"
                            class="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white text-lg font-semibold text-right"
                            placeholder="0,00">
-                    <input type="hidden"
-                           wire:model.lazy="saleItems.{{ $index }}.price_sale"
-                           id="price_hidden_{{ $index }}"
-                           value="{{ $item['price_sale'] }}">
                 </div>
 
                 @error("saleItems.{$index}.price_sale")
