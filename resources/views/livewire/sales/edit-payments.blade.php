@@ -6,6 +6,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-payments-ultrawide.css') }}">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
     <!-- Header fixo -->
     <div class="edit-payments-header w-full px-6 py-4 sticky top-0 z-20 shadow-lg rounded-b-2xl backdrop-blur border-b ">
         <div class="flex items-center justify-between">
