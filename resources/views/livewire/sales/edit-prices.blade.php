@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ultrawide.css') }}">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
     <!-- Header Modernizado -->
     <x-sales-header
