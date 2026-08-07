@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-sale-ultrawide.css') }}">
+    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
     @php
         if ($sale->client) {
