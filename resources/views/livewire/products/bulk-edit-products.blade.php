@@ -438,15 +438,17 @@
                             <div class="bulk-price-field">
                                 <div class="bulk-price-input-wrap">
                                     <span class="bulk-price-prefix">Custo R$</span>
-                                    <input type="number" wire:model.lazy="productsData.{{ $index }}.price" step="0.01" min="0"
-                                           class="bulk-price-input" placeholder="0,00">
+                                    <x-money-input :model="'productsData.'.$index.'.price'"
+                                           :value="$product['price'] ?? 0" bare :live="false"
+                                           class="bulk-price-input" placeholder="0,00" />
                                 </div>
                             </div>
                             <div class="bulk-price-field">
                                 <div class="bulk-price-input-wrap bulk-price-sale">
                                     <span class="bulk-price-prefix">Venda R$</span>
-                                    <input type="number" wire:model.lazy="productsData.{{ $index }}.price_sale" step="0.01" min="0"
-                                           class="bulk-price-input" placeholder="0,00">
+                                    <x-money-input :model="'productsData.'.$index.'.price_sale'"
+                                           :value="$product['price_sale'] ?? 0" bare :live="false"
+                                           class="bulk-price-input" placeholder="0,00" />
                                 </div>
                             </div>
                         </div>
