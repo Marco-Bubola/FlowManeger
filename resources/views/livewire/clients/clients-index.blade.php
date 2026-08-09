@@ -1,4 +1,6 @@
 <div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="w-full clients-index-page mobile-393-base relative">
+    {{-- Escala proporcional das telas de cliente --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/clients-compact.css') }}?v=20260806">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-index-ipad-portrait.css') }}">
