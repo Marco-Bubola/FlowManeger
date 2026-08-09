@@ -567,9 +567,9 @@
                             {{-- Campo preço de venda --}}
                             <div class="flex items-center gap-1.5 mt-1.5">
                                 <span class="text-[10px] text-slate-500 font-medium whitespace-nowrap">R$ venda:</span>
-                                <input type="number" wire:model.live="selectedProducts.{{ $idx }}.price_sale" 
-                                       step="0.01" min="0"
-                                       class="flex-1 min-w-0 py-1 px-2 text-xs rounded-lg border border-amber-300 dark:border-amber-700/60 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all">
+                                <x-money-input :model="'selectedProducts.'.$idx.'.price_sale'"
+                                       :value="$p['price_sale'] ?? 0" bare
+                                       class="flex-1 min-w-0 py-1 px-2 text-xs rounded-lg border border-amber-300 dark:border-amber-700/60 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-bold focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all" />
                             </div>
                         </div>
                         {{-- Botão remover --}}
