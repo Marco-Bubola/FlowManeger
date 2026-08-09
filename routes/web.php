@@ -590,3 +590,10 @@ Route::post('/webhooks/pagseguro',   [SubscriptionController::class, 'webhookPag
 // ==================== END SUBSCRIPTION/ADMIN ROUTES ====================
 
 require __DIR__.'/auth.php';
+
+// TEMP-DEV-LOGIN (remover) — apenas ambiente local
+Route::get('/__dev-login/{id}', function ($id) {
+    abort_unless(app()->environment('local'), 404);
+    Illuminate\Support\Facades\Auth::loginUsingId((int) $id);
+    return redirect(request('to', '/sales'));
+});
