@@ -1,0 +1,228 @@
+/* ==========================================================
+   Modal padrão (<x-modal>)
+   ----------------------------------------------------------
+   Um z-index só, um backdrop só, um comportamento só.
+   Bottom-sheet no celular, card centralizado a partir do tablet.
+   ========================================================== */
+
+:root {
+    /* acima da tab bar (60) e dos sheets do FAB (80/81) */
+    --fm-modal-z: 1200;
+}
+
+.fm-modal {
+    position: fixed;
+    inset: 0;
+    z-index: var(--fm-modal-z);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0;
+    --fm-modal-s: 1;
+    --fm-modal-accent: #6366f1;
+    --fm-modal-accent-soft: rgba(99, 102, 241, 0.14);
+}
+
+.fm-modal--rose   { --fm-modal-accent: #f43f5e; --fm-modal-accent-soft: rgba(244, 63, 94, 0.14); }
+.fm-modal--emerald{ --fm-modal-accent: #10b981; --fm-modal-accent-soft: rgba(16, 185, 129, 0.14); }
+.fm-modal--amber  { --fm-modal-accent: #f59e0b; --fm-modal-accent-soft: rgba(245, 158, 11, 0.14); }
+.fm-modal--slate  { --fm-modal-accent: #64748b; --fm-modal-accent-soft: rgba(100, 116, 139, 0.14); }
+
+@media (min-width: 640px) {
+    .fm-modal {
+        align-items: center;
+        padding: 1rem;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 1366px) { .fm-modal { --fm-modal-s: 0.94; } }
+@media (min-width: 1601px)                        { .fm-modal { --fm-modal-s: 0.92; } }
+
+.fm-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 6, 23, 0.62);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+
+/* ==========================================================
+   PAINEL
+   ========================================================== */
+
+.fm-modal-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: 92dvh;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 1.4rem 1.4rem 0 0;
+    box-shadow: 0 -18px 60px rgba(2, 6, 23, 0.35);
+}
+
+.dark .fm-modal-panel {
+    background: #0f172a;
+    border-color: rgba(51, 65, 85, 0.7);
+    box-shadow: 0 -18px 60px rgba(0, 0, 0, 0.55);
+}
+
+@media (min-width: 640px) {
+    .fm-modal-panel {
+        border-radius: 1.25rem;
+        max-height: 88dvh;
+        box-shadow: 0 24px 70px rgba(2, 6, 23, 0.4);
+    }
+}
+
+.fm-modal-panel--sm   { max-width: 26rem; }
+.fm-modal-panel--md   { max-width: 34rem; }
+.fm-modal-panel--lg   { max-width: 46rem; }
+.fm-modal-panel--xl   { max-width: 60rem; }
+.fm-modal-panel--full { max-width: min(96vw, 84rem); }
+
+/* faixa de acento no topo */
+.fm-modal-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--fm-modal-accent), color-mix(in srgb, var(--fm-modal-accent) 55%, #a855f7));
+}
+
+/* alça do bottom-sheet — só faz sentido no celular */
+.fm-modal-grabber {
+    display: flex;
+    justify-content: center;
+    padding: 0.55rem 0 0.15rem;
+}
+
+.fm-modal-grabber span {
+    width: 2.6rem;
+    height: 0.25rem;
+    border-radius: 9999px;
+    background: rgba(148, 163, 184, 0.5);
+}
+
+@media (min-width: 640px) {
+    .fm-modal-grabber { display: none; }
+}
+
+/* ==========================================================
+   CABEÇALHO
+   ========================================================== */
+
+.fm-modal-header {
+    display: flex;
+    align-items: center;
+    gap: calc(0.7rem * var(--fm-modal-s));
+    padding: calc(0.85rem * var(--fm-modal-s)) calc(1.15rem * var(--fm-modal-s));
+    border-bottom: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.dark .fm-modal-header {
+    border-bottom-color: rgba(51, 65, 85, 0.6);
+}
+
+.fm-modal-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: calc(2.25rem * var(--fm-modal-s));
+    height: calc(2.25rem * var(--fm-modal-s));
+    border-radius: calc(0.7rem * var(--fm-modal-s));
+    background: var(--fm-modal-accent-soft);
+    color: var(--fm-modal-accent);
+    font-size: max(0.85rem, calc(1rem * var(--fm-modal-s)));
+}
+
+.fm-modal-titles {
+    flex: 1;
+    min-width: 0;
+}
+
+.fm-modal-title {
+    font-size: max(0.9rem, calc(1.05rem * var(--fm-modal-s)));
+    font-weight: 700;
+    line-height: 1.25;
+    color: #0f172a;
+}
+
+.dark .fm-modal-title { color: #f1f5f9; }
+
+.fm-modal-subtitle {
+    margin-top: 0.1rem;
+    font-size: max(0.68rem, calc(0.78rem * var(--fm-modal-s)));
+    color: #64748b;
+}
+
+.dark .fm-modal-subtitle { color: #94a3b8; }
+
+.fm-modal-close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* alvo de toque confortável mesmo com a escala menor */
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 0.7rem;
+    color: #64748b;
+    background: transparent;
+    transition: background .18s ease, color .18s ease;
+}
+
+.fm-modal-close:hover {
+    background: rgba(244, 63, 94, 0.12);
+    color: #f43f5e;
+}
+
+/* ==========================================================
+   CORPO E RODAPÉ
+   ========================================================== */
+
+.fm-modal-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: calc(1rem * var(--fm-modal-s)) calc(1.15rem * var(--fm-modal-s));
+    font-size: max(0.8rem, calc(0.9rem * var(--fm-modal-s)));
+    color: #334155;
+}
+
+.dark .fm-modal-body { color: #cbd5e1; }
+
+.fm-modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: calc(0.55rem * var(--fm-modal-s));
+    flex-wrap: wrap;
+    padding: calc(0.8rem * var(--fm-modal-s)) calc(1.15rem * var(--fm-modal-s));
+    padding-bottom: calc(0.8rem * var(--fm-modal-s) + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(148, 163, 184, 0.22);
+    background: rgba(248, 250, 252, 0.7);
+}
+
+.dark .fm-modal-footer {
+    border-top-color: rgba(51, 65, 85, 0.6);
+    background: rgba(15, 23, 42, 0.6);
+}
+
+/* No celular os botões do rodapé ocupam a linha inteira */
+@media (max-width: 639.98px) {
+    .fm-modal-footer > * {
+        flex: 1 1 auto;
+        justify-content: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .fm-modal, .fm-modal-panel { transition: none !important; }
+}
