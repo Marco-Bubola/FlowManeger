@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/upload-products-ultrawide.css') }}">
+    {{-- Padrão único do card de produto (sempre depois dos CSS da tela) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-card-standard.css') }}?v=20260806">
 
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
