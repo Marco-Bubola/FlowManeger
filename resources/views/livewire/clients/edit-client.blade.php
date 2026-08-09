@@ -1,4 +1,6 @@
 <div x-data="{ currentStep: 1 }" class=" w-full mobile-393-base client-form-page">
+    {{-- Escala proporcional das telas de cliente --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/clients-compact.css') }}?v=20260806">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-form-ipad-portrait.css') }}">
