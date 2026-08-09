@@ -54,6 +54,10 @@
 
 <!-- Theme overrides CSS file (moved from inline to prevent visual rendering) -->
 <link rel="stylesheet" href="{{ asset('assets/css/flow-theme.css') }}">
+{{-- Campo de valor padrão (<x-money-input>) — disponível em todo o app --}}
+<link rel="stylesheet" href="{{ asset('assets/css/money-input.css') }}?v={{ filemtime(public_path('assets/css/money-input.css')) }}">
+{{-- Modal padrão (<x-modal>) --}}
+<link rel="stylesheet" href="{{ asset('assets/css/modal.css') }}?v={{ filemtime(public_path('assets/css/modal.css')) }}">
 
 <!-- Color theme init: aplica variáveis de cor antes do render para evitar flash -->
 <script>
