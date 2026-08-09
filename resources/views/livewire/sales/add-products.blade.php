@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-products-compact.css') }}?v=20260806">
     {{-- Camada compacta comum das telas de venda (sempre por último) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
+    {{-- Padrão único do card de produto (sempre depois dos CSS da tela) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-card-standard.css') }}?v=20260806">
 
     @php
         $selectedCount = count(array_filter($newProducts, fn($p) => !empty($p['product_id'])));
