@@ -145,6 +145,8 @@
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ipad-landscape.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-notebook.css') }}">
         <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-ultrawide.css') }}">
+    {{-- Padrão único do card de produto (sempre depois dos CSS da tela) --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-card-standard.css') }}?v=20260806">
     @endpush
 
     <x-loading-overlay message="Carregando produtos..." />
