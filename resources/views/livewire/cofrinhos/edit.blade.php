@@ -42,12 +42,7 @@
                             <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                                 <i class="bi bi-currency-dollar text-green-600 mr-2"></i>Meta de Valor
                             </label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 dark:text-gray-400">R$</span>
-                                    <input type="number" wire:model="meta_valor" step="0.01" min="0"
-                                        class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-2xl focus:ring-2 focus:ring-green-500 focus:border-green-500 dark:bg-zinc-700 dark:text-white transition-all duration-200"
-                                        placeholder="0,00">
-                            </div>
+                            <x-money-input model="meta_valor" :value="$meta_valor" />
                             @error('meta_valor')
                             <p class="mt-2 text-sm text-red-600 dark:text-red-400">
                                 <i class="bi bi-exclamation-circle mr-1"></i>{{ $message }}
