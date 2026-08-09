@@ -461,9 +461,9 @@
                         <label class="ep-lbl">Preço de venda *</label>
                         <div class="relative">
                             <span class="absolute left-2.5 top-1/2 -translate-y-1/2 font-bold text-xs" style="color: var(--primary, #9575cd);">R$</span>
-                            <input type="number" wire:model="price" step="0.01" min="0.01"
+                            <x-money-input model="price" :value="$price" bare
                                 class="ep-input !pl-9 !text-lg !font-bold" style="color: var(--primary-dark, #512da8);"
-                                placeholder="0,00">
+                                placeholder="0,00" />
                         </div>
                         @error('price')<p class="mt-0.5 text-[10px] text-red-500">{{ $message }}</p>@enderror
                     </div>
