@@ -133,12 +133,7 @@
 
                     <!-- Valor da Meta -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
-                            Valor da Meta (R$)
-                        </label>
-                        <input type="number" wire:model="valor_meta" step="0.01" min="0"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
-                            placeholder="0.00">
+                        <x-money-input model="valor_meta" :value="$valor_meta" label="Valor da Meta" />
                     </div>
 
                     <!-- Progresso -->
