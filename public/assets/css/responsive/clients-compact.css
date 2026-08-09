@@ -1,0 +1,132 @@
+/* ==========================================================
+   CLIENTES — camada compacta/proporcional
+   ----------------------------------------------------------
+   As três telas de clientes não tinham nenhum CSS responsivo:
+   herdavam só os utilitários do Tailwind. No iPad o título saía
+   com 32px e cada card com 366x512 — cabiam dois na tela.
+
+   A escala vem de --cl-s, uma por dispositivo.
+   ========================================================== */
+
+.clients-index-page,
+.client-form-page {
+    --cl-s: 0.88;
+}
+
+@media (max-width: 767.98px) {
+    .clients-index-page, .client-form-page { --cl-s: 0.86; }
+}
+
+@media (min-width: 380px) and (max-width: 430px) and (min-height: 780px) {
+    .clients-index-page, .client-form-page { --cl-s: 0.82; }
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .clients-index-page, .client-form-page { --cl-s: 0.84; }
+}
+
+@media (min-width: 1025px) and (max-width: 1600px) {
+    .clients-index-page, .client-form-page { --cl-s: 0.82; }
+}
+
+@media (min-width: 1601px) {
+    .clients-index-page, .client-form-page { --cl-s: 0.80; }
+}
+
+/* iPad deitado por último: a faixa 1025–1600 acima também casa com ele */
+@media (min-width: 1024px) and (max-width: 1366px) and (orientation: landscape) {
+    .clients-index-page, .client-form-page { --cl-s: 0.78; }
+}
+
+/* ==========================================================
+   TIPOGRAFIA — pisos com max() para nada ficar ilegível
+   ========================================================== */
+
+.clients-index-page .text-4xl,
+.client-form-page .text-4xl {
+    font-size: max(1.2rem, calc(2rem * var(--cl-s))) !important;
+    line-height: 1.15 !important;
+}
+
+.clients-index-page .text-3xl,
+.client-form-page .text-3xl {
+    font-size: max(1.05rem, calc(1.6rem * var(--cl-s))) !important;
+}
+
+.clients-index-page .text-2xl,
+.client-form-page .text-2xl {
+    font-size: max(0.95rem, calc(1.35rem * var(--cl-s))) !important;
+}
+
+.clients-index-page .text-xl,
+.client-form-page .text-xl {
+    font-size: max(0.88rem, calc(1.15rem * var(--cl-s))) !important;
+}
+
+/* ==========================================================
+   CARDS DA LISTA — mais baixos e mais por linha
+   ========================================================== */
+
+.clients-index-page .grid > div {
+    border-radius: calc(1rem * var(--cl-s)) !important;
+}
+
+/* O bloco de conteúdo respondia por 416 dos 512px do card */
+.clients-index-page .grid > div > .px-4 {
+    padding: 0 calc(0.8rem * var(--cl-s)) calc(0.8rem * var(--cl-s)) !important;
+}
+
+/* Faixa colorida do topo e avatar sobreposto */
+.clients-index-page .grid > div > .h-16 {
+    height: calc(3rem * var(--cl-s)) !important;
+}
+
+.clients-index-page .grid > div img,
+.clients-index-page .grid > div .rounded-full {
+    max-width: calc(3.5rem * var(--cl-s));
+    max-height: calc(3.5rem * var(--cl-s));
+}
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .clients-index-page .grid.md\:grid-cols-2 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        gap: calc(0.8rem * var(--cl-s)) !important;
+    }
+}
+
+@media (min-width: 1601px) {
+    .clients-index-page .grid.md\:grid-cols-2 {
+        gap: calc(0.85rem * var(--cl-s)) !important;
+    }
+}
+
+/* ==========================================================
+   FORMULÁRIOS (criar / editar cliente)
+   ========================================================== */
+
+.client-form-page label {
+    font-size: max(0.7rem, calc(0.82rem * var(--cl-s))) !important;
+    margin-bottom: calc(0.3rem * var(--cl-s)) !important;
+}
+
+.client-form-page input,
+.client-form-page select,
+.client-form-page textarea {
+    font-size: max(0.82rem, calc(0.95rem * var(--cl-s))) !important;
+    padding-top: calc(0.55rem * var(--cl-s)) !important;
+    padding-bottom: calc(0.55rem * var(--cl-s)) !important;
+    /* alvo de toque nunca menor que isto */
+    min-height: 2.6rem !important;
+}
+
+.client-form-page button {
+    font-size: max(0.75rem, calc(0.88rem * var(--cl-s))) !important;
+}
+
+/* Duas colunas de formulário a partir do tablet, em vez de uma
+   pilha longa que obriga a rolar */
+@media (min-width: 768px) {
+    .client-form-page form .grid {
+        gap: calc(0.9rem * var(--cl-s)) !important;
+    }
+}
