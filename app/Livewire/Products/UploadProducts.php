@@ -232,8 +232,12 @@ class UploadProducts extends Component
                 Log::info('Texto filtrado para IA e Regex: ' . substr($filteredText, 0, 500));
 
                 if (empty(trim($filteredText))) {
-                    Log::warning('Texto filtrado está vazio. Não há produtos para extrair.');
-                    $this->errorMessage = 'Não foi possível encontrar a lista de produtos no PDF.';
+                    Log::warning('Texto filtrado está vazio. Não há produtos para extrair.', [
+                        'tamanho_texto_bruto' => strlen($text),
+                    ]);
+                    $this->errorMessage = trim($text) === ''
+                        ? 'Este PDF não tem texto selecionável (parece ser digitalizado ou só imagem). Baixe o extrato novamente pelo site, em PDF, ou use CSV.'
+                        : 'O PDF foi lido, mas não encontrei a tabela de produtos nele. Confira se é o extrato de pedido e não outro documento.';
                     $this->isProcessing = false;
                     $this->uploadProgress = 0;
                     return;
@@ -295,7 +299,9 @@ class UploadProducts extends Component
 
             if (empty($this->productsUpload)) {
                 Log::info('Nenhum produto encontrado');
-                $this->errorMessage = 'Nenhum produto encontrado no arquivo. Verifique o formato e tente novamente.';
+                $this->errorMessage = 'Li o arquivo, mas nenhuma linha de produto foi reconhecida. '
+                    . 'Se este for um extrato em formato novo, me avise: o leitor espera linhas no padrão '
+                    . '"12.345  2  NOME DO PRODUTO" seguidas dos valores.';
                 $this->isProcessing = false;
                 $this->uploadProgress = 0;
                 return;
@@ -316,7 +322,9 @@ class UploadProducts extends Component
             $this->successMessage = 'Produtos extraídos com sucesso! Revise os dados abaixo antes de salvar.';
 
             Log::info('Definindo showProductsTable como true');
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
+            // \Throwable e não \Exception: erros do leitor de PDF chegam como
+            // \Error e escapavam do catch, derrubando a requisição sem aviso.
             Log::error('Erro ao processar arquivo: ' . $e->getMessage());
             Log::error('Stack trace: ' . $e->getTraceAsString());
 
@@ -623,13 +631,44 @@ class UploadProducts extends Component
         $this->successMessage = "Status atualizado para todos os produtos!";
     }
 
+    /**
+     * Acha onde a tabela de produtos começa, tolerando variações de acento e
+     * caixa no cabeçalho. Se o cabeçalho não existir (layout novo), cai para a
+     * primeira linha que tem cara de produto: "12.345  3  NOME DO PRODUTO".
+     *
+     * @return int|null deslocamento em bytes logo após o cabeçalho, ou null
+     */
+    private function encontrarInicioDaTabela(string $text): ?int
+    {
+        // OPERACAO / OPERAÇÃO / OPERAÇAO / OPERACÃO, em qualquer caixa
+        $padraoCabecalho = '/OPERA[CÇ][ÃA]O/iu';
+
+        if (preg_match($padraoCabecalho, $text, $m, PREG_OFFSET_CAPTURE)) {
+            Log::info('Cabeçalho da tabela encontrado: "' . $m[0][0] . '"');
+            return $m[0][1] + strlen($m[0][0]);
+        }
+
+        // Sem cabeçalho: procura a primeira linha de produto (código 12.345).
+        if (preg_match('/^\s*\d{2,5}\.\d{3}\s+\d+\s+\S/mu', $text, $m, PREG_OFFSET_CAPTURE)) {
+            Log::warning('Cabeçalho ausente; começando na primeira linha de produto encontrada.');
+            return $m[0][1];
+        }
+
+        return null;
+    }
+
     private function filterText($text)
     {
-        // A primeira ocorrência de 'OPERAÇÃO' marca o início do cabeçalho da tabela de produtos.
-        $startPos = strpos($text, 'OPERAÇÃO');
-        if ($startPos === false) {
-            Log::warning('Marcador inicial "OPERAÇÃO" não encontrado no texto do PDF.');
-            return ''; // Retorna vazio se não encontrar o início
+        // A tabela de produtos começa depois do cabeçalho "OPERAÇÃO".
+        // A busca precisa ser tolerante: dependendo de como o PDF foi gerado, a
+        // palavra sai sem acento, com caixa diferente ou com o acento decomposto
+        // (C+cedilha em vez de Ç). Um `strpos` exato falhava nesses PDFs e o
+        // texto filtrado voltava vazio — o arquivo era rejeitado sem explicação.
+        $startPos = $this->encontrarInicioDaTabela($text);
+
+        if ($startPos === null) {
+            Log::warning('Cabeçalho da tabela de produtos não encontrado no PDF.');
+            return '';
         }
 
         // O marcador final é a linha que começa com "TOTAL"
@@ -654,8 +693,8 @@ class UploadProducts extends Component
             if($endPos) Log::info('Usando fallback "PLANO DE PAGAMENTO"');
         }
 
-        // Pega o texto a partir do fim do marcador 'OPERAÇÃO'
-        $textStart = $startPos + strlen('OPERAÇÃO');
+        // $startPos já aponta para logo depois do cabeçalho
+        $textStart = $startPos;
 
         $filteredText = '';
         if ($endPos !== false) {
