@@ -720,8 +720,18 @@ class UploadProducts extends Component
 
         $allProducts = [];
         $currentProduct = null;
-        $productRegex = '/^(\d{2,5}\.\d{3})\s+(\d+)\s+(.*)/';
-        $valuesRegex = '/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+(Venda|Brinde|Doação|Bonificação|Troca)$/u';
+        // O código do produto aparece em dois formatos conforme a versão do
+        // extrato: com ponto de milhar ("53.506") nos PDFs antigos e sem ponto
+        // ("53506") nos novos. A regex antiga exigia o ponto, então nenhuma
+        // linha do extrato novo era reconhecida como produto.
+        $productRegex = '/^(\d{2,6}(?:\.\d{3})?)\s+(\d+)\s+(.*)/';
+        // A operação pode ser composta: além de "Venda" e "Brinde", o extrato
+        // traz "Doação Brinde" (brinde garantido). A alternação simples parava
+        // na primeira palavra e a linha inteira deixava de casar, então esses
+        // itens sumiam do resultado sem aviso.
+        $palavraOperacao = '(?:Venda|Brinde|Doa[çc][ãa]o|Bonifica[çc][ãa]o|Troca|Garantido)';
+        $valuesRegex = '/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+('
+            . $palavraOperacao . '(?:\s+' . $palavraOperacao . ')*)$/u';
 
         $finalizeValues = function (&$currentProduct, array $valueMatches, array $lines, int $i): int {
             $currentProduct['values'] = array_slice($valueMatches, 1, 5);
