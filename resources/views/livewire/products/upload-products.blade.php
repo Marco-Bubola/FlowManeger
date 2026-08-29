@@ -147,6 +147,38 @@
 
     <!-- Conte├║do Principal -->
     <div class="upload-main-content">
+        {{-- Avisos do processamento.
+             Estes blocos faltavam: o componente preenchia $errorMessage /
+             $successMessage em toda falha (PDF sem a tabela, nenhum produto
+             encontrado, erro de leitura), mas nada era exibido. O resultado
+             era o spinner sumir e a tela nao dizer nada. --}}
+        @if($errorMessage)
+            <div class="mb-4 flex items-start gap-3 rounded-2xl border border-rose-300/70 dark:border-rose-700/60 bg-rose-50 dark:bg-rose-900/25 px-4 py-3 shadow-sm"
+                 role="alert" wire:key="upload-error">
+                <i class="bi bi-exclamation-octagon-fill mt-0.5 text-lg text-rose-600 dark:text-rose-400"></i>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-rose-800 dark:text-rose-200">Nao foi possivel processar o arquivo</p>
+                    <p class="mt-0.5 text-[13px] leading-relaxed text-rose-700 dark:text-rose-300">{{ $errorMessage }}</p>
+                </div>
+                <button type="button" wire:click="$set('errorMessage', '')"
+                        class="shrink-0 rounded-lg p-1.5 text-rose-500 hover:bg-rose-500/10" aria-label="Fechar aviso">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+        @endif
+
+        @if($successMessage)
+            <div class="mb-4 flex items-start gap-3 rounded-2xl border border-emerald-300/70 dark:border-emerald-700/60 bg-emerald-50 dark:bg-emerald-900/25 px-4 py-3 shadow-sm"
+                 role="status" wire:key="upload-success">
+                <i class="bi bi-check-circle-fill mt-0.5 text-lg text-emerald-600 dark:text-emerald-400"></i>
+                <p class="flex-1 min-w-0 text-[13px] font-semibold text-emerald-800 dark:text-emerald-200">{{ $successMessage }}</p>
+                <button type="button" wire:click="$set('successMessage', '')"
+                        class="shrink-0 rounded-lg p-1.5 text-emerald-600 hover:bg-emerald-500/10" aria-label="Fechar aviso">
+                    <i class="bi bi-x-lg text-xs"></i>
+                </button>
+            </div>
+        @endif
+
         @if(!$showProductsTable)
             <div class="upload-main-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
 
