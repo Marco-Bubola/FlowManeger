@@ -28,6 +28,9 @@ class CreateSale extends Component
     public string $metodo_pago = 'dinheiro'; // método usado quando paga na criação
     public $products = []; // Array de produtos adicionados
     public $clients = [];
+
+    /** Nome digitado no "criar cliente" do carrinho */
+    public string $novoClienteNome = '';
     public $availableProducts = [];
     public $selectedProducts = []; // Array com IDs dos produtos selecionados
     public $searchProduct = ''; // Campo de pesquisa de produtos
@@ -132,6 +135,61 @@ class CreateSale extends Component
     public function updatedClientId($value): void
     {
         $this->clientSearch = '';
+    }
+
+    /**
+     * Cria um cliente rápido a partir do carrinho, só com o nome.
+     *
+     * Serve para o caso comum de fechar uma venda para alguém que ainda não
+     * está cadastrado sem precisar sair da tela. `name` e `user_id` são as
+     * únicas colunas obrigatórias de `clients`; o resto fica em branco e pode
+     * ser completado depois em Clientes.
+     */
+    public function criarClienteRapido()
+    {
+        $nome = trim((string) $this->novoClienteNome);
+
+        if ($nome === '') {
+            $this->addError('novoClienteNome', 'Informe o nome do cliente.');
+            return;
+        }
+
+        if (mb_strlen($nome) > 255) {
+            $this->addError('novoClienteNome', 'O nome pode ter no máximo 255 caracteres.');
+            return;
+        }
+
+        // Evita duplicar: se já existe um com o mesmo nome, apenas seleciona.
+        $existente = Client::where('user_id', Auth::id())
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($nome)])
+            ->first();
+
+        if ($existente) {
+            $this->client_id = $existente->id;
+            $this->clientSearch = '';
+            $this->novoClienteNome = '';
+            $this->dispatch('cliente-criado', nome: $existente->name, jaExistia: true);
+            return;
+        }
+
+        $cliente = Client::create([
+            'name' => $nome,
+            'user_id' => Auth::id(),
+        ]);
+
+        // Recarrega a lista para o novo cliente aparecer no dropdown
+        $this->clients = Client::where('user_id', Auth::id())->get();
+        $this->client_id = $cliente->id;
+        $this->clientSearch = '';
+        $this->novoClienteNome = '';
+        $this->resetErrorBag('novoClienteNome');
+
+        Log::info('Cliente criado pelo carrinho da venda', [
+            'client_id' => $cliente->id,
+            'user_id' => Auth::id(),
+        ]);
+
+        $this->dispatch('cliente-criado', nome: $cliente->name, jaExistia: false);
     }
 
     public function getFilteredClientsProperty()
