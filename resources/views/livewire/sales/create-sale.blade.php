@@ -475,14 +475,14 @@
                                         </div>
                                     </button>
                                     <!-- Dropdown -->
-                                    <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[220px] w-full mt-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-60 overflow-auto">
+                                    <div x-show="open" x-transition @click.away="open = false; $wire.set('clientSearch', '')" class="summary-dropdown-menu absolute z-[9999] left-0 min-w-[220px] w-full mt-2 bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-lg shadow-lg max-h-96 flex flex-col overflow-hidden">
                                         <div class="p-2 border-b border-slate-100 dark:border-zinc-700">
                                             <div class="relative">
                                                 <span class="absolute inset-y-0 left-3 flex items-center text-slate-400"><i class="bi bi-search"></i></span>
                                                 <input x-ref="clientSearchSidebar" type="text" wire:model.live.debounce.250ms="clientSearch" placeholder="Buscar cliente..." class="w-full pl-10 pr-4 py-2 rounded-md border-slate-200 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900 text-sm focus:ring-2 focus:ring-indigo-400">
                                             </div>
                                         </div>
-                                        <div class="py-1">
+                                        <div class="py-1 flex-1 min-h-0 overflow-y-auto">
                                             @php $filteredClients = $this->filteredClients; @endphp
                                             @if($filteredClients->isEmpty())
                                                 <div class="px-4 py-2 text-sm text-slate-500">Nenhum cliente encontrado</div>
@@ -494,6 +494,53 @@
                                                     </button>
                                                 @endforeach
                                             @endif
+                                        </div>
+
+                                        {{-- Criar cliente sem sair da venda: só o nome.
+                                             Quando há busca digitada, o nome já vem preenchido com ela. --}}
+                                        <div class="shrink-0 border-t border-slate-100 dark:border-zinc-700 p-2 bg-slate-50/70 dark:bg-zinc-900/40">
+                                            <div x-data="{ criando: false }">
+                                                <button type="button" x-show="!criando"
+                                                    @click="criando = true; $wire.set('novoClienteNome', @js(trim($clientSearch))).then(() => $nextTick(() => $refs.novoNome && $refs.novoNome.focus()))"
+                                                    class="w-full flex items-center gap-2 px-2 py-2 rounded-lg text-sm font-semibold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500/10 transition-colors">
+                                                    <span class="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center">
+                                                        <i class="bi bi-plus-lg text-xs"></i>
+                                                    </span>
+                                                    <span class="truncate">
+                                                        @if(trim($clientSearch) !== '')
+                                                            Criar "{{ Str::limit(trim($clientSearch), 24) }}"
+                                                        @else
+                                                            Criar novo cliente
+                                                        @endif
+                                                    </span>
+                                                </button>
+
+                                                <div x-show="criando" x-cloak class="space-y-2">
+                                                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Nome do cliente</label>
+                                                    <input type="text" x-ref="novoNome"
+                                                        wire:model="novoClienteNome"
+                                                        @keydown.enter.prevent="$wire.criarClienteRapido()"
+                                                        @keydown.escape.stop="criando = false"
+                                                        placeholder="Ex.: Maria Silva"
+                                                        class="w-full px-3 py-2 rounded-md border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-sm focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400">
+                                                    @error('novoClienteNome')
+                                                        <p class="text-[11px] text-rose-600 dark:text-rose-400">{{ $message }}</p>
+                                                    @enderror
+                                                    <div class="flex items-center gap-2">
+                                                        <button type="button" @click="criando = false; $wire.set('novoClienteNome','')"
+                                                            class="flex-1 px-3 py-2 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-zinc-700 hover:bg-slate-200 dark:hover:bg-zinc-600 transition">
+                                                            Cancelar
+                                                        </button>
+                                                        <button type="button" wire:click="criarClienteRapido"
+                                                            class="flex-1 px-3 py-2 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow transition">
+                                                            <i class="bi bi-check-lg mr-1"></i>Criar e usar
+                                                        </button>
+                                                    </div>
+                                                    <p class="text-[10px] text-slate-400 dark:text-slate-500">
+                                                        Telefone, e-mail e endereco podem ser preenchidos depois em Clientes.
+                                                    </p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
