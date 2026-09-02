@@ -590,3 +590,4 @@ Route::post('/webhooks/pagseguro',   [SubscriptionController::class, 'webhookPag
 // ==================== END SUBSCRIPTION/ADMIN ROUTES ====================
 
 require __DIR__.'/auth.php';
+
