@@ -369,6 +369,15 @@ class ShowSale extends Component
         session()->flash('success', 'Parcela paga com sucesso!');
     }
 
+    /**
+     * Abre o modal de exportacao (PDF, imagem completa, resumo) em vez de
+     * baixar o PDF direto — mesmo modal usado na listagem de vendas.
+     */
+    public function abrirModalExportacao()
+    {
+        $this->dispatch('openExportSaleModal', ['saleId' => $this->sale->id]);
+    }
+
     public function exportPdf()
     {
         try {
