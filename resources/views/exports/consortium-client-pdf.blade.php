@@ -57,9 +57,6 @@
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
             margin-bottom: 25px;
             padding: 15px;
             background: #fef3c7;
@@ -68,6 +65,12 @@
 
         .stat-item {
             text-align: center;
+        }
+
+        /* 4 colunas por float: o DomPDF ignorava o grid-template-columns */
+        .stats-grid .stat-item {
+            float: left;
+            width: 25%;
         }
 
         .stat-item .label {
@@ -97,10 +100,10 @@
             padding: 10px 15px;
             border-radius: 8px;
             margin-bottom: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
+
+        .consortium-header h2 { float: left; }
+        .consortium-header .number { float: right; }
 
         .consortium-header h2 {
             font-size: 16px;
@@ -117,11 +120,16 @@
         }
 
         .info-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
             margin-bottom: 15px;
         }
+
+        .info-grid .info-item {
+            float: left;
+            width: 31.3%;
+            margin: 0 3% 10px 0;
+        }
+
+        .info-grid .info-item:nth-child(3n) { margin-right: 0; }
 
         .info-item {
             background: #f9fafb;
@@ -243,9 +251,7 @@
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #10b981 0%, #14b8a6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
             color: white;
             font-size: 9px;
             font-weight: bold;
@@ -292,11 +298,15 @@
             margin-bottom: 10px;
         }
 
-        .contract-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+        .contract-grid { }
+
+        .contract-grid .contract-item {
+            float: left;
+            width: 48%;
+            margin: 0 4% 12px 0;
         }
+
+        .contract-grid .contract-item:nth-child(2n) { margin-right: 0; }
 
         .contract-item {
             background: #fff;
@@ -377,6 +387,7 @@
             <div class="label">Vencidas</div>
             <div class="value">{{ $statistics['overdue_payments'] }}</div>
         </div>
+        <div style="clear: both;"></div>
     </div>
 
     <!-- Lista de Consórcios -->
@@ -435,6 +446,7 @@
                         @endif
                     </div>
                 </div>
+                <div style="clear: both;"></div>
             </div>
 
             <!-- Progresso de Pagamento -->
@@ -564,6 +576,7 @@
                     <h4>8. Foro e Vigência</h4>
                     <p>Vigência: adesão até término/cancelamento. Foro para dirimir dúvidas: ________________________.</p>
                 </div>
+                <div style="clear: both;"></div>
             </div>
             <p class="muted" style="font-size: 10px; color: #6b7280; margin-top: 12px;">Preencha os campos em branco antes de enviar ao cliente.</p>
         </div>
