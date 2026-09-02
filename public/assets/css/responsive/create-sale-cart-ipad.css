@@ -38,11 +38,19 @@
     z-index: 90;
 }
 
-@media (min-width: 768px) and (max-width: 1366px) {
+@media (min-width: 768px) {
     .cs-cart-panel {
         --cart-s: 1;
         --cart-cols: 3;
     }
+}
+
+/* Desktop: 4 por linha.
+   Nao adianta pedir 5: o painel tem largura maxima fixa (max-w-5xl,
+   1024px), entao mais colunas so espremem cada card — com 5 cada um
+   ficava com 192px, contra 240px em 4. */
+@media (min-width: 1367px) {
+    .cs-cart-panel { --cart-cols: 4; }
 }
 
 /* ── Retrato (768–1024) ─────────────────────────────────── */
@@ -79,9 +87,15 @@
 }
 
 /* ==========================================================
-   Regras comuns aos dois modos do iPad
+   Regras comuns a tablet E desktop
+   ----------------------------------------------------------
+   Antes este bloco parava em 1366px. Acima disso nada valia e
+   `.create-sale-selected-list` voltava a ser grid, fazendo o
+   container interno encolher para o tamanho do conteudo: os
+   cards ficavam numa coluna de ~310px encostada a esquerda,
+   com o resto do painel vazio.
    ========================================================== */
-@media (min-width: 768px) and (max-width: 1366px) {
+@media (min-width: 768px) {
 
     /* ── Cabeçalho do modal ─────────────────────────────── */
     .cs-cart-panel > .shrink-0.px-5 {
