@@ -207,7 +207,7 @@ class ClientDashboard extends Component
         $this->ultimaCompra = $todasVendas->last()?->created_at;
 
         if ($this->primeiraCompra) {
-            $this->diasComoCliente = Carbon::parse($this->primeiraCompra)->diffInDays(now());
+            $this->diasComoCliente = (int) Carbon::parse($this->primeiraCompra)->diffInDays(now());
         }
     }
 
