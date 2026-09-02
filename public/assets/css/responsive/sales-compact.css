@@ -123,14 +123,44 @@
 }
 
 /* A vitrine de produtos ocupava 229px dos 506px do card: é ela que
-   deixava a lista com menos de dois cards por tela no iPad. */
+   deixava a lista com menos de dois cards por tela no iPad.
+
+   Encurtar com max-height + overflow cortava o rodapé do card do produto:
+   sobrava a foto e o código, e sumiam o nome e os dois preços. O espaço
+   agora sai da altura da FOTO, não do conteúdo. */
 .sales-index-page.sales-index-page .sale-card-products-wrapper {
     padding-bottom: calc(0.45rem * var(--sc)) !important;
 }
 
 .sales-index-page.sales-index-page .sale-card-products {
-    max-height: calc(9.5rem * var(--sc)) !important;
+    --sale-product-image-height: calc(6.4rem * var(--sc)) !important;
+    --sale-product-card-min-height: auto !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-products[data-count="1"],
+.sales-index-page.sales-index-page .sale-card-products[data-count="2"] {
+    --sale-product-image-height: calc(7rem * var(--sc)) !important;
+}
+
+/* o nome e os preços precisam caber: sem altura fixa e sem recorte */
+.sales-index-page.sales-index-page .sale-card-product {
+    min-height: 0 !important;
     overflow: hidden !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-product .card-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+}
+
+.sales-index-page.sales-index-page .sale-card-product .price-area {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    gap: calc(0.2rem * var(--sc)) !important;
+    /* nao encolher: com flex 0 1 auto o container virava 8px e as
+       etiquetas de preco (16px) vazavam para fora dele */
+    flex: 0 0 auto !important;
 }
 
 .sales-index-page.sales-index-page .sale-card-avatar {
@@ -160,7 +190,7 @@
     }
 }
 
-@media (min-width: 1024px) and (max-width: 1600px) {
+@media (min-width: 1025px) and (max-width: 1600px) {
     .sales-index-page .sales-grid,
     .sales-index-page .grid.grid-cols-1.md\:grid-cols-2 {
         grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
