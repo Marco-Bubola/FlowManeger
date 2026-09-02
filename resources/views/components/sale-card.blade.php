@@ -51,6 +51,7 @@
                 'type' => 'link',
                 'href' => route('sales.show', $sale->id),
                 'label' => 'Detalhes',
+                'abbr' => 'Ver',
                 'tooltip' => 'Ver detalhes completos da venda',
                 'icon' => 'bi-eye',
                 'tone' => 'sky',
@@ -59,6 +60,7 @@
                 'type' => 'link',
                 'href' => route('sales.edit', $sale->id),
                 'label' => 'Editar',
+                'abbr' => 'Editar',
                 'tooltip' => 'Editar dados gerais da venda',
                 'icon' => 'bi-pencil',
                 'tone' => 'amber',
@@ -67,6 +69,7 @@
                 'type' => 'link',
                 'href' => route('sales.add-products', $sale->id),
                 'label' => 'Produtos',
+                'abbr' => 'Itens',
                 'tooltip' => 'Adicionar produtos a esta venda',
                 'icon' => 'bi-plus-circle',
                 'tone' => 'teal',
@@ -75,6 +78,7 @@
                 'type' => 'link',
                 'href' => route('sales.add-payments', $sale->id),
                 'label' => 'Pagar',
+                'abbr' => 'Pagar',
                 'tooltip' => 'Adicionar pagamento à venda',
                 'icon' => 'bi-credit-card',
                 'tone' => 'green',
@@ -85,6 +89,7 @@
                 'type' => 'button',
                 'wireClick' => 'payFull(' . $sale->id . ')',
                 'label' => 'Quitar saldo',
+                'abbr' => 'Quitar',
                 'tooltip' => 'Quitar o saldo restante da venda',
                 'icon' => 'bi-cash-stack',
                 'tone' => 'emerald',
@@ -93,6 +98,7 @@
                 'type' => 'link',
                 'href' => route('sales.edit-prices', $sale->id),
                 'label' => 'Editar preços',
+                'abbr' => 'Preços',
                 'tooltip' => 'Editar preços dos itens da venda',
                 'icon' => 'bi-currency-dollar',
                 'tone' => 'violet',
@@ -101,6 +107,7 @@
                 'type' => 'link',
                 'href' => route('sales.edit-payments', $sale->id),
                 'label' => 'Editar pagamento',
+                'abbr' => 'Pgtos',
                 'tooltip' => 'Editar pagamentos já lançados',
                 'icon' => 'bi-pencil-square',
                 'tone' => 'indigo',
@@ -109,6 +116,7 @@
                 'type' => 'button',
                 'wireClick' => 'openExportSaleModalFromCard(' . $sale->id . ')',
                 'label' => 'Exportar PDF',
+                'abbr' => 'Export',
                 'tooltip' => 'Gerar PDF desta venda',
                 'icon' => 'bi-file-earmark-pdf',
                 'tone' => 'rose',
@@ -117,6 +125,7 @@
                 'type' => 'button',
                 'wireClick' => 'confirmDelete(' . $sale->id . ')',
                 'label' => 'Excluir venda',
+                'abbr' => 'Excluir',
                 'tooltip' => 'Excluir venda e devolver produtos ao estoque',
                 'icon' => 'bi-trash',
                 'tone' => 'red',
@@ -200,10 +209,10 @@
                     <i class="bi {{ $isPaid ? 'bi-patch-check-fill' : 'bi-exclamation-circle' }}"></i>
                     <span>{{ $isPaid ? 'Pago' : 'Pendente' }}</span>
                 </div>
-                <span class="sale-card-progress-pct">{{ number_format($paymentPercentage, 0) }}%</span>
                 @if(!$isPaid)
-                <span class="sale-card-progress-hint">Falta quitar R$ {{ number_format($remainingAmount, 2, ',', '.') }}</span>
+                <span class="sale-card-progress-hint">falta <strong>R$ {{ number_format($remainingAmount, 2, ',', '.') }}</strong></span>
                 @endif
+                <span class="sale-card-progress-pct">{{ number_format($paymentPercentage, 0) }}%</span>
             </div>
             <div class="sale-card-progress-track">
                 <div class="sale-card-progress-fill {{ $progressToneClass }}" x-data="{ pp: {{ number_format($paymentPercentage, 2, '.', '') }} }" :style="`width: ${pp}%`"></div>
@@ -247,12 +256,12 @@
                 @if ($action['type'] === 'link')
                     <a href="{{ $action['href'] }}" class="sc-act-btn sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
                         <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
+                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
                     </a>
                 @else
                     <button type="button" wire:click="{{ $action['wireClick'] }}" class="sc-act-btn sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
                         <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
+                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
                     </button>
                 @endif
             @endforeach
@@ -276,13 +285,13 @@
                 @if ($action['type'] === 'link')
                     <a href="{{ $action['href'] }}" class="sc-act-row sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
                         <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
+                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
                         <i class="bi bi-chevron-right sc-act-chevron"></i>
                     </a>
                 @else
                     <button type="button" wire:click="{{ $action['wireClick'] }}" @click="moreOpen = false" class="sc-act-row sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
                         <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['label'] }}</span>
+                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
                         <i class="bi bi-chevron-right sc-act-chevron"></i>
                     </button>
                 @endif
