@@ -66,15 +66,12 @@
         }
 
         .client-info .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
             font-size: 11px;
         }
 
         .info-item {
-            display: flex;
-            align-items: center;
+            float: left;
+            width: 50%;
             padding: 4px 0;
         }
 
@@ -91,11 +88,16 @@
 
         /* Cards de estatísticas modernos */
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 10px;
             margin-bottom: 18px;
         }
+
+        .stats-grid .stat-card {
+            float: left;
+            width: 18.4%;
+            margin-right: 2%;
+        }
+
+        .stats-grid .stat-card:last-child { margin-right: 0; }
 
         .stat-card {
             background: #ffffff;
@@ -260,11 +262,16 @@
         }
 
         .sales-summary-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
             margin-top: 8px;
         }
+
+        .sales-summary-grid .sales-summary-item {
+            float: left;
+            width: 23.5%;
+            margin-right: 2%;
+        }
+
+        .sales-summary-grid .sales-summary-item:last-child { margin-right: 0; }
 
         .sales-summary-item {
             background: #ffffff;
@@ -346,10 +353,13 @@
         }
 
         .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
             margin-top: 12px;
+        }
+
+        .summary-grid .summary-item {
+            float: left;
+            width: 31.3%;
+            margin-right: 3%;
         }
 
         .summary-item {
@@ -430,7 +440,7 @@
     @if($showFilters)
     <div class="filters-info">
         <h3>FILTROS APLICADOS</h3>
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; font-size: 10px;">
+        <div style="font-size: 10px;">
             @if($filterYear && intval($filterYear) !== $defaultYear)
                 <div><strong>Ano:</strong> {{ $filterYear }}</div>
             @endif
@@ -443,6 +453,7 @@
             @if($filterPaymentType !== 'all')
                 <div><strong>Pagamento:</strong> {{ ucfirst(str_replace('_', ' ', $filterPaymentType)) }}</div>
             @endif
+            <div style="clear: both;"></div>
         </div>
     </div>
     @endif
@@ -483,6 +494,7 @@
                 <span class="value">{{ \Carbon\Carbon::parse($ultimaCompra)->format('d/m/Y') }}</span>
             </div>
             @endif
+            <div style="clear: both;"></div>
         </div>
     </div>
 
@@ -539,6 +551,7 @@
                 </div>
                 <div class="detail">do total</div>
             </div>
+            <div style="clear: both;"></div>
         </div>
     </div>
     @endif
@@ -579,6 +592,7 @@
                 <div class="value currency">R$ {{ number_format($ticketMedio, 2, ',', '.') }}</div>
                 <div class="subtitle">Valor medio/venda</div>
             </div>
+            <div style="clear: both;"></div>
         </div>
     </div>
     @endif
@@ -609,6 +623,7 @@
                     <div class="label">Ticket Medio</div>
                     <div class="value" style="color: #3b82f6;">R$ {{ number_format(collect($vendas)->avg('total_price'), 2, ',', '.') }}</div>
                 </div>
+                <div style="clear: both;"></div>
             </div>
         </div>
 
@@ -732,28 +747,32 @@
     <div class="section">
         <h2>ANALYTICS</h2>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 12px;">
-            <div style="background: #ffffff; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div style="margin-top: 12px;">
+            <div style="float: left; width: 48%; margin-right: 4%; background: #ffffff; padding: 12px; border-radius: 8px;">
                 <h3 style="color: #667eea; font-size: 13px; margin-bottom: 10px; font-weight: bold;">Vendas por Status</h3>
                 @foreach($vendasPorStatus as $status => $total)
-                <div style="display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid #f3f4f6; align-items: center;">
-                    <span style="color: #4b5563; font-size: 11px;">
-                        @if($status === 'pago') [OK] @elseif($status === 'pendente') [!] @else [X] @endif
-                        {{ ucfirst($status) }}
-                    </span>
-                    <strong style="color: #111827; font-size: 12px;">{{ $total }} vendas</strong>
-                </div>
+                <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #f3f4f6;">
+                    <tr>
+                        <td style="padding: 6px 8px; color: #4b5563; font-size: 11px;">
+                            @if($status === 'pago') [OK] @elseif($status === 'pendente') [!] @else [X] @endif
+                            {{ ucfirst($status) }}
+                        </td>
+                        <td style="padding: 6px 8px; text-align: right; color: #111827; font-size: 12px; font-weight: bold;">{{ $total }} vendas</td>
+                    </tr>
+                </table>
                 @endforeach
             </div>
 
             @if(isset($categoriasMaisCompradas) && count($categoriasMaisCompradas) > 0)
-            <div style="background: #ffffff; padding: 12px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <div style="float: left; width: 48%; background: #ffffff; padding: 12px; border-radius: 8px;">
                 <h3 style="color: #667eea; font-size: 13px; margin-bottom: 10px; font-weight: bold;">Categorias Preferidas</h3>
                 @foreach($categoriasMaisCompradas as $categoria)
-                <div style="display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid #f3f4f6; align-items: center;">
-                    <span style="color: #4b5563; font-size: 11px;">{{ $categoria['categoria'] }}</span>
-                    <strong style="color: #10b981; font-size: 12px;">{{ $categoria['quantidade'] }} un.</strong>
-                </div>
+                <table style="width: 100%; border-collapse: collapse; border-bottom: 1px solid #f3f4f6;">
+                    <tr>
+                        <td style="padding: 6px 8px; color: #4b5563; font-size: 11px;">{{ $categoria['categoria'] }}</td>
+                        <td style="padding: 6px 8px; text-align: right; color: #10b981; font-size: 12px; font-weight: bold;">{{ $categoria['quantidade'] }} un.</td>
+                    </tr>
+                </table>
                 @endforeach
             </div>
             @endif
@@ -765,30 +784,32 @@
     <div class="footer">
         @if($type === 'complete' || $type === 'financeiro')
         <div style="background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%); padding: 12px; border-radius: 8px; margin-bottom: 12px; text-align: left;">
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; font-size: 10px;">
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: #374151;">Total Faturado</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #10b981;">R$ {{ number_format($totalFaturado, 2, ',', '.') }}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: #374151;">Total Pago</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #10b981;">R$ {{ number_format($totalPago, 2, ',', '.') }}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: #374151;">A Receber</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #ef4444;">R$ {{ number_format($totalPendente, 2, ',', '.') }}</div>
-                </div>
-                <div style="text-align: center;">
-                    <div style="font-weight: 600; color: #374151;">Taxa Pgto</div>
-                    <div style="font-size: 12px; font-weight: bold; color: #3b82f6;">
-                        @if($totalFaturado > 0)
-                            {{ number_format(($totalPago / $totalFaturado) * 100, 1) }}%
-                        @else
-                            0%
-                        @endif
-                    </div>
-                </div>
-            </div>
+            <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+                <tr>
+                    <td style="width: 25%; text-align: center; vertical-align: top;">
+                        <div style="font-weight: 600; color: #374151;">Total Faturado</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #10b981;">R$ {{ number_format($totalFaturado, 2, ',', '.') }}</div>
+                    </td>
+                    <td style="width: 25%; text-align: center; vertical-align: top;">
+                        <div style="font-weight: 600; color: #374151;">Total Pago</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #10b981;">R$ {{ number_format($totalPago, 2, ',', '.') }}</div>
+                    </td>
+                    <td style="width: 25%; text-align: center; vertical-align: top;">
+                        <div style="font-weight: 600; color: #374151;">A Receber</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #ef4444;">R$ {{ number_format($totalPendente, 2, ',', '.') }}</div>
+                    </td>
+                    <td style="width: 25%; text-align: center; vertical-align: top;">
+                        <div style="font-weight: 600; color: #374151;">Taxa Pgto</div>
+                        <div style="font-size: 12px; font-weight: bold; color: #3b82f6;">
+                            @if($totalFaturado > 0)
+                                {{ number_format(($totalPago / $totalFaturado) * 100, 1) }}%
+                            @else
+                                0%
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+            </table>
         </div>
         @endif
 
