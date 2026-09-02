@@ -190,33 +190,71 @@
 
                             @if($sale)
 
-                            <div id="export-sale-{{ $sale->id }}" style="width: 620px; background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 12px 32px rgba(0,0,0,0.08); font-family: 'Segoe UI', Tahoma, sans-serif;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
-                                    <div style="font-weight:800; font-size:18px;">Venda #{{ $sale->id }}</div>
-                                    <div style="font-size:14px; color:#6b7280;">{{ $sale->created_at->format('d/m/Y H:i') }}</div>
-                                </div>
+                            <div id="export-sale-{{ $sale->id }}"
+                                 style="width:620px; background:#ffffff; color:#0f172a; border-radius:14px; padding:18px;
+                                        box-shadow:0 12px 32px rgba(0,0,0,0.08);
+                                        font-family:'Segoe UI', Tahoma, sans-serif;">
 
-                                <div style="display:flex; gap:14px; align-items:center; margin-bottom:12px;">
-                                    <div style="width:64px; height:64px; background:linear-gradient(135deg,#9575cd,#b39ddb); border-radius:12px; display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700;">{{ strtoupper(substr($sale->client->name ?? 'CL',0,2)) }}</div>
-                                    <div>
-                                        <div style="font-weight:700;">{{ $sale->client->name ?? 'Cliente' }}</div>
-                                        <div style="color:#6b7280; font-size:13px;">Itens: {{ $sale->saleItems->count() }} — Total: R$ {{ number_format($sale->total_price,2,',','.') }}</div>
-                                    </div>
-                                </div>
+                                {{-- Mesmo cabecalho do PDF --}}
+                                @include('exports.partials.sale-header', ['sale' => $sale])
 
-                                <div style="border-top:1px solid #f3f4f6; padding-top:10px;">
+                                {{-- Produtos: tabela, com nome / qtd / unitario / total --}}
+                                <table style="width:100%; border-collapse:collapse; margin-top:12px;">
+                                    <tr>
+                                        <th style="text-align:left; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
+                                                   color:#64748b; border-bottom:1px solid #e2e8f0;">PRODUTO</th>
+                                        <th style="text-align:center; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
+                                                   color:#64748b; border-bottom:1px solid #e2e8f0; width:48px;">QTD</th>
+                                        <th style="text-align:right; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
+                                                   color:#64748b; border-bottom:1px solid #e2e8f0; width:92px;">UNIT.</th>
+                                        <th style="text-align:right; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
+                                                   color:#64748b; border-bottom:1px solid #e2e8f0; width:100px;">TOTAL</th>
+                                    </tr>
                                     @foreach($sale->saleItems as $item)
-                                        <div style="display:flex; justify-content:space-between; padding:6px 0;">
-                                            <div style="min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ $item->product->name ?? 'Produto' }}</div>
-                                            <div style="color:#6b7280;">{{ $item->quantity }} x R$ {{ number_format($item->price_sale,2,',','.') }}</div>
-                                        </div>
+                                    <tr>
+                                        <td style="padding:7px 8px; font-size:12px; color:#0f172a; border-bottom:1px solid #f1f5f9;">
+                                            {{ \Illuminate\Support\Str::limit($item->product->name ?? 'Produto', 46) }}
+                                            @if($item->product?->product_code)
+                                                <span style="color:#94a3b8; font-size:10px;">#{{ $item->product->product_code }}</span>
+                                            @endif
+                                        </td>
+                                        <td style="padding:7px 8px; font-size:12px; color:#334155; text-align:center; border-bottom:1px solid #f1f5f9;">
+                                            {{ $item->quantity }}
+                                        </td>
+                                        <td style="padding:7px 8px; font-size:12px; color:#334155; text-align:right; border-bottom:1px solid #f1f5f9;">
+                                            R$ {{ number_format($item->price_sale, 2, ',', '.') }}
+                                        </td>
+                                        <td style="padding:7px 8px; font-size:12px; color:#0f172a; font-weight:bold; text-align:right; border-bottom:1px solid #f1f5f9;">
+                                            R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}
+                                        </td>
+                                    </tr>
                                     @endforeach
-                                </div>
+                                </table>
 
-                                <div style="margin-top:12px; display:flex; justify-content:space-between; font-weight:800;">
-                                    <div style="color:#6b7280;">Pagamento</div>
-                                    <div>{{ ucfirst(str_replace('_',' ', $sale->payment_method ?? '')) }}</div>
-                                </div>
+                                {{-- Totais --}}
+                                <table style="width:100%; border-collapse:collapse; margin-top:12px;
+                                              background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+                                    <tr>
+                                        <td style="padding:8px 12px; font-size:12px; color:#475569;">Total da venda</td>
+                                        <td style="padding:8px 12px; font-size:16px; font-weight:bold; color:#0f172a; text-align:right;">
+                                            R$ {{ number_format($sale->total_price, 2, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                    @if(($sale->amount_paid ?? 0) > 0)
+                                    <tr>
+                                        <td style="padding:8px 12px; font-size:12px; color:#475569;">Pago</td>
+                                        <td style="padding:8px 12px; font-size:13px; font-weight:bold; color:#15803d; text-align:right;">
+                                            R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="padding:8px 12px; font-size:12px; color:#475569;">Restante</td>
+                                        <td style="padding:8px 12px; font-size:13px; font-weight:bold; color:#b91c1c; text-align:right;">
+                                            R$ {{ number_format(max(0, $sale->total_price - $sale->amount_paid), 2, ',', '.') }}
+                                        </td>
+                                    </tr>
+                                    @endif
+                                </table>
                             </div>
 
                             @endif
