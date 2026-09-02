@@ -17,7 +17,8 @@
         .status-overdue { background: #fee2e2; color: #991b1b; }
         .contract { margin-top: 20px; padding: 14px; border: 1px solid #e2e8f0; border-radius: 10px; background: #f8fafc; }
         .contract h2 { color: #0f766e; font-size: 15px; margin-bottom: 10px; }
-        .contract-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .contract-grid .contract-item { float: left; width: 48%; margin: 0 4% 10px 0; }
+        .contract-grid .contract-item:nth-child(2n) { margin-right: 0; }
         .contract-item { background: #fff; border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px; }
         .contract-item h4 { margin: 0 0 6px 0; color: #0f172a; font-size: 12px; }
         .contract-item p { margin: 0; color: #475569; font-size: 11px; line-height: 1.5; }
@@ -117,6 +118,7 @@
                 <h4>8. Foro e Vigência</h4>
                 <p>Vigência até término/cancelamento. Foro: ________________________.</p>
             </div>
+            <div style="clear: both;"></div>
         </div>
 
         <p class="meta" style="margin-top: 12px;">Preencha os campos em branco antes de enviar ao cliente.</p>
