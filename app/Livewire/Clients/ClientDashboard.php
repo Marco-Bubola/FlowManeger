@@ -65,7 +65,9 @@ class ClientDashboard extends Component
     public function mount($cliente)
     {
         $this->client = Client::where('user_id', Auth::id())->findOrFail($cliente);
-        $this->filterYear = now()->year;
+        // A tela nao expoe seletor de ano: travado em now()->year, as vendas de
+        // anos anteriores sumiam sem nenhuma forma de trazer de volta.
+        $this->filterYear = null;
         $this->filterMonth = 'all';
 
         // Inicializar arrays para evitar problemas
@@ -369,6 +371,15 @@ class ClientDashboard extends Component
         $offset = ($this->parcelasPage - 1) * $this->parcelasPerPage;
         $this->parcelas = $allParcelas->slice($offset, $this->parcelasPerPage)->toArray();
         $this->totalParcelas = $allParcelas->count();
+    }
+
+    /**
+     * Abre o modal de exportacao de UMA venda (PDF / imagem), o mesmo
+     * usado na listagem de vendas e no detalhe da venda.
+     */
+    public function abrirModalExportacao($saleId)
+    {
+        $this->dispatch('openExportSaleModal', ['saleId' => $saleId]);
     }
 
     public function exportClientPDF($type = 'complete')
