@@ -146,7 +146,7 @@ class ClientMetrics extends Component
                     
                 $this->previsaoProximaCompra = [
                     'data' => $proximaCompra->format('d/m/Y'),
-                    'dias_restantes' => now()->diffInDays($proximaCompra, false),
+                    'dias_restantes' => (int) now()->diffInDays($proximaCompra, false),
                     'probabilidade' => $this->calculateProbabilidade()
                 ];
             }
@@ -163,7 +163,7 @@ class ClientMetrics extends Component
             ->where('user_id', Auth::id())
             ->sum('total_price');
             
-        $diasComoCliente = $this->client->created_at->diffInDays(now());
+        $diasComoCliente = (int) $this->client->created_at->diffInDays(now());
         $recencia = Sale::where('client_id', $this->client->id)
             ->where('user_id', Auth::id())
             ->latest()
