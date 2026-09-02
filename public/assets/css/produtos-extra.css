@@ -513,8 +513,12 @@
 }
 
 /* ═══════════════ BLOCOS FINANCEIROS MODERNOS ═══════════════ */
+/* Tres blocos lado a lado num card de 344px deixavam 39px para o valor,
+   que precisa de 59px: "R$ 0,00" saia como "R$ 0,...". Com auto-fit eles
+   quebram para a linha de baixo em vez de cortar o numero. */
 .sale-card-financial-grid {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(6.1rem, 1fr));
     gap: 0.5rem;
     width: 100%;
 }
@@ -523,15 +527,15 @@
     min-width: 0;
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    padding: 0.6rem 0.7rem;
+    gap: 0.35rem;
+    padding: 0.5rem 0.45rem;
     border-radius: 0.85rem;
     border: 1px solid;
     transition: all 0.2s;
 }
 .sale-card-fin-icon {
-    width: 2rem;
-    height: 2rem;
+    width: 1.5rem;
+    height: 1.5rem;
     border-radius: 0.6rem;
     display: flex;
     align-items: center;
@@ -553,7 +557,7 @@
     opacity: 1;
 }
 .sale-card-fin-data strong {
-    font-size: 1rem;
+    font-size: 0.8rem;
     font-weight: 900;
     line-height: 1.3;
     white-space: nowrap;
