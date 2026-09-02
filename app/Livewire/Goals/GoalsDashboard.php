@@ -172,7 +172,7 @@ class GoalsDashboard extends Component
                     'list' => $goal->list->name,
                     'board_color' => $goal->list->board->background_color,
                     'data_vencimento' => $goal->data_vencimento,
-                    'days_left' => now()->diffInDays($goal->data_vencimento, false),
+                    'days_left' => (int) now()->diffInDays($goal->data_vencimento, false),
                     'is_atrasada' => $goal->is_atrasada,
                     'progresso' => $goal->progresso_percentual,
                     'prioridade' => $goal->prioridade,
