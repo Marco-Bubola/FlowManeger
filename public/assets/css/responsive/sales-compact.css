@@ -115,11 +115,15 @@
 
 .sales-index-page.sales-index-page .sale-card {
     border-radius: calc(1rem * var(--sc)) !important;
+    padding: calc(0.7rem * var(--sc)) !important;
+    gap: calc(0.5rem * var(--sc)) !important;
 }
 
+/* o recuo ja vem do proprio card; o body repetia e o conteudo
+   acabava com duas margens somadas */
 .sales-index-page.sales-index-page .sale-card-body {
-    padding: calc(0.75rem * var(--sc)) !important;
-    gap: calc(0.5rem * var(--sc)) !important;
+    padding: 0 !important;
+    gap: calc(0.45rem * var(--sc)) !important;
 }
 
 /* A vitrine de produtos ocupava 229px dos 506px do card: é ela que
@@ -177,9 +181,27 @@
     gap: calc(0.4rem * var(--sc)) !important;
 }
 
+/* O botao estava travado em 2.3rem — menor que o proprio icone de 2rem —
+   e o rotulo, que fica embaixo, era espremido ate 0px de altura. Acima do
+   tablet ele cresce para caber icone + abreviacao; abaixo continua redondo
+   e so com o icone. */
 .sales-index-page.sales-index-page .sc-act-btn {
-    width: calc(2.3rem * var(--sc)) !important;
-    height: calc(2.3rem * var(--sc)) !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: calc(2.3rem * var(--sc)) !important;
+}
+
+@media (max-width: 1024px) {
+    .sales-index-page.sales-index-page .sc-act-btn {
+        width: calc(2.3rem * var(--sc)) !important;
+        height: calc(2.3rem * var(--sc)) !important;
+        min-height: 0 !important;
+    }
+}
+
+/* o rotulo nao pode ser o primeiro a encolher dentro do botao flex */
+.sales-index-page.sales-index-page .sc-act-btn .sc-act-lbl {
+    flex: 0 0 auto !important;
 }
 
 @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
