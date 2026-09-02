@@ -6,6 +6,9 @@
     class="show-product-page w-full mobile-393-base">
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
+    {{-- Padrão único do card de produto + grade de variações desta tela --}}
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-card-standard.css') }}?v=20260831">
+    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-compact.css') }}?v=20260831">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-mobile.css') }}">
@@ -45,7 +48,7 @@
     <div class="relative px-4 sm:px-5 py-3.5">
         <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
             <!-- Título e Info do Produto -->
-            <div class="flex items-center gap-3 min-w-0">
+            <div class="flex items-center gap-3 min-w-0 w-full lg:w-auto">
                 <!-- Voltar -->
                 <a href="{{ route('products.index') }}"
                     class="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all shadow-sm group">
@@ -232,7 +235,7 @@
                 }
             @endphp
             @if(!empty(array_sum($varSeries)))
-                <x-dash.chart id="spVariationChart" type="donut" :series="$varSeries" :labels="$varLabels" :colors="['#8b5cf6','#ec4899','#f59e0b','#ef4444','#06b6d4','#84cc16','#f97316']" :height="240" />
+                <x-dash.chart id="spVariationChart" type="donut" currency :series="$varSeries" :labels="$varLabels" :colors="['#8b5cf6','#ec4899','#f59e0b','#ef4444','#06b6d4','#84cc16','#f97316']" :height="240" />
             @else
                 <x-dash.empty icon="bi-pie-chart" message="Sem dados de variações" />
             @endif
@@ -286,9 +289,9 @@
         @if($products->count() > 1)
         <x-dash.card title="Variações" :sub="$products->count() . ' variações deste produto'" icon="bi-layers" tone="rose" span="dash-col-12">
             <div class="products-index-page">
-                <div class="products-grid grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                <div class="products-grid variations-grid">
                     @foreach($products as $variant)
-                    <div class="product-card-modern {{ ($variant->id ?? null) === ($mainProduct->id ?? null) ? 'ring-2 ring-purple-400' : '' }}">
+                    <div class="product-card-modern {{ ($variant->id ?? null) === ($mainProduct->id ?? null) ? 'is-current' : '' }}">
                         <div class="btn-action-group">
                             <a href="{{ route('products.show', $variant->product_code) }}" class="btn btn-secondary" title="Ver Detalhes"><i class="bi bi-eye"></i></a>
                             <a href="{{ route('products.edit', $variant) }}" class="btn btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></a>
