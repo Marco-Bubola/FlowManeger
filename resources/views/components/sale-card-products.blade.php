@@ -18,6 +18,9 @@
                     <img src="{{ $product && $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
                          alt="{{ $product->name ?? 'Produto' }}"
                          style="width: 100%; height: 100%; object-fit: cover; padding: 0; margin: 0; display: block;"
+                         {{-- o fallback do @if so cobre image vazio; arquivo ausente no disco
+                              deixava um quadrado branco no lugar do produto --}}
+                         onerror="this.onerror=null; this.src='{{ asset('storage/products/product-placeholder.png') }}';"
                          class="!p-0 !m-0">
 
                     <span class="badge-product-code bg-slate-900/80 dark:bg-slate-800/90 text-white">
