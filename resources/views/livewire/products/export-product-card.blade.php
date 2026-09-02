@@ -311,7 +311,7 @@
                             <template x-if="exportType === 'complete' || exportType === 'public'">
                                 <div id="export-card-{{ $product->id }}"
                                      data-product-name="{{ $product->product_code }}"
-                                     style="width: 380px; background: #ffffff; border-radius: 28px; border: 6px solid #b39ddb; box-shadow: 0 12px 32px rgba(149, 117, 205, 0.25); overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative;">
+                                     style="width: 380px; background: #ffffff; color: #0f172a; border-radius: 28px; border: 6px solid #b39ddb; box-shadow: 0 12px 32px rgba(149, 117, 205, 0.25); overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative;">
 
                                     <div style="position: absolute; top: 16px; left: 16px; background: linear-gradient(135deg, #9575cd, #b39ddb); color: #fff; padding: 8px 18px; border-radius: 18px; font-size: 14px; font-weight: 700; border: 3px solid #ffe0b2; box-shadow: 0 4px 12px rgba(149, 117, 205, 0.4); display: flex; align-items: center; gap: 6px; z-index: 20;">
                                         <i class="bi bi-upc-scan" style="font-size: 16px;"></i> {{ $product->product_code }}
@@ -358,7 +358,7 @@
                             <template x-if="exportType === 'image-only'">
                                 <div id="export-card-{{ $product->id }}"
                                      data-product-name="{{ $product->product_code }}"
-                                     style="width: 500px; height: 500px; background: #fff; border-radius: 20px; overflow: hidden; margin: 0 auto; display: flex; align-items: center; justify-content: center; padding: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);">
+                                     style="width: 500px; height: 500px; background: #fff; color: #0f172a; border-radius: 20px; overflow: hidden; margin: 0 auto; display: flex; align-items: center; justify-content: center; padding: 20px; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);">
                                     <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
                                          alt="{{ $product->name }}"
                                          crossorigin="anonymous"
@@ -372,7 +372,7 @@
                             <template x-if="exportType === 'image-name'">
                                 <div id="export-card-{{ $product->id }}"
                                      data-product-name="{{ $product->product_code }}"
-                                     style="width: 450px; background: #ffffff; border-radius: 24px; border: 4px solid #b39ddb; overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; box-shadow: 0 8px 24px rgba(149, 117, 205, 0.2);">
+                                     style="width: 450px; background: #ffffff; color: #0f172a; border-radius: 24px; border: 4px solid #b39ddb; overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; box-shadow: 0 8px 24px rgba(149, 117, 205, 0.2);">
 
                                     <div style="width: 100%; height: 400px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 20px;">
                                         <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
@@ -395,7 +395,7 @@
                             <template x-if="exportType === 'image-price'">
                                 <div id="export-card-{{ $product->id }}"
                                      data-product-name="{{ $product->product_code }}"
-                                     style="width: 450px; background: #ffffff; border-radius: 24px; border: 4px solid #b39ddb; overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative; box-shadow: 0 8px 24px rgba(149, 117, 205, 0.2);">
+                                     style="width: 450px; background: #ffffff; color: #0f172a; border-radius: 24px; border: 4px solid #b39ddb; overflow: hidden; margin: 0 auto; font-family: 'Segoe UI', Tahoma, sans-serif; position: relative; box-shadow: 0 8px 24px rgba(149, 117, 205, 0.2);">
 
                                     <div style="width: 100%; height: 400px; background: #fff; display: flex; align-items: center; justify-content: center; padding: 20px;">
                                         <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
