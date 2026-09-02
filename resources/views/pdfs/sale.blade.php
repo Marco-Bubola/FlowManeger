@@ -218,12 +218,9 @@
             border-top-right-radius: 1.7em;
             border-bottom: 4px solid #b39ddb;
             box-shadow: 0 2px 16px rgba(149, 117, 205, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
             overflow: hidden;
             z-index: 2;
-            flex-shrink: 0;
             padding: 0;
             margin: 0;
         }
@@ -630,36 +627,25 @@
 <body>
     <div class="container">
 
+        {{-- Cabecalho padrao das exportacoes (mesmo bloco usado na imagem) --}}
+        @include('exports.partials.sale-header', ['sale' => $sale])
 
-        <!-- Informações Principais -->
-        <div class="info-section">
-            <!-- Cliente -->
-            <div class="info-box">
-                <h3>CLIENTE</h3>
-                <p>{{ $sale->client->name }}</p>
-                @if($sale->client->email)
-                <p class="small">Email: {{ $sale->client->email }}</p>
-                @endif
-                @if($sale->client->phone)
-                <p class="small">Fone: {{ $sale->client->phone }}</p>
-                @endif
-            </div>
-
-            <!-- Status e Pagamento -->
-            <div class="info-box">
-                <h3>STATUS E PAGAMENTO</h3>
-                <p>
-                    <span class="status {{ $sale->status }}">{{ ucfirst($sale->status) }}</span>
-                </p>
-                <p class="small">
-                    {{ $sale->tipo_pagamento === 'a_vista' ? 'A Vista' : 'Parcelado' }}
-                    @if($sale->tipo_pagamento === 'parcelado')
-                    ({{ $sale->parcelas }}x de R$ {{ number_format($sale->total_price / $sale->parcelas, 2, ',', '.') }})
-                    @endif
-                </p>
-                <p class="small">Criada em {{ $sale->created_at->format('d/m/Y H:i') }}</p>
-            </div>
-        </div>
+        {{-- Contato do cliente: so aparece se houver dado. Nome, status,
+             pagamento e data ja vao no cabecalho — repetir aqui era ruido. --}}
+        @if($sale->client->email || $sale->client->phone)
+        <table style="width:100%; border-collapse:collapse; margin-top:10px;">
+            <tr>
+                <td style="padding:10px 12px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+                    <span style="font-size:10px; font-weight:bold; color:#64748b; letter-spacing:0.08em;">CONTATO</span>
+                    <span style="font-size:12px; color:#334155; margin-left:10px;">
+                        @if($sale->client->email){{ $sale->client->email }}@endif
+                        @if($sale->client->email && $sale->client->phone) &nbsp;·&nbsp; @endif
+                        @if($sale->client->phone){{ $sale->client->phone }}@endif
+                    </span>
+                </td>
+            </tr>
+        </table>
+        @endif
 
         <!-- Produtos -->
         <div class="products-section">
@@ -704,19 +690,19 @@
                                 alt="{{ $item->product->name }}"
                                 class="product-image">
                             @else
-                            <div class="product-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #9575cd;">
+                            <div class="product-placeholder" style="text-align: center; font-size: 24px; color: #9575cd;">
                                 <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
                                 <div style="font-size: 12px; text-align: center; line-height: 1.2; max-width: 120px; word-wrap: break-word;">{{ Str::limit($item->product->name, 25) }}</div>
                             </div>
                             @endif
                             @else
-                            <div class="product-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #9575cd;">
+                            <div class="product-placeholder" style="text-align: center; font-size: 24px; color: #9575cd;">
                                 <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
                                 <div style="font-size: 12px; text-align: center; line-height: 1.2; max-width: 120px; word-wrap: break-word;">{{ Str::limit($item->product->name, 25) }}</div>
                             </div>
                             @endif
                             @else
-                            <div class="product-placeholder" style="display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 24px; color: #9575cd;">
+                            <div class="product-placeholder" style="text-align: center; font-size: 24px; color: #9575cd;">
                                 <div style="font-size: 48px; margin-bottom: 10px;">📦</div>
                                 <div style="font-size: 12px; text-align: center; line-height: 1.2; max-width: 120px; word-wrap: break-word;">Produto sem imagem</div>
                             </div>
@@ -728,11 +714,11 @@
                         <div class="product-info">
                             <h3 class="product-name">{{ $item->product->name }}</h3>
 
-                            <div class="product-details" style="display: flex; gap: 6px; align-items: center; justify-center: center;">
-                                <div class="product-quantity" style="margin-bottom: 0; width: auto;">
+                            <div class="product-details" style="text-align: center;">
+                                <div class="product-quantity" style="display: inline-block; margin-bottom: 0; margin-right: 6px; width: auto;">
                                     Qtd: {{ $item->quantity }}
                                 </div>
-                                <div class="product-price" style="margin-bottom: 0; width: auto;">
+                                <div class="product-price" style="display: inline-block; margin-bottom: 0; width: auto;">
                                     R$ {{ number_format($item->price_sale, 2, ',', '.') }}
                                 </div>
                             </div>
