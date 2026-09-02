@@ -45,6 +45,18 @@
                 return;
             }
 
+            // O preview e exibido reduzido para caber no modal, mas o
+            // html2canvas HERDA o transform do ancestral — capturado assim a
+            // imagem saia a 1425px em vez de 1860px. Desliga a escala so
+            // durante a captura e devolve depois.
+            const involucro = cardElement.parentElement;
+            const escalaOriginal = involucro ? involucro.style.transform : '';
+            const alturaOriginal = involucro?.parentElement ? involucro.parentElement.style.height : '';
+            if (involucro) {
+                involucro.style.transform = 'none';
+                if (involucro.parentElement) involucro.parentElement.style.height = 'auto';
+            }
+
             try {
                 await this.waitForImages(cardElement);
                 const canvas = await html2canvas(cardElement, {
@@ -54,6 +66,11 @@
                     allowTaint: true,
                     imageTimeout: 15000
                 });
+
+                if (involucro) {
+                    involucro.style.transform = escalaOriginal;
+                    if (involucro.parentElement) involucro.parentElement.style.height = alturaOriginal;
+                }
 
                 canvas.toBlob((blob) => {
                     if (!blob) {
@@ -190,6 +207,29 @@
 
                             @if($sale)
 
+                            {{-- O card tem 620px fixos porque e essa a largura da imagem
+                                 exportada. Dentro do modal o painel tem ~475px, entao ele
+                                 vazava 145px pela direita. A escala fica no INVOLUCRO: o
+                                 html2canvas captura o card pelo id e monta o proprio render
+                                 a partir dele, sem herdar transform de ancestral — a imagem
+                                 sai nos mesmos 620px. --}}
+                            <div class="export-preview-viewport"
+                                 x-data="{
+                                     k: 1,
+                                     ajustar() {
+                                         const card = $refs.cardWrap.firstElementChild;
+                                         if (!card) return;
+                                         const disponivel = $el.clientWidth;
+                                         this.k = Math.min(1, disponivel / card.offsetWidth);
+                                         $refs.cardWrap.style.transform = 'scale(' + this.k + ')';
+                                         $el.style.height = (card.offsetHeight * this.k) + 'px';
+                                     }
+                                 }"
+                                 x-init="$nextTick(() => ajustar())"
+                                 x-on:resize.window.debounce.150ms="ajustar()"
+                                 style="overflow: hidden;">
+                            <div x-ref="cardWrap" style="transform-origin: top left; width: max-content;">
+
                             <div id="export-sale-{{ $sale->id }}"
                                  style="width:620px; background:#ffffff; color:#0f172a; border-radius:14px; padding:18px;
                                         box-shadow:0 12px 32px rgba(0,0,0,0.08);
@@ -198,64 +238,114 @@
                                 {{-- Mesmo cabecalho do PDF --}}
                                 @include('exports.partials.sale-header', ['sale' => $sale])
 
-                                {{-- Produtos: tabela, com nome / qtd / unitario / total --}}
-                                <table style="width:100%; border-collapse:collapse; margin-top:12px;">
-                                    <tr>
-                                        <th style="text-align:left; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
-                                                   color:#64748b; border-bottom:1px solid #e2e8f0;">PRODUTO</th>
-                                        <th style="text-align:center; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
-                                                   color:#64748b; border-bottom:1px solid #e2e8f0; width:48px;">QTD</th>
-                                        <th style="text-align:right; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
-                                                   color:#64748b; border-bottom:1px solid #e2e8f0; width:92px;">UNIT.</th>
-                                        <th style="text-align:right; padding:6px 8px; font-size:10px; letter-spacing:0.08em;
-                                                   color:#64748b; border-bottom:1px solid #e2e8f0; width:100px;">TOTAL</th>
-                                    </tr>
-                                    @foreach($sale->saleItems as $item)
-                                    <tr>
-                                        <td style="padding:7px 8px; font-size:12px; color:#0f172a; border-bottom:1px solid #f1f5f9;">
-                                            {{ \Illuminate\Support\Str::limit($item->product->name ?? 'Produto', 46) }}
-                                            @if($item->product?->product_code)
-                                                <span style="color:#94a3b8; font-size:10px;">#{{ $item->product->product_code }}</span>
-                                            @endif
-                                        </td>
-                                        <td style="padding:7px 8px; font-size:12px; color:#334155; text-align:center; border-bottom:1px solid #f1f5f9;">
-                                            {{ $item->quantity }}
-                                        </td>
-                                        <td style="padding:7px 8px; font-size:12px; color:#334155; text-align:right; border-bottom:1px solid #f1f5f9;">
-                                            R$ {{ number_format($item->price_sale, 2, ',', '.') }}
-                                        </td>
-                                        <td style="padding:7px 8px; font-size:12px; color:#0f172a; font-weight:bold; text-align:right; border-bottom:1px solid #f1f5f9;">
-                                            R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </table>
+                                {{-- Mesma estrutura do PDF: titulo, cards em 3 colunas
+                                     e o mesmo rodape de totais. --}}
+                                <div style="text-align:center; margin:16px 0 6px;">
+                                    <div style="font-size:15px; font-weight:bold; letter-spacing:0.06em; color:#3f3357;">PRODUTOS DA VENDA</div>
+                                    <div style="height:2px; background:#7c3aed; margin:6px auto 0; width:100%;"></div>
+                                </div>
 
-                                {{-- Totais --}}
-                                <table style="width:100%; border-collapse:collapse; margin-top:12px;
-                                              background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px;">
+                                @foreach($sale->saleItems->chunk(3) as $linha)
+                                <table style="width:100%; border-collapse:separate; border-spacing:6px 0; margin-bottom:10px;">
                                     <tr>
-                                        <td style="padding:8px 12px; font-size:12px; color:#475569;">Total da venda</td>
-                                        <td style="padding:8px 12px; font-size:16px; font-weight:bold; color:#0f172a; text-align:right;">
-                                            R$ {{ number_format($sale->total_price, 2, ',', '.') }}
+                                        @foreach($linha as $item)
+                                        <td style="width:33.33%; vertical-align:top; border:1.5px solid #c4b5fd;
+                                                   border-radius:12px; background:#faf8ff; padding:0;">
+                                            <div style="position:relative; height:110px; background:#f1ecfb; text-align:center;">
+                                                <img src="{{ $item->product && $item->product->image ? asset('storage/products/' . $item->product->image) : asset('storage/products/product-placeholder.png') }}"
+                                                     onerror="this.onerror=null; this.src='{{ asset('storage/products/product-placeholder.png') }}';"
+                                                     alt="{{ $item->product->name ?? 'Produto' }}"
+                                                     style="height:110px; max-width:100%; object-fit:contain; display:inline-block;">
+                                                <span style="position:absolute; top:5px; left:5px; background:#ede9fe; color:#5b21b6;
+                                                             font-size:9px; font-weight:bold; padding:2px 5px; border-radius:5px;">
+                                                    #{{ $item->product->product_code ?? 'N/A' }}
+                                                </span>
+                                            </div>
+
+                                            <div style="padding:8px;">
+                                                <div style="font-size:11px; font-weight:bold; color:#3f3357; text-align:center;
+                                                            line-height:1.25; height:28px; overflow:hidden;">
+                                                    {{ \Illuminate\Support\Str::limit($item->product->name ?? 'Produto', 42) }}
+                                                </div>
+
+                                                <table style="width:100%; border-collapse:separate; border-spacing:3px 0; margin:6px 0;">
+                                                    <tr>
+                                                        <td style="width:50%; background:#f4f1fb; border:1px solid #ded5f2; border-radius:7px;
+                                                                   padding:4px 2px; text-align:center;">
+                                                            <span style="display:block; font-size:7px; font-weight:bold; letter-spacing:0.09em;
+                                                                         color:#8b7fa8;">QTD</span>
+                                                            <span style="display:block; font-size:13px; font-weight:bold; color:#3f3357;">{{ $item->quantity }}</span>
+                                                        </td>
+                                                        <td style="width:50%; background:#f4f1fb; border:1px solid #ded5f2; border-radius:7px;
+                                                                   padding:4px 2px; text-align:center;">
+                                                            <span style="display:block; font-size:7px; font-weight:bold; letter-spacing:0.09em;
+                                                                         color:#8b7fa8;">UNIT.</span>
+                                                            <span style="display:block; font-size:13px; font-weight:bold; color:#3f3357;">{{ number_format($item->price_sale, 2, ',', '.') }}</span>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <div style="background:#ffffff; color:#4c1d95; border:1.5px solid #c4b5fd;
+                                                            border-radius:7px; padding:5px; text-align:center;
+                                                            font-size:13px; font-weight:bold;">
+                                                    R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}
+                                                </div>
+                                            </div>
                                         </td>
+                                        @endforeach
+
+                                        @for($i = $linha->count(); $i < 3; $i++)
+                                        <td style="width:33.33%;"></td>
+                                        @endfor
                                     </tr>
-                                    @if(($sale->amount_paid ?? 0) > 0)
-                                    <tr>
-                                        <td style="padding:8px 12px; font-size:12px; color:#475569;">Pago</td>
-                                        <td style="padding:8px 12px; font-size:13px; font-weight:bold; color:#15803d; text-align:right;">
-                                            R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style="padding:8px 12px; font-size:12px; color:#475569;">Restante</td>
-                                        <td style="padding:8px 12px; font-size:13px; font-weight:bold; color:#b91c1c; text-align:right;">
-                                            R$ {{ number_format(max(0, $sale->total_price - $sale->amount_paid), 2, ',', '.') }}
-                                        </td>
-                                    </tr>
-                                    @endif
                                 </table>
-                            </div>
+                                @endforeach
+
+                                {{-- Rodape de totais: igual ao do PDF --}}
+                                <div style="margin-top:14px; background:#faf9fe; border:1px solid #e2dcf3;
+                                            border-radius:12px; padding:14px 16px;">
+                                    <table style="width:62%; margin-left:38%; border-collapse:collapse;">
+                                        <tr>
+                                            <td style="padding:5px 0; font-size:13px; font-weight:600; color:#57506b;">Subtotal:</td>
+                                            <td style="padding:5px 0; font-size:14px; font-weight:bold; color:#3f3357; text-align:right;">
+                                                R$ {{ number_format($sale->total_price, 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                        @if(($sale->amount_paid ?? 0) > 0)
+                                        <tr>
+                                            <td style="padding:5px 0; font-size:13px; font-weight:600; color:#57506b;">Valor Pago:</td>
+                                            <td style="padding:5px 0; font-size:14px; font-weight:bold; color:#15803d; text-align:right;">
+                                                R$ {{ number_format($sale->amount_paid, 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                        @endif
+                                        @if(max(0, $sale->total_price - ($sale->amount_paid ?? 0)) > 0)
+                                        <tr>
+                                            <td style="padding:5px 0; font-size:13px; font-weight:600; color:#57506b;">Valor Pendente:</td>
+                                            <td style="padding:5px 0; font-size:14px; font-weight:bold; color:#b91c1c; text-align:right;">
+                                                R$ {{ number_format(max(0, $sale->total_price - ($sale->amount_paid ?? 0)), 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                        @endif
+                                    </table>
+
+                                    <table style="width:62%; margin-left:38%; margin-top:10px; border-collapse:collapse;
+                                                  background:#6d28d9; border-radius:10px;">
+                                        <tr>
+                                            <td style="padding:11px 14px; font-size:11px; font-weight:bold; letter-spacing:0.09em;
+                                                       color:#e9d5ff; vertical-align:middle;">TOTAL DA VENDA</td>
+                                            <td style="padding:11px 14px; font-size:19px; font-weight:bold; color:#ffffff;
+                                                       text-align:right; vertical-align:middle;">
+                                                R$ {{ number_format($sale->total_price, 2, ',', '.') }}
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+
+                            </div>{{-- /#export-sale --}}
+
+                            </div>{{-- /x-ref cardWrap --}}
+                            </div>{{-- /.export-preview-viewport --}}
 
                             @endif
                         </div>
