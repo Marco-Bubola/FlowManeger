@@ -361,8 +361,12 @@
                                             <i class="bi bi-eye mr-1"></i>
                                             Ver
                                         </a>
-                                        <button class="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs transition-colors">
-                                            <i class="bi bi-three-dots"></i>
+                                        {{-- era um botao de tres pontinhos sem acao nenhuma --}}
+                                        <button type="button"
+                                                wire:click="abrirModalExportacao({{ $venda['id'] }})"
+                                                title="Exportar esta venda em PDF ou imagem"
+                                                class="px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-xs transition-colors">
+                                            <i class="bi bi-box-arrow-up"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -877,7 +881,9 @@
             </div>
         </div>
     </div>
-</div>
+    {{-- mesmo modal de exportacao da listagem e do detalhe da venda --}}
+    @livewire('sales.export-sale-modal')
+
 
 <!-- Removido Alpine.js daqui pois já está no layout principal -->
 
@@ -1210,7 +1216,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
-</div>
 
 {{-- ═══ PORTAL DO CLIENTE ═══════════════════════════════════════════════════ --}}
 <div class="mt-8 px-4 sm:px-6 lg:px-8 pb-8">
@@ -1420,6 +1425,7 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         </div>
     </div>
+</div>
 </div>
 {{-- ═══ FIM PORTAL DO CLIENTE ════════════════════════════════════════════════ --}}
 
