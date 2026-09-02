@@ -48,7 +48,33 @@
             base.plotOptions = { bar: { borderRadius: 6, columnWidth: '55%', borderRadiusApplication: 'end' } };
         }
         if (type === 'donut' || type === 'pie') {
-            base.plotOptions = { pie: { donut: { size: '70%', labels: { show: true, total: { show: true, fontSize: '12px', color: dark ? '#cbd5e1' : '#475569' } } } } };
+            // O total do donut vinha do somatorio bruto do ApexCharts e saia com
+            // o residuo do ponto flutuante (ex.: "109.88999999999999"). Formata
+            // em pt-BR e, quando a serie e monetaria, prefixa com R$.
+            var _ehMoeda = !!(opts.currency || opts.money);
+            base.plotOptions = {
+                pie: {
+                    donut: {
+                        size: '70%',
+                        labels: {
+                            show: true,
+                            total: {
+                                show: true,
+                                fontSize: '12px',
+                                color: dark ? '#cbd5e1' : '#475569',
+                                formatter: function (w) {
+                                    var soma = w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
+                                    var txt = soma.toLocaleString('pt-BR', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                    return _ehMoeda ? 'R$ ' + txt : txt;
+                                }
+                            }
+                        }
+                    }
+                }
+            };
             base.legend = Object.assign(base.legend, { position: 'bottom' });
             base.stroke = { width: 0 };
         }
@@ -68,6 +94,8 @@
             colors: cfg.colors,
             height: cfg.height,
             extra: cfg.extra || {},
+            // repassado para o formatter do total do donut
+            currency: !!cfg.currency,
         };
         const base = baseOptions(type, opts);
 
