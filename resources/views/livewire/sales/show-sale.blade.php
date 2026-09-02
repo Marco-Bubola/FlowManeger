@@ -51,10 +51,10 @@
         :current-step="1"
         :steps="[]">
         <x-slot name="actions">
-            <button wire:click="exportPdf"
+            <button wire:click="abrirModalExportacao"
                     class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-rose-500 hover:from-red-600 hover:to-rose-600 text-white font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl text-sm">
-                <i class="bi bi-file-earmark-pdf text-base"></i>
-                <span class="hidden sm:inline">PDF</span>
+                <i class="bi bi-box-arrow-up text-base"></i>
+                <span class="hidden sm:inline">Exportar</span>
             </button>
             @if($sale->remaining_amount > 0)
                 <button wire:click="payFull"
@@ -652,4 +652,8 @@
         padding-top: 0.5rem;
     }
     </style>
+
+    {{-- mesmo modal de exportacao da listagem de vendas --}}
+    @livewire('sales.export-sale-modal')
+
 </div>
