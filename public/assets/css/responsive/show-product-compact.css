@@ -1,0 +1,47 @@
+/* ==========================================================
+   DETALHE DO PRODUTO — grade de variações
+   ----------------------------------------------------------
+   `produtos-extra.css` define `.products-grid` com
+   `grid-template-columns: repeat(1, minmax(0,1fr))`. Esse
+   seletor tem a mesma especificidade das classes utilitárias
+   do Tailwind (`grid-cols-2`, `lg:grid-cols-4`…) e é carregado
+   depois delas, então vencia: as variações saíam uma por linha,
+   ocupando a largura inteira com a imagem gigante.
+
+   Na listagem de produtos isso não acontece porque os arquivos
+   `products-index-*.css` redefinem as colunas por dispositivo;
+   esta tela não os carrega.
+
+   Aqui a grade usa `auto-fill`: o número de colunas sai da
+   largura disponível, sem depender de breakpoint.
+   ========================================================== */
+
+.variations-grid.variations-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr)) !important;
+    gap: 0.75rem !important;
+    align-items: start !important;
+}
+
+/* No desktop, cards um pouco maiores para nao ficar com 7 colunas
+   estreitas — mantem a densidade parecida com a listagem de produtos */
+@media (min-width: 1280px) {
+    .variations-grid.variations-grid {
+        grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr)) !important;
+        gap: 0.85rem !important;
+    }
+}
+
+/* No celular duas colunas já é o suficiente para ler o nome */
+@media (max-width: 480px) {
+    .variations-grid.variations-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.55rem !important;
+    }
+}
+
+/* Destaque da variação que está sendo exibida */
+.variations-grid .product-card-modern.is-current {
+    outline: 2px solid rgb(168 85 247 / 0.75);
+    outline-offset: 2px;
+}
