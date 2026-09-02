@@ -275,7 +275,7 @@
 
         .product-name {
             font-family: 'Arial', sans-serif;
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 700;
             color: #424242;
             margin: 0 0 8px 0;
@@ -294,101 +294,123 @@
             margin-bottom: 6px;
         }
 
-        .product-quantity,
-        .product-price {
-            display: inline-block;
-            width: 48%;
-            padding: 4px 8px;
-            font-size: 12px;
-            font-weight: 700;
+        /* Qtd e unitario: duas celulas iguais, rotulo pequeno em cima do
+           numero. As pilulas assimetricas antigas tinham larguras
+           diferentes e bordas em dois lados, o que desalinhava a linha. */
+        .product-meta {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 4px 0;
+            margin-bottom: 6px;
+        }
+
+        .product-meta td {
+            width: 50%;
+            background: #f4f1fb;
+            border: 1px solid #ded5f2;
+            border-radius: 8px;
+            padding: 5px 4px;
             text-align: center;
-            border-radius: 1.2em 0 0.8em 0;
-            box-shadow: 0 2px 8px rgba(248, 187, 208, 0.2);
-            border-bottom: 2px solid;
-            border-right: 2px solid;
-            min-height: 20px;
-            vertical-align: top;
-            box-sizing: border-box;
-            white-space: nowrap;
-            margin-right: 2%;
+            vertical-align: middle;
         }
 
-        .product-price {
-            margin-right: 0;
-            border-radius: 0 1.2em 0 0.8em;
-            border-left: 2px solid #ba68c8;
-            border-right: none;
+        .product-meta .meta-label {
+            display: block;
+            font-size: 8px;
+            font-weight: 700;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            color: #8b7fa8;
+            margin-bottom: 1px;
         }
 
-        .product-quantity {
-            background: #f8bbd0;
-            color: #424242;
-            border-color: #9575cd;
-        }
-
-        .product-price {
-            background: #9575cd;
-            color: #fff;
-            border-color: #ba68c8;
-            border-radius: 0 1.2em 0 0.8em;
-            border-left: 2px solid #ba68c8;
-            border-right: none;
+        .product-meta .meta-value {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: #3f3357;
         }
 
         .product-total {
-            background: #f8bbd0;
-            color: #424242;
-            padding: 5px 10px;
-            border-radius: 1.2em 0 0.8em 0;
+            background: #ffffff;
+            color: #4c1d95;
+            border: 1.5px solid #c4b5fd;
+            padding: 7px 10px;
+            border-radius: 8px;
             font-size: 15px;
             font-weight: 700;
             text-align: center;
-            margin-top: 4px;
+            margin-top: 0;
             width: 100%;
-            box-shadow: 0 2px 8px rgba(248, 187, 208, 0.2);
-            border-bottom: 2px solid #9575cd;
-            border-right: 2px solid #9575cd;
+            box-sizing: border-box;
             min-height: 22px;
             display: block;
             box-sizing: border-box;
         }
 
-        /* Seção de Totais */
+        /* Rodape de totais: as linhas viram uma escada de peso — rotulos
+           discretos, valores alinhados a direita e o total final numa
+           faixa solida, em vez de tres linhas do mesmo tamanho. */
         .total-section {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 15px;
-            border: 2px solid #9575cd;
+            background: #faf9fe;
+            padding: 16px 18px 14px;
+            border-radius: 12px;
+            border: 1px solid #e2dcf3;
             margin-bottom: 25px;
         }
 
+        /* Ocupando 100% da largura, o rotulo ficava numa ponta e o valor
+           na outra — dois palmos de vazio no meio. O bloco agora e
+           estreito e encostado a direita. */
         .total-row {
             display: table;
-            width: 100%;
-            margin-bottom: 10px;
+            width: 62%;
+            margin-left: 38%;
+            margin-bottom: 2px;
             padding: 6px 0;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .total-row .total-label {
             display: table-cell;
             font-weight: 600;
+            color: #57506b;
+            letter-spacing: 0.02em;
         }
 
         .total-row .total-value {
             display: table-cell;
             text-align: right;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
+            color: #3f3357;
         }
 
         .total-row.final {
-            border-top: 2px solid #9575cd;
-            padding-top: 15px;
-            margin-top: 15px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #9575cd;
+            background: #6d28d9;
+            border-radius: 10px;
+            width: 62%;
+            margin-left: 38%;
+            margin-top: 12px;
+            margin-bottom: 0;
+            padding: 12px 16px;
+            font-size: 16px;
+        }
+
+        .total-row.final .total-label {
+            color: #e9d5ff;
+            font-weight: 700;
+            font-size: 12px;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            vertical-align: middle;
+        }
+
+        .total-row.final .total-value {
+            color: #ffffff;
+            font-size: 21px;
+            font-weight: 700;
+            vertical-align: middle;
         }
 
         /* Seção de Pagamentos */
@@ -714,17 +736,21 @@
                         <div class="product-info">
                             <h3 class="product-name">{{ $item->product->name }}</h3>
 
-                            <div class="product-details" style="text-align: center;">
-                                <div class="product-quantity" style="display: inline-block; margin-bottom: 0; margin-right: 6px; width: auto;">
-                                    Qtd: {{ $item->quantity }}
-                                </div>
-                                <div class="product-price" style="display: inline-block; margin-bottom: 0; width: auto;">
-                                    R$ {{ number_format($item->price_sale, 2, ',', '.') }}
-                                </div>
-                            </div>
+                            <table class="product-meta">
+                                <tr>
+                                    <td>
+                                        <span class="meta-label">Qtd</span>
+                                        <span class="meta-value">{{ $item->quantity }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="meta-label">Unit.</span>
+                                        <span class="meta-value">{{ number_format($item->price_sale, 2, ',', '.') }}</span>
+                                    </td>
+                                </tr>
+                            </table>
 
                             <div class="product-total">
-                                Total: R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}
+                                R$ {{ number_format($item->quantity * $item->price_sale, 2, ',', '.') }}
                             </div>
                         </div>
                     </div>
