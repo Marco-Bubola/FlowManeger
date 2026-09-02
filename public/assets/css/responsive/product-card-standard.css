@@ -71,9 +71,10 @@
     aspect-ratio: 1 / 1 !important;
     height: auto !important;
     min-height: 0 !important;
-    /* teto generoso: serve só para cards muito largos; o normal é o
-       aspect-ratio mandar e a imagem ficar quadrada */
-    max-height: calc(15rem * var(--pc-s)) !important;
+    /* Teto só para cards excepcionalmente largos. Precisa ficar acima da
+       largura usual do card (~170–260px), senão ele corta antes do
+       aspect-ratio agir e a imagem deixa de ser quadrada. */
+    max-height: calc(20rem * var(--pc-s)) !important;
 }
 
 /* A <img> tinha altura própria (180px) e, como item flex com
@@ -136,4 +137,34 @@
 .product-card-modern.product-card-modern .category-icon {
     width: calc(1.7rem * var(--pc-s)) !important;
     height: calc(1.7rem * var(--pc-s)) !important;
+}
+
+/* ==========================================================
+   FAIXA "FORA DE ESTOQUE"
+   ----------------------------------------------------------
+   `produtos.css` fixa 48px de altura e 0.95rem de fonte na
+   faixa. Num card estreito (as variações ficam com ~190px) ela
+   cobria a foto inteira e o texto era cortado no meio
+   ("FORA DE ESTOQ…"), porque a faixa é rotacionada e o excesso
+   sai da área visível.
+
+   Aqui ela acompanha a escala do card e o texto encolhe junto,
+   sem passar da largura útil.
+   ========================================================== */
+
+.product-card-modern.product-card-modern.product-card-modern .out-of-stock {
+    height: calc(2.1rem * var(--pc-s)) !important;
+    font-size: max(0.55rem, calc(0.72rem * var(--pc-s))) !important;
+    letter-spacing: 0.04em !important;
+    padding-inline: calc(0.3rem * var(--pc-s)) !important;
+    /* rotacao menor: em card estreito o texto saia da area visivel */
+    transform: translateY(-50%) rotate(-9deg) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+.product-card-modern.product-card-modern.product-card-modern .out-of-stock i {
+    font-size: max(0.55rem, calc(0.7rem * var(--pc-s))) !important;
+    margin-right: 0.2em !important;
 }
