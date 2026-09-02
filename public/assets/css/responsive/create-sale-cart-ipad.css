@@ -38,6 +38,33 @@
     z-index: 90;
 }
 
+/* ──────────────────────────────────────────────────────────
+   Dropdowns do resumo x lista de produtos do carrinho
+
+   Os menus de Cliente e Pagamento ja pediam z-[9999], mas quem
+   vence a disputa e o CONTEXTO DE EMPILHAMENTO do bloco, nao o
+   numero do filho: o cartao do resumo era `position: static`,
+   entao o menu competia la em cima, empatado com cada
+   `.create-sale-selected-item` (`position: relative`) da lista —
+   e o empate se resolve pela ordem do DOM, onde a lista vem
+   depois. Resultado: o produto era pintado por cima da lista de
+   clientes.
+
+   Elevando o proprio cartao do resumo, o menu passa a estar
+   dentro de um contexto que ganha da lista inteira.
+   ────────────────────────────────────────────────────────── */
+.create-sale-summary-card {
+    position: relative;
+    z-index: 200;
+}
+
+/* a lista fica explicitamente abaixo, para o caso de outra camada
+   voltar a mexer no empilhamento dela */
+.create-sale-selected-list {
+    position: relative;
+    z-index: 1;
+}
+
 @media (min-width: 768px) {
     .cs-cart-panel {
         --cart-s: 1;
