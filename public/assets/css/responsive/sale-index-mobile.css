@@ -243,6 +243,8 @@
 }
 
 /* Ações do sale card — modo ícone (rótulo oculto) em telas estreitas */
-.sales-index-page .sc-act-btn .sc-act-lbl { display: none !important; }
+@media (max-width: 1024px) {
+    .sales-index-page .sc-act-btn .sc-act-lbl { display: none !important; }
+}
 .sales-index-page .sc-act-btn { padding: 0.4rem 0.3rem !important; }
 .sales-index-page .sc-act-btn .sc-act-ico { width: 2rem !important; height: 2rem !important; font-size: 0.9rem !important; }
