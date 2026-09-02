@@ -6,6 +6,7 @@
     'colors' => null,
     'height' => null,        // sobrescreve a altura padrão
     'extra' => [],           // opções extras do ApexCharts
+    'currency' => false,     // formata o total do donut como R$
 ])
 @php
     $cfg = [
@@ -14,6 +15,7 @@
         'labels' => $labels,
         'colors' => $colors,
         'height' => $height,
+        'currency' => (bool) $currency,
         'extra' => $extra,
     ];
 @endphp
