@@ -37,12 +37,18 @@
             opacity: 0.9;
         }
 
+        /* DomPDF nao implementa grid: float reproduz as 3 colunas */
         .info-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
             margin-bottom: 20px;
         }
+
+        .info-grid .info-card {
+            float: left;
+            width: 31.3%;
+            margin: 0 3% 12px 0;
+        }
+
+        .info-grid .info-card:nth-child(3n) { margin-right: 0; }
 
         .info-card {
             background: #f3f4f6;
@@ -65,9 +71,6 @@
         }
 
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
             margin-bottom: 25px;
             padding: 15px;
             background: #fef3c7;
@@ -76,6 +79,12 @@
 
         .stat-item {
             text-align: center;
+        }
+
+        /* 4 colunas por float: o DomPDF ignorava o grid-template-columns */
+        .stats-grid .stat-item {
+            float: left;
+            width: 25%;
         }
 
         .stat-item .label {
@@ -186,9 +195,7 @@
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #10b981 0%, #14b8a6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            text-align: center;
             color: white;
             font-size: 10px;
             font-weight: bold;
@@ -228,6 +235,7 @@
             <h3>Valor Total</h3>
             <p>R$ {{ number_format($consortium->total_value, 2, ',', '.') }}</p>
         </div>
+        <div style="clear: both;"></div>
     </div>
 
     <!-- Estatísticas -->
@@ -264,6 +272,7 @@
             <div class="label">Total Arrecadado</div>
             <div class="value">R$ {{ number_format($statistics['total_collected'], 2, ',', '.') }}</div>
         </div>
+        <div style="clear: both;"></div>
     </div>
 
     @if($consortium->description)
