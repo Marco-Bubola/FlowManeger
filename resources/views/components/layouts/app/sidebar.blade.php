@@ -261,6 +261,34 @@
                                     <div class="{{ Request::is('products/barcode-scanner') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-l-full"></div>
                                 </a>
 
+                                <a href="{{ route('gestao.stock-movements') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/estoque/movimentacoes') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/estoque/movimentacoes') ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-arrow-left-right text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Movimentações</span>
+                                </a>
+
+                                <a href="{{ route('gestao.restock') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/estoque/repor') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/estoque/repor') ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-box-seam text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Repor Estoque</span>
+                                </a>
+
+                                <a href="{{ route('gestao.receivables') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/a-receber') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/a-receber') ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-cash-coin text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">A Receber</span>
+                                </a>
+
+                                <a href="{{ route('gestao.profit') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/lucro') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/lucro') ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-graph-up-arrow text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Lucro por Venda</span>
+                                </a>
+
                                 <a href="{{ url('clients') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('clients') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('clients') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1497,6 +1525,30 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h2M4 10h2M4 14h2M4 18h2M8 6h2M8 18h2M12 6h2M12 18h2M16 6h8M16 10h8M16 14h8M16 18h8"></path></svg>
                         </div>
                         <span class="more-app-label">Scanner</span>
+                    </a>
+                    <a href="{{ route('gestao.stock-movements') }}" class="more-app-card {{ Request::is('gestao/estoque/movimentacoes') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#0ea5e9,#2563eb)">
+                            <i class="bi bi-arrow-left-right text-white"></i>
+                        </div>
+                        <span class="more-app-label">Movimentações</span>
+                    </a>
+                    <a href="{{ route('gestao.restock') }}" class="more-app-card {{ Request::is('gestao/estoque/repor') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#f59e0b,#ea580c)">
+                            <i class="bi bi-box-seam text-white"></i>
+                        </div>
+                        <span class="more-app-label">Repor Estoque</span>
+                    </a>
+                    <a href="{{ route('gestao.receivables') }}" class="more-app-card {{ Request::is('gestao/a-receber') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#10b981,#16a34a)">
+                            <i class="bi bi-cash-coin text-white"></i>
+                        </div>
+                        <span class="more-app-label">A Receber</span>
+                    </a>
+                    <a href="{{ route('gestao.profit') }}" class="more-app-card {{ Request::is('gestao/lucro') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#14b8a6,#059669)">
+                            <i class="bi bi-graph-up-arrow text-white"></i>
+                        </div>
+                        <span class="more-app-label">Lucro por Venda</span>
                     </a>
                     <a href="{{ url('categories') }}" class="more-app-card {{ Request::is('categories*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#ec4899,#db2777)">
