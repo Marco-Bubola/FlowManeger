@@ -917,8 +917,13 @@
                                     <div class="create-sale-selected-grid">
 
                                         <div class="create-sale-selected-field">
-                                            <label for="quantity-{{ $selectedProduct->id }}">Qtd</label>
+                                            <label for="quantity-{{ $selectedProduct->id }}">Qtd
+                                                @if(($selectedProduct->tipo ?? 'simples') === 'simples')
+                                                    <span class="font-normal {{ $productItem['quantity'] >= $selectedProduct->stock_quantity ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400' }}" title="Em estoque">/ {{ (int) $selectedProduct->stock_quantity }}</span>
+                                                @endif
+                                            </label>
                                             <input type="number"
+                                                   wire:key="quantity-{{ $selectedProduct->id }}-{{ $productItem['quantity'] }}"
                                                    id="quantity-{{ $selectedProduct->id }}"
                                                    wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
                                                    value="{{ $productItem['quantity'] }}"

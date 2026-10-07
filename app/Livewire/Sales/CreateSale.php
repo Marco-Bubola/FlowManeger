@@ -12,11 +12,14 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
+use App\Traits\HasNotifications;
 use Livewire\Component;
 use Illuminate\Support\Collection;
 
 class CreateSale extends Component
 {
+    use HasNotifications;
+
     public int $currentStep = 1;
     public $client_id = '';
     public string $clientSearch = '';
@@ -447,7 +450,33 @@ class CreateSale extends Component
                     'quantity' => 1,
                     'unit_price' => $product->currentSalePrice(),
                 ];
+                $this->warnIfLowStock($product, 1);
             }
+        }
+    }
+
+    /**
+     * Avisa quando o estoque não cobre a quantidade pedida. Não bloqueia:
+     * venda pendente pode ser criada sem saldo; a confirmação continua checando.
+     */
+    private function warnIfLowStock(Product $product, int $quantity): void
+    {
+        if (($product->tipo ?? 'simples') === 'kit') {
+            foreach ($product->componentes()->get() as $pc) {
+                $component = $pc->componente()->first();
+                $required = ($pc->quantidade ?? 0) * $quantity;
+                if ($component && $component->stock_quantity < $required) {
+                    $this->notifyWarning("Estoque insuficiente no kit {$product->name}: {$component->name} tem {$component->stock_quantity}, precisa de {$required}.");
+                    return;
+                }
+            }
+            return;
+        }
+
+        if ((int) $product->stock_quantity < $quantity) {
+            $this->notifyWarning((int) $product->stock_quantity <= 0
+                ? "{$product->name} está sem estoque."
+                : "Só tem {$product->stock_quantity} de {$product->name} em estoque.");
         }
     }
 
@@ -701,7 +730,13 @@ class CreateSale extends Component
             : null;
 
         if ($selectedProduct && ($selectedProduct->tipo ?? 'simples') === 'simples') {
-            $quantity = min($quantity, max(1, (int) $selectedProduct->stock_quantity));
+            $max = max(1, (int) $selectedProduct->stock_quantity);
+            if ($quantity > $max) {
+                $this->notifyWarning("Só tem {$selectedProduct->stock_quantity} de {$selectedProduct->name} em estoque. A quantidade ficou em {$max}.");
+                $quantity = $max;
+            }
+        } elseif ($selectedProduct) {
+            $this->warnIfLowStock($selectedProduct, $quantity);
         }
 
         foreach ($this->products as $index => $product) {
