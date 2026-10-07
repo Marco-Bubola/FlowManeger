@@ -55,6 +55,7 @@
             $wire.data_inicio,
             $wire.data_fim,
             $wire.sem_imagem,
+            $wire.em_promocao,
             $wire.semEstoque
         ].some(isFilled);
     },
@@ -362,7 +363,7 @@
                         <x-products-filters :categories="$categories" :search="$search" :category="$category" :tipo="$tipo" :status_filtro="$status_filtro"
                             :preco_min="$preco_min" :preco_max="$preco_max" :per-page="$perPage" :per-page-options="$perPageOptions" :ordem="$ordem" :estoque_filtro="$estoque ?? ''"
                             :estoque_valor="$estoque_valor ?? ''" :data_inicio="$data_inicio ?? ''" :data_fim="$data_fim ?? ''"
-                            :sem_imagem="$sem_imagem ?? false" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
+                            :sem_imagem="$sem_imagem ?? false" :em_promocao="$em_promocao ?? false" :total-products="$products->total() ?? 0" :sem-estoque="$semEstoque" />
                     </div>
                 </div>
 
@@ -515,6 +516,14 @@
 
                                 <!-- Kits não têm estoque próprio - apenas os componentes têm -->
 
+                                @if ($promo = $product->livePromotion())
+                                    <a href="{{ route('promotions.index') }}" class="absolute {{ $product->is_variation_parent || $product->tipo === 'kit' ? 'top-11' : 'top-2' }} left-2 z-10" title="Em promoção: de R$ {{ number_format($promo->original_price, 2, ',', '.') }} por R$ {{ number_format($promo->promo_price, 2, ',', '.') }}">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg border border-rose-300">
+                                            <i class="bi bi-fire mr-1"></i>PROMO -{{ $promo->discount_percent }}%
+                                        </span>
+                                    </a>
+                                @endif
+
                                 <!-- Código do produto -->
                                 <span class="badge-product-code" title="Código do Produto">
                                     <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
@@ -548,10 +557,18 @@
                                             R$ {{ number_format($product->price, 2, ',', '.') }}
                                         </span>
 
-                                        <span class="badge-price-sale" title="Preço de Venda do Kit">
-                                            <i class="bi bi-currency-dollar"></i>
-                                            R$ {{ number_format($product->price_sale, 2, ',', '.') }}
-                                        </span>
+                                        @if ($promo = $product->livePromotion())
+                                            <span class="badge-price-sale" title="Em promoção (revenda R$ {{ number_format($product->price_sale, 2, ',', '.') }})" style="background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);">
+                                                <i class="bi bi-fire"></i>
+                                                <s class="opacity-75 text-[0.8em] mr-1">R$ {{ number_format($promo->original_price, 2, ',', '.') }}</s>
+                                                R$ {{ number_format($promo->promo_price, 2, ',', '.') }}
+                                            </span>
+                                        @else
+                                            <span class="badge-price-sale" title="Preço de Venda do Kit">
+                                                <i class="bi bi-currency-dollar"></i>
+                                                R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>
@@ -602,6 +619,14 @@
                                     </div>
                                 @endif
 
+                                @if ($promo = $product->livePromotion())
+                                    <a href="{{ route('promotions.index') }}" class="absolute {{ $product->is_variation_parent || $product->tipo === 'kit' ? 'top-11' : 'top-2' }} left-2 z-10" title="Em promoção: de R$ {{ number_format($promo->original_price, 2, ',', '.') }} por R$ {{ number_format($promo->promo_price, 2, ',', '.') }}">
+                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg border border-rose-300">
+                                            <i class="bi bi-fire mr-1"></i>PROMO -{{ $promo->discount_percent }}%
+                                        </span>
+                                    </a>
+                                @endif
+
                                 <!-- Código do produto -->
                                 <span class="badge-product-code" title="Código do Produto">
                                     <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
@@ -632,10 +657,18 @@
                                             R$ {{ number_format($product->price, 2, ',', '.') }}
                                         </span>
 
-                                        <span class="badge-price-sale" title="Preço de Venda">
-                                            <i class="bi bi-currency-dollar"></i>
-                                            R$ {{ number_format($product->price_sale, 2, ',', '.') }}
-                                        </span>
+                                        @if ($promo = $product->livePromotion())
+                                            <span class="badge-price-sale" title="Em promoção (revenda R$ {{ number_format($product->price_sale, 2, ',', '.') }})" style="background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);">
+                                                <i class="bi bi-fire"></i>
+                                                <s class="opacity-75 text-[0.8em] mr-1">R$ {{ number_format($promo->original_price, 2, ',', '.') }}</s>
+                                                R$ {{ number_format($promo->promo_price, 2, ',', '.') }}
+                                            </span>
+                                        @else
+                                            <span class="badge-price-sale" title="Preço de Venda">
+                                                <i class="bi bi-currency-dollar"></i>
+                                                R$ {{ number_format($product->price_sale, 2, ',', '.') }}
+                                            </span>
+                                        @endif
                                     </div>
                                 </div>
                             </div>

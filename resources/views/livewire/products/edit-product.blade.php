@@ -296,7 +296,7 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
                             <x-currency-input
                                 name="price"
                                 id="price"
@@ -318,6 +318,17 @@
                                 :required="true"
                                 width="w-full"
                                 :value="$price_sale" />
+
+                            <x-currency-input
+                                name="price_original"
+                                id="price_original"
+                                wireModel="price_original"
+                                label="Preço de Tabela (promoções)"
+                                icon="bi-fire"
+                                icon-color="purple"
+                                :required="false"
+                                width="w-full"
+                                :value="$price_original" />
 
                             <x-quantity-input
                                 name="stock_quantity"

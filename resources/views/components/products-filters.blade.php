@@ -14,12 +14,13 @@
     'data_inicio' => '',
     'data_fim' => '',
     'sem_imagem' => false,
+    'em_promocao' => false,
     'totalProducts' => 0,
     'semEstoque' => false
 ])
 
 @php
-    $hasActiveFilters = $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque_filtro || $estoque_valor || $data_inicio || $data_fim || $sem_imagem || $semEstoque;
+    $hasActiveFilters = $search || $category || $tipo || $status_filtro || $preco_min || $preco_max || $estoque_filtro || $estoque_valor || $data_inicio || $data_fim || $sem_imagem || $em_promocao || $semEstoque;
 @endphp
 
 <div class="space-y-4 md:space-y-5">
@@ -56,6 +57,10 @@
                 <button type="button" wire:click="setQuickFilter('preco-zero')"
                     class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-rose-400 dark:hover:border-rose-500 transition-colors">
                     Preco zero
+                </button>
+                <button type="button" wire:click="setQuickFilter('promocao')"
+                    class="px-3 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-pink-400 dark:hover:border-pink-500 transition-colors">
+                    <i class="bi bi-fire text-pink-500"></i> Em promoção
                 </button>
                 <button type="button" wire:click="clearFilters"
                     class="px-3 py-2 rounded-xl text-xs font-semibold text-white bg-gradient-to-r from-rose-500 to-red-600 hover:from-rose-600 hover:to-red-700 transition-all shadow-md">
@@ -386,6 +391,10 @@
                         class="w-full text-left px-3 py-2.5 rounded-xl border transition-colors {{ $sem_imagem ? 'border-violet-500 bg-violet-50 dark:bg-violet-900/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-violet-400' }}">
                         <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Somente sem imagem personalizada</span>
                     </button>
+                    <button type="button" wire:click="$set('em_promocao', {{ $em_promocao ? 'false' : 'true' }})"
+                        class="w-full text-left px-3 py-2.5 rounded-xl border transition-colors {{ $em_promocao ? 'border-pink-500 bg-pink-50 dark:bg-pink-900/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-pink-400' }}">
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200"><i class="bi bi-fire text-pink-500"></i> Somente em promoção</span>
+                    </button>
                     <button type="button" wire:click="$set('semEstoque', {{ $semEstoque ? 'false' : 'true' }})"
                         class="w-full text-left px-3 py-2.5 rounded-xl border transition-colors {{ $semEstoque ? 'border-rose-500 bg-rose-50 dark:bg-rose-900/30' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-rose-400' }}">
                         <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">Somente produtos sem estoque</span>
@@ -395,7 +404,7 @@
         </div>
     </div>
 
-    <div wire:loading.flex wire:target="search,category,status_filtro,tipo,preco_min,preco_max,estoque,estoque_valor,data_inicio,data_fim,ordem,perPage,sem_imagem,semEstoque"
+    <div wire:loading.flex wire:target="search,category,status_filtro,tipo,preco_min,preco_max,estoque,estoque_valor,data_inicio,data_fim,ordem,perPage,sem_imagem,em_promocao,semEstoque"
         class="items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
         <span class="inline-block w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></span>
         Atualizando filtros...

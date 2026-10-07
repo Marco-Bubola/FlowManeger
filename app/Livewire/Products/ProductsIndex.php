@@ -30,6 +30,7 @@ class ProductsIndex extends Component
     public string $data_fim = '';
     public string $ordem = '';
     public bool $sem_imagem = false;
+    public bool $em_promocao = false;
     public bool $semEstoque = false;
     public bool $fullHdLayout = false;
     public bool $ultraLayout = false;
@@ -102,6 +103,7 @@ class ProductsIndex extends Component
         'estoque' => ['except' => ''],
         'estoque_valor' => ['except' => ''],
         'sem_imagem' => ['except' => false],
+        'em_promocao' => ['except' => false],
         'semEstoque' => ['except' => false],
         'data_inicio' => ['except' => ''],
         'data_fim' => ['except' => ''],
@@ -197,6 +199,7 @@ class ProductsIndex extends Component
         $this->data_fim = '';
         $this->ordem = '';
         $this->sem_imagem = false;
+        $this->em_promocao = false;
         $this->semEstoque = false;
         $this->resetPage();
     }
@@ -258,6 +261,10 @@ class ProductsIndex extends Component
 
             case 'preco-zero':
                 $this->preco_max = '0';
+                break;
+
+            case 'promocao':
+                $this->em_promocao = true;
                 break;
         }
 
@@ -603,6 +610,12 @@ class ProductsIndex extends Component
             });
         }
 
+        // Filtro: somente produtos em promoção valendo agora
+        if ($this->em_promocao) {
+            $query->where('stock_quantity', '>', 0)
+                ->whereHas('promotions', fn ($q) => $q->current());
+        }
+
         // Filtro de sem estoque (apenas produtos simples)
         if ($this->semEstoque) {
             $query->where('tipo', 'simples')->where('stock_quantity', '<=', 0);
@@ -652,7 +665,7 @@ class ProductsIndex extends Component
             $query->orderByRaw('stock_quantity > 0 DESC');
         }
 
-        $products = $query->paginate($this->perPage);
+        $products = $query->with('activePromotion')->paginate($this->perPage);
 
         // Garante que os links de paginação apontem para a rota pública (evita herdar
         // o caminho interno do Livewire como `/livewire/update`) e preserva os filtros
@@ -672,6 +685,7 @@ class ProductsIndex extends Component
                 'ordem' => $this->ordem,
                 'perPage' => $this->perPage,
                 'sem_imagem' => $this->sem_imagem ? 1 : 0,
+                'em_promocao' => $this->em_promocao ? 1 : 0,
             ];
 
             // Remover chaves vazias para URLs mais limpas

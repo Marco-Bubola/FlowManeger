@@ -26,6 +26,7 @@ class EditProduct extends Component
     public string $description = '';
     public string $price = '';
     public string $price_sale = '';
+    public string $price_original = ''; // R$ TABELA, riscado nas promoções (opcional)
     public string $stock_quantity = '';
     public string $category_id = '';
     public string $product_code = '';
@@ -81,6 +82,7 @@ class EditProduct extends Component
         // Formato americano para o componente currency-input
         $this->price = number_format($price, 2, '.', '');
         $this->price_sale = number_format($price_sale, 2, '.', '');
+        $this->price_original = $product->price_original !== null ? number_format((float) $product->price_original, 2, '.', '') : '';
 
         $this->stock_quantity = (string)($product->stock_quantity ?? 0);
         $this->category_id = (string)($product->category_id ?? '');
@@ -134,6 +136,7 @@ class EditProduct extends Component
             'description' => 'nullable|max:1000',
             'price' => 'required|numeric',
             'price_sale' => 'required|numeric',
+            'price_original' => 'nullable|numeric|min:0',
             'stock_quantity' => 'required|integer',
             'category_id' => 'required|exists:category,id_category',
             'product_code' => 'required',
@@ -161,6 +164,8 @@ class EditProduct extends Component
             // Atualização temporária das propriedades para validação
             $this->price = (string)$price;
             $this->price_sale = (string)$price_sale;
+            $price_original = trim((string) $this->price_original) === '' ? null : (float) str_replace(',', '.', $this->price_original);
+            $this->price_original = $price_original === null ? '' : (string) $price_original;
 
             // Validação do formulário
             // Sanitizar o nome no backend (remover '/', '(', ')', '-' e normalizar espaços)
@@ -213,6 +218,7 @@ class EditProduct extends Component
                 'description' => $this->description,
                 'price' => $price,
                 'price_sale' => $price_sale,
+                'price_original' => $price_original ?: null,
                 'stock_quantity' => (int)$this->stock_quantity,
                 'category_id' => (int)$this->category_id,
                 'product_code' => $this->product_code,

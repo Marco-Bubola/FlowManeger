@@ -97,6 +97,12 @@
                     class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 transition shadow-sm">
                     <i class="bi bi-pencil-fill text-amber-500"></i><span class="hidden sm:inline">Editar</span>
                 </a>
+                @php $showPromo = $mainProduct->livePromotion(); @endphp
+                <a href="{{ route('promotions.index', ['produto' => $mainProduct->id]) }}"
+                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow transition"
+                    title="{{ $showPromo ? 'Em promoção: R$ ' . number_format($showPromo->promo_price, 2, ',', '.') : 'Pôr em promoção' }}">
+                    <i class="bi bi-fire"></i><span class="hidden sm:inline">{{ $showPromo ? 'Promoção -' . $showPromo->discount_percent . '%' : 'Promoção' }}</span>
+                </a>
                 <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
                     class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow transition">
                     <i class="bi bi-file-earmark-arrow-down"></i><span class="hidden sm:inline">Exportar</span>
