@@ -58,6 +58,7 @@
 <link rel="stylesheet" href="{{ asset('assets/css/money-input.css') }}?v={{ filemtime(public_path('assets/css/money-input.css')) }}">
 {{-- Modal padrão (<x-modal>) --}}
 <link rel="stylesheet" href="{{ asset('assets/css/modal.css') }}?v={{ filemtime(public_path('assets/css/modal.css')) }}">
+@include('partials.appearance-global')
 
 <!-- Color theme init: aplica variáveis de cor antes do render para evitar flash -->
 <script>
@@ -86,10 +87,16 @@
             root.style.setProperty('--s-accent-faint', t.f);
             root.style.setProperty('--s-accent-rgb', t.r);
         }
-        var fontSize = localStorage.getItem('flowmanager:font-size');
-        if (fontSize) root.style.setProperty('--s-font-size-factor', (fontSize / 100).toString());
-        if (localStorage.getItem('flowmanager:compact') === '1') root.classList.add('compact-mode');
-        if (localStorage.getItem('flowmanager:no-animations') === '1') root.classList.add('no-animations');
+        // A tela de Aparência grava a fonte em px (12 a 18, padrão 14) e os
+        // interruptores como 'true'/'false'
+        var fontSize = parseInt(localStorage.getItem('flowmanager:font-size'), 10);
+        if (fontSize >= 10 && fontSize <= 24) {
+            root.style.setProperty('--s-font-size-factor', (fontSize / 14).toString());
+            root.style.setProperty('--fm-font-scale', (fontSize / 14).toString());
+        }
+        var on = function (key) { var v = localStorage.getItem(key); return v === '1' || v === 'true'; };
+        if (on('flowmanager:compact')) root.classList.add('compact-mode');
+        if (on('flowmanager:no-animations')) root.classList.add('no-animations');
     } catch(e) {}
 })();
 </script>
