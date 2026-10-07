@@ -18,6 +18,8 @@ class AppServiceProvider extends ServiceProvider
     {
         // Registrar observadores de modelos
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        // Pagamentos de venda viram receita no livro-caixa (se o usuário ativar)
+        \App\Models\SalePayment::observe(\App\Services\Cashbook\SalePaymentCashbookSync::class);
 
         // Mensagens flash de ações Livewire aparecem no aviso global
         \App\Livewire\Hooks\FlashToNotify::register();

@@ -243,6 +243,8 @@
                     </x-slot>
                 </x-cashbook-header>
 
+                <livewire:cashbook.sales-sync-toggle />
+
                 <!-- Transactions List -->
                 <div class="space-y-3">
                     <!-- Controls -->

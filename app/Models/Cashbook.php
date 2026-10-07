@@ -27,6 +27,7 @@ class Cashbook extends Model
         'id_bank',
         'inc_datetime',
         'edit_datetime',
+        'sale_payment_id',
     ];
 
     public function user()
