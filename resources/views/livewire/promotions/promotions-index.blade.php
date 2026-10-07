@@ -138,16 +138,6 @@
         </div>
     </div>
 
-    @if($stats['semTabela'] > 0 && $tab !== 'encerradas')
-        <div class="mb-4 flex flex-col sm:flex-row sm:items-center gap-2 justify-between p-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200 text-sm">
-            <span><i class="bi bi-info-circle mr-1"></i> {{ $stats['semTabela'] }} produto(s) com estoque sem preço de tabela. Eles também podem entrar em promoção: o "de" vira o preço de revenda.</span>
-            <button type="button" wire:click="backfillOriginalPrices" wire:loading.attr="disabled" wire:target="backfillOriginalPrices"
-                    class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-xs whitespace-nowrap">
-                <span wire:loading.remove wire:target="backfillOriginalPrices"><i class="bi bi-file-earmark-pdf"></i> Buscar tabela nos PDFs</span>
-                <span wire:loading wire:target="backfillOriginalPrices">Lendo PDFs…</span>
-            </button>
-        </div>
-    @endif
 
     {{-- Barra de seleção --}}
     @if(count($selected))
@@ -162,6 +152,32 @@
                 <button type="button" wire:click="bulkEnd" wire:confirm="Retirar as promoções selecionadas?" class="px-3 py-1.5 rounded-lg bg-slate-600 hover:bg-slate-700 text-white font-semibold"><i class="bi bi-x-circle"></i> Retirar</button>
             @endif
             <button type="button" wire:click="$set('selected', [])" class="ml-auto px-2 py-1.5 text-slate-500 hover:text-slate-700">Limpar</button>
+        </div>
+    @endif
+
+    {{-- Tipos de sugestão --}}
+    @if($tab === 'sugestoes')
+        @php $types = \App\Services\Products\PromotionService::SUGGESTION_TYPES; @endphp
+        <div class="promo-suggest-bar mb-5 p-3 sm:p-4 rounded-3xl bg-white/80 dark:bg-slate-800/70 backdrop-blur-xl border border-white/40 dark:border-slate-700/60 shadow-lg">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-3">
+                <div class="promo-suggest-types flex gap-2 overflow-x-auto pb-1 lg:pb-0 flex-1" x-data x-init="$nextTick(() => $el.querySelector('.on')?.scrollIntoView({ inline: 'center', block: 'nearest' }))">
+                    @foreach($types as $key => [$label, $icon, $hint])
+                        <button type="button" wire:click="setSuggest('{{ $key }}')" class="promo-suggest-type {{ $suggest === $key ? 'on' : '' }}" title="{{ $hint }}">
+                            <span class="promo-suggest-icon"><i class="bi {{ $icon }}"></i></span>
+                            <span>{{ $label }}</span>
+                        </button>
+                    @endforeach
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Top</span>
+                    <div class="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900/70">
+                        @foreach([10, 20, 50] as $n)
+                            <button type="button" wire:click="setSuggestLimit({{ $n }})" class="px-3 py-1.5 rounded-lg text-xs font-bold transition {{ $suggestLimit === $n ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow' : 'text-slate-600 dark:text-slate-300' }}">{{ $n }}</button>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            <p class="mt-2 text-xs text-slate-500 dark:text-slate-400"><i class="bi bi-info-circle"></i> {{ $types[$suggest][2] }}. Só produtos com estoque e fora de promoção. O preço sugerido já respeita o lucro mínimo.</p>
         </div>
     @endif
 
@@ -180,7 +196,7 @@
                 @endswitch
             </h3>
             <p class="text-neutral-600 dark:text-neutral-400 mb-6 max-w-md">
-                @if($tab === 'sugestoes') Aparecem aqui os produtos com estoque e pelo menos {{ (int) $settings->suggest_min_discount }}% de diferença entre a tabela e a revenda.
+                @if($tab === 'sugestoes') Nenhum produto com estoque e fora de promoção se encaixa em "{{ \App\Services\Products\PromotionService::SUGGESTION_TYPES[$suggest][0] }}". Tente outro tipo.
                 @else Escolha produtos e defina o desconto de cada um. @endif
             </p>
             <div class="flex flex-wrap gap-3 justify-center">
@@ -195,17 +211,27 @@
              x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
             @foreach($items as $item)
                 @php
+                    $progress = null; $timeLeft = null;
                     if ($tab === 'sugestoes') {
                         $product = $item;
-                        $original = (float) $item->price_original;
-                        $promoValue = (float) $item->price_sale;
+                        $sp = $item->suggestion_prices ?? [];
+                        $original = (float) ($sp['original'] ?? $item->price_sale);
+                        $promoValue = (float) ($sp['promo'] ?? $original);
                         $discount = $original > 0 ? (int) round((1 - $promoValue / $original) * 100) : 0;
                     } else {
                         $product = $item->product;
                         $original = (float) $item->original_price;
                         $promoValue = (float) $item->promo_price;
                         $discount = $item->discount_percent;
+                        if ($tab === 'ativas' && $item->ends_at) {
+                            $start = $item->starts_at ?? $item->created_at;
+                            $total = max(1, $start->diffInMinutes($item->ends_at));
+                            $progress = min(100, max(0, (int) round($start->diffInMinutes(now()) / $total * 100)));
+                            $days = (int) ceil(now()->diffInHours($item->ends_at) / 24);
+                            $timeLeft = $item->ends_at->isPast() ? 'terminando' : ($days <= 1 ? 'último dia' : 'faltam ' . $days . ' dias');
+                        }
                     }
+                    $savings = max(0, $original - $promoValue);
                     $isSelected = in_array($item->id, $selected);
                     $isKit = ($product?->tipo ?? '') === 'kit';
                 @endphp
@@ -235,7 +261,6 @@
                         <span class="badge-product-code" title="Código do Produto"><i class="bi bi-upc-scan"></i> {{ $product?->product_code }}</span>
 
                         <div class="promo-card-tags">
-                            <span class="promo-tag bg-gradient-to-r from-rose-500 to-orange-500"><i class="bi bi-fire"></i> -{{ $discount }}%</span>
                             @if($isKit)
                                 <span class="promo-tag bg-gradient-to-r from-blue-500 to-blue-600"><i class="bi bi-boxes"></i> KIT</span>
                             @elseif($product?->variation_value)
@@ -254,24 +279,34 @@
                     <div class="card-body">
                         <a href="{{ $product ? route('products.show', $product->product_code) : '#' }}" class="product-title" title="{{ $product?->name }}">{{ ucwords($product?->name ?? 'Produto removido') }}</a>
 
-                        <div class="promo-card-prices">
-                            <s>{{ $money($original) }}</s>
-                            <strong>{{ $money($promoValue) }}</strong>
+                        <div class="promo-box">
+                            <div class="promo-box-prices">
+                                <s>{{ $money($original) }}</s>
+                                <strong>{{ $money($promoValue) }}</strong>
+                            </div>
+                            <div class="promo-box-off"><span>-{{ $discount }}%</span><small>OFF</small></div>
                         </div>
+                        @if($savings > 0)
+                            <div class="promo-save"><i class="bi bi-piggy-bank"></i> economia de {{ $money($savings) }}</div>
+                        @endif
+
                         <div class="promo-card-meta">
                             @if($tab === 'sugestoes')
-                                <i class="bi bi-lightbulb"></i> tabela → revenda
+                                <span class="promo-meta-pill"><i class="bi bi-lightbulb"></i> {{ $item->suggestion_note }}</span>
                             @elseif($tab === 'encerradas')
-                                <i class="bi bi-archive"></i> {{ \App\Models\Promotion::ENDED_REASONS[$item->ended_reason] ?? 'Encerrada' }} {{ $item->ended_at?->format('d/m') }}
+                                <span class="promo-meta-pill"><i class="bi bi-archive"></i> {{ \App\Models\Promotion::ENDED_REASONS[$item->ended_reason] ?? 'Encerrada' }} {{ $item->ended_at?->format('d/m') }}</span>
                             @elseif($item->starts_at && $item->starts_at->isFuture())
-                                <i class="bi bi-calendar-event"></i> começa {{ $item->starts_at->format('d/m') }}
+                                <span class="promo-meta-pill"><i class="bi bi-calendar-event"></i> começa {{ $item->starts_at->format('d/m') }}</span>
+                            @elseif($progress !== null)
+                                <div class="promo-time {{ $progress >= 70 ? 'late' : '' }}">
+                                    <div class="promo-time-text"><span><i class="bi bi-hourglass-split"></i> {{ $timeLeft }}</span><span>até {{ $item->ends_at->format('d/m') }}</span></div>
+                                    <div class="promo-time-bar"><i style="width: {{ $progress }}%"></i></div>
+                                </div>
                             @else
-                                <span class="{{ $item->ends_at && $item->ends_at->lte(now()->addDays(3)) ? 'text-amber-600 font-bold' : '' }}">
-                                    <i class="bi bi-hourglass-split"></i> {{ $item->ends_at ? 'até ' . $item->ends_at->format('d/m') : 'até acabar o estoque' }}
-                                </span>
-                                @if($last = $item->sends->first())
-                                    <span class="text-green-600 ml-1" title="Último envio"><i class="bi bi-whatsapp"></i> {{ $last->created_at->format('d/m') }}</span>
-                                @endif
+                                <span class="promo-meta-pill"><i class="bi bi-infinity"></i> até acabar o estoque</span>
+                            @endif
+                            @if($tab === 'ativas' && ($last = $item->sends->first()))
+                                <span class="promo-meta-pill promo-meta-wa" title="Último envio no WhatsApp"><i class="bi bi-whatsapp"></i> {{ $last->created_at->format('d/m') }}</span>
                             @endif
                         </div>
 
@@ -382,18 +417,53 @@
 
         .promo-card .product-title { display: block; }
         .promo-card .promo-card-tags { position: absolute; left: .5em; bottom: .5em; z-index: 10; display: flex; flex-wrap: wrap; gap: .25em; max-width: 70%; }
-        .promo-card .promo-card-prices { display: flex; align-items: baseline; justify-content: center; gap: .4em; margin-top: .15em; line-height: 1.1; }
-        .promo-card .promo-card-prices s { font-size: .78em; color: rgb(148 163 184); }
-        .promo-card .promo-card-prices strong { font-size: 1.12em; font-weight: 900; color: #e11d48; }
-        .dark .promo-card .promo-card-prices strong { color: #fb7185; }
-        .promo-card .promo-card-meta { text-align: center; font-size: .68em; color: rgb(100 116 139); margin-bottom: 1.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .promo-card .promo-box { display: flex; align-items: stretch; margin-top: .35em; border-radius: .9em; overflow: hidden;
+            background: linear-gradient(135deg, rgba(244,63,94,.08), rgba(249,115,22,.10)); border: 1px solid rgba(244,63,94,.25); }
+        .promo-card .promo-box-prices { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: .35em .6em; line-height: 1.1; }
+        .promo-card .promo-box-prices s { font-size: .72em; color: rgb(148 163 184); }
+        .promo-card .promo-box-prices strong { font-size: 1.22em; font-weight: 900; background: linear-gradient(135deg, #e11d48, #f97316); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+        .promo-card .promo-box-off { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: .3em .6em; color: #fff; line-height: 1;
+            background: linear-gradient(160deg, #f43f5e, #f97316); }
+        .promo-card .promo-box-off span { font-size: 1em; font-weight: 900; }
+        .promo-card .promo-box-off small { font-size: .55em; font-weight: 800; letter-spacing: .08em; opacity: .9; }
+        .promo-card .promo-save { margin-top: .35em; text-align: center; font-size: .68em; font-weight: 700; color: rgb(5 150 105); }
+        .promo-card .promo-card-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: .3em; margin: .4em 0 2.1em; font-size: .66em; }
+        .promo-card .promo-meta-pill { display: inline-flex; align-items: center; gap: .25em; max-width: 100%; padding: .2em .6em; border-radius: 999px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            background: rgba(148,163,184,.15); color: rgb(71 85 105); font-weight: 600; }
+        .promo-card .promo-meta-wa { background: rgba(34,197,94,.15); color: rgb(21 128 61); }
+        .promo-card .promo-time { flex: 1 1 100%; width: 100%; min-width: 0; padding: 0 .3em; }
+        .promo-card .promo-time-text { display: flex !important; justify-content: space-between; gap: .6em; font-weight: 700; color: rgb(71 85 105); margin-bottom: .25em; white-space: nowrap; }
+        .promo-card .promo-meta-pill, .promo-card .promo-time-text, .promo-card .promo-save { color-scheme: light; }
+        .promo-card .promo-time-bar { height: .4em; border-radius: 999px; background: rgba(148,163,184,.25); overflow: hidden; }
+        .promo-card .promo-time-bar i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #22c55e, #84cc16); }
+        .promo-card .promo-time.late .promo-time-text { color: rgb(217 119 6); }
+        .promo-card .promo-time.late .promo-time-bar i { background: linear-gradient(90deg, #f59e0b, #ef4444); }
+
+        .promo-suggest-type { display: inline-flex; align-items: center; gap: .5rem; padding: .45rem .8rem .45rem .45rem; border-radius: 1rem; flex-shrink: 0;
+            font-size: .8rem; font-weight: 700; color: rgb(71 85 105); background: rgba(241,245,249,.9); border: 1.5px solid transparent; transition: all .15s; }
+        .promo-suggest-type:hover { border-color: rgba(244,63,94,.4); color: rgb(225 29 72); }
+        .promo-suggest-icon { width: 1.9rem; height: 1.9rem; border-radius: .65rem; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: rgb(244 63 94); box-shadow: 0 2px 6px rgba(0,0,0,.08); }
+        .promo-suggest-type.on { color: #fff; background: linear-gradient(135deg, #f43f5e, #ec4899, #f97316); box-shadow: 0 6px 16px rgba(244,63,94,.3); }
+        .promo-suggest-type.on .promo-suggest-icon { background: rgba(255,255,255,.25); color: #fff; box-shadow: none; }
+        .dark .promo-suggest-type:not(.on) { background: rgba(15,23,42,.6); color: rgb(203 213 225); }
+        .dark .promo-suggest-type:not(.on) .promo-suggest-icon { background: rgb(30 41 59); }
+        .promo-suggest-types::-webkit-scrollbar { display: none; }
+        .promo-card .promo-box { max-width: 100%; min-width: 0; }
+        @media (max-width: 767.98px) {
+            .promo-card .promo-box-prices { padding: .3em .45em; }
+            .promo-card .promo-box-prices strong { font-size: .98em; }
+            .promo-card .promo-box-off { padding: .25em .4em; }
+            .promo-card .promo-box-off span { font-size: .85em; }
+            .promo-suggest-type { font-size: .74rem; padding: .35rem .65rem .35rem .35rem; }
+            .promo-suggest-icon { width: 1.6rem; height: 1.6rem; }
+        }
         .promo-card.promo-selected { border-color: #f43f5e !important; box-shadow: 0 0 0 3px rgba(244,63,94,.25), 0 8px 28px rgba(244,63,94,.25) !important; }
         .promo-card.promo-ended .product-img { filter: grayscale(.7); opacity: .8; }
         .promo-check { width: 34px; height: 34px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
             background: #fff; border: 2px solid rgb(203 213 225); color: transparent; box-shadow: 0 4px 12px rgba(0,0,0,.12); transition: all .15s; }
         .promo-check:hover { border-color: #f43f5e; color: rgba(244,63,94,.5); }
         .promo-check.on { background: linear-gradient(135deg, #f43f5e, #f97316); border-color: transparent; color: #fff; }
-        .dark .promo-check { background: rgb(30 41 59); border-color: rgb(71 85 105); }
+        .dark .promo-check:not(.on) { background: rgba(255,255,255,.92); border-color: rgb(148 163 184); }
     </style>
 
     <x-toast-notifications />

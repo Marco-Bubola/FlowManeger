@@ -12,6 +12,7 @@ use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -28,6 +29,10 @@ class PromotionsIndex extends Component
     public string $search = '';
     public string $sort = 'desconto'; // desconto | validade | recentes | nome
     public int $perPage = 24;
+
+    // Aba Sugestões: tipo e quantos mostrar
+    public string $suggest = 'tabela'; // ver PromotionService::SUGGESTION_TYPES
+    public int $suggestLimit = 10;
 
     /** @var array<int> ids selecionados (promoções; ou produtos na aba Sugestões) */
     public array $selected = [];
@@ -61,6 +66,7 @@ class PromotionsIndex extends Component
     protected $queryString = [
         'tab'    => ['except' => 'ativas'],
         'search' => ['except' => ''],
+        'suggest' => ['except' => 'tabela'],
     ];
 
     public function mount(PromotionService $service): void
@@ -93,6 +99,19 @@ class PromotionsIndex extends Component
         $this->tab = $tab;
         $this->selected = [];
         $this->resetPage();
+    }
+
+    public function setSuggest(string $type): void
+    {
+        if (isset(PromotionService::SUGGESTION_TYPES[$type])) {
+            $this->suggest = $type;
+            $this->selected = [];
+        }
+    }
+
+    public function setSuggestLimit(int $limit): void
+    {
+        $this->suggestLimit = in_array($limit, [10, 20, 50], true) ? $limit : 10;
     }
 
     public function toggleSelect(int $id): void
@@ -471,11 +490,9 @@ class PromotionsIndex extends Component
         $term = trim($this->search);
 
         if ($this->tab === 'sugestoes') {
-            return $service->suggestionsQuery(Auth::id(), $this->settings)
-                ->with('category')
-                ->withCount('variants')
-                ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$term}%")->orWhere('product_code', 'like', "%{$term}%")))
-                ->paginate($this->perPage);
+            $list = $service->suggestionsByType(Auth::id(), $this->suggest, $this->suggestLimit, $this->settings, $term);
+
+            return new LengthAwarePaginator($list, $list->count(), max(1, $list->count()), 1);
         }
 
         $status = ['ativas' => Promotion::ATIVA, 'agendadas' => Promotion::AGENDADA, 'encerradas' => Promotion::ENCERRADA][$this->tab];

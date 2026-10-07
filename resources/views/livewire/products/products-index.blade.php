@@ -150,6 +150,18 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-card-standard.css') }}?v=20260806">
     @endpush
 
+    {{-- Selo de promoção no card (inline: o deploy não reenvia public/assets) --}}
+    <style>
+        .product-card-modern .product-img-area > a.product-promo-flag {
+            position: absolute !important; left: .45rem; bottom: .45rem; top: auto; z-index: 12;
+            display: inline-flex; align-items: center; gap: .2rem; padding: .18rem .5rem; border-radius: 999px;
+            font-size: .68rem; font-weight: 900; line-height: 1.2; color: #fff; text-decoration: none; white-space: nowrap;
+            background: linear-gradient(135deg, #f43f5e, #f97316); box-shadow: 0 3px 10px rgba(244,63,94,.4);
+            border: 1.5px solid rgba(255,255,255,.75);
+        }
+        .product-card-modern .product-img-area > a.product-promo-flag:hover { transform: scale(1.06); }
+    </style>
+
     <x-loading-overlay message="Carregando produtos..." />
 
     <!-- Header Modernizado (com slot para controles) -->
@@ -517,10 +529,8 @@
                                 <!-- Kits não têm estoque próprio - apenas os componentes têm -->
 
                                 @if ($promo = $product->livePromotion())
-                                    <a href="{{ route('promotions.index') }}" class="absolute {{ $product->is_variation_parent || $product->tipo === 'kit' ? 'top-11' : 'top-2' }} left-2 z-10" title="Em promoção: de R$ {{ number_format($promo->original_price, 2, ',', '.') }} por R$ {{ number_format($promo->promo_price, 2, ',', '.') }}">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg border border-rose-300">
-                                            <i class="bi bi-fire mr-1"></i>PROMO -{{ $promo->discount_percent }}%
-                                        </span>
+                                    <a href="{{ route('promotions.index') }}" class="product-promo-flag {{ $product->is_variation_parent || $product->tipo === 'kit' ? 'is-low' : '' }}" title="Em promoção: de R$ {{ number_format($promo->original_price, 2, ',', '.') }} por R$ {{ number_format($promo->promo_price, 2, ',', '.') }}">
+                                        <i class="bi bi-fire"></i><span>-{{ $promo->discount_percent }}%</span>
                                     </a>
                                 @endif
 
@@ -620,10 +630,8 @@
                                 @endif
 
                                 @if ($promo = $product->livePromotion())
-                                    <a href="{{ route('promotions.index') }}" class="absolute {{ $product->is_variation_parent || $product->tipo === 'kit' ? 'top-11' : 'top-2' }} left-2 z-10" title="Em promoção: de R$ {{ number_format($promo->original_price, 2, ',', '.') }} por R$ {{ number_format($promo->promo_price, 2, ',', '.') }}">
-                                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg border border-rose-300">
-                                            <i class="bi bi-fire mr-1"></i>PROMO -{{ $promo->discount_percent }}%
-                                        </span>
+                                    <a href="{{ route('promotions.index') }}" class="product-promo-flag {{ $product->is_variation_parent || $product->tipo === 'kit' ? 'is-low' : '' }}" title="Em promoção: de R$ {{ number_format($promo->original_price, 2, ',', '.') }} por R$ {{ number_format($promo->promo_price, 2, ',', '.') }}">
+                                        <i class="bi bi-fire"></i><span>-{{ $promo->discount_percent }}%</span>
                                     </a>
                                 @endif
 

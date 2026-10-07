@@ -348,6 +348,67 @@ class PromotionService
             ->orderByRaw('(price_sale / price_original) asc');
     }
 
+    /** Tipos de sugestão: chave => [nome, ícone, explicação]. */
+    public const SUGGESTION_TYPES = [
+        'tabela'   => ['Desconto de tabela', 'bi-receipt', 'Revenda bem abaixo do preço de tabela'],
+        'antigos'  => ['Mais antigos', 'bi-hourglass-bottom', 'Há mais tempo no estoque'],
+        'parados'  => ['Parados', 'bi-pause-circle', 'Sem venda há 60 dias ou mais'],
+        'estoque'  => ['Mais estoque', 'bi-boxes', 'Maior quantidade em estoque'],
+        'margem'   => ['Mais margem', 'bi-graph-up-arrow', 'Mais espaço para dar desconto'],
+        'vendidos' => ['Mais vendidos', 'bi-trophy', 'Os que mais saíram nos últimos 90 dias'],
+    ];
+
+    /**
+     * Top N produtos com estoque e sem promoção para um tipo de sugestão.
+     * Cada produto vem com suggestion_note (o motivo) e suggestion_prices.
+     */
+    public function suggestionsByType(int $userId, string $type, int $limit = 10, ?PromotionSetting $settings = null, string $term = ''): Collection
+    {
+        $settings ??= $this->settings($userId);
+        if ($type === 'tabela') {
+            $query = $this->suggestionsQuery($userId, $settings);
+        } else {
+            $query = Product::query()
+                ->where('products.user_id', $userId)
+                ->where('stock_quantity', '>', 0)
+                ->where('status', 'ativo')
+                ->where('price_sale', '>', 0)
+                ->whereDoesntHave('promotions', fn ($q) => $q->whereIn('status', [Promotion::ATIVA, Promotion::AGENDADA]));
+        }
+        $query->with('category')->withCount('variants')
+            ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$term}%")->orWhere('product_code', 'like', "%{$term}%")));
+
+        $since60 = now()->subDays(60);
+        $since90 = now()->subDays(90);
+        $margin = 1 + (float) $settings->min_margin_percent / 100;
+
+        match ($type) {
+            'antigos'  => $query->orderBy('created_at')->orderBy('id'),
+            'parados'  => $query->whereDoesntHave('saleItems', fn ($q) => $q->where('created_at', '>=', $since60))
+                                ->withMax('saleItems as last_sold_at', 'created_at')
+                                ->orderByRaw('last_sold_at IS NOT NULL')->orderBy('last_sold_at')->orderBy('created_at'),
+            'estoque'  => $query->orderByDesc('stock_quantity'),
+            'margem'   => $query->orderByRaw('(price_sale - price * ?) desc', [$margin]),
+            'vendidos' => $query->withSum(['saleItems as sold_qty' => fn ($q) => $q->where('created_at', '>=', $since90)], 'quantity')
+                                ->whereHas('saleItems', fn ($q) => $q->where('created_at', '>=', $since90))
+                                ->orderByDesc('sold_qty'),
+            default    => null,
+        };
+
+        return $query->limit($limit)->get()->each(function (Product $p) use ($type, $settings) {
+            $prices = $this->suggestedPrices($p, $settings);
+            $p->setAttribute('suggestion_prices', $prices);
+            $p->setAttribute('suggestion_note', match ($type) {
+                'antigos'  => 'no estoque desde ' . $p->created_at?->format('d/m/Y'),
+                'parados'  => $p->last_sold_at ? 'última venda ' . Carbon::parse($p->last_sold_at)->format('d/m/Y') : 'nunca vendido',
+                'estoque'  => $p->stock_quantity . ' em estoque',
+                'margem'   => 'pode baixar até ' . $this->money(max(0, (float) $p->price_sale - $this->minPromoPrice($p, $settings))),
+                'vendidos' => (int) $p->sold_qty . ' vendidos em 90 dias',
+                default    => 'tabela ' . $this->money((float) $p->price_original),
+            });
+        });
+    }
+
     /** Mensagem de WhatsApp de uma promoção, com o modelo e o rodapé do usuário. */
     public function message(Promotion $promotion, ?Client $client = null, ?PromotionSetting $settings = null): string
     {
