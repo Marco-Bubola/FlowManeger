@@ -207,6 +207,8 @@
                     </div>
                 @enderror
             </div>
+
+            <x-client-extra-fields />
         </div>
     </form>
 </div>

@@ -5,10 +5,13 @@ namespace App\Livewire\Clients;
 use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Livewire\Clients\Concerns\HasClientExtraFields;
 use Livewire\Component;
 
 class CreateClient extends Component
 {
+    use HasClientExtraFields;
+
     // Propriedades do formulário
     public string $name = '';
     public string $email = '';
@@ -73,7 +76,7 @@ class CreateClient extends Component
             'phone' => 'nullable|regex:/^\(\d{2}\) \d{4,5}-\d{4}$/',
             'address' => 'nullable|string',
             'avatar_cliente' => 'required|url',
-        ];
+        ] + $this->extraFieldRules();
     }
 
     public function messages(): array
@@ -86,7 +89,7 @@ class CreateClient extends Component
             'phone.regex' => 'Informe um telefone valido no formato (11) 99999-9999.',
             'avatar_cliente.required' => 'Selecione um avatar para o cliente.',
             'avatar_cliente.url' => 'O avatar deve ser uma URL válida.',
-        ];
+        ] + $this->extraFieldMessages();
     }
 
     public function store(): void
@@ -102,7 +105,7 @@ class CreateClient extends Component
             'address' => $this->address ?: null,
             'user_id' => Auth::id(),
             'caminho_foto' => $this->avatar_cliente,
-        ]);
+        ] + $this->extraFieldData());
 
         // Emite evento para atualizar a lista
         $this->dispatch('client-created');
