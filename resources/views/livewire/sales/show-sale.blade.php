@@ -513,12 +513,31 @@
                         </div>
                         <div>
                             <h3 class="text-lg font-bold text-gray-900 dark:text-white">Aplicar Desconto</h3>
-                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Isto irá aplicar um desconto equivalente ao valor restante (<strong>R$ {{ number_format($sale->remaining_amount, 2, ',', '.') }}</strong>) e zerar o saldo pendente. Deseja continuar?</p>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Falta pagar <strong>R$ {{ number_format($sale->remaining_amount, 2, ',', '.') }}</strong>. O desconto abate do total e recalcula as parcelas pendentes.</p>
                         </div>
                     </div>
+
+                    <form wire:submit="applyDiscount" class="space-y-3 mb-4">
+                        <div class="flex rounded-xl bg-gray-100 dark:bg-zinc-700 p-1 text-sm font-bold">
+                            <button type="button" wire:click="$set('discountType', 'valor')" class="flex-1 py-2 rounded-lg {{ $discountType === 'valor' ? 'bg-white dark:bg-zinc-800 shadow text-amber-600' : 'text-gray-500' }}">Em R$</button>
+                            <button type="button" wire:click="$set('discountType', 'percentual')" class="flex-1 py-2 rounded-lg {{ $discountType === 'percentual' ? 'bg-white dark:bg-zinc-800 shadow text-amber-600' : 'text-gray-500' }}">Em %</button>
+                        </div>
+                        @if ($discountType === 'valor')
+                            <x-money-input model="discountValue" :value="0" :live="false" wire:key="discount-valor" />
+                        @else
+                            <div class="relative" wire:key="discount-percent">
+                                <input type="number" min="0" max="100" step="0.5" inputmode="decimal" wire:model="discountValue" placeholder="10"
+                                    class="w-full pl-4 pr-10 py-3 rounded-xl border border-gray-300 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-gray-900 dark:text-white font-bold">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">%</span>
+                            </div>
+                        @endif
+                        @error('discountValue') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
+                        <button type="submit" class="w-full px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white rounded-xl font-bold transition-all shadow-lg">Aplicar desconto</button>
+                    </form>
+
                     <div class="flex gap-3">
                         <button wire:click="cancelDiscount" class="flex-1 px-4 py-3 bg-gray-100 dark:bg-zinc-700 hover:bg-gray-200 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-xl font-semibold transition-all">Cancelar</button>
-                        <button wire:click="applyDiscountToZero" class="flex-1 px-4 py-3 bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-white rounded-xl font-bold transition-all shadow-lg">Confirmar Desconto</button>
+                        <button wire:click="applyDiscountToZero" wire:confirm="Dar desconto de todo o valor restante?" class="flex-1 px-4 py-3 border-2 border-amber-400 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-xl font-bold transition-all">Zerar o restante</button>
                     </div>
                 </div>
             </div>

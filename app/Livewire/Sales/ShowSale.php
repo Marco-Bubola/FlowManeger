@@ -29,6 +29,8 @@ class ShowSale extends Component
 
     // Modal de desconto/zerar restante
     public bool $showDiscountModal = false;
+    public string $discountType = 'valor'; // valor | percentual
+    public $discountValue = 0;
 
 
     public function mount($id)
@@ -268,6 +270,59 @@ class ShowSale extends Component
             $this->showDiscountModal = false;
             session()->flash('success', 'Desconto aplicado. Valor restante zerado.');
 
+        } catch (\Exception $e) {
+            Log::error('Erro ao aplicar desconto: ' . $e->getMessage());
+            session()->flash('error', 'Erro ao aplicar desconto.');
+        }
+    }
+
+    /**
+     * Desconto em R$ ou % sobre o total da venda, limitado ao que falta pagar.
+     * Segue o mesmo registro do "zerar restante" (pagamento do tipo desconto
+     * + abatimento no total) e recalcula as parcelas pendentes.
+     */
+    public function applyDiscount()
+    {
+        $this->ensureOwner();
+        $this->sale->refresh();
+
+        $value = (float) str_replace(',', '.', (string) $this->discountValue);
+        $amount = $this->discountType === 'percentual'
+            ? round((float) $this->sale->total_price * min(100, max(0, $value)) / 100, 2)
+            : round(max(0, $value), 2);
+        $amount = min($amount, (float) $this->sale->remaining_amount);
+
+        if ($amount <= 0) {
+            $this->addError('discountValue', 'Informe um desconto maior que zero e até o valor que falta pagar.');
+            return;
+        }
+
+        try {
+            \Illuminate\Support\Facades\DB::transaction(function () use ($amount) {
+                SalePayment::create([
+                    'sale_id' => $this->sale->id,
+                    'amount_paid' => $amount,
+                    'payment_method' => 'desconto',
+                    'payment_date' => now()->format('Y-m-d'),
+                ]);
+
+                $this->sale->total_price = max(0, (float) $this->sale->total_price - $amount);
+                $this->sale->save();
+
+                if ($this->sale->tipo_pagamento === 'parcelado') {
+                    app(\App\Services\Sales\SaleInstallmentService::class)->sync($this->sale);
+                }
+
+                $this->sale->refresh();
+                $this->sale->status = $this->sale->total_paid >= $this->sale->total_price ? 'pago' : 'pendente';
+                $this->sale->save();
+            });
+
+            $this->sale->load(['payments', 'parcelasVenda']);
+            $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)->orderBy('numero_parcela')->get();
+            $this->showDiscountModal = false;
+            $this->discountValue = 0;
+            session()->flash('success', 'Desconto de R$ '.number_format($amount, 2, ',', '.').' aplicado.');
         } catch (\Exception $e) {
             Log::error('Erro ao aplicar desconto: ' . $e->getMessage());
             session()->flash('error', 'Erro ao aplicar desconto.');

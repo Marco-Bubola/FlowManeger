@@ -109,6 +109,15 @@ class SalePaymentCashbookSyncTest extends TestCase
         $this->assertSame(0, Cashbook::count());
     }
 
+    public function test_desconto_nao_vira_receita(): void
+    {
+        SalePaymentCashbookSync::setEnabled($this->user, true);
+
+        SalePayment::create(['sale_id' => $this->sale->id, 'amount_paid' => 15, 'payment_method' => 'desconto']);
+
+        $this->assertSame(0, Cashbook::count());
+    }
+
     public function test_reaproveita_a_categoria_vendas(): void
     {
         SalePaymentCashbookSync::setEnabled($this->user, true);

@@ -37,7 +37,9 @@ class SalePaymentCashbookSync
         $this->safely(function () use ($payment) {
             $sale = $payment->sale;
             $user = $sale ? User::find($sale->user_id) : null;
-            if (! $user || ! self::enabledFor($user) || (float) $payment->amount_paid <= 0) {
+            // "desconto" é abatimento, não dinheiro recebido
+            if (! $user || ! self::enabledFor($user) || (float) $payment->amount_paid <= 0
+                || $payment->payment_method === 'desconto') {
                 return;
             }
 
