@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-ultrawide.css') }}">
     <!-- Header Moderno -->
     <x-sales-header
-        title="📊 Dashboard de Metas"
+        title="Painel de Metas"
+        icon="bi-bullseye" iconColor="purple"
         description="Acompanhe o progresso das suas metas e objetivos">
         <x-slot name="breadcrumb">
             <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">

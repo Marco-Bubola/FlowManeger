@@ -21,3 +21,10 @@ yarn-error.log
 /.nova
 /.vscode
 /.zed
+
+# Dumps do banco, logs e arquivos de diagnóstico nunca devem ir para o repositório
+*.sql
+!database/schema/*.sql
+/logs/
+start.log
+public/phpinfo.php

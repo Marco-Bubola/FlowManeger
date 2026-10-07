@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-index-ultrawide.css') }}">
     <!-- Header -->
-    <x-sales-header title="Meus Cofrinhos" subtitle="&quot;O segredo do sucesso é a constância do propósito.&quot; - Benjamin Disraeli">
+    <x-sales-header title="Meus Cofrinhos" subtitle="Acompanhe suas metas de economia" icon="bi-piggy-bank" iconColor="green">
         <x-slot name="breadcrumb">
             <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
                 <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">

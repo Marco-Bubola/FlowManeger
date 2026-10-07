@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-consortium-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-consortium-ultrawide.css') }}">
     <!-- Header Original com Botões Integrados -->
-    <x-sales-header title="Editar Consórcio" subtitle="Modifique os detalhes do consórcio" icon="bi-pencil-square"
+    <x-sales-header title="Editar Consórcio" subtitle="Modifique os detalhes do consórcio" icon="bi-pencil-square" iconColor="orange"
         :backRoute="route('consortiums.show', $consortium)">
 
         <x-slot name="breadcrumb">

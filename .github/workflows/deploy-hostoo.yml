@@ -167,6 +167,8 @@ jobs:
             echo "[deploy] entrando em APP_PATH"
             cd "${{ secrets.HOSTOO_APP_PATH }}"
             [ -f .env ] || { echo "ERRO: arquivo .env nao encontrado em $PWD"; exit 1; }
+            # O upload nunca apaga arquivos antigos: remove os de diagnóstico que não podem ficar públicos
+            rm -f public/phpinfo.php public/test-images.php flowmaneger.sql
             mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
             echo "[deploy] composer install"
             composer install --no-dev --no-scripts

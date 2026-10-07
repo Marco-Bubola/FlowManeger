@@ -91,7 +91,7 @@ class InvoicesIndex extends Component
 
         // Se não há bankId, redirecionar para a página de bancos ou usar o primeiro banco
         if (!$this->bankId) {
-            $firstBank = Bank::first();
+            $firstBank = Bank::where('user_id', Auth::id())->first();
             if ($firstBank) {
                 return redirect()->route('invoices.index', ['bankId' => $firstBank->id_bank]);
             } else {
@@ -109,10 +109,10 @@ class InvoicesIndex extends Component
                 return;
             }
 
-            $this->bank = Bank::findOrFail($this->bankId);
-            $this->banks = Bank::all();
-            $this->categories = Category::all();
-            $this->clients = Client::all();
+            $this->bank = Bank::where('user_id', Auth::id())->findOrFail($this->bankId);
+            $this->banks = Bank::where('user_id', Auth::id())->get();
+            $this->categories = Category::where('user_id', Auth::id())->get();
+            $this->clients = Client::where('user_id', Auth::id())->get();
 
             $this->calculateDateRanges();
             $this->loadInvoices();
@@ -566,7 +566,7 @@ class InvoicesIndex extends Component
 
     public function confirmDelete($invoiceId)
     {
-        $this->deletingInvoice = Invoice::find($invoiceId);
+        $this->deletingInvoice = Invoice::where('user_id', Auth::id())->find($invoiceId);
         $this->showDeleteModal = true;
     }
 

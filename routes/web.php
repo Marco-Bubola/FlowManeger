@@ -205,7 +205,6 @@ Route::middleware(['auth'])->group(function () {
     // Manter algumas rotas específicas se necessário
     // Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
     // Route::get('/clients/{id}/history', [ClientController::class, 'getPurchaseHistory'])->name('clients.history');
-    Route::post('/invoices/{id}/toggle-dividida', [ClienteResumoController::class, 'toggleDividida'])->name('invoices.toggleDividida');
 
     // --- Rotas de Produtos (Livewire) ---
     Route::get('/products', ProductsIndex::class)->name('products.index');
@@ -288,8 +287,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/daily-habits/edit/{habitId}', EditHabit::class)->name('daily-habits.edit');
     // --- Rotas de Achievements/Conquistas (Livewire) ---
     Route::get('/achievements', AchievementsPage::class)->name('achievements.index');
-    // --- Rotas de Conquistas (Livewire) ---
-    Route::get('/achievements', AchievementsPage::class)->name('achievements.index');
 
     // --- Preferências de usuário (persistência DB) ---
     Route::post('/settings/preferences/{group}', function(\Illuminate\Http\Request $req, string $group) {
@@ -354,47 +351,6 @@ use App\Livewire\MercadoLivre\PublishProduct;
 use App\Livewire\MercadoLivre\EditPublication;
 
 Route::prefix('mercadolivre')->middleware(['auth'])->name('mercadolivre.')->group(function () {
-    // Rota de DEBUG
-    Route::get('/debug', function () {
-        Log::info('DEBUG: Testando componente ProductIntegration');
-        
-        try {
-            $component = new \App\Livewire\MercadoLivre\ProductIntegration();
-            $component->mount();
-            $result = $component->render();
-            $data = $result->getData();
-            
-            return response()->json([
-                'success' => true,
-                'user_id' => Auth::id(),
-                'user_name' => Auth::user()->name,
-                'products_count' => $data['products']->count(),
-                'total_products' => $data['products']->total(),
-                'categories_count' => $data['categories']->count(),
-                'isConnected' => $component->isConnected,
-                'products' => $data['products']->map(function($p) {
-                    return [
-                        'id' => $p->id,
-                        'name' => $p->name,
-                        'stock' => $p->stock_quantity,
-                        'ready' => $p->isReadyForMercadoLivre()['ready']
-                    ];
-                })
-            ]);
-        } catch (\Throwable $e) {
-            Log::error('DEBUG: Erro ao testar componente', [
-                'error' => $e->getMessage(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine()
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'error' => $e->getMessage(),
-                'file' => $e->getFile() . ':' . $e->getLine()
-            ], 500);
-        }
-    })->name('debug');
     
     // Settings Page (Livewire Component)
     Route::get('/settings', function () {
@@ -506,6 +462,7 @@ Route::post('/mercadolivre/webhooks', [WebhookController::class, 'handle'])
     ->withoutMiddleware(['auth', 'web']);
 
 Route::get('/mercadolivre/webhooks/test', [WebhookController::class, 'test'])
+    ->middleware('auth')
     ->name('mercadolivre.webhooks.test');
 // ==================== END MERCADO LIVRE ROUTES ====================
 

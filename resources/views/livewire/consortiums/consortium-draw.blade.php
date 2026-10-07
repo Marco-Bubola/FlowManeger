@@ -9,6 +9,7 @@
     <!-- Header Moderno igual às outras páginas -->
     <x-sales-header
         title="Sistema de Sorteio"
+        icon="bi-shuffle" iconColor="purple"
         :description="'🎲 Sorteio #' . $drawNumber . ' - ' . $consortium->name"
         :back-route="route('consortiums.show', $consortium)">
         <x-slot name="actions">

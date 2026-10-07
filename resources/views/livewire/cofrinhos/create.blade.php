@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-create-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-create-ultrawide.css') }}">
     <!-- Header -->
-    <x-sales-header title="Criar Novo Cofrinho" subtitle="Defina sua meta e comece a economizar">
+    <x-sales-header title="Criar Novo Cofrinho" subtitle="Defina sua meta e comece a economizar" icon="bi-piggy-bank" iconColor="green">
         <x-slot name="breadcrumb">
             <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
                 <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">

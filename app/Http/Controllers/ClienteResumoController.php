@@ -7,6 +7,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\Cashbook;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ClienteResumoController extends Controller
@@ -152,7 +153,7 @@ class ClienteResumoController extends Controller
    
     public function toggleDividida(Request $request, $id)
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = Invoice::where('user_id', Auth::id())->findOrFail($id);
 
         $dividida = $request->dividida === true || $request->dividida === 'true' || $request->dividida == 1 ? 1 : 0;
         $invoice->dividida = $dividida;

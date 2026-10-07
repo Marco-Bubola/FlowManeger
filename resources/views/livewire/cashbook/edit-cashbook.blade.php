@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-cashbook-ultrawide.css') }}">
     <!-- Header Modernizado com botões de ação -->
-    <x-sales-header title="Editar Transação" description="Altere os dados da transação" :back-route="route('cashbook.index')"
+    <x-sales-header title="Editar Transação" icon="bi-pencil-square" iconColor="orange" description="Altere os dados da transação" :back-route="route('cashbook.index')"
         :current-step="1" :steps="[]">
         <x-slot name="breadcrumb">
             <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">

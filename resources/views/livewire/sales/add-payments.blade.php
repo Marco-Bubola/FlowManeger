@@ -11,6 +11,7 @@
 
     <x-sales-header
         title="Adicionar Pagamentos"
+        icon="bi-cash-coin" iconColor="green"
         :description="'Venda #' . $sale->id . ' &middot; ' . ($sale->client->name ?? 'Cliente não informado')"
         :back-route="route('sales.show', $sale->id)"
         :current-step="1"

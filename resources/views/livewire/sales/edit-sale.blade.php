@@ -19,6 +19,7 @@
     <div class="create-sale-sticky-header">
     <x-sales-header
         title="Editar Venda #{{ $sale->id }}"
+        icon="bi-pencil-square"
         description="Atualize as informações da venda seguindo os passos"
         :back-route="route('sales.show', $sale->id)"
         :current-step="$currentStep"

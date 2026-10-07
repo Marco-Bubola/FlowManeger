@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-edit-ultrawide.css') }}">
     <!-- Header -->
-    <x-sales-header title="Editar Cofrinho" subtitle="Atualize as informações do seu cofrinho">
+    <x-sales-header title="Editar Cofrinho" subtitle="Atualize as informações do seu cofrinho" icon="bi-pencil-square" iconColor="orange">
         <x-slot name="actions">
             <div class="hidden sm:flex items-center gap-3">
                 <span class="text-sm text-gray-400">Salvar: <kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">Ctrl</kbd>+<kbd class="bg-gray-100 text-xs px-2 py-0.5 rounded">S</kbd></span>

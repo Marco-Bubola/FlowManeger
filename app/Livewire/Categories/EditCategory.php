@@ -88,8 +88,8 @@ class EditCategory extends Component
 
     public function loadSelectData()
     {
-        $this->banks = Bank::all();
-        $this->clients = Client::all();
+        $this->banks = Bank::where('user_id', Auth::id())->get();
+        $this->clients = Client::where('user_id', Auth::id())->get();
         $this->categories = Category::where('user_id', Auth::id())
             ->where('id_category', '!=', $this->category->id_category)
             ->get();

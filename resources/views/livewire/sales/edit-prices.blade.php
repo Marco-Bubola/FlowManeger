@@ -15,6 +15,7 @@
     <!-- Header Modernizado -->
     <x-sales-header
         title="Editar Preços - Venda #{{ $sale->id }}"
+        icon="bi-tags"
         description="Cliente: {{ $sale->client->name ?? 'Cliente não informado' }} | {{ count($saleItems) }} item(s) | Total: R$ {{ number_format($this->total, 2, ',', '.') }}"
         :back-route="route('sales.show', $sale->id)" />
 

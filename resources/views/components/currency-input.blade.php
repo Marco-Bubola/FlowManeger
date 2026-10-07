@@ -28,7 +28,42 @@
     $borderErrorColor = $errors->has($wireModel) ? 'border-red-400 focus:border-red-500 focus:ring-red-500/30' : 'border-slate-200 dark:border-slate-600 ' . $focusBorderColor . ' ' . $hoverBorderColor;
 @endphp
 
-<div class="group space-y-2">
+@php
+    // Aceita o valor do PHP em formato numérico (1234.56) ou brasileiro (1.234,56)
+    $rawValue = (string) ($value ?? '');
+    if (str_contains($rawValue, ',')) {
+        $rawValue = str_replace(['.', ','], ['', '.'], $rawValue);
+    }
+    $initialCents = $rawValue === '' ? 0 : (int) round(((float) $rawValue) * 100);
+@endphp
+
+{{--
+  Máscara de centavos em Alpine (mesma regra do x-money-input):
+  cada dígito entra pela direita (1 → 0,01 · 12 → 0,12 · 123 → 1,23) e focar o
+  campo seleciona tudo. Vive no próprio elemento, então continua funcionando
+  quando a página é aberta pelo menu (wire:navigate) ou o Livewire re-renderiza.
+--}}
+<div class="group space-y-2"
+     x-data="{
+         cts: {{ $initialCents }},
+         fmt() {
+             if (!this.cts) return '';
+             let s = String(this.cts).padStart(3, '0');
+             let d = s.slice(-2);
+             let i = s.slice(0, -2).replace(/^0+/, '') || '0';
+             i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+             return i + ',' + d;
+         },
+         push() {
+             $wire.set('{{ $wireModel }}', this.cts ? (this.cts / 100).toFixed(2) : '', false);
+         },
+         inp(e) {
+             let digs = e.target.value.replace(/\D/g, '');
+             this.cts = digs ? parseInt(digs) : 0;
+             e.target.value = this.fmt();
+             this.push();
+         }
+     }">
     <label for="{{ $id }}" class="flex items-center text-base font-semibold text-slate-800 dark:text-slate-200 group-hover:text-{{ $iconColor }}-600 dark:group-hover:text-{{ $iconColor }}-400 transition-colors duration-200">
         <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br {{ $iconColorClass }} rounded-lg mr-3 shadow-sm transition-transform duration-150">
             <i class="{{ $icon }}"></i>
@@ -45,18 +80,18 @@
             <span class="text-base font-bold bg-gradient-to-r from-{{ $iconColor }}-600 to-{{ $iconColor }}-500 bg-clip-text text-transparent transition-transform duration-150">{{ $currency }}</span>
         </div>
 
-     <!-- Campo de entrada oculto (valor numérico para Livewire) - sincroniza apenas no submit -->
-     <input type="hidden" 
-            wire:model.blur="{{ $wireModel }}" 
-            id="{{ $id }}_hidden" 
-            name="{{ $name }}"
-            value="{{ $value ?? '' }}">
+
 
      <!-- Campo de entrada modernizado (visível apenas com máscara) -->
      <input type="text"
-         wire:ignore.self
+         wire:ignore
+         inputmode="numeric"
          id="{{ $id }}"
          name="{{ $name }}_masked"
+         x-init="$el.value = fmt()"
+         x-on:focus="$el.select()"
+         x-on:input="inp($event)"
+         x-on:blur="push()"
          maxlength="{{ $maxlength }}"
          @if($disabled) disabled @endif
          class="w-full pl-12 pr-3 py-2.5 border-2 rounded-xl
@@ -88,122 +123,6 @@
     </div>
     @enderror
 </div>
-
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const inputMasked = document.getElementById('{{ $id }}');
-        const inputHidden = document.getElementById('{{ $id }}_hidden');
-        
-        if (!inputMasked || !inputHidden) return;
-        
-        // Previne múltiplas inicializações
-        if (inputMasked.dataset.currencyInitialized === 'true') return;
-        inputMasked.dataset.currencyInitialized = 'true';
-        
-        const initialValue = '{{ $value ?? '' }}';
-        let isUpdating = false;
-
-        // Formata número para exibição (ex: 123.45 → "123,45")
-        const formatNumber = (numStr) => {
-            const num = parseFloat(numStr);
-            if (isNaN(num) || num === 0) return '0,00';
-            return num.toLocaleString('pt-BR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        };
-
-        // Formata valor digitado (ex: "212" → "2,12")
-        const formatInput = (value) => {
-            if (!value) return '';
-            const digits = value.replace(/\D/g, '');
-            if (digits === '') return '';
-
-            const numberValue = parseInt(digits, 10) / 100;
-            return formatNumber(numberValue.toFixed(2));
-        };
-
-        // Desformata para enviar ao backend (ex: "1.234,56" → "1234.56")
-        const unformat = (value) => {
-            if (!value) return '';
-            return value.replace(/\./g, '').replace(',', '.');
-        };
-
-        // Normaliza valor inicial
-        const normalizeForParse = (v) => {
-            if (!v) return '';
-            return v.toString().replace(/\./g, '').replace(',', '.');
-        };
-
-        // Inicializa campo visível (usado apenas no carregamento da página)
-        // val vem do PHP em formato americano (e.g. "4874.00"), usar parseFloat direto
-        const initializeValue = (val) => {
-            if (!val || val === '' || val === '0' || val === '0.00') {
-                inputMasked.value = '';
-                return;
-            }
-            
-            const numValue = parseFloat(val);
-            
-            if (!isNaN(numValue) && numValue > 0) {
-                inputMasked.value = formatNumber(numValue.toFixed(2));
-            }
-        };
-
-        // Inicializa com valor inicial (se houver)
-        if (initialValue && initialValue !== '' && initialValue !== '0' && initialValue !== '0.00') {
-            initializeValue(initialValue);
-        }
-
-        // Sincroniza visível → hidden → Livewire
-        const syncToHidden = () => {
-            if (isUpdating) return;
-            isUpdating = true;
-            
-            const formattedValue = formatInput(inputMasked.value);
-            const numericValue = unformat(formattedValue);
-            
-            inputHidden.value = numericValue;
-            inputHidden.dispatchEvent(new Event('input', { bubbles: true }));
-            
-            setTimeout(() => { isUpdating = false; }, 10);
-        };
-
-        // Handler para digitação
-        inputMasked.addEventListener('input', (e) => {
-            if (isUpdating) return;
-            
-            console.log('{{ $id }} - Input:', {
-                raw: e.target.value,
-                digits: e.target.value.replace(/\D/g, ''),
-            });
-            
-            const formattedValue = formatInput(e.target.value);
-            e.target.value = formattedValue;
-            
-            const numericValue = unformat(formattedValue);
-            console.log('{{ $id }} - Formatted:', {
-                formatted: formattedValue,
-                numeric: numericValue
-            });
-            
-            syncToHidden();
-        });
-        
-        inputMasked.addEventListener('blur', () => {
-            syncToHidden();
-        });
-
-        // Sincroniza antes do submit
-        const form = inputMasked.closest('form');
-        if (form) {
-            const submitHandler = (e) => {
-                syncToHidden();
-            };
-            form.addEventListener('submit', submitHandler, { capture: true, once: false });
-        }
-    });
-</script>
 
 <style>
     @keyframes shake {

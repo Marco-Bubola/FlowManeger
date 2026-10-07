@@ -8,6 +8,8 @@
     <!-- Header -->
     <x-sales-header
         title="Conquistas"
+        description="Suas medalhas e marcos alcançados"
+        icon="bi-trophy" iconColor="orange"
         :breadcrumbs="[
             ['label' => 'Dashboard', 'url' => route('dashboard')],
             ['label' => 'Conquistas', 'url' => null]

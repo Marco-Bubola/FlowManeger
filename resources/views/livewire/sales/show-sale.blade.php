@@ -46,6 +46,7 @@
     ============================================================ --}}
     <x-sales-header
         title="Venda #{{ $sale->id }}"
+        icon="bi-receipt"
         :description="$descriptionHtml"
         :back-route="route('sales.index')"
         :current-step="1"

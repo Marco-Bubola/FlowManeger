@@ -78,6 +78,10 @@ class EditCashbook extends Component
 
     public function mount(Cashbook $cashbook)
     {
+        if ((int) $cashbook->user_id !== (int) Auth::id()) {
+            abort(403, 'Acesso negado.');
+        }
+
         $this->cashbook = $cashbook;
 
         // Capturar parâmetros de retorno da query string

@@ -62,9 +62,9 @@ class CreateInvoice extends Component
 
     public function loadData()
     {
-        $this->banks = Bank::all();
-        $this->categories = Category::all();
-        $this->clients = Client::all();
+        $this->banks = Bank::where('user_id', Auth::id())->get();
+        $this->categories = Category::where('user_id', Auth::id())->get();
+        $this->clients = Client::where('user_id', Auth::id())->get();
     }
 
     public function save()

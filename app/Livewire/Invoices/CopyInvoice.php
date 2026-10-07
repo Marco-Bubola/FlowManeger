@@ -30,7 +30,7 @@ class CopyInvoice extends Component
         'bankId' => 'required|exists:banks,id_bank',
         'description' => 'required|string|max:255',
         'value' => 'required|string|max:255',
-        'installments' => 'required|string|max:255',
+        'installments' => 'nullable|string|max:255',
         'category_id' => 'required|exists:category,id_category',
         'client_id' => 'nullable|exists:clients,id',
         'invoice_date' => 'required|date',
@@ -43,7 +43,6 @@ class CopyInvoice extends Component
         'description.required' => 'A descrição é obrigatória.',
         'description.max' => 'A descrição não pode ter mais de 255 caracteres.',
         'value.required' => 'O valor é obrigatório.',
-        'installments.required' => 'As parcelas são obrigatórias.',
         'category_id.required' => 'A categoria é obrigatória.',
         'category_id.exists' => 'A categoria selecionada não existe.',
         'client_id.exists' => 'O cliente selecionado não existe.',
@@ -63,10 +62,10 @@ class CopyInvoice extends Component
 
     public function loadOriginalInvoice()
     {
-        $this->originalInvoice = Invoice::findOrFail($this->invoiceId);
+        $this->originalInvoice = Invoice::where('user_id', Auth::id())->findOrFail($this->invoiceId);
         $this->bankId = $this->originalInvoice->id_bank;
         $this->description = $this->originalInvoice->description;
-        $this->value = str_replace('.', ',', $this->originalInvoice->value);
+        $this->value = (string) $this->originalInvoice->value;
         $this->installments = $this->originalInvoice->installments;
         $this->category_id = $this->originalInvoice->category_id;
         $this->client_id = $this->originalInvoice->client_id;
@@ -75,14 +74,20 @@ class CopyInvoice extends Component
 
     public function loadData()
     {
-        $this->banks = Bank::all();
-        $this->categories = Category::all();
-        $this->clients = Client::all();
+        $this->banks = Bank::where('user_id', Auth::id())->get();
+        $this->categories = Category::where('user_id', Auth::id())->get();
+        $this->clients = Client::where('user_id', Auth::id())->orderBy('name')->get();
     }
 
     public function save()
     {
         $this->validate();
+
+        // O banco de destino também precisa ser do usuário
+        if (!Bank::where('user_id', Auth::id())->where('id_bank', $this->bankId)->exists()) {
+            $this->addError('bankId', 'Banco inválido.');
+            return;
+        }
 
         try {
             // Converter vírgula para ponto no valor
@@ -92,11 +97,11 @@ class CopyInvoice extends Component
                 'id_bank' => $this->bankId,
                 'description' => $this->description,
                 'value' => $value,
-                'installments' => $this->installments,
+                'installments' => $this->installments ?: null,
                 'category_id' => $this->category_id,
                 'client_id' => $this->client_id ?: null,
                 'invoice_date' => $this->invoice_date,
-                'user_id' => $this->originalInvoice->user_id,
+                'user_id' => Auth::id(),
             ]);
 
             session()->flash('success', 'Transação copiada com sucesso!');

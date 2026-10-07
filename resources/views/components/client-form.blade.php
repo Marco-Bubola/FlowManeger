@@ -134,7 +134,17 @@
                            wire:model="phone"
                            id="phone"
                            placeholder="(11) 99999-9999"
-                           x-on:input="$event.target.value = formatPhone($event.target.value); $wire.set('phone', $event.target.value)"
+                           inputmode="tel"
+                           x-data="{
+                               fmt(v) {
+                                   const d = String(v).replace(/\D/g, '').slice(0, 11);
+                                   if (d.length <= 2) return d.length ? '(' + d : '';
+                                   if (d.length <= 6) return '(' + d.slice(0, 2) + ') ' + d.slice(2);
+                                   if (d.length <= 10) return '(' + d.slice(0, 2) + ') ' + d.slice(2, 6) + '-' + d.slice(6);
+                                   return '(' + d.slice(0, 2) + ') ' + d.slice(2, 7) + '-' + d.slice(7);
+                               }
+                           }"
+                           x-on:input="$event.target.value = fmt($event.target.value); $wire.set('phone', $event.target.value, false)"
                            class="w-full pl-12 pr-4 py-4 bg-gradient-to-r from-white via-slate-50 to-purple-50 dark:from-slate-800 dark:via-slate-700 dark:to-purple-900/30
                                   border-2 {{ $errors->has('phone') ? 'border-red-300 dark:border-red-500' : 'border-slate-200/50 dark:border-slate-600/50' }} rounded-xl
                                   text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400

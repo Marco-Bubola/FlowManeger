@@ -62,7 +62,7 @@ class EditInvoice extends Component
 
     public function loadInvoice()
     {
-        $this->invoice = Invoice::findOrFail($this->invoiceId);
+        $this->invoice = Invoice::where('user_id', Auth::id())->findOrFail($this->invoiceId);
         $this->description = $this->invoice->description;
         $this->value = $this->invoice->value; // Removida a formatação str_replace
         $this->installments = $this->invoice->installments;
@@ -73,7 +73,7 @@ class EditInvoice extends Component
 
     public function loadData()
     {
-        $this->banks = Bank::all();
+        $this->banks = Bank::where('user_id', Auth::id())->get();
 
         // Carregar categorias ordenadas por uso recente (compatível com MySQL)
         $this->categories = Category::where('category.is_active', 1)

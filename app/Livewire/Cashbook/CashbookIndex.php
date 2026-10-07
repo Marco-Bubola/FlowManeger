@@ -516,7 +516,7 @@ class CashbookIndex extends Component
 
     public function confirmDelete($transactionId): void
     {
-        $this->deletingTransaction = Cashbook::find($transactionId);
+        $this->deletingTransaction = Cashbook::where('user_id', Auth::id())->find($transactionId);
         $this->showDeleteModal = true;
     }
 

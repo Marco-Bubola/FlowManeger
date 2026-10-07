@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/daily-habits-dashboard-ultrawide.css') }}">
 
     <!-- Header Padronizado -->
-    <x-sales-header title="🎯 Hábitos Diários" description="Construa sua melhor versão, um dia de cada vez">
+    <x-sales-header title="Hábitos Diários" icon="bi-check2-square" iconColor="green" description="Construa sua melhor versão, um dia de cada vez">
         <x-slot name="breadcrumb">
             <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
                 <a href="{{ route('dashboard') }}"

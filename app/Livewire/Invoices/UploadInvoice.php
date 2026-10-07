@@ -66,6 +66,9 @@ class UploadInvoice extends Component
 
     public function mount($bankId)
     {
+        // Só permite importar para um banco/cartão do próprio usuário
+        Bank::where('user_id', Auth::id())->findOrFail($bankId);
+
         $this->bankId = $bankId;
         $this->loadData();
         $this->loadUploadHistory();
@@ -73,7 +76,7 @@ class UploadInvoice extends Component
 
     public function loadData()
     {
-        $this->banks = Bank::all();
+        $this->banks = Bank::where('user_id', Auth::id())->get();
 
         // Carregar categorias ordenadas por uso recente (MySQL compatível)
         $this->categories = Category::where('category.is_active', 1)

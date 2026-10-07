@@ -1,10 +1,27 @@
 @props([
     'title' => 'Nova Venda',
-    'description' => 'Registre uma nova venda no sistema seguindo os passos',
+    'description' => null,
+    // Algumas telas passam "subtitle"; vale como sinônimo de "description".
+    'subtitle' => null,
+    'icon' => 'bi-plus-circle',
+    'iconColor' => null,
     'backRoute' => null,
     'currentStep' => 1,
     'steps' => []
 ])
+
+@php
+    $headerDescription = $description ?? $subtitle;
+    $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
+    $headerIconGradients = [
+        'blue' => 'from-blue-500 via-sky-500 to-cyan-500 shadow-blue-500/20',
+        'orange' => 'from-orange-500 via-amber-500 to-yellow-500 shadow-orange-500/20',
+        'green' => 'from-emerald-500 via-green-500 to-teal-500 shadow-emerald-500/20',
+        'purple' => 'from-purple-500 via-fuchsia-500 to-pink-500 shadow-purple-500/20',
+        'red' => 'from-rose-500 via-red-500 to-orange-500 shadow-rose-500/20',
+    ];
+    $headerIconGradient = $headerIconGradients[$iconColor] ?? 'from-indigo-500 via-sky-500 to-emerald-500 shadow-indigo-500/20';
+@endphp
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
 <div class="sales-create-header relative overflow-hidden border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(238,242,255,0.88),rgba(224,231,255,0.92))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl rounded-[28px] shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
@@ -28,8 +45,8 @@
                 @endif
 
                 <!-- Ícone principal e título (compacto) -->
-                <div class="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-indigo-500 via-sky-500 to-emerald-500 shadow-lg shadow-indigo-500/20 shrink-0">
-                    <i class="bi bi-plus-circle text-white text-2xl"></i>
+                <div class="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br {{ $headerIconGradient }} shadow-lg shrink-0">
+                    <i class="{{ $headerIcon }} text-white text-2xl"></i>
                     <div class="absolute inset-[1px] rounded-2xl border border-white/25"></div>
                 </div>
 
@@ -40,12 +57,14 @@
                     <h1 class="sales-create-header-title text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent truncate">
                         {{ $title }}
                     </h1>
-                    <p class="sales-create-header-subtitle flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
+@if($headerDescription)
+                                        <p class="sales-create-header-subtitle flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
                         <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300 shrink-0">
                             <i class="bi bi-stars text-[11px]"></i>
                         </span>
-                        <span>{!! $description !!}</span>
+                        <span>{!! $headerDescription !!}</span>
                     </p>
+                    @endif
                 </div>
             </div>
 

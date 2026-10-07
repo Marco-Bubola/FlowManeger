@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-ultrawide.css') }}">
     <div class="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
         style="min-height: 100vh;">
-        <x-sales-header title="📝 Editar Hábito" description="Atualize as informações do seu hábito">
+        <x-sales-header title="Editar Hábito" icon="bi-pencil-square" iconColor="orange" description="Atualize as informações do seu hábito">
             <x-slot name="breadcrumb">
                 <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
                     <a href="{{ route('dashboard') }}"
