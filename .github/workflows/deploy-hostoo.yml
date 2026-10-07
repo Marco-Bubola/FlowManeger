@@ -108,6 +108,23 @@ jobs:
             ls -ld "${{ secrets.HOSTOO_APP_PATH }}"
             ls -ld "${{ secrets.HOSTOO_PUBLIC_PATH }}"
 
+      # Vai antes do PHP e das views: se este envio falhar, o servidor continua
+      # inteiro na versão anterior (os arquivos do build têm nome com hash).
+      # public/assets (imagens fixas) não é reenviado a cada deploy; ao mudar algo
+      # nela, inclua "public/assets" no source abaixo.
+      - name: Upload public files to HOSTOO_PUBLIC_PATH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.HOSTOO_HOST }}
+          username: ${{ secrets.HOSTOO_USER }}
+          password: ${{ secrets.HOSTOO_PASSWORD }}
+          port: ${{ secrets.HOSTOO_PORT }}
+          source: "public/.htaccess,public/index.php,public/robots.txt,public/build,public/js"
+          target: ${{ secrets.HOSTOO_APP_PATH }}/public
+          rm: false
+          overwrite: true
+          strip_components: 1
+
       - name: Upload PHP core files
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -133,21 +150,6 @@ jobs:
           rm: false
           overwrite: true
           strip_components: 0
-
-      - name: Upload public files to HOSTOO_PUBLIC_PATH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTOO_HOST }}
-          username: ${{ secrets.HOSTOO_USER }}
-          password: ${{ secrets.HOSTOO_PASSWORD }}
-          port: ${{ secrets.HOSTOO_PORT }}
-          source: "public/.htaccess,public/index.php,public/robots.txt,public/assets,public/build,public/storage,public/js"
-          target: ${{ secrets.HOSTOO_APP_PATH }}/public
-          rm: false
-          overwrite: true
-          strip_components: 1
-
-
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
