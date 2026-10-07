@@ -108,48 +108,25 @@ jobs:
             ls -ld "${{ secrets.HOSTOO_APP_PATH }}"
             ls -ld "${{ secrets.HOSTOO_PUBLIC_PATH }}"
 
-      # Vai antes do PHP e das views: se este envio falhar, o servidor continua
-      # inteiro na versão anterior (os arquivos do build têm nome com hash).
+      # Um envio só (app, views e public juntos). A Hostoo derruba a conexão SSH
+      # quando o deploy abre muitas em seguida: com três envios separados, o
+      # terceiro sempre travava ao descompactar. HOSTOO_PUBLIC_PATH aponta para
+      # APP_PATH/public, então public/* vai para o lugar certo.
       # public/assets (imagens fixas) não é reenviado a cada deploy; ao mudar algo
       # nela, inclua "public/assets" no source abaixo.
-      - name: Upload public files to HOSTOO_PUBLIC_PATH
+      - name: Upload app, views e public
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.HOSTOO_HOST }}
           username: ${{ secrets.HOSTOO_USER }}
           password: ${{ secrets.HOSTOO_PASSWORD }}
           port: ${{ secrets.HOSTOO_PORT }}
-          source: "public/.htaccess,public/index.php,public/robots.txt,public/build,public/js"
-          target: ${{ secrets.HOSTOO_APP_PATH }}/public
-          rm: false
-          overwrite: true
-          strip_components: 1
-
-      - name: Upload PHP core files
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTOO_HOST }}
-          username: ${{ secrets.HOSTOO_USER }}
-          password: ${{ secrets.HOSTOO_PASSWORD }}
-          port: ${{ secrets.HOSTOO_PORT }}
-          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,.env.example"
+          source: "app,bootstrap,config,database,routes,scripts,artisan,composer.json,composer.lock,resources/views,public/.htaccess,public/index.php,public/robots.txt,public/build,public/js"
           target: ${{ secrets.HOSTOO_APP_PATH }}
           rm: false
           overwrite: true
           strip_components: 0
-
-      - name: Upload Blade views
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.HOSTOO_HOST }}
-          username: ${{ secrets.HOSTOO_USER }}
-          password: ${{ secrets.HOSTOO_PASSWORD }}
-          port: ${{ secrets.HOSTOO_PORT }}
-          source: "resources/views"
-          target: ${{ secrets.HOSTOO_APP_PATH }}
-          rm: false
-          overwrite: true
-          strip_components: 0
+          command_timeout: 15m
 
       - name: Run remote post-deploy commands
         uses: appleboy/ssh-action@v1.0.3
