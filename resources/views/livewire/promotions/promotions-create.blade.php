@@ -67,7 +67,7 @@
 
                     {{-- Atalhos de filtro --}}
                     <div class="flex gap-1 p-1 rounded-xl bg-white/60 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 overflow-x-auto promo-quick">
-                        @foreach(['todos' => ['Todos', 'bi-grid'], 'sem_promo' => ['Sem promoção', 'bi-tag'], 'com_tabela' => ['Com tabela', 'bi-receipt'], 'em_estoque' => ['Com estoque', 'bi-box-seam']] as $key => [$label, $icon])
+                        @foreach(['todos' => ['Todos', 'bi-grid'], 'sem_promo' => ['Sem promoção', 'bi-tag'], 'com_tabela' => ['Com tabela', 'bi-receipt']] as $key => [$label, $icon])
                             <button type="button" wire:click="$set('show', '{{ $key }}')"
                                     class="px-2.5 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition {{ $show === $key ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">
                                 <i class="bi {{ $icon }}"></i> {{ $label }}
@@ -102,7 +102,7 @@
                     <div class="ap-grid grid gap-3 md:gap-4">
                         @foreach($products as $product)
                             @php
-                                $isSelected = isset($items[$product->id]);
+                                $isSelected = in_array($product->id, $selectedRoots);
                                 $isKit = ($product->tipo ?? 'simples') === 'kit';
                                 $promo = $product->activePromotion;
                                 $stock = $product->is_variation_parent ? $product->family_stock : (int) $product->stock_quantity;
@@ -155,13 +155,6 @@
                         @endforeach
                     </div>
 
-                    @if($products->hasPages())
-                        <div class="mt-5 flex items-center justify-center gap-2">
-                            <button type="button" wire:click="previousPage" @disabled($products->onFirstPage()) class="promo-page-btn"><i class="bi bi-chevron-left"></i></button>
-                            <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
-                            <button type="button" wire:click="nextPage" @disabled(!$products->hasMorePages()) class="promo-page-btn"><i class="bi bi-chevron-right"></i></button>
-                        </div>
-                    @endif
                 @endif
             </div>
         </div>

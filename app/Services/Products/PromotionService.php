@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use InvalidArgumentException;
@@ -85,7 +86,10 @@ class PromotionService
             return ['original' => null, 'promo' => null, 'min' => $min];
         }
 
-        $promo = $tabela && $sale > 0 && $sale < $tabela ? $sale : round($original * 0.9, 2);
+        $discount = (float) ($settings->default_discount ?? 10);
+        $promo = $tabela && $sale > 0 && $sale < $tabela
+            ? $sale
+            : $this->withEnding(round($original * (1 - $discount / 100), 2), $min, $settings);
         $promo = max($promo, $min);
 
         return ['original' => $original, 'promo' => $promo < $original ? $promo : null, 'min' => $min];
@@ -104,9 +108,63 @@ class PromotionService
     /** Preço "por" para um desconto em %, sem passar do mínimo. */
     public function priceForPercent(Product $product, float $original, float $percent, ?PromotionSetting $settings = null): float
     {
+        $settings ??= $this->settings($product->user_id);
         $percent = max(0, min(99, $percent));
+        $min = $this->minPromoPrice($product, $settings);
 
-        return max($this->minPromoPrice($product, $settings), round($original * (1 - $percent / 100), 2));
+        return max($min, $this->withEnding(round($original * (1 - $percent / 100), 2), $min, $settings));
+    }
+
+    /**
+     * Botões − e +: o próximo preço com 1% a mais ou a menos de desconto.
+     * Com o final de preço (,90 etc.) dois percentuais podem dar o mesmo
+     * preço, então anda até o preço mudar.
+     */
+    public function stepPrice(Product $product, float $original, float $promo, int $direction, ?PromotionSetting $settings = null): float
+    {
+        if ($original <= 0) {
+            return $promo;
+        }
+        $settings ??= $this->settings($product->user_id);
+        $current = $promo > 0 ? (int) round((1 - $promo / $original) * 100) : 0;
+        $direction = $direction > 0 ? 1 : -1;
+
+        for ($k = 1; $k <= 20; $k++) {
+            $percent = $current + $direction * $k;
+            if ($percent < 1 || $percent > 99) {
+                break;
+            }
+            $next = $this->priceForPercent($product, $original, $percent, $settings);
+            if ($direction > 0 ? $next < $promo : $next > $promo) {
+                return $next;
+            }
+        }
+
+        return $promo;
+    }
+
+    /** Aplica o final de preço escolhido (,90 / ,99 / inteiro), sem ficar abaixo do mínimo. */
+    public function withEnding(float $price, float $min, PromotionSetting $settings): float
+    {
+        $ending = $settings->price_ending ?: 'none';
+        if ($ending === 'none' || $price < 1) {
+            return $price;
+        }
+
+        $cents = ['90' => 0.90, '99' => 0.99, '00' => 0.0][$ending] ?? null;
+        if ($cents === null) {
+            return $price;
+        }
+
+        $candidate = floor($price) + $cents;
+        if ($candidate > $price + 0.0001) {
+            $candidate -= 1;
+        }
+        while ($candidate < $min - 0.0001) {
+            $candidate += 1;
+        }
+
+        return round($candidate, 2);
     }
 
     /** Devolve a mensagem de erro, ou null quando os valores podem ser salvos. */
@@ -257,8 +315,13 @@ class PromotionService
             ->where('ends_at', '<=', now())
             ->update(['status' => Promotion::ENCERRADA, 'ended_reason' => 'vencida', 'ended_at' => now(), 'updated_at' => now()]);
 
+        // Quem desligou "encerrar ao zerar o estoque" fica de fora.
+        $keepOpen = Schema::hasColumn('promotion_settings', 'auto_end_out_of_stock')
+            ? PromotionSetting::where('auto_end_out_of_stock', false)->pluck('user_id')
+            : collect();
         $outOfStock = $scope(Promotion::query())
             ->where('status', Promotion::ATIVA)
+            ->when($keepOpen->isNotEmpty(), fn ($q) => $q->whereNotIn('user_id', $keepOpen))
             ->whereHas('product', fn ($p) => $p->withoutGlobalScopes()->where('stock_quantity', '<=', 0))
             ->update(['status' => Promotion::ENCERRADA, 'ended_reason' => 'sem_estoque', 'ended_at' => now(), 'updated_at' => now()]);
 
@@ -292,6 +355,9 @@ class PromotionService
         $template = trim((string) $promotion->message) !== '' ? $promotion->message : $settings->template();
 
         $body = $this->fill($template, $promotion, $client);
+        if ($client && ($settings->greet_client ?? true) && !str_contains($template, '{cliente}')) {
+            $body = 'Oi, ' . $this->firstName($client) . "! 💜\n" . $body;
+        }
 
         return $this->withFooter($body, $promotion->user_id, $settings, $client);
     }

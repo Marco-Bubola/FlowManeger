@@ -130,12 +130,11 @@ class PromotionsIndex extends Component
     public function nudgeDiscount(int $direction): void
     {
         $original = $this->num($this->originalPrice);
-        $promo = $this->num($this->promoPrice);
-        if ($original <= 0) {
+        $product = $this->editingProduct;
+        if ($original <= 0 || !$product) {
             return;
         }
-        $percent = $promo > 0 ? (1 - $promo / $original) * 100 : 0;
-        $this->setDiscountPercent(round($percent) + ($direction > 0 ? 1 : -1));
+        $this->promoPrice = $this->fmt(app(PromotionService::class)->stepPrice($product, $original, $this->num($this->promoPrice), $direction, $this->settings));
     }
 
     public function setDiscountPercent($percent): void
@@ -153,7 +152,9 @@ class PromotionsIndex extends Component
     public function useMinPrice(): void
     {
         if ($product = $this->editingProduct) {
-            $this->promoPrice = $this->fmt(app(PromotionService::class)->minPromoPrice($product, $this->settings));
+            $service = app(PromotionService::class);
+            $min = $service->minPromoPrice($product, $this->settings);
+            $this->promoPrice = $this->fmt($service->withEnding($min, $min, $this->settings));
         }
     }
 
@@ -351,6 +352,10 @@ class PromotionsIndex extends Component
             'message_template'     => $s->template(),
             'footer'               => (string) $s->footer,
             'footer_catalog_link'  => (bool) $s->footer_catalog_link,
+            'default_discount'     => $this->fmt((float) ($s->default_discount ?? 10)),
+            'price_ending'         => $s->price_ending ?: 'none',
+            'auto_end_out_of_stock' => (bool) ($s->auto_end_out_of_stock ?? true),
+            'greet_client'         => (bool) ($s->greet_client ?? true),
         ];
         $this->resetErrorBag();
         $this->showSettingsModal = true;
@@ -361,6 +366,7 @@ class PromotionsIndex extends Component
         $form = $this->settingsForm;
         $form['min_margin_percent'] = $this->num($form['min_margin_percent'] ?? 0);
         $form['suggest_min_discount'] = $this->num($form['suggest_min_discount'] ?? 0);
+        $form['default_discount'] = $this->num($form['default_discount'] ?? 10);
         $form['default_days'] = ($form['default_days'] ?? '') === '' ? null : (int) $form['default_days'];
         $this->settingsForm = $form;
 
@@ -370,7 +376,10 @@ class PromotionsIndex extends Component
             'settingsForm.default_days'         => 'nullable|integer|min:1|max:365',
             'settingsForm.message_template'     => 'required|string|max:2000',
             'settingsForm.footer'               => 'nullable|string|max:500',
+            'settingsForm.default_discount'     => 'required|numeric|min:1|max:90',
+            'settingsForm.price_ending'         => 'required|in:' . implode(',', array_keys(PromotionSetting::PRICE_ENDINGS)),
         ], [], [
+            'settingsForm.default_discount'     => 'desconto padrão',
             'settingsForm.min_margin_percent'   => 'lucro mínimo',
             'settingsForm.suggest_min_discount' => 'desconto mínimo',
             'settingsForm.default_days'         => 'dias de validade',
@@ -386,6 +395,10 @@ class PromotionsIndex extends Component
             'message_template'     => $form['message_template'],
             'footer'               => $form['footer'] ?? null,
             'footer_catalog_link'  => (bool) ($form['footer_catalog_link'] ?? false),
+            'default_discount'     => $form['default_discount'],
+            'price_ending'         => $form['price_ending'],
+            'auto_end_out_of_stock' => (bool) ($form['auto_end_out_of_stock'] ?? true),
+            'greet_client'         => (bool) ($form['greet_client'] ?? true),
         ])->save();
 
         $this->showSettingsModal = false;
@@ -395,6 +408,13 @@ class PromotionsIndex extends Component
     public function resetTemplate(): void
     {
         $this->settingsForm['message_template'] = PromotionSetting::DEFAULT_TEMPLATE;
+    }
+
+    public function useTemplate(string $key): void
+    {
+        if (isset(PromotionSetting::TEMPLATES[$key])) {
+            $this->settingsForm['message_template'] = PromotionSetting::TEMPLATES[$key][2];
+        }
     }
 
     public function backfillOriginalPrices(PromotionService $service, OrderPdfParser $parser): void

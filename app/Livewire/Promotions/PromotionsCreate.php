@@ -11,21 +11,21 @@ use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use InvalidArgumentException;
 use Livewire\Component;
-use Livewire\WithPagination;
 
 /**
  * Página "Nova promoção": escolhe os produtos em cards (como em Adicionar
  * produtos da venda), ajusta o desconto de cada um e cria as promoções.
+ * Lista todos os produtos com estoque, sem paginação.
  * Produto com variações entra com a família inteira: cada variação ganha a
  * própria promoção, porque cada uma tem preço e estoque próprios.
  */
 class PromotionsCreate extends Component
 {
-    use HasNotifications, WithPagination;
+    use HasNotifications;
 
     public string $search = '';
     public string $category = '';
-    public string $show = 'todos'; // todos | sem_promo | com_tabela | em_estoque
+    public string $show = 'todos'; // todos | sem_promo | com_tabela
     public string $sort = 'name';   // name | desconto | estoque | recentes
 
     /**
@@ -47,15 +47,9 @@ class PromotionsCreate extends Component
         }
     }
 
-    public function updatingSearch(): void { $this->resetPage(); }
-    public function updatingCategory(): void { $this->resetPage(); }
-    public function updatingShow(): void { $this->resetPage(); }
-    public function updatingSort(): void { $this->resetPage(); }
-
     public function clearFilters(): void
     {
         $this->reset(['search', 'category', 'show', 'sort']);
-        $this->resetPage();
     }
 
     /** Clique no card: adiciona ou tira (com as variações, se tiver). */
@@ -69,11 +63,20 @@ class PromotionsCreate extends Component
         $family = $product->is_variation_parent ? $product->family()->get() : collect([$product]);
         $ids = $family->pluck('id')->all();
 
-        if (isset($this->items[$product->id])) {
+        if (array_intersect($ids, array_keys($this->items))) {
             foreach ($ids as $id) {
                 unset($this->items[$id]);
             }
             return;
+        }
+
+        // Da família, só entram as variações que têm estoque.
+        if ($family->count() > 1) {
+            $family = $family->filter(fn (Product $m) => $this->hasStock($m))->values();
+            if ($family->isEmpty()) {
+                $this->notifyWarning('Nenhuma variação deste produto tem estoque.');
+                return;
+            }
         }
 
         $service = app(PromotionService::class);
@@ -82,7 +85,7 @@ class PromotionsCreate extends Component
             $prices = $service->suggestedPrices($member, $this->settings);
             if ($prices['promo'] === null) {
                 $skipped++;
-                if ($member->id !== $product->id) {
+                if ($family->count() > 1) {
                     continue;
                 }
             }
@@ -116,8 +119,7 @@ class PromotionsCreate extends Component
         if (!$product || $original <= 0) {
             return;
         }
-        $current = $promo > 0 ? (1 - $promo / $original) * 100 : 0;
-        $this->setPercent($productId, round($current) + ($direction > 0 ? 1 : -1));
+        $this->items[$productId]['promo'] = $this->fmt(app(PromotionService::class)->stepPrice($product, $original, $promo, $direction, $this->settings));
     }
 
     public function setPercent(int $productId, $percent): void
@@ -135,7 +137,9 @@ class PromotionsCreate extends Component
     {
         [$product, $original] = $this->row($productId);
         if ($product && $original > 0) {
-            $this->items[$productId]['promo'] = $this->fmt(app(PromotionService::class)->minPromoPrice($product, $this->settings));
+            $service = app(PromotionService::class);
+            $min = $service->minPromoPrice($product, $this->settings);
+            $this->items[$productId]['promo'] = $this->fmt($service->withEnding($min, $min, $this->settings));
         }
     }
 
@@ -211,18 +215,22 @@ class PromotionsCreate extends Component
         return Category::where('user_id', Auth::id())->where('type', 'product')->orderBy('name')->get();
     }
 
+    /** Produtos raiz (sem as variações) que têm estoque, todos de uma vez. */
     public function getProductsProperty()
     {
         $term = trim($this->search);
         $query = Product::where('user_id', Auth::id())
             ->whereNull('parent_id')
+            ->where(fn ($q) => $q->where('stock_quantity', '>', 0)
+                ->orWhere('tipo', 'kit')
+                ->orWhere(fn ($v) => $v->where('is_variation_parent', true)
+                    ->whereHas('variants', fn ($c) => $c->where('stock_quantity', '>', 0))))
             ->with(['category', 'activePromotion'])
             ->withCount('variants')
             ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$term}%")->orWhere('product_code', 'like', "%{$term}%")))
             ->when($this->category !== '', fn ($q) => $q->where('category_id', $this->category))
             ->when($this->show === 'sem_promo', fn ($q) => $q->whereDoesntHave('promotions', fn ($p) => $p->whereIn('status', [Promotion::ATIVA, Promotion::AGENDADA])))
-            ->when($this->show === 'com_tabela', fn ($q) => $q->where('price_original', '>', 0))
-            ->when($this->show === 'em_estoque', fn ($q) => $q->where('stock_quantity', '>', 0));
+            ->when($this->show === 'com_tabela', fn ($q) => $q->where('price_original', '>', 0));
 
         match ($this->sort) {
             'desconto' => $query->orderByRaw('CASE WHEN price_original > 0 THEN price_sale / price_original ELSE 2 END'),
@@ -231,7 +239,20 @@ class PromotionsCreate extends Component
             default    => $query->orderBy('name'),
         };
 
-        return $query->paginate(30);
+        return $query->get();
+    }
+
+    /** Ids dos cards marcados (o produto principal fica marcado quando alguma variação está escolhida). */
+    public function getSelectedRootsProperty(): array
+    {
+        if (empty($this->items)) {
+            return [];
+        }
+
+        return Product::where('user_id', Auth::id())->whereIn('id', array_keys($this->items))
+            ->get(['id', 'parent_id'])
+            ->map(fn (Product $p) => $p->parent_id ?? $p->id)
+            ->unique()->values()->all();
     }
 
     /** Linhas do painel da direita, com os números de cada produto. */
@@ -275,6 +296,7 @@ class PromotionsCreate extends Component
         return view('livewire.promotions.promotions-create', [
             'products' => $this->products,
             'rows'     => $this->rows,
+            'selectedRoots' => $this->selectedRoots,
             'settings' => $this->settings,
         ]);
     }
@@ -290,6 +312,11 @@ class PromotionsCreate extends Component
         $product = Product::where('user_id', Auth::id())->find($productId);
 
         return [$product, $this->num($this->items[$productId]['original']), $this->num($this->items[$productId]['promo'])];
+    }
+
+    private function hasStock(Product $product): bool
+    {
+        return ($product->tipo ?? 'simples') === 'kit' || (int) $product->stock_quantity > 0;
     }
 
     /** "1.449,50" | "1449.50" | 1449.5 → 1449.5 */

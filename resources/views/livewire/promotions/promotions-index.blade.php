@@ -510,70 +510,7 @@
 
     {{-- Modal: configurações --}}
     @if($showSettingsModal)
-        <div class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-            <div class="w-full sm:max-w-lg max-h-[95vh] overflow-y-auto bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl">
-                <div class="sticky top-0 flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
-                    <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100"><i class="bi bi-gear"></i> Configurações das promoções</h3>
-                    <button type="button" wire:click="$set('showSettingsModal', false)" class="text-slate-400 hover:text-slate-600"><i class="bi bi-x-lg"></i></button>
-                </div>
-                <div class="p-5 space-y-4">
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <div>
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Lucro mínimo (%)</label>
-                            <input type="text" inputmode="decimal" wire:model="settingsForm.min_margin_percent" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
-                            @error('settingsForm.min_margin_percent') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Sugerir a partir de (%)</label>
-                            <input type="text" inputmode="decimal" wire:model="settingsForm.suggest_min_discount" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
-                            @error('settingsForm.suggest_min_discount') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Validade padrão (dias)</label>
-                            <input type="number" min="1" wire:model="settingsForm.default_days" placeholder="Sem data" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">
-                            @error('settingsForm.default_days') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                        </div>
-                    </div>
-                    <p class="text-[11px] text-slate-500 dark:text-slate-400 -mt-2">O preço de promoção nunca fica abaixo do a pagar + o lucro mínimo. Com 5%, um produto que custa R$ 100,00 não sai por menos de R$ 105,00.</p>
-
-                    <div>
-                        <div class="flex items-center justify-between">
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Modelo da mensagem</label>
-                            <button type="button" wire:click="resetTemplate" class="text-xs text-rose-600 font-semibold">Restaurar padrão</button>
-                        </div>
-                        <textarea wire:model="settingsForm.message_template" rows="6" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm font-mono text-slate-700 dark:text-slate-200"></textarea>
-                        @error('settingsForm.message_template') <p class="text-xs text-red-600">{{ $message }}</p> @enderror
-                        <div class="mt-1 flex flex-wrap gap-1">
-                            @foreach(\App\Models\PromotionSetting::VARIABLES as $var => $label)
-                                <span class="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-[11px] text-slate-600 dark:text-slate-300" title="{{ $label }}">{{ $var }}</span>
-                            @endforeach
-                        </div>
-                        <p class="text-[11px] text-slate-400 mt-1">*texto* = negrito e ~texto~ = riscado no WhatsApp.</p>
-                    </div>
-
-                    <div>
-                        <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Rodapé (assinatura)</label>
-                        <textarea wire:model="settingsForm.footer" rows="2" placeholder="Ex.: Ana · Pix, cartão ou parcelado" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200"></textarea>
-                        <label class="mt-2 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
-                            <input type="checkbox" wire:model="settingsForm.footer_catalog_link" class="rounded text-rose-500">
-                            Incluir o link do meu catálogo
-                        </label>
-                    </div>
-
-                    <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 flex items-center justify-between gap-3">
-                        <span class="text-xs text-slate-600 dark:text-slate-300">Preencher o preço de tabela dos produtos já cadastrados relendo os PDFs de uploads anteriores.</span>
-                        <button type="button" wire:click="backfillOriginalPrices" wire:loading.attr="disabled" wire:target="backfillOriginalPrices" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold whitespace-nowrap">
-                            <span wire:loading.remove wire:target="backfillOriginalPrices">Buscar</span>
-                            <span wire:loading wire:target="backfillOriginalPrices">Lendo…</span>
-                        </button>
-                    </div>
-                </div>
-                <div class="sticky bottom-0 flex gap-2 px-5 py-4 border-t border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
-                    <button type="button" wire:click="$set('showSettingsModal', false)" class="flex-1 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 font-semibold">Cancelar</button>
-                    <button type="button" wire:click="saveSettings" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-pink-600 text-white font-semibold">Salvar</button>
-                </div>
-            </div>
-        </div>
+        @include('livewire.promotions.partials.settings-modal')
     @endif
 </div>
 

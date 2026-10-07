@@ -14,6 +14,26 @@ class PromotionSetting extends Model
 {
     public const DEFAULT_TEMPLATE = "🔥 *PROMOÇÃO* 🔥\n*{nome}*\n~De {de}~ por apenas *{por}* ({desconto} OFF)\n{validade}\nMe chama para garantir o seu! 💜";
 
+    /** Modelos prontos de mensagem: chave => [nome, ícone, texto]. */
+    public const TEMPLATES = [
+        'classico' => ['Clássico', 'bi-fire', self::DEFAULT_TEMPLATE],
+        'relampago' => ['Relâmpago', 'bi-lightning-charge-fill', "⚡ *OFERTA RELÂMPAGO* ⚡\n*{nome}*\nDe ~{de}~ por *{por}*\nVocê economiza {economia}! 😱\n{validade}\nCorre que acaba rápido! 🏃‍♀️"],
+        'ultimas' => ['Últimas unidades', 'bi-hourglass-split', "⏳ *ÚLTIMAS UNIDADES* ⏳\n*{nome}*\nSó restam {estoque} com {desconto} OFF!\n~{de}~ ➜ *{por}*\nGaranta o seu antes que acabe 💜"],
+        'semana' => ['Fim de semana', 'bi-calendar-heart', "🎉 *PROMO DE FIM DE SEMANA* 🎉\n*{nome}*\nDe ~{de}~ por apenas *{por}* ({desconto} OFF)\n{validade}\nAproveite! 🛍️"],
+        'queima' => ['Queima de estoque', 'bi-tags-fill', "🔥🔥 *QUEIMA DE ESTOQUE* 🔥🔥\n*{nome}*\nAntes ~{de}~\nAgora *{por}* 🤑\n{validade}\nChama no privado! 📲"],
+        'vip' => ['Cliente VIP', 'bi-gem', "💎 *Oferta exclusiva para você* 💎\nSeparei *{nome}* com {desconto} de desconto:\n~{de}~ por *{por}*\n{validade}\nQuer que eu reserve? 💜"],
+        'presente' => ['Presente', 'bi-gift-fill', "🎁 *Dica de presente* 🎁\n*{nome}*\nDe ~{de}~ por *{por}*\nVocê economiza {economia} e ainda acerta no presente! 😍\n{validade}"],
+        'curto' => ['Curto e direto', 'bi-chat-dots-fill', "*{nome}*\n~{de}~ ➜ *{por}* ({desconto} OFF) 🔥"],
+    ];
+
+    /** Final do preço de promoção. */
+    public const PRICE_ENDINGS = [
+        'none' => ['Como calcular', 'R$ 36,47'],
+        '90'   => ['Terminar em ,90', 'R$ 35,90'],
+        '99'   => ['Terminar em ,99', 'R$ 35,99'],
+        '00'   => ['Valor inteiro', 'R$ 36,00'],
+    ];
+
     public const VARIABLES = [
         '{nome}'     => 'Nome do produto',
         '{de}'       => 'Preço original',
@@ -29,6 +49,7 @@ class PromotionSetting extends Model
     protected $fillable = [
         'user_id', 'min_margin_percent', 'suggest_min_discount', 'default_days',
         'message_template', 'footer', 'footer_catalog_link',
+        'default_discount', 'price_ending', 'auto_end_out_of_stock', 'greet_client',
     ];
 
     protected $casts = [
@@ -36,6 +57,9 @@ class PromotionSetting extends Model
         'suggest_min_discount' => 'decimal:2',
         'default_days'         => 'integer',
         'footer_catalog_link'  => 'boolean',
+        'default_discount'     => 'decimal:2',
+        'auto_end_out_of_stock' => 'boolean',
+        'greet_client'         => 'boolean',
     ];
 
     /** Configuração do usuário, com os padrões quando ainda não salvou nada. */
@@ -57,6 +81,10 @@ class PromotionSetting extends Model
             'message_template'     => self::DEFAULT_TEMPLATE,
             'footer'               => "Pix, cartão ou parcelado. 💳",
             'footer_catalog_link'  => true,
+            'default_discount'     => 10,
+            'price_ending'         => 'none',
+            'auto_end_out_of_stock' => true,
+            'greet_client'         => true,
         ];
     }
 
