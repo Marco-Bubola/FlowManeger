@@ -65,6 +65,50 @@ class PromotionService
         return null;
     }
 
+    /**
+     * Preços iniciais para pôr um produto em promoção.
+     * Com tabela: de = tabela, por = revenda. Sem tabela (produtos antigos):
+     * de = revenda, por = 10% abaixo. O "por" nunca fica abaixo do mínimo;
+     * promo null quando não há margem para desconto.
+     *
+     * @return array{original: ?float, promo: ?float, min: float}
+     */
+    public function suggestedPrices(Product $product, ?PromotionSetting $settings = null): array
+    {
+        $settings ??= $this->settings($product->user_id);
+        $min = $this->minPromoPrice($product, $settings);
+        $sale = (float) $product->price_sale;
+        $tabela = $this->originalPriceFor($product);
+        $original = $tabela ?: ($sale > 0 ? $sale : null);
+
+        if (!$original) {
+            return ['original' => null, 'promo' => null, 'min' => $min];
+        }
+
+        $promo = $tabela && $sale > 0 && $sale < $tabela ? $sale : round($original * 0.9, 2);
+        $promo = max($promo, $min);
+
+        return ['original' => $original, 'promo' => $promo < $original ? $promo : null, 'min' => $min];
+    }
+
+    /** Maior desconto (%) que ainda respeita o lucro mínimo. */
+    public function maxDiscountPercent(Product $product, float $original, ?PromotionSetting $settings = null): int
+    {
+        if ($original <= 0) {
+            return 0;
+        }
+
+        return max(0, (int) floor((1 - $this->minPromoPrice($product, $settings) / $original) * 100));
+    }
+
+    /** Preço "por" para um desconto em %, sem passar do mínimo. */
+    public function priceForPercent(Product $product, float $original, float $percent, ?PromotionSetting $settings = null): float
+    {
+        $percent = max(0, min(99, $percent));
+
+        return max($this->minPromoPrice($product, $settings), round($original * (1 - $percent / 100), 2));
+    }
+
     /** Devolve a mensagem de erro, ou null quando os valores podem ser salvos. */
     public function validatePrices(Product $product, float $original, float $promo, ?PromotionSetting $settings = null): ?string
     {
@@ -120,7 +164,9 @@ class PromotionService
                 ->get()
                 ->each(fn (Promotion $p) => $this->end($p, 'substituida'));
 
-            if (round((float) $product->price_original, 2) !== $original) {
+            // O "de" vira o preço de tabela, menos quando é só o revenda (produto
+            // sem tabela), para não confundir as sugestões depois.
+            if (round((float) $product->price_original, 2) !== $original && $original !== round((float) $product->price_sale, 2)) {
                 $product->forceFill(['price_original' => $original])->save();
             }
 
@@ -166,7 +212,9 @@ class PromotionService
             }
             $promotion->save();
 
-            if (round((float) $product->price_original, 2) !== $original) {
+            // O "de" vira o preço de tabela, menos quando é só o revenda (produto
+            // sem tabela), para não confundir as sugestões depois.
+            if (round((float) $product->price_original, 2) !== $original && $original !== round((float) $product->price_sale, 2)) {
                 $product->forceFill(['price_original' => $original])->save();
             }
         });

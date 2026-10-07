@@ -21,6 +21,7 @@ use App\Livewire\Products\ShowProduct;
 use App\Livewire\Products\BarcodeScanner;
 use App\Livewire\Products\BulkEditProducts;
 use App\Livewire\Promotions\PromotionsIndex;
+use App\Livewire\Promotions\PromotionsCreate;
 
 // Importar componentes Livewire de clientes
 use App\Livewire\Clients\ClientsIndex;
@@ -219,6 +220,7 @@ Route::middleware(['auth'])->group(function () {
 
     // --- Promoções ---
     Route::get('/promotions', PromotionsIndex::class)->name('promotions.index');
+    Route::get('/promotions/create', PromotionsCreate::class)->name('promotions.create');
 
     // Manter rotas que ainda usam controller para funcionalidades específicas
     // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');

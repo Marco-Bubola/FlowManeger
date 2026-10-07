@@ -32,11 +32,10 @@ class PromotionsIndex extends Component
     /** @var array<int> ids selecionados (promoções; ou produtos na aba Sugestões) */
     public array $selected = [];
 
-    // Modal de edição / nova promoção
+    // Modal de edição (nova promoção tem página própria: promotions.create)
     public bool $showEditModal = false;
     public ?int $editingPromotionId = null;
     public ?int $editingProductId = null;
-    public string $productSearch = '';
     public $originalPrice = '';
     public $promoPrice = '';
     public string $startsAt = '';
@@ -78,7 +77,7 @@ class PromotionsIndex extends Component
             if ($current) {
                 $this->openEdit($current->id);
             } elseif (Product::where('user_id', Auth::id())->whereKey($productId)->exists()) {
-                $this->openCreate($productId);
+                $this->redirectRoute('promotions.create', ['produto' => $productId]);
             }
         }
     }
@@ -113,28 +112,6 @@ class PromotionsIndex extends Component
 
     // ─── Pôr em promoção / editar ─────────────────────────────────
 
-    public function openCreate(?int $productId = null): void
-    {
-        $this->resetEditForm();
-        $this->showEditModal = true;
-        if ($productId) {
-            $this->selectProduct($productId);
-        }
-    }
-
-    public function selectProduct(int $productId): void
-    {
-        $product = $this->ownProduct($productId);
-        $service = app(PromotionService::class);
-        $settings = $this->settings;
-
-        $this->editingProductId = $product->id;
-        $this->productSearch = '';
-        $this->originalPrice = $this->fmt($service->originalPriceFor($product));
-        $this->promoPrice = $this->fmt(max((float) $product->price_sale, $service->minPromoPrice($product, $settings)));
-        $this->endsAt = $settings->default_days ? now()->addDays($settings->default_days)->format('Y-m-d') : '';
-    }
-
     public function openEdit(int $promotionId): void
     {
         $promo = $this->ownPromotion($promotionId);
@@ -149,7 +126,7 @@ class PromotionsIndex extends Component
         $this->showEditModal = true;
     }
 
-    /** Botões −/+ do modal: muda o preço "por" em passos de 1%. */
+    /** Botões −/+ do modal: muda o preço "por" em passos de 1%, sem passar do mínimo. */
     public function nudgeDiscount(int $direction): void
     {
         $original = $this->num($this->originalPrice);
@@ -157,18 +134,19 @@ class PromotionsIndex extends Component
         if ($original <= 0) {
             return;
         }
-        $percent = (1 - $promo / $original) * 100;
+        $percent = $promo > 0 ? (1 - $promo / $original) * 100 : 0;
         $this->setDiscountPercent(round($percent) + ($direction > 0 ? 1 : -1));
     }
 
     public function setDiscountPercent($percent): void
     {
         $original = $this->num($this->originalPrice);
-        if ($original <= 0) {
+        $product = $this->editingProduct;
+        if ($original <= 0 || !$product) {
             return;
         }
         $percent = max(1, min(99, (float) $percent));
-        $this->promoPrice = $this->fmt(round($original * (1 - $percent / 100), 2));
+        $this->promoPrice = $this->fmt(app(PromotionService::class)->priceForPercent($product, $original, $percent, $this->settings));
     }
 
     /** Usa o menor preço permitido pelo lucro mínimo. */
@@ -456,6 +434,7 @@ class PromotionsIndex extends Component
         $min = $product ? app(PromotionService::class)->minPromoPrice($product, $this->settings) : 0;
 
         return [
+            'max'      => $product ? app(PromotionService::class)->maxDiscountPercent($product, $original, $this->settings) : 0,
             'discount' => $original > 0 && $promo > 0 ? (int) round((1 - $promo / $original) * 100) : 0,
             'savings'  => max(0, $original - $promo),
             'cost'     => $cost,
@@ -466,20 +445,6 @@ class PromotionsIndex extends Component
         ];
     }
 
-    public function getProductResultsProperty()
-    {
-        if (mb_strlen(trim($this->productSearch)) < 2) {
-            return collect();
-        }
-        $term = '%' . trim($this->productSearch) . '%';
-
-        return Product::where('user_id', Auth::id())
-            ->where(fn ($q) => $q->where('name', 'like', $term)->orWhere('product_code', 'like', $term))
-            ->orderByDesc('stock_quantity')
-            ->limit(8)
-            ->get();
-    }
-
     public function getItemsProperty()
     {
         $service = app(PromotionService::class);
@@ -488,6 +453,7 @@ class PromotionsIndex extends Component
         if ($this->tab === 'sugestoes') {
             return $service->suggestionsQuery(Auth::id(), $this->settings)
                 ->with('category')
+                ->withCount('variants')
                 ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', "%{$term}%")->orWhere('product_code', 'like', "%{$term}%")))
                 ->paginate($this->perPage);
         }
@@ -496,7 +462,7 @@ class PromotionsIndex extends Component
 
         $query = Promotion::ofUser(Auth::id())
             ->where('promotions.status', $status)
-            ->with(['product.category', 'sends' => fn ($q) => $q->latest()->with('client')])
+            ->with(['product' => fn ($q) => $q->with('category')->withCount('variants'), 'sends' => fn ($q) => $q->latest()->with('client')])
             ->join('products', 'products.id', '=', 'promotions.product_id')
             ->select('promotions.*')
             ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('products.name', 'like', "%{$term}%")->orWhere('products.product_code', 'like', "%{$term}%")));
@@ -570,11 +536,11 @@ class PromotionsIndex extends Component
         $errors = [];
 
         foreach (Product::where('user_id', Auth::id())->whereIn('id', $productIds)->get() as $product) {
-            $original = $service->originalPriceFor($product);
+            $prices = $service->suggestedPrices($product, $settings);
             try {
                 $service->start($product, [
-                    'original_price' => (float) $original,
-                    'promo_price'    => max((float) $product->price_sale, $service->minPromoPrice($product, $settings)),
+                    'original_price' => (float) $prices['original'],
+                    'promo_price'    => (float) ($prices['promo'] ?? $prices['original']),
                     'ends_at'        => $settings->default_days ? now()->addDays($settings->default_days) : null,
                 ]);
                 $ok++;
@@ -638,7 +604,7 @@ class PromotionsIndex extends Component
 
     private function resetEditForm(): void
     {
-        $this->reset(['editingPromotionId', 'editingProductId', 'productSearch', 'originalPrice', 'promoPrice', 'startsAt', 'endsAt', 'message']);
+        $this->reset(['editingPromotionId', 'editingProductId', 'originalPrice', 'promoPrice', 'startsAt', 'endsAt', 'message']);
         $this->resetErrorBag();
     }
 
