@@ -58,6 +58,7 @@ class PromotionsIndex extends Component
     public array $shareIds = [];
     public ?int $shareClientId = null;
     public string $shareText = '';
+    public string $shareTemplate = ''; // '' = mensagem da promoção ou modelo das configurações
 
     // Configurações
     public bool $showSettingsModal = false;
@@ -324,6 +325,7 @@ class PromotionsIndex extends Component
         }
         $this->shareIds = $promos->pluck('id')->all();
         $this->shareClientId = null;
+        $this->shareTemplate = '';
         $this->buildShareText();
         $this->showShareModal = true;
     }
@@ -331,6 +333,13 @@ class PromotionsIndex extends Component
     public function setShareClient(?int $clientId): void
     {
         $this->shareClientId = $clientId ?: null;
+        $this->buildShareText();
+    }
+
+    /** Troca o modelo da mensagem só para este envio ('' volta ao padrão). */
+    public function setShareTemplate(string $key): void
+    {
+        $this->shareTemplate = isset(PromotionSetting::TEMPLATES[$key]) ? $key : '';
         $this->buildShareText();
     }
 
@@ -546,11 +555,14 @@ class PromotionsIndex extends Component
             'allClients' => Client::where('user_id', Auth::id())->whereNotNull('phone')->where('phone', '!=', '')->orderBy('name')->get(['id', 'name', 'phone']),
             'cards'      => $promos->map(fn (Promotion $p) => [
                 'name'     => $p->product->name,
-                'image'    => $p->product->image_url,
+                // Caminho relativo: mesma origem da página, senão o canvas não pode virar imagem para copiar/compartilhar
+                'image'    => parse_url($p->product->image_url, PHP_URL_PATH) ?: $p->product->image_url,
                 'original' => $service->money((float) $p->original_price),
                 'promo'    => $service->money((float) $p->promo_price),
                 'discount' => $p->discount_percent,
                 'validity' => $p->ends_at ? 'Válido até ' . $p->ends_at->format('d/m') : 'Enquanto durar o estoque',
+                'savings'  => $service->money(max(0, (float) $p->original_price - (float) $p->promo_price)),
+                'stock'    => (int) $p->product->stock_quantity,
             ])->values()->all(),
         ];
     }
@@ -605,8 +617,10 @@ class PromotionsIndex extends Component
     {
         $service = app(PromotionService::class);
 
+        $template = PromotionSetting::TEMPLATES[$this->shareTemplate][2] ?? null;
+
         return $promos->count() === 1
-            ? $service->message($promos->first(), $client, $this->settings)
+            ? $service->message($promos->first(), $client, $this->settings, $template)
             : $service->offersMessage($promos, $client, $this->settings);
     }
 

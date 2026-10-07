@@ -410,10 +410,12 @@ class PromotionService
     }
 
     /** Mensagem de WhatsApp de uma promoção, com o modelo e o rodapé do usuário. */
-    public function message(Promotion $promotion, ?Client $client = null, ?PromotionSetting $settings = null): string
+    public function message(Promotion $promotion, ?Client $client = null, ?PromotionSetting $settings = null, ?string $template = null): string
     {
         $settings ??= $this->settings($promotion->user_id);
-        $template = trim((string) $promotion->message) !== '' ? $promotion->message : $settings->template();
+        if (trim((string) $template) === '') {
+            $template = trim((string) $promotion->message) !== '' ? $promotion->message : $settings->template();
+        }
 
         $body = $this->fill($template, $promotion, $client);
         if ($client && ($settings->greet_client ?? true) && !str_contains($template, '{cliente}')) {

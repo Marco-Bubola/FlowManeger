@@ -260,6 +260,7 @@
 
                         <span class="badge-product-code" title="Código do Produto"><i class="bi bi-upc-scan"></i> {{ $product?->product_code }}</span>
 
+                        <span class="product-promo-flag"><i class="bi bi-fire"></i> -{{ $discount }}%</span>
                         <div class="promo-card-tags">
                             @if($isKit)
                                 <span class="promo-tag bg-gradient-to-r from-blue-500 to-blue-600"><i class="bi bi-boxes"></i> KIT</span>
@@ -278,17 +279,6 @@
 
                     <div class="card-body">
                         <a href="{{ $product ? route('products.show', $product->product_code) : '#' }}" class="product-title" title="{{ $product?->name }}">{{ ucwords($product?->name ?? 'Produto removido') }}</a>
-
-                        <div class="promo-box">
-                            <div class="promo-box-prices">
-                                <s>{{ $money($original) }}</s>
-                                <strong>{{ $money($promoValue) }}</strong>
-                            </div>
-                            <div class="promo-box-off"><span>-{{ $discount }}%</span><small>OFF</small></div>
-                        </div>
-                        @if($savings > 0)
-                            <div class="promo-save"><i class="bi bi-piggy-bank"></i> economia de {{ $money($savings) }}</div>
-                        @endif
 
                         <div class="promo-card-meta">
                             @if($tab === 'sugestoes')
@@ -311,8 +301,12 @@
                         </div>
 
                         <div class="price-area">
-                            <span class="badge-price" title="Custo (a pagar)"><i class="bi bi-tag"></i> {{ number_format((float) $product?->price, 2, ',', '.') }}</span>
-                            <span class="badge-price-sale" title="Revenda"><i class="bi bi-currency-dollar"></i> {{ number_format((float) $product?->price_sale, 2, ',', '.') }}</span>
+                            <span class="badge-price" title="Custo (a pagar)"><i class="bi bi-tag"></i> R$ {{ number_format((float) $product?->price, 2, ',', '.') }}</span>
+                            <span class="badge-price-sale promo-price-badge" title="De {{ $money($original) }} por {{ $money($promoValue) }}{{ $savings > 0 ? ' (economia de ' . $money($savings) . ')' : '' }}">
+                                <i class="bi bi-fire"></i>
+                                <s>R$ {{ number_format($original, 2, ',', '.') }}</s>
+                                R$ {{ number_format($promoValue, 2, ',', '.') }}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -416,7 +410,7 @@
         }
 
         .promo-card .product-title { display: block; }
-        .promo-card .promo-card-tags { position: absolute; left: .5em; bottom: .5em; z-index: 10; display: flex; flex-wrap: wrap; gap: .25em; max-width: 70%; }
+        .promo-card .promo-card-tags { position: absolute; left: .5em; bottom: 2.1em; z-index: 10; display: flex; flex-wrap: wrap; gap: .25em; max-width: 70%; }
         .promo-card .promo-box { display: flex; align-items: stretch; margin-top: .35em; border-radius: .9em; overflow: hidden;
             background: linear-gradient(135deg, rgba(244,63,94,.08), rgba(249,115,22,.10)); border: 1px solid rgba(244,63,94,.25); }
         .promo-card .promo-box-prices { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; padding: .35em .6em; line-height: 1.1; }
@@ -426,6 +420,11 @@
             background: linear-gradient(160deg, #f43f5e, #f97316); }
         .promo-card .promo-box-off span { font-size: 1em; font-weight: 900; }
         .promo-card .promo-box-off small { font-size: .55em; font-weight: 800; letter-spacing: .08em; opacity: .9; }
+        .promo-card .product-img-area > .product-promo-flag { position: absolute !important; left: .45rem; bottom: .45rem; z-index: 12;
+            display: inline-flex; align-items: center; gap: .2rem; padding: .18rem .5rem; border-radius: 999px; font-size: .68rem; font-weight: 900; line-height: 1.2;
+            color: #fff; white-space: nowrap; background: linear-gradient(135deg, #f43f5e, #f97316); box-shadow: 0 3px 10px rgba(244,63,94,.4); border: 1.5px solid rgba(255,255,255,.75); }
+        .promo-card .promo-price-badge { background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%) !important; color: #fff !important; }
+        .promo-card .promo-price-badge s { opacity: .75; font-size: .8em; margin-right: .25em; }
         .promo-card .promo-save { margin-top: .35em; text-align: center; font-size: .68em; font-weight: 700; color: rgb(5 150 105); }
         .promo-card .promo-card-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: .3em; margin: .4em 0 2.1em; font-size: .66em; }
         .promo-card .promo-meta-pill { display: inline-flex; align-items: center; gap: .25em; max-width: 100%; padding: .2em .6em; border-radius: 999px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -500,82 +499,8 @@
 
     {{-- Modal: WhatsApp --}}
     @if($showShareModal)
-        @php $share = $this->shareData; @endphp
-        <div class="fixed inset-0 z-[9999] flex items-end sm:items-center justify-center bg-black/50 p-0 sm:p-4">
-            <div class="w-full sm:max-w-3xl max-h-[95vh] overflow-y-auto bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl"
-                 x-data="promoShare(@js($share['cards']))" x-init="render()">
-                <div class="sticky top-0 z-10 flex items-center justify-between px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800">
-                    <h3 class="font-bold text-lg text-slate-800 dark:text-slate-100">
-                        <i class="bi bi-whatsapp text-green-500"></i>
-                        {{ count($shareIds) > 1 ? 'Ofertas da semana (' . count($shareIds) . ' produtos)' : 'Enviar promoção' }}
-                    </h3>
-                    <button type="button" wire:click="$set('showShareModal', false)" class="text-slate-400 hover:text-slate-600"><i class="bi bi-x-lg"></i></button>
-                </div>
-
-                <div class="p-5 grid md:grid-cols-2 gap-5">
-                    <div class="space-y-3">
-                        <div class="flex gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-900 text-xs font-semibold">
-                            <button type="button" @click="format = 'square'; render()" :class="format === 'square' ? 'bg-white dark:bg-slate-700 shadow' : ''" class="flex-1 py-1.5 rounded-lg text-slate-700 dark:text-slate-200">Post (quadrado)</button>
-                            <button type="button" @click="format = 'story'; render()" :class="format === 'story' ? 'bg-white dark:bg-slate-700 shadow' : ''" class="flex-1 py-1.5 rounded-lg text-slate-700 dark:text-slate-200">Status (vertical)</button>
-                        </div>
-                        <div class="rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 flex justify-center">
-                            <canvas x-ref="canvas" class="max-h-[420px] w-auto max-w-full"></canvas>
-                        </div>
-                        <div class="grid grid-cols-2 gap-2 text-sm font-semibold">
-                            <button type="button" @click="download()" class="py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200"><i class="bi bi-download"></i> Baixar imagem</button>
-                            <button type="button" @click="copyImage()" class="py-2 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200"><i class="bi bi-images"></i> Copiar imagem</button>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <div>
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Para</label>
-                            <select wire:change="setShareClient($event.target.value)" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200">
-                                <option value="">Qualquer contato / status / grupo</option>
-                                @foreach($share['allClients'] as $c)
-                                    <option value="{{ $c->id }}" @selected($shareClientId === $c->id)>{{ $c->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div>
-                            <label class="text-sm font-semibold text-slate-700 dark:text-slate-200">Mensagem</label>
-                            <textarea wire:model="shareText" x-ref="text" rows="9" class="mt-1 w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-sm text-slate-700 dark:text-slate-200 font-mono"></textarea>
-                        </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm font-semibold">
-                            <button type="button" @click="shareAll()" class="py-2.5 rounded-xl bg-green-500 hover:bg-green-600 text-white"><i class="bi bi-share"></i> Compartilhar</button>
-                            <button type="button" @click="openWhatsapp({{ $shareClientId ?? 'null' }})" class="py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"><i class="bi bi-whatsapp"></i> Abrir WhatsApp</button>
-                            <button type="button" @click="copyText()" class="py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-200"><i class="bi bi-clipboard"></i> Copiar texto</button>
-                        </div>
-                        <p class="text-[11px] text-slate-400">"Compartilhar" manda foto e texto juntos pelo celular. No computador, copie a imagem e cole na conversa depois de abrir o WhatsApp.</p>
-
-                        @if($share['clients']->count())
-                            <div class="pt-2">
-                                <div class="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1">Sugestões de clientes</div>
-                                <div class="space-y-1 max-h-56 overflow-y-auto">
-                                    @foreach($share['clients'] as $row)
-                                        <div class="flex items-center gap-2 p-2 rounded-xl bg-slate-50 dark:bg-slate-900">
-                                            <div class="min-w-0 flex-1">
-                                                <div class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate">{{ $row['client']->name }}</div>
-                                                <div class="text-[11px] text-slate-500">
-                                                    {{ $row['reason'] }}
-                                                    @if($row['last_send'])
-                                                        · <span class="text-green-600">enviado em {{ $row['last_send']->created_at->format('d/m') }}</span>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                            <button type="button" @click="openWhatsapp({{ $row['client']->id }})"
-                                                    class="px-3 py-1.5 rounded-lg text-xs font-semibold {{ $row['last_send'] ? 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300' : 'bg-green-500 text-white' }}">
-                                                <i class="bi bi-whatsapp"></i> {{ $row['last_send'] ? 'Reenviar' : 'Enviar' }}
-                                            </button>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+        @include('livewire.promotions.partials.settings-modal-styles')
+        @include('livewire.promotions.partials.share-modal')
     @endif
 
     {{-- Modal: configurações --}}
@@ -594,6 +519,25 @@
         cards,
         format: 'square',
         images: {},
+        pane: 'img',
+        theme: 'rosa',
+        title: cards.length > 1 ? 'OFERTAS DA SEMANA' : 'PROMOÇÃO',
+        customTitle: '',
+        titles: cards.length > 1
+            ? ['OFERTAS DA SEMANA', 'PROMOÇÕES', 'SÓ ESTA SEMANA', 'QUEIMA DE ESTOQUE']
+            : ['PROMOÇÃO', 'OFERTA', 'SÓ HOJE', 'ÚLTIMAS UNIDADES', 'QUEIMA DE ESTOQUE'],
+        showBadge: true,
+        showSavings: true,
+        showValidity: true,
+        themes: {
+            rosa:    { name: 'Rosa',    band: '#e11d48', bg1: '#fff1f2', bg2: '#fce7f3', accent: '#f97316', price: '#e11d48', text: '#1e293b', sub: '#64748b', card: '#ffffff' },
+            roxo:    { name: 'Roxo',    band: '#7c3aed', bg1: '#f5f3ff', bg2: '#fae8ff', accent: '#ec4899', price: '#7c3aed', text: '#1e1b4b', sub: '#6b7280', card: '#ffffff' },
+            noite:   { name: 'Preto e dourado', band: '#0f172a', bg1: '#1e293b', bg2: '#020617', accent: '#eab308', price: '#facc15', text: '#f8fafc', sub: '#94a3b8', card: '#ffffff' },
+            verde:   { name: 'Verde',   band: '#059669', bg1: '#ecfdf5', bg2: '#d1fae5', accent: '#f59e0b', price: '#047857', text: '#064e3b', sub: '#6b7280', card: '#ffffff' },
+            laranja: { name: 'Laranja', band: '#ea580c', bg1: '#fff7ed', bg2: '#ffedd5', accent: '#dc2626', price: '#c2410c', text: '#431407', sub: '#78716c', card: '#ffffff' },
+            azul:    { name: 'Azul',    band: '#2563eb', bg1: '#eff6ff', bg2: '#e0f2fe', accent: '#f43f5e', price: '#1d4ed8', text: '#172554', sub: '#64748b', card: '#ffffff' },
+        },
+        get palette() { return this.themes[this.theme] || this.themes.rosa; },
 
         loadImage(src) {
             if (!src) return Promise.resolve(null);
@@ -631,81 +575,134 @@
         async render() {
             const canvas = this.$refs.canvas;
             if (!canvas || !this.cards.length) return;
-            const W = 1080, H = this.format === 'story' ? 1920 : 1080;
+            const story = this.format === 'story';
+            const W = 1080, H = story ? 1920 : 1080;
             canvas.width = W; canvas.height = H;
             const ctx = canvas.getContext('2d');
+            const t = this.palette;
 
+            // Fundo em degradê com círculos suaves
             const bg = ctx.createLinearGradient(0, 0, W, H);
-            bg.addColorStop(0, '#fff1f2'); bg.addColorStop(1, '#fce7f3');
+            bg.addColorStop(0, t.bg1); bg.addColorStop(1, t.bg2);
             ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+            ctx.globalAlpha = .14;
+            ctx.fillStyle = t.band; ctx.beginPath(); ctx.arc(W - 80, 90, story ? 360 : 260, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = t.accent; ctx.beginPath(); ctx.arc(60, H - 60, story ? 320 : 220, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
 
-            // Faixa do topo
-            ctx.fillStyle = '#e11d48';
-            ctx.fillRect(0, 0, W, this.format === 'story' ? 200 : 130);
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold ' + (this.format === 'story' ? 92 : 70) + 'px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(this.cards.length > 1 ? 'OFERTAS DA SEMANA' : 'PROMOÇÃO', W / 2, this.format === 'story' ? 135 : 92);
+            // Título numa pílula no topo
+            const title = (this.title || 'PROMOÇÃO').toUpperCase();
+            let size = story ? 64 : 50;
+            ctx.font = '900 ' + size + 'px sans-serif';
+            while (ctx.measureText(title).width > W - (this.cards.length === 1 && this.showBadge ? 420 : 160) && size > 26) { size -= 2; ctx.font = '900 ' + size + 'px sans-serif'; }
+            const pillH = size + (story ? 48 : 38), pillW = ctx.measureText(title).width + (story ? 96 : 76);
+            const pillX = 60, pillY = story ? 70 : 48;
+            const pg = ctx.createLinearGradient(pillX, 0, pillX + pillW, 0);
+            pg.addColorStop(0, t.band); pg.addColorStop(1, t.accent);
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 8;
+            ctx.fillStyle = pg; ctx.beginPath(); ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2); ctx.fill(); ctx.restore();
+            ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(title, pillX + pillW / 2, pillY + pillH / 2 + 2);
+            ctx.textBaseline = 'alphabetic';
+            this.headerBottom = pillY + pillH;
 
             if (this.cards.length === 1) {
                 await this.drawSingle(ctx, this.cards[0], W, H);
             } else {
                 await this.drawList(ctx, W, H);
             }
+            // Deixa o arquivo pronto: o compartilhamento precisa acontecer logo no clique.
+            this.file = null;
+            this.blob().then((b) => { if (b) this.file = new File([b], 'promocao.png', { type: 'image/png' }); }).catch(() => {});
         },
 
         async drawSingle(ctx, c, W, H) {
             const story = this.format === 'story';
-            const imgBox = story ? { x: 140, y: 280, s: 800 } : { x: 290, y: 170, s: 500 };
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.roundRect(imgBox.x - 20, imgBox.y - 20, imgBox.s + 40, imgBox.s + 40, 40);
-            ctx.fill();
+            const t = this.palette;
+            const dark = t.band === '#0f172a';
+
+            // Cartão branco grande com o produto
+            const card = story ? { x: 60, y: 230, w: W - 120, h: 1080 } : { x: 60, y: 160, w: W - 120, h: 560 };
+            ctx.save(); ctx.shadowColor = 'rgba(15,23,42,.18)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18;
+            ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.roundRect(card.x, card.y, card.w, card.h, 48); ctx.fill(); ctx.restore();
             const img = await this.loadImage(c.image);
             if (img) {
-                const r = Math.min(imgBox.s / img.width, imgBox.s / img.height);
+                const pad = story ? 60 : 36;
+                const bw = card.w - pad * 2, bh = card.h - pad * 2;
+                const r = Math.min(bw / img.width, bh / img.height);
                 const w = img.width * r, h = img.height * r;
-                ctx.drawImage(img, imgBox.x + (imgBox.s - w) / 2, imgBox.y + (imgBox.s - h) / 2, w, h);
+                ctx.drawImage(img, card.x + (card.w - w) / 2, card.y + (card.h - h) / 2, w, h);
             }
 
-            // Selo de desconto
-            const bx = imgBox.x + imgBox.s - 40, by = imgBox.y + 20, br = story ? 110 : 85;
-            ctx.fillStyle = '#f97316';
-            ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = '#fff';
-            ctx.font = 'bold ' + (story ? 70 : 54) + 'px sans-serif';
-            ctx.fillText('-' + c.discount + '%', bx, by + (story ? 25 : 19));
-
-            let y = imgBox.y + imgBox.s + (story ? 130 : 90);
-            ctx.fillStyle = '#1e293b';
-            ctx.font = 'bold ' + (story ? 58 : 44) + 'px sans-serif';
-            for (const line of this.wrap(ctx, c.name, W - 140, 2)) {
-                ctx.fillText(line, W / 2, y);
-                y += story ? 72 : 54;
+            // Selo de desconto no canto do cartão
+            if (this.showBadge) {
+                const br = story ? 125 : 95;
+                const bx = card.x + card.w - br + 20, by = story ? 150 : 120;
+                const g = ctx.createLinearGradient(bx - br, by - br, bx + br, by + br);
+                g.addColorStop(0, t.accent); g.addColorStop(1, t.band);
+                ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.25)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
+                ctx.fillStyle = g; ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = story ? 10 : 8; ctx.beginPath(); ctx.arc(bx, by, br - 4, 0, Math.PI * 2); ctx.stroke();
+                ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+                ctx.font = '900 ' + (story ? 78 : 60) + 'px sans-serif';
+                ctx.fillText('-' + c.discount + '%', bx, by + (story ? 14 : 10));
+                ctx.font = '800 ' + (story ? 30 : 24) + 'px sans-serif';
+                ctx.fillText('OFF', bx, by + (story ? 56 : 42));
             }
 
-            y += story ? 40 : 14;
-            ctx.font = (story ? 54 : 40) + 'px sans-serif';
-            ctx.fillStyle = '#64748b';
+            // Nome
+            ctx.textAlign = 'center';
+            let y = card.y + card.h + (story ? 110 : 72);
+            ctx.fillStyle = t.text;
+            ctx.font = '800 ' + (story ? 60 : 42) + 'px sans-serif';
+            const name = String(c.name).toLowerCase().replace(/(^|\s)\S/g, (m) => m.toUpperCase());
+            for (const line of this.wrap(ctx, name, W - 160, 2)) { ctx.fillText(line, W / 2, y); y += story ? 72 : 50; }
+
+            // De / Por lado a lado
+            y += story ? 70 : 36;
+            ctx.font = '600 ' + (story ? 50 : 36) + 'px sans-serif';
             const deText = 'De ' + c.original;
-            ctx.fillText(deText, W / 2, y);
             const dw = ctx.measureText(deText).width;
-            ctx.strokeStyle = '#64748b'; ctx.lineWidth = story ? 6 : 4;
-            ctx.beginPath(); ctx.moveTo(W / 2 - dw / 2, y - (story ? 18 : 13)); ctx.lineTo(W / 2 + dw / 2, y - (story ? 18 : 13)); ctx.stroke();
+            ctx.font = '900 ' + (story ? 132 : 92) + 'px sans-serif';
+            const porW = ctx.measureText(c.promo).width;
+            const gap = story ? 40 : 28;
+            const startX = (W - (dw + gap + porW)) / 2;
+            ctx.textAlign = 'left';
+            ctx.font = '600 ' + (story ? 50 : 36) + 'px sans-serif';
+            ctx.fillStyle = t.sub;
+            ctx.fillText(deText, startX, y - (story ? 18 : 12));
+            ctx.strokeStyle = t.sub; ctx.lineWidth = story ? 5 : 4;
+            ctx.beginPath(); ctx.moveTo(startX, y - (story ? 34 : 24)); ctx.lineTo(startX + dw, y - (story ? 34 : 24)); ctx.stroke();
+            const pg = ctx.createLinearGradient(startX + dw + gap, 0, startX + dw + gap + porW, 0);
+            pg.addColorStop(0, dark ? '#fde047' : t.price); pg.addColorStop(1, dark ? '#f59e0b' : t.accent);
+            ctx.fillStyle = pg;
+            ctx.font = '900 ' + (story ? 132 : 92) + 'px sans-serif';
+            ctx.fillText(c.promo, startX + dw + gap, y + (story ? 20 : 14));
+            ctx.textAlign = 'center';
 
-            y += story ? 130 : 86;
-            ctx.fillStyle = '#e11d48';
-            ctx.font = 'bold ' + (story ? 120 : 84) + 'px sans-serif';
-            ctx.fillText('Por ' + c.promo, W / 2, y);
+            // Economia
+            if (this.showSavings && c.savings && c.savings !== 'R$ 0,00') {
+                y += story ? 120 : 78;
+                const label = 'Economize ' + c.savings;
+                ctx.font = '800 ' + (story ? 44 : 30) + 'px sans-serif';
+                const lw = ctx.measureText(label).width + (story ? 80 : 56), lh = story ? 76 : 52;
+                ctx.fillStyle = dark ? 'rgba(250,204,21,.18)' : 'rgba(255,255,255,.85)';
+                ctx.beginPath(); ctx.roundRect(W / 2 - lw / 2, y - lh / 2 - (story ? 14 : 10), lw, lh, lh / 2); ctx.fill();
+                ctx.fillStyle = dark ? '#fde047' : t.band;
+                ctx.fillText(label, W / 2, y);
+            }
 
-            ctx.fillStyle = '#475569';
-            ctx.font = (story ? 44 : 32) + 'px sans-serif';
-            ctx.fillText(c.validity, W / 2, story ? H - 90 : H - 32);
+            // Validade no rodapé
+            if (this.showValidity) {
+                ctx.fillStyle = t.sub;
+                ctx.font = '600 ' + (story ? 40 : 28) + 'px sans-serif';
+                ctx.fillText('⏳ ' + c.validity, W / 2, story ? H - 80 : H - 26);
+            }
         },
 
         async drawList(ctx, W, H) {
             const story = this.format === 'story';
-            const top = story ? 250 : 160;
+            const top = (this.headerBottom || (story ? 200 : 140)) + (story ? 50 : 24);
             const max = story ? 7 : 4;
             const items = this.cards.slice(0, max);
             const rowH = (H - top - (story ? 120 : 60)) / items.length;
@@ -713,7 +710,7 @@
             for (let i = 0; i < items.length; i++) {
                 const c = items[i];
                 const y = top + i * rowH;
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = this.palette.card;
                 ctx.beginPath(); ctx.roundRect(40, y + 8, W - 80, rowH - 16, 28); ctx.fill();
                 const s = Math.min(rowH - 40, 200);
                 const img = await this.loadImage(c.image);
@@ -732,16 +729,18 @@
                 const ow = ctx.measureText(c.original).width;
                 ctx.strokeStyle = '#64748b'; ctx.lineWidth = 3;
                 ctx.beginPath(); ctx.moveTo(tx, ly - 2); ctx.lineTo(tx + ow, ly - 2); ctx.stroke();
-                ctx.font = 'bold 44px sans-serif'; ctx.fillStyle = '#e11d48';
+                ctx.font = 'bold 44px sans-serif'; ctx.fillStyle = this.palette.band === '#0f172a' ? '#b45309' : this.palette.price;
                 ctx.fillText(c.promo, tx + ow + 20, ly + 10);
-                ctx.fillStyle = '#f97316';
-                ctx.beginPath(); ctx.roundRect(W - 190, y + rowH / 2 - 35, 130, 70, 35); ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.font = 'bold 36px sans-serif'; ctx.textAlign = 'center';
-                ctx.fillText('-' + c.discount + '%', W - 125, y + rowH / 2 + 13);
+                if (this.showBadge) {
+                    ctx.fillStyle = this.palette.accent;
+                    ctx.beginPath(); ctx.roundRect(W - 190, y + rowH / 2 - 35, 130, 70, 35); ctx.fill();
+                    ctx.fillStyle = '#fff'; ctx.font = 'bold 36px sans-serif'; ctx.textAlign = 'center';
+                    ctx.fillText('-' + c.discount + '%', W - 125, y + rowH / 2 + 13);
+                }
                 ctx.textAlign = 'left';
             }
             if (this.cards.length > max) {
-                ctx.textAlign = 'center'; ctx.fillStyle = '#475569'; ctx.font = '34px sans-serif';
+                ctx.textAlign = 'center'; ctx.fillStyle = this.palette.sub; ctx.font = '34px sans-serif';
                 ctx.fillText('e mais ' + (this.cards.length - max) + ' oferta(s)!', W / 2, H - (story ? 60 : 22));
             }
             ctx.textAlign = 'center';
@@ -758,13 +757,19 @@
             a.click();
         },
 
-        async copyImage() {
+        /**
+         * Copia a imagem. O ClipboardItem recebe a promessa do PNG para a cópia
+         * começar ainda dentro do clique (o Safari exige isso).
+         * Devolve true se copiou.
+         */
+        async copyImage(quiet = false) {
             try {
-                const blob = await this.blob();
-                await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-                this.toast('Imagem copiada. Cole na conversa do WhatsApp.');
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': this.blob() })]);
+                if (!quiet) this.toast('Imagem copiada. Na conversa do WhatsApp, cole com Ctrl+V.');
+                return true;
             } catch (e) {
-                this.download();
+                if (!quiet) this.download();
+                return false;
             }
         },
 
@@ -774,32 +779,40 @@
             this.toast('Texto copiado.');
         },
 
-        async openWhatsapp(clientId) {
-            // Abre a janela antes da chamada ao servidor para o navegador não bloquear o pop-up.
+        async openWhatsapp(clientId, copied = null) {
+            // O link do WhatsApp só leva texto. Copia a imagem junto para colar na conversa.
+            const copying = copied === null ? this.copyImage(true) : Promise.resolve(copied);
+            // Abre a janela ainda no clique para o navegador não bloquear o pop-up.
             const win = window.open('about:blank', '_blank');
             await $wire.$set('shareText', this.$refs.text.value, false);
             const url = await $wire.recordShare('whatsapp', clientId);
             if (win) { win.location.href = url; } else { window.location.href = url; }
+            if (await copying) {
+                window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'info', duration: 9000,
+                    message: 'O texto já está no WhatsApp. A imagem foi copiada: clique na conversa e aperte Ctrl+V (ou segure e "Colar" no celular) para mandar a foto.' } }));
+            } else {
+                this.download();
+                this.toast('O WhatsApp só recebe texto pelo link. Baixei a imagem para você anexar na conversa.');
+            }
             $wire.$refresh();
         },
 
         async shareAll() {
             const text = this.$refs.text.value;
+            const file = this.file;
             try {
-                const file = new File([await this.blob()], 'promocao.png', { type: 'image/png' });
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
                     await navigator.share({ files: [file], text });
                     await $wire.$set('shareText', text, false);
-                    await $wire.recordShare('compartilhar', {{ $shareClientId ?? 'null' }});
+                    await $wire.recordShare('compartilhar', $wire.shareClientId);
                     $wire.$refresh();
                     return;
                 }
             } catch (e) {
                 if (e && e.name === 'AbortError') return;
             }
-            // Sem compartilhamento nativo (computador): copia a imagem e abre o WhatsApp com o texto.
-            await this.copyImage();
-            this.openWhatsapp({{ $shareClientId ?? 'null' }});
+            // Sem compartilhamento de arquivo (computador): copia a imagem e abre o WhatsApp com o texto.
+            this.openWhatsapp($wire.shareClientId);
         },
 
         toast(message) {
