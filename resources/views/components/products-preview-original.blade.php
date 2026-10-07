@@ -138,11 +138,30 @@
                                        style="font-size: 1.1em; color: #1a1a1a; font-weight: 700; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">
                             </div>
 
-                            <!-- Status sempre ativo (badge fixo) -->
-                            <div class="flex justify-center mt-1 mb-1">
-                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                    <i class="bi bi-check-circle-fill mr-1"></i> Ativo
-                                </span>
+                            <!-- Preço de tabela (riscado nas promoções) + pôr em promoção -->
+                            @php
+                                $tabela = (float) ($product['price_original'] ?? 0);
+                                $revenda = (float) ($product['price_sale'] ?? 0);
+                                $descontoTabela = $tabela > 0 && $revenda > 0 ? (int) round((1 - $revenda / $tabela) * 100) : 0;
+                            @endphp
+                            <div class="flex items-center justify-center gap-2 mt-1 mb-1 text-xs">
+                                <label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-300" title="R$ TABELA do extrato (preço original, aparece riscado na promoção)">
+                                    <span>Tabela R$</span>
+                                    <input type="number" step="0.01" min="0"
+                                           wire:model.lazy="productsUpload.{{ $index }}.price_original"
+                                           class="w-16 bg-transparent border-none p-0 text-xs line-through text-slate-500 dark:text-slate-300 focus:outline-none focus:ring-0 text-right"
+                                           placeholder="0,00">
+                                </label>
+                                <label class="inline-flex items-center gap-1 px-2 py-1 rounded-lg cursor-pointer {{ !empty($product['promo']) ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300' }}"
+                                       title="Pôr em promoção ao salvar: tabela riscado, revenda como preço de promoção">
+                                    <input type="checkbox" wire:model.live="productsUpload.{{ $index }}.promo" class="rounded text-rose-500 w-3.5 h-3.5" @disabled($tabela <= $revenda)>
+                                    <i class="bi bi-fire"></i>
+                                    @if($descontoTabela > 0)
+                                        -{{ $descontoTabela }}%
+                                    @else
+                                        Promo
+                                    @endif
+                                </label>
                             </div>
 
                             <!-- Select de Categoria Estilizado -->

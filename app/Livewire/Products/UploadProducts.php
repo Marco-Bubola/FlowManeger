@@ -6,6 +6,9 @@ use App\Models\Product;
 use App\Models\Category;
 use App\Models\ProductCategoryLearning;
 use App\Models\ProductUploadHistory;
+use App\Models\PromotionSetting;
+use App\Services\Products\OrderPdfParser;
+use App\Services\Products\PromotionService;
 use App\Services\Products\VariationService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -38,6 +41,7 @@ class UploadProducts extends Component
     public $selectedUpload = null; // Upload selecionado para visualização
     public $confirmDeleteUploadId = null; // ID do upload para confirmar exclusão
     public $historyPerPage = 6; // Quantidade de cards por página no histórico
+    public int $promotionsCreated = 0; // Promoções criadas no último salvamento
 
     public function mount()
     {
@@ -255,14 +259,13 @@ class UploadProducts extends Component
 
                         if (!empty($geminiProducts)) {
                             Log::info("✓ IA extraiu " . count($geminiProducts) . " produtos com sucesso!");
-                            $this->productsUpload = $geminiProducts;
+                            // A IA devolve só código, nome, quantidade e operação; os
+                            // valores vêm da leitura tradicional da mesma linha.
+                            $this->productsUpload = $this->fillPricesFromText($geminiProducts, $filteredText);
                             $this->uploadProgress = 70;
 
                             foreach ($this->productsUpload as $key => $product) {
-                                if (($product['stock_quantity'] ?? 0) > 0) {
-                                    $this->productsUpload[$key]['price'] = ($product['price'] ?? 0) / $product['stock_quantity'];
-                                    $this->productsUpload[$key]['price_sale'] = ($product['price_sale'] ?? 0) / $product['stock_quantity'];
-                                }
+                                $this->productsUpload[$key] = $this->prepareUploadRow($product);
                                 $this->autoFillProductData($key);
                             }
 
@@ -310,10 +313,7 @@ class UploadProducts extends Component
             Log::info('Produtos encontrados: ' . count($this->productsUpload));
 
             foreach ($this->productsUpload as $key => $product) {
-                if (($product['stock_quantity'] ?? 0) > 0) {
-                    $this->productsUpload[$key]['price'] = ($product['price'] ?? 0) / $product['stock_quantity'];
-                    $this->productsUpload[$key]['price_sale'] = ($product['price_sale'] ?? 0) / $product['stock_quantity'];
-                }
+                $this->productsUpload[$key] = $this->prepareUploadRow($product);
                 $this->autoFillProductData($key);
             }
 
@@ -364,6 +364,7 @@ class UploadProducts extends Component
 
         $this->currentUploadId = $uploadHistory->id;
 
+        $this->promotionsCreated = 0;
         $productsCreated = 0;
         $productsUpdated = 0;
         $productsSkipped = 0;
@@ -429,6 +430,7 @@ class UploadProducts extends Component
                 ]);
 
                 $resultProduct = $result['product'];
+                $this->applyPromotionData($resultProduct, $product);
 
                 if ($result['action'] === 'stock') {
                     // Atualiza imagem do existente apenas se foi enviada uma nova
@@ -497,7 +499,8 @@ class UploadProducts extends Component
             ],
         ]);
 
-        session()->flash('success', "Produtos salvos! Criados: {$productsCreated}, Atualizados: {$productsUpdated}, Pulados: {$productsSkipped}");
+        session()->flash('success', "Produtos salvos! Criados: {$productsCreated}, Atualizados: {$productsUpdated}, Pulados: {$productsSkipped}"
+            . ($this->promotionsCreated ? ", Em promoção: {$this->promotionsCreated}" : ''));
 
         // Recarregar histórico
         $this->loadUploadHistory();
@@ -632,202 +635,109 @@ class UploadProducts extends Component
     }
 
     /**
-     * Acha onde a tabela de produtos começa, tolerando variações de acento e
-     * caixa no cabeçalho. Se o cabeçalho não existir (layout novo), cai para a
-     * primeira linha que tem cara de produto: "12.345  3  NOME DO PRODUTO".
-     *
-     * @return int|null deslocamento em bytes logo após o cabeçalho, ou null
+     * O leitor do extrato fica em OrderPdfParser, compartilhado com a
+     * recuperação do preço de tabela dos PDFs antigos.
      */
-    private function encontrarInicioDaTabela(string $text): ?int
+    private function parser(): OrderPdfParser
     {
-        // OPERACAO / OPERAÇÃO / OPERAÇAO / OPERACÃO, em qualquer caixa
-        $padraoCabecalho = '/OPERA[CÇ][ÃA]O/iu';
-
-        if (preg_match($padraoCabecalho, $text, $m, PREG_OFFSET_CAPTURE)) {
-            Log::info('Cabeçalho da tabela encontrado: "' . $m[0][0] . '"');
-            return $m[0][1] + strlen($m[0][0]);
-        }
-
-        // Sem cabeçalho: procura a primeira linha de produto (código 12.345).
-        if (preg_match('/^\s*\d{2,5}\.\d{3}\s+\d+\s+\S/mu', $text, $m, PREG_OFFSET_CAPTURE)) {
-            Log::warning('Cabeçalho ausente; começando na primeira linha de produto encontrada.');
-            return $m[0][1];
-        }
-
-        return null;
+        return app(OrderPdfParser::class);
     }
 
     private function filterText($text)
     {
-        // A tabela de produtos começa depois do cabeçalho "OPERAÇÃO".
-        // A busca precisa ser tolerante: dependendo de como o PDF foi gerado, a
-        // palavra sai sem acento, com caixa diferente ou com o acento decomposto
-        // (C+cedilha em vez de Ç). Um `strpos` exato falhava nesses PDFs e o
-        // texto filtrado voltava vazio — o arquivo era rejeitado sem explicação.
-        $startPos = $this->encontrarInicioDaTabela($text);
-
-        if ($startPos === null) {
-            Log::warning('Cabeçalho da tabela de produtos não encontrado no PDF.');
-            return '';
-        }
-
-        // O marcador final é a linha que começa com "TOTAL"
-        // Usamos regex com modo multiline (m) para encontrar a linha que começa com TOTAL
-        $endPos = false;
-        if (preg_match('/^\s*TOTAL/m', $text, $matches, PREG_OFFSET_CAPTURE, $startPos)) {
-            $endPos = $matches[0][1];
-            Log::info('Marcador final "TOTAL" encontrado na posição: ' . $endPos);
-        }
-
-        // Fallbacks, caso "TOTAL" não seja encontrado
-        if ($endPos === false) {
-            $endPos = strpos($text, 'PRODUTOS NÃO DISPONÍVEIS', $startPos);
-            if($endPos) Log::info('Usando fallback "PRODUTOS NÃO DISPONÍVEIS"');
-        }
-        if ($endPos === false) {
-            $endPos = strpos($text, 'AJUSTES', $startPos);
-            if($endPos) Log::info('Usando fallback "AJUSTES"');
-        }
-        if ($endPos === false) {
-            $endPos = strpos($text, 'PLANO DE PAGAMENTO', $startPos);
-            if($endPos) Log::info('Usando fallback "PLANO DE PAGAMENTO"');
-        }
-
-        // $startPos já aponta para logo depois do cabeçalho
-        $textStart = $startPos;
-
-        $filteredText = '';
-        if ($endPos !== false) {
-            $filteredText = substr($text, $textStart, $endPos - $textStart);
-        } else {
-            // Se NENHUM marcador final for encontrado, pega tudo do início até o fim do texto.
-            Log::warning('Nenhum marcador final foi encontrado. Usando o resto do texto a partir de "OPERAÇÃO".');
-            $filteredText = substr($text, $textStart);
-        }
-
-        Log::info('Texto filtrado (com quebras de linha) - caracteres: ' . strlen($filteredText));
-        return trim($filteredText);
+        return $this->parser()->filterText($text);
     }
 
     private function separateProducts($text)
     {
-        $rawLines = explode("\n", $text);
-        $lines = [];
-        foreach ($rawLines as $l) {
-            $l = trim($l);
-            if ($l !== '') $lines[] = $l;
+        return $this->parser()->separateProducts($text);
+    }
+
+    private function formatPrice($price)
+    {
+        return $this->parser()->formatPrice($price);
+    }
+
+    /**
+     * Guarda o R$ TABELA como preço original e, se a linha estava marcada,
+     * põe o produto em promoção (tabela riscado → revenda). Não altera o
+     * price_sale nem o estoque. Se o produto já está em promoção, mantém a
+     * promoção atual.
+     */
+    private function applyPromotionData(Product $product, array $row): void
+    {
+        $original = round((float) ($row['price_original'] ?? 0), 2);
+        if ($original <= 0) {
+            return;
         }
 
-        $allProducts = [];
-        $currentProduct = null;
-        // O código do produto aparece em dois formatos conforme a versão do
-        // extrato: com ponto de milhar ("53.506") nos PDFs antigos e sem ponto
-        // ("53506") nos novos. A regex antiga exigia o ponto, então nenhuma
-        // linha do extrato novo era reconhecida como produto.
-        $productRegex = '/^(\d{2,6}(?:\.\d{3})?)\s+(\d+)\s+(.*)/';
-        // A operação pode ser composta: além de "Venda" e "Brinde", o extrato
-        // traz "Doação Brinde" (brinde garantido). A alternação simples parava
-        // na primeira palavra e a linha inteira deixava de casar, então esses
-        // itens sumiam do resultado sem aviso.
-        $palavraOperacao = '(?:Venda|Brinde|Doa[çc][ãa]o|Bonifica[çc][ãa]o|Troca|Garantido)';
-        $valuesRegex = '/([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+([\d,\.]+)\s+('
-            . $palavraOperacao . '(?:\s+' . $palavraOperacao . ')*)$/u';
+        if (round((float) $product->price_original, 2) !== $original) {
+            $product->forceFill(['price_original' => $original])->save();
+        }
 
-        $finalizeValues = function (&$currentProduct, array $valueMatches, array $lines, int $i): int {
-            $currentProduct['values'] = array_slice($valueMatches, 1, 5);
-            $operation = end($valueMatches);
+        if (empty($row['promo']) || $product->promotions()->whereIn('status', ['ativa', 'agendada'])->exists()) {
+            return;
+        }
 
-            if ($operation === 'Doação') {
-                $next = $lines[$i + 1] ?? '';
-                $nextNext = $lines[$i + 2] ?? '';
-                if (stripos($next, 'FIDELIDADEVD') !== false) {
-                    $operation = 'Doação FIDELIDADEVD';
-                    $i++;
-                } elseif (stripos($nextNext, 'FIDELIDADEVD') !== false) {
-                    $operation = 'Doação FIDELIDADEVD';
-                    $i += 2;
-                }
+        $service = app(PromotionService::class);
+        $settings = $service->settings($product->user_id);
+
+        try {
+            $service->start($product, [
+                'original_price' => $original,
+                'promo_price'    => max((float) $product->price_sale, $service->minPromoPrice($product, $settings)),
+                'ends_at'        => null,
+                'source'         => 'upload',
+            ]);
+            $this->promotionsCreated++;
+        } catch (\InvalidArgumentException $e) {
+            Log::info("Promoção não criada para {$product->product_code}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Converte a linha para valores por unidade (inclusive o R$ TABELA, que
+     * vira o preço original riscado) e já marca "pôr em promoção" quando o
+     * desconto sobre a tabela passa do mínimo configurado.
+     */
+    private function prepareUploadRow(array $product): array
+    {
+        $product = $this->parser()->toUnitPrices($product);
+
+        $original = (float) ($product['price_original'] ?? 0);
+        $sale = (float) ($product['price_sale'] ?? 0);
+        $minDiscount = PromotionSetting::forUser(Auth::id())->suggest_min_discount;
+        $discount = $original > 0 && $sale > 0 ? (1 - $sale / $original) * 100 : 0;
+
+        $product['promo'] = $discount >= (float) $minDiscount;
+
+        return $product;
+    }
+
+    /**
+     * Completa os valores dos produtos extraídos pela IA com os da leitura
+     * tradicional, casando pelo código do produto.
+     */
+    private function fillPricesFromText(array $products, string $filteredText): array
+    {
+        $byCode = [];
+        foreach ($this->separateProducts($filteredText)['products'] ?? [] as $row) {
+            $byCode[$row['product_code']] ??= $row;
+        }
+
+        foreach ($products as $i => $product) {
+            $row = $byCode[$product['product_code'] ?? ''] ?? null;
+            if (!$row) {
+                continue;
             }
-
-            $currentProduct['operation'] = $operation;
-            return $i;
-        };
-
-        $total = count($lines);
-        for ($i = 0; $i < $total; $i++) {
-            $line = $lines[$i];
-
-            $isNewProductLine = preg_match($productRegex, $line, $matches);
-
-            if ($isNewProductLine) {
-                if ($currentProduct) {
-                    $allProducts[] = $currentProduct;
+            foreach (['price', 'price_sale', 'price_resell', 'price_to_pay', 'profit'] as $key) {
+                if (empty($product[$key])) {
+                    $products[$i][$key] = $row[$key];
                 }
-
-                $potentialName = trim($matches[3]);
-                $currentProduct = [
-                    'product_code' => $matches[1],
-                    'stock_quantity' => (int)$matches[2],
-                    'name' => $potentialName,
-                    'values' => [],
-                    'operation' => ''
-                ];
-
-                if (preg_match($valuesRegex, $potentialName, $valueMatches)) {
-                    $currentProduct['name'] = trim(preg_replace($valuesRegex, '', $potentialName));
-                    $i = $finalizeValues($currentProduct, $valueMatches, $lines, $i);
-
-                    $allProducts[] = $currentProduct;
-                    $currentProduct = null;
-                }
-
-            } elseif ($currentProduct) {
-                if (preg_match($valuesRegex, $line, $valueMatches)) {
-                    $i = $finalizeValues($currentProduct, $valueMatches, $lines, $i);
-
-                    $allProducts[] = $currentProduct;
-                    $currentProduct = null;
-                } else {
-                    if (stripos($line, 'FIDELIDADEVD') !== false) {
-                        continue;
-                    }
-                    $currentProduct['name'] .= ' ' . $line;
-                }
-            }
-        }
-
-        // Adiciona o último produto se ele existir (caso o arquivo termine)
-        if ($currentProduct) {
-            $allProducts[] = $currentProduct;
-        }
-
-        Log::info('Regex finalizou ' . count($allProducts) . ' produtos completos.');
-
-        $formattedProducts = [];
-        foreach ($allProducts as $p) {
-            if (!empty($p['operation']) && (count($p['values']) === 5 || $p['operation'] === 'Brinde')) {
-                 // Para brindes, os valores podem não estar presentes, mas ainda assim são produtos válidos.
-                $isBrindeSemValor = ($p['operation'] === 'Brinde' && empty($p['values']));
-
-                $formattedProducts[] = [
-                    'product_code' => $p['product_code'],
-                    'name' => preg_replace('/\s+/', ' ', trim($p['name'])),
-                    'stock_quantity' => $p['stock_quantity'],
-                    'price_resell' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][0]),
-                    'price_to_pay' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][1]),
-                    'price_sale' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][2]),
-                    'price' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][3]),
-                    'profit' => $this->formatPrice($isBrindeSemValor ? '0' : $p['values'][4]),
-                    'operation' => $p['operation'],
-                    'category_id' => 1,
-                    'user_id' => Auth::id(),
-                    'image' => 'product-placeholder.png',
-                    'status' => 'ativo',
-                ];
             }
         }
 
-        return ['products' => $formattedProducts];
+        return $products;
     }
 
     private function extractProductsFromText($productsText)
@@ -852,12 +762,6 @@ class UploadProducts extends Component
             }
         }
         return $products;
-    }
-
-    private function formatPrice($price)
-    {
-        $price = str_replace([' ', ','], ['', '.'], trim($price));
-        return (float) $price;
     }
 
     private function extractProductsFromCsv($path)
