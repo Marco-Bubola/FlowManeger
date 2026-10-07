@@ -18,6 +18,7 @@ class Product extends Model
         'description',
         'price',
         'price_sale',
+        'price_original', // R$ TABELA do extrato, riscado nas promoções
         'stock_quantity',
         'category_id',
         'user_id',
@@ -51,6 +52,7 @@ class Product extends Model
     protected $casts = [
         'price'            => 'decimal:2',
         'price_sale'       => 'decimal:2',
+        'price_original'   => 'decimal:2',
         'custos_adicionais'=> 'decimal:2',
         'stock_quantity'   => 'integer',
         'warranty_months'  => 'integer',
@@ -66,6 +68,19 @@ class Product extends Model
     ];
 
     protected $appends = ['image_url', 'all_images'];
+
+    protected static function booted(): void
+    {
+        // Promoções não têm chave estrangeira (tabelas antigas vieram do dump),
+        // então são apagadas junto com o produto aqui.
+        static::deleting(function (Product $product) {
+            $ids = $product->promotions()->pluck('id');
+            if ($ids->isNotEmpty()) {
+                PromotionSend::whereIn('promotion_id', $ids)->delete();
+                Promotion::whereIn('id', $ids)->delete();
+            }
+        });
+    }
 
     /**
      * status: ativo, inativo, descontinuado
@@ -121,6 +136,47 @@ class Product extends Model
     {
         return $this->belongsTo(User::class);
     }
+    // ─────────────────────────────────────────────────────────────
+    // PROMOÇÕES
+    // ─────────────────────────────────────────────────────────────
+
+    public function promotions()
+    {
+        return $this->hasMany(Promotion::class);
+    }
+
+    /** Promoção ativa mais recente (pode estar fora do prazo; use isLive()). */
+    public function activePromotion()
+    {
+        return $this->hasOne(Promotion::class)->ofMany(
+            ['id' => 'max'],
+            fn ($q) => $q->where('status', Promotion::ATIVA)
+        );
+    }
+
+    /** Promoção valendo agora, ou null. */
+    public function livePromotion(): ?Promotion
+    {
+        $promo = $this->activePromotion;
+        if (!$promo) {
+            return null;
+        }
+
+        // Usa este produto como relação: no portal (sem login) o escopo de
+        // equipe esconderia o produto ao carregar a relação pela promoção.
+        $promo->setRelation('product', $this);
+
+        return $promo->isLive() ? $promo : null;
+    }
+
+    /** Preço cobrado hoje: o da promoção quando houver, senão o price_sale. */
+    public function currentSalePrice(): float
+    {
+        $promo = $this->livePromotion();
+
+        return $promo ? (float) $promo->promo_price : (float) $this->price_sale;
+    }
+
     // Se for kit, retorna os componentes
     public function componentes()
     {

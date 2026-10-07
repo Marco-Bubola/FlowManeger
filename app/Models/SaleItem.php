@@ -15,7 +15,14 @@ class SaleItem extends Model
         'quantity',
         'price',
         'price_sale',
+        'original_price', // preço "de" quando vendido em promoção
+        'promotion_id',
     ];
+
+    public function promotion()
+    {
+        return $this->belongsTo(Promotion::class);
+    }
 
     // Relacionamento com a Venda
     public function sale()
