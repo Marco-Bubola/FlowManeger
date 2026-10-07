@@ -744,6 +744,9 @@
                                     </td>
                                     <td>
                                         <span class="meta-label">Unit.</span>
+                                        @if($item->original_price && (float) $item->original_price > (float) $item->price_sale)
+                                            <span class="meta-value" style="text-decoration: line-through; color: #94a3b8; font-weight: normal;">{{ number_format($item->original_price, 2, ',', '.') }}</span>
+                                        @endif
                                         <span class="meta-value">{{ number_format($item->price_sale, 2, ',', '.') }}</span>
                                     </td>
                                 </tr>
@@ -804,6 +807,20 @@
             <span class="total-label">Total da Venda:</span>
             <span class="total-value">R$ {{ number_format($sale->total_price, 2, ',', '.') }}</span>
         </div>
+
+        @php
+            $economiaPromo = $sale->saleItems->sum(function ($i) {
+                return $i->original_price && (float) $i->original_price > (float) $i->price_sale
+                    ? $i->quantity * ((float) $i->original_price - (float) $i->price_sale)
+                    : 0;
+            });
+        @endphp
+        @if($economiaPromo > 0)
+        <div class="total-row" style="margin-top: 6px;">
+            <span class="total-label" style="color: #e11d48; font-weight: bold;">Você economizou nas promoções:</span>
+            <span class="total-value" style="color: #e11d48;">R$ {{ number_format($economiaPromo, 2, ',', '.') }}</span>
+        </div>
+        @endif
     </div>
 
     <!-- Pagamentos -->

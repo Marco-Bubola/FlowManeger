@@ -100,14 +100,14 @@ class AddProducts extends Component
                     $this->newProducts[$emptyIndex] = [
                         'product_id' => $productId,
                         'quantity' => 1,
-                        'price_sale' => $product->price_sale
+                        'price_sale' => $product->currentSalePrice()
                     ];
                 } else {
                     // Adicionar nova linha
                     $this->newProducts[] = [
                         'product_id' => $productId,
                         'quantity' => 1,
-                        'price_sale' => $product->price_sale
+                        'price_sale' => $product->currentSalePrice()
                     ];
                 }
             }
@@ -231,7 +231,7 @@ class AddProducts extends Component
             if ($productId) {
                 $product = Product::find($productId);
                 if ($product) {
-                    $this->newProducts[$index]['price_sale'] = $product->price_sale;
+                    $this->newProducts[$index]['price_sale'] = $product->currentSalePrice();
                 }
             }
         }
@@ -306,12 +306,15 @@ class AddProducts extends Component
                     $existingItem->quantity += $qty;
                     $existingItem->save();
                 } else {
+                    $promo = $product->livePromotion();
                     SaleItem::create([
                         'sale_id' => $this->sale->id,
                         'product_id' => $productData['product_id'],
                         'quantity' => $qty,
                         'price' => $product->price, // Preço de custo
                         'price_sale' => $productData['price_sale'],
+                        'original_price' => $promo ? $promo->original_price : null,
+                        'promotion_id' => $promo?->id,
                     ]);
                 }
 
@@ -359,7 +362,7 @@ class AddProducts extends Component
 
     public function getFilteredProducts()
     {
-        $query = Product::query();
+        $query = Product::query()->with('activePromotion');
 
         // Filtrar apenas produtos do usuário da venda
         $query->where('user_id', $this->sale->user_id);

@@ -360,10 +360,18 @@
                                                 {{ number_format($product->price, 2, ',', '.') }}
                                             </span>
 
-                                            <span class="badge-price-sale" title="Preço de Venda">
-                                                <i class="bi bi-currency-dollar"></i>
-                                                {{ number_format($product->price_sale, 2, ',', '.') }}
-                                            </span>
+                                            @if($salePromo = $product->livePromotion())
+                                                <span class="badge-price-sale" title="Em promoção (revenda {{ number_format($product->price_sale, 2, ',', '.') }})" style="background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);">
+                                                    <i class="bi bi-fire"></i>
+                                                    <s class="opacity-75 text-[0.8em] mr-0.5">{{ number_format($salePromo->original_price, 2, ',', '.') }}</s>
+                                                    {{ number_format($salePromo->promo_price, 2, ',', '.') }}
+                                                </span>
+                                            @else
+                                                <span class="badge-price-sale" title="Preço de Venda">
+                                                    <i class="bi bi-currency-dollar"></i>
+                                                    {{ number_format($product->price_sale, 2, ',', '.') }}
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>

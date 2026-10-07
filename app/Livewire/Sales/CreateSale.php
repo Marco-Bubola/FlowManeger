@@ -79,6 +79,7 @@ class CreateSale extends Component
                                                    ->where('stock_quantity', '>', 0);
                                             })->orWhere('tipo', 'kit');
                                         })
+                                        ->with('activePromotion')
                                         ->get();
         $this->sale_date = now()->format('Y-m-d');
 
@@ -104,7 +105,7 @@ class CreateSale extends Component
             if ($value) {
                 $product = Product::find($value);
                 if ($product) {
-                    $this->products[$index]['unit_price'] = $product->price_sale;
+                    $this->products[$index]['unit_price'] = $product->currentSalePrice();
                 }
             }
         }
@@ -325,6 +326,7 @@ class CreateSale extends Component
             // Criar os itens da venda e atualizar estoque apenas para 'simples'.
             foreach ($this->products as $item) {
                 $product = Product::find($item['product_id']);
+                $promo = $product->livePromotion();
 
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -332,6 +334,9 @@ class CreateSale extends Component
                     'quantity' => $item['quantity'],
                     'price' => $product->price,
                     'price_sale' => $item['unit_price'],
+                    // Vendido em promoção: guarda o preço "de" para o relatório e o PDF.
+                    'original_price' => $promo ? $promo->original_price : null,
+                    'promotion_id' => $promo?->id,
                 ]);
 
                 // OBS.: o estoque NÃO é debitado aqui. Só é debitado quando a
@@ -440,7 +445,7 @@ class CreateSale extends Component
                 $this->products[] = [
                     'product_id' => $productId,
                     'quantity' => 1,
-                    'unit_price' => $product->price_sale,
+                    'unit_price' => $product->currentSalePrice(),
                 ];
             }
         }
@@ -478,7 +483,7 @@ class CreateSale extends Component
             $this->products[] = [
                 'product_id' => $product->id,
                 'quantity' => 1,
-                'unit_price' => (float) $product->price_sale,
+                'unit_price' => $product->currentSalePrice(),
             ];
         } else {
             foreach ($this->products as $index => $item) {

@@ -187,7 +187,7 @@
                                     <div class="product-title" title="{{ $product->name }}">{{ ucwords($product->name) }}</div>
                                     <div class="price-area">
                                         <span class="badge-price" title="Custo"><i class="bi bi-tag"></i> {{ number_format($product->price, 2, ',', '.') }}</span>
-                                        <span class="badge-price-sale" title="Venda"><i class="bi bi-currency-dollar"></i> {{ number_format($product->price_sale, 2, ',', '.') }}</span>
+                                        @if($apPromo = $product->livePromotion())<span class="badge-price-sale" title="Em promoção" style="background: linear-gradient(135deg, #f43f5e 0%, #f97316 100%);"><i class="bi bi-fire"></i> <s class="opacity-75 text-[0.8em]">{{ number_format($apPromo->original_price, 2, ',', '.') }}</s> {{ number_format($apPromo->promo_price, 2, ',', '.') }}</span>@else <span class="badge-price-sale" title="Venda"><i class="bi bi-currency-dollar"></i> {{ number_format($product->price_sale, 2, ',', '.') }}</span>@endif
                                     </div>
                                 </div>
                             </div>
