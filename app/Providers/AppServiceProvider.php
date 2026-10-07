@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
         // Registrar observadores de modelos
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
 
+        // Mensagens flash de ações Livewire aparecem no aviso global
+        \App\Livewire\Hooks\FlashToNotify::register();
+
         // ── Gates de Permissão ────────────────────────────────────
 
         // Acesso admin (somente user ID 2 por enquanto)

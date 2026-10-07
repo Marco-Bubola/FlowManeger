@@ -34,7 +34,8 @@
         <div class="add-payments-layout mt-5 mb-6">
 
             {{-- Coluna principal: cards de pagamento com scroll --}}
-            <div class="add-payments-forms">
+            <div class="add-payments-forms"
+                 x-on:keydown.enter="if ($event.target.matches('input:not([type=radio]):not([type=checkbox])')) { $event.preventDefault(); $event.target.blur(); $nextTick(() => $wire.addPayments()) }">
                 <div class="add-payments-cards-scroll">
                     @foreach($payments as $index => $payment)
                         <x-payment-form-card
