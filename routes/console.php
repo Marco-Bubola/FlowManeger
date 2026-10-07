@@ -37,3 +37,8 @@ Schedule::command('consortium:check-notifications')
 Schedule::command('consortium:check-notifications --clean')
     ->weeklyOn(1, '03:00')
     ->withoutOverlapping();
+
+// Promoções: liga as agendadas e encerra as vencidas ou sem estoque
+Schedule::command('promotions:refresh')
+    ->hourly()
+    ->withoutOverlapping();
