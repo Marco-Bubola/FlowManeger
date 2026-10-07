@@ -298,11 +298,8 @@
                                         <label class="text-xs font-bold text-gray-600 dark:text-gray-400 flex items-center gap-1">
                                             <i class="bi bi-currency-dollar"></i> Preço
                                         </label>
-                                        <input type="number"
-                                               wire:model.live="newProducts.{{ $index }}.price_sale"
-                                               step="0.01"
-                                               min="0"
-                                               class="w-full px-3 py-2 border-2 border-purple-200 dark:border-purple-700 rounded-xl text-sm font-bold bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500">
+                                        <x-money-input bare :model="'newProducts.'.$index.'.price_sale'" :value="$item['price_sale'] ?? 0"
+                                            class="w-full px-3 py-2 border-2 border-purple-200 dark:border-purple-700 rounded-xl text-sm font-bold bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500" />
                                     </div>
                                 </div>
 

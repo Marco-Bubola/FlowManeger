@@ -224,9 +224,8 @@
                             </label>
                             <div class="relative">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">R$</span>
-                                <input type="number" wire:model.live="monthly_value" step="0.01" min="0.01"
-                                    class="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium shadow-sm"
-                                    placeholder="0,00">
+                                <x-money-input bare :model="'monthly_value'" :value="$monthly_value ?? 0"
+                                    class="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium shadow-sm" />
                             </div>
                             @error('monthly_value')
                                 <p class="mt-1 text-xs text-red-600 flex items-center gap-1">

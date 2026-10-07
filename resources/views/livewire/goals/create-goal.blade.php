@@ -179,14 +179,8 @@
                             <label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                                 Valor da Meta (R$)
                             </label>
-                            <input
-                                type="number"
-                                wire:model="valor_meta"
-                                step="0.01"
-                                min="0"
-                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500"
-                                placeholder="0.00"
-                            >
+                            <x-money-input bare :model="'valor_meta'" :value="$valor_meta ?? 0" :live="false"
+                                class="w-full px-4 py-3 bg-slate-50 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500" />
                         </div>
 
                         <!-- Cofrinho -->

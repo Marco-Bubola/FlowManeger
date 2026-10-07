@@ -98,11 +98,8 @@
                                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-1">
                                             <i class="bi bi-currency-dollar text-green-600"></i> Valor *
                                         </label>
-                                        <input type="number"
-                                               wire:model="payments.{{ $index }}.amount_paid"
-                                               class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white"
-                                               min="0.01"
-                                               step="0.01">
+                                        <x-money-input bare :model="'payments.'.$index.'.amount_paid'" :value="$payment['amount_paid'] ?? 0" :live="false"
+                                            class="w-full px-3 py-2 border border-gray-300 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white" />
                                         @error("payments.{$index}.amount_paid")
                                             <p class="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center gap-1"><i class="bi bi-exclamation-circle"></i> {{ $message }}</p>
                                         @enderror

@@ -26,3 +26,14 @@ Schedule::command('ml:refresh-tokens')
     ->hourly()
     ->withoutOverlapping()
     ->runInBackground();
+
+// Notificações de consórcios (sorteios disponíveis e resgates pendentes)
+Schedule::command('consortium:check-notifications')
+    ->dailyAt('08:00')
+    ->withoutOverlapping()
+    ->runInBackground();
+
+// Limpeza semanal de notificações antigas de consórcios
+Schedule::command('consortium:check-notifications --clean')
+    ->weeklyOn(1, '03:00')
+    ->withoutOverlapping();

@@ -916,8 +916,8 @@
                         <div class="flex items-center gap-2">
                             <div class="relative flex-1">
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-amber-600 font-bold">R$</span>
-                                <input type="number" wire:model.live="publishPrice" step="0.01" min="0.01"
-                                    class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 text-slate-900 dark:text-white font-bold text-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20">
+                                <x-money-input bare :model="'publishPrice'" :value="$publishPrice ?? 0"
+                                    class="w-full pl-10 pr-4 py-3 rounded-xl border-2 border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10 text-slate-900 dark:text-white font-bold text-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20" />
                             </div>
                             <div class="text-right flex-shrink-0">
                                 <p class="text-[10px] text-slate-500 uppercase">Soma produtos</p>

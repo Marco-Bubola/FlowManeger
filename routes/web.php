@@ -79,7 +79,6 @@ use App\Http\Controllers\ResetController;
 use App\Http\Controllers\SessionsController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\ProductController;
-use App\Http\Controllers\SaleController;
 use App\Models\Client;
 use App\Http\Controllers\UploadInvoiceController;
 use App\Http\Controllers\CashbookController;

@@ -248,10 +248,9 @@
                         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
                             Preço (R$) <span class="text-red-500">*</span>
                         </label>
-                        <input type="number" wire:model="publishPrice" step="0.01" min="0"
-                               placeholder="0,00"
-                               class="w-full px-3 py-2.5 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600
-                                      rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 dark:text-white">
+                        <x-money-input bare :model="'publishPrice'" :value="$publishPrice ?? 0" :live="false"
+                            class="w-full px-3 py-2.5 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-600
+                                      rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-400 dark:text-white" />
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantidade</label>
