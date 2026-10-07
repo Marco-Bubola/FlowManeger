@@ -399,6 +399,28 @@
                     </div>
                 </div>
 
+                @if (count($installmentForecast) > 0)
+                    <!-- Parcelas futuras já comprometidas -->
+                    <details class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-zinc-900/60 backdrop-blur px-4 py-3 group">
+                        <summary class="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-200 list-none">
+                            <i class="bi bi-calendar3-range text-indigo-500"></i>
+                            Parcelas futuras: R$ {{ number_format(collect($installmentForecast)->sum('total'), 2, ',', '.') }} já comprometidos nos próximos meses
+                            <i class="bi bi-chevron-down ml-auto transition-transform group-open:rotate-180"></i>
+                        </summary>
+                        <div class="mt-3 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                            @foreach ($installmentForecast as $forecastMonth)
+                                <div class="rounded-xl bg-slate-50 dark:bg-zinc-800 px-3 py-2" title="{{ collect($forecastMonth['items'])->map(fn ($i) => $i['description'].' ('.$i['installment'].')')->implode(', ') }}">
+                                    <div class="text-xs text-slate-500 dark:text-slate-400 capitalize">
+                                        {{ \Carbon\Carbon::createFromFormat('Y-m-d', $forecastMonth['month'].'-01')->locale('pt_BR')->isoFormat('MMM/YY') }}
+                                    </div>
+                                    <div class="text-sm font-bold text-slate-800 dark:text-slate-100">R$ {{ number_format($forecastMonth['total'], 2, ',', '.') }}</div>
+                                    <div class="text-xs text-slate-500 dark:text-slate-400">{{ count($forecastMonth['items']) }} {{ count($forecastMonth['items']) === 1 ? 'parcela' : 'parcelas' }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
+
                 <!-- Transactions List -->
                 <div class="space-y-3 transactions-section">
                     <!-- Transactions Content -->

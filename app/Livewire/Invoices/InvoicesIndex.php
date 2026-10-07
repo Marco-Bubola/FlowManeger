@@ -68,6 +68,7 @@ class InvoicesIndex extends Component
     public ?float $creditLimit = null;
     public float $limitUsed = 0;
     public float $billTotal = 0;
+    public array $installmentForecast = [];
 
     // Modal de exclusão
     public ?Invoice $deletingInvoice = null;
@@ -257,6 +258,15 @@ class InvoicesIndex extends Component
         } else {
             $this->billStatus = 'aberta';
         }
+
+        // Parcelas que ainda vão cair nas próximas faturas (compras dos últimos 2 anos)
+        $this->installmentForecast = array_values(\App\Services\Invoices\InstallmentForecast::forecast(
+            Invoice::where('id_bank', $this->bank->id_bank)
+                ->where('invoice_date', '>=', now()->subYears(2)->startOfMonth())
+                ->whereNotNull('installments')
+                ->get(['invoice_date', 'description', 'value', 'installments']),
+            $this->currentEndDate->copy()
+        ));
 
         $this->creditLimit = $this->bank->credit_limit ? (float) $this->bank->credit_limit : null;
         $this->limitUsed = 0;

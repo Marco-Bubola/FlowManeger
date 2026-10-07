@@ -194,6 +194,12 @@ class UploadInvoice extends Component
                     ->where('value', $transaction['value'])
                     ->where('description', $transaction['description'])
                     ->where('user_id', Auth::id())
+                    // Parcelas da mesma compra têm data, valor e descrição iguais:
+                    // só é duplicata se for a mesma parcela ("4 de 6")
+                    ->when(
+                        \App\Services\Invoices\InstallmentForecast::parse($transaction['installments'] ?? null),
+                        fn ($q) => $q->where('installments', $transaction['installments'])
+                    )
                     ->exists();
 
                 $transaction['is_duplicate'] = $exists;
@@ -275,6 +281,12 @@ class UploadInvoice extends Component
                     ->where('value', $transaction['value'])
                     ->where('description', $transaction['description'])
                     ->where('user_id', Auth::id())
+                    // Parcelas da mesma compra têm data, valor e descrição iguais:
+                    // só é duplicata se for a mesma parcela ("4 de 6")
+                    ->when(
+                        \App\Services\Invoices\InstallmentForecast::parse($transaction['installments'] ?? null),
+                        fn ($q) => $q->where('installments', $transaction['installments'])
+                    )
                     ->exists();
 
                 $forceCreate = $transaction['force_create'] ?? false;
