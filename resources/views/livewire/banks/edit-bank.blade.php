@@ -118,6 +118,32 @@ $bankIcons = [
             </div>
         </div>
 
+        <!-- Limite e vencimento do cartão -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <div>
+                <label class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl mr-4 shadow-lg">
+                        <i class="bi bi-speedometer2 text-white"></i>
+                    </div>
+                    Limite do Cartão
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Opcional. Usado para mostrar quanto do limite já foi usado.</p>
+                <x-money-input model="credit_limit" :value="$credit_limit ?? 0" :live="false" />
+            </div>
+            <div>
+                <label for="due_day" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">
+                    <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-xl mr-4 shadow-lg">
+                        <i class="bi bi-calendar-check text-white"></i>
+                    </div>
+                    Dia de Vencimento
+                </label>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-2">Opcional. Dia do mês em que a fatura vence (ex: dia 12).</p>
+                <input type="number" id="due_day" wire:model="due_day" min="1" max="31" inputmode="numeric" placeholder="Ex: 12"
+                    class="w-full px-4 py-4 text-base border-2 border-gray-200 dark:border-gray-600 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 transition-all duration-300 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 font-medium shadow-lg">
+                @error('due_day') <div class="mt-2 text-xs text-red-500 dark:text-red-400">{{ $message }}</div> @enderror
+            </div>
+        </div>
+
         <!-- Dica sobre o ciclo de fatura -->
         <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-lg">
             <div class="flex items-start">

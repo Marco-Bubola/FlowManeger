@@ -3,6 +3,7 @@
 namespace App\Livewire\Invoices;
 
 use App\Models\Bank;
+use App\Models\CardBillPayment;
 use App\Models\Category;
 use App\Models\Client;
 use App\Models\Invoice;
@@ -59,6 +60,14 @@ class InvoicesIndex extends Component
     public $highestInvoice = null;
     public $lowestInvoice = null;
     public $totalTransactions = 0;
+
+    // Situação da fatura do ciclo (vencimento, pagamento e limite)
+    public ?string $dueDate = null;
+    public string $billStatus = 'aberta'; // aberta | fechada | vencida | paga
+    public ?string $paidAt = null;
+    public ?float $creditLimit = null;
+    public float $limitUsed = 0;
+    public float $billTotal = 0;
 
     // Modal de exclusão
     public ?Invoice $deletingInvoice = null;
@@ -117,6 +126,7 @@ class InvoicesIndex extends Component
             $this->calculateDateRanges();
             $this->loadInvoices();
             $this->processInvoiceData();
+            $this->loadBillStatus();
 
             // Preparar dados do calendário
             $this->prepareCalendarData();
@@ -224,6 +234,82 @@ class InvoicesIndex extends Component
             // Mostrar todas as invoices do mês
             $this->invoices = $allMonthInvoices;
         }
+    }
+
+    private function loadBillStatus(): void
+    {
+        $this->billTotal = $this->cycleTotal();
+
+        $due = $this->bank->dueDateFor($this->currentEndDate);
+        $this->dueDate = $due?->format('Y-m-d');
+
+        $payment = CardBillPayment::where('id_bank', $this->bank->id_bank)
+            ->whereDate('cycle_start', $this->currentStartDate->toDateString())
+            ->first();
+        $this->paidAt = $payment?->paid_at?->format('Y-m-d');
+
+        if ($payment) {
+            $this->billStatus = 'paga';
+        } elseif ($due && now()->startOfDay()->gt($due)) {
+            $this->billStatus = 'vencida';
+        } elseif (now()->gt($this->currentEndDate)) {
+            $this->billStatus = 'fechada';
+        } else {
+            $this->billStatus = 'aberta';
+        }
+
+        $this->creditLimit = $this->bank->credit_limit ? (float) $this->bank->credit_limit : null;
+        $this->limitUsed = 0;
+
+        if ($this->creditLimit) {
+            // Usa o limite tudo o que foi lançado depois da última fatura paga
+            $lastPaidEnd = CardBillPayment::where('id_bank', $this->bank->id_bank)->max('cycle_end');
+
+            $this->limitUsed = (float) Invoice::where('id_bank', $this->bank->id_bank)
+                ->when($lastPaidEnd, fn ($q) => $q->where('invoice_date', '>', Carbon::parse($lastPaidEnd)->endOfDay()))
+                ->sum('value');
+        }
+    }
+
+    private function cycleTotal(): float
+    {
+        return (float) Invoice::where('id_bank', $this->bank->id_bank)
+            ->whereBetween('invoice_date', [$this->currentStartDate, $this->currentEndDate])
+            ->sum('value');
+    }
+
+    public function markBillAsPaid(): void
+    {
+        $this->bank = Bank::where('user_id', Auth::id())->findOrFail($this->bankId);
+        $this->calculateDateRanges();
+
+        $total = $this->cycleTotal();
+
+        CardBillPayment::updateOrCreate(
+            ['id_bank' => $this->bank->id_bank, 'cycle_start' => $this->currentStartDate->toDateString()],
+            [
+                'user_id' => Auth::id(),
+                'cycle_end' => $this->currentEndDate->toDateString(),
+                'amount' => $total,
+                'paid_at' => now()->toDateString(),
+            ]
+        );
+
+        $this->loadBillStatus();
+        $this->dispatch('notify', type: 'success', message: 'Fatura marcada como paga.');
+    }
+
+    public function unmarkBillAsPaid(): void
+    {
+        $this->bank = Bank::where('user_id', Auth::id())->findOrFail($this->bankId);
+        $this->calculateDateRanges();
+
+        CardBillPayment::where('id_bank', $this->bank->id_bank)
+            ->whereDate('cycle_start', $this->currentStartDate->toDateString())
+            ->delete();
+
+        $this->loadBillStatus();
+        $this->dispatch('notify', type: 'info', message: 'Pagamento da fatura desfeito.');
     }
 
     public function filterByDate($date)

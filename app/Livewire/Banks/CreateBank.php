@@ -15,6 +15,8 @@ class CreateBank extends Component
     public ?string $start_date = null;
     public ?string $end_date = null;
     public string $caminho_icone = '';
+    public $credit_limit = null;
+    public $due_day = null;
 
     // Propriedade que não deve ser serializada pelo Livewire
     protected $bankIcons;
@@ -41,6 +43,8 @@ class CreateBank extends Component
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'caminho_icone' => 'required|string',
+            'credit_limit' => 'nullable|numeric|min:0',
+            'due_day' => 'nullable|integer|between:1,31',
         ];
     }
     
@@ -48,6 +52,8 @@ class CreateBank extends Component
     {
         // Valida os dados
         $validated = $this->validate();
+        $validated['credit_limit'] = (float) ($validated['credit_limit'] ?? 0) > 0 ? $validated['credit_limit'] : null;
+        $validated['due_day'] = $validated['due_day'] ?: null;
 
         // Cria o novo banco
         $bank = new Bank();

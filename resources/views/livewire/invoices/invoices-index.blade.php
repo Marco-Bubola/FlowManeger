@@ -340,6 +340,65 @@
                     </x-slot>
                 </x-invoice-header>
 
+                <!-- Situação da fatura: vencimento, pagamento e limite -->
+                @php
+                    $statusStyles = [
+                        'paga' => ['bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', 'bi-check-circle-fill', 'Paga'],
+                        'vencida' => ['bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300', 'bi-exclamation-octagon-fill', 'Vencida'],
+                        'fechada' => ['bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', 'bi-lock-fill', 'Fechada'],
+                        'aberta' => ['bg-sky-100 text-sky-700 dark:bg-sky-900/40 dark:text-sky-300', 'bi-unlock-fill', 'Aberta'],
+                    ];
+                    [$statusClass, $statusIcon, $statusLabel] = $statusStyles[$billStatus] ?? $statusStyles['aberta'];
+                    $limitPct = $creditLimit ? min(100, round($limitUsed / $creditLimit * 100)) : 0;
+                @endphp
+                <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-zinc-900/60 backdrop-blur px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-3">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold {{ $statusClass }}">
+                        <i class="bi {{ $statusIcon }}"></i> Fatura {{ $statusLabel }}
+                    </span>
+
+                    <div class="text-sm text-slate-600 dark:text-slate-300">
+                        <i class="bi bi-calendar-check mr-1"></i>
+                        @if ($dueDate)
+                            Vence em <strong>{{ \Carbon\Carbon::parse($dueDate)->format('d/m/Y') }}</strong>
+                        @else
+                            <a href="{{ route('banks.edit', $bankId) }}" class="underline hover:text-indigo-600">Informe o dia de vencimento</a>
+                        @endif
+                    </div>
+
+                    <div class="text-sm text-slate-600 dark:text-slate-300">
+                        Total da fatura: <strong>R$ {{ number_format($billTotal, 2, ',', '.') }}</strong>
+                        @if ($paidAt)
+                            <span class="text-emerald-600 dark:text-emerald-400">· paga em {{ \Carbon\Carbon::parse($paidAt)->format('d/m/Y') }}</span>
+                        @endif
+                    </div>
+
+                    @if ($creditLimit)
+                        <div class="flex-1 min-w-[180px]">
+                            <div class="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+                                <span>Limite usado: R$ {{ number_format($limitUsed, 2, ',', '.') }}</span>
+                                <span>Disponível: R$ {{ number_format(max(0, $creditLimit - $limitUsed), 2, ',', '.') }}</span>
+                            </div>
+                            <div class="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                                <div class="h-full rounded-full {{ $limitPct >= 90 ? 'bg-red-500' : ($limitPct >= 70 ? 'bg-amber-500' : 'bg-emerald-500') }}" style="width: {{ $limitPct }}%"></div>
+                            </div>
+                        </div>
+                    @endif
+
+                    <div class="ml-auto">
+                        @if ($billStatus === 'paga')
+                            <button type="button" wire:click="unmarkBillAsPaid" wire:loading.attr="disabled"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border border-slate-300 dark:border-slate-600 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">
+                                <i class="bi bi-arrow-counterclockwise"></i> Desfazer pagamento
+                            </button>
+                        @else
+                            <button type="button" wire:click="markBillAsPaid" wire:loading.attr="disabled"
+                                class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow">
+                                <i class="bi bi-check2-circle"></i> Marcar fatura como paga
+                            </button>
+                        @endif
+                    </div>
+                </div>
+
                 <!-- Transactions List -->
                 <div class="space-y-3 transactions-section">
                     <!-- Transactions Content -->
