@@ -386,8 +386,14 @@ class ClientsIndex extends Component
                 $query->whereDoesntHave('sales', function ($q) {
                     $q->where('created_at', '>=', now()->subDays(30));
                 });
-            } else {
-                $query->where('status', $this->statusFilter);
+            } elseif ($this->statusFilter === 'ativo') {
+                // A tabela de clientes não tem coluna de status: ativo é quem comprou nos últimos 30 dias
+                $query->whereHas('sales', function ($q) {
+                    $q->where('created_at', '>=', now()->subDays(30));
+                });
+            } elseif ($this->statusFilter === 'premium') {
+                // Mesmo critério do selo "Premium" do card: 5 compras ou mais
+                $query->has('sales', '>=', 5);
             }
         }
 
@@ -449,7 +455,8 @@ class ClientsIndex extends Component
                 $query->orderBy('email', $this->sortDirection);
                 break;
             case 'status':
-                $query->orderBy('status', $this->sortDirection);
+                // Sem coluna de status: ordena pelo número de compras (mesmo critério do selo do card)
+                $query->withCount('sales')->orderBy('sales_count', $this->sortDirection);
                 break;
             case 'phone':
                 $query->orderBy('phone', $this->sortDirection);
@@ -553,14 +560,14 @@ class ClientsIndex extends Component
     public function getActiveClientsProperty()
     {
         return Client::query()
-            ->where('status', 'ativo')
+            ->whereHas('sales', fn ($q) => $q->where('created_at', '>=', now()->subDays(30)))
             ->count();
     }
 
     public function getPremiumClientsProperty()
     {
         return Client::query()
-            ->where('type', 'premium')
+            ->has('sales', '>=', 5)
             ->count();
     }
 

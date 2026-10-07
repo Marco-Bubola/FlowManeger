@@ -17,10 +17,10 @@ class ClientFaturas extends Component
     public Client $client;
     public $clienteId;
     
-    public function mount($clienteId)
+    public function mount($cliente)
     {
-        $this->clienteId = $clienteId;
-        $this->client = Client::where('user_id', Auth::id())->findOrFail($clienteId);
+        $this->clienteId = $cliente;
+        $this->client = Client::where('user_id', Auth::id())->findOrFail($cliente);
     }
     
     public function toggleDividida($invoiceId)

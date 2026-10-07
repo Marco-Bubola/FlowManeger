@@ -1,50 +1,18 @@
-<div class="show-client-consortiums-page w-full px-4 py-8 mobile-393-base">
+<div class="show-client-consortiums-page w-full px-4 sm:px-6 lg:px-8 pt-4 pb-8 mobile-393-base">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-iphone15.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-ipad-portrait.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-client-consortiums-ultrawide.css') }}">
-    <!-- Header Moderno com Glassmorphism -->
-    <div class="mb-8">
-        <div class="relative bg-gradient-to-r from-white/80 via-emerald-50/90 to-teal-50/80 dark:from-slate-800/90 dark:via-emerald-900/30 dark:to-teal-900/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl">
-            <!-- Decorações de fundo -->
-            <div class="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
-                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-                <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-                <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-cyan-400/10 via-emerald-400/10 to-teal-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
-            </div>
-
-            <!-- Conteúdo do header -->
-            <div class="relative px-8 py-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-4">
-                        <a href="{{ route('clients.dashboard', $this->client) }}"
-                            class="flex items-center justify-center w-12 h-12 bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 rounded-2xl border border-white/40 dark:border-slate-600/50 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm">
-                            <i class="bi bi-arrow-left text-xl text-emerald-600 dark:text-emerald-400"></i>
-                        </a>
-                        <div>
-                            <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 bg-clip-text text-transparent drop-shadow-sm">
-                                Consórcios de {{ $this->client->name }}
-                            </h1>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium">
-                                <i class="bi bi-folder-open mr-1"></i>Visualize todos os consórcios e pagamentos do cliente
-                            </p>
-                        </div>
-                    </div>
-
-                    <!-- Botão de Exportação -->
-                    <div class="flex items-center gap-3">
-                        <button wire:click="$dispatch('openExportModal', { clientId: {{ $this->client->id }} })"
-                            class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                            <i class="bi bi-file-earmark-arrow-down text-lg"></i>
-                            <span>Exportar</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-client-page-header :client="$this->client" title="Consórcios" icon="bi-building" active="consorcios">
+        <x-slot name="actions">
+            <button wire:click="$dispatch('openExportModal', { clientId: {{ $this->client->id }} })"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold shadow-md transition">
+                <i class="bi bi-file-earmark-arrow-down"></i>Exportar
+            </button>
+        </x-slot>
+    </x-client-page-header>
 
     <!-- Estatísticas -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4 mb-8">

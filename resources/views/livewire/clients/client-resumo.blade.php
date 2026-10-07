@@ -6,93 +6,16 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-resumo-ultrawide.css') }}">
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
-        <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
-        <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-blue-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
-
-        <div class="relative px-6 py-4">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div class="flex items-center gap-4">
-                    <!-- Botão Voltar -->
-                    <a href="{{ route('clients.index') }}"
-                       class="group relative inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-white to-indigo-50 dark:from-slate-800 dark:to-slate-700 hover:from-indigo-50 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 shadow-md hover:shadow-lg border border-white/50 dark:border-slate-600/50">
-                        <i class="fas fa-arrow-left text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200"></i>
-                    </a>
-
-                    <!-- Avatar e Info -->
-                    <div class="relative">
-                        @if($client->caminho_foto)
-                            <div class="w-16 h-16 rounded-xl overflow-hidden shadow-lg ring-4 ring-white/50 dark:ring-slate-700/50">
-                                <img src="{{ $client->caminho_foto }}"
-                                     alt="{{ $client->name }}"
-                                     class="w-full h-full object-cover">
-                            </div>
-                        @else
-                            <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg flex items-center justify-center ring-4 ring-white/50 dark:ring-slate-700/50">
-                                <i class="fas fa-user text-white text-2xl"></i>
-                                <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 to-transparent opacity-40"></div>
-                            </div>
-                        @endif
-                        <!-- Badge Online -->
-                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm"></div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-1">
-                            <a href="{{ route('clients.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                <i class="fas fa-users mr-1"></i>Clientes
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium">Resumo Financeiro</span>
-                        </div>
-                        <h1 class="text-2xl lg:text-3xl font-bold text-slate-800 dark:text-slate-100">
-                            {{ $client->name }}
-                        </h1>
-                        <div class="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
-                            @if($client->email)
-                                <span class="flex items-center">
-                                    <i class="fas fa-envelope mr-1"></i>{{ $client->email }}
-                                </span>
-                            @endif
-                            @if($client->phone)
-                                <span class="flex items-center">
-                                    <i class="fas fa-phone mr-1"></i>{{ $client->phone }}
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Ações -->
-                <div class="flex items-center gap-2 flex-wrap">
-                    <a href="{{ route('clients.portal.quotes', $client->id) }}"
-                       class="inline-flex items-center px-4 py-2 bg-white/80 hover:bg-white text-slate-700 rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg border border-white/50">
-                        <i class="fas fa-file-invoice-dollar mr-2"></i>
-                        Orçamentos
-                    </a>
-                    @if($client->portal_active)
-                        <a href="{{ route('portal.login') }}"
-                           target="_blank"
-                           class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg">
-                            <i class="fas fa-external-link-alt mr-2"></i>
-                            Abrir Portal
-                        </a>
-                    @endif
-                    <a href="{{ route('clients.portal.access', $client->id) }}"
-                       class="inline-flex items-center px-4 py-2 bg-sky-100 hover:bg-sky-200 text-sky-700 rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg border border-sky-200">
-                        <i class="fas fa-key mr-2"></i>
-                        Acesso do Portal
-                    </a>
-                    <a href="{{ route('clients.edit', $client->id) }}"
-                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 font-semibold shadow-md hover:shadow-lg">
-                        <i class="fas fa-edit mr-2"></i>
-                        Editar Cliente
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-client-page-header :client="$client" title="Resumo financeiro" icon="bi-graph-up" active="resumo">
+        @if($client->portal_active)
+            <x-slot name="actions">
+                <a href="{{ route('portal.login') }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold shadow-md transition">
+                    <i class="bi bi-box-arrow-up-right"></i>Abrir portal
+                </a>
+            </x-slot>
+        @endif
+    </x-client-page-header>
 
         <!-- Cards de Resumo Financeiro (linha única, mais compactos) -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">

@@ -13,45 +13,19 @@
 
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
 
-        <!-- Header Modernizado -->
-        <x-client-create-header
-            title="Novo Cliente"
-            description="Cadastre um novo cliente no sistema com todas as informações necessárias"
-            :back-route="route('clients.index')"
-            :show-steps="false">
-            <x-slot name="breadcrumb">
-                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <i class="fas fa-chevron-right text-xs"></i>
-                    <a href="{{ route('clients.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <i class="fas fa-users mr-1"></i>Clientes
-                    </a>
-                    <i class="fas fa-chevron-right text-xs"></i>
-                    <span class="text-slate-800 dark:text-slate-200 font-medium">Novo Cliente</span>
-                </div>
-            </x-slot>
+        <x-client-page-header title="Novo cliente" subtitle="Cadastre um cliente com contato, documento e endereço" icon="bi-person-plus">
             <x-slot name="actions">
                 <a href="{{ route('clients.index') }}"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-200 border-2 border-slate-600 hover:border-slate-500 shadow-lg hover:shadow-xl">
-                    <i class="bi bi-x-lg"></i>
-                    Cancelar
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/85 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-white dark:hover:bg-slate-700 shadow-sm transition">
+                    <i class="bi bi-x-lg"></i>Cancelar
                 </a>
-                <button type="submit" form="client-form"
-                    class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105"
-                    wire:loading.attr="disabled">
-                    <div wire:loading.remove wire:target="store" class="flex items-center gap-2">
-                        <i class="bi bi-check-lg"></i>
-                        Salvar Cliente
-                    </div>
-                    <div wire:loading wire:target="store" class="flex items-center gap-2">
-                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        Salvando...
-                    </div>
+                <button type="submit" form="client-form" wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md transition disabled:opacity-60">
+                    <span wire:loading.remove wire:target="store" class="inline-flex items-center gap-2"><i class="bi bi-check-lg"></i>Salvar cliente</span>
+                    <span wire:loading wire:target="store" class="inline-flex items-center gap-2"><span class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>Salvando...</span>
                 </button>
             </x-slot>
-        </x-client-create-header>
+        </x-client-page-header>
 
         <!-- Conteúdo Principal -->
         <div class="cf-layout flex flex-col xl:flex-row gap-8">

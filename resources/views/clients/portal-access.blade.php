@@ -1,47 +1,8 @@
 <x-layouts.app title="Acesso do Portal do Cliente">
 <div class="w-full">
 
-    {{-- ═══════════════════════════════════════════════════ HEADER ══ --}}
-    <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 shadow-xl mb-5">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full translate-x-12 -translate-y-12 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-sky-400/10 via-indigo-400/10 to-transparent rounded-full -translate-x-8 translate-y-8 pointer-events-none"></div>
-
-        <div class="relative px-5 py-5 sm:px-7">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                {{-- Back + Avatar + Title --}}
-                <div class="flex items-center gap-4">
-                    <a href="{{ route('clients.resumo', $client->id) }}"
-                       class="group inline-flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-white to-indigo-50 dark:from-slate-700 dark:to-slate-600 hover:from-indigo-50 hover:to-indigo-100 dark:hover:from-slate-600 dark:hover:to-slate-500 border border-white/50 dark:border-slate-600/50 shadow-md hover:shadow-lg transition-all duration-200 flex-shrink-0">
-                        <i class="fas fa-arrow-left text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-200 text-sm"></i>
-                    </a>
-
-                    <div class="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-indigo-500/25 ring-4 ring-white/50 dark:ring-slate-700/50">
-                        <i class="fas fa-user-shield text-white text-xl"></i>
-                    </div>
-
-                    <div>
-                        <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
-                            <a href="{{ route('clients.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                <i class="fas fa-users mr-1"></i>Clientes
-                            </a>
-                            <i class="fas fa-chevron-right text-[9px]"></i>
-                            <a href="{{ route('clients.resumo', $client->id) }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">{{ $client->name }}</a>
-                            <i class="fas fa-chevron-right text-[9px]"></i>
-                            <span class="text-slate-700 dark:text-slate-200 font-medium">Portal</span>
-                        </div>
-                        <h1 class="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 leading-tight">
-                            Acesso do Portal
-                            <span class="text-indigo-600 dark:text-indigo-400">{{ $client->name }}</span>
-                        </h1>
-                        <p class="mt-1 text-xs text-slate-500 dark:text-slate-400 max-w-lg hidden sm:block">
-                            Gerencie credenciais, link de acesso e mensagem de convite do cliente ao portal.
-                        </p>
-                    </div>
-                </div>
-
-                {{-- Status Badges --}}
-                <div class="flex flex-wrap gap-2 lg:justify-end">
+    <x-client-page-header :client="$client" title="Acesso ao portal" icon="bi-key" active="portal">
+        <x-slot name="actions">
                     @if($client->portal_active)
                         <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                             <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></span>Portal Ativo
@@ -66,10 +27,8 @@
                             Abrir portal
                         </a>
                     @endif
-                </div>
-            </div>
-        </div>
-    </div>
+        </x-slot>
+    </x-client-page-header>
 
     {{-- ═══════════════════════════════════════════════ STATUS CARDS ══ --}}
     @php

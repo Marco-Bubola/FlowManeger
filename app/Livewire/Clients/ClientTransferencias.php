@@ -18,11 +18,11 @@ class ClientTransferencias extends Component
     public $clienteId;
     public $tipo = 'all'; // all, recebidas, enviadas
     
-    public function mount($clienteId, $tipo = 'all')
+    public function mount($cliente, $tipo = 'all')
     {
-        $this->clienteId = $clienteId;
+        $this->clienteId = $cliente;
         $this->tipo = $tipo;
-        $this->client = Client::where('user_id', Auth::id())->findOrFail($clienteId);
+        $this->client = Client::where('user_id', Auth::id())->findOrFail($cliente);
     }
     
     public function setTipo($tipo)

@@ -6,71 +6,18 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-dashboard-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-dashboard-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-dashboard-ultrawide.css') }}">
-    <!-- Header Moderno -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-indigo-50/90 to-purple-50/80 dark:from-slate-800/90 dark:via-indigo-900/30 dark:to-purple-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-2xl shadow-xl mb-6 mx-4 sm:mx-6 lg:mx-8 mt-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5"></div>
-        <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-indigo-400/20 via-purple-400/20 to-pink-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
-        <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-indigo-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
-
-        <div class="relative px-6 py-4">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
-                <div class="flex items-center gap-4">
-                    <div class="relative">
-                        <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-xl shadow-lg flex items-center justify-center ring-4 ring-white/50 dark:ring-slate-700/50">
-                            <i class="fas fa-user-circle text-white text-2xl"></i>
-                            <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/15 to-transparent opacity-40"></div>
-                        </div>
-                        <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white dark:border-slate-800 shadow-sm">
-                            <div class="w-full h-full bg-green-500 rounded-full animate-ping opacity-75"></div>
-                        </div>
-                    </div>
-
-                    <div class="space-y-1">
-                        <div class="flex items-center gap-2 text-sm text-slate-300 dark:text-slate-200 mb-1">
-                            <i class="fas fa-user mr-1"></i>
-                            <span class="text-white font-medium">Dashboard do Cliente</span>
-                        </div>
-                        <h1 class="text-2xl lg:text-3xl font-bold text-white">
-                            {{ $client->name }}
-                        </h1>
-                        <div class="flex items-center gap-3 text-sm text-slate-200">
-                            <span class="flex items-center">
-                                <i class="fas fa-calendar mr-1"></i>
-                                <span class="text-slate-200">Cliente há {{ $diasComoCliente }} dias</span>
-                            </span>
-                            @if($totalVendas >= 5 && ($totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0) >= 90)
-                                <span class="px-2 py-1 bg-yellow-500/20 text-yellow-200 rounded-lg text-xs font-bold">
-                                    <i class="fas fa-crown mr-1"></i>VIP
-                                </span>
-                            @else
-                                <span class="px-2 py-1 bg-purple-500/20 text-purple-200 rounded-lg text-xs font-bold">
-                                    <i class="fas fa-star mr-1"></i>Premium
-                                </span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-wrap items-center gap-2">
-                    <div class="inline-flex items-center space-x-2 px-3 py-2 bg-green-600/20 dark:bg-green-700/80 rounded-lg border border-green-700/30 dark:border-green-800 shadow-sm">
-                        <div class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span class="text-xs font-medium text-white">Ativo</span>
-                    </div>
-
-                    <a href="{{ route('clients.index') }}"
-                        class="group inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-md hover:shadow-xl text-sm transform hover:scale-105">
-                        <i class="fas fa-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                        <span>Voltar</span>
-                    </a>
-
-                    <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
-                        class="group inline-flex items-center px-4 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-xl transition-all duration-300 font-semibold shadow-md hover:shadow-xl text-sm transform hover:scale-105">
-                        <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                        <span>Nova Venda</span>
-                    </a>
-                </div>
-            </div>
-        </div>
+    <div class="px-4 sm:px-6 lg:px-8 pt-4">
+        <x-client-page-header :client="$client" title="Dashboard do cliente" icon="bi-speedometer2" active="dashboard">
+            <x-slot name="actions">
+                @if($totalVendas >= 5 && ($totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0) >= 90)
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow"><i class="bi bi-trophy"></i>VIP</span>
+                @endif
+                <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md transition">
+                    <i class="bi bi-plus-lg"></i>Nova venda
+                </a>
+            </x-slot>
+        </x-client-page-header>
     </div>
 
 

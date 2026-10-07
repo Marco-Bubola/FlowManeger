@@ -6,33 +6,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/client-transferencias-ultrawide.css') }}">
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
-        <!-- Header -->
-        <div class="mb-8">
-            <div class="flex items-center mb-4">
-                <a href="{{ route('clients.resumo', $client->id) }}"
-                   class="mr-4 p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors duration-200">
-                    <i class="bi bi-arrow-left text-lg"></i>
-                </a>
-                <div class="flex items-center gap-4">
-                    @if($client->caminho_foto)
-                        <img src="{{ $client->caminho_foto }}"
-                             alt="Avatar de {{ $client->name }}"
-                             class="w-12 h-12 rounded-full border-2 border-indigo-100 dark:border-indigo-600">
-                    @else
-                        <div class="w-12 h-12 rounded-full flex items-center justify-center bg-indigo-100 dark:bg-indigo-600">
-                            <i class="bi bi-person text-indigo-600 dark:text-indigo-100 text-lg"></i>
-                        </div>
-                    @endif
-                    <div>
-                        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-                            <i class="bi bi-arrow-left-right text-indigo-600 dark:text-indigo-400 mr-3"></i>
-                            Transferências do Cliente
-                        </h1>
-                        <p class="text-lg text-gray-600 dark:text-gray-400">{{ $client->name }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-client-page-header :client="$client" title="Transferências" icon="bi-arrow-left-right" active="transferencias" />
 
         <!-- Filtros e Estatísticas -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">

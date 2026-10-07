@@ -154,110 +154,43 @@
 
 <div class="w-full" x-data="{ confirmModal: null }">
 
-    {{-- ══════════════════════════════════════════════════════════════ --}}
-    {{-- HEADER — idêntico ao sales-index-header                        --}}
-    {{-- ══════════════════════════════════════════════════════════════ --}}
-    <div class="sales-index-header relative overflow-hidden
-                bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80
-                dark:from-slate-800/90 dark:via-blue-900/30 dark:to-indigo-900/30
-                backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50
-                rounded-3xl shadow-2xl mb-6">
+    @php
+        $totalQ    = $quotes->count();
+        $pendingQ  = $quotes->whereIn('status', ['pending','reviewing'])->count();
+        $approvedQ = $quotes->where('status', 'approved')->count();
+    @endphp
+    <x-client-page-header :client="$client" title="Orçamentos do portal" icon="bi-file-earmark-text" active="orcamentos">
+        <x-slot name="actions">
+            <span class="inline-flex items-center gap-1.5 rounded-full border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 text-xs font-bold text-indigo-700 dark:text-indigo-300">
+                <i class="bi bi-file-earmark-text"></i>{{ $totalQ }} {{ $totalQ === 1 ? 'orçamento' : 'orçamentos' }}
+            </span>
+            @if($pendingQ > 0)
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-amber-200 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 text-xs font-bold text-amber-700 dark:text-amber-300">
+                    <i class="bi bi-clock"></i>{{ $pendingQ }} pendentes
+                </span>
+            @endif
+            @if($approvedQ > 0)
+                <span class="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    <i class="bi bi-check-circle"></i>{{ $approvedQ }} aprovados
+                </span>
+            @endif
+            @if($client->portal_active)
+                <a href="{{ route('portal.login') }}" target="_blank"
+                   class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white text-sm font-semibold shadow-md transition">
+                    <i class="bi bi-box-arrow-up-right"></i>Abrir portal
+                </a>
+            @endif
+        </x-slot>
+    </x-client-page-header>
 
-        {{-- Brilho + decorações --}}
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse pointer-events-none"></div>
-        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full translate-x-16 -translate-y-16 pointer-events-none"></div>
-        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full -translate-x-10 translate-y-10 pointer-events-none"></div>
-
-        <div class="relative px-5 py-4 sales-index-header-inner">
-
-            {{-- ROW 1 --}}
-            <div class="sales-index-header-row-1">
-
-                {{-- Ícone + título --}}
-                <div class="sales-index-header-left">
-                    <div class="sales-index-header-icon">
-                        <i class="fas fa-receipt text-white text-2xl"></i>
-                    </div>
-                    <div class="sales-index-header-title-wrap">
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                            <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 transition-colors">
-                                <i class="fas fa-home mr-1"></i>Dashboard
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <a href="{{ route('clients.index') }}" class="hover:text-indigo-600 transition-colors">Clientes</a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium">Orçamentos</span>
-                        </div>
-                        <h1 class="sales-index-header-title">
-                            Orçamentos — {{ $client->name }}
-                        </h1>
-                    </div>
-                </div>
-
-                {{-- Badges de stats --}}
-                @php
-                    $totalQ    = $quotes->count();
-                    $pendingQ  = $quotes->whereIn('status', ['pending','reviewing'])->count();
-                    $quotedQ   = $quotes->where('status', 'quoted')->count();
-                    $approvedQ = $quotes->where('status', 'approved')->count();
-                @endphp
-                <div class="sales-index-header-badges sales-mobile-hide hidden md:flex">
-                    <div class="sale-badge sale-badge-success">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                        <span>{{ $totalQ }} orçamentos</span>
-                    </div>
-                    @if($pendingQ > 0)
-                    <div class="sale-badge sale-badge-warning">
-                        <i class="fas fa-clock"></i>
-                        <span>{{ $pendingQ }} pendentes</span>
-                    </div>
-                    @endif
-                    @if($approvedQ > 0)
-                    <div class="sale-badge sale-badge-info">
-                        <i class="fas fa-check-circle"></i>
-                        <span>{{ $approvedQ }} aprovados</span>
-                    </div>
-                    @endif
-                </div>
-
-                {{-- Botões direita --}}
-                <div class="flex items-center gap-2 ml-auto">
-                    <a href="{{ route('clients.resumo', $client->id) }}"
-                       class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200/80 dark:border-slate-600/80 bg-white/80 dark:bg-slate-800/80 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:bg-indigo-50 dark:hover:bg-slate-700 transition shadow-sm">
-                        <i class="fas fa-arrow-left text-xs"></i> Voltar
-                    </a>
-                    @if($client->portal_active)
-                    <a href="{{ route('portal.login') }}" target="_blank"
-                       class="sales-index-header-btn-create group">
-                        <i class="fas fa-external-link-alt"></i>
-                        <span>Portal</span>
-                    </a>
-                    @endif
-                </div>
-            </div>
-
-            {{-- ROW 2 — status pills + filtro rápido --}}
-            <div class="sales-index-header-row-2 mt-2">
-                <div class="sales-index-header-row-2-left">
-                    <div class="sale-filter-pills sale-status-group">
-                        @foreach([''=>'Todos','pending'=>'Aguardando','reviewing'=>'Em Análise','quoted'=>'Cotado','approved'=>'Aprovado','rejected'=>'Recusado'] as $val => $lbl)
-                        <a href="{{ request()->fullUrlWithQuery(['status_filter' => $val]) }}"
-                           class="sale-filter-pill {{ request('status_filter', '') === $val ? 'active' : '' }}">
-                            {{ $lbl }}
-                        </a>
-                        @endforeach
-                    </div>
-                </div>
-                <div class="sales-index-header-row-2-right">
-                    @if($client->portal_active)
-                    <span class="sale-badge sale-badge-success">
-                        <i class="fas fa-circle" style="font-size:0.45rem"></i> Portal ativo
-                    </span>
-                    @endif
-                </div>
-            </div>
-
-        </div>
+    {{-- Filtro rápido por status --}}
+    <div class="mb-6 flex flex-wrap items-center gap-2">
+        @foreach([''=>'Todos','pending'=>'Aguardando','reviewing'=>'Em análise','quoted'=>'Cotado','approved'=>'Aprovado','rejected'=>'Recusado'] as $val => $lbl)
+            <a href="{{ request()->fullUrlWithQuery(['status_filter' => $val]) }}"
+               class="rounded-xl px-3 py-1.5 text-sm font-semibold transition {{ request('status_filter', '') === $val ? 'bg-indigo-600 text-white shadow' : 'bg-white/80 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-indigo-300' }}">
+                {{ $lbl }}
+            </a>
+        @endforeach
     </div>
 
     {{-- Flash --}}
