@@ -111,6 +111,36 @@
     </div>
     @endif
 
+    {{-- Ofertas (produtos em promoção) --}}
+    @if(($offers ?? collect())->isNotEmpty() && !$search && !$category && !($onlyOffers ?? false))
+    <div class="portal-card p-4 mb-5 border-2 border-rose-200 dark:border-rose-900/50">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-black text-rose-600 dark:text-rose-400"><i class="fas fa-fire mr-1"></i> Ofertas</h2>
+            <a href="{{ route('portal.catalog', ['owner' => request('owner') ?? $ownerId, 'ofertas' => 1]) }}" class="text-[11px] font-bold text-rose-600 hover:underline">Ver todas ({{ $offers->count() }})</a>
+        </div>
+        <div class="flex gap-3 overflow-x-auto pb-1">
+            @foreach($offers->take(12) as $offer)
+                @php $op = $offer->livePromotion(); @endphp
+                <div class="flex-shrink-0 w-36 rounded-2xl bg-white dark:bg-slate-800 border border-rose-100 dark:border-slate-700 p-2 relative">
+                    <span class="absolute top-1.5 left-1.5 z-10 px-2 py-0.5 rounded-full bg-gradient-to-r from-rose-500 to-orange-500 text-white text-[10px] font-black">-{{ $op->discount_percent }}%</span>
+                    <div class="h-24 flex items-center justify-center">
+                        <img src="{{ $offer->image_url }}" alt="{{ $offer->name }}" class="max-h-24 object-contain" loading="lazy">
+                    </div>
+                    <p class="mt-1 text-[10px] font-black text-gray-900 dark:text-slate-200 leading-snug line-clamp-2 min-h-[1.75rem]">{{ $offer->name }}</p>
+                    <p class="text-[10px] text-gray-400 line-through">R$ {{ number_format($op->original_price, 2, ',', '.') }}</p>
+                    <p class="text-sm font-black text-rose-600 dark:text-rose-400 leading-none">R$ {{ number_format($op->promo_price, 2, ',', '.') }}</p>
+                    <button type="button"
+                        @click.stop="addToCart({{ $offer->id }}, '{{ addslashes($offer->name) }}', '{{ $op->promo_price }}', {{ (int) $offer->stock_quantity }}, '{{ $offer->image_url }}')"
+                        :class="inCart({{ $offer->id }}) ? 'bg-emerald-500' : 'bg-rose-500 hover:bg-rose-600'"
+                        class="mt-1.5 w-full py-1 text-white text-[10px] font-black rounded-full">
+                        <span x-text="inCart({{ $offer->id }}) ? 'No carrinho' : 'Adicionar'"></span>
+                    </button>
+                </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
+
     {{-- Filtros --}}
     <form method="GET" action="{{ route('portal.catalog') }}"
           class="portal-card flex flex-wrap items-center gap-2 p-3 mb-5">
@@ -132,7 +162,13 @@
         <button type="submit" class="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold rounded-xl transition-colors whitespace-nowrap">
             <i class="fas fa-filter mr-1 text-[10px]"></i> Filtrar
         </button>
-        @if($search || $category)
+        @if(($offers ?? collect())->isNotEmpty())
+        <label class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold cursor-pointer {{ ($onlyOffers ?? false) ? 'bg-rose-500 text-white' : 'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400' }}">
+            <input type="checkbox" name="ofertas" value="1" class="hidden" @checked($onlyOffers ?? false) onchange="this.form.submit()">
+            <i class="fas fa-fire text-[10px]"></i> Só ofertas
+        </label>
+        @endif
+        @if($search || $category || ($onlyOffers ?? false))
         <a href="{{ route('portal.catalog', ['owner' => request('owner') ?? $ownerId]) }}"
            class="px-3 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-600 dark:text-slate-300 text-xs font-semibold rounded-xl transition-colors whitespace-nowrap">
             <i class="fas fa-xmark mr-1 text-[10px]"></i> Limpar
@@ -185,7 +221,13 @@
                 <p class="text-[9px] font-black uppercase tracking-[.2em] text-sky-600 dark:text-sky-400 truncate w-full">{{ $product->category->name }}</p>
                 @endif
                 <h3 class="text-[11px] font-black text-gray-900 dark:text-slate-200 leading-snug line-clamp-2 min-h-[2rem] w-full">{{ $product->name }}</h3>
-                @if($product->price_sale)
+                @if($gp = $product->livePromotion())
+                <p class="text-[10px] text-gray-400 line-through leading-none mt-1">R$ {{ number_format($gp->original_price, 2, ',', '.') }}</p>
+                <p class="text-base font-black text-rose-600 dark:text-rose-400 leading-none">
+                    R$ {{ number_format($gp->promo_price, 2, ',', '.') }}
+                    <span class="text-[9px] align-middle px-1.5 py-0.5 rounded-full bg-rose-500 text-white">-{{ $gp->discount_percent }}%</span>
+                </p>
+                @elseif($product->price_sale)
                 <p class="text-base font-black text-sky-700 dark:text-sky-400 leading-none mt-1">
                     R$ {{ number_format($product->price_sale, 2, ',', '.') }}
                 </p>
@@ -193,7 +235,7 @@
                 <p class="text-[10px] italic text-gray-400 dark:text-slate-500 mt-1">Sob consulta</p>
                 @endif
                 <button type="button"
-                    @click.stop="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->price_sale }}', {{ (int)($product->stock_quantity??0) }}, '{{ $product->image_url ?? ($product->image ? asset('storage/products/'.$product->image) : '') }}')"
+                    @click.stop="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->currentSalePrice() }}', {{ (int)($product->stock_quantity??0) }}, '{{ $product->image_url ?? ($product->image ? asset('storage/products/'.$product->image) : '') }}')"
                     :class="inCart({{ $product->id }}) ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700'"
                     class="mt-2 inline-flex items-center gap-1.5 px-4 py-1.5 text-white text-[10px] font-black rounded-full transition-all shadow-sm hover:scale-105 whitespace-nowrap">
                     <i :class="inCart({{ $product->id }}) ? 'fas fa-check' : 'fas fa-basket-shopping'" class="text-[8px]"></i>
@@ -242,7 +284,10 @@
                         </span>
                     </td>
                     <td class="text-right">
-                        @if($product->price_sale)
+                        @if($lp = $product->livePromotion())
+                        <span class="text-[10px] text-gray-400 line-through mr-1">R$ {{ number_format($lp->original_price, 2, ',', '.') }}</span>
+                        <span class="text-xs font-black text-rose-600 dark:text-rose-400">R$ {{ number_format($lp->promo_price, 2, ',', '.') }}</span>
+                        @elseif($product->price_sale)
                         <span class="text-xs font-black text-gray-900 dark:text-slate-200">R$ {{ number_format($product->price_sale, 2, ',', '.') }}</span>
                         @else
                         <span class="text-[10px] text-gray-400 italic">Consultar</span>
@@ -250,7 +295,7 @@
                     </td>
                     <td class="text-center">
                         <button type="button"
-                            @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->price_sale }}', {{ (int)($product->stock_quantity??0) }}, '{{ $product->image_url ?? ($product->image ? asset('storage/products/'.$product->image) : '') }}')"
+                            @click="addToCart({{ $product->id }}, '{{ addslashes($product->name) }}', '{{ $product->currentSalePrice() }}', {{ (int)($product->stock_quantity??0) }}, '{{ $product->image_url ?? ($product->image ? asset('storage/products/'.$product->image) : '') }}')"
                             :class="inCart({{ $product->id }}) ? 'bg-emerald-500 hover:bg-emerald-600' : 'bg-sky-500 hover:bg-sky-600'"
                             class="inline-flex items-center gap-1 px-3 py-1.5 text-white text-[10px] font-bold rounded-lg transition-colors">
                             <i :class="inCart({{ $product->id }}) ? 'fas fa-check' : 'fas fa-plus'" class="text-[9px]"></i>

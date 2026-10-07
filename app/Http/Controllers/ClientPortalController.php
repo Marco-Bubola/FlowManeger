@@ -449,11 +449,25 @@ class ClientPortalController extends Controller
         $ownerId   = (int) $ownerId;
         $search    = $request->query('search', '');
         $category  = $request->query('category', '');
+        $onlyOffers = $request->boolean('ofertas');
 
         $query = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo']);
+
+        // Seção "Ofertas" no topo: produtos com promoção valendo agora.
+        $offers = (clone $query)
+            ->whereHas('promotions', fn ($q) => $q->current())
+            ->with(['category', 'activePromotion'])
+            ->get()
+            ->filter(fn ($p) => $p->livePromotion())
+            ->sortByDesc(fn ($p) => $p->livePromotion()->discount_percent)
+            ->values();
+
+        if ($onlyOffers) {
+            $query->whereHas('promotions', fn ($q) => $q->current());
+        }
 
         if ($search) {
             $query->where(function ($q) use ($search) {
@@ -466,10 +480,10 @@ class ClientPortalController extends Controller
             $query->where('category_id', $category);
         }
 
-        $products   = $query->with('category')->paginate(24);
+        $products   = $query->with(['category', 'activePromotion'])->paginate(24)->withQueryString();
         $categories = Category::where('user_id', $ownerId)->orderBy('name')->get();
 
-        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId'));
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers'));
     }
 
     public function storeQuote(Request $request)
@@ -506,7 +520,7 @@ class ClientPortalController extends Controller
                     'name'       => $product->name,
                     'quantity'   => (int) $item['quantity'],
                     'notes'      => $item['notes'] ?? '',
-                    'price_ref'  => (float) $product->price_sale,
+                    'price_ref'  => $product->currentSalePrice(),
                 ];
             }
         }
@@ -625,7 +639,7 @@ class ClientPortalController extends Controller
                     'name'       => $product->name,
                     'quantity'   => (int) $item['quantity'],
                     'notes'      => $item['notes'] ?? '',
-                    'price_ref'  => (float) $product->price_sale,
+                    'price_ref'  => $product->currentSalePrice(),
                 ];
             }
         }
@@ -870,11 +884,14 @@ class ClientPortalController extends Controller
             if (!$product) {
                 continue;
             }
+            $promo = $product->livePromotion();
             SaleItem::create([
                 'sale_id'    => $sale->id,
                 'product_id' => $product->id,
                 'quantity'   => (int) ($item['quantity'] ?? 1),
-                'price_sale' => $product->price_sale ?? $item['price_ref'] ?? 0,
+                'price_sale' => $promo ? (float) $promo->promo_price : ($product->price_sale ?? $item['price_ref'] ?? 0),
+                'original_price' => $promo ? $promo->original_price : null,
+                'promotion_id'   => $promo?->id,
                 'price'      => $product->price_sale ?? $item['price_ref'] ?? 0,
             ]);
 
