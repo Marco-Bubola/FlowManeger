@@ -2,7 +2,7 @@
      SHOPEE — PUBLICAR PRODUTO (Steps 1–4)
      Design: "Planta Baixa" — iPhone 15 (393px) → Desktop
      ============================================================ --}}
-<div class="shopee-publish-page min-h-screen bg-gray-50 dark:bg-gray-900"
+<div class="shopee-publish-page min-h-screen"
      x-data="{ step: @entangle('currentStep') }">
 
     {{-- ─── Barra de progresso de steps ─── --}}

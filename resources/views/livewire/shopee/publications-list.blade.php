@@ -1,22 +1,14 @@
 {{-- ============================================================
      SHOPEE — LISTA DE PUBLICAÇÕES + LOGS DE ERRO
      ============================================================ --}}
-<div class="shopee-publications-page min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="shopee-publications-page min-h-screen">
     <div class="max-w-6xl mx-auto px-4 py-5 sm:px-6 lg:px-8 space-y-5">
 
         {{-- ─── Cabeçalho ─── --}}
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                     style="background: linear-gradient(135deg, #EE4D2D 0%, #FF6633 100%);">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-gray-900 dark:text-white">Publicações — Shopee</h1>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">Gerenciar anúncios ativos e sincronização</p>
-                </div>
+            <div class="flex-1">
+                <x-sales-header title="Publicações — Shopee" description="Gerenciar anúncios ativos e sincronização"
+                    icon="bi-shop" iconColor="orange" :back-route="route('dashboard')" />
             </div>
             <div class="flex items-center gap-2">
                 @if($ordersCount > 0)

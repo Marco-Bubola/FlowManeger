@@ -2,24 +2,15 @@
      SHOPEE SETTINGS — Configurações de Integração
      Layout: "Planta Baixa" responsivo (iPhone 15 393px → Desktop)
      ============================================================ --}}
-<div class="shopee-settings-page min-h-screen bg-gray-50 dark:bg-gray-900">
+<div class="shopee-settings-page min-h-screen">
 
     {{-- ─── Cabeçalho ─── --}}
     <div class="max-w-4xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
 
-        {{-- Breadcrumb / Título --}}
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-xl flex items-center justify-center"
-                 style="background: linear-gradient(135deg, #EE4D2D 0%, #FF6633 100%);">
-                {{-- Logo Shopee (SVG inline simplificado) --}}
-                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M12 2C8.686 2 6 4.686 6 8c0 1.657.672 3.157 1.757 4.243A6.956 6.956 0 0 0 5 18v2h14v-2a6.956 6.956 0 0 0-2.757-5.757A5.978 5.978 0 0 0 18 8c0-3.314-2.686-6-6-6z"/>
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold text-gray-900 dark:text-white">Shopee — Configurações</h1>
-                <p class="text-sm text-gray-500 dark:text-gray-400">Conecte sua loja Shopee ao FlowManager</p>
-            </div>
+        {{-- Título no padrão do app --}}
+        <div class="mb-6">
+            <x-sales-header title="Shopee — Configurações" description="Conecte sua loja Shopee ao FlowManager"
+                icon="bi-shop" iconColor="orange" :back-route="route('dashboard')" />
         </div>
 
         {{-- ─── Card Principal de Status ─── --}}
