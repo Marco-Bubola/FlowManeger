@@ -130,6 +130,13 @@
                                 </div>
                             </a>
 
+                            <!-- Botão Contas -->
+                            <a href="{{ route('accounts.index') }}" title="Saldo de cada conta e transferências"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-sky-300 dark:border-sky-600 text-sky-700 dark:text-sky-300 bg-white/70 dark:bg-slate-800/70 hover:bg-sky-50 dark:hover:bg-sky-900/30 transition-all duration-300">
+                                <i class="bi bi-bank text-lg"></i>
+                                <span class="font-black text-sm tracking-wider uppercase">Contas</span>
+                            </a>
+
                             <!-- Botão Recorrentes -->
                             <a href="{{ route('cashbook.recurring') }}" title="Lançamentos que se repetem"
                                 class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 bg-white/70 dark:bg-slate-800/70 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300">

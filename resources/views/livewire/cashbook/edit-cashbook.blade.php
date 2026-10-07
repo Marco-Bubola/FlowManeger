@@ -342,6 +342,29 @@
             @enderror
         </div>
 
+        <!-- Conta (onde o dinheiro entrou ou saiu) -->
+        @php $userAccounts = \App\Models\Account::owned()->where('archived', false)->orderBy('name')->get(); @endphp
+        <div class="space-y-2">
+            <label for="account_id" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                <i class="bi bi-bank text-indigo-400"></i>
+                Conta
+            </label>
+            @if ($userAccounts->isEmpty())
+                <a href="{{ route('accounts.index') }}" class="block px-4 py-3 rounded-xl border-2 border-dashed border-slate-700 text-sm text-slate-400 hover:border-indigo-500 hover:text-indigo-300">
+                    <i class="bi bi-plus-circle"></i> Cadastre suas contas para ver o saldo de cada uma
+                </a>
+            @else
+                <select id="account_id" wire:model="account_id"
+                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white font-medium focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 focus:outline-none">
+                    <option value="">Sem conta</option>
+                    @foreach ($userAccounts as $acc)
+                        <option value="{{ $acc->id }}">{{ $acc->name }}</option>
+                    @endforeach
+                </select>
+            @endif
+            @error('account_id') <p class="text-red-400 text-xs">{{ $message }}</p> @enderror
+        </div>
+
         <!-- Cofrinho -->
         <div class="space-y-2">
             <label for="cofrinho_id" class="flex items-center gap-2 text-sm font-semibold text-slate-300">

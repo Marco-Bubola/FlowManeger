@@ -258,6 +258,8 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/cashbook/create', CreateCashbook::class)->name('cashbook.create');
     Route::get('/cashbook/recorrentes', \App\Livewire\Cashbook\RecurringIndex::class)->name('cashbook.recurring');
 
+    Route::get('/contas', \App\Livewire\Accounts\AccountsIndex::class)->name('accounts.index');
+
     // Gestão: estoque, contas a receber e lucro
     Route::get('/gestao/estoque/movimentacoes', \App\Livewire\Gestao\StockMovements::class)->name('gestao.stock-movements');
     Route::get('/gestao/estoque/repor', \App\Livewire\Gestao\Restock::class)->name('gestao.restock');

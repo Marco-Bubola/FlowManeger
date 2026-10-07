@@ -28,6 +28,7 @@ class Cashbook extends Model
         'inc_datetime',
         'edit_datetime',
         'sale_payment_id',
+        'account_id',
     ];
 
     public function user()
@@ -51,6 +52,11 @@ class Cashbook extends Model
     {
         return $this->belongsTo(Segment::class, 'segment_id');
     }
+    public function account()
+    {
+        return $this->belongsTo(Account::class, 'account_id');
+    }
+
     public function cofrinho()
     {
         return $this->belongsTo(Cofrinho::class, 'cofrinho_id');

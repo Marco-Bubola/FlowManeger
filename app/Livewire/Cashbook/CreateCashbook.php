@@ -29,6 +29,7 @@ class CreateCashbook extends Component
     public $note = '';
     public $segment_id = '';
     public $cofrinho_id = '';
+    public $account_id = '';
 
     // Repetir lançamento (cria um lançamento recorrente)
     public bool $repeat = false;
@@ -54,6 +55,7 @@ class CreateCashbook extends Component
             'note' => 'nullable|string|max:255',
             'segment_id' => 'nullable|exists:segment,id',
             'cofrinho_id' => 'nullable|exists:cofrinhos,id',
+            'account_id' => 'nullable|exists:accounts,id,user_id,'.Auth::id(),
             'repeat' => 'boolean',
             'repeat_frequency' => 'required_if:repeat,true|in:diaria,semanal,mensal,anual',
             'repeat_until' => 'nullable|date|after:date',
@@ -85,6 +87,7 @@ class CreateCashbook extends Component
             'note' => $this->note,
             'segment_id' => $this->segment_id ?: null,
             'cofrinho_id' => $this->cofrinho_id ?: null,
+            'account_id' => $this->account_id ?: null,
             'inc_datetime' => now(),
         ];
 

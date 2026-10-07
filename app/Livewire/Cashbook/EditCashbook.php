@@ -32,6 +32,7 @@ class EditCashbook extends Component
     public $note = '';
     public $segment_id = '';
     public $cofrinho_id = '';
+    public $account_id = '';
 
     // Parâmetros para retornar à mesma visualização
     public $returnMonth = null;
@@ -99,6 +100,7 @@ class EditCashbook extends Component
         $this->note = $cashbook->note;
         $this->segment_id = $cashbook->segment_id;
         $this->cofrinho_id = $cashbook->cofrinho_id;
+        $this->account_id = $cashbook->account_id;
 
         $this->loadData();
     }
@@ -186,6 +188,11 @@ class EditCashbook extends Component
     {
         $this->validate();
 
+        if ($this->account_id && ! \App\Models\Account::owned()->whereKey($this->account_id)->exists()) {
+            $this->addError('account_id', 'Conta inválida.');
+            return;
+        }
+
         $data = [
             'value' => $this->value,
             'description' => $this->description,
@@ -197,6 +204,7 @@ class EditCashbook extends Component
             'note' => $this->note,
             'segment_id' => $this->segment_id ?: null,
             'cofrinho_id' => $this->cofrinho_id ?: null,
+            'account_id' => $this->account_id ?: null,
             'edit_datetime' => now(),
         ];
 
