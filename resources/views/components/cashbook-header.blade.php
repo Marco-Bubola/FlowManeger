@@ -129,6 +129,13 @@
                                     <span class="font-black text-sm text-white tracking-wider uppercase drop-shadow-lg">Upload</span>
                                 </div>
                             </a>
+
+                            <!-- Botão Recorrentes -->
+                            <a href="{{ route('cashbook.recurring') }}" title="Lançamentos que se repetem"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border-2 border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 bg-white/70 dark:bg-slate-800/70 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all duration-300">
+                                <i class="bi bi-arrow-repeat text-lg"></i>
+                                <span class="font-black text-sm tracking-wider uppercase">Recorrentes</span>
+                            </a>
                         </div>
 
                         <!-- Botões Dicas e Filtros -->

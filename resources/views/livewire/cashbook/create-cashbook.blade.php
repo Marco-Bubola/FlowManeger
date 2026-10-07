@@ -398,6 +398,38 @@
                         </p>
                     @enderror
                 </div>
+
+                <!-- Repetir lançamento -->
+                <div class="space-y-3 md:col-span-2 mt-2 rounded-2xl border border-slate-700 bg-slate-800/40 p-4" x-data="{ on: @entangle('repeat') }">
+                    <label class="flex items-center gap-3 cursor-pointer select-none">
+                        <input type="checkbox" x-model="on" class="w-5 h-5 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500">
+                        <span class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                            <i class="bi bi-arrow-repeat text-indigo-400"></i>
+                            Repetir este lançamento
+                        </span>
+                    </label>
+                    <div x-show="on" x-cloak class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label for="repeat_frequency" class="text-xs font-semibold text-slate-400">Frequência</label>
+                            <select id="repeat_frequency" wire:model="repeat_frequency"
+                                class="w-full mt-1 px-3 py-2.5 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 focus:outline-none">
+                                @foreach (\App\Services\Cashbook\RecurringEntryService::FREQUENCIES as $freqKey => $freqLabel)
+                                    <option value="{{ $freqKey }}">{{ $freqLabel }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="repeat_until" class="text-xs font-semibold text-slate-400">Até (opcional)</label>
+                            <input type="date" id="repeat_until" wire:model="repeat_until"
+                                class="w-full mt-1 px-3 py-2.5 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/20 focus:outline-none">
+                            @error('repeat_until') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        </div>
+                        <p class="sm:col-span-2 text-xs text-slate-400">
+                            <i class="bi bi-info-circle text-indigo-400"></i>
+                            Os próximos lançamentos são criados sozinhos no dia certo. Você pode pausar em Livro-caixa › Recorrentes.
+                        </p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -42,3 +42,8 @@ Schedule::command('consortium:check-notifications --clean')
 Schedule::command('promotions:refresh')
     ->hourly()
     ->withoutOverlapping();
+
+// Lançamentos recorrentes do livro-caixa (aluguel, salário, assinaturas...)
+Schedule::command('recorrentes:gerar')
+    ->dailyAt('06:00')
+    ->withoutOverlapping();

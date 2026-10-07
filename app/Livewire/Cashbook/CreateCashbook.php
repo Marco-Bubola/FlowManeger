@@ -30,6 +30,11 @@ class CreateCashbook extends Component
     public $segment_id = '';
     public $cofrinho_id = '';
 
+    // Repetir lançamento (cria um lançamento recorrente)
+    public bool $repeat = false;
+    public string $repeat_frequency = 'mensal';
+    public $repeat_until = null;
+
     public function mount(): void
     {
         $this->date = Carbon::now()->format('Y-m-d');
@@ -49,7 +54,11 @@ class CreateCashbook extends Component
             'note' => 'nullable|string|max:255',
             'segment_id' => 'nullable|exists:segment,id',
             'cofrinho_id' => 'nullable|exists:cofrinhos,id',
+            'repeat' => 'boolean',
+            'repeat_frequency' => 'required_if:repeat,true|in:diaria,semanal,mensal,anual',
+            'repeat_until' => 'nullable|date|after:date',
         ], [
+            'repeat_until.after' => 'A data final da repetição deve ser depois da data do lançamento.',
             'value.required' => 'O valor é obrigatório.',
             'value.numeric' => 'O valor deve ser um número.',
             'value.min' => 'O valor deve ser maior que zero.',
@@ -85,7 +94,25 @@ class CreateCashbook extends Component
 
         Cashbook::create($data);
 
-        session()->flash('success', 'Transação criada com sucesso!');
+        if ($this->repeat) {
+            $start = Carbon::parse($this->date);
+            \App\Models\LancamentoRecorrente::create([
+                'user_id' => Auth::id(),
+                'descricao' => $this->description ?: 'Lançamento recorrente',
+                'valor' => $this->value,
+                'type_id' => $this->type_id,
+                'category_id' => $this->category_id,
+                'frequencia' => $this->repeat_frequency,
+                'data_inicio' => $start->toDateString(),
+                'proximo_vencimento' => \App\Services\Cashbook\RecurringEntryService::nextDate($start, $this->repeat_frequency, $start->day)->toDateString(),
+                'data_fim' => $this->repeat_until ?: null,
+                'ativo' => true,
+            ]);
+        }
+
+        session()->flash('success', $this->repeat
+            ? 'Transação criada e programada para repetir!'
+            : 'Transação criada com sucesso!');
 
         $this->dispatch('transaction-created');
 
