@@ -264,6 +264,7 @@ class EditSale extends Component
         $this->validate();
 
         // Operação em transação: calcular diferenças líquidas de estoque para evitar inconsistências
+        try {
         DB::transaction(function () {
             // Mapear quantidades antigas por product_id
             $oldQuantities = [];
@@ -294,9 +295,10 @@ class EditSale extends Component
 
                     if ($diff > 0) {
                         $product = Product::find($pid);
-                        if (!$product || $product->stock_quantity < $diff) {
-                            // Falha: estoque insuficiente para aplicar incremento
-                            throw new \Exception("Estoque insuficiente para o produto: {$product->name}");
+                        // Kit: vale o estoque dos componentes.
+                        if (!$product || $product->availableStock() < $diff) {
+                            $nome = $product?->name ?? "#{$pid}";
+                            throw new \Exception("Estoque insuficiente para o produto: {$nome}");
                         }
                     }
                 }
@@ -356,8 +358,8 @@ class EditSale extends Component
 
                     $product = Product::find($pid);
                     if ($product && $diff !== 0) {
-                        $product->stock_quantity -= $diff; // subtrair diff (se diff negativo, soma)
-                        $product->save();
+                        // Kit mexe nos componentes; diff negativo devolve.
+                        $product->adjustStock(-$diff);
                     }
                 }
             }
@@ -365,6 +367,11 @@ class EditSale extends Component
             // Recalcular parcelas se a venda for parcelada
             $this->recalcularParcelas($this->sale);
         });
+        } catch (\Exception $e) {
+            // Ex.: estoque insuficiente. Nada foi salvo (transação desfeita).
+            session()->flash('error', $e->getMessage());
+            return redirect()->route('sales.edit', $this->sale->id);
+        }
 
         session()->flash('success', 'Venda atualizada com sucesso!');
         return redirect()->route('sales.show', $this->sale->id);

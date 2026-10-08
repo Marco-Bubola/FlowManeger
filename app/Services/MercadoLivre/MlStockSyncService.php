@@ -6,6 +6,7 @@ use App\Models\MlPublication;
 use App\Models\Product;
 use App\Models\MlStockLog;
 use App\Models\MercadoLivreOrder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -106,6 +107,21 @@ class MlStockSyncService
                 throw new \Exception("Publicação ML {$mlItemId} não encontrada");
             }
 
+            // O ML reenvia a notificação do mesmo pedido várias vezes:
+            // só baixa o estoque na primeira.
+            $jaBaixado = MlStockLog::where('ml_order_id', $mlOrderId)
+                ->where('ml_publication_id', $publication->id)
+                ->where('operation_type', 'ml_sale')
+                ->exists();
+
+            if ($jaBaixado) {
+                return [
+                    'success' => true,
+                    'message' => 'Venda já processada anteriormente',
+                    'order' => MercadoLivreOrder::where('ml_order_id', $mlOrderId)->first(),
+                ];
+            }
+
             // Deduz estoque de todos os produtos
             $result = $publication->deductStock($quantity, $mlOrderId);
 
@@ -152,6 +168,20 @@ class MlStockSyncService
                 'order' => null,
             ];
         }
+    }
+
+    /**
+     * Pedido cancelado no ML: devolve o que foi baixado por ele, uma vez só.
+     */
+    public function restoreMercadoLivreSale(string $mlOrderId): int
+    {
+        $logs = MlStockLog::restoreOrder($mlOrderId, 'ml_sale', 'Pedido ML');
+
+        foreach ($logs->pluck('ml_publication_id')->filter()->unique() as $pubId) {
+            MlPublication::find($pubId)?->syncQuantityToMl();
+        }
+
+        return $logs->count();
     }
 
     /**

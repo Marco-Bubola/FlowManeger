@@ -229,7 +229,7 @@ class AddContemplationProducts extends Component
                     $product = Product::find($oldProduct['product_id'] ?? 0);
                     if ($product) {
                         // Devolver ao estoque
-                        $product->increment('stock_quantity', $oldProduct['quantity'] ?? 0);
+                        $product->adjustStock((int) ($oldProduct['quantity'] ?? 0));
                     }
                 }
             }
@@ -241,8 +241,9 @@ class AddContemplationProducts extends Component
                     $product = Product::find($item['product_id']);
                     if ($product) {
                         // Verificar se há estoque suficiente
-                        if ($product->stock_quantity < $item['quantity']) {
-                            throw new \Exception("Estoque insuficiente para o produto {$product->name}. Disponível: {$product->stock_quantity}");
+                        $disponivel = $product->availableStock();
+                        if ($disponivel < $item['quantity']) {
+                            throw new \Exception("Estoque insuficiente para o produto {$product->name}. Disponível: {$disponivel}");
                         }
 
                         $productsData[] = [
@@ -253,7 +254,7 @@ class AddContemplationProducts extends Component
                         ];
 
                         // Decrementar estoque
-                        $product->decrement('stock_quantity', $item['quantity']);
+                        $product->adjustStock(-(int) $item['quantity']);
                     }
                 }
             }

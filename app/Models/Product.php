@@ -183,6 +183,58 @@ class Product extends Model
         return $this->hasMany(\App\Models\ProdutoComponente::class, 'kit_produto_id');
     }
 
+    public function isKit(): bool
+    {
+        return ($this->tipo ?? 'simples') === 'kit';
+    }
+
+    /**
+     * Quantas unidades dá para vender agora. Kit não tem estoque próprio:
+     * vale o componente que acaba primeiro.
+     */
+    public function availableStock(): int
+    {
+        if (! $this->isKit()) {
+            return max(0, (int) $this->stock_quantity);
+        }
+
+        $min = null;
+        foreach ($this->componentes()->get() as $pc) {
+            $comp = $pc->componente()->first();
+            $per = (int) ($pc->quantidade ?? 0);
+            if (! $comp || $per <= 0) {
+                continue;
+            }
+            $can = intdiv(max(0, (int) $comp->stock_quantity), $per);
+            $min = $min === null ? $can : min($min, $can);
+        }
+
+        return $min ?? 0;
+    }
+
+    /**
+     * Soma (delta > 0) ou tira (delta < 0) unidades do estoque. Em kit, mexe
+     * nos componentes. Nunca deixa o saldo negativo.
+     */
+    public function adjustStock(int $delta): void
+    {
+        if ($delta === 0) {
+            return;
+        }
+
+        if ($this->isKit()) {
+            foreach ($this->componentes()->get() as $pc) {
+                $comp = $pc->componente()->first();
+                if ($comp) {
+                    $comp->adjustStock($delta * (int) ($pc->quantidade ?? 0));
+                }
+            }
+            return;
+        }
+
+        $this->update(['stock_quantity' => max(0, (int) $this->stock_quantity + $delta)]);
+    }
+
     // ─────────────────────────────────────────────────────────────
     // VARIAÇÕES (produto-pai + variantes) — Estratégia B
     // ─────────────────────────────────────────────────────────────

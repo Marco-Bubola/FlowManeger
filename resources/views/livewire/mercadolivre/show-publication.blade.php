@@ -806,7 +806,7 @@
                                 'ml_sale' => ['icon' => 'bi-cart-check-fill', 'color' => 'emerald', 'label' => 'Venda ML'],
                                 'sync_to_ml' => ['icon' => 'bi-arrow-repeat', 'color' => 'blue', 'label' => 'Sync ML'],
                                 'manual_update', 'manual_adjustment' => ['icon' => 'bi-pencil-fill', 'color' => 'amber', 'label' => 'Ajuste Manual'],
-                                'rollback' => ['icon' => 'bi-arrow-counterclockwise', 'color' => 'red', 'label' => 'Estorno'],
+                                'rollback', 'marketplace_cancel' => ['icon' => 'bi-arrow-counterclockwise', 'color' => 'red', 'label' => 'Estorno'],
                                 default => ['icon' => 'bi-arrow-left-right', 'color' => 'slate', 'label' => ucfirst(str_replace('_', ' ', $opType ?: 'Operação'))],
                             };
                             $bgMap = ['emerald' => 'bg-emerald-50 dark:bg-emerald-900/10', 'blue' => 'bg-blue-50 dark:bg-blue-900/10', 'amber' => 'bg-amber-50 dark:bg-amber-900/10', 'red' => 'bg-red-50 dark:bg-red-900/10', 'slate' => 'bg-slate-50 dark:bg-slate-800/40'];

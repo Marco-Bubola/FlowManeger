@@ -67,6 +67,8 @@ class CancelPayment extends Component
 
                     // Deletar o registro de contemplação se existir
                     if ($participant->contemplation) {
+                        // Os produtos retirados voltam para o estoque.
+                        $participant->contemplation->returnProductsToStock();
                         $participant->contemplation->delete();
                     }
                 }

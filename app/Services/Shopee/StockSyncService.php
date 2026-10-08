@@ -83,7 +83,8 @@ class StockSyncService extends ShopeeService
             // Encontrar a publicação Shopee pelo item_id
             $publication = ShopeePublication::where('shopee_item_id', $shopeeItemId)
                 ->where('user_id', $userId)
-                ->with('products')
+                // Webhook roda sem usuário logado: sem o filtro de equipe aqui.
+                ->with(['products' => fn ($q) => $q->withoutGlobalScope('team_visibility')])
                 ->first();
 
             if (!$publication) {
@@ -139,6 +140,25 @@ class StockSyncService extends ShopeeService
     // =========================================================================
     // Propagação de estoque para todos os canais
     // =========================================================================
+
+    /**
+     * Pedido Shopee cancelado: devolve o estoque baixado por ele.
+     */
+    public function restoreShopeeOrder(string $orderSn, int $userId): int
+    {
+        $logs = MlStockLog::restoreOrder($orderSn, 'shopee_sale', 'Pedido Shopee');
+
+        ShopeeOrder::where('shopee_order_sn', $orderSn)->update(['order_status' => 'CANCELLED']);
+
+        if ($logs->isNotEmpty()) {
+            $products = Product::withoutGlobalScope('team_visibility')
+                ->whereIn('id', $logs->pluck('product_id')->unique())
+                ->get();
+            $this->propagateStockUpdate($products, $userId);
+        }
+
+        return $logs->count();
+    }
 
     /**
      * Dado um conjunto de produtos internos que tiveram estoque alterado,
@@ -221,7 +241,7 @@ class StockSyncService extends ShopeeService
             MlStockLog::create([
                 'product_id'          => $product->id,
                 'ml_publication_id'   => null,
-                'operation_type'      => 'sale',
+                'operation_type'      => 'shopee_sale',
                 'quantity_before'     => $before,
                 'quantity_after'      => $after,
                 'quantity_change'     => -$deductTotal,

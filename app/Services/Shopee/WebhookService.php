@@ -135,6 +135,12 @@ class WebhookService extends ShopeeService
             );
         }
 
+        // Pedido cancelado: devolve o que foi baixado (uma vez só)
+        if ($status === 'CANCELLED') {
+            $back = $this->stockSyncService->restoreShopeeOrder($orderSn, $userId);
+            return ['success' => true, 'message' => "Pedido cancelado: {$back} item(ns) devolvido(s) ao estoque."];
+        }
+
         return ['success' => true, 'message' => "Status {$status} registrado (sem ação de estoque)."];
     }
 

@@ -236,7 +236,11 @@ class MlPublication extends Model
         try {
             \DB::beginTransaction();
 
-            foreach ($this->products as $product) {
+            // Webhook roda sem usuário logado: tira o filtro de equipe só aqui
+            // (a publicação já é do dono).
+            $products = $this->products()->withoutGlobalScope('team_visibility')->get();
+
+            foreach ($products as $product) {
                 $quantityToDeduct = $product->pivot->quantity * $quantity; // Ex: kit com 2 shampoos, vendeu 3 kits = 6 unidades
                 $oldStock = $product->stock_quantity;
                 $newStock = max(0, $oldStock - $quantityToDeduct);

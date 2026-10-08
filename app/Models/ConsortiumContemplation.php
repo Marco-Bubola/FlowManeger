@@ -42,6 +42,23 @@ class ConsortiumContemplation extends Model
         return $this->belongsTo(ConsortiumDraw::class, 'draw_id');
     }
 
+    /** Devolve ao estoque os produtos retirados nesta contemplação (uma vez só). */
+    public function returnProductsToStock(): void
+    {
+        if (empty($this->products)) {
+            return;
+        }
+
+        foreach ($this->products as $item) {
+            $product = Product::find($item['product_id'] ?? 0);
+            if ($product) {
+                $product->adjustStock((int) ($item['quantity'] ?? 0));
+            }
+        }
+
+        $this->forceFill(['products' => []])->save();
+    }
+
     // Accessors
     public function getStatusColorAttribute(): string
     {

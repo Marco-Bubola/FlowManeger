@@ -179,8 +179,56 @@ class MlStockLog extends Model
             'sync_to_ml' => 'Sincronização para ML',
             'adjustment' => 'Ajuste Manual',
             'return' => 'Devolução',
+            'shopee_sale' => 'Venda na Shopee',
+            'marketplace_cancel' => 'Pedido cancelado (estoque devolvido)',
             default => 'Operação Desconhecida',
         };
+    }
+
+    /**
+     * Pedido cancelado no marketplace: devolve ao estoque o que foi baixado
+     * por ele e marca os logs como estornados, para não devolver duas vezes.
+     * Retorna os logs estornados.
+     */
+    public static function restoreOrder(string $orderRef, string $saleType, string $label): \Illuminate\Support\Collection
+    {
+        return \DB::transaction(function () use ($orderRef, $saleType, $label) {
+            $logs = static::where('ml_order_id', $orderRef)
+                ->where('operation_type', $saleType)
+                ->where('rolled_back', false)
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($logs as $log) {
+                // Webhook roda sem usuário logado: sem o filtro de equipe aqui.
+                $product = Product::withoutGlobalScope('team_visibility')->find($log->product_id);
+                $back = abs((int) $log->quantity_change);
+
+                if ($product && $back > 0) {
+                    $before = (int) $product->stock_quantity;
+                    $product->update(['stock_quantity' => $before + $back]);
+
+                    static::create([
+                        'product_id' => $product->id,
+                        'ml_publication_id' => $log->ml_publication_id,
+                        'operation_type' => 'marketplace_cancel',
+                        'quantity_before' => $before,
+                        'quantity_after' => $before + $back,
+                        'quantity_change' => $back,
+                        'source' => $log->source,
+                        'ml_order_id' => $orderRef,
+                        'notes' => "{$label} {$orderRef} cancelado: estoque devolvido",
+                        'transaction_id' => $log->transaction_id,
+                        'user_id' => $log->user_id,
+                        'created_at' => now(),
+                    ]);
+                }
+
+                $log->update(['rolled_back' => true]);
+            }
+
+            return $logs;
+        });
     }
 
     /**

@@ -245,9 +245,13 @@ class WebhookService extends MercadoLivreService
                 ]);
 
                 // Se cancelado no ML: cancela a venda vinculada e devolve estoque (idempotente)
-                if ($existingOrder->sale && ($orderData['status'] ?? null) === 'cancelled') {
-                    $existingOrder->sale->update(['status' => 'cancelled']);
-                    $existingOrder->sale->restoreStock();
+                if (($orderData['status'] ?? null) === 'cancelled') {
+                    if ($existingOrder->sale) {
+                        $existingOrder->sale->update(['status' => 'cancelled']);
+                        $existingOrder->sale->restoreStock();
+                    }
+                    // Devolve o que o webhook baixou na hora da venda.
+                    $this->stockSyncService->restoreMercadoLivreSale((string) $orderId);
                 }
 
                 return [
