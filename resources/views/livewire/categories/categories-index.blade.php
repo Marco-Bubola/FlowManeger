@@ -53,10 +53,10 @@
 
         <x-category-stats-card
             title="Categorias Ativas"
-            :value="$categories->where('is_active', 1)->count()"
+            :value="$productCategories->where('is_active', 1)->count() + $transactionCategories->where('is_active', 1)->count()"
             icon="fa-check-circle"
             color="orange"
-            :subtitle="$categories->where('is_active', 0)->count() . ' inativas'"
+            :subtitle="($productCategories->where('is_active', 0)->count() + $transactionCategories->where('is_active', 0)->count()) . ' inativas'"
         />
     </div>
 
@@ -228,312 +228,59 @@
     </div>
     @endif
 
-    <!-- Conteúdo das Abas -->
+    <!-- Conteúdo das Abas: mesmo card em Produtos, Transações e Todas -->
+    @if(in_array($activeTab, ['products', 'transactions', 'all']))
+        @php
+            $section = match ($activeTab) {
+                'products' => ['title' => 'Categorias de produtos', 'subtitle' => 'Organize seus produtos por categoria', 'icon' => 'fas fa-box', 'list' => $paginatedProductCategories, 'create' => 'createProductCategory', 'button' => 'Nova categoria de produto'],
+                'transactions' => ['title' => 'Categorias de transações', 'subtitle' => 'Classifique receitas e despesas', 'icon' => 'fas fa-exchange-alt', 'list' => $paginatedTransactionCategories, 'create' => 'createTransactionCategory', 'button' => 'Nova categoria de transação'],
+                default => ['title' => 'Todas as categorias', 'subtitle' => 'Produtos e transações juntos', 'icon' => 'fas fa-list', 'list' => $categories, 'create' => null, 'button' => null],
+            };
+        @endphp
+        <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white/70 dark:bg-slate-900/50 shadow-sm">
+            <div class="flex flex-col gap-3 border-b border-slate-100 dark:border-slate-800 px-4 sm:px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow">
+                        <i class="{{ $section['icon'] }}"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white">{{ $section['title'] }}</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $section['subtitle'] }} · {{ $section['list']->total() }} {{ $section['list']->total() === 1 ? 'categoria' : 'categorias' }}</p>
+                    </div>
+                </div>
+                @if($section['create'])
+                    <button type="button" wire:click="{{ $section['create'] }}"
+                        class="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md transition">
+                        <i class="fas fa-plus"></i>{{ $section['button'] }}
+                    </button>
+                @endif
+            </div>
+
+            @if($section['list']->count() > 0)
+                <div class="p-4 sm:p-5">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
+                        @foreach($section['list'] as $category)
+                            <x-category-tile :category="$category" :usage="$usage[$category->id_category] ?? []" />
+                        @endforeach
+                    </div>
+                    @if($section['list']->hasPages())
+                        <div class="mt-5">{{ $section['list']->links() }}</div>
+                    @endif
+                </div>
+            @else
+                <div class="p-10 text-center">
+                    <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400"><i class="fas fa-folder-open text-2xl"></i></div>
+                    <h3 class="text-lg font-semibold text-slate-800 dark:text-slate-200">Nenhuma categoria encontrada</h3>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Crie uma categoria para organizar melhor.</p>
+                    @if($section['create'])
+                        <button type="button" wire:click="{{ $section['create'] }}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 px-4 py-2 text-sm font-semibold text-white"><i class="fas fa-plus"></i>{{ $section['button'] }}</button>
+                    @endif
+                </div>
+            @endif
+        </div>
+    @endif
+
     <div class="space-y-4">
-
-        <!-- Aba de Categorias de Produtos -->
-        @if($activeTab === 'products')
-        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div class="bg-gradient-to-r from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 px-6 py-4">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="bg-white bg-opacity-20 rounded-xl p-2">
-                            <i class="fas fa-box text-white text-xl"></i>
-                        </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-white">Categorias de Produtos</h2>
-                            <p class="text-blue-100 text-sm mt-1">Organize seus produtos por categoria</p>
-                        </div>
-                    </div>
-                    <div class="bg-white bg-opacity-20 dark:bg-slate-800 dark:bg-opacity-50 rounded-xl px-3 py-2">
-                        <span class="text-white dark:text-slate-100 font-semibold text-sm">{{ $paginatedProductCategories->total() }} categorias</span>
-                    </div>
-                </div>
-            </div>
-
-            @if($paginatedProductCategories->count() > 0)
-                <div class="p-6">
-                    <!-- Grid 2 por linha -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4" wire:sortable="updateProductOrder">
-                        @foreach($paginatedProductCategories as $category)
-                            <x-category-card :category="$category" type="product" />
-                        @endforeach
-                    </div>
-
-                    <!-- Paginação de Produtos -->
-                    <div class="mt-6">
-                        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4">
-                            {{ $paginatedProductCategories->links() }}
-                        </div>
-                                        </div>
-                </div>
-            @else
-                <div class="p-8 text-center">
-                    <div class="text-gray-400 dark:text-gray-500 text-6xl mb-4">📦</div>
-                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Nenhuma categoria de produto encontrada</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Crie sua primeira categoria de produto para organizar seus itens.</p>
-                    <button wire:click="createProductCategory"
-                            class="mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center mx-auto font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <span class="mr-2">➕</span>
-                        Criar Primeira Categoria
-                    </button>
-                </div>
-            @endif
-        </div>
-        @endif
-
-        <!-- Aba de Categorias de Transações -->
-        @if($activeTab === 'transactions')
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 px-8 py-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="bg-white bg-opacity-20 rounded-xl p-3 mr-4">
-                            <span class="text-2xl">💰</span>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">Categorias de Transações</h2>
-                            <p class="text-emerald-100 mt-1">Classifique suas receitas e despesas</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-white bg-opacity-20 dark:bg-gray-800 dark:bg-opacity-50 rounded-xl px-4 py-2">
-                            <span class="text-white dark:text-gray-100 font-semibold">{{ $paginatedTransactionCategories->total() }} categorias</span>
-                        </div>
-                        <!-- Botão Criar Categoria de Transação -->
-                        <button wire:click="createTransactionCategory"
-                                class="bg-white bg-opacity-20 dark:bg-gray-800 dark:bg-opacity-50 hover:bg-white hover:text-emerald-600 dark:hover:bg-gray-700 dark:hover:text-emerald-300 text-white dark:text-gray-100 px-4 py-2 rounded-xl transition-all duration-300 flex items-center font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <span class="mr-2">➕</span>
-                            Criar Transação
-                        </button>
-                        <button class="bg-white bg-opacity-20 dark:bg-gray-800 dark:bg-opacity-50 hover:bg-white hover:text-emerald-600 dark:hover:bg-gray-700 dark:hover:text-emerald-300 text-white dark:text-gray-100 p-2 rounded-xl transition-all duration-300 transform hover:scale-105">
-                            <span class="text-lg">📤</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            @if($paginatedTransactionCategories->count() > 0)
-                <div class="p-8">
-                   <!-- Grid 2 por linha -->
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6" wire:sortable="updateTransactionOrder">
-                        @foreach($paginatedTransactionCategories as $category)
-                            <div wire:sortable.item="{{ $category->id_category }}" wire:key="transaction-{{ $category->id_category }}"
-                                 class="group bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-800 hover:shadow-lg transition-all duration-300 cursor-move">
-
-                                <div class="p-6">
-                                    <div class="flex items-center justify-between">
-                                        <!-- Informações da Categoria -->
-                                        <div class="flex items-center flex-1">
-                                            <!-- Handle para arrastar -->
-                                            <div wire:sortable.handle class="mr-4 text-gray-400 hover:text-gray-600 cursor-grab active:cursor-grabbing">
-                                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M7 2a1 1 0 00-1 1v2a1 1 0 001 1h6a1 1 0 001-1V3a1 1 0 00-1-1H7zM7 8a1 1 0 00-1 1v2a1 1 0 001 1h6a1 1 0 001-1V9a1 1 0 00-1-1H7zM7 14a1 1 0 00-1 1v2a1 1 0 001 1h6a1 1 0 001-1v-2a1 1 0 00-1-1H7z"/>
-                                                </svg>
-                                            </div>
-
-                                            <!-- Ícone da Categoria -->
-                                            <div class="relative mr-4">
-                                                <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white shadow-lg transform group-hover:scale-110 transition-transform duration-300"
-                                                     style="background: linear-gradient(135deg, {{ $category->hexcolor_category ?? '#10B981' }}, {{ $category->hexcolor_category ?? '#10B981' }}dd)">
-                                                    @if($category->icone)
-                                                        <i class="{{ $category->icone }}" style="font-size: 1.8rem;"></i>
-                                                    @else
-                                                        <span class="text-2xl">
-                                                            @switch($category->name)
-                                                                @case('Nubank')
-                                                                    🏛️
-                                                                    @break
-                                                                @case('Salario')
-                                                                    💼
-                                                                    @break
-                                                                @case('Alimentação')
-                                                                    🍴
-                                                                    @break
-                                                                @case('Transporte')
-                                                                    🚗
-                                                                    @break
-                                                                @case('Entretenimento')
-                                                                    🎬
-                                                                    @break
-                                                                @case('Saúde')
-                                                                    🏥
-                                                                    @break
-                                                                @case('Educação')
-                                                                    📚
-                                                                    @break
-                                                                @case('Investimento')
-                                                                    📈
-                                                                    @break
-                                                                @default
-                                                                    💰
-                                                            @endswitch
-                                                        </span>
-                                                    @endif
-                                                </div>
-                                                <!-- Badge de Status -->
-                                                <div class="absolute -top-1 -right-1 w-6 h-6 {{ $category->is_active ? 'bg-green-500' : 'bg-red-500' }} rounded-full flex items-center justify-center">
-                                                    <span class="text-white text-xs">{{ $category->is_active ? '✓' : '✗' }}</span>
-                                                </div>
-                                            </div>
-
-                                            <!-- Detalhes -->
-                                            <div class="flex-1">
-                                                <div class="flex items-center mb-1">
-                                                    <h4 class="font-bold text-gray-900 dark:text-gray-100 text-lg">{{ $category->name }}</h4>
-                                                    <!-- Botão de Favorita -->
-                                                    <button wire:click="toggleFavorite({{ $category->id_category }})"
-                                                            class="ml-2 p-1 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900 transition-colors">
-                                                        ⭐
-                                                    </button>
-                                                </div>
-                                                <p class="text-gray-600 dark:text-gray-400 text-sm">{{ $category->description ?? 'Categoria de transação' }}</p>
-                                                <div class="mt-2">
-                                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200">
-                                                        @if($category->tipo === 'gasto')
-                                                            💸 Despesa
-                                                        @elseif($category->tipo === 'receita')
-                                                            💵 Receita
-                                                        @else
-                                                            💰 Ambos
-                                                        @endif
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Ações -->
-                                        <div class="flex items-center space-x-2 ml-4">
-                                            <!-- Botão Compartilhar -->
-                                            <button wire:click="shareCategory({{ $category->id_category }})"
-                                                    class="p-2 text-green-600 hover:bg-green-100 dark:hover:bg-green-900 rounded-xl transition-colors"
-                                                    title="Compartilhar categoria">
-                                                📤
-                                            </button>
-                                            <a href="{{ route('categories.edit', $category->id_category) }}" class="p-2 text-indigo-600 hover:bg-indigo-100 dark:hover:bg-indigo-900 rounded-xl transition-colors" title="Editar categoria">
-                                                ✏️
-                                            </a>
-                                            <button wire:click="confirmDelete({{ $category->id_category }})"
-                                                    class="p-2 text-red-600 hover:bg-red-100 dark:hover:bg-red-900 rounded-xl transition-colors">
-                                                🗑️
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <!-- Paginação de Transações -->
-                    <div class="mt-8">
-                        <div class="bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl p-4">
-                            {{ $paginatedTransactionCategories->links() }}
-                        </div>
-                                        </div>
-                </div>
-            @else
-                <div class="p-8 text-center">
-                    <div class="text-gray-400 dark:text-gray-500 text-6xl mb-4">💸</div>
-                    <h3 class="text-xl font-semibold text-gray-700 dark:text-gray-300 mb-2">Nenhuma categoria de transação encontrada</h3>
-                    <p class="text-gray-500 dark:text-gray-400">Crie sua primeira categoria de transação para organizar suas finanças.</p>
-                    <button wire:click="createTransactionCategory"
-                            class="mt-4 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white px-6 py-3 rounded-xl transition-all duration-300 flex items-center mx-auto font-semibold shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <span class="mr-2">➕</span>
-                        Criar Primeira Categoria
-                    </button>
-                </div>
-            @endif
-        </div>
-        @endif
-
-        <!-- Aba de Todas as Categorias -->
-        @if($activeTab === 'all')
-        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div class="bg-gradient-to-r from-purple-500 to-pink-600 dark:from-purple-600 dark:to-pink-700 px-8 py-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center">
-                        <div class="bg-white bg-opacity-20 rounded-xl p-3 mr-4">
-                            <span class="text-2xl">📋</span>
-                        </div>
-                        <div>
-                            <h2 class="text-2xl font-bold text-white">Todas as Categorias</h2>
-                            <p class="text-purple-100 mt-1">Visão completa de todas as categorias</p>
-                        </div>
-                    </div>
-                    <div class="flex items-center space-x-3">
-                        <div class="bg-white bg-opacity-20 rounded-xl px-4 py-2">
-                            <span class="text-white font-semibold">{{ $categories->total() }} categorias</span>
-                        </div>
-                        <button class="bg-white bg-opacity-20 hover:bg-white hover:text-purple-600 text-white p-2 rounded-xl transition-all duration-300 transform hover:scale-105">
-                            <span class="text-lg">📤</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            @if($categories->count() > 0)
-                <div class="p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        @foreach($categories as $category)
-                            <div class="bg-slate-50 dark:bg-slate-700/50 rounded-xl p-4 border border-slate-200 dark:border-slate-600 hover:shadow-lg transition-all duration-300 transform hover:scale-105">
-                                <div class="flex items-center justify-between mb-3">
-                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center text-white text-lg"
-                                         style="background: linear-gradient(135deg, {{ $category->hexcolor_category ?? '#6366f1' }}, {{ $category->hexcolor_category ?? '#6366f1' }}cc)">
-                                        <i class="fas fa-tag"></i>
-                                    </div>
-                                    <div class="flex items-center gap-1">
-                                        <button wire:click="toggleFavorite({{ $category->id_category }})"
-                                                class="p-1 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors">
-                                            <i class="fas fa-star text-yellow-500 text-xs"></i>
-                                        </button>
-                                        <button wire:click="confirmDelete({{ $category->id_category }})"
-                                                class="p-1 rounded-full hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
-                                            <i class="fas fa-trash text-red-500 text-xs"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <h3 class="font-bold text-slate-900 dark:text-slate-100 text-base mb-2 truncate">
-                                    {{ $category->name ?? $category->description }}
-                                </h3>
-                                <p class="text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
-                                    {{ $category->desc_category ?? $category->description ?? 'Categoria de ' . ($category->type === 'product' ? 'produto' : 'transação') }}
-                                </p>
-
-                                <!-- Status Badge -->
-                                <div class="flex items-center gap-2">
-                                    @if($category->is_active)
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200">
-                                            <i class="fas fa-check mr-1"></i> Ativa
-                                        </span>
-                                    @else
-                                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200">
-                                            <i class="fas fa-times mr-1"></i> Inativa
-                                        </span>
-                                    @endif
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-
-                    <!-- Paginação de Todas as Categorias -->
-                    <div class="mt-6">
-                        <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4">
-                            {{ $categories->links() }}
-                        </div>
-                    </div>
-                </div>
-            @else
-                <div class="p-8 text-center">
-                    <div class="text-slate-400 dark:text-slate-500 text-6xl mb-4">
-                        <i class="fas fa-folder-open"></i>
-                    </div>
-                    <h3 class="text-xl font-semibold text-slate-700 dark:text-slate-300 mb-2">Nenhuma categoria encontrada</h3>
-                    <p class="text-slate-500 dark:text-slate-400">Crie suas primeiras categorias para organizar melhor.</p>
-                </div>
-            @endif
-        </div>
-        @endif
 
         <!-- Aba de Dicas Inteligentes -->
         @if($activeTab === 'tips')

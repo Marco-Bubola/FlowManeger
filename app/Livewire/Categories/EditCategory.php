@@ -59,6 +59,8 @@ class EditCategory extends Component
 
     public function mount(Category $category)
     {
+        // Só o dono edita a categoria (antes qualquer usuário abria pelo id)
+        abort_unless((int) $category->user_id === (int) Auth::id(), 404);
         $this->category = $category;
         $this->loadCategoryData();
         $this->loadSelectData();
@@ -72,7 +74,7 @@ class EditCategory extends Component
         $this->hexcolor_category = $this->category->hexcolor_category ?? '#6366f1';
         $this->icone = $this->category->icone ?? 'fas fa-tag';
         $this->descricao_detalhada = $this->category->descricao_detalhada ?? '';
-        $this->tipo = $this->category->tipo ?? '';
+        $this->tipo = $this->category->type === 'transaction' ? ($this->category->tipo ?: 'ambos') : '';
         $this->limite_orcamento = $this->category->limite_orcamento;
         $this->compartilhavel = $this->category->compartilhavel ?? false;
         $this->tags = $this->category->tags ?? '';
@@ -97,7 +99,12 @@ class EditCategory extends Component
 
     public function save()
     {
+        abort_unless((int) $this->category->user_id === (int) Auth::id(), 404);
         $this->validate();
+
+        if ($this->parent_id && !Category::where('user_id', Auth::id())->where('id_category', $this->parent_id)->exists()) {
+            $this->parent_id = null;
+        }
 
         $this->category->update([
             'parent_id' => $this->parent_id,
@@ -106,7 +113,7 @@ class EditCategory extends Component
             'hexcolor_category' => $this->hexcolor_category,
             'icone' => $this->icone,
             'descricao_detalhada' => $this->descricao_detalhada,
-            'tipo' => $this->tipo,
+            'tipo' => $this->type === 'transaction' ? ($this->tipo ?: 'ambos') : null,
             'limite_orcamento' => $this->limite_orcamento,
             'compartilhavel' => $this->compartilhavel,
             'tags' => $this->tags,

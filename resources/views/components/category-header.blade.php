@@ -56,7 +56,7 @@
                 <button wire:click="createProductCategory"
                    class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="text-sm">Produto</span>
+                    <span class="text-sm">Categoria de produto</span>
                 </button>
                 @endif
 
@@ -64,15 +64,9 @@
                 <button wire:click="createTransactionCategory"
                    class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
                     <i class="fas fa-plus mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="text-sm">Transação</span>
+                    <span class="text-sm">Categoria de transação</span>
                 </button>
                 @endif
-
-                <button wire:click="exportCategories"
-                   class="group relative inline-flex items-center justify-center px-4 py-2 bg-gradient-to-br from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-semibold rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
-                    <i class="fas fa-file-export mr-2 group-hover:scale-110 transition-transform duration-150"></i>
-                    <span class="text-sm">Exportar</span>
-                </button>
             </div>
             @endif
         </div>

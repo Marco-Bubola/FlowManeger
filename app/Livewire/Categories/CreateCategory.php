@@ -41,7 +41,7 @@ class CreateCategory extends Component
         'hexcolor_category' => 'nullable|string|max:45',
         'icone' => 'nullable|string|max:100',
         'descricao_detalhada' => 'nullable|string',
-        'tipo' => 'nullable|string|in:,gasto,receita,ambos,pix,ted,doc',
+        'tipo' => 'nullable|string|in:gasto,receita,ambos',
         'limite_orcamento' => 'nullable|numeric',
         'compartilhavel' => 'nullable|boolean',
         'tags' => 'nullable|string|max:255',
@@ -52,7 +52,7 @@ class CreateCategory extends Component
         'historico_alteracoes' => 'nullable|string',
         'is_active' => 'required|integer|in:0,1',
         'description' => 'nullable|string',
-        'type' => 'required|in:product,transaction,transfer',
+        'type' => 'required|in:product,transaction',
     ];
 
     protected $messages = [
@@ -67,13 +67,14 @@ class CreateCategory extends Component
     public function mount()
     {
         $this->loadSelectData();
-        // Definir valores padrão com base no tipo
-        $this->setDefaultValues();
 
-        // Inicializar campo tipo como null para produtos/transações
-        if ($this->type !== 'transfer') {
-            $this->tipo = null;
+        // A lista abre "Nova categoria de transação" com ?type=transaction
+        $requested = request()->query('type');
+        if (in_array($requested, ['product', 'transaction'], true)) {
+            $this->type = $requested;
         }
+
+        $this->setDefaultValues();
     }
 
     public function loadSelectData()
@@ -85,29 +86,26 @@ class CreateCategory extends Component
 
     public function setDefaultValues()
     {
-        // Definir ícone padrão baseado no tipo
-        if ($this->type === 'transfer') {
-            $this->icone = 'fas fa-exchange-alt';
-            $this->hexcolor_category = '#8b5cf6'; // Roxo para transferências
-        } elseif ($this->type === 'transaction') {
+        // Ícone, cor e tipo de lançamento padrão de acordo com o tipo da categoria
+        if ($this->type === 'transaction') {
             $this->icone = 'fas fa-dollar-sign';
-            $this->hexcolor_category = '#10b981'; // Verde para transações
+            $this->hexcolor_category = '#10b981';
+            $this->tipo = $this->tipo ?: 'gasto';
         } else {
             $this->icone = 'fas fa-box';
-            $this->hexcolor_category = '#6366f1'; // Azul para produtos
+            $this->hexcolor_category = '#6366f1';
+            $this->tipo = null;
         }
     }
 
     public function updatedType($value)
     {
-        // Quando o tipo muda, ajustar configurações padrão
         $this->setDefaultValues();
 
-        // Limpar campos específicos quando muda o tipo
-        if ($value !== 'transfer') {
-            $this->tipo = null;
+        if ($value !== 'transaction') {
             $this->id_bank = null;
             $this->id_clients = null;
+            $this->limite_orcamento = null;
         }
     }
 
@@ -121,19 +119,13 @@ class CreateCategory extends Component
 
     public function save()
     {
-        // Limpar campo 'tipo' para categorias que não são transferência
-        if ($this->type !== 'transfer') {
-            $this->tipo = null; // Usar null em vez de string vazia
-        }
+        // Produto não tem tipo de lançamento; transação é despesa, receita ou as duas
+        $this->tipo = $this->type === 'transaction' ? ($this->tipo ?: 'ambos') : null;
 
         $this->validate();
 
-        // Validações específicas para transferências
-        if ($this->type === 'transfer') {
-            if (empty($this->tipo)) {
-                $this->addError('tipo', 'Para categorias de transferência, selecione o tipo específico (PIX, TED ou DOC).');
-                return;
-            }
+        if ($this->parent_id && !Category::where('user_id', Auth::id())->where('id_category', $this->parent_id)->exists()) {
+            $this->parent_id = null;
         }
 
         // Preparar dados para criação, removendo campos vazios/nulos desnecessários
@@ -158,12 +150,7 @@ class CreateCategory extends Component
             'type' => $this->type,
         ];
 
-        // Só adicionar 'tipo' se for transferência e não estiver vazio
-        if ($this->type === 'transfer' && !empty($this->tipo)) {
-            $categoryData['tipo'] = $this->tipo;
-        } else {
-            $categoryData['tipo'] = null;
-        }
+        $categoryData['tipo'] = $this->tipo;
 
         // Criar a categoria
         $category = Category::create($categoryData);
@@ -174,7 +161,6 @@ class CreateCategory extends Component
         $typeLabels = [
             'product' => 'de produto',
             'transaction' => 'de transação',
-            'transfer' => 'de transferência'
         ];
 
         $message = 'Categoria ' . ($typeLabels[$this->type] ?? '') . ' "' . $this->name . '" criada com sucesso!';

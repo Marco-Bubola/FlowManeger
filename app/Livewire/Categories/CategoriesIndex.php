@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Bank;
 use App\Models\Client;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\Attributes\On;
@@ -131,6 +132,7 @@ class CategoriesIndex extends Component
 
     public function confirmDelete(Category $category): void
     {
+        abort_unless((int) $category->user_id === (int) Auth::id(), 404);
         $this->deletingCategory = $category;
         $this->showDeleteModal = true;
     }
@@ -144,6 +146,16 @@ class CategoriesIndex extends Component
     public function deleteCategory(): void
     {
         if ($this->deletingCategory) {
+            abort_unless((int) $this->deletingCategory->user_id === (int) Auth::id(), 404);
+            $id = $this->deletingCategory->id_category;
+            $inUse = DB::table('products')->where('category_id', $id)->exists()
+                || DB::table('cashbook')->where('category_id', $id)->exists()
+                || DB::table('invoice')->where('category_id', $id)->exists();
+            if ($inUse) {
+                $this->cancelDelete();
+                session()->flash('error', 'Essa categoria está em uso e não pode ser excluída. Você pode desativá-la.');
+                return;
+            }
             $this->deletingCategory->delete();
             $this->dispatch('category-deleted');
             $this->cancelDelete();
@@ -185,6 +197,7 @@ class CategoriesIndex extends Component
     {
         foreach ($orderedIds as $index => $id) {
             Category::where('id_category', $id['value'])
+                ->where('user_id', Auth::id())
                 ->where('type', 'product')
                 ->update(['sort_order' => $index + 1]);
         }
@@ -196,11 +209,46 @@ class CategoriesIndex extends Component
     {
         foreach ($orderedIds as $index => $id) {
             Category::where('id_category', $id['value'])
+                ->where('user_id', Auth::id())
                 ->where('type', 'transaction')
                 ->update(['sort_order' => $index + 1]);
         }
 
         session()->flash('success', 'Ordem das categorias de transações atualizada!');
+    }
+
+    public function toggleActive(int $categoryId): void
+    {
+        $category = Category::where('user_id', Auth::id())->where('id_category', $categoryId)->first();
+        if ($category) {
+            $category->update(['is_active' => $category->is_active ? 0 : 1]);
+        }
+    }
+
+    /**
+     * Quanto cada categoria visível é usada: produtos, lançamentos (livro-caixa + faturas)
+     * e o total lançado no mês atual.
+     */
+    private function usageFor(array $ids): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+        $start = now()->startOfMonth();
+        $end = now()->endOfMonth();
+        $usage = [];
+        $add = function ($rows, string $key) use (&$usage) {
+            foreach ($rows as $id => $value) {
+                $usage[$id][$key] = ($usage[$id][$key] ?? 0) + $value;
+            }
+        };
+        $add(DB::table('products')->whereIn('category_id', $ids)->groupBy('category_id')->selectRaw('category_id, COUNT(*) as n')->pluck('n', 'category_id'), 'products');
+        $add(DB::table('cashbook')->whereIn('category_id', $ids)->groupBy('category_id')->selectRaw('category_id, COUNT(*) as n')->pluck('n', 'category_id'), 'entries');
+        $add(DB::table('invoice')->whereIn('category_id', $ids)->groupBy('category_id')->selectRaw('category_id, COUNT(*) as n')->pluck('n', 'category_id'), 'entries');
+        $add(DB::table('cashbook')->whereIn('category_id', $ids)->whereBetween('date', [$start->toDateString(), $end->toDateString()])->groupBy('category_id')->selectRaw('category_id, SUM(ABS(value)) as total')->pluck('total', 'category_id'), 'month');
+        $add(DB::table('invoice')->whereIn('category_id', $ids)->whereBetween('invoice_date', [$start->toDateString(), $end->toDateString()])->groupBy('category_id')->selectRaw('category_id, SUM(ABS(value)) as total')->pluck('total', 'category_id'), 'month');
+
+        return $usage;
     }
 
     // Controle de abas
@@ -295,7 +343,14 @@ class CategoriesIndex extends Component
             ->orderBy('name')
             ->paginate(6, ['*'], 'transaction_page');
 
+        $visible = match ($this->activeTab) {
+            'products' => $paginatedProductCategories,
+            'transactions' => $paginatedTransactionCategories,
+            default => $categories,
+        };
+
         return view('livewire.categories.categories-index', [
+            'usage' => $this->usageFor(collect($visible->items())->pluck('id_category')->all()),
             'categories' => $categories,
             'productCategories' => $productCategories,
             'transactionCategories' => $transactionCategories,
