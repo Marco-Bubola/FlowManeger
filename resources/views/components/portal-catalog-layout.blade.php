@@ -1,14 +1,8 @@
 @props(['title' => 'Catálogo de Produtos', 'store' => null, 'ownerId' => null, 'search' => ''])
 @php
     $storeName = $store?->name ?: config('app.name');
-    // Cores do app: roxo de destaque, degradê da logo e azul/índigo do portal.
-    $themes = [
-        'roxo' => ['header' => 'linear-gradient(135deg, #6d28d9 0%, #9333ea 100%)', 'primary' => '#9333ea', 'dark' => '#7e22ce', 'soft' => '#f3e8ff', 'hero' => 'linear-gradient(135deg, #4c1d95 0%, #9333ea 100%)', 'meta' => '#7e22ce'],
-        'logo' => ['header' => 'linear-gradient(90deg, #ec4899 0%, #a855f7 50%, #3b82f6 100%)', 'primary' => '#8b5cf6', 'dark' => '#7c3aed', 'soft' => '#ede9fe', 'hero' => 'linear-gradient(135deg, #db2777 0%, #8b5cf6 55%, #2563eb 100%)', 'meta' => '#a855f7'],
-        'azul' => ['header' => 'linear-gradient(135deg, #0ea5e9 0%, #6366f1 100%)', 'primary' => '#4f46e5', 'dark' => '#4338ca', 'soft' => '#e0e7ff', 'hero' => 'linear-gradient(135deg, #0369a1 0%, #4f46e5 100%)', 'meta' => '#3b82f6'],
-    ];
-    $themeKey = array_key_exists(request('tema'), $themes) ? request('tema') : 'logo';
-    $theme = $themes[$themeKey];
+    // Cores da logo do app (rosa, roxo e azul), escolhidas pelo dono.
+    $theme = ['header' => 'linear-gradient(90deg, #ec4899 0%, #a855f7 50%, #3b82f6 100%)', 'primary' => '#8b5cf6', 'dark' => '#7c3aed', 'soft' => '#ede9fe', 'hero' => 'linear-gradient(135deg, #db2777 0%, #8b5cf6 55%, #2563eb 100%)', 'meta' => '#a855f7'];
     $cartUrl = Auth::guard('portal')->check() ? route('portal.quotes.create') : route('portal.login', ['redirect' => 'cart']);
 @endphp
 <!DOCTYPE html>
@@ -125,11 +119,10 @@ document.addEventListener('alpine:init', () => {
 <header class="ml-header">
     <div class="ml-wrap">
         <div class="ml-header-row">
-            <a href="{{ $ownerId ? route('portal.catalog', array_filter(['userId' => $ownerId, 'tema' => request('tema')])) : '#' }}" class="ml-logo" aria-label="Início do catálogo">
+            <a href="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : '#' }}" class="ml-logo" aria-label="Início do catálogo">
                 <img src="/logo-64.png" alt="">
             </a>
             <form method="GET" action="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : route('portal.catalog') }}" class="ml-search" role="search">
-                @if(request('tema'))<input type="hidden" name="tema" value="{{ request('tema') }}">@endif
                 <input type="search" name="search" value="{{ $search }}" placeholder="Buscar" aria-label="Buscar produtos" enterkeyhint="search">
                 <button type="submit" aria-label="Buscar"><i class="fas fa-magnifying-glass"></i></button>
             </form>
