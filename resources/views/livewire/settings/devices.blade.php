@@ -80,55 +80,6 @@ new class extends Component {
             </div>
         </div>
 
-        {{-- CARD: Outros dispositivos (demo) --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Histórico de acessos</p>
-                        <p class="settings-card-desc">Dispositivos e navegadores que acessaram sua conta</p>
-                    </div>
-                </div>
-                <span class="s-badge">1 sessão ativa</span>
-            </div>
-
-            @foreach([
-                ['Computador','Windows','Google Chrome','192.168.1.1','Agora','ativo','M9 17.25v1.007a3 3 0 0 1-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0 1 15 18.257V17.25m6-12V15a2.25 2.25 0 0 1-2.25 2.25H5.25A2.25 2.25 0 0 1 3 15V5.25m18 0A2.25 2.25 0 0 0 18.75 3H5.25A2.25 2.25 0 0 0 3 5.25m18 0H3','settings-device-status-icon--active'],
-                ['Smartphone','Android','Chrome Mobile','179.XX.XX.XX','2 dias atrás','inativo','M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3','settings-device-status-icon--inactive'],
-                ['Tablet','iOS','Safari','200.XX.XX.XX','5 dias atrás','inativo','M10.5 19.5H3m7.5 0H21m0 0V2.25A2.25 2.25 0 0 0 18.75 0H5.25A2.25 2.25 0 0 0 3 2.25V19.5m18 0v1.5','settings-device-status-icon--inactive'],
-            ] as [$dt, $os2, $br, $devIp, $when, $status, $icon, $statusClass])
-            <div class="sh-dev-row" style="display:flex;align-items:center;gap:1rem;padding:.75rem 1.25rem;border-bottom:1px solid #f1f5f9">
-                <div class="{{ $statusClass }}" style="width:2.25rem;height:2.25rem;border-radius:.6rem;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-                    <svg fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" style="width:1.1rem;height:1.1rem"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $icon }}"/></svg>
-                </div>
-                <div style="flex:1;min-width:0">
-                    <p style="font-size:.84rem;font-weight:700;color:#1e293b;margin:0">{{ $dt }} · {{ $os2 }}</p>
-                    <p style="font-size:.75rem;color:#64748b;margin:.1rem 0 0">{{ $br }} · {{ $devIp }}</p>
-                </div>
-                <div style="display:flex;align-items:center;gap:.75rem;flex-shrink:0">
-                    <span style="font-size:.75rem;color:#94a3b8">{{ $when }}</span>
-                    @if($status === 'ativo')
-                        <span class="s-badge s-badge-success">Ativa</span>
-                    @else
-                        <span class="s-badge">Expirada</span>
-                    @endif
-                </div>
-            </div>
-            @endforeach
-
-            <div style="padding:.75rem 1.25rem">
-                <button type="button"
-                    style="display:inline-flex;align-items:center;gap:.5rem;padding:.5rem 1rem;border-radius:.6rem;font-size:.8rem;font-weight:700;background:#fee2e2;color:#dc2626;border:1.5px solid #fecaca;cursor:pointer;transition:all .18s"
-                    onclick="alert('Em produção, isso encerraria todas as outras sessões.')">
-                    <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.85rem;height:.85rem"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9"/></svg>
-                    Encerrar todas as outras sessões
-                </button>
-            </div>
-        </div>
-
         {{-- CARD: Info do dispositivo atual --}}
         <div class="settings-card">
             <div class="settings-card-header">
@@ -173,7 +124,7 @@ new class extends Component {
             save() {
                 const payload = {trust_known:this.trust_known,notify_new:this.notify_new,auto_lock:this.auto_lock};
                 localStorage.setItem('flowmanager:devices', JSON.stringify(payload));
-                const csrf = document.querySelector('meta[name=\"csrf-token\"]')?.content ?? '';
+                const csrf = document.querySelector('meta[name=csrf-token]')?.content ?? '';
                 fetch('/settings/preferences/devices',{
                     method:'POST',
                     headers:{'Content-Type':'application/json','X-CSRF-TOKEN':csrf},

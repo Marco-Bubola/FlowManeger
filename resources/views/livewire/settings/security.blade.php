@@ -22,7 +22,7 @@ new class extends Component {
             $scoreColor = $scorePercent >= 75 ? '#10b981' : ($scorePercent >= 50 ? '#f59e0b' : '#ef4444');
             $scoreLabel = $scorePercent >= 75 ? 'Boa' : ($scorePercent >= 50 ? 'Razoável' : 'Fraca');
             $memberDays = $user->created_at ? $user->created_at->diffInDays(now()) : 0;
-            $memberMonths = $user->created_at ? $user->created_at->diffInMonths(now()) : 0;
+            $memberMonths = $user->created_at ? (int) floor($user->created_at->diffInMonths(now())) : 0;
         @endphp
 
         <div class="s-pg-grid">
@@ -125,7 +125,7 @@ new class extends Component {
                 </div>
                 <div class="settings-info-tile">
                     <p class="settings-info-tile-label">Tempo de conta</p>
-                    <p class="settings-info-tile-val">{{ $memberMonths > 0 ? $memberMonths . ' mes' . ($memberMonths > 1 ? 'es' : '') : $memberDays . ' dias' }}</p>
+                    <p class="settings-info-tile-val">{{ $memberMonths > 0 ? $memberMonths . ($memberMonths > 1 ? ' meses' : ' mês') : (int) $memberDays . ((int) $memberDays === 1 ? ' dia' : ' dias') }}</p>
                 </div>
                 <div class="settings-info-tile">
                     <p class="settings-info-tile-label">E-mail verificado</p>

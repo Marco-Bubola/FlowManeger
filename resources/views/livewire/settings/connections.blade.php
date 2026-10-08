@@ -109,7 +109,7 @@ new class extends Component {
                             @if($stats['ml_expires'])
                             <span class="s-conn-chip">
                                 <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.7rem;height:.7rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-                                Expira {{ \Carbon\Carbon::parse($stats['ml_expires'])->diffForHumans() }}
+                                Expira {{ \Carbon\Carbon::parse($stats['ml_expires'])->locale('pt_BR')->diffForHumans() }}
                             </span>
                             @endif
                         @else
@@ -127,7 +127,7 @@ new class extends Component {
                                 Ver publicações
                             </a>
                         @else
-                            <a href="{{ route('mercadolivre.auth.connect') }}" class="s-conn-btn s-conn-btn--primary">
+                            <a href="{{ route('mercadolivre.auth.redirect') }}" class="s-conn-btn s-conn-btn--primary">
                                 <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:.8rem;height:.8rem"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m13.35-.622 1.757-1.757a4.5 4.5 0 0 0-6.364-6.364l-4.5 4.5a4.5 4.5 0 0 0 1.242 7.244"/></svg>
                                 Conectar
                             </a>

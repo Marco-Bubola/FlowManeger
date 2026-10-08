@@ -147,6 +147,209 @@ new class extends Component {
             </div>
         </div>
 
+
+        {{-- ── CARD: DENSIDADE DE LAYOUT ── --}}
+        <div class="settings-card" x-data="{
+            density: flowAppearance.get('density', 'comfortable', 'flowmanager:density') || 'comfortable',
+            opts: [
+                {id:'compact',icon:'▣',label:'Compacto',desc:'Mais itens na tela, espaçamento reduzido'},
+                {id:'comfortable',icon:'◫',label:'Confortável',desc:'Equilíbrio entre densidade e legibilidade'},
+                {id:'spacious',icon:'□',label:'Espaçoso',desc:'Mais respiração visual, fácil leitura'},
+            ],
+            apply(id) {
+                this.density = id;
+                localStorage.setItem('flowmanager:density', id);
+                flowAppearance.save('density', id, 'flowmanager:density');
+                document.documentElement.setAttribute('data-density', id);
+            }
+        }" x-init="document.documentElement.setAttribute('data-density', density)">
+            <div class="settings-card-header">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon" style="background:rgba(16,185,129,.1);color:#10b981">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"/></svg>
+                    </div>
+                    <div>
+                        <p class="settings-card-title">Densidade do layout</p>
+                        <p class="settings-card-desc">Controla o espaco entre os elementos da interface</p>
+                    </div>
+                </div>
+                <span class="s-badge" x-text="opts.find(o=>o.id===density)?.label || 'Confortavel'"></span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:0 1.25rem 1.5rem">
+                <template x-for="o in opts" :key="o.id">
+                    <button type="button"
+                        @click="apply(o.id)"
+                        :class="density===o.id ? 'settings-density-btn s-on' : 'settings-density-btn'">
+                        <span style="font-size:1.4rem;display:block;margin-bottom:.35rem" x-text="o.icon"></span>
+                        <span style="font-size:.78rem;font-weight:700;color:#1e293b;display:block" x-text="o.label"></span>
+                        <span style="font-size:.67rem;color:#94a3b8;display:block;margin-top:.15rem;line-height:1.3" x-text="o.desc"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        {{-- ── CARD: SIDEBAR / MENU LATERAL ── --}}
+        <div class="settings-card" x-data="{
+            sidebarStyle: flowAppearance.get('sidebar_style', 'icons-text', 'flowmanager:sidebar-style') || 'icons-text',
+            opts: [
+                {id:'icons-only',label:'Apenas ícones',desc:'Sidebar estreita, apenas ícones visíveis'},
+                {id:'icons-text',label:'Ícones + Texto',desc:'Padrão: ícone e nome da seção'},
+                {id:'text-only',label:'Só texto',desc:'Lista de links sem ícones'},
+            ],
+            apply(id) {
+                this.sidebarStyle = id;
+                localStorage.setItem('flowmanager:sidebar-style', id);
+                flowAppearance.save('sidebar_style', id, 'flowmanager:sidebar-style');
+                document.documentElement.setAttribute('data-sidebar-style', id);
+            }
+        }" x-init="document.documentElement.setAttribute('data-sidebar-style', sidebarStyle)">
+            <div class="settings-card-header">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon" style="background:rgba(99,102,241,.1);color:#6366f1">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"/></svg>
+                    </div>
+                    <div>
+                        <p class="settings-card-title">Estilo do menu lateral</p>
+                        <p class="settings-card-desc">Como o menu de navegacao e exibido</p>
+                    </div>
+                </div>
+                <span class="s-badge" x-text="opts.find(o=>o.id===sidebarStyle)?.label || 'Icones + Texto'"></span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.65rem;padding:0 1.25rem 1.5rem">
+                <template x-for="o in opts" :key="o.id">
+                    <button type="button"
+                        @click="apply(o.id)"
+                        :class="sidebarStyle===o.id ? 'settings-radius-btn s-on' : 'settings-radius-btn'">
+                        <span style="font-size:.78rem;font-weight:700;color:#1e293b;display:block;margin-bottom:.2rem" x-text="o.label"></span>
+                        <span style="font-size:.67rem;color:#94a3b8;display:block;line-height:1.3" x-text="o.desc"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        {{-- ── CARD: INTENSIDADE DE CORES ── --}}
+        <div class="settings-card" x-data="{
+            intensity: flowAppearance.get('color_intensity', 'normal', 'flowmanager:color-intensity') || 'normal',
+            opts: [
+                {id:'muted',label:'Suave',desc:'Tons mais claros e discretos',val:'0.6'},
+                {id:'normal',label:'Normal',desc:'Intensidade padrao do tema',val:'1'},
+                {id:'vivid',label:'Vibrante',desc:'Cores mais saturadas e marcantes',val:'1.3'},
+            ],
+            apply(id,val) {
+                this.intensity = id;
+                localStorage.setItem('flowmanager:color-intensity', id);
+                flowAppearance.save('color_intensity', id, 'flowmanager:color-intensity');
+                document.documentElement.style.setProperty('--color-intensity', val);
+            }
+        }" x-init="
+            const cur = opts.find(o=>o.id===intensity);
+            if(cur) document.documentElement.style.setProperty('--color-intensity', cur.val);
+        ">
+            <div class="settings-card-header">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon" style="background:rgba(236,72,153,.1);color:#ec4899">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
+                    </div>
+                    <div>
+                        <p class="settings-card-title">Intensidade das cores</p>
+                        <p class="settings-card-desc">Ajusta a saturacao do tema de cor escolhido</p>
+                    </div>
+                </div>
+                <span class="s-badge" x-text="opts.find(o=>o.id===intensity)?.label || 'Normal'"></span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;padding:0 1.25rem 1.5rem">
+                <template x-for="o in opts" :key="o.id">
+                    <button type="button"
+                        @click="apply(o.id, o.val)"
+                        :class="intensity===o.id ? 'settings-density-btn s-on' : 'settings-density-btn'">
+                        <div :style="'width:2rem;height:.45rem;border-radius:2rem;margin:0 auto .5rem;background:var(--s-accent);filter:saturate('+o.val+')'"></div>
+                        <span style="font-size:.78rem;font-weight:700;color:#1e293b;display:block" x-text="o.label"></span>
+                        <span style="font-size:.67rem;color:#94a3b8;display:block;margin-top:.1rem" x-text="o.desc"></span>
+                    </button>
+                </template>
+            </div>
+        </div>
+
+        {{-- ── CARD: BARRA DE PROGRESSO / LOADING ── --}}
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon" style="background:rgba(14,165,233,.1);color:#0ea5e9">
+                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+                    </div>
+                    <div>
+                        <p class="settings-card-title">Visuais adicionais</p>
+                        <p class="settings-card-desc">Outros efeitos e elementos visuais da interface</p>
+                    </div>
+                </div>
+            </div>
+            <div style="padding:0 1.25rem 1.5rem;display:flex;flex-direction:column;gap:.25rem">
+                {{-- Sombras --}}
+                <div class="settings-toggle-row" x-data="{
+                    on: flowAppearance.getBool('shadows', true, 'flowmanager:shadows'),
+                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:shadows', this.on); flowAppearance.save('shadows', this.on, 'flowmanager:shadows'); document.documentElement.classList.toggle('no-shadows', !this.on); }
+                }">
+                    <div class="settings-toggle-info">
+                        <p class="settings-toggle-title">Sombras nos cards</p>
+                        <p class="settings-toggle-desc">Exibe sombra suave nos paineis e cartoes</p>
+                    </div>
+                    <label class="settings-toggle-switch" @click.prevent="toggle()">
+                        <input type="checkbox" :checked="on" readonly>
+                        <div class="settings-toggle-track"></div>
+                        <div class="settings-toggle-thumb"></div>
+                    </label>
+                </div>
+
+                {{-- Glassmorphism --}}
+                <div class="settings-toggle-row" x-data="{
+                    on: flowAppearance.getBool('glass', false, 'flowmanager:glass'),
+                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:glass', this.on); flowAppearance.save('glass', this.on, 'flowmanager:glass'); document.documentElement.classList.toggle('glass-mode', this.on); }
+                }">
+                    <div class="settings-toggle-info">
+                        <p class="settings-toggle-title">Efeito vidro (Glass)</p>
+                        <p class="settings-toggle-desc">Aplica transparencia e blur no header e sidebar</p>
+                    </div>
+                    <label class="settings-toggle-switch" @click.prevent="toggle()">
+                        <input type="checkbox" :checked="on" readonly>
+                        <div class="settings-toggle-track"></div>
+                        <div class="settings-toggle-thumb"></div>
+                    </label>
+                </div>
+
+                {{-- Hover highlights --}}
+                <div class="settings-toggle-row" x-data="{
+                    on: flowAppearance.getBool('hover_highlight', true, 'flowmanager:hover-highlight'),
+                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:hover-highlight', this.on); flowAppearance.save('hover_highlight', this.on, 'flowmanager:hover-highlight'); document.documentElement.classList.toggle('no-hover-highlight', !this.on); }
+                }">
+                    <div class="settings-toggle-info">
+                        <p class="settings-toggle-title">Destaque ao passar o mouse</p>
+                        <p class="settings-toggle-desc">Realca linhas e itens quando o cursor passa sobre eles</p>
+                    </div>
+                    <label class="settings-toggle-switch" @click.prevent="toggle()">
+                        <input type="checkbox" :checked="on" readonly>
+                        <div class="settings-toggle-track"></div>
+                        <div class="settings-toggle-thumb"></div>
+                    </label>
+                </div>
+
+                {{-- Barra de progresso no topo --}}
+                <div class="settings-toggle-row" x-data="{
+                    on: flowAppearance.getBool('progress_bar', true, 'flowmanager:progress-bar'),
+                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:progress-bar', this.on); flowAppearance.save('progress_bar', this.on, 'flowmanager:progress-bar'); }
+                }">
+                    <div class="settings-toggle-info">
+                        <p class="settings-toggle-title">Barra de carregamento</p>
+                        <p class="settings-toggle-desc">Exibe barra animada no topo durante navegacao</p>
+                    </div>
+                    <label class="settings-toggle-switch" @click.prevent="toggle()">
+                        <input type="checkbox" :checked="on" readonly>
+                        <div class="settings-toggle-track"></div>
+                        <div class="settings-toggle-thumb"></div>
+                    </label>
+                </div>
+            </div>
+        </div>
+
         </div>{{-- /s-col-main --}}
 
         <div class="s-col-side">
@@ -420,207 +623,6 @@ new class extends Component {
             </div>
         </div>
 
-        {{-- ── CARD: DENSIDADE DE LAYOUT ── --}}
-        <div class="settings-card" x-data="{
-            density: flowAppearance.get('density', 'comfortable', 'flowmanager:density') || 'comfortable',
-            opts: [
-                {id:'compact',icon:'▣',label:'Compacto',desc:'Mais itens na tela, espaçamento reduzido'},
-                {id:'comfortable',icon:'◫',label:'Confortável',desc:'Equilíbrio entre densidade e legibilidade'},
-                {id:'spacious',icon:'□',label:'Espaçoso',desc:'Mais respiração visual, fácil leitura'},
-            ],
-            apply(id) {
-                this.density = id;
-                localStorage.setItem('flowmanager:density', id);
-                flowAppearance.save('density', id, 'flowmanager:density');
-                document.documentElement.setAttribute('data-density', id);
-            }
-        }" x-init="document.documentElement.setAttribute('data-density', density)">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(16,185,129,.1);color:#10b981">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 5.25h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5m-16.5 4.5h16.5"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Densidade do layout</p>
-                        <p class="settings-card-desc">Controla o espaco entre os elementos da interface</p>
-                    </div>
-                </div>
-                <span class="s-badge" x-text="opts.find(o=>o.id===density)?.label || 'Confortavel'"></span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;padding:0 1.25rem 1.5rem">
-                <template x-for="o in opts" :key="o.id">
-                    <button type="button"
-                        @click="apply(o.id)"
-                        :class="density===o.id ? 'settings-density-btn s-on' : 'settings-density-btn'">
-                        <span style="font-size:1.4rem;display:block;margin-bottom:.35rem" x-text="o.icon"></span>
-                        <span style="font-size:.78rem;font-weight:700;color:#1e293b;display:block" x-text="o.label"></span>
-                        <span style="font-size:.67rem;color:#94a3b8;display:block;margin-top:.15rem;line-height:1.3" x-text="o.desc"></span>
-                    </button>
-                </template>
-            </div>
-        </div>
-
-        {{-- ── CARD: SIDEBAR / MENU LATERAL ── --}}
-        <div class="settings-card" x-data="{
-            sidebarStyle: flowAppearance.get('sidebar_style', 'icons-text', 'flowmanager:sidebar-style') || 'icons-text',
-            opts: [
-                {id:'icons-only',label:'Apenas ícones',desc:'Sidebar estreita, apenas ícones visíveis'},
-                {id:'icons-text',label:'Ícones + Texto',desc:'Padrão: ícone e nome da seção'},
-                {id:'text-only',label:'Só texto',desc:'Lista de links sem ícones'},
-            ],
-            apply(id) {
-                this.sidebarStyle = id;
-                localStorage.setItem('flowmanager:sidebar-style', id);
-                flowAppearance.save('sidebar_style', id, 'flowmanager:sidebar-style');
-                document.documentElement.setAttribute('data-sidebar-style', id);
-            }
-        }" x-init="document.documentElement.setAttribute('data-sidebar-style', sidebarStyle)">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(99,102,241,.1);color:#6366f1">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25H12"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Estilo do menu lateral</p>
-                        <p class="settings-card-desc">Como o menu de navegacao e exibido</p>
-                    </div>
-                </div>
-                <span class="s-badge" x-text="opts.find(o=>o.id===sidebarStyle)?.label || 'Icones + Texto'"></span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.65rem;padding:0 1.25rem 1.5rem">
-                <template x-for="o in opts" :key="o.id">
-                    <button type="button"
-                        @click="apply(o.id)"
-                        :class="sidebarStyle===o.id ? 'settings-radius-btn s-on' : 'settings-radius-btn'">
-                        <span style="font-size:.78rem;font-weight:700;color:#1e293b;display:block;margin-bottom:.2rem" x-text="o.label"></span>
-                        <span style="font-size:.67rem;color:#94a3b8;display:block;line-height:1.3" x-text="o.desc"></span>
-                    </button>
-                </template>
-            </div>
-        </div>
-
-        {{-- ── CARD: INTENSIDADE DE CORES ── --}}
-        <div class="settings-card" x-data="{
-            intensity: flowAppearance.get('color_intensity', 'normal', 'flowmanager:color-intensity') || 'normal',
-            opts: [
-                {id:'muted',label:'Suave',desc:'Tons mais claros e discretos',val:'0.6'},
-                {id:'normal',label:'Normal',desc:'Intensidade padrao do tema',val:'1'},
-                {id:'vivid',label:'Vibrante',desc:'Cores mais saturadas e marcantes',val:'1.3'},
-            ],
-            apply(id,val) {
-                this.intensity = id;
-                localStorage.setItem('flowmanager:color-intensity', id);
-                flowAppearance.save('color_intensity', id, 'flowmanager:color-intensity');
-                document.documentElement.style.setProperty('--color-intensity', val);
-            }
-        }" x-init="
-            const cur = opts.find(o=>o.id===intensity);
-            if(cur) document.documentElement.style.setProperty('--color-intensity', cur.val);
-        ">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(236,72,153,.1);color:#ec4899">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Intensidade das cores</p>
-                        <p class="settings-card-desc">Ajusta a saturacao do tema de cor escolhido</p>
-                    </div>
-                </div>
-                <span class="s-badge" x-text="opts.find(o=>o.id===intensity)?.label || 'Normal'"></span>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.65rem;padding:0 1.25rem 1.5rem">
-                <template x-for="o in opts" :key="o.id">
-                    <button type="button"
-                        @click="apply(o.id, o.val)"
-                        :class="intensity===o.id ? 'settings-density-btn s-on' : 'settings-density-btn'">
-                        <div :style="'width:2rem;height:.45rem;border-radius:2rem;margin:0 auto .5rem;background:var(--s-accent);filter:saturate('+o.val+')'"></div>
-                        <span style="font-size:.78rem;font-weight:700;color:#1e293b;display:block" x-text="o.label"></span>
-                        <span style="font-size:.67rem;color:#94a3b8;display:block;margin-top:.1rem" x-text="o.desc"></span>
-                    </button>
-                </template>
-            </div>
-        </div>
-
-        {{-- ── CARD: BARRA DE PROGRESSO / LOADING ── --}}
-        <div class="settings-card">
-            <div class="settings-card-header">
-                <div class="settings-card-title-row">
-                    <div class="settings-card-icon" style="background:rgba(14,165,233,.1);color:#0ea5e9">
-                        <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-                    </div>
-                    <div>
-                        <p class="settings-card-title">Visuais adicionais</p>
-                        <p class="settings-card-desc">Outros efeitos e elementos visuais da interface</p>
-                    </div>
-                </div>
-            </div>
-            <div style="padding:0 1.25rem 1.5rem;display:flex;flex-direction:column;gap:.25rem">
-                {{-- Sombras --}}
-                <div class="settings-toggle-row" x-data="{
-                    on: flowAppearance.getBool('shadows', true, 'flowmanager:shadows'),
-                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:shadows', this.on); flowAppearance.save('shadows', this.on, 'flowmanager:shadows'); document.documentElement.classList.toggle('no-shadows', !this.on); }
-                }">
-                    <div class="settings-toggle-info">
-                        <p class="settings-toggle-title">Sombras nos cards</p>
-                        <p class="settings-toggle-desc">Exibe sombra suave nos paineis e cartoes</p>
-                    </div>
-                    <label class="settings-toggle-switch" @click.prevent="toggle()">
-                        <input type="checkbox" :checked="on" readonly>
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </label>
-                </div>
-
-                {{-- Glassmorphism --}}
-                <div class="settings-toggle-row" x-data="{
-                    on: flowAppearance.getBool('glass', false, 'flowmanager:glass'),
-                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:glass', this.on); flowAppearance.save('glass', this.on, 'flowmanager:glass'); document.documentElement.classList.toggle('glass-mode', this.on); }
-                }">
-                    <div class="settings-toggle-info">
-                        <p class="settings-toggle-title">Efeito vidro (Glass)</p>
-                        <p class="settings-toggle-desc">Aplica transparencia e blur no header e sidebar</p>
-                    </div>
-                    <label class="settings-toggle-switch" @click.prevent="toggle()">
-                        <input type="checkbox" :checked="on" readonly>
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </label>
-                </div>
-
-                {{-- Hover highlights --}}
-                <div class="settings-toggle-row" x-data="{
-                    on: flowAppearance.getBool('hover_highlight', true, 'flowmanager:hover-highlight'),
-                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:hover-highlight', this.on); flowAppearance.save('hover_highlight', this.on, 'flowmanager:hover-highlight'); document.documentElement.classList.toggle('no-hover-highlight', !this.on); }
-                }">
-                    <div class="settings-toggle-info">
-                        <p class="settings-toggle-title">Destaque ao passar o mouse</p>
-                        <p class="settings-toggle-desc">Realca linhas e itens quando o cursor passa sobre eles</p>
-                    </div>
-                    <label class="settings-toggle-switch" @click.prevent="toggle()">
-                        <input type="checkbox" :checked="on" readonly>
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </label>
-                </div>
-
-                {{-- Barra de progresso no topo --}}
-                <div class="settings-toggle-row" x-data="{
-                    on: flowAppearance.getBool('progress_bar', true, 'flowmanager:progress-bar'),
-                    toggle() { this.on = !this.on; localStorage.setItem('flowmanager:progress-bar', this.on); flowAppearance.save('progress_bar', this.on, 'flowmanager:progress-bar'); }
-                }">
-                    <div class="settings-toggle-info">
-                        <p class="settings-toggle-title">Barra de carregamento</p>
-                        <p class="settings-toggle-desc">Exibe barra animada no topo durante navegacao</p>
-                    </div>
-                    <label class="settings-toggle-switch" @click.prevent="toggle()">
-                        <input type="checkbox" :checked="on" readonly>
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </label>
-                </div>
-            </div>
-        </div>
 
         </div>{{-- /s-col-side --}}
         </div>{{-- /s-pg-grid --}}

@@ -342,7 +342,7 @@ new class extends Component {
             $auVerified = $au->hasVerifiedEmail();
             $auGoogle   = !empty($au->google_id);
             $auDays     = $au->created_at ? (int)$au->created_at->diffInDays(now()) : 0;
-            $auMonths   = $au->created_at ? $au->created_at->diffInMonths(now()) : 0;
+            $auMonths   = $au->created_at ? (int) floor($au->created_at->diffInMonths(now())) : 0;
         @endphp
         <div class="settings-card">
             <div class="settings-card-header">
@@ -359,10 +359,10 @@ new class extends Component {
             <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.75rem;padding:0 1.25rem 1.25rem">
                 @foreach([
                     ['Membro desde',$au->created_at ? $au->created_at->format('d/m/Y') : '—','rgba(16,185,129,.08)','#10b981'],
-                    ['Tempo de conta',$auMonths > 0 ? $auMonths.' meses' : $auDays.' dias','rgba(245,158,11,.08)','#f59e0b'],
+                    ['Tempo de conta',$auMonths > 0 ? $auMonths.($auMonths === 1 ? ' mês' : ' meses') : $auDays.($auDays === 1 ? ' dia' : ' dias'),'rgba(245,158,11,.08)','#f59e0b'],
                     ['E-mail',$auVerified ? 'Verificado ✓' : 'Não verificado',$auVerified ? 'rgba(16,185,129,.08)' : 'rgba(239,68,68,.08)',$auVerified ? '#10b981' : '#ef4444'],
                     ['Login Google',$auGoogle ? 'Vinculado ✓' : 'Não vinculado',$auGoogle ? 'rgba(66,133,244,.08)' : 'rgba(148,163,184,.08)',$auGoogle ? '#4285F4' : '#94a3b8'],
-                    ['Última atualização',$au->updated_at ? $au->updated_at->diffForHumans() : '—','rgba(var(--s-accent-rgb),.06)','var(--s-accent)'],
+                    ['Última atualização',$au->updated_at ? $au->updated_at->locale('pt_BR')->diffForHumans() : '—','rgba(var(--s-accent-rgb),.06)','var(--s-accent)'],
                 ] as [$lbl,$val,$bg,$col])
                 <div class="settings-info-tile" style="background:{{ $bg }};border-color:transparent">
                     <p class="settings-info-tile-label">{{ $lbl }}</p>

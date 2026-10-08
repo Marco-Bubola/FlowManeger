@@ -202,17 +202,28 @@ new class extends Component {
         </div>
 
         @php
-            $usageCards = $activePlan->isFree()
-                ? [
-                    ['Produtos sincronizados', 68, '34 de 50', '#6366f1'],
-                    ['Usuários da equipe', 50, '1 de 2', '#10b981'],
-                    ['Exportações mensais', 72, '18 de 25', '#f59e0b'],
-                ]
-                : [
-                    ['Produtos sincronizados', 41, '410 de 1000', '#6366f1'],
-                    ['Usuários da equipe', 56, '7 de 12', '#10b981'],
-                    ['Exportações mensais', 29, '58 de 200', '#f59e0b'],
-                ];
+            // Uso real da conta comparado aos limites do plano (antes eram números de exemplo fixos).
+            $usageItem = function (string $label, int $used, $limit, string $color) {
+                $limit = (int) $limit;
+                if ($limit === -1) {
+                    return [$label, min(100, $used > 0 ? 8 : 0), $used . ' · ilimitado', $color];
+                }
+                $pct = $limit > 0 ? (int) min(100, round($used / $limit * 100)) : 0;
+                return [$label, $pct, $used . ' de ' . $limit, $color];
+            };
+            try {
+                $usedProducts = \App\Models\Product::count();
+                $usedClients  = \App\Models\Client::count();
+                $usedSales    = \App\Models\Sale::where('created_at', '>=', now()->startOfMonth())->count();
+            } catch (\Throwable $e) {
+                $usedProducts = $usedClients = $usedSales = 0;
+            }
+            $usageCards = [
+                $usageItem('Produtos cadastrados', $usedProducts, $activePlan->max_products, '#6366f1'),
+                $usageItem('Clientes', $usedClients, $activePlan->max_clients, '#10b981'),
+                $usageItem('Vendas neste mês', $usedSales, $activePlan->max_orders_per_month, '#f59e0b'),
+            ];
+            $usageNearLimit = collect($usageCards)->max(fn ($c) => $c[1]) >= 80;
         @endphp
 
         </div>{{-- /s-col-side --}}
@@ -226,8 +237,8 @@ new class extends Component {
                             <svg fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:1rem;height:1rem"><path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/></svg>
                         </div>
                         <div>
-                            <p class="settings-card-title">Uso estimado do plano</p>
-                            <p class="settings-card-desc">Indicadores para acompanhar sua capacidade atual</p>
+                            <p class="settings-card-title">Uso do plano</p>
+                            <p class="settings-card-desc">Quanto você já usa dos limites do seu plano</p>
                         </div>
                     </div>
                 </div>
@@ -272,7 +283,7 @@ new class extends Component {
                         <p class="settings-info-tile-val">{{ $activePlan->isFree() ? 'Considerar upgrade' : 'Acompanhar renovação' }}</p>
                     </div>
                 </div>
-                <p style="font-size:.74rem;color:#64748b;line-height:1.55;margin:.85rem 0 0">{{ $activePlan->isFree() ? 'Seu uso está perto do limite em alguns recursos. Um plano pago libera mais capacidade e automações.' : 'Seu plano atual já oferece uma boa margem. Revise o consumo antes da próxima renovação para evitar upgrade desnecessário.' }}</p>
+                <p style="font-size:.74rem;color:#64748b;line-height:1.55;margin:.85rem 0 0">{{ $activePlan->isFree() ? ($usageNearLimit ? 'Seu uso está perto do limite em alguns recursos. Um plano pago libera mais capacidade e automações.' : 'Seu uso ainda está dentro dos limites do plano Grátis. Um plano pago libera mais capacidade e automações.') : 'Seu plano atual já oferece uma boa margem. Revise o consumo antes da próxima renovação para evitar upgrade desnecessário.' }}</p>
             </div>
         </div>
 
