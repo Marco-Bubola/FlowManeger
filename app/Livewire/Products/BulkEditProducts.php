@@ -372,8 +372,7 @@ class BulkEditProducts extends Component
                 continue;
             }
             try {
-                $value = 'R$ ' . number_format((float) $child->price_sale, 2, ',', '.');
-                $variations->attach($parent, $child, 'Valor', $value);
+                $variations->link($parent, $child);
                 $linked++;
             } catch (\Throwable $e) {
                 $skipped++;

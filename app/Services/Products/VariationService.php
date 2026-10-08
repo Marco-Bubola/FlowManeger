@@ -53,6 +53,20 @@ class VariationService
     }
 
     /**
+     * Liga um produto existente a um grupo de variações (tela Editar e Edição em massa).
+     * Se $parent já for uma variação, liga ao produto principal dele. O nome da
+     * variação sai do que o nome tem a mais ("Batom Nude" → "Nude"), senão do preço.
+     */
+    public function link(Product $parent, Product $child): Product
+    {
+        $root = $parent->parent_id ? ($parent->parent ?? $parent) : $parent;
+        $label = $this->labelFor($root, trim((string) $child->name), (string) $child->product_code, (float) $child->price_sale);
+        $this->attach($root, $child, $root->variation_attribute ?: 'Variação', $label);
+
+        return $root;
+    }
+
+    /**
      * Cria um novo produto e já o anexa como variação de $parent.
      */
     public function createVariant(Product $parent, array $data, string $value): Product
@@ -133,7 +147,7 @@ class VariationService
                 if ($code !== '') { $q->where('product_code', $code); $applied = true; }
                 if ($name !== '') { $applied ? $q->orWhere('name', $name) : $q->where('name', $name); }
             })
-            ->when($code !== '', fn ($q) => $q->orderByRaw('CASE WHEN product_code = ? THEN 0 ELSE 1 END', [$code]))
+            ->when($code !== '', fn ($q) => $q->orderByRaw('CASE WHEN product_code = ? AND name = ? THEN 0 WHEN product_code = ? THEN 1 ELSE 2 END', [$code, $name, $code]))
             ->first();
 
         if (!$anchor) {
@@ -143,11 +157,24 @@ class VariationService
         // Raiz da família (se a âncora já for uma variante, sobe pro pai)
         $root = $anchor->parent_id ? ($anchor->parent ?? $anchor) : $anchor;
 
-        // 2) Existe membro da família com MESMO preço e preço de venda?
-        $match = $root->family()->get()->first(function ($p) use ($price, $priceSale) {
-            return abs((float) $p->price - $price) < 0.005
-                && abs((float) $p->price_sale - $priceSale) < 0.005;
-        });
+        // 2) O estoque entra no MESMO item: o produto achado pelo código (se o preço
+        //    bate) ou um membro da família com o mesmo código/nome e o mesmo preço.
+        //    Antes ia para o primeiro membro com o mesmo preço, então a cor "Nude"
+        //    importada caía na "Vermelho" quando as duas custavam igual.
+        $samePrice = fn (Product $p) => abs((float) $p->price - $price) < 0.005
+            && abs((float) $p->price_sale - $priceSale) < 0.005;
+        $sameName = fn (Product $p) => $name !== '' && mb_strtolower(trim($p->name)) === mb_strtolower($name);
+        $sameCode = fn (Product $p) => $code !== '' && $p->product_code === $code;
+
+        $members = $root->family()->get();
+        $family = $members->filter($samePrice);
+        // Código que só um item da família usa identifica o item; código repetido
+        // (todas as cores com o mesmo código) precisa do nome para saber qual é.
+        $codeIsUnique = $code !== '' && $members->filter($sameCode)->count() === 1;
+
+        $match = $family->first(fn ($p) => $sameCode($p) && $sameName($p))
+            ?? ($codeIsUnique ? $family->first($sameCode) : null)
+            ?? $family->first(fn ($p) => $sameName($p) && ($code === '' || !$members->contains($sameCode) || $sameCode($p)));
 
         if ($match) {
             if ($stock > 0) {
@@ -156,8 +183,8 @@ class VariationService
             return ['action' => 'stock', 'product' => $match->fresh()];
         }
 
-        // 3) Preço diferente → cria variação real anexada à raiz
-        $value   = 'R$ ' . number_format($priceSale, 2, ',', '.');
+        // 3) Item diferente (outro preço, ou outro código/nome) → cria variação na raiz
+        $value = $this->labelFor($root, $name, $code, $priceSale);
         $variant = $this->createVariant($root, [
             'name'           => $name !== '' ? $name : $root->name,
             'product_code'   => $code !== '' ? $code : $this->generateCode(),
@@ -171,6 +198,30 @@ class VariationService
         ], $value);
 
         return ['action' => 'variation', 'product' => $variant];
+    }
+
+    /**
+     * Nome curto da variação: o que o nome tem a mais que o produto principal
+     * ("batom matte Nude" → "Nude"); sem isso, o preço; se o preço já é usado
+     * por outra variação, o código.
+     */
+    public function labelFor(Product $root, string $name, string $code, float $priceSale): string
+    {
+        $base = trim((string) $root->name);
+        if ($name !== '' && $base !== '' && mb_stripos($name, $base) === 0) {
+            $rest = trim(mb_substr($name, mb_strlen($base)), " -·|/");
+            if ($rest !== '') {
+                return mb_substr($rest, 0, 120);
+            }
+        }
+
+        $byPrice = 'R$ ' . number_format($priceSale, 2, ',', '.');
+        $taken = $root->family()->pluck('variation_value')->filter()->all();
+        if (!in_array($byPrice, $taken, true)) {
+            return $byPrice;
+        }
+
+        return $code !== '' ? $code : ($name !== '' ? mb_substr($name, 0, 120) : $byPrice);
     }
 
     private function createStandalone(int $userId, array $data, string $code, float $price, float $priceSale, int $stock): Product

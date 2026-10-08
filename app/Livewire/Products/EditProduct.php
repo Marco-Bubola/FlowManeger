@@ -509,6 +509,11 @@ class EditProduct extends Component
      */
     public function getVariantsProperty()
     {
+        // Numa variação, mostra o resto do grupo (principal + irmãs).
+        if ($this->product->parent_id) {
+            return $this->product->family()->where('id', '!=', $this->product->id)->get();
+        }
+
         return $this->product->variants()->orderBy('variation_sort')->get();
     }
 
@@ -629,9 +634,7 @@ class EditProduct extends Component
         try {
             $child = Product::where('user_id', Auth::id())->findOrFail((int) $this->linkVariantId);
 
-            // Variação só de valor: o "valor" é derivado automaticamente do preço de venda.
-            $value = 'R$ ' . number_format((float) $child->price_sale, 2, ',', '.');
-            $variations->attach($this->product, $child, 'Valor', $value);
+            $variations->link($this->product, $child);
 
             $this->product->refresh();
             $this->reset(['linkVariantId', 'linkVariantValue', 'linkSearch', 'linkSelectedLabel']);
@@ -659,6 +662,18 @@ class EditProduct extends Component
         } catch (\Throwable $e) {
             $this->notifyError('Erro ao desvincular: ' . $e->getMessage());
         }
+    }
+
+    /** Numa variação: tira ela do grupo (volta a ser produto independente). */
+    public function detachSelf(VariationService $variations): void
+    {
+        if (!$this->product->parent_id) {
+            return;
+        }
+        $variations->detach($this->product);
+        $this->product->refresh();
+        $this->dispatch('product-updated');
+        $this->notifySuccess('Este produto saiu do grupo de variações.');
     }
 
     public function render()

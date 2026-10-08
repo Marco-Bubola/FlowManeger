@@ -458,6 +458,8 @@
     {{-- ══════════ VARIAÇÕES ══════════ --}}
     @php
         $familyStock = $product->stock_quantity + $variants->sum('stock_quantity');
+        $isVariant = (bool) $product->parent_id;
+        $withStock = collect([$product])->merge($variants)->where('stock_quantity', '>', 0)->count();
     @endphp
     <div class="mt-6 rounded-2xl border border-slate-200/80 dark:border-violet-500/20 bg-white dark:bg-slate-900/80 overflow-hidden shadow-sm">
         {{-- Header --}}
@@ -481,7 +483,7 @@
                 @if($variants->count() > 0)
                     <div class="hidden sm:flex flex-col items-end">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Estoque grupo</span>
-                        <span class="text-sm font-black text-violet-700 dark:text-violet-200">{{ $familyStock }}</span>
+                        <span class="text-sm font-black text-violet-700 dark:text-violet-200">{{ $familyStock }} <span class="text-[10px] font-semibold text-slate-500">· {{ $withStock }} de {{ $variants->count() + 1 }} com estoque</span></span>
                     </div>
                 @endif
                 <span class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
@@ -492,17 +494,27 @@
 
         @if($showVariationsPanel)
         <div class="px-5 pb-5 border-t border-slate-100 dark:border-white/5 pt-5 space-y-5">
+            @if($isVariant && $product->parent)
+            <div class="flex flex-wrap items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-100">
+                <i class="bi bi-diagram-3"></i>
+                <span class="flex-1 min-w-0">Este produto é a variação <strong>{{ $product->variation_value }}</strong> de <strong>{{ $product->parent->name }}</strong>. Para ligar ou tirar outras variações, use o produto principal.</span>
+                <a href="{{ route('products.edit', $product->parent) }}" class="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-violet-700">Abrir principal</a>
+                <button type="button" wire:click="detachSelf" wire:confirm="Tirar este produto do grupo? Ele continua cadastrado, só deixa de ser variação."
+                    class="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-rose-600 ring-1 ring-rose-200 hover:bg-rose-50 dark:bg-slate-900 dark:ring-rose-500/30">Sair do grupo</button>
+            </div>
+            @endif
+
             {{-- Lista de variações vinculadas --}}
             @if($variants->count() > 0)
             <div>
-                <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> Variações vinculadas ({{ $variants->count() }})</p>
+                <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> {{ $isVariant ? 'Resto do grupo' : 'Variações vinculadas' }} ({{ $variants->count() }})</p>
                 <div class="space-y-2">
                     @foreach($variants as $variant)
                     <div class="group flex items-center gap-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/60 px-3 py-2.5 hover:border-violet-500/40 transition-colors">
                         <img src="{{ $variant->image ? asset('storage/products/' . $variant->image) : asset('storage/products/product-placeholder.png') }}"
                             class="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0" alt="{{ $variant->name }}">
                         <div class="min-w-0 flex-1">
-                            <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $variant->name }}</p>
+                            <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $variant->name }}@if($variant->variation_value)<span class="ml-1.5 rounded bg-violet-500/15 px-1.5 py-px text-[10px] font-bold text-violet-700 dark:text-violet-300">{{ $variant->is_variation_parent ? 'Principal' : $variant->variation_value }}</span>@endif</p>
                             <div class="flex items-center gap-1.5 mt-1 flex-wrap">
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/15 text-sky-700 dark:text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-500 dark:text-slate-400"><i class="bi bi-upc"></i>{{ $variant->product_code }}</span>
@@ -512,11 +524,13 @@
                         <a href="{{ route('products.edit', $variant) }}" class="w-8 h-8 flex items-center justify-center text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
                             <i class="bi bi-pencil"></i>
                         </a>
+                        @unless($isVariant)
                         <button type="button" wire:click="detachVariation({{ $variant->id }})"
                             wire:confirm="Desvincular esta variação? O produto volta a ser independente (não será excluído)."
                             class="w-8 h-8 flex items-center justify-center text-xs text-red-600 dark:text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
                             <i class="bi bi-x-lg"></i>
                         </button>
+                        @endunless
                     </div>
                     @endforeach
                 </div>
@@ -529,6 +543,7 @@
             @endif
 
             {{-- Vincular produto existente (busca por código/nome) --}}
+            @unless($isVariant)
             <div class="rounded-2xl border border-sky-500/20 bg-sky-50/60 dark:bg-sky-950/20 p-4">
                 <p class="text-xs font-black text-sky-700 dark:text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular variação</p>
 
@@ -594,6 +609,7 @@
                     @error('linkVariantId') <p class="text-[10px] text-red-400 flex items-center gap-1 mt-2"><i class="bi bi-exclamation-circle"></i>{{ $message }}</p> @enderror
                 @endif
             </div>
+            @endunless
         </div>
         @endif
     </div>

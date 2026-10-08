@@ -522,7 +522,8 @@
                                 <img src="{{ asset('storage/products/' . $product->image) }}" class="product-img"
                                     alt="{{ $product->name }}">
 
-                                @if ($product->stock_quantity == 0 && !$product->is_variation_parent)
+                                {{-- Cada card mostra só o próprio estoque (o principal não soma as variações) --}}
+                                @if ($product->stock_quantity == 0 && $product->tipo !== 'kit')
                                     <div class="out-of-stock">
                                         <i class="bi bi-x-circle"></i> Fora de Estoque
                                     </div>
@@ -530,10 +531,14 @@
 
                                 <!-- Badge de variações (produto-pai) -->
                                 @if ($product->is_variation_parent)
-                                    @php $variantsCount = $product->variants()->count(); @endphp
+                                    @php
+                                        $variantsCount = $product->variants()->count();
+                                        $variantsInStock = $product->variants()->where('stock_quantity', '>', 0)->count() + ($product->stock_quantity > 0 ? 1 : 0);
+                                    @endphp
                                     <div class="absolute top-2 left-2 z-10">
-                                        <span class="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg border border-violet-400">
-                                            <i class="bi bi-diagram-3 mr-1"></i>{{ $variantsCount + 1 }} variações
+                                        <span class="inline-flex items-center whitespace-nowrap px-2 py-1 rounded-full text-[10px] font-bold bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-lg border border-violet-400"
+                                              title="{{ $variantsInStock }} de {{ $variantsCount + 1 }} com estoque">
+                                            <i class="bi bi-diagram-3 mr-1"></i>{{ $variantsInStock ? ($variantsCount + 1) . " var. · {$variantsInStock} c/ estoque" : ($variantsCount + 1) . " variações" }}
                                         </span>
                                     </div>
                                 @endif
@@ -550,8 +555,8 @@
                                 </span>
 
                                 <!-- Quantidade -->
-                                <span class="badge-quantity" title="{{ $product->is_variation_parent ? 'Estoque total da família' : 'Quantidade em Estoque' }}">
-                                    <i class="bi bi-stack"></i> {{ $product->is_variation_parent ? $product->family_stock : $product->stock_quantity }}
+                                <span class="badge-quantity" title="Quantidade em Estoque">
+                                    <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
                                 </span>
 
                                 <!-- Ícone da categoria -->
