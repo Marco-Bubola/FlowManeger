@@ -43,12 +43,21 @@ class StockMovements extends Component
                 ->orWhere('product_code', 'like', '%'.$this->search.'%')))
             ->pluck('id');
 
-        $logs = MlStockLog::query()
+        $base = MlStockLog::query()
             ->whereNull('ml_publication_id')
             ->whereIn('product_id', $productIds)
+            ->when($this->period !== 'all', fn ($q) => $q->where('created_at', '>=', now()->subDays((int) $this->period)));
+
+        // Resumo do período (sem o filtro de entrada/saída, para comparar os dois lados)
+        $totals = [
+            'in' => (int) (clone $base)->where('quantity_change', '>', 0)->sum('quantity_change'),
+            'out' => (int) abs((clone $base)->where('quantity_change', '<', 0)->sum('quantity_change')),
+            'count' => (clone $base)->count(),
+        ];
+
+        $logs = (clone $base)
             ->when($this->direction === 'entrada', fn ($q) => $q->where('quantity_change', '>', 0))
             ->when($this->direction === 'saida', fn ($q) => $q->where('quantity_change', '<', 0))
-            ->when($this->period !== 'all', fn ($q) => $q->where('created_at', '>=', now()->subDays((int) $this->period)))
             ->latest('created_at')
             ->paginate(30);
 
@@ -56,6 +65,6 @@ class StockMovements extends Component
             ->get(['id', 'name', 'product_code', 'stock_quantity'])
             ->keyBy('id');
 
-        return view('livewire.gestao.stock-movements', compact('logs', 'products'));
+        return view('livewire.gestao.stock-movements', compact('logs', 'products', 'totals'));
     }
 }
