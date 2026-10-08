@@ -15,22 +15,47 @@
     @include('components.toast-notifications')
 
     <div class="">
-        <x-upload-header :title="'Upload de Transações'" :description="'Importar transações a partir de arquivo PDF ou CSV'" :backRoute="route('cashbook.index')" :showConfirmation="$showConfirmation" :transactionsCount="is_array($transactions) ? count($transactions) : 0" />
+        @php $txCount = is_array($transactions) ? count($transactions) : 0; @endphp
+        <x-cashbook-page-header :title="$showConfirmation ? 'Conferir lançamentos do extrato' : 'Importar extrato'"
+            :subtitle="$showConfirmation ? 'Revise os lançamentos lidos do arquivo antes de salvar' : 'Envie o PDF ou CSV do extrato e o sistema lança no livro caixa para você'"
+            icon="bi-cloud-upload" active="importar">
+            @if($showConfirmation)
+                <x-slot:meta>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-collection"></i>{{ $txCount }} lançamentos</span>
+                </x-slot:meta>
+            @endif
+            <x-slot:actions>
+                @if (!$showConfirmation)
+                    <button type="button" wire:click="toggleTips" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-lightbulb text-amber-500"></i>Dicas</button>
+                    <button type="button" wire:click="uploadFile" wire:loading.attr="disabled" wire:target="uploadFile" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50">
+                        <span wire:loading.remove wire:target="uploadFile"><i class="bi bi-lightning-charge-fill mr-1"></i>Processar arquivo</span>
+                        <span wire:loading wire:target="uploadFile"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Processando...</span>
+                    </button>
+                @else
+                    <button type="button" wire:click="cancelUpload" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-x-lg"></i>Cancelar</button>
+                    <button type="button" wire:click="confirmTransactions" wire:loading.attr="disabled" wire:target="confirmTransactions"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/25 transition disabled:opacity-50">
+                        <span wire:loading.remove wire:target="confirmTransactions"><i class="bi bi-check-lg mr-1"></i>Salvar lançamentos</span>
+                        <span wire:loading wire:target="confirmTransactions"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>
+                    </button>
+                @endif
+            </x-slot:actions>
+        </x-cashbook-page-header>
 
         <div class="w-full ">
             @if (!$showConfirmation)
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="w-full xl:w-auto">
                         <div
-                            class="bg-gradient-to-br from-slate-900/95 via-green-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
+                            class="bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70 h-full flex flex-col">
                             <div class="flex items-center gap-3 mb-6">
                                 <div
                                     class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
                                     <i class="bi bi-file-earmark-arrow-up-fill text-white text-lg"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-bold text-white">Upload de Transações</h3>
-                                    <p class="text-xs text-slate-400">Envie seu arquivo PDF ou CSV</p>
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Upload de Transações</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Envie seu arquivo PDF ou CSV</p>
                                 </div>
                             </div>
 
@@ -997,17 +1022,6 @@
                 if (uploadButton) {
                     uploadButton.setAttribute('data-tooltip', 'Clique para selecionar arquivo ou arraste e solte aqui');
                 }
-
-                const elements = document.querySelectorAll('.card-hover, .group');
-                elements.forEach((el, index) => {
-                    el.style.opacity = '0';
-                    el.style.transform = 'translateY(20px)';
-                    setTimeout(() => {
-                        el.style.transition = 'all 0.5s ease-out';
-                        el.style.opacity = '1';
-                        el.style.transform = 'translateY(0)';
-                    }, index * 100);
-                });
 
                 // Inicializa Flatpickr para os campos de data
                 initializeDatePickers();

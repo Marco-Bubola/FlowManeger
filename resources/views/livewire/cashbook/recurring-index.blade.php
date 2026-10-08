@@ -1,7 +1,9 @@
-<div class="w-full px-4 sm:px-6 py-4 space-y-4">
-    <x-sales-header title="Lançamentos Recorrentes"
-        description="Aluguel, salário, assinaturas: o que se repete é lançado sozinho no livro-caixa"
-        icon="bi-arrow-repeat" iconColor="purple" :back-route="route('cashbook.index')" />
+<div class="w-full space-y-4">
+    <x-cashbook-page-header title="Lançamentos recorrentes" subtitle="Aluguel, salário, assinaturas: o que se repete é lançado sozinho no livro caixa" icon="bi-arrow-repeat" active="recorrentes">
+        <x-slot:actions>
+            <a href="{{ route('cashbook.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-plus-lg"></i>Novo lançamento</a>
+        </x-slot:actions>
+    </x-cashbook-page-header>
 
     @if ($items->isEmpty())
         <div class="rounded-3xl border border-dashed border-slate-300 dark:border-slate-700 p-10 text-center">
@@ -17,7 +19,7 @@
             @foreach ($items as $item)
                 @php $isIncome = (int) $item->type_id === 1; @endphp
                 <div wire:key="rec-{{ $item->id }}"
-                    class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 {{ $item->ativo ? '' : 'opacity-60' }}">
+                    class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm px-4 py-3 flex flex-wrap items-center gap-x-6 gap-y-2 {{ $item->ativo ? '' : 'opacity-60' }}">
                     <div class="flex items-center gap-3 min-w-[220px] flex-1">
                         <div class="w-10 h-10 rounded-xl flex items-center justify-center {{ $isIncome ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40' : 'bg-red-100 text-red-600 dark:bg-red-900/40' }}">
                             <i class="bi {{ $isIncome ? 'bi-arrow-down-left' : 'bi-arrow-up-right' }}"></i>

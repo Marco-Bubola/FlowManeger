@@ -1,21 +1,13 @@
-<div class="w-full px-4 sm:px-6 py-4 space-y-4">
-    <x-sales-header title="Contas e Saldos"
-        description="Quanto você tem em cada lugar e transferências entre contas"
-        icon="bi-bank" iconColor="blue" :back-route="route('cashbook.index')">
-        <x-slot name="actions">
-            <div class="flex gap-2">
-                <button type="button" wire:click="openTransfer" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl border-2 border-indigo-300 dark:border-indigo-600 text-indigo-700 dark:text-indigo-300 font-bold text-sm">
-                    <i class="bi bi-arrow-left-right"></i> Transferir
-                </button>
-                <button type="button" wire:click="openCreate" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm">
-                    <i class="bi bi-plus-lg"></i> Nova conta
-                </button>
-            </div>
-        </x-slot>
-    </x-sales-header>
+<div class="w-full space-y-4">
+    <x-cashbook-page-header title="Contas e saldos" subtitle="Quanto você tem em cada lugar e transferências entre contas" icon="bi-bank" active="contas">
+        <x-slot:actions>
+            <button type="button" wire:click="openTransfer" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-arrow-left-right text-indigo-500"></i>Transferir</button>
+            <button type="button" wire:click="openCreate" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-plus-lg"></i>Nova conta</button>
+        </x-slot:actions>
+    </x-cashbook-page-header>
 
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-zinc-900/60 px-4 py-3">
+        <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm px-4 py-3">
             <p class="text-xs text-slate-500 dark:text-slate-400">Saldo total nas contas</p>
             <p class="text-2xl font-black {{ $total >= 0 ? 'text-slate-800 dark:text-slate-100' : 'text-red-600' }}">R$ {{ number_format($total, 2, ',', '.') }}</p>
         </div>
@@ -39,7 +31,7 @@
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             @foreach ($accounts as $row)
                 @php [$a, $balance] = [$row['account'], $row['balance']]; [$typeLabel, $typeIcon] = $types[$a->type] ?? ['Conta', 'bi-bank']; @endphp
-                <div wire:key="acc-{{ $a->id }}" class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-zinc-900/60 p-4 {{ $a->archived ? 'opacity-50' : '' }}">
+                <div wire:key="acc-{{ $a->id }}" class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm p-4 {{ $a->archived ? 'opacity-50' : '' }}">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 flex items-center justify-center"><i class="bi {{ $typeIcon }}"></i></div>
                         <div class="flex-1">

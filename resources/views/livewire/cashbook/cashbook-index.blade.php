@@ -8,6 +8,26 @@
 
     <x-loading-overlay message="Carregando lançamentos..." />
 
+    @php
+        $cxIncome = $totals['income'] ?? 0;
+        $cxExpense = abs($totals['expense'] ?? 0);
+        $cxBalance = $totals['balance'] ?? 0;
+        $cxCount = $transactionsCount ?? 0;
+    @endphp
+    <x-cashbook-page-header title="Livro caixa" subtitle="Entradas e saídas do seu dinheiro, mês a mês" icon="bi-journal-text" active="caixa" :back-route="route('dashboard')">
+        <x-slot:actions>
+            <button type="button" wire:click="toggleTips" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+            <a href="{{ route('cashbook.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-plus-lg"></i>Novo lançamento</a>
+        </x-slot:actions>
+    </x-cashbook-page-header>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <x-gestao-stat label="Entradas" :value="'R$ ' . number_format($cxIncome, 2, ',', '.')" icon="bi-arrow-down-left" tone="emerald" />
+        <x-gestao-stat label="Saídas" :value="'R$ ' . number_format($cxExpense, 2, ',', '.')" icon="bi-arrow-up-right" tone="rose" />
+        <x-gestao-stat label="Saldo do mês" :value="'R$ ' . number_format($cxBalance, 2, ',', '.')" icon="bi-wallet2" :tone="$cxBalance >= 0 ? 'indigo' : 'rose'" />
+        <x-gestao-stat label="Lançamentos" :value="$cxCount" icon="bi-list-check" tone="sky" />
+    </div>
+
     <!-- Main Content Layout -->
     <div class="w-full">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -224,24 +244,6 @@
 
             <!-- Transactions Section -->
             <div class="lg:col-span-3 space-y-3">
-                <!-- Header moderno consistente -->
-                <x-cashbook-header :total-transactions="$transactionsCount ?? 0" :total-balance="$totals['balance'] ?? 0" :total-income="$totals['income'] ?? 0" :total-expense="abs($totals['expense'] ?? 0)"
-                    :show-quick-actions="true">
-
-                    <!-- Breadcrumb -->
-                    <x-slot name="breadcrumb">
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                            <a href="{{ route('dashboard') }}"
-                                class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                <i class="fas fa-home mr-1"></i>Dashboard
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium">
-                                <i class="fas fa-book mr-1"></i>Livro Caixa
-                            </span>
-                        </div>
-                    </x-slot>
-                </x-cashbook-header>
 
                 <livewire:cashbook.sales-sync-toggle />
 
@@ -250,14 +252,8 @@
                     <!-- Controls -->
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-2">
-                            <button onclick="expandAllCategories()"
-                                class="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white text-sm font-bold rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                <i class="fas fa-expand-alt mr-2"></i>Expandir Todas
-                            </button>
-                            <button onclick="collapseAllCategories()"
-                                class="px-4 py-2 bg-gradient-to-r from-slate-500 to-slate-600 text-white text-sm font-bold rounded-xl hover:from-slate-600 hover:to-slate-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                <i class="fas fa-compress-alt mr-2"></i>Recolher Todas
-                            </button>
+                            <button type="button" onclick="expandAllCategories()" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-arrows-expand"></i>Expandir todas</button>
+                            <button type="button" onclick="collapseAllCategories()" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-arrows-collapse"></i>Recolher todas</button>
                         </div>
                     </div>
 
