@@ -16,6 +16,8 @@ class ShowConsortium extends Component
     public $showDeleteParticipantModal = false;
     public $selectedParticipantId = null;
     public $showExportModal = false;
+    public $expandedParticipant = null;
+    public $paymentsFilter = 'all';
 
     protected $listeners = [
         'payment-recorded' => '$refresh',
@@ -69,7 +71,48 @@ class ShowConsortium extends Component
 
     public function setTab($tab)
     {
-        $this->activeTab = $tab;
+        $this->activeTab = in_array($tab, ['overview', 'participants', 'payments', 'draws', 'contemplated'], true) ? $tab : 'overview';
+    }
+
+    /** Abre as parcelas de um participante (uma lista por vez: a página fica leve). */
+    public function togglePayments($participantId)
+    {
+        $this->expandedParticipant = (int) $this->expandedParticipant === (int) $participantId ? null : (int) $participantId;
+    }
+
+    /** Vai para a aba de parcelas já com as do participante abertas. */
+    public function openPayments($participantId)
+    {
+        $this->activeTab = 'payments';
+        $this->expandedParticipant = (int) $participantId;
+    }
+
+    /** Números do topo da página, calculados uma vez por render. */
+    #[Computed(persist: false)]
+    public function summary(): array
+    {
+        $c = $this->consortium;
+        $payments = \App\Models\ConsortiumPayment::whereIn('consortium_participant_id', $c->participants()->select('id'))
+            ->whereHas('participant', fn ($q) => $q->where('status', '!=', 'quit'))
+            ->get(['id', 'consortium_participant_id', 'status', 'amount', 'due_date']);
+        $late = $payments->filter->is_late;
+        $members = $c->active_participants_count;
+
+        return [
+            'members' => $members,
+            'contemplated' => $c->contemplated_count,
+            'eligible' => $c->eligibleParticipantsCount(),
+            'draws' => $c->draws()->count(),
+            'collected' => (float) $c->total_collected,
+            'goal' => (float) $c->monthly_value * $c->duration_months * max(1, $members),
+            'late_count' => $late->count(),
+            'late_amount' => (float) $late->sum('amount'),
+            'pending_amount' => (float) $payments->where('status', 'pending')->sum('amount'),
+            'paid_count' => $payments->where('status', 'paid')->count(),
+            'total_count' => $payments->count(),
+            'next_draw_in' => $c->mode === 'payoff' ? null : $c->daysUntilNextDraw(),
+            'can_draw' => $c->canPerformDraw(),
+        ];
     }
 
     public function confirmToggleParticipant($participantId)

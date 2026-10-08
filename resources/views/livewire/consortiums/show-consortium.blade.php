@@ -1,725 +1,425 @@
 <div class="show-consortium-page w-full mobile-393-base">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-consortium-ultrawide.css') }}">
-    <!-- Header Moderno com Gradiente e Glassmorphism -->
-    <div class="relative bg-gradient-to-r from-white/80 via-emerald-50/90 to-teal-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-        <!-- Background decorativo com overflow controlado -->
-        <div class="absolute inset-0 overflow-hidden rounded-3xl pointer-events-none">
-            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-            <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/20 via-teal-400/20 to-cyan-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-            <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-teal-400/10 via-emerald-400/10 to-green-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
-        </div>
+    @php
+        $c = $this->consortium;
+        $sum = $this->summary;
+        $isDraw = $c->mode !== 'payoff';
+        $pct = $sum['goal'] > 0 ? min(100, round($sum['collected'] / $sum['goal'] * 100)) : 0;
+        $money = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+        $statusPill = match ($c->status) {
+            'completed' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300',
+            'cancelled' => 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
+            default => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300',
+        };
+        // Por que o sorteio não está liberado (frase curta, sem tooltip)
+        $drawHint = null;
+        if ($isDraw && !$sum['can_draw']) {
+            $drawHint = match (true) {
+                $c->status !== 'active' => 'Consórcio ' . mb_strtolower($c->status_label) . ': sem sorteio.',
+                $c->start_date && now()->lt($c->start_date) => 'Começa em ' . $c->start_date->format('d/m/Y') . '.',
+                $sum['members'] === 0 => 'Adicione participantes para sortear.',
+                $sum['eligible'] === 0 && $sum['contemplated'] >= $sum['members'] => 'Todos já foram contemplados.',
+                $sum['eligible'] === 0 => 'Ninguém apto: precisa ter 1 parcela paga e nada vencido há mais de 30 dias.',
+                ($sum['next_draw_in'] ?? 0) > 0 => 'Próximo sorteio libera em ' . $sum['next_draw_in'] . ' dia' . ($sum['next_draw_in'] > 1 ? 's' : '') . '.',
+                default => null,
+            };
+        }
+        $tabs = [
+            'overview' => ['label' => 'Visão geral', 'icon' => 'bi-grid', 'badge' => null],
+            'participants' => ['label' => 'Participantes', 'icon' => 'bi-people', 'badge' => $sum['members']],
+            'payments' => ['label' => 'Parcelas', 'icon' => 'bi-wallet2', 'badge' => $sum['late_count'] ?: null, 'badgeClass' => 'bg-rose-500 text-white'],
+            'draws' => ['label' => 'Sorteios', 'icon' => 'bi-shuffle', 'badge' => $sum['draws'] ?: null],
+            'contemplated' => ['label' => 'Contemplados', 'icon' => 'bi-trophy', 'badge' => $sum['contemplated'] ?: null],
+        ];
+        if (!$isDraw) {
+            unset($tabs['draws']);
+        }
+    @endphp
 
-        <div class="relative px-8 py-6">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                <!-- Título e Info do Consórcio -->
-                <div class="flex items-center gap-6">
-                    <!-- Voltar -->
-                    <a href="{{ route('consortiums.index') }}"
-                        class="flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br from-slate-500 to-slate-600 hover:from-slate-600 hover:to-slate-700 transition-all duration-300 shadow-lg hover:shadow-xl group">
-                        <i class="bi bi-arrow-left text-white text-xl group-hover:scale-110 transition-transform duration-300"></i>
+    {{-- Cabeçalho no padrão das telas de cliente --}}
+    <div class="relative overflow-hidden mb-6 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_32%)]"></div>
+        <div class="pointer-events-none absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
+
+        <div class="relative px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <a href="{{ route('consortiums.index') }}" title="Voltar"
+                       class="group inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition">
+                        <i class="bi bi-arrow-left text-lg text-indigo-600 dark:text-indigo-300 group-hover:-translate-x-0.5 transition-transform"></i>
                     </a>
-
-                    <!-- Ícone do Consórcio -->
-                    <div class="relative w-20 h-20 rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-br from-emerald-500 to-teal-600 dark:from-emerald-600 dark:to-teal-700 flex items-center justify-center group">
-                        <!-- Breadcrumb dentro do header -->
-                        <div class="absolute top-2 left-2 flex items-center gap-2 text-xs text-white/70">
-                            <a href="{{ route('dashboard') }}" class="hover:text-white transition-colors">
-                                <i class="fas fa-home mr-1"></i>Dashboard
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <a href="{{ route('consortiums.index') }}" class="hover:text-white transition-colors">
-                                <i class="fas fa-handshake mr-1"></i>Consórcios
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-white font-medium">Detalhes do Consórcio</span>
-                        </div>
-                        <i class="bi bi-people-fill text-4xl text-white group-hover:scale-110 transition-transform duration-300"></i>
+                    <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/25">
+                        <i class="bi bi-piggy-bank text-white text-2xl"></i>
                     </div>
-
-                    <div class="space-y-2">
-                        <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-emerald-700 to-teal-700 dark:from-emerald-300 dark:via-teal-300 dark:to-cyan-300 bg-clip-text text-transparent">
-                            {{ $this->consortium->name }}
-                        </h1>
-
-                        <!-- Badges do consórcio -->
-                        <div class="flex items-center gap-3 flex-wrap">
-                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-bold {{ $this->consortium->status === 'active' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white' : ($this->consortium->status === 'completed' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white' : 'bg-gradient-to-r from-red-500 to-pink-500 text-white') }} shadow-lg">
-                                <i class="bi bi-circle-fill mr-2 text-xs"></i>
-                                {{ $this->consortium->status_label }}
-                            </span>
-
-                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 shadow-lg backdrop-blur-sm">
-                                <i class="bi bi-calendar3 mr-2"></i>
-                                {{ $this->consortium->draw_frequency_label }}
-                            </span>
-
-                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 shadow-lg backdrop-blur-sm">
-                                <i class="bi bi-hourglass-split mr-2"></i>
-                                {{ $this->consortium->duration_months }} meses
-                            </span>
-
-                            <span class="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-white/90 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600 shadow-lg backdrop-blur-sm">
-                                <i class="bi bi-ui-checks mr-2"></i>
-                                {{ $this->consortium->mode_label ?? 'Sorteio' }}
-                            </span>
+                    <div class="min-w-0">
+                        <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            <a href="{{ route('consortiums.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-300"><i class="bi bi-piggy-bank mr-1"></i>Consórcios</a>
+                            <i class="bi bi-chevron-right text-[10px]"></i>
+                            <span class="text-indigo-600 dark:text-indigo-300">Detalhes</span>
+                        </nav>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <h1 class="text-xl sm:text-2xl font-bold truncate bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">{{ $c->name }}</h1>
+                            <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $statusPill }}">{{ $c->status_label }}</span>
                         </div>
-
-                        @if ($this->consortium->description)
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2 max-w-2xl">
-                                <i class="bi bi-info-circle mr-1"></i>{{ $this->consortium->description }}
-                            </p>
-                        @endif
+                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+                            <span class="inline-flex items-center gap-1"><i class="bi bi-cash"></i>{{ $money($c->monthly_value) }}/mês</span>
+                            <span class="inline-flex items-center gap-1"><i class="bi bi-hourglass-split"></i>{{ $c->duration_months }} meses</span>
+                            <span class="inline-flex items-center gap-1"><i class="bi bi-calendar3"></i>Início {{ $c->start_date?->format('d/m/Y') }}</span>
+                            <span class="inline-flex items-center gap-1"><i class="bi {{ $isDraw ? 'bi-shuffle' : 'bi-check2-all' }}"></i>{{ $isDraw ? 'Sorteio ' . mb_strtolower($c->draw_frequency_label) : 'Resgate por quitação' }}</span>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Botões de Ação - Organização Melhorada -->
-                <div class="flex flex-col gap-3">
-                    <!-- Linha 1: Ações Principais -->
-                    <div class="flex flex-wrap items-center gap-3">
-                        @if ($this->consortium->canAddParticipants())
-                            <a href="{{ route('consortiums.add-participants', $this->consortium) }}"
-                                class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                                <i class="bi bi-person-plus-fill text-lg"></i>
-                                <span>Adicionar Participantes</span>
-                            </a>
-                        @endif
-
-                        @if ($this->consortium->mode !== 'draw')
-                            <div class="flex items-center gap-2 px-5 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl border-2 border-slate-300 dark:border-slate-700 font-semibold shadow-lg">
-                                <i class="bi bi-box-seam text-lg"></i>
-                                <span>Modo: Resgate por quitação (sem sorteio)</span>
-                            </div>
-                        @elseif ($this->consortium->canPerformDraw())
-                            <a href="{{ route('consortiums.draw', $this->consortium) }}"
-                                class="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                                <i class="bi bi-trophy-fill text-lg"></i>
-                                <span>Realizar Sorteio</span>
+                <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                    @if ($isDraw)
+                        @if ($sum['can_draw'])
+                            <a href="{{ route('consortiums.draw', $c) }}"
+                               class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition">
+                                <i class="bi bi-shuffle"></i>Fazer sorteio
                             </a>
                         @else
-                            @php
-                                $consortium = $this->consortium;
-                                $reasons = [];
-
-                                if ($consortium->status !== 'active') {
-                                    $reasons[] = '❌ Consórcio não está ativo (Status: ' . $consortium->status_label . ')';
-                                }
-
-                                if ($consortium->active_participants_count === 0) {
-                                    $reasons[] = '❌ Nenhum participante ativo cadastrado';
-                                }
-
-                                $eligibleCount = $consortium->participants()->where('status', 'active')->where('is_contemplated', false)->count();
-                                if ($eligibleCount === 0 && $consortium->active_participants_count > 0) {
-                                    $reasons[] = '✅ Todos os participantes já foram contemplados';
-                                }
-
-                                if (now()->lt($consortium->start_date)) {
-                                    $daysUntilStart = now()->diffInDays($consortium->start_date, false);
-                                    $reasons[] = '⏳ Data de início ainda não chegou (Faltam ' . abs($daysUntilStart) . ' dias - ' . $consortium->start_date->format('d/m/Y') . ')';
-                                }
-
-                                $lastDraw = $consortium->draws()->orderBy('draw_date', 'desc')->first();
-                                if ($lastDraw) {
-                                    $daysSinceLastDraw = now()->diffInDays($lastDraw->draw_date);
-                                    $frequencyDays = match($consortium->draw_frequency) {
-                                        'weekly' => 7,
-                                        'biweekly' => 14,
-                                        'monthly' => 30,
-                                        'quarterly' => 90,
-                                        default => 30
-                                    };
-                                    $requiredDays = ceil($frequencyDays * 0.8);
-                                    if ($daysSinceLastDraw < $requiredDays) {
-                                        $daysRemaining = $requiredDays - $daysSinceLastDraw;
-                                        $nextDrawDate = $lastDraw->draw_date->copy()->addDays($requiredDays)->format('d/m/Y');
-                                        $reasons[] = "⏰ Aguarde {$daysRemaining} dia(s) desde o último sorteio (Próximo: {$nextDrawDate})";
-                                    }
-                                }
-
-                                if (empty($reasons)) {
-                                    $reasons[] = '✓ Sistema pronto para sorteio';
-                                }
-
-                                $reasonText = implode("\n\n", $reasons);
-                                $totalReasons = count($reasons);
-                            @endphp
-                            <div class="relative group">
-                                <button disabled
-                                    class="flex items-center gap-2 px-5 py-3 bg-gray-400 dark:bg-gray-600 text-white font-bold rounded-xl shadow-lg opacity-60 cursor-not-allowed">
-                                    <i class="bi bi-trophy-fill text-lg"></i>
-                                    <span>Sorteio Indisponível</span>
-                                </button>
-                                <div class="absolute left-1/2 transform -translate-x-1/2 top-full mt-2 w-80 p-4 bg-slate-900 dark:bg-slate-700 text-white text-sm rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-[9999]">
-                                    <div class="font-bold mb-3 flex items-center justify-between gap-2 text-yellow-400 border-b border-slate-600 pb-2">
-                                        <div class="flex items-center gap-2">
-                                            <i class="bi bi-info-circle-fill"></i>
-                                            Motivos do Bloqueio:
-                                        </div>
-                                        <span class="text-xs bg-yellow-400/20 px-2 py-1 rounded">{{ $totalReasons }} {{ $totalReasons === 1 ? 'motivo' : 'motivos' }}</span>
-                                    </div>
-                                    <div class="text-slate-200 space-y-2 whitespace-pre-line leading-relaxed">{{ $reasonText }}</div>
-                                    <div class="absolute -top-2 left-1/2 transform -translate-x-1/2 w-4 h-4 bg-slate-900 dark:bg-slate-700 rotate-45"></div>
-                                </div>
-                            </div>
+                            <span class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-200/80 dark:bg-slate-700/70 text-slate-500 dark:text-slate-400 text-sm font-semibold cursor-not-allowed" title="{{ $drawHint }}">
+                                <i class="bi bi-shuffle"></i>Fazer sorteio
+                            </span>
                         @endif
-                    </div>
-
-                    <!-- Linha 2: Ações Secundárias -->
-                    <div class="flex flex-wrap items-center gap-3">
-                        <a href="{{ route('consortiums.edit', $this->consortium) }}"
-                            class="flex items-center gap-2 px-4 py-2.5 bg-white/90 dark:bg-slate-800/90 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl border-2 border-slate-300 dark:border-slate-600 transition-all duration-300 shadow-md hover:shadow-lg backdrop-blur-sm">
-                            <i class="bi bi-pencil-fill"></i>
-                            <span>Editar</span>
+                    @endif
+                    @if ($c->canAddParticipants())
+                        <a href="{{ route('consortiums.add-participants', $c) }}"
+                           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 dark:border-indigo-500/40 bg-white/90 dark:bg-slate-900/70 hover:bg-indigo-50 dark:hover:bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 text-sm font-semibold shadow-sm transition">
+                            <i class="bi bi-person-plus"></i>Participantes
                         </a>
-
-                        <button wire:click="$dispatch('openExportModal', { consortiumId: {{ $this->consortium->id }} })"
-                            class="flex items-center gap-2 px-4 py-2.5 bg-blue-500 hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                            <i class="bi bi-file-earmark-arrow-down"></i>
-                            <span>Exportar</span>
+                    @endif
+                    <a href="{{ route('consortiums.edit', $c) }}"
+                       class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm transition">
+                        <i class="bi bi-pencil"></i>Editar
+                    </a>
+                    <div class="relative" x-data="{ open: false }">
+                        <button type="button" @click="open = !open" @click.outside="open = false" title="Mais ações"
+                            class="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600">
+                            <i class="bi bi-three-dots-vertical"></i>
                         </button>
+                        <div x-show="open" x-cloak x-transition
+                            class="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-xl text-sm">
+                            <button type="button" @click="open = false" wire:click="$dispatch('openExportModal', { consortiumId: {{ $c->id }} })"
+                                class="flex w-full items-center gap-2 px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60"><i class="bi bi-download text-indigo-500"></i>Exportar</button>
+                            <button type="button" @click="open = false" wire:click="$dispatch('openToggleConsortiumModal', { consortiumId: {{ $c->id }} })"
+                                class="flex w-full items-center gap-2 px-4 py-2.5 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700/60">
+                                @if ($c->status === 'active')<i class="bi bi-pause-circle text-amber-500"></i>Desativar @else<i class="bi bi-play-circle text-emerald-500"></i>Ativar @endif
+                            </button>
+                            <button type="button" @click="open = false" wire:click="$dispatch('openDeleteConsortiumModal', { consortiumId: {{ $c->id }} })"
+                                class="flex w-full items-center gap-2 px-4 py-2.5 text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 border-t border-slate-100 dark:border-slate-700"><i class="bi bi-trash"></i>Excluir</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <button wire:click="$dispatch('openToggleConsortiumModal', { consortiumId: {{ $this->consortium->id }} })"
-                            @if($this->consortium->status === 'active')
-                                class="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-                            @else
-                                class="flex items-center gap-2 px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300"
-                            @endif>
-                            @if($this->consortium->status === 'active')
-                                <i class="bi bi-pause-circle"></i>
-                                <span>Desativar</span>
-                            @else
-                                <i class="bi bi-play-circle"></i>
-                                <span>Ativar</span>
+            @if ($c->description || $drawHint)
+                <div class="mt-3 flex flex-wrap items-center gap-2 text-xs">
+                    @if ($drawHint)
+                        <span class="inline-flex items-center gap-1.5 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200/70 dark:border-amber-500/30 px-2.5 py-1 font-medium text-amber-700 dark:text-amber-300"><i class="bi bi-info-circle"></i>{{ $drawHint }}</span>
+                    @endif
+                    @if ($c->description)
+                        <span class="text-slate-500 dark:text-slate-400">{{ $c->description }}</span>
+                    @endif
+                </div>
+            @endif
+
+            <div class="mt-4 -mx-1 overflow-x-auto">
+                <nav class="flex min-w-max items-center gap-1 px-1 pb-1">
+                    @foreach ($tabs as $key => $tab)
+                        <button type="button" wire:click="setTab('{{ $key }}')"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-sm font-semibold transition
+                                {{ $activeTab === $key
+                                    ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25'
+                                    : 'text-slate-600 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-800/80 hover:text-indigo-700 dark:hover:text-indigo-300' }}">
+                            <i class="bi {{ $tab['icon'] }}"></i>{{ $tab['label'] }}
+                            @if ($tab['badge'])
+                                <span class="ml-0.5 rounded-full px-1.5 text-[10px] font-bold leading-4 {{ $activeTab === $key ? 'bg-white/25 text-white' : ($tab['badgeClass'] ?? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300') }}">{{ $tab['badge'] }}</span>
                             @endif
                         </button>
+                    @endforeach
+                </nav>
+            </div>
+        </div>
+    </div>
 
-                        <button wire:click="$dispatch('openDeleteConsortiumModal', { consortiumId: {{ $this->consortium->id }} })"
-                            class="flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white font-semibold rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
-                            <i class="bi bi-trash3"></i>
-                            <span>Excluir</span>
-                        </button>
-                    </div>
+    {{-- Números principais --}}
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <div class="rounded-2xl border border-indigo-200/70 dark:border-indigo-500/30 bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-500/10 dark:to-slate-900 p-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow"><i class="bi bi-people"></i></span>
+                <div class="min-w-0">
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Participantes</p>
+                    <p class="text-xl font-bold text-slate-900 dark:text-white">{{ $sum['members'] }}<span class="text-sm font-semibold text-slate-400">/{{ $c->max_participants }}</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-2xl border border-amber-200/70 dark:border-amber-500/30 bg-gradient-to-br from-amber-50 to-white dark:from-amber-500/10 dark:to-slate-900 p-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow"><i class="bi bi-trophy"></i></span>
+                <div class="min-w-0">
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Contemplados</p>
+                    <p class="text-xl font-bold text-slate-900 dark:text-white">{{ $sum['contemplated'] }}<span class="text-sm font-semibold text-slate-400">/{{ $sum['members'] }}</span></p>
+                </div>
+            </div>
+        </div>
+        <div class="rounded-2xl border border-emerald-200/70 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-500/10 dark:to-slate-900 p-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow"><i class="bi bi-cash-stack"></i></span>
+                <div class="min-w-0 flex-1">
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Arrecadado · {{ $pct }}%</p>
+                    <p class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white truncate">{{ $money($sum['collected']) }}</p>
+                </div>
+            </div>
+            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-emerald-100 dark:bg-emerald-900/40"><div class="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500" style="width: {{ $pct }}%"></div></div>
+        </div>
+        <div class="rounded-2xl border {{ $sum['late_count'] ? 'border-rose-200/70 dark:border-rose-500/30 from-rose-50' : 'border-slate-200/70 dark:border-slate-700 from-slate-50' }} bg-gradient-to-br to-white dark:from-slate-800/40 dark:to-slate-900 p-4">
+            <div class="flex items-center gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $sum['late_count'] ? 'bg-gradient-to-br from-rose-500 to-red-600' : 'bg-gradient-to-br from-slate-400 to-slate-500' }} text-white shadow"><i class="bi {{ $sum['late_count'] ? 'bi-exclamation-triangle' : 'bi-check2-circle' }}"></i></span>
+                <div class="min-w-0">
+                    <p class="text-xs font-medium text-slate-500 dark:text-slate-400">Parcelas vencidas</p>
+                    @if ($sum['late_count'])
+                        <p class="text-lg sm:text-xl font-bold text-rose-600 dark:text-rose-400 truncate">{{ $sum['late_count'] }} · {{ $money($sum['late_amount']) }}</p>
+                    @else
+                        <p class="text-lg sm:text-xl font-bold text-emerald-600 dark:text-emerald-400">Nenhuma</p>
+                    @endif
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div class="bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-700">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Participantes Ativos</span>
-                <div class="w-10 h-10 bg-emerald-500 dark:bg-emerald-600 rounded-lg flex items-center justify-center"><i class="bi bi-people text-white"></i></div>
-            </div>
-            <div class="text-3xl font-bold text-emerald-900 dark:text-emerald-100">{{ $this->consortium->active_participants_count }}</div>
-            <div class="text-xs text-emerald-600 dark:text-emerald-400 mt-1">de {{ $this->consortium->max_participants }} vagas</div>
-        </div>
-        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-700">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-blue-700 dark:text-blue-400">Contemplados</span>
-                <div class="w-10 h-10 bg-blue-500 dark:bg-blue-600 rounded-lg flex items-center justify-center"><i class="bi bi-trophy text-white"></i></div>
-            </div>
-            <div class="text-3xl font-bold text-blue-900 dark:text-blue-100">{{ $this->consortium->contemplated_count }}</div>
-            <div class="text-xs text-blue-600 dark:text-blue-400 mt-1">{{ number_format(($this->consortium->contemplated_count / max($this->consortium->active_participants_count, 1)) * 100, 1) }}% do total</div>
-        </div>
-        <div class="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-700">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-purple-700 dark:text-purple-400">Arrecadação</span>
-                <div class="w-10 h-10 bg-purple-500 dark:bg-purple-600 rounded-lg flex items-center justify-center"><i class="bi bi-cash-stack text-white"></i></div>
-            </div>
-            <div class="text-3xl font-bold text-purple-900 dark:text-purple-100">R$ {{ number_format($this->consortium->total_collected, 2, ',', '.') }}</div>
-            <div class="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                Real: R$ {{ number_format($this->consortium->total_value_real, 2, ',', '.') }} |
-                Possível: R$ {{ number_format($this->consortium->total_value_possible, 2, ',', '.') }}
-            </div>
-        </div>
-        <div class="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-xl p-6 border border-orange-200 dark:border-orange-700">
-            <div class="flex items-center justify-between mb-2">
-                <span class="text-sm font-medium text-orange-700 dark:text-orange-400">Progresso</span>
-                <div class="w-10 h-10 bg-orange-500 dark:bg-orange-600 rounded-lg flex items-center justify-center"><i class="bi bi-graph-up text-white"></i></div>
-            </div>
-            <div class="text-3xl font-bold text-orange-900 dark:text-orange-100">{{ number_format($this->consortium->completion_percentage, 1) }}%</div>
-            <div class="h-2 bg-orange-200 dark:bg-orange-800 rounded-full mt-3">
-                <div class="h-full bg-gradient-to-r from-orange-500 to-amber-500 rounded-full transition-all" style="width: {{ $this->consortium->completion_percentage }}%"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Tabs -->
-    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
-        <div class="border-b border-slate-200 dark:border-slate-700">
-            <nav class="flex gap-2 p-4 overflow-x-auto">
-                <button wire:click="setTab('overview')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all {{ $activeTab === 'overview' ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                    <i class="bi bi-grid"></i><span>Vis�o Geral</span>
-                </button>
-                <button wire:click="setTab('participants')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all {{ $activeTab === 'participants' ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                    <i class="bi bi-people"></i><span>Participantes</span><span class="px-2 py-0.5 bg-emerald-500 text-white text-xs rounded-full">{{ $this->consortium->active_participants_count }}</span>
-                </button>
-                <button wire:click="setTab('payments')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all {{ $activeTab === 'payments' ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                    <i class="bi bi-wallet2"></i><span>Pagamentos</span>
-                </button>
-                <button wire:click="setTab('draws')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all {{ $activeTab === 'draws' ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                    <i class="bi bi-trophy"></i><span>Sorteios</span><span class="px-2 py-0.5 bg-purple-500 text-white text-xs rounded-full">{{ $this->consortium->draws->count() }}</span>
-                </button>
-                <button wire:click="setTab('contemplated')" class="flex items-center gap-2 px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-all {{ $activeTab === 'contemplated' ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-700 dark:text-emerald-300' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700' }}">
-                    <i class="bi bi-star"></i><span>Contemplados</span><span class="px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full">{{ $this->consortium->contemplated_count }}</span>
-                </button>
-            </nav>
-        </div>
-
-        <div class="p-6">
+    <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm">
+        <div class="p-4 sm:p-6">
             @if ($activeTab === 'overview')
-                <div class="space-y-6">
-                    <!-- Informações Principais -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-xl p-6 border border-slate-200 dark:border-slate-600">
-                            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                                <i class="bi bi-info-circle text-emerald-600"></i>
-                                Informações do Consórcio
-                            </h3>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
-                                    <span class="text-slate-600 dark:text-slate-400">Valor Mensal:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-slate-100">R$ {{ number_format($this->consortium->monthly_value, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
-                                    <span class="text-slate-600 dark:text-slate-400">Duração:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $this->consortium->duration_months }} meses</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
-                                    <span class="text-slate-600 dark:text-slate-400">Data Início:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ \Carbon\Carbon::parse($this->consortium->start_date)->format('d/m/Y') }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2 border-b border-slate-200 dark:border-slate-600">
-                                    <span class="text-slate-600 dark:text-slate-400">Frequência Sorteios:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $this->consortium->draw_frequency_label }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2">
-                                    <span class="text-slate-600 dark:text-slate-400">Vagas:</span>
-                                    <span class="font-semibold text-slate-900 dark:text-slate-100">{{ $this->consortium->max_participants }}</span>
-                                </div>
-                            </div>
-                        </div>
+                @php
+                    $lastDraw = $isDraw ? $c->draws()->with('winner.client')->orderByDesc('draw_date')->first() : null;
+                    $recentPayments = \App\Models\ConsortiumPayment::whereIn('consortium_participant_id', $c->participants()->select('id'))
+                        ->with('participant.client')->where('status', 'paid')->orderByDesc('payment_date')->limit(5)->get();
+                    $upcoming = $isDraw ? $c->getUpcomingDrawDates(3) : [];
+                    $row = 'flex items-center justify-between gap-3 py-2.5 border-b border-slate-100 dark:border-slate-800 last:border-0 text-sm';
+                @endphp
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+                    <section class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4">
+                        <h3 class="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-info-circle text-indigo-500"></i>Como funciona este consórcio</h3>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Mensalidade</span><span class="font-semibold text-slate-900 dark:text-white">{{ $money($c->monthly_value) }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Duração</span><span class="font-semibold text-slate-900 dark:text-white">{{ $c->duration_months }} meses</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Cada um paga no total</span><span class="font-semibold text-slate-900 dark:text-white">{{ $money($c->monthly_value * $c->duration_months) }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Início</span><span class="font-semibold text-slate-900 dark:text-white">{{ $c->start_date?->format('d/m/Y') }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Modo</span><span class="font-semibold text-slate-900 dark:text-white">{{ $isDraw ? 'Sorteio ' . mb_strtolower($c->draw_frequency_label) : 'Quitou, levou' }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Vagas livres</span><span class="font-semibold text-slate-900 dark:text-white">{{ $c->getRemainingSlots() }} de {{ $c->max_participants }}</span></div>
+                    </section>
 
-                        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl p-6 border border-emerald-200 dark:border-emerald-700">
-                            <h3 class="text-lg font-semibold text-emerald-900 dark:text-emerald-100 mb-4 flex items-center gap-2">
-                                <i class="bi bi-cash-stack text-emerald-600"></i>
-                                Resumo Financeiro
-                            </h3>
-                            <div class="space-y-3">
-                                <div class="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800">
-                                    <span class="text-emerald-700 dark:text-emerald-300">Valor Total Possível:</span>
-                                    <span class="font-bold text-emerald-900 dark:text-emerald-100">R$ {{ number_format($this->consortium->total_value_possible, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800">
-                                    <span class="text-emerald-700 dark:text-emerald-300">Valor Total Real:</span>
-                                    <span class="font-bold text-blue-600 dark:text-blue-400">R$ {{ number_format($this->consortium->total_value_real, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800">
-                                    <span class="text-emerald-700 dark:text-emerald-300">Total Arrecadado:</span>
-                                    <span class="font-bold text-emerald-900 dark:text-emerald-100">R$ {{ number_format($this->consortium->total_collected, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2 border-b border-emerald-200 dark:border-emerald-800">
-                                    <span class="text-emerald-700 dark:text-emerald-300">Pendente:</span>
-                                    <span class="font-bold text-orange-600 dark:text-orange-400">R$ {{ number_format($this->consortium->total_value_real - $this->consortium->total_collected, 2, ',', '.') }}</span>
-                                </div>
-                                <div class="flex justify-between items-center py-2">
-                                    <span class="text-emerald-700 dark:text-emerald-300">Taxa Arrecadação:</span>
-                                    <span class="font-bold text-emerald-900 dark:text-emerald-100">{{ number_format($this->consortium->completion_percentage, 1) }}%</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <section class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4">
+                        <h3 class="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-cash-stack text-emerald-500"></i>Dinheiro</h3>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Previsto (participantes atuais)</span><span class="font-semibold text-slate-900 dark:text-white">{{ $money($sum['goal']) }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Já recebido</span><span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ $money($sum['collected']) }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">A receber</span><span class="font-semibold text-amber-600 dark:text-amber-400">{{ $money($sum['pending_amount']) }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Vencido</span><span class="font-semibold {{ $sum['late_amount'] ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white' }}">{{ $money($sum['late_amount']) }}</span></div>
+                        <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">Parcelas pagas</span><span class="font-semibold text-slate-900 dark:text-white">{{ $sum['paid_count'] }} de {{ $sum['total_count'] }}</span></div>
+                        <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" style="width: {{ $pct }}%"></div></div>
+                    </section>
 
-                    <!-- Progresso do Consórcio -->
-                    <div class="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                        <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                            <i class="bi bi-graph-up text-purple-600"></i>
-                            Progresso Geral
-                        </h3>
-                        <div class="space-y-4">
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Participantes</span>
-                                    <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $this->consortium->active_participants_count }} / {{ $this->consortium->max_participants }}</span>
-                                </div>
-                                <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full transition-all" style="width: {{ ($this->consortium->active_participants_count / $this->consortium->max_participants) * 100 }}%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Arrecadação</span>
-                                    <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ number_format($this->consortium->completion_percentage, 1) }}%</span>
-                                </div>
-                                <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all" style="width: {{ $this->consortium->completion_percentage }}%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between items-center mb-2">
-                                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Contemplados</span>
-                                    <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $this->consortium->contemplated_count }} / {{ $this->consortium->active_participants_count }}</span>
-                                </div>
-                                <div class="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                    <div class="h-full bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full transition-all" style="width: {{ $this->consortium->active_participants_count > 0 ? ($this->consortium->contemplated_count / $this->consortium->active_participants_count) * 100 : 0 }}%"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Últimas Atividades -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                                <i class="bi bi-clock-history text-blue-600"></i>
-                                Último Sorteio
-                            </h3>
-                            @php
-                                $lastDraw = $this->consortium->draws()->with('winner.client')->orderBy('draw_date', 'desc')->first();
-                            @endphp
-                            @if($lastDraw)
-                                <div class="space-y-2">
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Sorteio #{{ $lastDraw->draw_number }}</p>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Data: {{ \Carbon\Carbon::parse($lastDraw->draw_date)->format('d/m/Y H:i') }}</p>
-                                    <p class="font-semibold text-slate-900 dark:text-slate-100">Vencedor: {{ $lastDraw->winner->client->name ?? 'N/A' }}</p>
+                    <section class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4">
+                        @if ($isDraw)
+                            <h3 class="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-shuffle text-purple-500"></i>Sorteios</h3>
+                            @if ($lastDraw)
+                                <div class="rounded-xl bg-purple-50 dark:bg-purple-500/10 p-3 text-sm">
+                                    <p class="text-xs text-purple-700 dark:text-purple-300">Último · #{{ $lastDraw->draw_number }} em {{ $lastDraw->draw_date->format('d/m/Y') }}</p>
+                                    <p class="font-semibold text-slate-900 dark:text-white"><i class="bi bi-trophy-fill text-amber-500 mr-1"></i>{{ $lastDraw->winner->client->name ?? '—' }}</p>
                                 </div>
                             @else
-                                <p class="text-sm text-slate-500 dark:text-slate-400 italic">Nenhum sorteio realizado ainda</p>
+                                <p class="text-sm text-slate-500 dark:text-slate-400">Nenhum sorteio feito ainda.</p>
                             @endif
-                        </div>
-
-                        <div class="bg-white dark:bg-slate-800 rounded-xl p-6 border border-slate-200 dark:border-slate-700">
-                            <h3 class="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-                                <i class="bi bi-wallet2 text-green-600"></i>
-                                Últimos Pagamentos
-                            </h3>
-                            @php
-                                $recentPayments = \App\Models\ConsortiumPayment::whereIn('consortium_participant_id', $this->consortium->participants->pluck('id'))
-                                    ->with('participant.client')
-                                    ->where('status', 'paid')
-                                    ->orderBy('payment_date', 'desc')
-                                    ->limit(3)
-                                    ->get();
-                            @endphp
-                            @endphp
-                            @if($recentPayments->isNotEmpty())
-                                <div class="space-y-3">
-                                    @foreach($recentPayments as $payment)
-                                        <div class="flex justify-between items-center text-sm border-b border-slate-200 dark:border-slate-700 pb-2">
-                                            <span class="text-slate-700 dark:text-slate-300">{{ $payment->participant->client->name ?? 'N/A' }}</span>
-                                            <span class="font-semibold text-emerald-600 dark:text-emerald-400">R$ {{ number_format($payment->amount, 2, ',', '.') }}</span>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
-                                <p class="text-sm text-slate-500 dark:text-slate-400 italic">Nenhum pagamento registrado</p>
+                            @if (count($upcoming) && $c->status === 'active')
+                                <p class="mt-3 mb-1 text-xs font-semibold uppercase tracking-wide text-slate-400">Próximos previstos</p>
+                                @foreach ($upcoming as $u)
+                                    <div class="{{ $row }}"><span class="text-slate-500 dark:text-slate-400">#{{ $u['draw_number'] }}</span><span class="font-semibold text-slate-900 dark:text-white">{{ $u['date']->format('d/m/Y') }}</span></div>
+                                @endforeach
                             @endif
-                        </div>
-                    </div>
+                        @else
+                            <h3 class="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-check2-all text-purple-500"></i>Quitou, levou</h3>
+                            <p class="text-sm text-slate-600 dark:text-slate-300">Quem paga todas as parcelas é contemplado na hora e pode resgatar os produtos.</p>
+                        @endif
+                    </section>
                 </div>
+
+                <section class="mt-5 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 p-4">
+                    <h3 class="mb-2 flex items-center gap-2 text-sm font-bold text-slate-800 dark:text-slate-100"><i class="bi bi-clock-history text-indigo-500"></i>Últimos pagamentos</h3>
+                    @forelse ($recentPayments as $payment)
+                        <div class="{{ $row }}">
+                            <span class="min-w-0 truncate text-slate-700 dark:text-slate-200">{{ $payment->participant->client->name ?? '—' }} <span class="text-slate-400">· {{ $payment->reference_month_name }}/{{ $payment->reference_year }}</span></span>
+                            <span class="shrink-0 text-right"><span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ $money($payment->amount) }}</span> <span class="text-xs text-slate-400">{{ optional($payment->payment_date)->format('d/m') }}</span></span>
+                        </div>
+                    @empty
+                        <p class="text-sm text-slate-500 dark:text-slate-400">Nenhum pagamento registrado ainda.</p>
+                    @endforelse
+                </section>
+
             @elseif ($activeTab === 'participants')
                 @if ($this->participants->isEmpty())
-                    <div class="text-center py-12">
-                        <i class="bi bi-people text-6xl text-slate-300 dark:text-slate-600 mb-4"></i>
-                        <p class="text-slate-600 dark:text-slate-400">Nenhum participante cadastrado</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-500 mt-2">Adicione participantes usando o botão acima</p>
+                    <div class="py-12 text-center">
+                        <i class="bi bi-people text-5xl text-slate-300 dark:text-slate-600"></i>
+                        <p class="mt-3 font-semibold text-slate-700 dark:text-slate-200">Nenhum participante ainda</p>
+                        @if ($c->canAddParticipants())
+                            <a href="{{ route('consortiums.add-participants', $c) }}" class="mt-4 inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-md"><i class="bi bi-person-plus"></i>Adicionar participantes</a>
+                        @endif
                     </div>
                 @else
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="border-b border-slate-200 dark:border-slate-700">
-                                    <th class="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">#</th>
-                                    <th class="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Cliente</th>
-                                    <th class="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Data Entrada</th>
-                                    <th class="text-left py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Status</th>
-                                    <th class="text-right py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Pagamentos</th>
-                                    <th class="text-right py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Total Pago</th>
-                                    <th class="text-center py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">Contemplado</th>
-                                    <th class="text-center py-3 px-4 text-sm font-semibold text-slate-700 dark:text-slate-300">A��es</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
-                                @foreach ($this->participants as $participant)
-                                    <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                        <td class="py-3 px-4">
-                                            <span class="inline-flex items-center justify-center w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg font-semibold text-sm">
-                                                {{ $participant->participation_number }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 px-4">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
-                                                    {{ strtoupper(substr($participant->client->name ?? 'N', 0, 1)) }}
-                                                </div>
-                                                <div>
-                                                    <a href="{{ route('clients.consortiums', $participant->client) }}" class="font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 transition-colors">
-                                                        {{ $participant->client->name ?? 'N/A' }}
-                                                    </a>
-                                                    <p class="text-sm text-slate-500 dark:text-slate-400">{{ $participant->client->email ?? '' }}</p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3 px-4 text-slate-700 dark:text-slate-300">
-                                            {{ \Carbon\Carbon::parse($participant->entry_date)->format('d/m/Y') }}
-                                        </td>
-                                        <td class="py-3 px-4">
-                                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold {{ $participant->status_color }}">
-                                                {{ $participant->status_label }}
-                                            </span>
-                                        </td>
-                                        <td class="py-3 px-4 text-right">
-                                            <span class="text-slate-700 dark:text-slate-300">
-                                                {{ $participant->payments->where('status', 'paid')->count() }} / {{ $this->consortium->duration_months }}
-                                            </span>
-                                            <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 mt-1">
-                                                <div class="bg-emerald-500 h-1.5 rounded-full" style="width: {{ $participant->payment_percentage }}%"></div>
-                                            </div>
-                                        </td>
-                                        <td class="py-3 px-4 text-right font-semibold text-slate-900 dark:text-slate-100">
-                                            R$ {{ number_format($participant->total_paid, 2, ',', '.') }}
-                                        </td>
-                                        <td class="py-3 px-4 text-center">
-                                            @if ($participant->is_contemplated)
-                                                <i class="bi bi-star-fill text-yellow-500 text-xl"></i>
-                                            @else
-                                                <i class="bi bi-star text-slate-300 dark:text-slate-600 text-xl"></i>
-                                            @endif
-                                        </td>
-                                        <td class="py-3 px-4 text-center">
-                                            <div class="flex items-center justify-center gap-2">
-                                                <!-- Desativar/Ativar Participante -->
-                                                @if($participant->status === 'active')
-                                                    <button
-                                                        wire:click="confirmToggleParticipant({{ $participant->id }})"
-                                                        type="button"
-                                                        class="inline-flex items-center justify-center w-8 h-8 text-orange-600 hover:text-orange-800 hover:bg-orange-50 dark:text-orange-400 dark:hover:text-orange-300 dark:hover:bg-orange-900/20 rounded-lg transition-colors"
-                                                        title="Desativar participante"
-                                                    >
-                                                        <i class="bi bi-pause-circle"></i>
-                                                    </button>
-                                                @elseif($participant->status === 'quit')
-                                                    <button
-                                                        wire:click="confirmToggleParticipant({{ $participant->id }})"
-                                                        type="button"
-                                                        class="inline-flex items-center justify-center w-8 h-8 text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:text-emerald-300 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
-                                                        title="Reativar participante"
-                                                    >
-                                                        <i class="bi bi-play-circle"></i>
-                                                    </button>
-                                                @endif
-
-                                                <!-- Excluir Participante -->
-                                                <button
-                                                    wire:click="confirmDeleteParticipant({{ $participant->id }})"
-                                                    type="button"
-                                                    class="inline-flex items-center justify-center w-8 h-8 text-red-600 hover:text-red-800 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                                                    title="Excluir participante"
-                                                >
-                                                    <i class="bi bi-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Resumo -->
-                    <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm text-emerald-700 dark:text-emerald-300 font-semibold">Total Participantes</p>
-                                    <p class="text-2xl font-bold text-emerald-900 dark:text-emerald-100 mt-1">{{ $this->participants->count() }}</p>
-                                </div>
-                                <i class="bi bi-people text-3xl text-emerald-600 dark:text-emerald-400"></i>
-                            </div>
-                        </div>
-                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm text-blue-700 dark:text-blue-300 font-semibold">Ativos</p>
-                                    <p class="text-2xl font-bold text-blue-900 dark:text-blue-100 mt-1">{{ $this->participants->where('status', 'active')->count() }}</p>
-                                </div>
-                                <i class="bi bi-check-circle text-3xl text-blue-600 dark:text-blue-400"></i>
-                            </div>
-                        </div>
-                        <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <p class="text-sm text-yellow-700 dark:text-yellow-300 font-semibold">Contemplados</p>
-                                    <p class="text-2xl font-bold text-yellow-900 dark:text-yellow-100 mt-1">{{ $this->participants->where('is_contemplated', true)->count() }}</p>
-                                </div>
-                                <i class="bi bi-star-fill text-3xl text-yellow-600 dark:text-yellow-400"></i>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            @elseif ($activeTab === 'payments')
-                @if ($this->payments->isEmpty())
-                    <div class="text-center py-12">
-                        <i class="bi bi-wallet2 text-6xl text-slate-300 dark:text-slate-600 mb-4"></i>
-                        <p class="text-slate-600 dark:text-slate-400">Nenhum pagamento registrado</p>
-                    </div>
-                @else
-                    <div class="space-y-5">
-                        @foreach ($this->payments as $participant)
-                            <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-lg overflow-hidden" x-data="{ open: false }">
-                                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 p-5 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border-b border-slate-200 dark:border-slate-700">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold flex items-center justify-center">
-                                            {{ $participant->participation_number }}
-                                        </div>
-                                        <div>
-                                            <p class="text-sm text-slate-500 dark:text-slate-400">Cliente</p>
-                                            <p class="text-lg font-bold text-slate-900 dark:text-slate-100">
-                                                {{ $participant->client->name ?? 'N/A' }}
-                                            </p>
-                                            <p class="text-xs text-slate-500 dark:text-slate-400">{{ $participant->client->email ?? '' }}</p>
-                                        </div>
-                                    </div>
-
-                                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 w-full lg:w-auto">
-                                        @php
-                                            $total = $participant->payments->count();
-                                            $paid = $participant->payments->where('status', 'paid')->count();
-                                            $overdue = $participant->payments->filter->is_late->count();
-                                            $pending = $participant->payments->where('status', 'pending')->count();
-                                        @endphp
-                                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
-                                            <i class="bi bi-check-circle-fill text-emerald-500"></i>
-                                            <div>
-                                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pagas</p>
-                                                <p class="font-bold text-slate-900 dark:text-slate-100">{{ $paid }} / {{ $total }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
-                                            <i class="bi bi-hourglass-split text-amber-500"></i>
-                                            <div>
-                                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Pendentes</p>
-                                                <p class="font-bold text-slate-900 dark:text-slate-100">{{ $pending }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
-                                            <i class="bi bi-exclamation-triangle-fill text-red-500"></i>
-                                            <div>
-                                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Vencidas</p>
-                                                <p class="font-bold text-slate-900 dark:text-slate-100">{{ $overdue }}</p>
-                                            </div>
-                                        </div>
-                                        <div class="hidden lg:flex items-center gap-2 px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
-                                            <i class="bi bi-wallet2 text-emerald-500"></i>
-                                            <div>
-                                                <p class="text-[11px] text-slate-500 dark:text-slate-400">Total Pago</p>
-                                                <p class="font-bold text-emerald-600 dark:text-emerald-400">R$ {{ number_format($participant->total_paid, 2, ',', '.') }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="w-full lg:w-auto flex justify-end">
-                                        <button type="button" @click="open = !open"
-                                            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:border-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors">
-                                            <span x-text="open ? 'Esconder parcelas' : 'Mostrar parcelas'"></span>
-                                            <i class="bi bi-chevron-down text-xs" :class="{ 'rotate-180': open }"></i>
-                                        </button>
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                        @foreach ($this->participants as $participant)
+                            @php
+                                $paidN = $participant->payments->where('status', 'paid')->count();
+                                $lateN = $participant->payments->filter->is_late->count();
+                                $ppct = $c->duration_months ? round($paidN / $c->duration_months * 100) : 0;
+                                $pStatus = match (true) {
+                                    $participant->status === 'quit' => ['Desistiu', 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300'],
+                                    $participant->is_contemplated => ['Contemplado', 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'],
+                                    $lateN > 0 => ['Em atraso', 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'],
+                                    default => ['Em dia', 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'],
+                                };
+                            @endphp
+                            <div wire:key="participant-{{ $participant->id }}" class="flex flex-col gap-3 py-3 sm:flex-row sm:items-center {{ $participant->status === 'quit' ? 'opacity-60' : '' }}">
+                                <div class="flex min-w-0 flex-1 items-center gap-3">
+                                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-xs font-bold text-indigo-700 dark:text-indigo-300">{{ $participant->participation_number }}</span>
+                                    @if ($participant->client)
+                                        <x-client-avatar :client="$participant->client" size="w-10 h-10 text-sm" rounded="rounded-full" />
+                                    @endif
+                                    <div class="min-w-0">
+                                        <a href="{{ $participant->client ? route('clients.consortiums', $participant->client) : '#' }}" class="block truncate font-semibold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-300">{{ $participant->client->name ?? 'Cliente removido' }}</a>
+                                        <p class="truncate text-xs text-slate-500 dark:text-slate-400">Entrou em {{ optional($participant->entry_date)->format('d/m/Y') }}@if($participant->client?->phone) · {{ $participant->client->phone }}@endif</p>
                                     </div>
                                 </div>
-
-                                  <div class="p-5 space-y-3" x-show="open"
-                                      x-transition:enter="transition ease-out duration-200"
-                                      x-transition:enter-start="opacity-0 scale-95"
-                                      x-transition:enter-end="opacity-100 scale-100"
-                                      x-transition:leave="transition ease-in duration-150"
-                                      x-transition:leave-start="opacity-100 scale-100"
-                                      x-transition:leave-end="opacity-0 scale-95">
-                                    @foreach ($participant->payments as $payment)
-                                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60">
-                                            <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-600 text-slate-800 dark:text-slate-100 font-bold flex items-center justify-center">
-                                                    {{ str_pad($payment->reference_month, 2, '0', STR_PAD_LEFT) }}
-                                                </div>
-                                                <div>
-                                                    <p class="text-sm font-semibold text-slate-900 dark:text-slate-100">{{ $payment->reference_month_name }}/{{ $payment->reference_year }}</p>
-                                                    <p class="text-xs text-slate-500 dark:text-slate-400">
-                                                        Venc.: {{ optional($payment->due_date)->format('d/m/Y') ?? '-' }}
-                                                        @if($payment->payment_date)
-                                                            • Pago em {{ \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') }}
-                                                        @endif
-                                                    </p>
-                                                    <div class="mt-1">
-                                                        <span class="inline-flex items-center px-2 py-1 rounded-md text-[11px] font-semibold {{ $payment->status_color }}">
-                                                            {{ $payment->status_label }}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div class="flex items-center gap-4 md:gap-6">
-                                                <div class="text-right">
-                                                    <p class="text-xs text-slate-500 dark:text-slate-400">Valor</p>
-                                                    <p class="text-lg font-bold text-emerald-600 dark:text-emerald-400">R$ {{ number_format($payment->amount, 2, ',', '.') }}</p>
-                                                </div>
-
-                                                <div class="min-w-[120px] text-center">
-                                                    @if ($payment->status !== 'paid')
-                                                        @livewire('consortiums.record-payment', ['payment' => $payment], key('payment-'.$participant->id.'-'.$payment->id))
-                                                    @else
-                                                        <div class="flex flex-col gap-2">
-                                                            <span class="inline-flex items-center justify-center gap-1 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300">
-                                                                <i class="bi bi-check-circle-fill"></i> Pago
-                                                            </span>
-                                                            @livewire('consortiums.cancel-payment', ['payment' => $payment], key('cancel-payment-'.$participant->id.'-'.$payment->id))
-                                                        </div>
-                                                    @endif
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endforeach
+                                <div class="flex items-center gap-4 sm:w-[46%]">
+                                    <span class="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $pStatus[1] }}">
+                                        @if ($participant->is_contemplated)<i class="bi bi-trophy-fill"></i>@endif{{ $pStatus[0] }}
+                                    </span>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex justify-between text-xs"><span class="text-slate-500 dark:text-slate-400">{{ $paidN }}/{{ $c->duration_months }} pagas</span><span class="font-semibold text-slate-700 dark:text-slate-200">{{ $money($participant->total_paid) }}</span></div>
+                                        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"><div class="h-full rounded-full {{ $lateN ? 'bg-rose-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500' }}" style="width: {{ $ppct }}%"></div></div>
+                                    </div>
+                                    <div class="flex shrink-0 items-center gap-1">
+                                        <button type="button" wire:click="openPayments({{ $participant->id }})" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-indigo-600 dark:hover:bg-slate-800" title="Ver parcelas"><i class="bi bi-wallet2"></i></button>
+                                        @if (!$participant->is_contemplated)
+                                            <button type="button" wire:click="confirmToggleParticipant({{ $participant->id }})" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 {{ $participant->status === 'active' ? 'hover:text-amber-600' : 'hover:text-emerald-600' }}" title="{{ $participant->status === 'active' ? 'Marcar como desistente' : 'Reativar' }}"><i class="bi {{ $participant->status === 'active' ? 'bi-pause-circle' : 'bi-play-circle' }}"></i></button>
+                                            <button type="button" wire:click="confirmDeleteParticipant({{ $participant->id }})" class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10" title="Remover"><i class="bi bi-trash"></i></button>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
                     </div>
                 @endif
-            @elseif ($activeTab === 'draws')
-                @if ($this->draws->isEmpty())
-                    <div class="text-center py-12">
-                        <i class="bi bi-trophy text-6xl text-slate-300 dark:text-slate-600 mb-4"></i>
-                        <p class="text-slate-600 dark:text-slate-400">Nenhum sorteio realizado</p>
-                        <p class="text-sm text-slate-500 dark:text-slate-500 mt-2">Use o botão "Realizar Sorteio" para criar um novo sorteio</p>
+
+            @elseif ($activeTab === 'payments')
+                @if ($this->payments->isEmpty())
+                    <div class="py-12 text-center">
+                        <i class="bi bi-wallet2 text-5xl text-slate-300 dark:text-slate-600"></i>
+                        <p class="mt-3 font-semibold text-slate-700 dark:text-slate-200">Nenhuma parcela ainda</p>
+                        <p class="text-sm text-slate-500 dark:text-slate-400">As parcelas aparecem quando você adiciona participantes.</p>
                     </div>
                 @else
-                    <div class="space-y-4">
-                        @foreach ($this->draws as $draw)
-                            <div class="bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-xl p-6 hover:shadow-lg transition-all">
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
-                                            <i class="bi bi-trophy-fill text-white text-xl"></i>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-slate-900 dark:text-slate-100">Sorteio #{{ $draw->draw_number }}</h4>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">{{ \Carbon\Carbon::parse($draw->draw_date)->format('d/m/Y H:i') }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="text-right">
-                                        @if ($draw->winner)
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Vencedor</p>
-                                            <p class="font-semibold text-slate-900 dark:text-slate-100">{{ $draw->winner->client->name ?? 'N/A' }}</p>
-                                            <p class="text-xs text-emerald-600 dark:text-emerald-400">Participação #{{ $draw->winner->participation_number }}</p>
-                                        @else
-                                            <span class="inline-flex items-center px-3 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-300">
-                                                Sem vencedor
-                                            </span>
+                    <div class="mb-4 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                        @foreach (['all' => 'Todos', 'late' => 'Com vencidas', 'pending' => 'Com pendentes', 'done' => 'Quitados'] as $k => $label)
+                            <button type="button" wire:click="$set('paymentsFilter', '{{ $k }}')"
+                                class="rounded-full px-3 py-1 transition {{ $paymentsFilter === $k ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-indigo-50 hover:text-indigo-700' }}">{{ $label }}</button>
+                        @endforeach
+                    </div>
+                    <div class="space-y-3">
+                        @foreach ($this->payments as $participant)
+                            @php
+                                $total = $participant->payments->count();
+                                $paid = $participant->payments->where('status', 'paid')->count();
+                                $overdue = $participant->payments->filter->is_late->count();
+                                $pending = $total - $paid;
+                                $show = match ($paymentsFilter) {
+                                    'late' => $overdue > 0,
+                                    'pending' => $pending > 0,
+                                    'done' => $pending === 0,
+                                    default => true,
+                                };
+                                $open = (int) $expandedParticipant === (int) $participant->id;
+                                $next = $participant->payments->where('status', '!=', 'paid')->sortBy('due_date')->first();
+                            @endphp
+                            @continue(!$show)
+                            <div wire:key="pay-group-{{ $participant->id }}" class="overflow-hidden rounded-2xl border {{ $open ? 'border-indigo-300 dark:border-indigo-500/50 shadow-md' : 'border-slate-200/80 dark:border-slate-700/70' }}">
+                                <button type="button" wire:click="togglePayments({{ $participant->id }})" class="flex w-full flex-col gap-3 p-4 text-left sm:flex-row sm:items-center hover:bg-slate-50/70 dark:hover:bg-slate-800/40">
+                                    <div class="flex min-w-0 flex-1 items-center gap-3">
+                                        @if ($participant->client)
+                                            <x-client-avatar :client="$participant->client" size="w-10 h-10 text-sm" rounded="rounded-full" />
                                         @endif
+                                        <div class="min-w-0">
+                                            <p class="truncate font-semibold text-slate-900 dark:text-white">{{ $participant->client->name ?? 'Cliente removido' }} <span class="text-xs font-normal text-slate-400">#{{ $participant->participation_number }}</span></p>
+                                            <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+                                                @if ($next) Próxima: {{ $next->due_date->format('d/m/Y') }} · {{ $money($next->amount) }} @else Todas as parcelas pagas @endif
+                                            </p>
+                                        </div>
                                     </div>
+                                    <div class="flex items-center gap-2 text-xs font-semibold">
+                                        <span class="rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2.5 py-1 text-emerald-700 dark:text-emerald-300">{{ $paid }}/{{ $total }} pagas</span>
+                                        @if ($overdue)
+                                            <span class="rounded-full bg-rose-50 dark:bg-rose-500/10 px-2.5 py-1 text-rose-700 dark:text-rose-300">{{ $overdue }} vencida{{ $overdue > 1 ? 's' : '' }}</span>
+                                        @endif
+                                        <span class="hidden sm:inline text-slate-700 dark:text-slate-200">{{ $money($participant->total_paid) }}</span>
+                                        <i class="bi bi-chevron-down text-slate-400 transition-transform {{ $open ? 'rotate-180' : '' }}"></i>
+                                    </div>
+                                </button>
+
+                                @if ($open)
+                                    <div class="border-t border-slate-100 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800">
+                                        @foreach ($participant->payments as $payment)
+                                            <div wire:key="pay-{{ $payment->id }}" class="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between {{ $payment->is_late ? 'bg-rose-50/50 dark:bg-rose-500/5' : '' }}">
+                                                <div class="flex items-center gap-3">
+                                                    <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200">{{ str_pad($payment->reference_month, 2, '0', STR_PAD_LEFT) }}</span>
+                                                    <div>
+                                                        <p class="text-sm font-semibold text-slate-900 dark:text-white">{{ $payment->reference_month_name }}/{{ $payment->reference_year }}
+                                                            <span class="ml-1 inline-flex rounded-md px-1.5 py-0.5 text-[10px] font-bold align-middle {{ $payment->status_color }}">{{ $payment->status_label }}{{ $payment->is_late ? ' há ' . $payment->days_late . 'd' : '' }}</span>
+                                                        </p>
+                                                        <p class="text-xs text-slate-500 dark:text-slate-400">Vence {{ optional($payment->due_date)->format('d/m/Y') }}@if($payment->payment_date) · paga em {{ $payment->payment_date->format('d/m/Y') }}@if($payment->payment_method) ({{ $payment->payment_method }})@endif @endif</p>
+                                                    </div>
+                                                </div>
+                                                <div class="flex items-center justify-between gap-4 sm:justify-end">
+                                                    <span class="text-base font-bold text-slate-900 dark:text-white">{{ $money($payment->amount) }}</span>
+                                                    <div class="min-w-[120px] text-right">
+                                                        @if ($payment->status !== 'paid')
+                                                            @livewire('consortiums.record-payment', ['payment' => $payment], key('payment-'.$participant->id.'-'.$payment->id))
+                                                        @else
+                                                            @livewire('consortiums.cancel-payment', ['payment' => $payment], key('cancel-payment-'.$participant->id.'-'.$payment->id))
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+            @elseif ($activeTab === 'draws')
+                @if ($this->draws->isEmpty())
+                    <div class="py-12 text-center">
+                        <i class="bi bi-shuffle text-5xl text-slate-300 dark:text-slate-600"></i>
+                        <p class="mt-3 font-semibold text-slate-700 dark:text-slate-200">Nenhum sorteio feito ainda</p>
+                        @if ($drawHint)<p class="text-sm text-slate-500 dark:text-slate-400">{{ $drawHint }}</p>@endif
+                    </div>
+                @else
+                    <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                        @foreach ($this->draws as $draw)
+                            <div class="flex items-center justify-between gap-3 py-3">
+                                <div class="flex items-center gap-3">
+                                    <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 text-white"><i class="bi bi-trophy-fill"></i></span>
+                                    <div>
+                                        <p class="font-semibold text-slate-900 dark:text-white">Sorteio #{{ $draw->draw_number }}</p>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">{{ $draw->draw_date->format('d/m/Y') }}</p>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    @if ($draw->winner)
+                                        <p class="font-semibold text-slate-900 dark:text-white">{{ $draw->winner->client->name ?? '—' }}</p>
+                                        <p class="text-xs text-indigo-600 dark:text-indigo-300">Participação #{{ $draw->winner->participation_number }}</p>
+                                    @else
+                                        <span class="rounded-lg bg-slate-100 dark:bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">Sem vencedor</span>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
@@ -734,23 +434,30 @@
                 @else
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         @foreach ($this->contemplated as $participant)
-                            <div class="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-6">
-                                <div class="flex items-center justify-between mb-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
+                            <div class="rounded-2xl border border-amber-200/80 dark:border-amber-700/50 bg-gradient-to-br from-amber-50/80 to-white dark:from-amber-900/10 dark:to-slate-900 p-5">
+                                <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                    <div class="flex min-w-0 items-center gap-3">
+                                        <div class="w-12 h-12 shrink-0 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
                                             <i class="bi bi-star-fill"></i>
                                         </div>
-                                        <div>
-                                            <p class="font-bold text-slate-900 dark:text-slate-100">{{ $participant->client->name ?? 'N/A' }}</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Participação #{{ $participant->participation_number }}</p>
+                                        <div class="min-w-0">
+                                            <p class="truncate font-bold text-slate-900 dark:text-slate-100">{{ $participant->client->name ?? 'N/A' }}</p>
+                                            <p class="whitespace-nowrap text-sm text-slate-600 dark:text-slate-400">Participação #{{ $participant->participation_number }}</p>
                                         </div>
                                     </div>
-                                    <div class="flex gap-2">
-                                        @if($participant->contemplation && ($participant->contemplation->status === 'pending' || ($participant->contemplation->status === 'redeemed' && $participant->contemplation->redemption_type === 'products')) && in_array($participant->contemplation->redemption_type, ['pending', 'products']))
+                                    <div class="flex flex-wrap gap-2">
+                                        @if($participant->contemplation && $participant->contemplation->status !== 'redeemed' && in_array($participant->contemplation->redemption_type ?? 'pending', ['cash', 'pending']))
+                                            <button type="button" wire:click="markCashRedeemed({{ $participant->contemplation->id }})"
+                                                wire:confirm="Confirmar que o valor em dinheiro foi entregue a {{ $participant->client->name ?? 'este participante' }}?"
+                                                class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-emerald-700 bg-emerald-100 rounded-lg hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 transition-colors">
+                                                <i class="bi bi-cash-coin"></i><span>Pago em dinheiro</span>
+                                            </button>
+                                        @endif
+                                        @if($participant->contemplation && ($participant->contemplation->status === 'pending' || ($participant->contemplation->status === 'redeemed' && $participant->contemplation->redemption_type === 'products')) && in_array($participant->contemplation->redemption_type ?? 'pending', ['pending', 'products']))
                                             <a href="{{ route('consortiums.contemplation.products', $participant->contemplation) }}"
                                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-700 bg-purple-100 rounded-lg hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:hover:bg-purple-900/50 transition-colors">
                                                 <i class="bi bi-{{ $participant->contemplation->products ? 'pencil-square' : 'box-seam' }} text-base"></i>
-                                                <span>{{ $participant->contemplation->products ? 'Editar Produtos' : 'Registrar Produtos' }}</span>
+                                                <span>{{ $participant->contemplation->products ? 'Editar produtos' : 'Resgatar em produtos' }}</span>
                                             </a>
                                         @endif
                                     </div>
@@ -758,7 +465,7 @@
                                 <div class="space-y-2">
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-600 dark:text-slate-400">Data Contemplação:</span>
-                                        <span class="font-semibold text-slate-900 dark:text-slate-100">{{ \Carbon\Carbon::parse($participant->contemplation_date)->format('d/m/Y') }}</span>
+                                        <span class="font-semibold text-slate-900 dark:text-slate-100">{{ optional($participant->contemplation_date ?? $participant->contemplation?->contemplation_date)->format('d/m/Y') ?? '—' }}</span>
                                     </div>
                                     <div class="flex justify-between text-sm">
                                         <span class="text-slate-600 dark:text-slate-400">Tipo:</span>
@@ -776,54 +483,28 @@
                                             </div>
                                         @endif
                                         @if($participant->contemplation->products)
-                                            <div class="mt-4 pt-4 border-t-2 border-yellow-300 dark:border-yellow-600">
-                                                <p class="text-sm font-bold text-slate-900 dark:text-slate-100 mb-3 flex items-center gap-2">
-                                                    <i class="bi bi-box-seam-fill text-purple-600"></i>
-                                                    Produtos Resgatados
-                                                </p>
-                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    @foreach($participant->contemplation->products ?? [] as $product)
-                                                        @php
-                                                            $productData = \App\Models\Product::find($product['product_id'] ?? 0);
-                                                        @endphp
-                                                        <div class="bg-gradient-to-br from-white to-purple-50/50 dark:from-zinc-800 dark:to-purple-900/20 rounded-xl shadow-md border-2 border-purple-200 dark:border-purple-700/50 overflow-hidden hover:shadow-xl transition-all">
-                                                            <div class="flex gap-3 p-3">
-                                                                <!-- Imagem do Produto -->
-                                                                <div class="flex-shrink-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg overflow-hidden shadow-md">
-                                                                    @if($productData && $productData->image)
-                                                                        <img src="{{ asset('storage/products/' . $productData->image) }}"
-                                                                             alt="{{ $product['product_name'] ?? 'Produto' }}"
-                                                                             class="w-full h-full object-cover">
-                                                                    @else
-                                                                        <div class="w-full h-full flex items-center justify-center">
-                                                                            <i class="bi bi-box-seam text-3xl text-purple-400 dark:text-purple-500"></i>
-                                                                        </div>
-                                                                    @endif
-                                                                </div>
-
-                                                                <!-- Informações -->
-                                                                <div class="flex-1 min-w-0">
-                                                                    <h5 class="font-black text-sm text-slate-900 dark:text-white line-clamp-2 mb-1">
-                                                                        {{ $product['product_name'] ?? 'N/A' }}
-                                                                    </h5>
-                                                                    <div class="flex items-center gap-2 mb-2">
-                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded-md text-xs font-bold">
-                                                                            <i class="bi bi-hash"></i>
-                                                                            {{ $product['quantity'] ?? 0 }}x
-                                                                        </span>
-                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 rounded-md text-xs font-bold">
-                                                                            <i class="bi bi-currency-dollar"></i>
-                                                                            {{ number_format($product['price'] ?? 0, 2, ',', '.') }}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div class="flex items-center justify-between">
-                                                                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-400">Subtotal:</span>
-                                                                        <span class="text-sm font-black text-purple-600 dark:text-purple-400">
-                                                                            R$ {{ number_format(($product['price'] ?? 0) * ($product['quantity'] ?? 0), 2, ',', '.') }}
-                                                                        </span>
-                                                                    </div>
-                                                                </div>
+                                            @php
+                                                $redeemed = collect($participant->contemplation->products);
+                                                $images = \App\Models\Product::whereIn('id', $redeemed->pluck('product_id')->filter())->pluck('image', 'id');
+                                            @endphp
+                                            <div class="mt-4 border-t border-amber-200/70 pt-3 dark:border-amber-500/20">
+                                                <p class="mb-2 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400"><i class="bi bi-box-seam text-purple-500"></i>Produtos resgatados</p>
+                                                <div class="divide-y divide-slate-100 rounded-xl border border-slate-200/70 bg-white dark:divide-slate-800 dark:border-slate-700 dark:bg-slate-900">
+                                                    @foreach($redeemed as $product)
+                                                        @php $img = $images[$product['product_id'] ?? 0] ?? null; @endphp
+                                                        <div class="flex items-center gap-3 px-3 py-2">
+                                                            <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-purple-50 dark:bg-purple-500/10">
+                                                                @if($img)
+                                                                    <img src="{{ asset('storage/products/' . $img) }}" alt="" class="h-full w-full object-cover">
+                                                                @else
+                                                                    <i class="bi bi-box-seam text-purple-400"></i>
+                                                                @endif
                                                             </div>
+                                                            <div class="min-w-0 flex-1">
+                                                                <p class="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{{ $product['product_name'] ?? $product['name'] ?? 'Produto' }}</p>
+                                                                <p class="text-xs text-slate-500">{{ $product['quantity'] ?? 0 }} × R$ {{ number_format($product['price'] ?? 0, 2, ',', '.') }}</p>
+                                                            </div>
+                                                            <span class="text-sm font-bold text-slate-800 dark:text-slate-100">R$ {{ number_format(($product['price'] ?? 0) * ($product['quantity'] ?? 0), 2, ',', '.') }}</span>
                                                         </div>
                                                     @endforeach
                                                 </div>
@@ -855,7 +536,7 @@
                 class="fixed inset-0 z-[99999] overflow-y-auto"
                 @keydown.escape.window="modalOpen = false; $wire.set('showToggleParticipantModal', false)">
 
-                <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-900/40 backdrop-blur-md"></div>
+                <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-900/40 backdrop-blur-md"></div>
 
                 <div class="flex min-h-full items-center justify-center p-4">
                     <div x-show="modalOpen"
@@ -864,13 +545,13 @@
                         x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
                         class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
 
-                        <div class="absolute inset-0 bg-gradient-to-br from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-500/5 via-transparent to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-500/5"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-500/5 via-transparent to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-500/5"></div>
 
                         <div class="relative z-10">
                             <div class="text-center pt-8 pb-4">
                                 <div class="relative inline-flex items-center justify-center">
-                                    <div class="absolute w-24 h-24 bg-gradient-to-r from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-400/30 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-500/30 rounded-full animate-pulse"></div>
-                                    <div class="relative w-16 h-16 bg-gradient-to-br from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-500 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-600 rounded-full flex items-center justify-center shadow-lg">
+                                    <div class="absolute w-24 h-24 bg-gradient-to-r from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-400/30 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-500/30 rounded-full animate-pulse"></div>
+                                    <div class="relative w-16 h-16 bg-gradient-to-br from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-500 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-600 rounded-full flex items-center justify-center shadow-lg">
                                         <i class="bi bi-{{ $selectedParticipant->status === 'active' ? 'pause-circle' : 'play-circle' }} text-2xl text-white"></i>
                                     </div>
                                 </div>
@@ -884,7 +565,7 @@
                             </div>
 
                             <div class="px-8 pb-4">
-                                <div class="bg-gradient-to-r from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-50 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-50 dark:from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-900/20 dark:to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-900/20 rounded-2xl p-4 border border-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-200/50">
+                                <div class="bg-gradient-to-r from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-50 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-50 dark:from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-900/20 dark:to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-900/20 rounded-2xl p-4 border border-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-200/50">
                                     <div class="text-center">
                                         @if($selectedParticipant->status === 'active')
                                             <i class="bi bi-pause-circle text-3xl text-orange-500 mb-2"></i>
@@ -909,7 +590,7 @@
                                     </button>
 
                                     <button wire:click="toggleParticipantStatus" @click="modalOpen = false"
-                                        class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-500 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-600 hover:from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'emerald' }}-600 hover:to-{{ $selectedParticipant->status === 'active' ? 'red' : 'teal' }}-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
+                                        class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-500 to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-600 hover:from-{{ $selectedParticipant->status === 'active' ? 'orange' : 'indigo' }}-600 hover:to-{{ $selectedParticipant->status === 'active' ? 'red' : 'purple' }}-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
                                         <i class="bi bi-{{ $selectedParticipant->status === 'active' ? 'pause-circle' : 'play-circle' }} mr-2"></i>
                                         {{ $selectedParticipant->status === 'active' ? 'Desativar' : 'Reativar' }}
                                     </button>

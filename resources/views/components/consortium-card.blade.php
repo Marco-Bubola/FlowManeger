@@ -1,276 +1,149 @@
 @props(['consortium'])
 
-<div
-    class="relative flex flex-col overflow-hidden bg-gradient-to-br from-white via-white to-emerald-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-emerald-900/20 rounded-2xl shadow-xl hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300 border border-slate-200/50 dark:border-slate-700/50 backdrop-blur-sm group">
+@php
+    // Card no mesmo padrão dos cards de Clientes. Os números vêm do withCount
+    // da lista; se o card for usado fora dela, cai nas consultas do model.
+    $c = $consortium;
+    $members = $c->members_count ?? $c->active_participants_count;
+    $contemplated = $c->contemplated_total ?? $c->contemplated_count;
+    $collected = (float) ($c->collected_total ?? $c->total_collected);
+    $overdue = (int) ($c->overdue_total ?? $c->getOverduePaymentsCount());
+    $goal = (float) $c->monthly_value * (int) $c->duration_months * max(1, (int) $members);
+    $pct = $goal > 0 ? min(100, round($collected / $goal * 100)) : 0;
+    $slots = max(0, (int) $c->max_participants - (int) $members);
+    $isDraw = $c->mode !== 'payoff';
 
-    <!-- Barra de Status no Topo -->
-    <div class="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r {{ $consortium->status_color }}"></div>
+    $style = match ($c->status) {
+        'completed' => ['band' => 'from-emerald-400 via-teal-500 to-cyan-500', 'pill' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300', 'icon' => 'bi-check-circle-fill'],
+        'cancelled' => ['band' => 'from-slate-300 via-slate-400 to-slate-500', 'pill' => 'bg-slate-100 text-slate-600 dark:bg-slate-700/60 dark:text-slate-300', 'icon' => 'bi-pause-circle-fill'],
+        default => ['band' => 'from-indigo-500 via-purple-500 to-fuchsia-500', 'pill' => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300', 'icon' => 'bi-play-circle-fill'],
+    };
 
-    <!-- Background decorativo animado -->
-    <div
-        class="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br {{ $consortium->status_color }} opacity-5 rounded-full transform translate-x-8 -translate-y-8 group-hover:scale-150 transition-transform duration-500">
-    </div>
+    // Situação do sorteio sem consulta extra
+    $drawChip = null;
+    if ($isDraw && $c->status === 'active') {
+        $startsIn = $c->start_date && now()->lt($c->start_date) ? (int) ceil(now()->startOfDay()->diffInDays($c->start_date->copy()->startOfDay())) : 0;
+        $eligible = $c->eligible_total ?? $c->eligibleParticipantsCount();
+        if ($startsIn > 0) {
+            $drawChip = ['text' => 'Começa em ' . $startsIn . ' dia' . ($startsIn > 1 ? 's' : ''), 'class' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300', 'icon' => 'bi-hourglass-split'];
+        } elseif ($eligible === 0) {
+            $drawChip = ['text' => !$members ? 'Sem participantes' : ($contemplated >= $members ? 'Todos contemplados' : 'Ninguém apto ao sorteio'), 'class' => 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300', 'icon' => 'bi-people'];
+        } else {
+            $last = $c->last_draw_at ? \Carbon\Carbon::parse($c->last_draw_at) : null;
+            $wait = $last ? max(0, (int) ceil($c->frequencyDays() * 0.8) - (int) floor($last->copy()->startOfDay()->diffInDays(now()->startOfDay()))) : 0;
+            $drawChip = $wait > 0
+                ? ['text' => 'Próximo sorteio em ' . $wait . ' dia' . ($wait > 1 ? 's' : ''), 'class' => 'bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300', 'icon' => 'bi-calendar-event']
+                : ['text' => 'Sorteio liberado', 'class' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300', 'icon' => 'bi-shuffle', 'ready' => true];
+        }
+    }
+    $iconBtn = 'inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition';
+@endphp
 
-    <!-- Header do Card -->
-    <div class="relative p-5 pb-3 border-b border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-white/80 to-transparent dark:from-slate-800/80">
-        <div class="flex items-start justify-between gap-3">
-            <div class="flex items-center gap-3 flex-1 min-w-0">
-                <div
-                    class="relative flex-shrink-0 flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br {{ $consortium->status_color }} shadow-lg">
-                    <i class="bi bi-piggy-bank text-white text-xl"></i>
-                    <div
-                        class="absolute inset-0 rounded-xl bg-gradient-to-r from-white/20 to-transparent opacity-50 group-hover:opacity-70 transition-opacity">
-                    </div>
-                </div>
+<div class="consortium-card-v2 group relative flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-0.5 hover:border-indigo-300 dark:hover:border-indigo-500/60 transition-all duration-300">
+    <div class="h-1.5 w-full bg-gradient-to-r {{ $style['band'] }}"></div>
 
-                <div class="flex-1 min-w-0">
-                    <h3
-                        class="text-lg font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                        {{ $consortium->name }}
-                    </h3>
-                    <div class="flex items-center gap-2 mt-1">
-                        <span
-                            class="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-semibold {{ $consortium->status_color }} border border-current/20">
-                            {{ $consortium->status_label }}
-                        </span>
-                        @if ($consortium->draw_frequency)
-                            <span class="text-xs text-slate-500 dark:text-slate-400">
-                                <i class="bi bi-calendar-event"></i>
-                                {{ ucfirst($consortium->draw_frequency) }}
-                            </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-
-            <!-- Dropdown de Ações -->
-            <div class="relative" x-data="{ open: false }">
-                <button @click="open = !open" @click.outside="open = false"
-                    class="flex items-center justify-center w-8 h-8 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </button>
-
-                <div x-show="open" x-transition:enter="transition ease-out duration-100"
-                    x-transition:enter-start="transform opacity-0 scale-95"
-                    x-transition:enter-end="transform opacity-100 scale-100"
-                    x-transition:leave="transition ease-in duration-75"
-                    x-transition:leave-start="transform opacity-100 scale-100"
-                    x-transition:leave-end="transform opacity-0 scale-95"
-                    class="absolute right-0 mt-2 w-48 rounded-xl shadow-2xl bg-white dark:bg-slate-800 ring-1 ring-black ring-opacity-5 z-50 border border-slate-200 dark:border-slate-700"
-                    style="display: none;">
-                    <div class="py-1">
-                        <a href="{{ route('consortiums.show', $consortium) }}"
-                            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors">
-                            <i class="bi bi-eye text-emerald-600 dark:text-emerald-400"></i>
-                            <span>Ver Detalhes</span>
-                        </a>
-                        <a href="{{ route('consortiums.edit', $consortium) }}"
-                            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors">
-                            <i class="bi bi-pencil text-blue-600 dark:text-blue-400"></i>
-                            <span>Editar</span>
-                        </a>
-                        @if ($consortium->canPerformDraw())
-                            <a href="{{ route('consortiums.draw', $consortium) }}"
-                                class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-purple-50 dark:hover:bg-purple-900/30 transition-colors">
-                                <i class="bi bi-trophy text-purple-600 dark:text-purple-400"></i>
-                                <span>Realizar Sorteio</span>
-                            </a>
-                        @endif
-                        <button wire:click="confirmDelete({{ $consortium->id }})"
-                            class="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors">
-                            <i class="bi bi-trash"></i>
-                            <span>Excluir</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
+    <div class="flex flex-1 flex-col p-4">
+        {{-- Topo: modo + status --}}
+        <div class="flex items-center justify-between gap-2">
+            <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                <i class="bi {{ $isDraw ? 'bi-shuffle' : 'bi-check2-all' }} text-[10px]"></i>{{ $isDraw ? 'Sorteio ' . mb_strtolower($c->draw_frequency_label) : 'Por quitação' }}
+            </span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-bold {{ $style['pill'] }}">
+                <i class="bi {{ $style['icon'] }} text-[10px]"></i>{{ $c->status_label }}
+            </span>
         </div>
 
-        @if ($consortium->description)
-            <p class="mt-3 text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
-                {{ $consortium->description }}
-            </p>
+        {{-- Identidade --}}
+        <a href="{{ route('consortiums.show', $c) }}" class="mt-3 flex items-center gap-3 min-w-0">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-md shadow-purple-500/20 group-hover:scale-105 transition-transform">
+                <i class="bi bi-piggy-bank text-xl text-white"></i>
+            </div>
+            <div class="min-w-0">
+                <h3 class="line-clamp-2 text-base font-bold leading-snug text-slate-900 dark:text-white group-hover:text-indigo-700 dark:group-hover:text-indigo-300 transition-colors" title="{{ $c->name }}">{{ $c->name }}</h3>
+                <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+                    <i class="bi bi-calendar3 mr-0.5"></i>{{ $c->duration_months }} meses · início {{ $c->start_date?->format('d/m/Y') }}
+                </p>
+            </div>
+        </a>
+
+        @if($c->description)
+            <p class="mt-2 line-clamp-2 text-xs text-slate-500 dark:text-slate-400">{{ $c->description }}</p>
         @endif
-    </div>
 
-    <!-- Informações Financeiras -->
-    <div class="p-5 space-y-4">
-        <!-- Valores -->
-        <div class="grid grid-cols-2 gap-4">
-            <div class="space-y-1">
-                <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    <i class="bi bi-calendar-range"></i>
-                    <span>Valor Mensal</span>
-                </div>
-                <div class="text-lg font-bold text-slate-900 dark:text-white">
-                    R$ {{ number_format($consortium->monthly_value, 2, ',', '.') }}
-                </div>
+        {{-- Números --}}
+        <div class="mt-3 grid grid-cols-3 divide-x divide-slate-200 dark:divide-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700/60 py-2 text-center">
+            <div class="px-1">
+                <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Mensal</p>
+                <p class="text-sm font-bold leading-6 text-indigo-700 dark:text-indigo-300 truncate">R$ {{ number_format((float) $c->monthly_value, fmod((float) $c->monthly_value, 1) ? 2 : 0, ',', '.') }}</p>
             </div>
-
-            <div class="space-y-1">
-                <div class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                    <i class="bi bi-cash-stack"></i>
-                    <span>Valor Total</span>
-                </div>
-                <div class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                    R$ {{ number_format($consortium->total_value, 2, ',', '.') }}
-                </div>
+            <div class="px-1">
+                <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Vagas</p>
+                <p class="text-base font-bold text-slate-900 dark:text-white">{{ $members }}<span class="text-xs font-semibold text-slate-400">/{{ $c->max_participants }}</span></p>
+            </div>
+            <div class="px-1">
+                <p class="text-[10px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Contempl.</p>
+                <p class="text-base font-bold text-amber-600 dark:text-amber-400">{{ $contemplated }}</p>
             </div>
         </div>
 
-        <!-- Informações de Participação -->
-        <div class="grid grid-cols-3 gap-3">
-            <div
-                class="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 rounded-xl border border-emerald-200/50 dark:border-emerald-700/50">
-                <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
-                    {{ $consortium->active_participants_count }}
-                </div>
-                <div class="text-xs text-slate-600 dark:text-slate-400 text-center">
-                    Participantes
-                </div>
+        {{-- Arrecadação --}}
+        <div class="mt-3">
+            <div class="flex items-baseline justify-between text-xs">
+                <span class="text-slate-500 dark:text-slate-400">Arrecadado</span>
+                <span class="font-semibold text-slate-700 dark:text-slate-200">R$ {{ number_format($collected, 0, ',', '.') }} <span class="font-normal text-slate-400">de {{ number_format($goal, 0, ',', '.') }}</span></span>
             </div>
-
-            <div
-                class="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200/50 dark:border-blue-700/50">
-                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {{ $consortium->contemplated_count }}
-                </div>
-                <div class="text-xs text-slate-600 dark:text-slate-400 text-center">
-                    Contemplados
-                </div>
-            </div>
-
-            <div
-                class="flex flex-col items-center justify-center p-3 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl border border-purple-200/50 dark:border-purple-700/50">
-                <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                    {{ $consortium->duration_months }}
-                </div>
-                <div class="text-xs text-slate-600 dark:text-slate-400 text-center">
-                    Meses
-                </div>
+            <div class="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500" style="width: {{ $pct }}%"></div>
             </div>
         </div>
 
-        <!-- Barra de Progresso -->
-        <div class="space-y-2">
-            <div class="flex items-center justify-between text-xs">
-                <span class="text-slate-600 dark:text-slate-400">Progresso do Consórcio</span>
-                <span class="font-semibold text-slate-900 dark:text-white">
-                    {{ number_format($consortium->completion_percentage, 1) }}%
-                </span>
-            </div>
-            <div class="h-2.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div class="h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 rounded-full transition-all duration-500 shadow-lg"
-                    style="width: {{ $consortium->completion_percentage }}%">
-                </div>
-            </div>
-        </div>
-
-        <!-- Informações Adicionais -->
-        <div class="flex items-center justify-between pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
-            <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-                <i class="bi bi-calendar-check"></i>
-                <span>Início: {{ $consortium->start_date?->format('d/m/Y') ?? 'Não definido' }}</span>
-            </div>
-
-            @if ($consortium->canAddParticipants())
-                <span
-                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/30 rounded-lg">
-                    <i class="bi bi-check-circle-fill"></i>
-                    {{ $consortium->getRemainingSlots() }} vagas
-                </span>
-            @else
-                <span
-                    class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                    <i class="bi bi-exclamation-circle-fill"></i>
-                    Completo
-                </span>
+        {{-- Situação --}}
+        <div class="mt-3 flex flex-wrap items-center gap-1.5 text-[11px] font-medium">
+            @if($drawChip)
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 {{ $drawChip['class'] }}"><i class="bi {{ $drawChip['icon'] }}"></i>{{ $drawChip['text'] }}</span>
+            @endif
+            @if($overdue > 0)
+                <span class="inline-flex items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-500/10 px-2 py-0.5 text-rose-700 dark:text-rose-300"><i class="bi bi-exclamation-circle"></i>{{ $overdue }} parcela{{ $overdue > 1 ? 's' : '' }} vencida{{ $overdue > 1 ? 's' : '' }}</span>
+            @elseif($members > 0)
+                <span class="inline-flex items-center gap-1 rounded-full bg-emerald-50 dark:bg-emerald-500/10 px-2 py-0.5 text-emerald-700 dark:text-emerald-300"><i class="bi bi-check2-circle"></i>Pagamentos em dia</span>
+            @endif
+            @if($c->status === 'active' && $slots > 0)
+                <span class="inline-flex items-center gap-1 rounded-full bg-sky-50 dark:bg-sky-500/10 px-2 py-0.5 text-sky-700 dark:text-sky-300"><i class="bi bi-person-plus"></i>{{ $slots }} vaga{{ $slots > 1 ? 's' : '' }}</span>
             @endif
         </div>
 
-        <!-- Verificações para iniciar (se houver problemas) -->
-        @php
-            $warnings = [];
-
-            // Verifica se está ativo
-            if ($consortium->status !== 'active') {
-                $warnings[] = ['icon' => 'pause-circle', 'text' => 'Status: ' . $consortium->status_label, 'color' => 'red'];
-            }
-
-            // Verifica participantes
-            if ($consortium->active_participants_count === 0) {
-                $warnings[] = ['icon' => 'people', 'text' => 'Sem participantes ativos', 'color' => 'red'];
-            }
-
-            // Verifica data de início
-            if ($consortium->start_date && now()->lt($consortium->start_date)) {
-                $daysUntilStart = now()->diffInDays($consortium->start_date, false);
-                $warnings[] = ['icon' => 'clock-history', 'text' => 'Inicia em ' . abs($daysUntilStart) . ' dia(s)', 'color' => 'amber'];
-            }
-        @endphp
-
-        @if(count($warnings) > 0)
-            <div class="mt-3 space-y-2">
-                @foreach($warnings as $warning)
-                    <div class="flex items-center gap-2 px-3 py-2 bg-{{ $warning['color'] }}-50 dark:bg-{{ $warning['color'] }}-900/20 border border-{{ $warning['color'] }}-200 dark:border-{{ $warning['color'] }}-700 rounded-lg">
-                        <i class="bi bi-{{ $warning['icon'] }} text-{{ $warning['color'] }}-600 dark:text-{{ $warning['color'] }}-400"></i>
-                        <span class="text-xs font-medium text-{{ $warning['color'] }}-700 dark:text-{{ $warning['color'] }}-300">{{ $warning['text'] }}</span>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-
-        <!-- Total Arrecadado -->
-        @if ($consortium->total_collected > 0)
-            <div
-                class="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-xl border border-emerald-200 dark:border-emerald-700">
-                <div class="flex items-center gap-2">
-                    <div
-                        class="flex items-center justify-center w-8 h-8 bg-emerald-500 dark:bg-emerald-600 rounded-lg">
-                        <i class="bi bi-wallet2 text-white text-sm"></i>
-                    </div>
-                    <span class="text-sm font-medium text-slate-700 dark:text-slate-300">Total Arrecadado</span>
-                </div>
-                <span class="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                    R$ {{ number_format($consortium->total_collected, 2, ',', '.') }}
-                </span>
-            </div>
-        @endif
-    </div>
-
-    <!-- Botões de Ação Rápida (Mais Visíveis) -->
-    <div class="flex items-center gap-2 p-4 border-t border-slate-200/50 dark:border-slate-700/50 bg-gradient-to-r from-slate-50/80 to-emerald-50/50 dark:from-slate-900/50 dark:to-emerald-900/20">
-        <a href="{{ route('consortiums.show', $consortium) }}"
-            class="flex-1 flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
-            <i class="bi bi-eye text-lg"></i>
-            <span>Detalhes</span>
-        </a>
-
-        <a href="{{ route('consortiums.edit', $consortium) }}"
-            class="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
-            <i class="bi bi-pencil text-lg"></i>
-            <span>Editar</span>
-        </a>
-
-        <button wire:click="$dispatch('openExportModal', { consortiumId: {{ $consortium->id }} })"
-            class="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
-            title="Exportar">
-            <i class="bi bi-download text-lg"></i>
-            <span>Exportar</span>
-        </button>
-
-        @if ($consortium->canPerformDraw())
-            <a href="{{ route('consortiums.draw', $consortium) }}"
-                class="flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
-                <i class="bi bi-trophy-fill text-lg"></i>
-                <span>Sortear</span>
+        {{-- Ações principais --}}
+        <div class="mt-auto pt-4 grid grid-cols-2 gap-2">
+            <a href="{{ route('consortiums.show', $c) }}"
+                class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-500/20 transition">
+                <i class="bi bi-eye"></i>Abrir
             </a>
-        @endif
+            @if($drawChip['ready'] ?? false)
+                <a href="{{ route('consortiums.draw', $c) }}"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-purple-200 dark:border-purple-500/40 bg-purple-50 dark:bg-purple-500/10 hover:bg-purple-100 dark:hover:bg-purple-500/20 px-3 py-2 text-xs font-semibold text-purple-700 dark:text-purple-300 transition">
+                    <i class="bi bi-shuffle"></i>Sortear
+                </a>
+            @else
+                <a href="{{ route('consortiums.add-participants', $c) }}"
+                    class="inline-flex items-center justify-center gap-1.5 rounded-xl border border-indigo-200 dark:border-indigo-500/40 bg-indigo-50 dark:bg-indigo-500/10 hover:bg-indigo-100 dark:hover:bg-indigo-500/20 px-3 py-2 text-xs font-semibold text-indigo-700 dark:text-indigo-300 transition {{ $slots === 0 || $c->status !== 'active' ? 'pointer-events-none opacity-40' : '' }}">
+                    <i class="bi bi-person-plus"></i>Participantes
+                </a>
+            @endif
+        </div>
 
-        <button wire:click="confirmDelete({{ $consortium->id }})"
-            class="flex items-center justify-center gap-1 p-2.5 text-red-600 hover:text-white hover:bg-red-600 dark:text-red-400 dark:hover:text-white dark:hover:bg-red-600 bg-red-50 dark:bg-red-900/20 hover:bg-red-600 rounded-xl transition-all transform hover:scale-105 border border-red-200 dark:border-red-700"
-            title="Excluir">
-            <i class="bi bi-trash text-lg"></i>
-        </button>
+        {{-- Ações rápidas --}}
+        <div class="mt-2 flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-2">
+            <a href="{{ route('consortiums.edit', $c) }}" class="{{ $iconBtn }} hover:text-indigo-600" title="Editar"><i class="bi bi-pencil"></i></a>
+            <a href="{{ route('consortiums.add-participants', $c) }}" class="{{ $iconBtn }} hover:text-sky-600" title="Adicionar participantes"><i class="bi bi-person-plus"></i></a>
+            @if($isDraw)
+                <a href="{{ route('consortiums.draw', $c) }}" class="{{ $iconBtn }} hover:text-purple-600" title="Sorteio"><i class="bi bi-shuffle"></i></a>
+            @endif
+            <button type="button" wire:click="$dispatch('openExportModal', { consortiumId: {{ $c->id }} })" class="{{ $iconBtn }} hover:text-emerald-600" title="Exportar"><i class="bi bi-download"></i></button>
+            @if(($members ?? 0) === 0 && (int) ($c->draws_count ?? 0) === 0)
+                <button type="button" wire:click="confirmDelete({{ $c->id }})" class="{{ $iconBtn }} hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10" title="Excluir"><i class="bi bi-trash"></i></button>
+            @else
+                <span class="{{ $iconBtn }} opacity-30 cursor-not-allowed" title="Tem participantes ou sorteios: desative na tela do consórcio"><i class="bi bi-trash"></i></span>
+            @endif
+        </div>
     </div>
 </div>

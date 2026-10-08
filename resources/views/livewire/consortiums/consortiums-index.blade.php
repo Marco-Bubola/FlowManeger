@@ -1,177 +1,64 @@
-<div class="consortiums-index-page w-full mobile-393-base">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortiums-index-ultrawide.css') }}">
-    showFilters: false,
-    fullHd: false,
-    ultra: false,
-    showDeleteModal: @entangle('showDeleteModal').live,
-    initResponsiveWatcher() {
-        const mq = window.matchMedia('(min-width: 1850px)');
-        const mqUltra = window.matchMedia('(min-width: 2400px)');
+<div x-data="{ showFilters: false, showDeleteModal: @entangle('showDeleteModal').live }" class="consortiums-index-page w-full mobile-393-base relative">
+    <style>[x-cloak] { display: none !important; }</style>
 
-        const sync = () => {
-            this.fullHd = mq.matches;
-            if (typeof $wire !== 'undefined') {
-                $wire.set('fullHdLayout', mq.matches);
-            }
-        };
+    {{-- Cabeçalho no mesmo padrão de Clientes --}}
+    <div class="relative overflow-hidden mb-6 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+        <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_32%)]"></div>
+        <div class="pointer-events-none absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
 
-        const syncUltra = () => {
-            this.ultra = mqUltra.matches;
-            if (typeof $wire !== 'undefined') {
-                $wire.set('ultraWindClient', mqUltra.matches);
-            }
-        };
-
-        sync();
-        syncUltra();
-
-        if (typeof mq.addEventListener === 'function') {
-            mq.addEventListener('change', sync);
-        } else if (typeof mq.addListener === 'function') {
-            mq.addListener(sync);
-        }
-
-        if (typeof mqUltra.addEventListener === 'function') {
-            mqUltra.addEventListener('change', syncUltra);
-        } else if (typeof mqUltra.addListener === 'function') {
-            mqUltra.addListener(syncUltra);
-        }
-    }
-}" x-init="initResponsiveWatcher()" x-bind:data-ultrawind="ultra ? 'true' : 'false'"
-    x-bind:data-full-hd="fullHd ? 'true' : 'false'">
-
-    <style>
-        [x-cloak] {
-            display: none !important;
-        }
-    </style>
-
-    <!-- Header Moderno -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-emerald-50/90 to-teal-50/80 dark:from-slate-800/90 dark:via-emerald-900/30 dark:to-teal-900/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-
-        <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-emerald-400/20 via-teal-400/20 to-green-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-        <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-emerald-400/10 to-teal-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
-
-        <div class="relative px-4 py-3">
-                <div class="flex items-center justify-between gap-6 mb-6">
-                    <div class="flex items-center gap-6">
-                        <div class="relative flex items-center justify-center w-16 h-16 bg-gradient-to-br from-emerald-500 via-teal-500 to-green-500 rounded-2xl shadow-xl shadow-emerald-500/25">
-                            <i class="bi bi-piggy-bank text-white text-3xl"></i>
-                            <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <!-- Breadcrumb -->
-                            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                    <i class="fas fa-home mr-1"></i>Dashboard
-                                </a>
-                                <i class="fas fa-chevron-right text-xs"></i>
-                                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                                    <i class="fas fa-handshake mr-1"></i>Consórcios
-                                </span>
-                            </div>
-
-                            <h1 class="text-4xl font-bold bg-gradient-to-r from-slate-800 via-emerald-700 to-teal-700 dark:from-slate-100 dark:via-emerald-300 dark:to-teal-300 bg-clip-text text-transparent">
-                                Consórcios
-                            </h1>
-
-                            <div class="flex items-center gap-4">
-                                <div class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-emerald-500/20 to-green-500/20 rounded-xl border border-emerald-200 dark:border-emerald-700">
-                                    <i class="bi bi-check-circle text-emerald-600 dark:text-emerald-400"></i>
-                                    <span class="text-sm font-semibold text-emerald-700 dark:text-emerald-300">{{ $totalActive }} ativos</span>
-                                </div>
-                                @if($totalCompleted > 0)
-                                <div class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-blue-500/20 to-indigo-500/20 rounded-xl border border-blue-200 dark:border-blue-700">
-                                    <i class="bi bi-trophy text-blue-600 dark:text-blue-400"></i>
-                                    <span class="text-sm font-semibold text-blue-700 dark:text-blue-300">{{ $totalCompleted }} concluídos</span>
-                                </div>
-                                @endif
-                                @if($totalParticipants > 0)
-                                <div class="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-200 dark:border-purple-700">
-                                    <i class="bi bi-people text-purple-600 dark:text-purple-400"></i>
-                                    <span class="text-sm font-semibold text-purple-700 dark:text-purple-300">{{ $totalParticipants }} participantes</span>
-                                </div>
-                                @endif
-                            </div>
+        <div class="relative px-4 sm:px-6 py-4 sm:py-5">
+            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                    <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg shadow-purple-500/25">
+                        <i class="bi bi-piggy-bank text-white text-2xl"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-300"><i class="bi bi-house mr-1"></i>Dashboard</a>
+                            <i class="bi bi-chevron-right text-[10px]"></i>
+                            <span class="text-indigo-600 dark:text-indigo-300"><i class="bi bi-piggy-bank mr-1"></i>Consórcios</span>
+                        </nav>
+                        <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">Consórcios</h1>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                            <span class="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-200 dark:border-indigo-700 px-2 py-1 text-indigo-700 dark:text-indigo-300"><i class="bi bi-play-circle"></i>{{ $totalActive }} ativo{{ $totalActive === 1 ? '' : 's' }}</span>
+                            @if($totalParticipants > 0)
+                                <span class="inline-flex items-center gap-1 rounded-lg bg-purple-500/10 border border-purple-200 dark:border-purple-700 px-2 py-1 text-purple-700 dark:text-purple-300"><i class="bi bi-people"></i>{{ $totalParticipants }} participantes</span>
+                            @endif
+                            @if($totalCompleted > 0)
+                                <span class="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 border border-indigo-200 dark:border-indigo-700 px-2 py-1 text-indigo-700 dark:text-indigo-300"><i class="bi bi-check-circle"></i>{{ $totalCompleted }} concluído{{ $totalCompleted === 1 ? '' : 's' }}</span>
+                            @endif
                         </div>
                     </div>
+                </div>
 
-                    <div class="flex items-center gap-3">
-                        <div class="relative group w-96">
-                            <input type="text" wire:model.live.debounce.300ms="search"
-                                placeholder="Buscar consórcios..."
-                                class="w-full pl-10 pr-10 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all duration-200 shadow-md text-sm">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                <i class="bi bi-search text-slate-400 group-focus-within:text-emerald-500 transition-colors"></i>
-                            </div>
-                            <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
-                                class="absolute right-2 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
-                                <i class="bi bi-x text-xs"></i>
-                            </button>
-                        </div>
-
-                        <div class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl shadow-md">
-                            <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
-                                <i class="bi bi-piggy-bank text-white text-sm"></i>
-                            </div>
-                            <div class="text-sm">
-                                <span class="font-bold text-slate-800 dark:text-slate-200">{{ $consortiums->total() }}</span>
-                                <span class="text-slate-600 dark:text-slate-400 ml-1">{{ $consortiums->total() === 1 ? 'consórcio' : 'consórcios' }}</span>
-                            </div>
-                        </div>
-
-                        @if ($consortiums->hasPages())
-                        <div class="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-600 rounded-xl p-1 shadow-md">
-                            @if ($consortiums->currentPage() > 1)
-                            <button wire:click.prevent="previousPage" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
-                                <i class="bi bi-chevron-left text-sm text-slate-600 dark:text-slate-300"></i>
-                            </button>
-                            @endif
-                            <span class="px-2 text-xs font-medium text-slate-700 dark:text-slate-300">
-                                {{ $consortiums->currentPage() }} / {{ $consortiums->lastPage() }}
-                            </span>
-                            @if ($consortiums->hasMorePages())
-                            <button wire:click.prevent="nextPage" class="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-all">
-                                <i class="bi bi-chevron-right text-sm text-slate-600 dark:text-slate-300"></i>
-                            </button>
-                            @endif
-                        </div>
-                        @endif
-
-                        <button wire:click="$dispatch('openExportModal')"
-                            class="p-2.5 bg-gradient-to-br from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
-                            title="Exportar">
-                            <i class="bi bi-download"></i>
-                        </button>
-
-                        <button wire:click="toggleTips"
-                            class="p-2.5 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
-                            title="Dicas">
-                            <i class="bi bi-lightbulb"></i>
-                        </button>
-
-                        <button @click="showFilters = !showFilters"
-                            class="p-2.5 bg-white/80 hover:bg-emerald-100 dark:bg-slate-800/80 dark:hover:bg-emerald-900/50 border border-slate-200 dark:border-slate-600 rounded-xl transition-all duration-200 shadow-md"
-                            :class="{ 'bg-emerald-100 dark:bg-emerald-900 border-emerald-300 dark:border-emerald-600': showFilters }">
-                            <i class="bi bi-funnel text-emerald-600 dark:text-emerald-400"></i>
-                        </button>
-
+                <div class="flex flex-col sm:flex-row sm:items-center gap-2 xl:max-w-[60%] w-full xl:w-auto">
+                    <div class="relative flex-1 sm:min-w-[260px]">
+                        <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar consórcio pelo nome"
+                            class="w-full pl-10 pr-9 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 shadow-sm focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400">
+                        <button type="button" wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0" x-cloak
+                            class="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-rose-500 dark:hover:bg-slate-700" title="Limpar busca"><i class="bi bi-x-lg text-xs"></i></button>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-2.5 rounded-xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm whitespace-nowrap">
+                            <i class="bi bi-piggy-bank text-indigo-500"></i>{{ $consortiums->total() }}
+                        </span>
+                        <button type="button" @click="showFilters = !showFilters" title="Filtros"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600"
+                            :class="{ '!bg-indigo-50 !border-indigo-300 !text-indigo-600 dark:!bg-indigo-500/10': showFilters }"><i class="bi bi-funnel"></i></button>
+                        <button type="button" wire:click="$dispatch('openExportModal')" title="Exportar"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-sm hover:text-indigo-600"><i class="bi bi-download"></i></button>
+                        <button type="button" wire:click="toggleTips" title="Como funciona"
+                            class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200/80 dark:border-slate-600 bg-white/90 dark:bg-slate-800/90 text-slate-600 dark:text-slate-300 shadow-sm hover:text-amber-500"><i class="bi bi-lightbulb"></i></button>
                         <a href="{{ route('consortiums.create') }}"
-                           class="group flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                            <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
-                            <span class="text-sm">Novo Consórcio</span>
+                            class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 whitespace-nowrap">
+                            <i class="bi bi-plus-lg"></i>Consórcio
                         </a>
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
     <!-- Filtros Avançados -->
     <div x-show="showFilters"
@@ -183,15 +70,15 @@
          x-transition:leave-end="opacity-0 transform -translate-y-2"
          class="mb-6">
 
-        <div class="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-700 dark:to-emerald-900 rounded-3xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl shadow-emerald-500/5 dark:shadow-emerald-500/10 backdrop-blur-xl">
+        <div class="relative overflow-hidden bg-gradient-to-br from-white via-slate-50 to-indigo-50 dark:from-slate-800 dark:via-slate-700 dark:to-indigo-900 rounded-3xl border border-slate-200/50 dark:border-slate-600/50 shadow-xl shadow-indigo-500/5 dark:shadow-indigo-500/10 backdrop-blur-xl">
             <!-- Fundo decorativo -->
-            <div class="absolute inset-0 bg-gradient-to-r from-emerald-50/50 via-transparent to-teal-50/50 dark:from-emerald-900/20 dark:via-transparent dark:to-teal-900/20"></div>
+            <div class="absolute inset-0 bg-gradient-to-r from-indigo-50/50 via-transparent to-purple-50/50 dark:from-indigo-900/20 dark:via-transparent dark:to-purple-900/20"></div>
 
             <!-- Header do painel de filtros -->
             <div class="relative p-6 border-b border-slate-200/50 dark:border-slate-600/50">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-3">
-                        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl shadow-lg">
+                        <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl shadow-lg">
                             <i class="bi bi-funnel text-white text-lg"></i>
                         </div>
                         <div>
@@ -221,15 +108,15 @@
                     <!-- Coluna 1: Status do Consórcio -->
                     <div class="space-y-3">
                         <h4 class="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                            <i class="bi bi-flag mr-1 text-emerald-500"></i>
+                            <i class="bi bi-flag mr-1 text-indigo-500"></i>
                             Status do Consórcio
                         </h4>
                         <div class="grid grid-cols-2 gap-2">
                             <!-- Todos os Status -->
                             <button wire:click="$set('statusFilter', '')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-emerald-300 dark:hover:border-emerald-500 transition-all duration-200 {{ $statusFilter === '' ? 'ring-2 ring-emerald-500 bg-emerald-50 dark:bg-emerald-900/30' : '' }}">
+                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all duration-200 {{ $statusFilter === '' ? 'ring-2 ring-indigo-500 bg-indigo-50 dark:bg-indigo-900/30' : '' }}">
                                 <div class="text-center">
-                                    <i class="bi bi-list-ul text-emerald-500 text-lg"></i>
+                                    <i class="bi bi-list-ul text-indigo-500 text-lg"></i>
                                     <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Todos</div>
                                 </div>
                             </button>
@@ -290,9 +177,9 @@
 
                             <!-- Mês -->
                             <button wire:click="setQuickFilter('month')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-500 transition-all duration-200 {{ $quickFilter === 'month' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-900/30' : '' }}">
+                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $quickFilter === 'month' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
                                 <div class="text-center">
-                                    <i class="bi bi-calendar-month text-teal-500 text-lg"></i>
+                                    <i class="bi bi-calendar-month text-purple-500 text-lg"></i>
                                     <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Mês</div>
                                 </div>
                             </button>
@@ -378,14 +265,14 @@
 
                             <!-- Ordenar por Início -->
                             <button wire:click="sortByField('start_date')"
-                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-teal-300 dark:hover:border-teal-500 transition-all duration-200 {{ $sortBy === 'start_date' ? 'ring-2 ring-teal-500 bg-teal-50 dark:bg-teal-900/30' : '' }}">
+                                    class="group p-3 bg-white dark:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-purple-300 dark:hover:border-purple-500 transition-all duration-200 {{ $sortBy === 'start_date' ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-900/30' : '' }}">
                                 <div class="flex items-center justify-between">
                                     <div class="text-center w-full">
-                                        <i class="bi bi-calendar-check text-teal-500 text-lg"></i>
+                                        <i class="bi bi-calendar-check text-purple-500 text-lg"></i>
                                         <div class="text-xs font-medium text-slate-700 dark:text-slate-300 mt-1">Início</div>
                                     </div>
                                     @if($sortBy === 'start_date')
-                                        <i class="bi bi-{{ $sortDirection === 'asc' ? 'arrow-up' : 'arrow-down' }} text-teal-500 text-sm absolute top-1 right-1"></i>
+                                        <i class="bi bi-{{ $sortDirection === 'asc' ? 'arrow-up' : 'arrow-down' }} text-purple-500 text-sm absolute top-1 right-1"></i>
                                     @endif
                                 </div>
                             </button>
@@ -398,17 +285,13 @@
     </div>
 
     <!-- Grid de Cards (Responsivo com Ultra Wide) -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-4 ultrawind:grid-cols-6 gap-6 mb-8"
-         data-ultrawind="{{ $ultraWindClient ?? false ? 'true' : 'false' }}"
-         data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
-         x-bind:data-ultrawind="ultra ? 'true' : 'false'"
-         x-bind:data-full-hd="fullHd ? 'true' : 'false'">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-5 mb-8">
             @forelse($consortiums as $consortium)
                 <x-consortium-card :consortium="$consortium" />
             @empty
-                <div class="lg:col-span-2">
+                <div class="col-span-full">
                     <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-12 text-center border border-gray-200 dark:border-zinc-700">
-                        <div class="w-20 h-20 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <div class="w-20 h-20 bg-gradient-to-r from-indigo-400 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-6">
                             <i class="bi bi-piggy-bank text-white text-3xl"></i>
                         </div>
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">
@@ -422,7 +305,7 @@
                             @endif
                         </p>
                         <a href="{{ route('consortiums.create') }}"
-                            class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 rounded-xl hover:from-emerald-700 hover:via-teal-700 hover:to-green-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            class="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-xl hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                             <i class="bi bi-plus-circle mr-2"></i>
                             Criar Novo Consórcio
                         </a>
@@ -434,7 +317,7 @@
     <!-- Paginação -->
     @if ($consortiums->hasPages())
             <div class="mt-8">
-                <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-white via-slate-50 to-emerald-50 dark:from-slate-800 dark:via-slate-700 dark:to-emerald-900 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-600/50 p-4 md:p-6 backdrop-blur-xl">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 bg-gradient-to-r from-white via-slate-50 to-indigo-50 dark:from-slate-800 dark:via-slate-700 dark:to-indigo-900 rounded-2xl shadow-xl border border-slate-200/50 dark:border-slate-600/50 p-4 md:p-6 backdrop-blur-xl">
 
                     <div class="flex items-center gap-4">
                         <div class="flex items-center gap-2">
@@ -474,7 +357,7 @@
 
                         @for ($i = $start; $i <= $end; $i++)
                             <button wire:click.prevent="gotoPage({{ $i }})" wire:loading.attr="disabled"
-                                class="px-3 py-1 rounded-md text-sm {{ $consortiums->currentPage() === $i ? 'bg-emerald-600 text-white' : 'bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600' }}">
+                                class="px-3 py-1 rounded-md text-sm {{ $consortiums->currentPage() === $i ? 'bg-indigo-600 text-white' : 'bg-slate-100 dark:bg-zinc-700 text-slate-600 dark:text-slate-200 hover:bg-white dark:hover:bg-zinc-600' }}">
                                 {{ $i }}
                             </button>
                         @endfor
@@ -497,7 +380,7 @@
                             class="w-20 text-sm rounded-lg border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-1 text-slate-700 dark:text-slate-200"
                             placeholder="#">
                         <button @click.prevent="$wire.call('gotoPage', $refs.pageInput.value)"
-                            class="px-3 py-1 rounded-md text-sm bg-emerald-600 text-white">
+                            class="px-3 py-1 rounded-md text-sm bg-indigo-600 text-white">
                             Ir
                         </button>
                     </div>
@@ -535,7 +418,7 @@
                 x-transition:leave-end="opacity-0 scale-95">
 
                 <!-- Header with Progress Bar -->
-                <div class="relative bg-gradient-to-br from-emerald-600 via-teal-600 to-green-700 px-8 py-6 text-white">
+                <div class="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-700 px-8 py-6 text-white">
                     <button @click="$wire.toggleTips()" class="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-all duration-200">
                         <i class="bi bi-x-lg text-xl"></i>
                     </button>
@@ -547,7 +430,7 @@
                             </div>
                             <div>
                                 <h2 class="text-3xl font-bold">Dicas de Consórcios</h2>
-                                <p class="text-emerald-100 text-sm mt-1">Aprenda a gerenciar seus consórcios com eficiência</p>
+                                <p class="text-indigo-100 text-sm mt-1">Aprenda a gerenciar seus consórcios com eficiência</p>
                             </div>
                         </div>
 
@@ -568,7 +451,7 @@
                     <!-- Step 1: Visão Geral -->
                     <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-3xl shadow-xl mb-6">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl shadow-xl mb-6">
                                 <i class="bi bi-piggy-bank text-5xl text-white"></i>
                             </div>
                             <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Visão Geral de Consórcios</h3>
@@ -576,9 +459,9 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="p-6 bg-gradient-to-br from-emerald-50 to-green-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-emerald-200/50 dark:border-slate-500/50">
+                            <div class="p-6 bg-gradient-to-br from-indigo-50 to-pink-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-indigo-200/50 dark:border-slate-500/50">
                                 <div class="flex items-start gap-4">
-                                    <div class="p-3 bg-emerald-500 rounded-xl">
+                                    <div class="p-3 bg-indigo-500 rounded-xl">
                                         <i class="bi bi-check-circle text-2xl text-white"></i>
                                     </div>
                                     <div>
@@ -629,7 +512,7 @@
                     <!-- Step 2: Status -->
                     <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-300 delay-75" x-transition:enter-start="opacity-0 translate-x-8" x-transition:enter-end="opacity-100 translate-x-0">
                         <div class="text-center mb-8">
-                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-3xl shadow-xl mb-6">
+                            <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-purple-500 to-cyan-600 rounded-3xl shadow-xl mb-6">
                                 <i class="bi bi-flag text-5xl text-white"></i>
                             </div>
                             <h3 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Status de Consórcios</h3>
@@ -637,7 +520,7 @@
                         </div>
 
                         <div class="space-y-4">
-                            <div class="p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border-2 border-green-300 dark:border-green-600">
+                            <div class="p-6 bg-gradient-to-r from-green-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border-2 border-green-300 dark:border-green-600">
                                 <div class="flex items-center gap-4 mb-3">
                                     <span class="flex items-center justify-center w-12 h-12 bg-green-500 rounded-xl">
                                         <i class="bi bi-check-circle-fill text-2xl text-white"></i>
@@ -752,7 +635,7 @@
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div class="p-6 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50 dark:border-slate-500/50">
+                            <div class="p-6 bg-gradient-to-br from-green-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-green-200/50 dark:border-slate-500/50">
                                 <div class="flex items-start gap-4">
                                     <div class="p-3 bg-green-500 rounded-xl">
                                         <i class="bi bi-plus-circle text-2xl text-white"></i>
@@ -801,9 +684,9 @@
                             </div>
                         </div>
 
-                        <div class="p-6 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-emerald-200/50 dark:border-slate-500/50">
+                        <div class="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-slate-700 dark:to-slate-600 rounded-2xl border border-indigo-200/50 dark:border-slate-500/50">
                             <div class="flex items-center gap-3 mb-3">
-                                <i class="bi bi-lightbulb text-2xl text-emerald-500"></i>
+                                <i class="bi bi-lightbulb text-2xl text-indigo-500"></i>
                                 <h4 class="text-lg font-bold text-slate-800 dark:text-white">Dica Final</h4>
                             </div>
                             <p class="text-slate-700 dark:text-slate-300 text-sm">
@@ -826,13 +709,13 @@
                         <template x-for="step in totalSteps" :key="step">
                             <button @click="currentStep = step"
                                 class="w-3 h-3 rounded-full transition-all duration-300"
-                                :class="currentStep === step ? 'bg-emerald-600 w-8' : 'bg-slate-300 dark:bg-slate-600 hover:bg-emerald-400'">
+                                :class="currentStep === step ? 'bg-indigo-600 w-8' : 'bg-slate-300 dark:bg-slate-600 hover:bg-indigo-400'">
                             </button>
                         </template>
                     </div>
 
                     <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
-                        class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-teal-700 transition-all duration-200 shadow-md hover:shadow-lg"
+                        class="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-700 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
                         x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir'">
                     </button>
                 </div>

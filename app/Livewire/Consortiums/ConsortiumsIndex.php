@@ -175,8 +175,17 @@ class ConsortiumsIndex extends Component
 
     public function getConsortiumsProperty()
     {
+        // Números dos cards numa consulta só (antes eram ~8 por card).
         $query = Consortium::where('user_id', Auth::id())
-            ->with(['participants', 'draws']);
+            ->withCount([
+                'participants as members_count' => fn ($q) => $q->where('status', '!=', 'quit'),
+                'participants as contemplated_total' => fn ($q) => $q->where('is_contemplated', true),
+                'participants as eligible_total' => fn ($q) => Consortium::filterEligible($q),
+                'draws',
+                'payments as overdue_total' => fn ($q) => $q->where('consortium_payments.status', 'pending')->whereDate('consortium_payments.due_date', '<', today()),
+            ])
+            ->withSum('participants as collected_total', 'total_paid')
+            ->withMax('draws as last_draw_at', 'draw_date');
 
         // Filtro de busca
         if ($this->search) {

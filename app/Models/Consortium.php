@@ -113,6 +113,12 @@ class Consortium extends Model
         return $this->hasMany(ConsortiumParticipant::class)->where('status', '!=', 'quit');
     }
 
+    /** Todas as parcelas de todos os participantes. */
+    public function payments(): \Illuminate\Database\Eloquent\Relations\HasManyThrough
+    {
+        return $this->hasManyThrough(ConsortiumPayment::class, ConsortiumParticipant::class, 'consortium_id', 'consortium_participant_id');
+    }
+
     public function draws(): HasMany
     {
         return $this->hasMany(ConsortiumDraw::class);
@@ -237,10 +243,19 @@ class Consortium extends Model
      */
     public function eligibleParticipantsCount(): int
     {
-        return $this->participants()
-            ->where('status', 'active')
+        return static::filterEligible($this->participants())->count();
+    }
+
+    /**
+     * Quem pode ser sorteado: ativo, não contemplado, com ao menos 1 parcela
+     * paga e nada vencido há mais de 30 dias (mesma regra da tela de sorteio).
+     */
+    public static function filterEligible($query)
+    {
+        return $query->where('status', 'active')
             ->where('is_contemplated', false)
-            ->count();
+            ->whereHas('payments', fn ($q) => $q->where('status', 'paid'))
+            ->whereDoesntHave('payments', fn ($q) => $q->where('status', 'pending')->where('due_date', '<', now()->subDays(30)));
     }
 
     // Accessor para label de frequência
