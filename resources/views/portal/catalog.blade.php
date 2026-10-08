@@ -57,9 +57,9 @@
 
     /* Faixa de boas-vindas */
     .ml-hero { margin-top: 12px; border-radius: var(--ml-radius); overflow: hidden; position: relative; padding: 18px 18px 20px; color: #fff;
-        background: radial-gradient(120% 140% at 100% 0%, #5b6bff 0%, rgba(91,107,255,0) 55%), linear-gradient(135deg, #2d3277 0%, #3483fa 100%); }
-    .ml-hero::after { content: ''; position: absolute; right: -40px; bottom: -60px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,230,0,.18); }
-    .ml-hero small { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: var(--ml-yellow); color: #2d3277; padding: 4px 9px; border-radius: 999px; }
+        background: var(--ml-hero); }
+    .ml-hero::after { content: ''; position: absolute; right: -40px; bottom: -60px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,.12); }
+    .ml-hero small { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: #fff; color: var(--ml-blue-dark); padding: 4px 9px; border-radius: 999px; }
     .ml-hero h1 { margin: 10px 0 4px; font-size: 22px; line-height: 1.15; font-weight: 900; max-width: 520px; }
     .ml-hero p { margin: 0; font-size: 13px; opacity: .9; max-width: 460px; }
     .ml-hero-stats { display: flex; gap: 8px; margin-top: 14px; position: relative; z-index: 1; flex-wrap: wrap; }
@@ -87,7 +87,7 @@
     .ml-rail .ml-card { flex: 0 0 152px; scroll-snap-align: start; border: 1px solid var(--ml-line); box-shadow: none; }
 
     /* Barra de filtros */
-    .ml-toolbar { position: sticky; top: calc(85px + env(safe-area-inset-top)); z-index: 40; background: var(--ml-bg); box-shadow: 0 -14px 0 var(--ml-bg); margin: 0 -12px; padding: 10px 12px 8px; display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .ml-toolbar { position: sticky; top: calc(59px + env(safe-area-inset-top)); z-index: 40; background: var(--ml-bg); margin: 0 -12px; padding: 10px 12px 8px; display: flex; align-items: center; gap: 8px; overflow-x: auto; scrollbar-width: none; }
     .ml-toolbar::-webkit-scrollbar { display: none; }
     .ml-count-txt { font-size: 13px; color: var(--ml-muted); white-space: nowrap; margin-right: auto; padding-left: 2px; }
     .ml-chip { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 999px; background: #fff; border: 1px solid #d9d9d9; font-size: 13px; font-weight: 600; color: #333; white-space: nowrap; cursor: pointer; }
@@ -219,6 +219,38 @@
     .ml-cartbar-sum strong { font-size: 18px; font-weight: 700; }
     .ml-cartbar .ml-btn { width: auto; padding: 0 22px; height: 46px; }
 
+    .ml-cart { position: fixed; z-index: 92; top: 0; right: 0; bottom: 0; width: min(420px, 100vw); background: #fff; display: flex; flex-direction: column; box-shadow: -8px 0 30px rgba(0,0,0,.2); padding-top: env(safe-area-inset-top); }
+    .ml-cart-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 8px 10px 16px; border-bottom: 1px solid var(--ml-line); }
+    .ml-cart-head h2 { margin: 0; font-size: 18px; font-weight: 800; }
+    .ml-cart-head small { color: var(--ml-muted); font-weight: 600; font-size: 14px; }
+    .ml-cart-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 30px; color: var(--ml-muted); }
+    .ml-cart-empty > i { font-size: 46px; color: #d4d4d8; }
+    .ml-cart-empty h3 { margin: 14px 0 6px; color: #333; font-size: 17px; }
+    .ml-cart-empty p { margin: 0 0 18px; font-size: 14px; }
+    .ml-cart-list { list-style: none; margin: 0; padding: 4px 16px; flex: 1; overflow-y: auto; overscroll-behavior: contain; }
+    .ml-cart-item { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--ml-line); }
+    .ml-cart-img { width: 72px; height: 72px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 1px solid var(--ml-line); background: #fff; }
+    .ml-cart-img img { width: 100%; height: 100%; object-fit: contain; }
+    .ml-cart-img .ml-ph { font-size: 22px; }
+    .ml-cart-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+    .ml-cart-info p { margin: 0; font-size: 14px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .ml-cart-info strong { font-size: 17px; font-weight: 700; margin-top: 2px; }
+    .ml-cart-info small { font-size: 12px; color: var(--ml-muted); }
+    .ml-cart-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 8px; }
+    .ml-cart-row .ml-step { box-shadow: none; border: 1px solid var(--ml-line); }
+    .ml-cart-row .ml-step button { width: 32px; height: 32px; }
+    .ml-cart-del { border: 0; background: transparent; color: var(--ml-red); font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 8px 4px; cursor: pointer; }
+    .ml-cart-foot { border-top: 1px solid var(--ml-line); padding: 12px 16px calc(14px + env(safe-area-inset-bottom)); display: grid; gap: 8px; box-shadow: 0 -4px 12px rgba(0,0,0,.05); }
+    .ml-cart-total { display: flex; align-items: baseline; justify-content: space-between; }
+    .ml-cart-total span { font-size: 15px; }
+    .ml-cart-total strong { font-size: 22px; font-weight: 800; }
+    .ml-cart-note { margin: 0; font-size: 12px; color: var(--ml-muted); text-align: center; }
+    .ml-cart-note a { color: var(--ml-blue); font-weight: 700; }
+    .ml-cart-clear { border: 0; background: transparent; color: var(--ml-muted); font-size: 13px; font-weight: 600; padding: 4px; cursor: pointer; text-decoration: underline; }
+    .ml-cart-in { animation: mlSide .25s cubic-bezier(.2,.8,.2,1); }
+    .ml-cart-out { animation: mlSide .18s reverse ease-in; }
+    @keyframes mlSide { from { transform: translateX(100%); } to { transform: none; } }
+
     .ml-toast { position: fixed; z-index: 95; left: 50%; bottom: 92px; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.25); max-width: calc(100vw - 32px); white-space: nowrap; }
     .ml-toast i { color: #3fe08a; }
     .ml-toast span { overflow: hidden; text-overflow: ellipsis; }
@@ -229,13 +261,13 @@
 </style>
 @endpush
 
-<div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl))" @keydown.escape.window="close()">
+<div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl))" @keydown.escape.window="close(); cartOpen = false" @open-cart.window="openCart()">
 
     @if($showOffers)
         <section class="ml-hero">
             <small><i class="fas fa-bolt"></i> Ofertas da semana</small>
             <h1>Até {{ $offers->max(fn ($o) => $o->livePromotion()->discount_percent) }}% OFF em produtos selecionados</h1>
-            <p>Escolha, adicione ao carrinho e finalize seu pedido com {{ $store?->name ?? 'a loja' }}.</p>
+            <p>Escolha, adicione ao carrinho e finalize seu pedido em poucos toques.</p>
             <div class="ml-hero-stats">
                 <span><i class="fas fa-tag"></i> {{ $offers->count() }} {{ $offers->count() === 1 ? 'oferta' : 'ofertas' }}</span>
                 <span><i class="fas fa-box"></i> {{ $products->total() }} produtos</span>
@@ -410,7 +442,7 @@
                         </div>
                         <div class="ml-perk">
                             <i class="fas fa-shield-halved"></i>
-                            <span>Compra direta com <b style="color:#333">{{ $store?->name ?? 'a loja' }}</b><small>Seu pedido chega para a loja confirmar.</small></span>
+                            <span>Compra direta com <b style="color:#333">a loja</b><small>Seu pedido chega para a loja confirmar.</small></span>
                         </div>
 
                         <div class="ml-qty">
@@ -450,16 +482,73 @@
         </div>
     </template>
 
+    {{-- Carrinho (abre sem login; só finalizar pede conta) --}}
+    <div class="ml-sheet-bg" x-show="cartOpen" x-cloak x-transition.opacity @click="closeCart()"></div>
+    <aside class="ml-cart" x-show="cartOpen" x-cloak role="dialog" aria-modal="true" aria-label="Carrinho"
+           x-transition:enter="ml-cart-in" x-transition:leave="ml-cart-out">
+        <div class="ml-cart-head">
+            <h2>Meu carrinho <small x-show="$store.cart.count" x-text="'(' + $store.cart.count + ')'"></small></h2>
+            <button type="button" class="ml-x" @click="closeCart()" aria-label="Fechar"><i class="fas fa-xmark"></i></button>
+        </div>
+
+        <div class="ml-cart-empty" x-show="!$store.cart.count">
+            <i class="fas fa-cart-shopping"></i>
+            <h3>Seu carrinho está vazio</h3>
+            <p>Toque em <i class="fas fa-cart-plus"></i> num produto para adicionar.</p>
+            <button type="button" class="ml-btn ml-btn-primary ml-btn-sm" @click="closeCart()">Ver produtos</button>
+        </div>
+
+        <ul class="ml-cart-list" x-show="$store.cart.count">
+            <template x-for="item in $store.cart.items" :key="item.id">
+                <li class="ml-cart-item">
+                    <div class="ml-cart-img">
+                        <template x-if="item.img"><img :src="item.img" alt="" x-on:error="item.img = null"></template>
+                        <template x-if="!item.img"><div class="ml-ph"><i class="fas fa-image"></i></div></template>
+                    </div>
+                    <div class="ml-cart-info">
+                        <p x-text="item.name"></p>
+                        <strong x-text="money(item.price * item.qty)"></strong>
+                        <small x-show="item.qty > 1" x-text="item.qty + ' × ' + money(item.price)"></small>
+                        <div class="ml-cart-row">
+                            <div class="ml-step">
+                                <button type="button" @click="$store.cart.setQty(item.id, item.qty - 1)" :disabled="item.qty <= 1" aria-label="Menos"><i class="fas fa-minus"></i></button>
+                                <span x-text="item.qty"></span>
+                                <button type="button" @click="$store.cart.setQty(item.id, item.qty + 1)" :disabled="item.stock && item.qty >= item.stock" aria-label="Mais"><i class="fas fa-plus"></i></button>
+                            </div>
+                            <button type="button" class="ml-cart-del" @click="$store.cart.remove(item.id)">
+                                <i class="fas fa-trash-can"></i> Remover
+                            </button>
+                        </div>
+                    </div>
+                </li>
+            </template>
+        </ul>
+
+        <div class="ml-cart-foot" x-show="$store.cart.count">
+            <div class="ml-cart-total">
+                <span>Total</span>
+                <strong x-text="money($store.cart.total)"></strong>
+            </div>
+            <a href="{{ $cartUrl }}" class="ml-btn ml-btn-primary">
+                {{ Auth::guard('portal')->check() ? 'Finalizar pedido' : 'Entrar para finalizar' }}
+            </a>
+            @guest('portal')
+                <p class="ml-cart-note">Ainda não tem conta? <a href="{{ route('portal.register', ['redirect' => 'cart', 'loja' => $owner]) }}">Criar conta</a>. Seu carrinho continua salvo.</p>
+            @endguest
+            <button type="button" class="ml-cart-clear" @click="if (confirm('Tirar todos os produtos do carrinho?')) $store.cart.clear()">Esvaziar carrinho</button>
+        </div>
+    </aside>
+
     {{-- Carrinho fixo --}}
-    <div class="ml-cartbar" x-show="$store.cart.count > 0" x-cloak x-transition.opacity>
+    <div class="ml-cartbar" x-show="$store.cart.count > 0 && !cartOpen" x-cloak x-transition.opacity>
         <div class="ml-cartbar-in">
             <div class="ml-cartbar-sum">
                 <small x-text="$store.cart.count + ($store.cart.count === 1 ? ' produto no carrinho' : ' produtos no carrinho')"></small>
                 <strong x-text="money($store.cart.total)"></strong>
             </div>
-            <a href="{{ $cartUrl }}" class="ml-btn ml-btn-primary">
-                {{ Auth::guard('portal')->check() ? 'Ver carrinho' : 'Finalizar pedido' }}
-            </a>
+            <button type="button" class="ml-btn ml-btn-primary" @click="openCart()">
+                <i class="fas fa-cart-shopping"></i> Ver carrinho
+            </button>
         </div>
     </div>
 
@@ -488,6 +577,7 @@ function mlCatalog(products, cartUrl) {
         qty: 1,
         slide: 0,
         toast: '',
+        cartOpen: false,
         timer: null,
         money(v) {
             return (Number(v) || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -515,9 +605,19 @@ function mlCatalog(products, cartUrl) {
             clearTimeout(this.timer);
             this.timer = setTimeout(() => this.toast = '', 2200);
         },
+        openCart() {
+            this.p = null;
+            this.toast = '';
+            this.cartOpen = true;
+            document.documentElement.style.overflow = 'hidden';
+        },
+        closeCart() {
+            this.cartOpen = false;
+            document.documentElement.style.overflow = '';
+        },
         buyNow() {
             Alpine.store('cart').add(this.p, this.qty);
-            window.location.href = cartUrl;
+            this.openCart();
         },
     };
 }
