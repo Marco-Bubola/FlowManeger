@@ -5,77 +5,27 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-consortium-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-consortium-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-consortium-ultrawide.css') }}">
-    <!-- Header Original com Botões Integrados -->
-    <x-sales-header title="Editar Consórcio" subtitle="Modifique os detalhes do consórcio" icon="bi-pencil-square" iconColor="orange"
-        :backRoute="route('consortiums.show', $consortium)">
-
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('consortiums.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-handshake mr-1"></i>Consórcios
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">Editar Consórcio</span>
-            </div>
+    <x-consortium-header :title="'Editar ' . $consortium->name" crumb="Editar" icon="bi-pencil-square"
+        subtitle="Altere nome, vagas, frequência e status do consórcio.">
+        <x-slot name="parent">
+            <a href="{{ route('consortiums.show', $consortium) }}" class="hover:text-indigo-600 dark:hover:text-indigo-300">Detalhes</a>
         </x-slot>
+        <a href="{{ route('consortiums.show', $consortium) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm transition">
+            <i class="bi bi-x-lg"></i>Cancelar
+        </a>
+        <button type="submit" form="consortium-form" wire:loading.attr="disabled"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
+            <i class="bi bi-check2-circle"></i>Salvar alterações
+        </button>
+    </x-consortium-header>
 
-        <x-slot name="actions">
-            <div class="flex items-center gap-4">
-                <!-- Cards de Resumo -->
-                <div class="flex items-center gap-3">
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-cash-coin text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Mensalidade</div>
-                                <div class="text-base font-black text-white">R$ {{ number_format($monthly_value ?: 0, 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-clock-history text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Duração</div>
-                                <div class="text-base font-black text-white">{{ $duration_months ?: 0 }} meses</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-people text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Vagas</div>
-                                <div class="text-base font-black text-white">{{ $max_participants ?: 0 }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Divisor -->
-                <div class="h-10 w-px bg-white/30"></div>
-
-                <!-- Botões de Ação -->
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('consortiums.show', $consortium) }}"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-bold rounded-lg border border-white/30 transition-all hover:scale-105 shadow-lg">
-                        <i class="bi bi-x-lg text-base"></i>
-                        <span class="text-sm">Cancelar</span>
-                    </a>
-
-                    <button type="submit" form="consortium-form"
-                        class="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-white/90 text-emerald-600 font-black rounded-lg transition-all shadow-lg hover:shadow-xl hover:scale-105">
-                        <i class="bi bi-check-circle-fill text-lg"></i>
-                        <span class="text-sm">Salvar Alterações</span>
-                    </button>
-                </div>
-            </div>
-        </x-slot>
-    </x-sales-header>
+    @if ($hasParticipants)
+        <div class="mb-4 flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            <i class="bi bi-lock mt-0.5"></i>
+            <span>Este consórcio já tem participantes e as parcelas foram geradas. Mensalidade, duração, data de início e modo ficam bloqueados; nome, descrição, vagas e status podem ser alterados (a frequência, até o primeiro sorteio).</span>
+        </div>
+    @endif
 
     <!-- Form sem Card - Layout por Linhas -->
     <form id="consortium-form" wire:submit.prevent="update" class="space-y-3 transition-all duration-700 delay-100"
@@ -85,7 +35,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-3">
 
             <!-- Calendário Moderno (4 colunas) -->
-            <div class="lg:col-span-4">
+            <fieldset class="lg:col-span-4 min-w-0 disabled:opacity-60" @disabled($hasParticipants)>
                 <div class="relative rounded-2xl shadow-xl p-5"
                     style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(139, 92, 246, 0.08) 100%); border: 2px solid rgba(59, 130, 246, 0.3);">
 
@@ -156,7 +106,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </fieldset>
 
             <!-- Coluna com Informações Básicas + Valores Financeiros + Participantes (8 colunas) -->
             <div class="lg:col-span-8 space-y-4">
@@ -222,11 +172,11 @@
                                 <i class="bi bi-currency-dollar text-blue-500 text-base"></i>
                                 Mensalidade <span class="text-red-500">*</span>
                             </label>
-                            <div class="relative">
+                            <fieldset class="relative disabled:opacity-60" @disabled($hasParticipants)>
                                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm">R$</span>
                                 <x-money-input bare :model="'monthly_value'" :value="$monthly_value ?? 0"
                                     class="w-full pl-10 pr-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium shadow-sm" />
-                            </div>
+                            </fieldset>
                             @error('monthly_value')
                                 <p class="mt-1 text-xs text-red-600 flex items-center gap-1">
                                     <i class="bi bi-exclamation-circle-fill"></i> {{ $message }}
@@ -240,7 +190,7 @@
                                 <i class="bi bi-clock-fill text-blue-500 text-base"></i>
                                 Duração <span class="text-red-500">*</span>
                             </label>
-                            <input type="number" wire:model.live="duration_months" min="1" max="120"
+                            <input type="number" wire:model.live="duration_months" min="1" max="120" @disabled($hasParticipants)
                                 class="w-full px-3 py-2.5 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium shadow-sm"
                                 placeholder="Ex: 24">
                             @error('duration_months')
@@ -323,7 +273,7 @@
 
                     <div class="grid grid-cols-2 gap-3">
                         <label class="cursor-pointer">
-                            <input type="radio" wire:model.live="mode" value="draw" class="sr-only peer" {{ $consortium->draws()->count() > 0 ? 'disabled' : '' }}>
+                            <input type="radio" wire:model.live="mode" value="draw" class="sr-only peer" @disabled($hasParticipants)>
                             <div
                                 class="flex flex-col items-center gap-3 p-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all {{ $consortium->draws()->count() > 0 ? 'opacity-50 cursor-not-allowed' : '' }}">
                                 <div
@@ -338,7 +288,7 @@
                         </label>
 
                         <label class="cursor-pointer">
-                            <input type="radio" wire:model.live="mode" value="payoff" class="sr-only peer" {{ $consortium->draws()->count() > 0 ? 'disabled' : '' }}>
+                            <input type="radio" wire:model.live="mode" value="payoff" class="sr-only peer" @disabled($hasParticipants)>
                             <div
                                 class="flex flex-col items-center gap-3 p-4 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:shadow-lg peer-checked:border-orange-500 peer-checked:bg-orange-50 dark:peer-checked:bg-orange-900/20 peer-checked:shadow-xl peer-checked:scale-105 transition-all {{ $consortium->draws()->count() > 0 ? 'opacity-50 cursor-not-allowed' : '' }}">
                                 <div

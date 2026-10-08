@@ -6,26 +6,16 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/consortium-draw-ultrawide.css') }}">
 
-    <!-- Header Moderno igual às outras páginas -->
-    <x-sales-header
-        title="Sistema de Sorteio"
-        icon="bi-shuffle" iconColor="purple"
-        :description="'🎲 Sorteio #' . $drawNumber . ' - ' . $consortium->name"
-        :back-route="route('consortiums.show', $consortium)">
-        <x-slot name="actions">
-            <div class="flex items-center gap-3">
-                <!-- Stats rápidas -->
-                <div class="px-4 py-2 bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-lg border border-purple-200 dark:border-purple-700/50 backdrop-blur-sm">
-                    <div class="text-xs text-purple-600 dark:text-purple-400 font-medium">Próximo Sorteio</div>
-                    <div class="text-lg font-black text-purple-700 dark:text-purple-300">#{{ $drawNumber }}</div>
-                </div>
-                <div class="px-4 py-2 bg-gradient-to-br from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-lg border border-green-200 dark:border-green-700/50 backdrop-blur-sm">
-                    <div class="text-xs text-green-600 dark:text-green-400 font-medium">Elegíveis</div>
-                    <div class="text-lg font-black text-green-700 dark:text-green-300">{{ $eligibleParticipants->count() }}</div>
-                </div>
-            </div>
+    <x-consortium-header :title="'Sorteio #' . $drawNumber" crumb="Sorteio" icon="bi-shuffle"
+        :subtitle="$consortium->name . ' · prêmio de R$ ' . number_format($consortium->monthly_value * $consortium->duration_months, 2, ',', '.') . ' em produtos ou dinheiro'"
+        :backRoute="route('consortiums.show', $consortium)">
+        <x-slot name="parent">
+            <a href="{{ route('consortiums.show', $consortium) }}" class="hover:text-indigo-600 dark:hover:text-indigo-300">{{ $consortium->name }}</a>
         </x-slot>
-    </x-sales-header>
+        <span class="inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold {{ $eligibleParticipants->count() ? 'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300' : 'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300' }}">
+            <i class="bi bi-person-check"></i>{{ $eligibleParticipants->count() }} {{ $eligibleParticipants->count() === 1 ? 'apto' : 'aptos' }} ao sorteio
+        </span>
+    </x-consortium-header>
 
     <!-- Layout Otimizado em UMA TELA -->
     <div class="grid grid-cols-12 gap-6 px-6" :class="{ 'blur-[1px] pointer-events-none': showDraw || showRedemption }">
@@ -38,15 +28,29 @@
                 <div class="p-6">
                     <!-- Status Badge -->
                     <div class="flex items-center justify-between mb-4">
-                        @if ($eligibleParticipants->count() > 0)
+                        @php
+                            $c = $consortium;
+                            $liberado = $c->canPerformDraw();
+                            $faltam = $c->daysUntilNextDraw();
+                            $motivo = match (true) {
+                                $liberado => null,
+                                $c->status !== 'active' => 'O consórcio não está ativo.',
+                                $c->start_date && now()->lt($c->start_date) => 'O consórcio começa em ' . $c->start_date->format('d/m/Y') . '.',
+                                $c->active_participants_count === 0 => 'Adicione participantes para sortear.',
+                                $eligibleParticipants->count() === 0 => 'Ninguém apto: precisa estar ativo, não contemplado, com 1 parcela paga e nada vencido há mais de 30 dias.',
+                                $faltam > 0 => 'O próximo sorteio libera em ' . $faltam . ' dia' . ($faltam > 1 ? 's' : '') . ' (' . mb_strtolower($c->draw_frequency_label) . ').',
+                                default => 'Sorteio não liberado agora.',
+                            };
+                        @endphp
+                        @if ($liberado)
                             <div class="flex items-center gap-2 px-3 py-1.5 bg-green-400/30 backdrop-blur-sm rounded-lg border border-green-300/50">
                                 <div class="w-2 h-2 bg-green-300 rounded-full animate-pulse"></div>
-                                <span class="text-sm font-bold text-white">✓ Pronto para Sortear</span>
+                                <span class="text-sm font-bold text-white">Pronto para sortear</span>
                             </div>
                         @else
-                            <div class="flex items-center gap-2 px-3 py-1.5 bg-red-400/30 backdrop-blur-sm rounded-lg border border-red-300/50">
-                                <div class="w-2 h-2 bg-red-300 rounded-full"></div>
-                                <span class="text-sm font-bold text-white">✗ Sem Participantes</span>
+                            <div class="flex items-center gap-2 px-3 py-1.5 bg-black/20 backdrop-blur-sm rounded-lg border border-white/30">
+                                <i class="bi bi-lock-fill text-white/90 text-xs"></i>
+                                <span class="text-sm font-bold text-white">Sorteio bloqueado</span>
                             </div>
                         @endif
 
@@ -331,10 +335,10 @@
                                         </div>
                                     </div>
                                     <div class="text-4xl font-black text-white mb-4 drop-shadow-xl">
-                                        🎯 Sorteio Pronto!
+                                        {{ $liberado ? 'Sorteio pronto!' : 'Sorteio ainda não liberado' }}
                                     </div>
                                     <div class="text-xl text-white/80 mb-8">
-                                        Clique no botão abaixo para realizar o sorteio
+                                        {{ $liberado ? 'Clique no botão abaixo para realizar o sorteio' : $motivo }}
                                     </div>
                                     <div class="flex justify-center gap-4">
                                         <div class="px-6 py-3 bg-white/20 backdrop-blur-sm rounded-xl border-2 border-white/40 text-white">
@@ -361,7 +365,7 @@
 
                         <!-- Botão de Sorteio INLINE -->
                         <div x-show="!(showDraw || showRedemption)">
-                            @if ($eligibleParticipants->count() > 0 && !$selectedWinner)
+                            @if ($liberado && !$selectedWinner)
                                 <button wire:click="confirmDraw"
                                     class="group relative px-8 py-3 bg-white text-purple-600 font-black text-base rounded-xl shadow-xl transform transition-all hover:scale-105 hover:shadow-2xl">
                                     <span class="relative z-10 flex items-center gap-2">
@@ -384,7 +388,7 @@
                             @else
                                 <div class="text-center px-4 py-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
                                     <p class="text-sm text-white/90">
-                                        ⚠️ Sem participantes elegíveis
+                                        <i class="bi bi-lock-fill mr-1"></i>{{ $eligibleParticipants->count() === 0 ? 'Ninguém apto ao sorteio' : 'Sorteio ainda não liberado' }}
                                     </p>
                                 </div>
                             @endif
@@ -527,9 +531,6 @@
                                         <div class="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
                                             <i class="bi bi-calendar3"></i>
                                             <span>{{ \Carbon\Carbon::parse($draw->draw_date)->format('d/m/Y') }}</span>
-                                            <span class="w-1 h-1 bg-slate-300 rounded-full"></span>
-                                            <i class="bi bi-clock"></i>
-                                            <span>{{ \Carbon\Carbon::parse($draw->draw_date)->format('H:i') }}</span>
                                         </div>
                                     </div>
                                     <span class="px-2 py-1 text-xs font-bold rounded-lg {{ $draw->status_color }} bg-opacity-20 shrink-0">

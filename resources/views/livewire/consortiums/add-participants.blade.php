@@ -5,145 +5,31 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/add-participants-ultrawide.css') }}">
-    <!-- Header Padrão -->
-    <x-sales-header title="Adicionar Participantes"
-        subtitle="{{ $consortium->name }} @if ($consortium->max_participants) • <strong class='text-amber-300'>Máx: {{ $consortium->max_participants }} participantes</strong> @endif"
-        icon="bi-person-plus-fill" :backRoute="route('consortiums.show', $consortium)">
-
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}"
-                    class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('consortiums.index') }}"
-                    class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="bi bi-collection-fill mr-1"></i>Consórcios
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('consortiums.show', $consortium) }}"
-                    class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    {{ $consortium->name }}
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">Adicionar Participantes</span>
-            </div>
+    @php
+        $occupied = $consortium->active_participants_count;
+        $free = $consortium->max_participants ? max(0, $consortium->max_participants - $occupied) : null;
+    @endphp
+    <x-consortium-header title="Adicionar participantes" crumb="Participantes" icon="bi-person-plus"
+        :subtitle="$consortium->name . ' · R$ ' . number_format($consortium->monthly_value, 2, ',', '.') . '/mês por ' . $consortium->duration_months . ' meses'"
+        :backRoute="route('consortiums.show', $consortium)">
+        <x-slot name="parent">
+            <a href="{{ route('consortiums.show', $consortium) }}" class="hover:text-indigo-600 dark:hover:text-indigo-300">{{ $consortium->name }}</a>
         </x-slot>
-
-        <x-slot name="actions">
-            <div class="flex items-center gap-4 flex-wrap">
-                <!-- Métricas Estilo Bank-Index -->
-                <div class="flex items-center gap-4">
-                    <!-- Selecionados -->
-                    <div class="flex flex-col items-end">
-                        <span class="text-xs font-semibold text-white/70 uppercase tracking-wide">Selecionados</span>
-                        <span class="text-2xl font-black text-white">
-                            {{ count($selectedClients) }}
-                        </span>
-                        <span class="text-xs text-white/60">Participantes</span>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="h-12 w-px bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
-
-                    <!-- Data Entrada -->
-                    <div class="flex flex-col items-end">
-                        <span class="text-xs font-semibold text-white/70 uppercase tracking-wide">Data Entrada</span>
-                        <span class="text-2xl font-black text-white">
-                            {{ \Carbon\Carbon::parse($entry_date)->format('d/m/Y') }}
-                        </span>
-                        <span class="text-xs text-white/60">Início</span>
-                    </div>
-
-                    <!-- Divider -->
-                    <div class="h-12 w-px bg-gradient-to-b from-transparent via-white/30 to-transparent"></div>
-
-                    <!-- Mensalidade -->
-                    <div class="flex flex-col items-end">
-                        <span class="text-xs font-semibold text-white/70 uppercase tracking-wide">Mensalidade</span>
-                        <span
-                            class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 to-teal-200">
-                            R$ {{ number_format($consortium->monthly_value, 2, ',', '.') }}
-                        </span>
-                        <span class="text-xs text-white/60">Valor fixo</span>
-                    </div>
-                </div>
-
-                <!-- Divider -->
-                <div class="hidden lg:block h-16 w-px bg-gradient-to-b from-transparent via-white/30 to-transparent">
-                </div>
-
-                <!-- Botões Ultra Modernos -->
-                <div class="flex items-center gap-3">
-                    <!-- Botão Cancelar -->
-                    <a href="{{ route('consortiums.show', $consortium) }}"
-                        class="group relative inline-flex items-center justify-center gap-2 px-5 py-2.5 overflow-hidden rounded-xl transition-all duration-300 transform hover:-translate-y-0.5 focus:outline-none focus:ring-4 focus:ring-white/30">
-                        <!-- Fundo -->
-                        <div class="absolute inset-0 bg-white/10 backdrop-blur-sm"></div>
-                        <div
-                            class="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        </div>
-
-                        <!-- Borda -->
-                        <div class="absolute inset-0 rounded-xl border-2 border-white/30"></div>
-
-                        <!-- Conteúdo -->
-                        <div class="relative flex items-center gap-2 z-10">
-                            <i
-                                class="bi bi-x-lg text-white text-base group-hover:rotate-90 transition-transform duration-300"></i>
-                            <span class="font-black text-sm text-white tracking-wider uppercase">Cancelar</span>
-                        </div>
-                    </a>
-
-                    <!-- Botão Salvar - Ultra Moderno -->
-                    <button wire:click="save"
-                        class="group relative inline-flex items-center justify-center gap-2.5 px-6 py-2.5 overflow-hidden rounded-xl transition-all duration-500 transform hover:-translate-y-1 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:scale-100"
-                        @disabled(count($selectedClients) === 0)>
-                        <!-- Fundo gradiente animado -->
-                        <div class="absolute inset-0 bg-white"></div>
-                        <div
-                            class="absolute inset-0 bg-gradient-to-r from-white via-emerald-50 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                        </div>
-
-                        <!-- Brilho superior -->
-                        <div
-                            class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300 to-transparent">
-                        </div>
-
-                        <!-- Efeito de brilho animado -->
-                        <div class="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                            <div
-                                class="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-200/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000">
-                            </div>
-                        </div>
-
-                        <!-- Shadow glow -->
-                        <div
-                            class="absolute -inset-1 bg-white rounded-xl blur-lg opacity-50 group-hover:opacity-100 transition-opacity duration-500 -z-10">
-                        </div>
-
-                        <!-- Conteúdo -->
-                        <div class="relative flex items-center gap-2.5 z-10">
-                            <i
-                                class="bi bi-check-circle-fill text-xl text-emerald-600 group-hover:scale-110 transition-transform duration-300"></i>
-                            <span class="font-black text-sm text-emerald-600 tracking-wider uppercase">
-                                Salvar {{ count($selectedClients) > 0 ? '(' . count($selectedClients) . ')' : '' }}
-                            </span>
-                        </div>
-
-                        <!-- Partículas decorativas -->
-                        <div
-                            class="absolute top-1 right-1 w-2 h-2 bg-emerald-400/60 rounded-full group-hover:scale-150 group-hover:opacity-0 transition-all duration-500">
-                        </div>
-                        <div
-                            class="absolute bottom-1 left-1 w-1.5 h-1.5 bg-emerald-300/40 rounded-full group-hover:scale-150 group-hover:opacity-0 transition-all duration-700">
-                        </div>
-                    </button>
-                </div>
-            </div>
+        <x-slot name="meta">
+            @if (!is_null($free))
+                <span class="inline-flex items-center gap-1"><i class="bi bi-people"></i>{{ $occupied }} de {{ $consortium->max_participants }} vagas ocupadas · {{ $free }} {{ $free === 1 ? 'livre' : 'livres' }}</span>
+            @endif
+            <span class="inline-flex items-center gap-1"><i class="bi bi-calendar3"></i>Entrada {{ \Carbon\Carbon::parse($entry_date)->format('d/m/Y') }}</span>
         </x-slot>
-    </x-sales-header>
+        <a href="{{ route('consortiums.show', $consortium) }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm transition">
+            <i class="bi bi-x-lg"></i>Cancelar
+        </a>
+        <button type="button" wire:click="save" wire:loading.attr="disabled" @disabled(count($selectedClients) === 0)
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            <i class="bi bi-check2-circle"></i>Salvar{{ count($selectedClients) > 0 ? ' (' . count($selectedClients) . ')' : '' }}
+        </button>
+    </x-consortium-header>
 
     <!-- Flash Messages -->
     @if (session()->has('error'))

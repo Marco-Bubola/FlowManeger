@@ -5,77 +5,17 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-consortium-ultrawide.css') }}">
-    <!-- Header Original com Botões Integrados -->
-    <x-sales-header title="Novo Consórcio" subtitle="Configure todos os detalhes do consórcio" icon="bi-plus-circle-fill"
-        :backRoute="route('consortiums.index')">
-
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('consortiums.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-handshake mr-1"></i>Consórcios
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">Novo Consórcio</span>
-            </div>
-        </x-slot>
-
-        <x-slot name="actions">
-            <div class="flex items-center gap-4">
-                <!-- Cards de Resumo -->
-                <div class="flex items-center gap-3">
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-cash-coin text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Mensalidade</div>
-                                <div class="text-base font-black text-white">R$ {{ number_format($monthly_value ?: 0, 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-clock-history text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Duração</div>
-                                <div class="text-base font-black text-white">{{ $duration_months ?: 0 }} meses</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-people text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Vagas</div>
-                                <div class="text-base font-black text-white">{{ $max_participants ?: 0 }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Divisor -->
-                <div class="h-10 w-px bg-white/30"></div>
-
-                <!-- Botões de Ação -->
-                <div class="flex items-center gap-3">
-                    <a href="{{ route('consortiums.index') }}"
-                        class="flex items-center gap-2 px-5 py-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-bold rounded-lg border border-white/30 transition-all hover:scale-105 shadow-lg">
-                        <i class="bi bi-x-lg text-base"></i>
-                        <span class="text-sm">Cancelar</span>
-                    </a>
-
-                    <button type="submit" form="consortium-form"
-                        class="flex items-center gap-2 px-6 py-2.5 bg-white hover:bg-white/90 text-emerald-600 font-black rounded-lg transition-all shadow-lg hover:shadow-xl hover:scale-105">
-                        <i class="bi bi-check-circle-fill text-lg"></i>
-                        <span class="text-sm">Criar Consórcio</span>
-                    </button>
-                </div>
-            </div>
-        </x-slot>
-    </x-sales-header>
+    <x-consortium-header title="Novo consórcio" crumb="Novo" icon="bi-plus-lg"
+        subtitle="Defina valor, duração, vagas e como os participantes são contemplados.">
+        <a href="{{ route('consortiums.index') }}"
+           class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white/90 dark:bg-slate-900/70 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 text-sm font-semibold shadow-sm transition">
+            <i class="bi bi-x-lg"></i>Cancelar
+        </a>
+        <button type="submit" form="consortium-form" wire:loading.attr="disabled"
+            class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
+            <i class="bi bi-check2-circle"></i>Criar consórcio
+        </button>
+    </x-consortium-header>
 
     <!-- Form sem Card - Layout por Linhas -->
     <form id="consortium-form" wire:submit.prevent="save" class="space-y-3 transition-all duration-700 delay-100"
@@ -413,6 +353,3 @@
         </div>
     </form>
 </div>
-
-        </form>
-    </div>

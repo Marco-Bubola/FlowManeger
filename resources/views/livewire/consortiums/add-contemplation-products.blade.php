@@ -36,62 +36,33 @@
         }
     </style>
 
-<!-- Header Moderno igual às outras páginas -->
-    <x-sales-header
-        title="{{ $isEditing ? 'Editar' : 'Registrar' }} Produtos da Contemplação"
-        :subtitle="'Contemplado: ' . $contemplation->participant->client->name . ' • Consórcio: ' . $contemplation->participant->consortium->name"
-        icon="bi-box-seam"
-        :backRoute="route('consortiums.show', $contemplation->participant->consortium)">
-        <x-slot name="actions">
-            <div class="flex items-center gap-3">
-                <!-- Cards de informação -->
-                <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                    <div class="flex items-center gap-2">
-                        <i class="bi bi-wallet2 text-white/90 text-lg"></i>
-                        <div>
-                            <div class="text-xs text-white/70">Valor Máximo</div>
-                            <div class="text-base font-black text-white">R$ {{ number_format($maxValue, 2, ',', '.') }}</div>
-                        </div>
-                    </div>
-                </div>
-                <div class="px-4 py-2.5 rounded-xl {{ $this->getTotalPrice() > $maxValue ? 'bg-red-500/30 border-red-300/50' : 'bg-emerald-500/30 border-emerald-300/50' }} border backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                    <div class="flex items-center gap-2">
-                        <i class="bi bi-cart-check text-white/90 text-lg"></i>
-                        <div>
-                            <div class="text-xs text-white/90">Selecionado</div>
-                            <div class="text-base font-black text-white">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</div>
-                        </div>
-                    </div>
-                </div>
-                @if($this->getExcessValue() > 0)
-                    <div class="px-4 py-2.5 rounded-xl bg-orange-500/30 border border-orange-300/50 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-exclamation-triangle text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/90">A Pagar À Parte</div>
-                                <div class="text-base font-black text-white">R$ {{ number_format($this->getExcessValue(), 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    </div>
-                @else
-                    <div class="px-4 py-2.5 rounded-xl bg-white/20 border border-white/30 backdrop-blur-sm shadow-lg hover:shadow-xl transition-all">
-                        <div class="flex items-center gap-2">
-                            <i class="bi bi-piggy-bank text-white/90 text-lg"></i>
-                            <div>
-                                <div class="text-xs text-white/70">Restante</div>
-                                <div class="text-base font-black text-white">R$ {{ number_format($this->getRemainingValue(), 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
+@php $consortium = $contemplation->participant->consortium; $excess = $this->getExcessValue(); @endphp
+    <x-consortium-header :title="($isEditing ? 'Editar' : 'Resgatar') . ' produtos'" crumb="Resgate em produtos" icon="bi-box-seam"
+        :subtitle="'Contemplado: ' . $contemplation->participant->client->name"
+        :backRoute="route('consortiums.show', $consortium)">
+        <x-slot name="parent">
+            <a href="{{ route('consortiums.show', $consortium) }}" class="hover:text-indigo-600 dark:hover:text-indigo-300">{{ $consortium->name }}</a>
         </x-slot>
-    </x-sales-header>
+        <div class="grid grid-cols-3 gap-2 text-center sm:flex sm:gap-3">
+            <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">
+                <p class="text-[11px] font-medium text-slate-500">Crédito</p>
+                <p class="text-sm font-bold text-slate-800 dark:text-slate-100">R$ {{ number_format($maxValue, 2, ',', '.') }}</p>
+            </div>
+            <div class="rounded-xl border border-slate-200/70 bg-white/80 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/60">
+                <p class="text-[11px] font-medium text-slate-500">Selecionado</p>
+                <p class="text-sm font-bold text-indigo-600 dark:text-indigo-300">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</p>
+            </div>
+            <div class="rounded-xl border px-3 py-2 {{ $excess > 0 ? 'border-amber-200 bg-amber-50 dark:border-amber-500/30 dark:bg-amber-500/10' : 'border-emerald-200 bg-emerald-50 dark:border-emerald-500/30 dark:bg-emerald-500/10' }}">
+                <p class="text-[11px] font-medium {{ $excess > 0 ? 'text-amber-700' : 'text-emerald-700' }}">{{ $excess > 0 ? 'Pagar à parte' : 'Restante' }}</p>
+                <p class="text-sm font-bold {{ $excess > 0 ? 'text-amber-700 dark:text-amber-300' : 'text-emerald-700 dark:text-emerald-300' }}">R$ {{ number_format($excess > 0 ? $excess : $this->getRemainingValue(), 2, ',', '.') }}</p>
+            </div>
+        </div>
+    </x-consortium-header>
 
     <!-- Layout Split 3/4 e 1/4 -->
-    <div class="w-full h-[81vh] flex">
+    <div class="w-full flex flex-col lg:flex-row lg:h-[81vh] overflow-hidden rounded-2xl border border-slate-200/70 dark:border-slate-700">
         <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
-        <div class="w-3/4 bg-white dark:bg-zinc-800 flex flex-col">
+        <div class="w-full lg:w-3/4 min-w-0 bg-white dark:bg-zinc-800 flex flex-col">
             <!-- Header com Controles -->
             <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
                 <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -124,24 +95,17 @@
                     </div>
                 </div>
 
-                <!-- Alerta se ultrapassar o limite -->
-                @if($this->getTotalPrice() > $maxValue)
-                    <div class="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border-2 border-red-500 rounded-xl">
-                        <div class="flex items-center gap-3">
-                            <i class="bi bi-exclamation-triangle-fill text-red-600 text-2xl"></i>
-                            <div>
-                                <p class="font-bold text-red-900 dark:text-red-200">Valor excedido!</p>
-                                <p class="text-sm text-red-700 dark:text-red-300">
-                                    O valor total dos produtos selecionados ultrapassa o limite de R$ {{ number_format($maxValue, 2, ',', '.') }}
-                                </p>
-                            </div>
-                        </div>
+                <!-- Aviso quando passa do crédito: a diferença é paga à parte -->
+                @if($this->getExcessValue() > 0)
+                    <div class="mt-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                        <i class="bi bi-info-circle mt-0.5"></i>
+                        <span>Passou do crédito de R$ {{ number_format($maxValue, 2, ',', '.') }}. O contemplado paga <strong>R$ {{ number_format($this->getExcessValue(), 2, ',', '.') }}</strong> à parte.</span>
                     </div>
                 @endif
             </div>
 
             <!-- Grid de Produtos com Scroll -->
-            <div class="flex-1 p-6 overflow-y-auto">
+            <div class="flex-1 p-3 sm:p-6 overflow-y-auto max-h-[70vh] lg:max-h-none">
                 @if($filteredProducts->isEmpty())
                     <!-- Estado vazio -->
                     <div class="flex flex-col items-center justify-center h-full">
@@ -165,7 +129,7 @@
                     </div>
                 @else
                     <!-- Grid de Cards de Produtos -->
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
                         @foreach($filteredProducts as $product)
                             @php
                                 $isSelected = $this->isProductSelected($product->id);
@@ -241,7 +205,7 @@
         </div>
 
         <!-- Lado Direito: Produtos Selecionados (1/4 da tela) -->
-        <div class="w-1/4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-l border-gray-200 dark:border-zinc-700 flex flex-col">
+        <div class="w-full lg:w-1/4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-t lg:border-t-0 lg:border-l border-gray-200 dark:border-zinc-700 flex flex-col">
             <div class="p-6 border-b border-gray-200 dark:border-zinc-700">
                 <h3 class="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                     <i class="bi bi-cart-check text-purple-600"></i>

@@ -192,23 +192,6 @@ class AddContemplationProducts extends Component
         return $query->with('category')->orderBy('name')->get();
     }
 
-    public function updatedNewProducts($value, $key)
-    {
-        if (str_contains($key, '.quantity') || str_contains($key, '.price_sale')) {
-            // Verificar se não ultrapassa o valor máximo
-            $total = $this->getTotalPrice();
-            if ($total > $this->maxValue) {
-                session()->flash('error', 'O valor total dos produtos não pode ultrapassar R$ ' . number_format($this->maxValue, 2, ',', '.'));
-
-                // Reverter a última alteração
-                $index = explode('.', $key)[0];
-                if (str_contains($key, '.quantity')) {
-                    $this->newProducts[$index]['quantity'] = 1;
-                }
-            }
-        }
-    }
-
     public function save()
     {
         // Validar que há produtos selecionados
