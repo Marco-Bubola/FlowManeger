@@ -82,23 +82,20 @@ class UploadInvoice extends Component
         $this->categories = Category::where('category.is_active', 1)
             ->where('category.user_id', Auth::id())
             ->where('category.type', 'transaction')
-            ->leftJoin('invoice', 'category.id_category', '=', 'invoice.category_id')
             ->select('category.*')
-            ->selectRaw('MAX(invoice.created_at) as last_used')
-            ->groupBy('category.id_category', 'category.name', 'category.description', 'category.is_active', 'category.type', 'category.user_id', 'category.created_at', 'category.updated_at')
-            ->orderByRaw('CASE WHEN last_used IS NULL THEN 1 ELSE 0 END')
-            ->orderByRaw('last_used DESC')
+            // Subconsulta em vez de GROUP BY: funciona igual no MySQL e no MariaDB
+            ->selectRaw('(SELECT MAX(i.created_at) FROM invoice i WHERE i.category_id = category.id_category) as last_used')
+            ->orderByRaw('(SELECT MAX(i.created_at) FROM invoice i WHERE i.category_id = category.id_category) IS NULL')
+            ->orderByDesc('last_used')
             ->orderBy('category.name')
             ->get();
 
         // Carregar clientes ordenados por uso recente (MySQL compatível)
         $this->clients = Client::where('clients.user_id', Auth::id())
-            ->leftJoin('invoice', 'clients.id', '=', 'invoice.client_id')
             ->select('clients.*')
-            ->selectRaw('MAX(invoice.created_at) as last_used')
-            ->groupBy('clients.id', 'clients.name', 'clients.email', 'clients.phone', 'clients.address', 'clients.user_id', 'clients.caminho_foto', 'clients.created_at', 'clients.updated_at')
-            ->orderByRaw('CASE WHEN last_used IS NULL THEN 1 ELSE 0 END')
-            ->orderByRaw('last_used DESC')
+            ->selectRaw('(SELECT MAX(i.created_at) FROM invoice i WHERE i.client_id = clients.id) as last_used')
+            ->orderByRaw('(SELECT MAX(i.created_at) FROM invoice i WHERE i.client_id = clients.id) IS NULL')
+            ->orderByDesc('last_used')
             ->orderBy('clients.name')
             ->get();
     }

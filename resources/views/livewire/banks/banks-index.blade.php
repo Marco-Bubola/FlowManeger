@@ -32,6 +32,19 @@
         $currentMonthLabel = \Carbon\Carbon::create($year, $month, 1)->locale('pt_BR')->isoFormat('MMMM [de] YYYY');
     @endphp
 
+    @php $invCount = collect($allInvoices ?? [])->count(); @endphp
+    <x-bank-page-header title="Cartões e faturas" :subtitle="'Gastos de ' . $currentMonthLabel . ' em todos os cartões'" icon="bi-credit-card-2-front" active="cartoes" :back-route="route('dashboard')">
+        <x-slot:actions>
+            <a href="{{ route('banks.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-plus-lg"></i>Novo cartão</a>
+        </x-slot:actions>
+    </x-bank-page-header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <x-gestao-stat :label="$displayLabel" :value="'R$ ' . number_format($displayTotal, 2, ',', '.')" icon="bi-cash-stack" tone="rose" />
+        <x-gestao-stat label="Compras" :value="$invCount" icon="bi-receipt" tone="indigo" :hint="$invCount === 1 ? 'lançamento no período' : 'lançamentos no período'" />
+        <x-gestao-stat label="Média por compra" :value="'R$ ' . number_format($invCount > 0 ? $displayTotal / $invCount : 0, 2, ',', '.')" icon="bi-calculator" tone="emerald" />
+    </div>
+
     <!-- Main Content Layout -->
     <div class="w-full">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
@@ -202,85 +215,11 @@
 
             <!-- Right Section - Header and Banks (75% - 3 cols) -->
             <div class="lg:col-span-3 space-y-3">
-                <!-- Header usando componente x-invoice-header com métricas inline -->
-                <div class="relative bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/30 rounded-2xl shadow-xl overflow-hidden">
-                    <!-- Efeitos decorativos (do componente original) -->
-                    <div class="absolute top-0 right-0 w-28 h-28 bg-gradient-to-br from-purple-400/20 via-pink-400/20 to-rose-400/20 rounded-full transform translate-x-12 -translate-y-12"></div>
-                    <div class="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-tr from-emerald-400/10 via-purple-400/10 to-pink-400/10 rounded-full transform -translate-x-8 translate-y-8"></div>
-
-                    <div class="relative px-6 py-4">
-                        <!-- Breadcrumb -->
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                            <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                <i class="fas fa-home mr-1"></i>Dashboard
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium">
-                                <i class="fas fa-credit-card mr-1"></i>Bancos e Cartões
-                            </span>
-                        </div>
-
-                        <!-- Top Section: Title + Metrics (adaptado do componente) -->
-                        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-4">
-                            <!-- Logo + Title Section -->
-                            <div class="flex items-center gap-4">
-                                <!-- Ícone do componente original -->
-                                <div class="relative flex items-center justify-center w-24 h-24 min-w-24 min-h-24 max-w-24 max-h-24 bg-gradient-to-br from-purple-500 via-pink-500 to-rose-500 rounded-2xl shadow-md shadow-purple-400/20">
-                                    <i class="fas fa-university text-white text-3xl"></i>
-                                </div>
-
-                                <div class="space-y-1 ml-2">
-                                    <h1 class="text-2xl lg:text-3xl font-extrabold text-slate-800 dark:text-slate-100 leading-tight tracking-tight drop-shadow-sm">
-                                        Bancos e Cartões
-                                    </h1>
-                                    <p class="text-base font-medium text-slate-600 dark:text-slate-400">Gerencie seus bancos e cartões de crédito</p>
-                                </div>
-                            </div>
-
-                            <!-- Lado Direito: Métricas Financeiras -->
-                            <div class="flex items-center gap-4">
-                                <!-- Despesas -->
-                                <div class="flex flex-col items-end">
-                                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Despesas</span>
-                                    <span class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-600">
-                                        R$ {{ number_format($displayTotal, 2, ',', '.') }}
-                                    </span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Total do mês</span>
-                                </div>
-
-                                <!-- Divider -->
-                                <div class="h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
-
-                                <!-- Transações -->
-                                <div class="flex flex-col items-end">
-                                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Transações</span>
-                                    <span class="text-2xl font-black text-indigo-600 dark:text-indigo-400">
-                                        {{ collect($allInvoices ?? [])->count() }}
-                                    </span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Quantidade</span>
-                                </div>
-
-                                <!-- Divider -->
-                                <div class="h-12 w-px bg-gradient-to-b from-transparent via-slate-300 dark:via-slate-600 to-transparent"></div>
-
-                                <!-- Média -->
-                                <div class="flex flex-col items-end">
-                                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">Média</span>
-                                    <span class="text-2xl font-black text-emerald-600 dark:text-emerald-400">
-                                        R$ {{ number_format(collect($allInvoices ?? [])->count() > 0 ? $displayTotal / collect($allInvoices ?? [])->count() : 0, 2, ',', '.') }}
-                                    </span>
-                                    <span class="text-xs text-slate-500 dark:text-slate-400">Por transação</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Grid: 3/4 para Invoices + 1/4 para Banks -->
-                <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
 
-                    <!-- Coluna 1: Todas as Invoices (3/4) -->
-                    <div class="lg:col-span-3 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6">
+                    <!-- Coluna 1: Todas as Invoices (2/3) -->
+                    <div class="xl:col-span-2 bg-white dark:bg-slate-900/80 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700/70 p-4 sm:p-5">
                         <div class="flex justify-between items-center mb-6">
                             <div class="flex items-center">
                                 <i class="fas fa-file-invoice text-2xl text-indigo-600 dark:text-indigo-400 mr-3"></i>
@@ -460,7 +399,7 @@
                     </div>
 
                     <!-- Coluna 2: Banks (1/4) -->
-                    <div class="lg:col-span-1 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 dark:border-gray-700/30 p-6">
+                    <div class="xl:col-span-1 bg-white dark:bg-slate-900/80 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700/70 p-4 sm:p-5">
                         <div class="flex justify-between items-center mb-6">
                             <div class="flex items-center">
                                 <i class="fas fa-credit-card text-2xl text-purple-600 dark:text-purple-400 mr-3"></i>

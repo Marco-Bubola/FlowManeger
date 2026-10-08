@@ -46,34 +46,59 @@
     @include('components.toast-notifications')
 
     <div class="">
-        <!-- Modern header component (flutuante/sticky) -->
-        <div class="sticky top-4 z-50 mx-4 sm:mx-6 lg:mx-8">
-            <x-upload-header
-                :title="'Upload de Transações'"
-                :description="'Importar transações a partir de arquivo PDF ou CSV'"
-                :backRoute="route('invoices.index', ['bankId' => $bankId])"
-                :showConfirmation="$showConfirmation"
-                :transactionsCount="is_array($transactions) ? count($transactions) : 0"
-                :totalValue="is_array($transactions) ? array_sum(array_column($transactions, 'value')) : 0"
-                :hasDuplicates="is_array($transactions) ? collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false) : false"
-            />
+        @php
+            $hdrBank = \App\Models\Bank::where('user_id', auth()->id())->find($bankId);
+            $txCount = is_array($transactions) ? count($transactions) : 0;
+            $txTotal = is_array($transactions) ? array_sum(array_column($transactions, 'value')) : 0;
+            $txDup = is_array($transactions) ? collect($transactions)->contains(fn($t) => $t['is_duplicate'] ?? false) : false;
+        @endphp
+        <div>
+        <x-bank-page-header :title="$showConfirmation ? 'Conferir compras da fatura' : 'Importar fatura'"
+            :subtitle="$showConfirmation ? 'Revise as compras lidas do arquivo antes de salvar' : 'Envie o PDF ou CSV da fatura e o sistema lança as compras para você'"
+            icon="bi-cloud-upload" active="importar" :bank="$hdrBank" :back-route="route('invoices.index', ['bankId' => $bankId])">
+            @if($showConfirmation)
+                <x-slot:meta>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-collection"></i>{{ $txCount }} compras</span>
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="bi bi-cash-coin"></i>R$ {{ number_format($txTotal, 2, ',', '.') }}</span>
+                </x-slot:meta>
+            @endif
+            <x-slot:actions>
+                @if (!$showConfirmation)
+                    <button type="button" wire:click="toggleTips" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-lightbulb text-amber-500"></i>Dicas</button>
+                    <button type="button" wire:click="uploadFile" wire:loading.attr="disabled" wire:target="uploadFile" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50">
+                        <span wire:loading.remove wire:target="uploadFile"><i class="bi bi-lightning-charge-fill mr-1"></i>Processar arquivo</span>
+                        <span wire:loading wire:target="uploadFile"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Processando...</span>
+                    </button>
+                @else
+                    @if($txDup)
+                        <button type="button" wire:click="removeDuplicates" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-trash text-rose-500"></i>Excluir duplicadas</button>
+                    @endif
+                    <button type="button" wire:click="cancelUpload" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-x-lg"></i>Cancelar</button>
+                    <button type="button" wire:click="confirmTransactions" wire:loading.attr="disabled" wire:target="confirmTransactions"
+                            class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/25 transition disabled:opacity-50">
+                        <span wire:loading.remove wire:target="confirmTransactions"><i class="bi bi-check-lg mr-1"></i>Salvar compras</span>
+                        <span wire:loading wire:target="confirmTransactions"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>
+                    </button>
+                @endif
+            </x-slot:actions>
+        </x-bank-page-header>
         </div>
 
         <!-- Content -->
-        <div class="w-full px-4 sm:px-6 lg:px-8">
+        <div class="w-full">
             @if (!$showConfirmation)
                 <!-- Grid Layout: Upload + Histórico -->
                 <div class="upload-grid grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <!-- Coluna 1: Upload Form -->
                     <div class="w-full xl:w-auto">
-                        <div class="upload-card bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
+                        <div class="upload-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70 h-full flex flex-col">
                             <div class="flex items-center gap-3 mb-6">
                                 <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
                                     <i class="bi bi-file-earmark-arrow-up-fill text-white text-lg"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-lg font-bold text-white">Upload de Transações</h3>
-                                    <p class="text-xs text-slate-400">Envie seu arquivo PDF ou CSV</p>
+                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Upload de Transações</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400">Envie seu arquivo PDF ou CSV</p>
                                 </div>
                             </div>
 
@@ -98,7 +123,7 @@
                                     </div>
                                 @enderror
 
-                                <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
+                                <div class="mt-4 flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
                                     <i class="bi bi-info-circle text-blue-400 mt-0.5"></i>
                                     <p>PDF, CSV • Máx 10MB • Arquivo com transações bancárias</p>
                                 </div>

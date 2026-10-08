@@ -16,24 +16,14 @@ $bankIcons = [
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-bank-ultrawide.css') }}">
-    <!-- Header componentizado para consistência visual -->
-    <x-sales-header title="Editar Cartão/Banco" description="Atualize as informações do seu cartão ou banco"
-        icon="bi-pencil-square" iconColor="orange">
-        <x-slot name="actions">
-            <a href="{{ route('banks.index') }}"
-                class="inline-flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-xl transition-all duration-200 border-2 border-slate-600 hover:border-slate-500 shadow-lg hover:shadow-xl">
-                <i class="bi bi-x-lg"></i>
-                Cancelar
-            </a>
-            <button type="submit" form="bank-edit-form"
-                class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold rounded-xl transition-all duration-200 shadow-lg hover:shadow-2xl hover:scale-105">
-                <i class="bi bi-check-lg"></i>
-                Salvar Alterações
-            </button>
-        </x-slot>
-    </x-sales-header>
-    <form id="bank-edit-form" wire:submit.prevent="update" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-8 px-4 md:px-10 pb-8 overflow-auto">
-        <div class="bg-white/70 dark:bg-slate-800/70 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-white/20 dark:border-slate-700/50">
+    <x-bank-page-header title="Editar cartão" :subtitle="e($bank->name)" icon="bi-pencil-square" active="editar" :bank="$bank">
+        <x-slot:actions>
+            <a href="{{ route('banks.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-x-lg"></i>Cancelar</a>
+            <button type="submit" form="bank-edit-form" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-check-lg"></i>Salvar alterações</button>
+        </x-slot:actions>
+    </x-bank-page-header>
+    <form id="bank-edit-form" wire:submit.prevent="update" x-data="{ cardNumber: @entangle('description') }" class="flex-1 w-full flex flex-col gap-6 pb-8">
+        <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-5 sm:p-7 shadow-sm">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
                 <label for="edit_name" class="flex items-center text-lg font-bold text-slate-800 dark:text-slate-200 mb-3">

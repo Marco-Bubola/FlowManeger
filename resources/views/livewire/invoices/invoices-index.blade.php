@@ -11,6 +11,39 @@
     <x-loading-overlay message="Carregando faturas..." />
 
     <!-- Main Content Layout -->
+    @php
+        $hdrCount = $totalTransactions ?? 0;
+        $hdrTotal = $totalDespesas ?? 0;
+    @endphp
+    <x-bank-page-header :title="$bank->name ?? 'Faturas'" subtitle="Compras e despesas da fatura do cartão" icon="bi-receipt" active="fatura" :bank="$bank">
+        @if($selectedDate)
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300">
+                    <i class="bi bi-calendar-event"></i>Dia {{ \Carbon\Carbon::parse($selectedDate)->format('d/m/Y') }}
+                    <button type="button" wire:click="clearDateSelection" title="Ver o mês todo" class="ml-0.5 hover:text-purple-900 dark:hover:text-purple-100"><i class="bi bi-x-lg text-[10px]"></i></button>
+                </span>
+            </x-slot:meta>
+        @endif
+        <x-slot:actions>
+            <button type="button" wire:click="toggleTips" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span></button>
+            @if($bankId && count($invoices) > 0)
+                <div role="tablist" aria-label="Modo de visualização" class="inline-flex items-center gap-0.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 p-1 shadow-sm">
+                    <button type="button" wire:click="setViewMode('cards')" role="tab" aria-pressed="{{ $viewMode === 'cards' ? 'true' : 'false' }}" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition {{ $viewMode === 'cards' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-grid"></i>Cards</button>
+                    <button type="button" wire:click="setViewMode('list')" role="tab" aria-pressed="{{ $viewMode === 'list' ? 'true' : 'false' }}" class="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold transition {{ $viewMode === 'list' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-list-ul"></i>Lista</button>
+                </div>
+            @endif
+            @if($bankId)
+                <a href="{{ route('invoices.create', ['bankId' => $bankId]) }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50"><i class="bi bi-plus-lg"></i>Nova compra</a>
+            @endif
+        </x-slot:actions>
+    </x-bank-page-header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <x-gestao-stat label="Total da fatura" :value="'R$ ' . number_format($hdrTotal, 2, ',', '.')" icon="bi-cash-stack" tone="rose" />
+        <x-gestao-stat label="Compras" :value="$hdrCount" icon="bi-receipt" tone="indigo" />
+        <x-gestao-stat label="Média por compra" :value="'R$ ' . number_format($hdrCount > 0 ? $hdrTotal / $hdrCount : 0, 2, ',', '.')" icon="bi-calculator" tone="emerald" />
+    </div>
+
     <div class="w-full invoices-shell">
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 invoices-layout">
 
@@ -306,39 +339,6 @@
 
             <!-- Transactions Section -->
             <div class="lg:col-span-3 space-y-3 invoices-main">
-                <!-- Header moderno consistente -->
-                <x-invoice-header
-                    :total-transactions="$totalTransactions ?? 0"
-                    :total-expenses="$totalDespesas ?? 0"
-                    :average="$totalTransactions > 0 ? $totalDespesas / $totalTransactions : 0"
-                    :bank-id="$bankId"
-                    :bank="$bank"
-                    :selected-date="$selectedDate"
-                    :view-mode="$viewMode"
-                    :invoices-count="count($invoices)"
-                    :show-quick-actions="true">
-
-                    <x-slot name="extraActions">
-                        <button wire:click="toggleTips"
-                            class="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white shadow-md hover:shadow-lg transition-all duration-200">
-                            <i class="bi bi-lightbulb text-sm"></i>
-                            <span class="text-xs font-black uppercase tracking-wide">Dicas</span>
-                        </button>
-                    </x-slot>
-
-                    <!-- Breadcrumb -->
-                    <x-slot name="breadcrumb">
-                        <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                            <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                                <i class="fas fa-home mr-1"></i>Dashboard
-                            </a>
-                            <i class="fas fa-chevron-right text-xs"></i>
-                            <span class="text-slate-800 dark:text-slate-200 font-medium">
-                                <i class="fas fa-file-invoice mr-1"></i>Faturas
-                            </span>
-                        </div>
-                    </x-slot>
-                </x-invoice-header>
 
                 <!-- Situação da fatura: vencimento, pagamento e limite -->
                 @php

@@ -1,25 +1,17 @@
 <div class="copy-invoice-page w-full mobile-393-base">
     <form wire:submit.prevent="save">
-        <x-sales-header title="Copiar Transação"
-            description="Confira os dados e salve para criar uma nova transação igual a esta"
-            icon="bi-copy" iconColor="purple"
-            :back-route="route('invoices.index', ['bankId' => $originalInvoice->id_bank])">
-            <x-slot name="actions">
-                <a href="{{ route('invoices.index', ['bankId' => $originalInvoice->id_bank]) }}"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-white/80 dark:bg-slate-800 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-200">
-                    <i class="bi bi-x-lg"></i>
-                    Cancelar
-                </a>
-                <button type="submit" wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all duration-200 disabled:opacity-60">
+        <x-bank-page-header title="Copiar compra" subtitle="Confira os dados e salve para criar uma compra igual a esta" icon="bi-copy" :bank="$originalInvoice->bank" :back-route="route('invoices.index', ['bankId' => $originalInvoice->id_bank])">
+            <x-slot:actions>
+                <a href="{{ route('invoices.index', ['bankId' => $originalInvoice->id_bank]) }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-x-lg"></i>Cancelar</a>
+                <button type="submit" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition disabled:opacity-50">
                     <i class="bi bi-check-lg" wire:loading.remove wire:target="save"></i>
                     <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="save"></i>
                     Salvar cópia
                 </button>
-            </x-slot>
-        </x-sales-header>
+            </x-slot:actions>
+        </x-bank-page-header>
 
-        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div class="pb-8">
             @if ($errors->any())
                 <div class="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 p-4 rounded-2xl mb-4">
                     <div class="font-bold mb-2"><i class="bi bi-exclamation-triangle-fill"></i> Corrija os campos abaixo:</div>
@@ -36,7 +28,7 @@
                 $labelClass = 'flex items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2';
             @endphp
 
-            <div class="bg-white/70 dark:bg-slate-800/50 backdrop-blur-xl rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-6 sm:p-8">
+            <div class="bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 shadow-sm p-5 sm:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                     <div class="md:col-span-2">
                         <label for="description" class="{{ $labelClass }}">
