@@ -99,6 +99,28 @@ class Sale extends Model
     */
 
     /**
+     * Quando o estoque baixa: true = ao criar a venda (mesmo pendente);
+     * false = só quando a venda fica paga.
+     */
+    public const STOCK_ON_CREATE = true;
+
+    /** Baixa o estoque se a regra acima pede (chamar depois de criar os itens). */
+    public function applyStockIfDue(): void
+    {
+        if (self::STOCK_ON_CREATE || $this->status === 'pago') {
+            $this->applyStockDecrement();
+        }
+    }
+
+    /** Venda quitada que ainda não tirou do estoque. */
+    public function applyStockIfPaid(): void
+    {
+        if ($this->status === 'pago') {
+            $this->applyStockDecrement();
+        }
+    }
+
+    /**
      * Debita o estoque dos itens da venda (uma única vez).
      */
     public function applyStockDecrement(): void

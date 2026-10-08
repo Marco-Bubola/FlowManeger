@@ -279,6 +279,7 @@ class ShowProduct extends Component
                     'price_sale' => $item->price_sale,
                 ]);
             }
+            $newSale->applyStockIfDue();
 
             session()->flash('success', 'Venda duplicada com sucesso!');
             $this->loadAnalytics(); // Recarregar dados

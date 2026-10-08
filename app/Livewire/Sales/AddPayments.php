@@ -115,6 +115,8 @@ class AddPayments extends Component
                 $this->sale->update($updateData);
             });
 
+            $this->sale->refresh()->applyStockIfPaid();
+
             session()->flash('success', 'Pagamentos adicionados com sucesso!');
             return redirect()->route('sales.show', $this->sale->id);
 

@@ -266,6 +266,7 @@ class ShowSale extends Component
                 $this->sale->status = 'pendente';
             }
             $this->sale->save();
+            $this->sale->applyStockIfPaid();
 
             $this->showDiscountModal = false;
             session()->flash('success', 'Desconto aplicado. Valor restante zerado.');
@@ -317,6 +318,7 @@ class ShowSale extends Component
                 $this->sale->status = $this->sale->total_paid >= $this->sale->total_price ? 'pago' : 'pendente';
                 $this->sale->save();
             });
+            $this->sale->applyStockIfPaid();
 
             $this->sale->load(['payments', 'parcelasVenda']);
             $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)->orderBy('numero_parcela')->get();
@@ -359,6 +361,7 @@ class ShowSale extends Component
             $this->sale->amount_paid = (float) $this->sale->payments()->sum('amount_paid');
             $this->sale->status = ($this->sale->total_paid >= $this->sale->total_price) ? 'pago' : 'pendente';
             $this->sale->save();
+            $this->sale->applyStockIfPaid();
 
             // Atualizar parcelas e relacionamentos
             $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)->orderBy('numero_parcela')->get();
@@ -408,6 +411,7 @@ class ShowSale extends Component
             $this->sale->status = 'pendente';
         }
         $this->sale->save();
+        $this->sale->applyStockIfPaid();
 
         // Atualizar parcelas
         $this->parcelas = VendaParcela::where('sale_id', $this->sale->id)

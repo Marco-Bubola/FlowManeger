@@ -318,7 +318,12 @@ class AddProducts extends Component
                     ]);
                 }
 
-                // Atualiza estoque: simples desconta o próprio; kit desconta componentes
+                // Atualiza estoque: simples desconta o próprio; kit desconta componentes.
+                // Venda que ainda não baixou o estoque baixa tudo junto depois
+                // (applyStockDecrement); descontar aqui contaria duas vezes.
+                if (! $this->sale->stock_applied) {
+                    continue;
+                }
                 if (($product->tipo ?? 'simples') === 'kit') {
                     foreach ($product->componentes()->get() as $pc) {
                         $componentProduct = $pc->componente()->first();

@@ -108,6 +108,8 @@ class EditPayments extends Component
                 $this->sale->save();
             });
 
+            $this->sale->refresh()->applyStockIfPaid();
+
             session()->flash('success', 'Pagamentos atualizados com sucesso!');
             return redirect()->route('sales.show', $this->sale->id);
 
@@ -155,6 +157,8 @@ class EditPayments extends Component
                 }
                 $this->sale->save();
             });
+
+            $this->sale->refresh()->applyStockIfPaid();
 
             session()->flash('success', 'Pagamento removido com sucesso!');
 

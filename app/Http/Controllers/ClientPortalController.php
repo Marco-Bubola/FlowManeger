@@ -1021,11 +1021,9 @@ class ClientPortalController extends Controller
                 'price'      => $product->price_sale ?? $item['price_ref'] ?? 0,
             ]);
 
-            // Baixar estoque
-            if ($product->stock_quantity !== null) {
-                $product->decrement('stock_quantity', (int) ($item['quantity'] ?? 1));
-            }
         }
+
+        $sale->applyStockIfDue();
 
         $quote->update([
             'status'       => 'approved',

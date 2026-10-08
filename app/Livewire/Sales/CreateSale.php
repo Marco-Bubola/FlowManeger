@@ -342,9 +342,8 @@ class CreateSale extends Component
                     'promotion_id' => $promo?->id,
                 ]);
 
-                // OBS.: o estoque NÃO é debitado aqui. Só é debitado quando a
-                // venda for confirmada (marcar_como_pago abaixo, ou ao pagar na
-                // Sales Index) via Sale::applyStockDecrement().
+                // O estoque é debitado depois, de uma vez, por
+                // Sale::applyStockIfDue().
             }
 
             // Gerar parcelas se for parcelado
@@ -380,11 +379,9 @@ class CreateSale extends Component
             return $sale;
         });
 
-        // Estoque só é debitado quando a venda é confirmada na criação.
-        // (após o commit, para o dispatch do sync ML rodar com dados persistidos)
-        if ($this->marcar_como_pago && $sale) {
-            $sale->applyStockDecrement();
-        }
+        // Baixa o estoque conforme Sale::STOCK_ON_CREATE (após o commit, para o
+        // sync com o ML rodar com os dados já gravados).
+        $sale?->applyStockIfDue();
 
         session()->flash('success', $this->marcar_como_pago ? 'Venda criada e quitada com sucesso!' : 'Venda criada com sucesso!');
         return redirect()->route('sales.index');
