@@ -71,7 +71,7 @@ return [
         ],
 
         'clients' => [
-            'driver' => 'eloquent',
+            'driver' => 'portal-clients',
             'model'  => App\Models\Client::class,
         ],
 

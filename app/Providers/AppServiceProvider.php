@@ -16,6 +16,8 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        \Illuminate\Support\Facades\Auth::provider('portal-clients', fn ($app, array $config) => new \App\Auth\PortalClientProvider($app['hash'], $config['model']));
+
         // Registrar observadores de modelos
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
         // Pagamentos de venda viram receita no livro-caixa (se o usuário ativar)

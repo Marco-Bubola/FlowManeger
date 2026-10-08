@@ -134,6 +134,8 @@ Route::prefix('portal')->name('portal.')->group(function () {
 Route::middleware('guest:portal')->prefix('portal')->name('portal.')->group(function () {
     Route::get('/login', [ClientPortalController::class, 'showLogin'])->name('login');
     Route::post('/login', [ClientPortalController::class, 'login'])->name('login.post');
+    Route::get('/criar-conta', [ClientPortalController::class, 'showRegister'])->name('register');
+    Route::post('/criar-conta', [ClientPortalController::class, 'register'])->name('register.post');
     Route::get('/auth/google', [ClientPortalController::class, 'redirectToGoogle'])->name('google.redirect');
     Route::get('/auth/google/callback', [ClientPortalController::class, 'handleGoogleCallback'])->name('google.callback');
     Route::get('/esqueci-a-senha', [ClientPortalController::class, 'showForgotPassword'])->name('password.request');

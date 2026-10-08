@@ -36,7 +36,7 @@
         <div class="relative bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-8 overflow-hidden">
             <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-bl from-white/10 to-transparent rounded-full translate-x-10 -translate-y-10"></div>
             <h2 class="text-xl font-bold text-white mb-1">Bem-vindo de volta!</h2>
-            <p class="text-sky-200 text-sm mb-6">Acesse com o login exclusivo baseado no nome do cliente</p>
+            <p class="text-sky-200 text-sm mb-6">Entre com seu e-mail ou com o login enviado pela loja</p>
 
             <div class="grid grid-cols-3 gap-2 mb-6">
                 <div class="rounded-2xl border border-white/10 bg-white/5 px-3 py-3 text-center">
@@ -70,19 +70,18 @@
                 @csrf
 
                 <div>
-                    <label class="block text-sm font-medium text-sky-200 mb-1.5">Login do portal</label>
+                    <label class="block text-sm font-medium text-sky-200 mb-1.5">E-mail ou login</label>
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-white/40">
                             <i class="fas fa-id-badge text-sm"></i>
                         </span>
                         <input type="text" name="login" value="{{ old('login') }}" required autofocus
-                            placeholder="maria-silva"
+                            placeholder="voce@email.com" autocapitalize="none"
                             class="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-sky-400 focus:border-transparent transition-all text-sm @error('login') border-red-400/50 @enderror">
                     </div>
                     @error('login')
                         <p class="mt-1.5 text-xs text-red-300">{{ $message }}</p>
                     @enderror
-                    <p class="mt-1.5 text-xs text-sky-300/80">Esse login nao depende de e-mail e normalmente usa o nome do cliente de forma amigavel.</p>
                 </div>
 
                 <div>
@@ -139,9 +138,20 @@
             </a>
 
             <div class="mt-6 pt-6 border-t border-white/10 text-center">
+                @if(request()->cookie('portal_store'))
+                <p class="text-sky-200 text-sm mb-3">Primeira compra por aqui?</p>
+                <a href="{{ route('portal.register', session('portal_intended') === 'cart' ? ['redirect' => 'cart'] : []) }}"
+                   class="w-full inline-flex items-center justify-center gap-2 py-3 border border-white/30 hover:bg-white/10 text-white font-bold rounded-xl transition-colors text-sm">
+                    <i class="fas fa-user-plus"></i> Criar minha conta
+                </a>
+                <a href="{{ route('portal.catalog', ['userId' => request()->cookie('portal_store')]) }}" class="inline-block mt-4 text-xs font-semibold text-sky-300 hover:text-white">
+                    <i class="fas fa-arrow-left mr-1"></i> Voltar ao catálogo
+                </a>
+                @else
                 <p class="text-sky-300 text-xs">
-                    Não tem acesso? Entre em contato com seu vendedor.
+                    Não tem acesso? Abra o link do catálogo enviado pela loja para criar sua conta.
                 </p>
+                @endif
             </div>
         </div>
 

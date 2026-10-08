@@ -75,6 +75,15 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
         });
     }
 
+    /**
+     * Consulta usada pelo portal do cliente, onde não há usuário da loja
+     * logado. Só para buscas que já filtram pelo login, e-mail ou id.
+     */
+    public static function portalQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return static::withoutGlobalScope('team_visibility');
+    }
+
     public static function generateUniquePortalLogin(?string $name = null, ?int $ignoreId = null): string
     {
         $base = Str::slug(Str::ascii((string) $name), '-');
@@ -85,7 +94,8 @@ class Client extends Model implements AuthenticatableContract, CanResetPasswordC
         $login = $base;
         $suffix = 2;
 
-        while (static::query()
+        // O login é único na tabela toda, não só entre os clientes visíveis.
+        while (static::withoutGlobalScope('team_visibility')
             ->when($ignoreId, fn ($query) => $query->whereKeyNot($ignoreId))
             ->where('portal_login', $login)
             ->exists()) {

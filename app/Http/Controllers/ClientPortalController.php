@@ -86,14 +86,14 @@ class ClientPortalController extends Controller
             $linkClientId = request()->session()->pull('portal_google_connect_client_id');
 
             if ($linkClientId) {
-                $client = Client::query()->find($linkClientId);
+                $client = Client::portalQuery()->find($linkClientId);
 
                 if (! $client) {
                     return redirect()->route('portal.profile')
                         ->with('error', 'Nao foi possivel localizar o cliente para conectar o Google.');
                 }
 
-                $conflictingClient = Client::query()
+                $conflictingClient = Client::portalQuery()
                     ->where('google_id', $googleUser->getId())
                     ->whereKeyNot($client->id)
                     ->first();
@@ -113,13 +113,13 @@ class ClientPortalController extends Controller
                     ->with('success', 'Conta Google conectada com sucesso ao portal.');
             }
 
-            $client = Client::query()
+            $client = Client::portalQuery()
                 ->where('google_id', $googleUser->getId())
                 ->where('portal_active', true)
                 ->first();
 
             if (! $client) {
-                $matchingClients = Client::query()
+                $matchingClients = Client::portalQuery()
                     ->where('email', $googleUser->getEmail())
                     ->where('portal_active', true)
                     ->get();
@@ -156,13 +156,7 @@ class ClientPortalController extends Controller
             Auth::guard('portal')->login($client, true);
             request()->session()->regenerate();
 
-            // Se veio do carrinho, retorna ao carrinho após login
-            $intended = request()->session()->pull('portal_intended');
-            if ($intended === 'cart') {
-                return redirect()->route('portal.quotes.create');
-            }
-
-            return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
+            return $this->redirectAfterPortalLogin(request(), $client);
         } catch (\Throwable $exception) {
             return redirect()->route('portal.login')
                 ->with('error', 'Nao foi possivel entrar com Google no portal.');
@@ -180,7 +174,7 @@ class ClientPortalController extends Controller
             'login' => ['required', 'string', 'max:255'],
         ]);
 
-        $client = Client::query()
+        $client = Client::portalQuery()
             ->where('portal_login', $request->string('login')->toString())
             ->where('portal_active', true)
             ->first();
@@ -199,7 +193,7 @@ class ClientPortalController extends Controller
 
     public function showResetPassword(Request $request, string $token)
     {
-        $client = Client::query()
+        $client = Client::portalQuery()
             ->where('portal_login', $request->string('login')->toString())
             ->first();
 
@@ -218,7 +212,7 @@ class ClientPortalController extends Controller
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
-        $client = Client::query()
+        $client = Client::portalQuery()
             ->where('portal_login', $request->string('login')->toString())
             ->where('portal_active', true)
             ->first();
@@ -263,11 +257,21 @@ class ClientPortalController extends Controller
             ])->withInput($request->only('login'));
         }
 
-        $client = Client::where('portal_login', $request->string('login')->toString())
-            ->where('portal_active', true)
-            ->first();
+        $login = trim($request->string('login')->toString());
 
-        if (! $client || ! Hash::check($request->password, $client->portal_password)) {
+        // Aceita o login do portal ou o e-mail. O mesmo e-mail pode existir em
+        // mais de uma loja: vale o cadastro cuja senha confere, preferindo a
+        // loja do link que o cliente abriu.
+        $storeId = (int) $request->cookie('portal_store');
+        $client = Client::portalQuery()
+            ->where('portal_active', true)
+            ->where(fn ($q) => $q->where('portal_login', $login)
+                ->when(str_contains($login, '@'), fn ($q) => $q->orWhere('email', $login)))
+            ->get()
+            ->sortByDesc(fn ($c) => (int) $c->user_id === $storeId)
+            ->first(fn ($c) => $c->portal_password && Hash::check($request->password, $c->portal_password));
+
+        if (! $client) {
             RateLimiter::hit($throttleKey, 60);
             return back()->withErrors([
                 'login' => 'Login ou senha invalidos.',
@@ -282,13 +286,105 @@ class ClientPortalController extends Controller
         // Salva cookie para catálogo público (30 dias)
         cookie()->queue('portal_store', (string) $client->user_id, 60 * 24 * 30);
 
-        // Se veio do carrinho, retorna ao carrinho após login
+        return $this->redirectAfterPortalLogin($request, $client);
+    }
+
+    /** Volta ao carrinho quando o login veio dele; o cadastro pendente é pedido antes. */
+    private function redirectAfterPortalLogin(Request $request, Client $client)
+    {
         $intended = $request->session()->pull('portal_intended');
-        if ($intended === 'cart') {
-            return redirect()->route('portal.quotes.create');
+
+        if ($client->needsPortalOnboarding()) {
+            if ($intended === 'cart') {
+                $request->session()->put('portal_intended', 'cart');
+            }
+
+            return redirect()->route('portal.profile');
         }
 
-        return redirect()->route($client->needsPortalOnboarding() ? 'portal.profile' : 'portal.dashboard');
+        return $intended === 'cart'
+            ? redirect()->route('portal.quotes.create')
+            : redirect()->route('portal.dashboard');
+    }
+
+    /** Vendas do cliente logado no portal (sem usuário da loja na sessão). */
+    private function portalSales(Client $client)
+    {
+        return Sale::withoutGlobalScope('team_visibility')->where('client_id', $client->id);
+    }
+
+    // ─── Cadastro pelo próprio cliente ─────────────────────────────────────────
+
+    public function showRegister(Request $request)
+    {
+        $storeId = (int) ($request->query('loja') ?: $request->cookie('portal_store'));
+        $store = $storeId ? \App\Models\User::select('id', 'name')->find($storeId) : null;
+
+        if (! $store) {
+            return redirect()->route('portal.login')
+                ->with('error', 'Abra o link do catálogo enviado pela loja para criar sua conta.');
+        }
+
+        if ($request->query('redirect') === 'cart') {
+            $request->session()->put('portal_intended', 'cart');
+        }
+
+        return view('portal.register', compact('store'));
+    }
+
+    public function register(Request $request)
+    {
+        $storeId = (int) ($request->input('loja') ?: $request->cookie('portal_store'));
+        $store = $storeId ? \App\Models\User::select('id', 'name')->find($storeId) : null;
+
+        if (! $store) {
+            return redirect()->route('portal.login')
+                ->with('error', 'Abra o link do catálogo enviado pela loja para criar sua conta.');
+        }
+
+        $throttleKey = 'portal-register:' . $request->ip();
+        if (RateLimiter::tooManyAttempts($throttleKey, 10)) {
+            return back()->withErrors(['email' => 'Muitas tentativas. Tente de novo em alguns minutos.'])->withInput();
+        }
+        RateLimiter::hit($throttleKey, 600);
+
+        $request->merge(['phone' => $this->normalizePhone($request->input('phone'))]);
+
+        $validated = $request->validate([
+            'name'     => ['required', 'string', 'max:120'],
+            'phone'    => ['required', 'regex:/^\d{10,11}$/'],
+            'email'    => ['required', 'email', 'max:180'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+        ], [
+            'phone.regex' => 'Informe o celular com DDD.',
+        ]);
+
+        $email = Str::lower(trim($validated['email']));
+
+        // Um cadastro que a loja já tem não é assumido por quem só sabe o e-mail.
+        $exists = Client::portalQuery()->where('user_id', $store->id)->where('email', $email)->exists();
+        if ($exists) {
+            return back()->withErrors([
+                'email' => 'Esse e-mail já tem cadastro nesta loja. Entre com sua senha ou peça o acesso à loja.',
+            ])->withInput($request->except('password', 'password_confirmation'));
+        }
+
+        $client = Client::create([
+            'user_id'         => $store->id,
+            'name'            => trim($validated['name']),
+            'email'           => $email,
+            'phone'           => $this->formatPhoneForStorage($validated['phone']),
+            'portal_password' => Hash::make($validated['password']),
+            'portal_active'   => true,
+        ]);
+
+        Auth::guard('portal')->login($client, true);
+        $client->update(['portal_last_login_at' => now()]);
+        $request->session()->regenerate();
+        cookie()->queue('portal_store', (string) $store->id, 60 * 24 * 30);
+
+        return $this->redirectAfterPortalLogin($request, $client)
+            ->with('success', 'Conta criada! Complete seus dados de entrega para finalizar o pedido.');
     }
 
     public function logout(Request $request)
@@ -307,10 +403,10 @@ class ClientPortalController extends Controller
         /** @var \App\Models\Client $client */
         $client = Auth::guard('portal')->user();
 
-        $totalSales    = Sale::where('client_id', $client->id)->count();
-        $totalPaid     = Sale::where('client_id', $client->id)->sum('amount_paid');
-        $pendingSales  = Sale::where('client_id', $client->id)->where('status', 'pending')->count();
-        $recentSales   = Sale::with('saleItems.product')
+        $totalSales    = $this->portalSales($client)->count();
+        $totalPaid     = $this->portalSales($client)->sum('amount_paid');
+        $pendingSales  = $this->portalSales($client)->where('status', 'pending')->count();
+        $recentSales   = $this->portalSales($client)->with(['saleItems.product' => fn ($q) => $q->withoutGlobalScope('team_visibility')])
             ->where('client_id', $client->id)
             ->latest()
             ->limit(5)
@@ -330,18 +426,17 @@ class ClientPortalController extends Controller
         /** @var \App\Models\Client $client */
         $client = Auth::guard('portal')->user();
 
-        $sales = Sale::with(['saleItems.product', 'payments'])
-            ->where('client_id', $client->id)
+        $sales = $this->portalSales($client)
+            ->with(['saleItems.product' => fn ($q) => $q->withoutGlobalScope('team_visibility'), 'payments'])
             ->latest()
             ->paginate(12);
 
         // KPI aggregates (all client sales, not just this page)
-        $allSales = Sale::where('client_id', $client->id);
+        $allSales = $this->portalSales($client);
         $kpiTotal      = (clone $allSales)->count();
         $kpiTotalValue = (clone $allSales)->sum('total_price');
         $kpiPending    = (clone $allSales)->whereIn('status', ['pendente', 'pending', 'orcamento'])->count();
-        $kpiPaid       = Sale::with('payments')
-            ->where('client_id', $client->id)
+        $kpiPaid       = $this->portalSales($client)->with('payments')
             ->get()
             ->sum(fn($s) => $s->total_paid);
 
@@ -447,6 +542,8 @@ class ClientPortalController extends Controller
         }
 
         $ownerId   = (int) $ownerId;
+        // Lembra a loja para o cadastro e o login de quem chegou pelo link.
+        cookie()->queue('portal_store', (string) $ownerId, 60 * 24 * 30);
         $search    = $request->query('search', '');
         $category  = $request->query('category', '');
         $onlyOffers = $request->boolean('ofertas');
@@ -459,7 +556,7 @@ class ClientPortalController extends Controller
         // Seção "Ofertas" no topo: produtos com promoção valendo agora.
         $offers = (clone $query)
             ->whereHas('promotions', fn ($q) => $q->current())
-            ->with(['category', 'activePromotion'])
+            ->with(['category', 'activePromotion', 'images'])
             ->get()
             ->filter(fn ($p) => $p->livePromotion())
             ->sortByDesc(fn ($p) => $p->livePromotion()->discount_percent)
@@ -480,10 +577,32 @@ class ClientPortalController extends Controller
             $query->where('category_id', $category);
         }
 
-        $products   = $query->with(['category', 'activePromotion'])->paginate(24)->withQueryString();
-        $categories = Category::where('user_id', $ownerId)->orderBy('name')->get();
+        $sort = in_array($request->query('ordem'), ['menor', 'maior', 'novos', 'nome'], true)
+            ? $request->query('ordem')
+            : '';
 
-        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers'));
+        match ($sort) {
+            'menor' => $query->orderBy('price_sale'),
+            'maior' => $query->orderByDesc('price_sale'),
+            'novos' => $query->orderByDesc('id'),
+            'nome'  => $query->orderBy('name'),
+            default => $query->orderByDesc('updated_at'),
+        };
+
+        $products   = $query->with(['category', 'activePromotion', 'images'])->paginate(30)->withQueryString();
+
+        // Só categorias que têm produto à venda, para os atalhos do topo.
+        $categoryIds = Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $ownerId)
+            ->where('stock_quantity', '>', 0)
+            ->whereIn('status', ['active', 'ativo'])
+            ->distinct()
+            ->pluck('category_id');
+        $categories = Category::where('user_id', $ownerId)->whereIn('id_category', $categoryIds)->orderBy('name')->get();
+
+        $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($ownerId);
+
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store'));
     }
 
     public function storeQuote(Request $request)
@@ -748,6 +867,13 @@ class ClientPortalController extends Controller
         }
 
         $client->save();
+
+        if (! $client->needsPortalOnboarding() && $request->session()->get('portal_intended') === 'cart') {
+            $request->session()->forget('portal_intended');
+
+            return redirect()->route('portal.quotes.create')
+                ->with('success', 'Cadastro completo! Agora é só conferir e enviar seu pedido.');
+        }
 
         return back()->with('success', ($requiresPasswordSetup || $requiresProfileCompletion) ? 'Cadastro inicial concluido com sucesso! Agora seu acesso esta liberado.' : 'Perfil atualizado com sucesso!');
     }
