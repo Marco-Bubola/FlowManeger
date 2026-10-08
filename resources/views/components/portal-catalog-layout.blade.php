@@ -79,6 +79,14 @@ document.addEventListener('alpine:init', () => {
         load() {
             try { this.items = JSON.parse(localStorage.getItem('portal_cart') || '[]'); } catch (e) { this.items = []; }
         },
+        sync(stock) {
+            const before = this.items.length;
+            this.items = this.items
+                .filter(i => stock[i.id] > 0)
+                .map(i => ({ ...i, stock: stock[i.id], qty: Math.min(i.qty || 1, stock[i.id]) }));
+            this.save();
+            return before - this.items.length;
+        },
         save() {
             try { localStorage.setItem('portal_cart', JSON.stringify(this.items)); } catch (e) {}
         },

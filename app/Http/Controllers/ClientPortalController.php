@@ -591,18 +591,22 @@ class ClientPortalController extends Controller
 
         $products   = $query->with(['category', 'activePromotion', 'images'])->paginate(30)->withQueryString();
 
-        // Só categorias que têm produto à venda, para os atalhos do topo.
-        $categoryIds = Product::withoutGlobalScope('team_visibility')
+        // Tudo que está à venda (com estoque): contagens e conferência do carrinho.
+        $inStock = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
-            ->distinct()
-            ->pluck('category_id');
-        $categories = Category::where('user_id', $ownerId)->whereIn('id_category', $categoryIds)->orderBy('name')->get();
+            ->get(['id', 'category_id', 'stock_quantity']);
+        $stockMap = $inStock->pluck('stock_quantity', 'id')->map(fn ($q) => (int) $q);
+        $unitsInStock = (int) $inStock->sum('stock_quantity');
+        $countByCategory = $inStock->countBy('category_id');
+
+        // Só categorias que têm produto com estoque, para os atalhos do topo.
+        $categories = Category::where('user_id', $ownerId)->whereIn('id_category', $countByCategory->keys())->orderBy('name')->get();
 
         $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($ownerId);
 
-        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store'));
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'unitsInStock', 'countByCategory'));
     }
 
     public function storeQuote(Request $request)

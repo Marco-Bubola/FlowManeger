@@ -261,7 +261,7 @@
 </style>
 @endpush
 
-<div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl))" @keydown.escape.window="close(); cartOpen = false" @open-cart.window="openCart()">
+<div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap))" @keydown.escape.window="close(); cartOpen = false" @open-cart.window="openCart()">
 
     @if($showOffers)
         <section class="ml-hero">
@@ -270,7 +270,8 @@
             <p>Escolha, adicione ao carrinho e finalize seu pedido em poucos toques.</p>
             <div class="ml-hero-stats">
                 <span><i class="fas fa-tag"></i> {{ $offers->count() }} {{ $offers->count() === 1 ? 'oferta' : 'ofertas' }}</span>
-                <span><i class="fas fa-box"></i> {{ $products->total() }} produtos</span>
+                <span><i class="fas fa-box"></i> {{ $stockMap->count() }} produtos em estoque</span>
+                <span><i class="fas fa-cubes"></i> {{ $unitsInStock }} unidades</span>
             </div>
         </section>
     @endif
@@ -279,7 +280,7 @@
         <nav class="ml-cats" aria-label="Categorias">
             <a href="{{ route('portal.catalog', ['userId' => $owner]) }}" class="ml-cat {{ ! $category && ! $onlyOffers ? 'on' : '' }}">
                 <span class="ml-cat-ico"><i class="fas fa-store"></i></span>
-                <span>Tudo</span>
+                <span>Tudo ({{ $stockMap->count() }})</span>
             </a>
             @if($offers->isNotEmpty())
                 <a href="{{ route('portal.catalog', ['userId' => $owner, 'ofertas' => 1]) }}" class="ml-cat hot {{ $onlyOffers ? 'on' : '' }}">
@@ -291,7 +292,7 @@
                 <a href="{{ route('portal.catalog', ['userId' => $owner, 'category' => $cat->getKey()]) }}"
                    class="ml-cat {{ (string) $category === (string) $cat->getKey() ? 'on' : '' }}">
                     <span class="ml-cat-ico"><i class="{{ $cat->icone ?: 'fas fa-tag' }}"></i></span>
-                    <span>{{ $cat->name }}</span>
+                    <span>{{ $cat->name }} ({{ $countByCategory[$cat->getKey()] ?? 0 }})</span>
                 </a>
             @endforeach
         </nav>
@@ -326,7 +327,7 @@
     @endif
 
     <div class="ml-toolbar">
-        <span class="ml-count-txt">{{ $products->total() }} {{ $products->total() === 1 ? 'resultado' : 'resultados' }}</span>
+        <span class="ml-count-txt">{{ $products->total() }} {{ $products->total() === 1 ? 'produto' : 'produtos' }} em estoque</span>
         @if($offers->isNotEmpty())
             <a href="{{ $catalogUrl(['ofertas' => $onlyOffers ? null : 1, 'page' => null]) }}" class="ml-chip hot {{ $onlyOffers ? 'on' : '' }}">
                 <i class="fas fa-fire"></i> Ofertas
@@ -570,8 +571,12 @@
 
 @push('scripts')
 <script>
-function mlCatalog(products, cartUrl) {
+function mlCatalog(products, cartUrl, stockMap) {
     return {
+        init() {
+            // Carrinho só com o que ainda tem estoque, e no máximo o disponível.
+            Alpine.store('cart').sync(stockMap);
+        },
         products,
         p: null,
         qty: 1,
