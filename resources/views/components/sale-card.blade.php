@@ -1,301 +1,135 @@
 @props(['sale'])
 
 @php
-    // Configurações de status (normaliza variações comuns)
-    $statusConfig = [
-        'finalizada' => ['color' => '#10b981', 'icon' => 'bi-check-circle-fill', 'label' => 'Finalizada'],
-        'concluida'  => ['color' => '#10b981', 'icon' => 'bi-check-circle-fill', 'label' => 'Finalizada'],
-        'pago'       => ['color' => '#22c55e', 'icon' => 'bi-check-circle-fill', 'label' => 'Pago'],
-        'paga'       => ['color' => '#22c55e', 'icon' => 'bi-check-circle-fill', 'label' => 'Pago'],
-        'pendente'   => ['color' => '#facc15', 'icon' => 'bi-clock-fill', 'label' => 'Pendente'],
-        'orcamento'  => ['color' => '#60a5fa', 'icon' => 'bi-file-earmark-text', 'label' => 'Orçamento'],
-        'confirmada' => ['color' => '#06b6d4', 'icon' => 'bi-check2-square', 'label' => 'Confirmada'],
-        'cancelada'  => ['color' => '#f87171', 'icon' => 'bi-x-circle-fill', 'label' => 'Cancelada'],
-    ];
-
-    // Calcular total pago corretamente: preferir o accessor do model quando disponível
-    $totalPaid = $sale->total_paid ?? $sale->payments->sum('amount_paid');
-    // Garantir que seja float
-    $totalPaid = (float) $totalPaid;
-
-    $remainingAmount = max(0, (float) $sale->total_price - $totalPaid);
-    $paymentPercentage = $sale->total_price > 0 ? min(100, ($totalPaid / (float) $sale->total_price) * 100) : 0;
-
-    // Determinar status exibido: se tudo estiver pago, forçar 'pago'
+    // Card da lista de vendas no mesmo visual do card de cliente.
+    $totalPaid = (float) ($sale->total_paid ?? $sale->payments->sum('amount_paid'));
+    $total = (float) $sale->total_price;
+    $remaining = max(0, $total - $totalPaid);
+    $percent = $total > 0 ? min(100, round($totalPaid / $total * 100)) : 0;
+    $isPaid = $remaining <= 0;
     $rawStatus = strtolower((string) ($sale->status ?? 'pendente'));
-    $displayStatusKey = $remainingAmount <= 0 ? 'pago' : $rawStatus;
-    $status = $statusConfig[$displayStatusKey] ?? ['color' => '#a78bfa', 'icon' => 'bi-question-circle-fill', 'label' => ucfirst($rawStatus)];
-    $clientName = $sale->client->name ?? 'Cliente não informado';
-    $clientCity = optional($sale->client)->city;
-    $clientInitials = collect(explode(' ', $clientName))
-        ->filter()
-        ->map(fn($n) => mb_substr($n, 0, 1))
-        ->take(2)
-        ->implode('');
-    $paymentMethodLabel = $sale->payment_method
-        ? ucwords(str_replace('_', ' ', $sale->payment_method))
-        : null;
-    $paymentTypeLabel = $sale->tipo_pagamento === 'parcelado'
-        ? ($sale->parcelas ? $sale->parcelas . 'x Parcelado' : 'Parcelado')
+    $status = $isPaid
+        ? ['label' => 'Pago', 'icon' => 'bi-check-circle-fill', 'class' => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300', 'band' => 'from-emerald-400 to-teal-500']
+        : match ($rawStatus) {
+            'cancelada' => ['label' => 'Cancelada', 'icon' => 'bi-x-circle-fill', 'class' => 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300', 'band' => 'from-rose-400 to-pink-500'],
+            'orcamento' => ['label' => 'Orçamento', 'icon' => 'bi-file-earmark-text', 'class' => 'bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-300', 'band' => 'from-sky-400 to-indigo-500'],
+            default => $totalPaid > 0
+                ? ['label' => 'Parcial', 'icon' => 'bi-hourglass-split', 'class' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300', 'band' => 'from-amber-400 to-orange-500']
+                : ['label' => 'Pendente', 'icon' => 'bi-clock-fill', 'class' => 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300', 'band' => 'from-amber-400 to-orange-500'],
+        };
+    $client = $sale->client;
+    $clientName = $client->name ?? 'Cliente não informado';
+    $items = $sale->saleItems;
+    $units = (int) $items->sum('quantity');
+    $paymentLabel = $sale->tipo_pagamento === 'parcelado'
+        ? ($sale->parcelas ? $sale->parcelas . 'x' : 'Parcelado')
         : 'À vista';
-        $productsCount = $sale->saleItems->count();
-        $itemsQuantity = $sale->saleItems->sum('quantity');
-        $lastUpdateLabel = $sale->updated_at?->diffForHumans() ?? 'Agora mesmo';
-        $isPaid = $remainingAmount <= 0;
-        $progressToneClass = $isPaid ? 'is-paid' : 'is-pending';
-        $progressStatusTitle = $isPaid ? 'Pagamento concluído' : 'Pagamento pendente';
-        $progressStatusText = $isPaid ? 'Venda 100% paga' : 'Falta quitar R$ ' . number_format($remainingAmount, 2, ',', '.');
-        // Ações primárias (sempre visíveis) e secundárias (no "Mais")
-        $primaryActions = [
-            [
-                'type' => 'link',
-                'href' => route('sales.show', $sale->id),
-                'label' => 'Detalhes',
-                'abbr' => 'Ver',
-                'tooltip' => 'Ver detalhes completos da venda',
-                'icon' => 'bi-eye',
-                'tone' => 'sky',
-            ],
-            [
-                'type' => 'link',
-                'href' => route('sales.edit', $sale->id),
-                'label' => 'Editar',
-                'abbr' => 'Editar',
-                'tooltip' => 'Editar dados gerais da venda',
-                'icon' => 'bi-pencil',
-                'tone' => 'amber',
-            ],
-            [
-                'type' => 'link',
-                'href' => route('sales.add-products', $sale->id),
-                'label' => 'Produtos',
-                'abbr' => 'Itens',
-                'tooltip' => 'Adicionar produtos a esta venda',
-                'icon' => 'bi-plus-circle',
-                'tone' => 'teal',
-            ],
-            [
-                'type' => 'link',
-                'href' => route('sales.add-payments', $sale->id),
-                'label' => 'Pagar',
-                'abbr' => 'Pagar',
-                'tooltip' => 'Adicionar pagamento à venda',
-                'icon' => 'bi-credit-card',
-                'tone' => 'green',
-            ],
-        ];
-        $moreActions = [
-            [
-                'type' => 'button',
-                'wireClick' => 'payFull(' . $sale->id . ')',
-                'label' => 'Quitar saldo',
-                'abbr' => 'Quitar',
-                'tooltip' => 'Quitar o saldo restante da venda',
-                'icon' => 'bi-cash-stack',
-                'tone' => 'emerald',
-            ],
-            [
-                'type' => 'link',
-                'href' => route('sales.edit-prices', $sale->id),
-                'label' => 'Editar preços',
-                'abbr' => 'Preços',
-                'tooltip' => 'Editar preços dos itens da venda',
-                'icon' => 'bi-currency-dollar',
-                'tone' => 'violet',
-            ],
-            [
-                'type' => 'link',
-                'href' => route('sales.edit-payments', $sale->id),
-                'label' => 'Editar pagamento',
-                'abbr' => 'Pgtos',
-                'tooltip' => 'Editar pagamentos já lançados',
-                'icon' => 'bi-pencil-square',
-                'tone' => 'indigo',
-            ],
-            [
-                'type' => 'button',
-                'wireClick' => 'openExportSaleModalFromCard(' . $sale->id . ')',
-                'label' => 'Exportar PDF',
-                'abbr' => 'Export',
-                'tooltip' => 'Gerar PDF desta venda',
-                'icon' => 'bi-file-earmark-pdf',
-                'tone' => 'rose',
-            ],
-            [
-                'type' => 'button',
-                'wireClick' => 'confirmDelete(' . $sale->id . ')',
-                'label' => 'Excluir venda',
-                'abbr' => 'Excluir',
-                'tooltip' => 'Excluir venda e devolver produtos ao estoque',
-                'icon' => 'bi-trash',
-                'tone' => 'red',
-            ],
-        ];
+    $moreActions = [
+        ['type' => 'link', 'href' => route('sales.edit', $sale->id), 'label' => 'Editar venda', 'icon' => 'bi-pencil'],
+        ['type' => 'link', 'href' => route('sales.edit-prices', $sale->id), 'label' => 'Editar preços', 'icon' => 'bi-currency-dollar'],
+        ['type' => 'link', 'href' => route('sales.edit-payments', $sale->id), 'label' => 'Editar pagamentos', 'icon' => 'bi-pencil-square'],
+        ['type' => 'button', 'wire' => 'openExportSaleModalFromCard(' . $sale->id . ')', 'label' => 'Exportar PDF', 'icon' => 'bi-file-earmark-pdf'],
+    ];
+    if (! $isPaid) {
+        array_unshift($moreActions, ['type' => 'button', 'wire' => 'payFull(' . $sale->id . ')', 'label' => 'Quitar saldo', 'icon' => 'bi-cash-stack']);
+    }
 @endphp
 
-<div class="sale-card shadow-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-gray-950 dark:to-black border border-slate-200 dark:border-gray-900"
-    x-data="{ showInfoModal: false }" style="--sale-card-accent: {{ $status['color'] }};">
+<div wire:key="sale-card-{{ $sale->id }}"
+     class="sale-card-v2 group relative flex flex-col rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm hover:shadow-xl hover:-translate-y-0.5 transition-all duration-300"
+     x-data="{ more: false }" @click.outside="more = false">
+    <div class="h-1.5 w-full rounded-t-2xl bg-gradient-to-r {{ $status['band'] }}"></div>
 
-    <div class="sale-card-body">
-        <!-- Cliente + Botão Info -->
-        <div class="sale-card-client">
-            <div class="sale-card-avatar">
-                @if($sale->client && $sale->client->caminho_foto)
-                    <img src="{{ $sale->client->caminho_foto }}"
-                         alt="Avatar de {{ $clientName }}"
-                         class="w-full h-full rounded-full object-cover">
-                @else
-                    <span>{{ strtoupper($clientInitials ?: 'CL') }}</span>
+    <div class="flex flex-1 flex-col p-4">
+        <div class="flex items-start gap-3">
+            <x-client-avatar :name="$clientName" :photo="$client->caminho_foto ?? null" size="w-12 h-12 text-base" rounded="rounded-full" />
+            <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-2">
+                    <h3 class="truncate text-base font-bold text-slate-900 dark:text-white" title="{{ $clientName }}">{{ $clientName }}</h3>
+                    <span class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $status['class'] }}"><i class="bi {{ $status['icon'] }} text-[9px]"></i>{{ $status['label'] }}</span>
+                </div>
+                <p class="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+                    Venda #{{ $sale->id }} · {{ $sale->created_at?->format('d/m/Y') }} · {{ $paymentLabel }}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-3 flex items-center gap-2">
+            <div class="flex -space-x-2">
+                @foreach($items->take(4) as $item)
+                    <x-product-thumb :product="$item->product" size="h-10 w-10" class="border-2 border-white dark:border-slate-900 shadow-sm" title="{{ $item->quantity }}x {{ $item->product->name ?? 'Produto' }}" />
+                @endforeach
+                @if($items->count() > 4)
+                    <span class="flex h-10 w-10 items-center justify-center rounded-xl border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300">+{{ $items->count() - 4 }}</span>
                 @endif
             </div>
-            <div class="sale-card-client-info" style="flex: 1; min-width: 0;">
-                <div class="flex items-center gap-2">
-                    <h3 class="text-slate-900 dark:text-white truncate" title="{{ $clientName }}">{{ $clientName }}</h3>
-                    <button type="button" @click="showInfoModal = true"
-                        class="sale-card-btn-info flex-shrink-0" title="Informações da venda">
-                        <i class="bi bi-info-circle"></i>
-                    </button>
-                </div>
-                <span class="text-slate-600 dark:text-slate-400">
-                    <i class="bi bi-geo-alt"></i>
-                    {{ $clientCity ?? 'Cidade não informada' }}
-                </span>
+            <div class="min-w-0 flex-1">
+                <p class="truncate text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {{ ucwords($items->first()?->product?->name ?? 'Sem produtos') }}@if($items->count() > 1)<span class="font-normal text-slate-500"> e mais {{ $items->count() - 1 }}</span>@endif
+                </p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $units }} {{ $units === 1 ? 'unidade' : 'unidades' }}</p>
             </div>
         </div>
 
-        <div class="sale-card-products-wrapper">
-            <x-sale-card-products :items="$sale->saleItems" :max="3" />
-        </div>
-
-        <!-- Blocos Financeiros Modernos -->
-        <div class="sale-card-financial-grid">
-            <div class="sale-card-fin-block sale-card-fin-paid">
-                <div class="sale-card-fin-icon">
-                    <i class="bi bi-check-circle"></i>
+        <div class="mt-3 rounded-xl border border-slate-100 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+            <div class="flex items-end justify-between gap-2">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Total</p>
+                    <p class="text-xl font-black text-slate-900 dark:text-white">R$ {{ number_format($total, 2, ',', '.') }}</p>
                 </div>
-                <div class="sale-card-fin-data">
-                    <span>Pago</span>
-                    <strong>R$ {{ number_format($totalPaid, 2, ',', '.') }}</strong>
+                <div class="text-right text-xs">
+                    <p class="text-emerald-600 dark:text-emerald-400">Pago <span class="font-bold">R$ {{ number_format($totalPaid, 2, ',', '.') }}</span></p>
+                    @unless($isPaid)
+                        <p class="text-rose-600 dark:text-rose-400">Falta <span class="font-bold">R$ {{ number_format($remaining, 2, ',', '.') }}</span></p>
+                    @endunless
                 </div>
             </div>
-
-            @if($remainingAmount > 0)
-            <div class="sale-card-fin-block sale-card-fin-pending">
-                <div class="sale-card-fin-icon">
-                    <i class="bi bi-clock-history"></i>
+            <div class="mt-2 flex items-center gap-2">
+                <div class="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                    <div class="h-full rounded-full {{ $isPaid ? 'bg-emerald-500' : 'bg-amber-500' }}" style="width: {{ $percent }}%"></div>
                 </div>
-                <div class="sale-card-fin-data">
-                    <span>Pendente</span>
-                    <strong>R$ {{ number_format($remainingAmount, 2, ',', '.') }}</strong>
-                </div>
-            </div>
-            @endif
-
-            <div class="sale-card-fin-block sale-card-fin-total">
-                <div class="sale-card-fin-icon">
-                    <i class="bi bi-currency-dollar"></i>
-                </div>
-                <div class="sale-card-fin-data">
-                    <span>Total</span>
-                    <strong>R$ {{ number_format($sale->total_price, 2, ',', '.') }}</strong>
-                </div>
+                <span class="text-[11px] font-bold text-slate-600 dark:text-slate-300">{{ $percent }}%</span>
             </div>
         </div>
 
-        <!-- Barra de Progresso Moderna -->
-        <div class="sale-card-progress-modern">
-            <div class="sale-card-progress-top">
-                <div class="sale-card-progress-label {{ $progressToneClass }}">
-                    <i class="bi {{ $isPaid ? 'bi-patch-check-fill' : 'bi-exclamation-circle' }}"></i>
-                    <span>{{ $isPaid ? 'Pago' : 'Pendente' }}</span>
-                </div>
-                @if(!$isPaid)
-                <span class="sale-card-progress-hint">falta <strong>R$ {{ number_format($remainingAmount, 2, ',', '.') }}</strong></span>
-                @endif
-                <span class="sale-card-progress-pct">{{ number_format($paymentPercentage, 0) }}%</span>
-            </div>
-            <div class="sale-card-progress-track">
-                <div class="sale-card-progress-fill {{ $progressToneClass }}" x-data="{ pp: {{ number_format($paymentPercentage, 2, '.', '') }} }" :style="`width: ${pp}%`"></div>
-            </div>
-        </div>
-    </div>
-
-    <template x-teleport="body">
-    <div class="sale-card-info-modal" x-show="showInfoModal" x-cloak x-transition.opacity @click="showInfoModal = false">
-        <div class="sale-card-info-modal-panel" @click.stop>
-            <div class="sale-card-info-modal-header">
-                <h4>
-                    <i class="bi bi-stars"></i>
-                    Informações da Venda
-                </h4>
-                <button type="button" @click="showInfoModal = false" aria-label="Fechar">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
-
-            <div class="sale-card-info-modal-grid">
-                <span class="sale-card-chip"><i class="bi bi-hash"></i> Pedido #{{ $sale->id }}</span>
-                <span class="sale-card-chip"><i class="bi bi-box-seam"></i> {{ $productsCount }} {{ \Illuminate\Support\Str::plural('item', $productsCount) }}</span>
-                <span class="sale-card-chip"><i class="bi bi-stack"></i> {{ $itemsQuantity }} unidades</span>
-                <span class="sale-card-chip"><i class="bi bi-calendar3"></i> {{ $sale->created_at->format('d/m/Y') }}</span>
-                @if($paymentMethodLabel)
-                    <span class="sale-card-chip"><i class="bi bi-credit-card"></i> {{ $paymentMethodLabel }}</span>
-                @endif
-                <span class="sale-card-chip"><i class="bi {{ $sale->tipo_pagamento === 'parcelado' ? 'bi-credit-card-2-front' : 'bi-cash-stack' }}"></i> {{ $paymentTypeLabel }}</span>
-                <span class="sale-card-chip"><i class="bi bi-arrow-repeat"></i> Atualizada {{ $lastUpdateLabel }}</span>
-                <span class="sale-card-chip"><i class="bi {{ $status['icon'] }}"></i> {{ $status['label'] }}</span>
-            </div>
-        </div>
-    </div>
-    </template>
-
-    <div class="sc-acts-wrap" x-data="{ moreOpen: false }" aria-label="Ações da venda">
-        <!-- Ações primárias (sempre visíveis) -->
-        <div class="sc-acts-primary">
-            @foreach ($primaryActions as $action)
-                @if ($action['type'] === 'link')
-                    <a href="{{ $action['href'] }}" class="sc-act-btn sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
-                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
-                    </a>
-                @else
-                    <button type="button" wire:click="{{ $action['wireClick'] }}" class="sc-act-btn sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}" aria-label="{{ $action['tooltip'] }}">
-                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
-                    </button>
-                @endif
-            @endforeach
-
-            <!-- Botão "Mais" -->
-            <button type="button" @click="moreOpen = !moreOpen" class="sc-act-btn sc-act-more" :class="moreOpen ? 'is-open' : ''" aria-label="Mais ações" :aria-expanded="moreOpen.toString()">
-                <span class="sc-act-ico"><i class="bi bi-three-dots" x-show="!moreOpen"></i><i class="bi bi-chevron-up" x-show="moreOpen" x-cloak></i></span>
-                <span class="sc-act-lbl">Mais</span>
+        <div class="relative mt-auto pt-4 flex items-center gap-2">
+            <a href="{{ route('sales.show', $sale->id) }}"
+               class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-indigo-500/20 transition">
+                <i class="bi bi-eye"></i><span class="whitespace-nowrap">Ver venda</span>
+            </a>
+            @unless($isPaid)
+                <a href="{{ route('sales.add-payments', $sale->id) }}" title="Adicionar pagamento"
+                   class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-xs font-semibold text-white shadow-md shadow-emerald-500/20 transition">
+                    <i class="bi bi-credit-card"></i>Pagar
+                </a>
+            @endunless
+            <a href="{{ route('sales.add-products', $sale->id) }}" title="Adicionar produtos"
+               class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-teal-600 transition">
+                <i class="bi bi-bag-plus"></i>
+            </a>
+            <button type="button" @click="more = !more" title="Mais ações" :aria-expanded="more.toString()"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                <i class="bi bi-three-dots-vertical"></i>
             </button>
-        </div>
+            <button type="button" wire:click="confirmDelete({{ $sale->id }})" title="Excluir venda (devolve os produtos ao estoque)"
+                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 dark:text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 transition">
+                <i class="bi bi-trash"></i>
+            </button>
 
-        <!-- Ações secundárias (expansível) -->
-        <div class="sc-acts-more" x-show="moreOpen" x-cloak
-            x-transition:enter="transition ease-out duration-200"
-            x-transition:enter-start="opacity-0 -translate-y-2"
-            x-transition:enter-end="opacity-100 translate-y-0"
-            x-transition:leave="transition ease-in duration-150"
-            x-transition:leave-start="opacity-100 translate-y-0"
-            x-transition:leave-end="opacity-0 -translate-y-2">
-            @foreach ($moreActions as $action)
-                @if ($action['type'] === 'link')
-                    <a href="{{ $action['href'] }}" class="sc-act-row sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
-                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
-                        <i class="bi bi-chevron-right sc-act-chevron"></i>
-                    </a>
-                @else
-                    <button type="button" wire:click="{{ $action['wireClick'] }}" @click="moreOpen = false" class="sc-act-row sc-act-{{ $action['tone'] }}" title="{{ $action['tooltip'] }}">
-                        <span class="sc-act-ico"><i class="bi {{ $action['icon'] }}"></i></span>
-                        <span class="sc-act-lbl">{{ $action['abbr'] ?? $action['label'] }}</span>
-                        <i class="bi bi-chevron-right sc-act-chevron"></i>
-                    </button>
-                @endif
-            @endforeach
+            <div x-show="more" x-cloak x-transition.origin.bottom.right
+                 class="absolute bottom-12 right-0 z-30 w-52 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-xl">
+                @foreach($moreActions as $action)
+                    @if($action['type'] === 'link')
+                        <a href="{{ $action['href'] }}" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <i class="bi {{ $action['icon'] }} w-4 text-slate-400"></i>{{ $action['label'] }}
+                        </a>
+                    @else
+                        <button type="button" wire:click="{{ $action['wire'] }}" @click="more = false" class="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">
+                            <i class="bi {{ $action['icon'] }} w-4 text-slate-400"></i>{{ $action['label'] }}
+                        </button>
+                    @endif
+                @endforeach
+            </div>
         </div>
     </div>
 </div>

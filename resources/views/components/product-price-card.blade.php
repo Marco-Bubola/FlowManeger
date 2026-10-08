@@ -7,187 +7,105 @@
     $stockStatus = $stockQuantity > 20 ? 'high' : ($stockQuantity > 5 ? 'medium' : 'low');
 @endphp
 
-<div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200 dark:border-zinc-700 overflow-hidden group">
+@php
+    $difference = $item['price_sale'] - $item['original_price'];
+    $percentChange = $item['original_price'] > 0 ? (($difference / $item['original_price']) * 100) : 0;
+    $thumbProduct = isset($item['product']) ? (object) ['image' => $item['product']['image'] ?? null, 'name' => $item['product_name']] : null;
+@endphp
 
-    <!-- Header do Card -->
-    <div class="relative p-5 bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 border-b border-indigo-100 dark:border-indigo-800">
-
-        <!-- Layout: Imagem + Informações + Botão Remover -->
-        <div class="flex items-center gap-4">
-            <!-- Imagem do Produto -->
-            <div class="w-16 h-16 bg-white dark:bg-zinc-700 rounded-xl border border-indigo-200 dark:border-indigo-700 overflow-hidden flex-shrink-0">
-                @if(isset($item['product']) && !empty($item['product']['image']))
-                    <img src="{{ asset('storage/products/' . $item['product']['image']) }}"
-                         alt="{{ $item['product']['name'] ?? 'Produto' }}"
-                         class="w-full h-full object-cover">
-                @else
-                    <div class="w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-zinc-600 dark:to-zinc-700 flex items-center justify-center">
-                        <i class="bi bi-image text-2xl text-gray-400"></i>
-                    </div>
-                @endif
+<div class="flex flex-col rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-4 shadow-sm hover:shadow-md transition">
+    <div class="flex items-center gap-3">
+        <x-product-thumb :product="$thumbProduct" size="h-14 w-14" class="border border-slate-200 dark:border-slate-700" />
+        <div class="min-w-0 flex-1">
+            <h3 class="truncate font-bold text-slate-900 dark:text-white">{{ $item['product_name'] }}</h3>
+            <div class="mt-1 flex flex-wrap items-center gap-1.5 text-[11px] font-semibold">
+                <span class="rounded-full px-2 py-0.5 {{ $stockStatus === 'high' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : ($stockStatus === 'medium' ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' : 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300') }}">
+                    <i class="bi bi-boxes mr-0.5"></i>{{ $stockQuantity }} em estoque
+                </span>
+                <span class="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-slate-600 dark:text-slate-300" title="Preço de tabela">
+                    <i class="bi bi-tag mr-0.5"></i>R$ {{ number_format($item['original_price'], 2, ',', '.') }}
+                </span>
             </div>
+        </div>
+        <button type="button" onclick="openModal('confirm-remove-{{ $index }}')" title="Remover produto"
+                class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 transition">
+            <i class="bi bi-trash"></i>
+        </button>
+    </div>
 
-            <!-- Informações Principais -->
-            <div class="flex-1 min-w-0">
-                <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-1 truncate">
-                    {{ $item['product_name'] }}
-                </h3>
-
-                <!-- Badges de Status -->
-                <div class="flex items-center gap-2 mb-2">
-                    <!-- Estoque -->
-                    <span class="px-2 py-1 text-xs font-semibold rounded-md {{ $stockStatus === 'high' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : ($stockStatus === 'medium' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300') }}">
-                        <i class="bi bi-boxes mr-1"></i>{{ $stockQuantity }} un.
-                    </span>
-
-                    <!-- Preço Original -->
-                    <span class="px-2 py-1 bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 text-xs font-semibold rounded-md">
-                        <i class="bi bi-tag mr-1"></i>R$ {{ number_format($item['original_price'], 2, ',', '.') }}
-                    </span>
-                </div>
-            </div>
-
-            <!-- Botão Remover Melhor Posicionado -->
-            <div class="flex-shrink-0">
+    <div class="mt-4 grid grid-cols-2 gap-3">
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Quantidade</label>
+            <div class="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                 <button type="button"
-                        onclick="openModal('confirm-remove-{{ $index }}')"
-                        class="p-3 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 rounded-xl transition-all duration-200 hover:scale-105 shadow-md hover:shadow-lg border border-red-200 dark:border-red-800"
-                        title="Remover produto">
-                    <i class="bi bi-trash text-lg"></i>
+                        onclick="let input = this.nextElementSibling; if(input.value > 1) { input.value = parseInt(input.value) - 1; input.dispatchEvent(new Event('change')); }"
+                        class="px-2.5 py-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600" title="Menos um">
+                    <i class="bi bi-dash-lg"></i>
+                </button>
+                <input type="number"
+                       wire:model.lazy="saleItems.{{ $index }}.quantity"
+                       wire:change="updateQuantity({{ $index }}, $event.target.value)"
+                       class="w-full min-w-0 flex-1 border-0 bg-transparent px-1 py-2 text-center font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-0"
+                       min="1" max="{{ $maxAvailable }}" step="1">
+                <button type="button"
+                        onclick="let input = this.previousElementSibling; if(parseInt(input.value) < {{ $maxAvailable }}) { input.value = parseInt(input.value) + 1; input.dispatchEvent(new Event('change')); }"
+                        class="px-2.5 py-2 text-slate-600 dark:text-slate-300 hover:text-indigo-600" title="Mais um">
+                    <i class="bi bi-plus-lg"></i>
                 </button>
             </div>
+            <p class="mt-1 text-center text-[11px] text-slate-500 dark:text-slate-400">até {{ $maxAvailable }}</p>
+            @error("saleItems.{$index}.quantity")
+                <p class="mt-1 text-xs text-rose-600 dark:text-rose-400">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <div>
+            <label class="mb-1 block text-xs font-semibold text-slate-600 dark:text-slate-300">Preço unitário</label>
+            {{-- Máscara de centavos (mesma do carrinho): cada dígito entra
+                 pela direita — 1 → 0,01 · 12 → 0,12 · 123 → 1,23.
+                 Em Alpine, e não nas funções globais do <script> da view:
+                 script dentro de componente Livewire não roda após o morph. --}}
+            <div class="relative"
+                 x-data="{
+                     cts: {{ (int) round(($item['price_sale'] ?? 0) * 100) }},
+                     fmt() {
+                         let s = String(this.cts).padStart(3, '0');
+                         let d = s.slice(-2);
+                         let i = s.slice(0, -2).replace(/^0+/, '') || '0';
+                         i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                         return i + ',' + d;
+                     },
+                     inp(e) {
+                         let digs = e.target.value.replace(/\D/g, '');
+                         this.cts = digs ? parseInt(digs) : 0;
+                         e.target.value = this.fmt();
+                     }
+                 }">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-500 dark:text-slate-400">R$</span>
+                <input type="text" inputmode="numeric" id="price_input_{{ $index }}"
+                       x-init="$el.value = fmt()"
+                       @focus="$el.select()"
+                       @input="inp($event)"
+                       @blur="$wire.call('updatePrice', {{ $index }}, (cts / 100).toFixed(2))"
+                       class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2 pl-9 pr-3 text-right font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400"
+                       placeholder="0,00">
+            </div>
+            @error("saleItems.{$index}.price_sale")
+                <p class="mt-1 text-xs text-rose-600 dark:text-rose-400">{{ $message }}</p>
+            @enderror
         </div>
     </div>
 
-    <!-- Conteúdo Principal -->
-    <div class="p-5">
-
-        <!-- Grid de Controles -->
-        <div class="grid grid-cols-2 gap-4 mb-5">
-
-            <!-- Quantidade -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    <i class="bi bi-hash text-indigo-500 mr-1"></i>
-                    Quantidade
-                </label>
-
-                <!-- Controles de Quantidade -->
-                <div class="flex items-center bg-gray-50 dark:bg-zinc-700 rounded-lg border border-gray-200 dark:border-zinc-600">
-                    <!-- Botão Diminuir -->
-                    <button type="button"
-                            onclick="let input = this.nextElementSibling; if(input.value > 1) { input.value = parseInt(input.value) - 1; input.dispatchEvent(new Event('change')); }"
-                            class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-600 rounded-l-lg transition-colors">
-                        <i class="bi bi-dash-lg text-lg font-bold"></i>
-                    </button>
-
-                    <!-- Input -->
-                    <input type="number"
-                           wire:model.lazy="saleItems.{{ $index }}.quantity"
-                           wire:change="updateQuantity({{ $index }}, $event.target.value)"
-                           class="flex-1 px-3 py-2 bg-transparent border-0 text-center text-lg font-bold text-gray-900 dark:text-white focus:ring-0 focus:outline-none"
-                           min="1"
-                           max="{{ $maxAvailable }}"
-                           step="1">
-
-                    <!-- Botão Aumentar -->
-                    <button type="button"
-                            onclick="let input = this.previousElementSibling; if(parseInt(input.value) < {{ $maxAvailable }}) { input.value = parseInt(input.value) + 1; input.dispatchEvent(new Event('change')); }"
-                            class="p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-zinc-600 rounded-r-lg transition-colors">
-                        <i class="bi bi-plus-lg text-lg font-bold"></i>
-                    </button>
-                </div>
-
-                <!-- Info de Limite -->
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 text-center">
-                    Máximo: {{ $maxAvailable }} unidades
-                </p>
-
-                @error("saleItems.{$index}.quantity")
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
-            <!-- Preço Unitário -->
-            <div>
-                <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                    <i class="bi bi-currency-dollar text-indigo-500 mr-1"></i>
-                    Preço Unitário
-                </label>
-
-                {{-- Máscara de centavos (mesma do carrinho): cada dígito entra
-                     pela direita — 1 → 0,01 · 12 → 0,12 · 123 → 1,23.
-                     Em Alpine, e não nas funções globais do <script> da view:
-                     script dentro de componente Livewire não roda após o morph. --}}
-                <div class="relative"
-                     x-data="{
-                         cts: {{ (int) round(($item['price_sale'] ?? 0) * 100) }},
-                         fmt() {
-                             let s = String(this.cts).padStart(3, '0');
-                             let d = s.slice(-2);
-                             let i = s.slice(0, -2).replace(/^0+/, '') || '0';
-                             i = i.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                             return i + ',' + d;
-                         },
-                         inp(e) {
-                             let digs = e.target.value.replace(/\D/g, '');
-                             this.cts = digs ? parseInt(digs) : 0;
-                             e.target.value = this.fmt();
-                         }
-                     }">
-                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 dark:text-gray-400 font-medium">R$</span>
-                    <input type="text"
-                           inputmode="numeric"
-                           id="price_input_{{ $index }}"
-                           x-init="$el.value = fmt()"
-                           @focus="$el.select()"
-                           @input="inp($event)"
-                           @blur="$wire.call('updatePrice', {{ $index }}, (cts / 100).toFixed(2))"
-                           class="w-full pl-10 pr-3 py-2 border border-gray-200 dark:border-zinc-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-zinc-700 dark:text-white text-lg font-semibold text-right"
-                           placeholder="0,00">
-                </div>
-
-                @error("saleItems.{$index}.price_sale")
-                    <p class="text-xs text-red-600 dark:text-red-400 mt-1">{{ $message }}</p>
-                @enderror
-            </div>
+    <div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-100 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/60 px-3 py-2.5">
+        <div>
+            <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Subtotal</p>
+            <p class="whitespace-nowrap text-lg font-black text-slate-900 dark:text-white">R$ {{ number_format($item['subtotal'], 2, ',', '.') }}</p>
         </div>
-
-        <!-- Resultados -->
-        <div class="grid grid-cols-2 gap-4">
-
-            <!-- Subtotal -->
-            <div class="bg-gradient-to-r from-indigo-50 to-blue-50 dark:from-indigo-900/20 dark:to-blue-900/20 p-4 rounded-xl border border-indigo-200 dark:border-indigo-700">
-                <div class="text-center">
-                    <p class="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-1">
-                        <i class="bi bi-calculator mr-1"></i>Subtotal
-                    </p>
-                    <p class="text-xl font-bold text-indigo-800 dark:text-indigo-200">
-                        R$ {{ number_format($item['subtotal'], 2, ',', '.') }}
-                    </p>
-                </div>
-            </div>
-
-            <!-- Diferença -->
-            @php
-                $difference = $item['price_sale'] - $item['original_price'];
-                $percentChange = $item['original_price'] > 0 ? (($difference / $item['original_price']) * 100) : 0;
-            @endphp
-            <div class="p-4 rounded-xl border {{ $difference > 0 ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-700' : ($difference < 0 ? 'bg-gradient-to-r from-red-50 to-rose-50 dark:from-red-900/20 dark:to-rose-900/20 border-red-200 dark:border-red-700' : 'bg-gradient-to-r from-gray-50 to-slate-50 dark:from-zinc-700/50 dark:to-zinc-600/50 border-gray-200 dark:border-zinc-600') }}">
-                <div class="text-center">
-                    <p class="text-sm font-medium mb-1 {{ $difference > 0 ? 'text-green-700 dark:text-green-300' : ($difference < 0 ? 'text-red-700 dark:text-red-300' : 'text-gray-700 dark:text-gray-300') }}">
-                        <i class="bi {{ $difference > 0 ? 'bi-arrow-up' : ($difference < 0 ? 'bi-arrow-down' : 'bi-dash') }} mr-1"></i>
-                        Diferença
-                    </p>
-                    <p class="text-lg font-bold {{ $difference > 0 ? 'text-green-800 dark:text-green-200' : ($difference < 0 ? 'text-red-800 dark:text-red-200' : 'text-gray-800 dark:text-gray-200') }}">
-                        {{ $difference > 0 ? '+' : '' }}R$ {{ number_format($difference, 2, ',', '.') }}
-                    </p>
-                    <p class="text-xs font-medium {{ $difference > 0 ? 'text-green-600 dark:text-green-400' : ($difference < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-600 dark:text-gray-400') }}">
-                        {{ $difference > 0 ? '+' : '' }}{{ number_format($percentChange, 1) }}%
-                    </p>
-                </div>
-            </div>
-        </div>
+        <span class="rounded-full px-2.5 py-1 text-xs font-bold {{ $difference > 0 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' : ($difference < 0 ? 'bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300' : 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300') }}"
+              title="Diferença para o preço de tabela">
+            <i class="bi {{ $difference > 0 ? 'bi-arrow-up' : ($difference < 0 ? 'bi-arrow-down' : 'bi-dash') }}"></i>
+            {{ $difference > 0 ? '+' : '' }}R$ {{ number_format($difference, 2, ',', '.') }} ({{ $difference > 0 ? '+' : '' }}{{ number_format($percentChange, 1, ',', '.') }}%)
+        </span>
     </div>
 </div>
 

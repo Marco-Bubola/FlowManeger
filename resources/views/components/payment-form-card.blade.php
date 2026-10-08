@@ -1,22 +1,17 @@
 @props(['index', 'payment' => [], 'showRemove' => false, 'remainingAmount' => 0])
 
-<div class="payment-row-card bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-md border border-gray-100 dark:border-zinc-700/60">
+<div class="payment-row-card bg-white dark:bg-slate-900/80 rounded-2xl overflow-hidden shadow-sm border border-slate-200/80 dark:border-slate-700/70">
 
     {{-- Cabeçalho do card --}}
-    <div class="px-5 py-3.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-between">
+    <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-            <div class="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
-                <i class="bi bi-credit-card-2-front text-white text-sm"></i>
-            </div>
-            <div>
-                <h4 class="font-bold text-white text-sm">Pagamento {{ $index + 1 }}</h4>
-                <p class="text-[10px] text-white/70">Preencha os dados abaixo</p>
-            </div>
+            <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50 dark:bg-indigo-500/10 text-sm font-bold text-indigo-700 dark:text-indigo-300">{{ $index + 1 }}</span>
+            <h4 class="font-bold text-slate-900 dark:text-white">Pagamento {{ $index + 1 }}</h4>
         </div>
         @if($showRemove)
             <button type="button"
                     wire:click="removePaymentRow({{ $index }})"
-                    class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-white/20 hover:bg-white/35 text-white text-xs font-bold rounded-lg transition-colors border border-white/30">
+                    class="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 hover:text-rose-600 text-xs font-semibold rounded-lg transition-colors">
                 <i class="bi bi-trash3"></i>
                 <span class="hidden sm:inline">Remover</span>
             </button>

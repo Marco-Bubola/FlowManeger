@@ -78,17 +78,6 @@
             :min-value="$minValue"
             :max-value="$maxValue"
             :quick-filter="$quickFilter">
-            <x-slot name="breadcrumb">
-                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <i class="fas fa-chevron-right text-xs"></i>
-                    <span class="text-slate-800 dark:text-slate-200 font-medium">
-                        <i class="fas fa-shopping-cart mr-1"></i>Vendas
-                    </span>
-                </div>
-            </x-slot>
         </x-sales-index-header>
 
         <!-- Filtros Avançados -->
@@ -202,7 +191,7 @@
         @endif
 
         <!-- Grid de Cards de Vendas -->
-        <div class="sales-grid gap-4 mb-8" x-ref="salesGrid"
+        <div class="sales-grid-v2 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4 mb-8" x-ref="salesGrid"
             data-ultrawind="{{ $ultraWindClient ?? false ? 'true' : 'false' }}"
             data-full-hd="{{ $fullHdLayout ? 'true' : 'false' }}" x-bind:data-ultrawind="ultra ? 'true' : 'false'"
             x-bind:data-full-hd="fullHd ? 'true' : 'false'">

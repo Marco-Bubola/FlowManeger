@@ -23,90 +23,98 @@
 'quickFilter' => ''
 ])
 
+<style>
+    /* Os CSS antigos de celular pintam o cabeçalho de escuro com texto branco;
+       aqui o cabeçalho é claro, então os botões da segunda linha voltam a ter contraste. */
+    @media (max-width: 1024px) {
+        .sales-index-header-v2.sales-index-header-v2 .sale-filter-pill,
+        .sales-index-header-v2.sales-index-header-v2 .sale-pagination-btn,
+        .sales-index-header-v2.sales-index-header-v2 .sale-pagination-indicator,
+        .sales-index-header-v2.sales-index-header-v2 .sale-action-btn {
+            background: rgba(255, 255, 255, 0.85) !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            color: #475569 !important;
+        }
+        .sales-index-header-v2.sales-index-header-v2 .sale-filter-pill.active,
+        .sales-index-header-v2.sales-index-header-v2 .sale-action-btn.active {
+            background: #4f46e5 !important;
+            border-color: #4f46e5 !important;
+            color: #fff !important;
+        }
+        .dark .sales-index-header-v2.sales-index-header-v2 .sale-filter-pill:not(.active),
+        .dark .sales-index-header-v2.sales-index-header-v2 .sale-pagination-btn,
+        .dark .sales-index-header-v2.sales-index-header-v2 .sale-pagination-indicator,
+        .dark .sales-index-header-v2.sales-index-header-v2 .sale-action-btn:not(.active) {
+            background: rgba(30, 41, 59, 0.85) !important;
+            border-color: rgba(71, 85, 105, 0.7) !important;
+            color: #cbd5e1 !important;
+        }
+    }
+</style>
+
 <!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="sales-index-header relative overflow-hidden  rounded-3xl shadow-2xl mb-6">
+<div class="sales-index-header-v2 relative overflow-hidden mb-6 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
     <!-- Efeito de brilho sutil -->
-    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
+    <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_32%)]"></div>
 
     <!-- Background decorativo -->
-    <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-    <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
+    <div class="pointer-events-none absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
 
-    <div class="relative px-4 py-3 sales-index-header-inner">
-        <!-- LINHA 1: Título + Badges + Busca + Nova Venda -->
-        <div class="sales-index-header-row-1">
-            <!-- Ícone + Título -->
-            <div class="sales-index-header-left">
+    <div class="relative px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
+        <!-- LINHA 1: Título + números + busca + nova venda -->
+        <div class="flex flex-col gap-3 xl:flex-row xl:items-center">
+            <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                 @if($backRoute)
-                <a href="{{ $backRoute }}"
-                    class="group relative inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-slate-700 hover:from-blue-50 hover:to-indigo-100 dark:hover:from-slate-700 dark:hover:to-slate-600 transition-all duration-300 shadow-lg border border-white/50 dark:border-slate-600/50">
-                    <i class="bi bi-arrow-left text-xl text-blue-600 dark:text-blue-400"></i>
+                <a href="{{ $backRoute }}" title="Voltar"
+                    class="group inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition">
+                    <i class="bi bi-arrow-left text-lg text-indigo-600 dark:text-indigo-300"></i>
                 </a>
                 @endif
-
-                <div class="sales-index-header-icon">
+                <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg">
                     <i class="bi {{ $showSteps ? 'bi-plus-circle' : 'bi-cart' }} text-white text-2xl"></i>
                 </div>
-
-                <div class="sales-index-header-title-wrap">
-                    @isset($breadcrumb)
-                    {{ $breadcrumb }}
-                    @endisset
-                    <h1 class="sales-index-header-title">{{ $title }}</h1>
+                <div class="min-w-0">
+                    <nav class="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                        <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-300"><i class="bi bi-house mr-1"></i>Início</a>
+                        <i class="bi bi-chevron-right text-[10px]"></i>
+                        <span class="text-indigo-600 dark:text-indigo-300"><i class="bi bi-cart mr-1"></i>{{ $title }}</span>
+                    </nav>
+                    <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent">{{ $title }}</h1>
+                    @if(!$showSteps)
+                    <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+                        <span class="inline-flex items-center gap-1"><i class="bi bi-cart-check"></i>{{ $totalSales }} vendas</span>
+                        @if($pendingSales > 0)
+                        <span class="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400"><i class="bi bi-clock"></i>{{ $pendingSales }} pendentes</span>
+                        @endif
+                        @if($todaySales > 0)
+                        <span class="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"><i class="bi bi-calendar-check"></i>{{ $todaySales }} hoje</span>
+                        @endif
+                    </div>
+                    @endif
                 </div>
             </div>
 
-            @if(!$showSteps)
-            <!-- Badges de estatísticas -->
-            <div class="sales-index-header-badges sales-mobile-hide hidden md:flex">
-                <div class="sale-badge sale-badge-success">
-                    <i class="bi bi-cart-check"></i>
-                    <span>{{ $totalSales }} vendas</span>
-                </div>
-                @if($pendingSales > 0)
-                <div class="sale-badge sale-badge-warning">
-                    <i class="bi bi-clock"></i>
-                    <span>{{ $pendingSales }} pendentes</span>
-                </div>
-                @endif
-                @if($todaySales > 0)
-                <div class="sale-badge sale-badge-info">
-                    <i class="bi bi-calendar-check"></i>
-                    <span>{{ $todaySales }} hoje</span>
-                </div>
-                @endif
-            </div>
-            @endif
-
-            <!-- Busca (flex-grow para ocupar espaço) -->
             @if($sales && !$showSteps)
-            <div class="sales-index-header-search relative group">
-                <input type="text" wire:model.live.debounce.300ms="search"
-                    placeholder="Buscar vendas..."
-                    class="w-full pl-11 pr-10 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
-                <div class="absolute left-3.5 top-1/2 transform -translate-y-1/2">
-                    <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
+            <div class="flex flex-1 flex-col sm:flex-row sm:items-center gap-2 xl:justify-end">
+                <div class="relative group sm:flex-1 xl:max-w-sm">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-500"></i>
+                    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por cliente ou número"
+                        class="w-full pl-9 pr-9 py-2.5 rounded-xl border border-slate-200/80 dark:border-slate-600/80 bg-white/90 dark:bg-slate-800/90 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 shadow-sm">
+                    <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0" x-cloak title="Limpar busca"
+                        class="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg text-slate-500 hover:bg-rose-500 hover:text-white">
+                        <i class="bi bi-x text-sm"></i>
+                    </button>
                 </div>
-                <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
-                    class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
-                    <i class="bi bi-x text-sm"></i>
-                </button>
-            </div>
-
-            <div class="flex items-center gap-2">
-                <a href="{{ route('sales.create', ['scanner' => 1]) }}"
-                    class="sales-index-header-btn-create group"
-                    title="Criar venda com scanner">
-                    <i class="bi bi-upc-scan"></i>
-                    <span>Venda com Scanner</span>
-                </a>
-
-                <!-- Botão Nova Venda -->
-                <a href="{{ route('sales.create') }}"
-                    class="sales-index-header-btn-create group">
-                    <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
-                    <span>Nova Venda</span>
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('sales.create', ['scanner' => 1]) }}" title="Criar venda com scanner"
+                        class="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                        <i class="bi bi-upc-scan text-indigo-500"></i>Scanner
+                    </a>
+                    <a href="{{ route('sales.create') }}"
+                        class="inline-flex flex-1 sm:flex-none items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition">
+                        <i class="bi bi-plus-lg"></i>Nova venda
+                    </a>
+                </div>
             </div>
             @endif
         </div>

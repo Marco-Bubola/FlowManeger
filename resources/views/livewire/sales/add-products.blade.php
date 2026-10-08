@@ -21,31 +21,15 @@
         $activeFilters = $this->getActiveFiltersCount();
     @endphp
 
-    {{-- ============ HEADER MODERNO (padrão das outras páginas) ============ --}}
-    <div class="ap-header sticky top-0 z-40 mb-4 overflow-hidden rounded-2xl border border-white/30 dark:border-slate-700/50 bg-gradient-to-r from-white/80 via-emerald-50/80 to-teal-50/70 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/40 backdrop-blur-xl shadow-xl">
-        <div class="relative px-4 sm:px-6 py-3.5">
-            <div class="flex items-center gap-3">
-                <a href="{{ route('sales.show', $sale->id) }}"
-                   class="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl bg-white/70 dark:bg-slate-800/70 text-slate-500 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 hover:text-emerald-600 border border-slate-200/60 dark:border-slate-700/60 transition-all">
-                    <i class="bi bi-arrow-left"></i>
-                </a>
-                <div class="shrink-0 w-11 h-11 flex items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-green-600 text-white shadow-lg shadow-emerald-500/30">
-                    <i class="bi bi-cart-plus text-lg"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                    <h1 class="text-base sm:text-lg font-bold text-slate-800 dark:text-white leading-tight truncate">Adicionar Produtos</h1>
-                    <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-tight truncate">
-                        Venda #{{ $sale->id }} · {{ $sale->client->name ?? 'Cliente' }}
-                    </p>
-                </div>
-                @if($selectedCount > 0)
-                <span class="shrink-0 hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/15 border border-emerald-300/50 dark:border-emerald-700/50 text-xs font-bold text-emerald-700 dark:text-emerald-300">
-                    <i class="bi bi-check-circle-fill"></i>{{ $selectedCount }} {{ $selectedCount === 1 ? 'item' : 'itens' }}
+    <x-sale-page-header :sale="$sale" title="Adicionar produtos" active="produtos" :back-route="route('sales.show', $sale->id)">
+        @if($selectedCount > 0)
+            <x-slot:actions>
+                <span class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-700/50 px-3 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
+                    <i class="bi bi-check-circle-fill"></i>{{ $selectedCount }} {{ $selectedCount === 1 ? 'item escolhido' : 'itens escolhidos' }}
                 </span>
-                @endif
-            </div>
-        </div>
-    </div>
+            </x-slot:actions>
+        @endif
+    </x-sale-page-header>
 
     {{-- ============ LAYOUT ============ --}}
     <div class="w-full flex flex-col lg:flex-row gap-4 lg:gap-5 ap-shell">

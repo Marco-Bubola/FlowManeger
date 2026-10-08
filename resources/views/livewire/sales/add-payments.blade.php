@@ -9,19 +9,14 @@
     {{-- Camada compacta comum das telas de venda (sempre por último) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
-    <x-sales-header
-        title="Adicionar Pagamentos"
-        icon="bi-cash-coin" iconColor="green"
-        :description="'Venda #' . $sale->id . ' &middot; ' . ($sale->client->name ?? 'Cliente não informado')"
-        :back-route="route('sales.show', $sale->id)"
-        :current-step="1"
-        :steps="[]">
-    </x-sales-header>
+    <div class="px-4 sm:px-6 lg:px-8 pt-4">
+        <x-sale-page-header :sale="$sale" title="Adicionar pagamento" active="pagar" :back-route="route('sales.show', $sale->id)" />
+    </div>
 
     {{-- ============================================================
          CONTEÚDO PRINCIPAL
     ============================================================ --}}
-    <div class="add-payments-main container-fluid mx-auto px-4 sm:px-6 pb-16">
+    <div class="px-4 sm:px-6 lg:px-8 pb-16">
 
         {{-- Barra de resumo financeiro compacta (Total | Pago | Restante) --}}
         @php
@@ -31,12 +26,12 @@
         
 
         {{-- Layout 2 colunas no tablet+: formulários | sidebar --}}
-        <div class="add-payments-layout mt-5 mb-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start mb-6">
 
             {{-- Coluna principal: cards de pagamento com scroll --}}
-            <div class="add-payments-forms"
+            <div class="lg:col-span-2 space-y-4"
                  x-on:keydown.enter="if ($event.target.matches('input:not([type=radio]):not([type=checkbox])')) { $event.preventDefault(); $event.target.blur(); $nextTick(() => $wire.addPayments()) }">
-                <div class="add-payments-cards-scroll">
+                <div class="space-y-4">
                     @foreach($payments as $index => $payment)
                         <x-payment-form-card
                             :index="$index"
@@ -54,11 +49,11 @@
             </div>
 
             {{-- Sidebar: resumo do lançamento + ações --}}
-            <div class="add-payments-sidebar">
-                <div class="bg-white dark:bg-zinc-900 rounded-2xl shadow-md border border-gray-100 dark:border-zinc-700/60 overflow-hidden sticky top-4">
-                    <div class="px-5 py-3.5 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex items-center gap-2">
-                        <i class="bi bi-pie-chart-fill text-white/90 text-sm"></i>
-                        <span class="text-xs font-bold text-white uppercase tracking-widest">Resumo do Lançamento</span>
+            <div>
+                <div class="bg-white dark:bg-slate-900/80 rounded-2xl shadow-sm border border-slate-200/80 dark:border-slate-700/70 overflow-hidden sticky top-4">
+                    <div class="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                        <i class="bi bi-pie-chart-fill text-indigo-500"></i>
+                        <span class="font-bold text-slate-900 dark:text-white">Resumo do lançamento</span>
                     </div>
                     <div class="p-5 space-y-3">
                         @php
@@ -165,7 +160,7 @@
                         </div>
 
                         <button wire:click="addPayments"
-                                class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white font-bold rounded-2xl transition-all text-sm shadow-xl hover:shadow-2xl transform hover:scale-[1.02]">
+                                class="w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition text-sm shadow-md shadow-indigo-500/25">
                             <i class="bi bi-check-circle-fill" wire:loading.remove wire:target="addPayments"></i>
                             <i class="bi bi-arrow-clockwise animate-spin" wire:loading wire:target="addPayments"></i>
                             <span wire:loading.remove wire:target="addPayments">Confirmar Pagamentos</span>
@@ -181,82 +176,11 @@
                 </div>
             </div>{{-- end sidebar --}}
 
-        </div>{{-- end .add-payments-layout --}}
+        </div>
     </div>
 
     <style>
     [x-cloak] { display: none !important; }
-
-    /* ── Layout ────────────────────────────────────────────────── */
-    .add-payments-page .add-payments-layout {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-    .add-payments-page .add-payments-forms {
-        flex: 1;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-    .add-payments-page .add-payments-sidebar {
-        width: 100%;
-    }
-
-    /* ── Scroll container dos cards ──────────────────────────── */
-    .add-payments-page .add-payments-cards-scroll {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        max-height: calc(100vh - 260px);
-        overflow-y: auto;
-        overflow-x: hidden;
-        padding-right: 4px; /* evita corte de sombra */
-        scrollbar-width: thin;
-        scrollbar-color: #a5b4fc #f1f5f9;
-    }
-    .dark .add-payments-page .add-payments-cards-scroll {
-        scrollbar-color: #4f46e5 #27272a;
-    }
-    .add-payments-page .add-payments-cards-scroll::-webkit-scrollbar {
-        width: 6px;
-    }
-    .add-payments-page .add-payments-cards-scroll::-webkit-scrollbar-track {
-        background: #f1f5f9;
-        border-radius: 99px;
-    }
-    .dark .add-payments-page .add-payments-cards-scroll::-webkit-scrollbar-track {
-        background: #27272a;
-    }
-    .add-payments-page .add-payments-cards-scroll::-webkit-scrollbar-thumb {
-        background: #a5b4fc;
-        border-radius: 99px;
-    }
-    .dark .add-payments-page .add-payments-cards-scroll::-webkit-scrollbar-thumb {
-        background: #4f46e5;
-    }
-
-    @media (min-width: 768px) {
-        .add-payments-page .add-payments-layout {
-            flex-direction: row;
-            align-items: flex-start;
-        }
-        .add-payments-page .add-payments-sidebar {
-            width: 300px;
-            flex-shrink: 0;
-        }
-    }
-    @media (min-width: 1024px) {
-        .add-payments-page .add-payments-sidebar {
-            width: 340px;
-        }
-    }
-    @media (min-width: 1280px) {
-        .add-payments-page .add-payments-sidebar {
-            width: 380px;
-        }
-    }
 
     /* ── Method picker ─────────────────────────────────────────── */
     .add-payments-page .method-btn-label .peer-checked + div,

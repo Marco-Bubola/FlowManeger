@@ -1,23 +1,6 @@
-<div class="edit-prices-page w-full mobile-393-base">
-    <!-- Incluir CSS dos produtos -->
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
-    <!-- Responsive CSS -->
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-prices-ultrawide.css') }}">
-    {{-- Camada compacta comum das telas de venda (sempre por último) --}}
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
+<div class="edit-prices-page w-full px-4 sm:px-6 lg:px-8 pt-4 pb-16">
 
-    <!-- Header Modernizado -->
-    <x-sales-header
-        title="Editar Preços - Venda #{{ $sale->id }}"
-        icon="bi-tags"
-        description="Cliente: {{ $sale->client->name ?? 'Cliente não informado' }} | {{ count($saleItems) }} item(s) | Total: R$ {{ number_format($this->total, 2, ',', '.') }}"
-        :back-route="route('sales.show', $sale->id)" />
+    <x-sale-page-header :sale="$sale" title="Preços" active="precos" :back-route="route('sales.show', $sale->id)" />
 
     <!-- Conteúdo principal -->
     <div class="">
@@ -33,43 +16,26 @@
 
         <!-- Formulário de edição -->
         <form wire:submit.prevent="savePrices">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                 @foreach($saleItems as $index => $item)
                     <x-product-price-card :item="$item" :index="$index" />
                 @endforeach
             </div>
 
-            <!-- Botões de Ação -->
-            <div class="flex justify-center gap-4 mt-8 pt-6 border-t border-gray-200 dark:border-zinc-700">
-                <a href="{{ route('sales.show', $sale->id) }}"
-                   class="inline-flex items-center px-8 py-3 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-700 dark:hover:bg-zinc-600 text-gray-700 dark:text-gray-300 rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-gray-200 dark:border-zinc-600 font-semibold">
-                    <i class="bi bi-x-lg mr-2 text-lg"></i>
-                    <span>Cancelar</span>
-                </a>
-
-                <button type="submit"
-                        wire:loading.attr="disabled"
-                        class="inline-flex items-center px-8 py-3 bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-indigo-500 font-semibold">
-                    <span wire:loading.remove>
-                        <i class="bi bi-check-circle mr-2 text-lg"></i>
-                        Salvar Alterações
-                    </span>
-                    <span wire:loading class="flex items-center">
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        Salvando...
-                    </span>
-                </button>
-            </div>
-
-            <!-- Indicador de Alterações Pendentes -->
-            <div class="text-center mt-4">
-                <p class="text-sm text-gray-500 dark:text-gray-400">
-                    <i class="bi bi-info-circle mr-1"></i>
-                    As alterações são salvas automaticamente quando você clica em "Salvar Alterações"
-                </p>
+            <div class="mt-5 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-between gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-4 shadow-sm">
+                <div>
+                    <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Novo total da venda</p>
+                    <p class="text-2xl font-black text-slate-900 dark:text-white">R$ {{ number_format($this->total, 2, ',', '.') }}</p>
+                </div>
+                <div class="flex flex-col-reverse sm:flex-row gap-2">
+                    <a href="{{ route('sales.show', $sale->id) }}"
+                       class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition">Cancelar</a>
+                    <button type="submit" wire:loading.attr="disabled"
+                            class="inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
+                        <span wire:loading.remove wire:target="savePrices"><i class="bi bi-check2-circle mr-1"></i>Salvar preços</span>
+                        <span wire:loading wire:target="savePrices"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>
+                    </button>
+                </div>
             </div>
         </form>
     </div>
