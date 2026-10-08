@@ -83,7 +83,7 @@ class ConsortiumParticipant extends Model
 
     public function getLatePaymentsCountAttribute(): int
     {
-        return $this->payments()->where('status', 'late')->count();
+        return $this->payments()->where('status', 'pending')->whereDate('due_date', '<', today())->count();
     }
 
     public function getStatusColorAttribute(): string

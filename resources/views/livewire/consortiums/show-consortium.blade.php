@@ -591,7 +591,7 @@
                                         @php
                                             $total = $participant->payments->count();
                                             $paid = $participant->payments->where('status', 'paid')->count();
-                                            $overdue = $participant->payments->where('status', 'overdue')->count();
+                                            $overdue = $participant->payments->filter->is_late->count();
                                             $pending = $participant->payments->where('status', 'pending')->count();
                                         @endphp
                                         <div class="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/70 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700">
@@ -1016,6 +1016,5 @@
 
     <!-- Componentes de Modal (renderizados fora do header) -->
     @livewire('consortiums.export-consortium')
-    @livewire('consortiums.add-participant', ['consortium' => $this->consortium], key('add-participant-modal-'.$this->consortium->id))
     @livewire('consortiums.delete-consortium', ['consortium' => $this->consortium], key('delete-consortium-modal-'.$this->consortium->id))
 </div>

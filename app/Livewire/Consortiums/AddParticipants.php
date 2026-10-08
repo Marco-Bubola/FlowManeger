@@ -24,6 +24,7 @@ class AddParticipants extends Component
 
     public function mount(Consortium $consortium)
     {
+        $consortium->authorizeOwner();
         $this->consortium = $consortium;
         $this->entry_date = now()->format('Y-m-d');
     }
@@ -133,7 +134,7 @@ class AddParticipants extends Component
         $startDate = \Carbon\Carbon::parse($this->consortium->start_date);
 
         for ($i = 1; $i <= $this->consortium->duration_months; $i++) {
-            $dueDate = $startDate->copy()->addMonths($i - 1);
+            $dueDate = $startDate->copy()->addMonthsNoOverflow($i - 1);
 
             \App\Models\ConsortiumPayment::create([
                 'consortium_participant_id' => $participant->id,

@@ -53,13 +53,13 @@ class CreateConsortium extends Component
     public function previousMonth()
     {
         $date = \Carbon\Carbon::parse($this->start_date);
-        $this->start_date = $date->subMonth()->format('Y-m-d');
+        $this->start_date = $date->subMonthNoOverflow()->format('Y-m-d');
     }
 
     public function nextMonth()
     {
         $date = \Carbon\Carbon::parse($this->start_date);
-        $this->start_date = $date->addMonth()->format('Y-m-d');
+        $this->start_date = $date->addMonthNoOverflow()->format('Y-m-d');
     }
 
     public function updatedMonthlyValue()
@@ -148,7 +148,7 @@ class CreateConsortium extends Component
         // Criar o consórcio
         $consortium = Consortium::create($validated);
 
-        session()->flash('message', 'Consórcio criado com sucesso!');
+        session()->flash('success', 'Consórcio criado com sucesso!');
 
         return redirect()->route('consortiums.show', $consortium);
     }

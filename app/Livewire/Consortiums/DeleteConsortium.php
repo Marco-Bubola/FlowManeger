@@ -6,9 +6,11 @@ use Livewire\Component;
 use App\Models\Consortium;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 
 class DeleteConsortium extends Component
 {
+    #[Locked]
     public $consortiumId;
     public $showToggleModal = false;
     public $showDeleteModal = false;
@@ -20,6 +22,7 @@ class DeleteConsortium extends Component
 
     public function mount(Consortium $consortium)
     {
+        $consortium->authorizeOwner();
         $this->consortiumId = $consortium->id;
     }
 

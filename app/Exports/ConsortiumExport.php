@@ -44,7 +44,7 @@ class ConsortiumExport
      */
     protected function exportAllConsortiums()
     {
-        $consortiums = Consortium::with(['participants', 'draws'])->get();
+        $consortiums = Consortium::where('user_id', auth()->id())->with(['participants', 'draws'])->get();
 
         $data = $consortiums->map(function ($consortium) {
             return [
@@ -78,7 +78,7 @@ class ConsortiumExport
         $data = $participants->map(function ($participant) {
             $totalParcelas = $participant->payments->count();
             $parcelasPagas = $participant->payments->where('status', 'paid')->count();
-            $parcelasVencidas = $participant->payments->where('status', 'overdue')->count();
+            $parcelasVencidas = $participant->payments->filter->is_late->count();
             $valorPendente = $participant->payments->whereIn('status', ['pending', 'overdue'])->sum('amount');
 
             return [
@@ -115,7 +115,7 @@ class ConsortiumExport
         $data = $participations->map(function ($participation) {
             $totalParcelas = $participation->payments->count();
             $parcelasPagas = $participation->payments->where('status', 'paid')->count();
-            $parcelasVencidas = $participation->payments->where('status', 'overdue')->count();
+            $parcelasVencidas = $participation->payments->filter->is_late->count();
             $valorPendente = $participation->payments->whereIn('status', ['pending', 'overdue'])->sum('amount');
 
             $produtos = '';
@@ -160,7 +160,7 @@ class ConsortiumExport
         $data = $participations->map(function ($participation) {
             $totalParcelas = $participation->payments->count();
             $parcelasPagas = $participation->payments->where('status', 'paid')->count();
-            $parcelasVencidas = $participation->payments->where('status', 'overdue')->count();
+            $parcelasVencidas = $participation->payments->filter->is_late->count();
             $valorPendente = $participation->payments->whereIn('status', ['pending', 'overdue'])->sum('amount');
 
             $produtos = '';
@@ -272,7 +272,7 @@ class ConsortiumExport
                 'total_collected' => $consortium->participants->sum('total_paid'),
                 'total_payments' => $consortium->participants->flatMap->payments->count(),
                 'paid_payments' => $consortium->participants->flatMap->payments->where('status', 'paid')->count(),
-                'overdue_payments' => $consortium->participants->flatMap->payments->where('status', 'overdue')->count(),
+                'overdue_payments' => $consortium->participants->flatMap->payments->filter->is_late->count(),
                 'total_draws' => $consortium->draws->count(),
             ],
             'participants' => $consortium->participants
@@ -308,7 +308,7 @@ class ConsortiumExport
                 'total_payments' => $allPayments->count(),
                 'paid_payments' => $allPayments->where('status', 'paid')->count(),
                 'pending_payments' => $allPayments->where('status', 'pending')->count(),
-                'overdue_payments' => $allPayments->where('status', 'overdue')->count(),
+                'overdue_payments' => $allPayments->filter->is_late->count(),
             ]
         ];
     }
@@ -343,7 +343,7 @@ class ConsortiumExport
                 'total_payments' => $allPayments->count(),
                 'paid_payments' => $allPayments->where('status', 'paid')->count(),
                 'pending_payments' => $allPayments->where('status', 'pending')->count(),
-                'overdue_payments' => $allPayments->where('status', 'overdue')->count(),
+                'overdue_payments' => $allPayments->filter->is_late->count(),
             ]
         ];
     }

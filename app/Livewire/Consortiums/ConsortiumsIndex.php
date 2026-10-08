@@ -156,6 +156,13 @@ class ConsortiumsIndex extends Component
             return;
         }
 
+        // Mesma regra da tela do consórcio: com gente ou sorteio, só desativar.
+        if ($this->deletingConsortium->participants()->exists() || $this->deletingConsortium->draws()->exists()) {
+            session()->flash('error', 'Este consórcio tem participantes ou sorteios. Desative em vez de excluir, para não perder o histórico.');
+            $this->cancelDelete();
+            return;
+        }
+
         $this->deletingConsortium->delete();
         session()->flash('success', 'Consórcio excluído com sucesso!');
         $this->cancelDelete();
@@ -191,7 +198,8 @@ class ConsortiumsIndex extends Component
         }
 
         // Ordenação
-        $query->orderBy($this->sortBy, $this->sortDirection);
+        $sort = in_array($this->sortBy, ['created_at', 'name', 'monthly_value', 'start_date', 'status'], true) ? $this->sortBy : 'created_at';
+        $query->orderBy($sort, $this->sortDirection === 'asc' ? 'asc' : 'desc');
 
         return $query->paginate($this->perPage);
     }

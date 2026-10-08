@@ -395,7 +395,7 @@
         @php
             $totalParcelas = $participation->payments->count();
             $parcelasPagas = $participation->payments->where('status', 'paid')->count();
-            $parcelasVencidas = $participation->payments->where('status', 'overdue')->count();
+            $parcelasVencidas = $participation->payments->filter->is_late->count();
             $progresso = $totalParcelas > 0 ? round(($parcelasPagas / $totalParcelas) * 100) : 0;
         @endphp
 
@@ -508,7 +508,7 @@
                                 <td>
                                     @if($payment->status === 'paid')
                                         <span class="badge badge-success">Paga</span>
-                                    @elseif($payment->status === 'overdue')
+                                    @elseif($payment->is_late)
                                         <span class="badge badge-danger">Vencida</span>
                                     @else
                                         <span class="badge badge-warning">Pendente</span>

@@ -25,8 +25,12 @@ class ConsortiumDraw extends Component
     public function mount(Consortium $consortium)
     {
         // Verificar se o usuário é dono do consórcio
-        if ($consortium->user_id !== Auth::id()) {
-            abort(403, 'Você não tem permissão para realizar sorteios neste consórcio.');
+        $consortium->authorizeOwner();
+
+        if ($consortium->mode === 'payoff') {
+            session()->flash('error', 'Este consórcio é por quitação: não tem sorteio.');
+            $this->redirectRoute('consortiums.show', $consortium);
+            return;
         }
 
         $this->consortium = $consortium;
@@ -42,26 +46,17 @@ class ConsortiumDraw extends Component
     public function loadEligibleParticipants()
     {
         // Participantes elegíveis: ativos, não contemplados
+        // Em dia (nada vencido há mais de 30 dias) e com ao menos 1 parcela paga.
         $this->eligibleParticipants = $this->consortium->participants()
             ->with('client')
             ->where('status', 'active')
             ->where('is_contemplated', false)
+            ->withCount([
+                'payments as late_count' => fn ($q) => $q->where('status', 'pending')->where('due_date', '<', now()->subDays(30)),
+                'payments as paid_count' => fn ($q) => $q->where('status', 'paid'),
+            ])
             ->get()
-            ->filter(function ($participant) {
-                // Verificar se está em dia com os pagamentos
-                // Considerar pagamentos vencidos há mais de 30 dias
-                $latePayments = $participant->payments()
-                    ->where('status', 'pending')
-                    ->where('due_date', '<', now()->subDays(30))
-                    ->count();
-
-                // Também verificar se tem ao menos 1 pagamento realizado
-                $paidPayments = $participant->payments()
-                    ->where('status', 'paid')
-                    ->count();
-
-                return $latePayments === 0 && $paidPayments > 0;
-            })
+            ->filter(fn ($p) => $p->late_count == 0 && $p->paid_count > 0)
             ->values();
     }
 
@@ -93,21 +88,10 @@ class ConsortiumDraw extends Component
             }
 
             // Verificar frequência
-            $lastDraw = $this->consortium->draws()->orderBy('draw_date', 'desc')->first();
-            if ($lastDraw) {
-                $daysSinceLastDraw = now()->diffInDays($lastDraw->draw_date);
-                $frequencyDays = match($this->consortium->draw_frequency) {
-                    'weekly' => 7,
-                    'biweekly' => 14,
-                    'monthly' => 30,
-                    'quarterly' => 90,
-                    default => 30
-                };
-
-                if ($daysSinceLastDraw < ($frequencyDays * 0.8)) {
-                    session()->flash('error', 'Aguarde mais tempo entre sorteios. Último sorteio foi há ' . $daysSinceLastDraw . ' dias. Frequência: ' . $this->consortium->draw_frequency_label);
-                    return;
-                }
+            $faltam = $this->consortium->daysUntilNextDraw();
+            if ($faltam > 0) {
+                session()->flash('error', "O próximo sorteio libera em {$faltam} dia(s). Frequência: " . $this->consortium->draw_frequency_label . '.');
+                return;
             }
 
             session()->flash('error', 'Não é possível realizar sorteio neste momento.');
@@ -127,6 +111,12 @@ class ConsortiumDraw extends Component
 
     public function executeDraw()
     {
+        if (!$this->consortium->fresh()->canPerformDraw()) {
+            session()->flash('error', 'O sorteio não está liberado agora.');
+            $this->isDrawing = false;
+            return;
+        }
+
         // Apenas seleciona o vencedor, NÃO salva no banco ainda
         if ($this->eligibleParticipants->isEmpty()) {
             session()->flash('error', 'Não há participantes elegíveis para o sorteio.');
@@ -151,24 +141,43 @@ class ConsortiumDraw extends Component
 
             DB::beginTransaction();
 
+            // Trava o consórcio: clique duplo não gera dois sorteios.
+            $consortium = Consortium::whereKey($this->consortium->id)->lockForUpdate()->first();
+            if (!$consortium->canPerformDraw()) {
+                DB::rollBack();
+                session()->flash('error', 'O sorteio já foi feito ou não está liberado agora.');
+                return redirect()->route('consortiums.show', $consortium);
+            }
+
+            $winner = $consortium->participants()->whereKey($this->selectedWinner->id)
+                ->where('status', 'active')->where('is_contemplated', false)->first();
+            if (!$winner) {
+                DB::rollBack();
+                session()->flash('error', 'Este participante não pode mais ser contemplado. Faça o sorteio de novo.');
+                $this->resetDraw();
+                return;
+            }
+
             // Criar registro do sorteio
             $draw = ConsortiumDrawModel::create([
-                'consortium_id' => $this->consortium->id,
+                'consortium_id' => $consortium->id,
                 'draw_date' => $this->drawDate,
-                'draw_number' => $this->drawNumber,
-                'winner_participant_id' => $this->selectedWinner->id,
+                'draw_number' => $consortium->draws()->count() + 1,
+                'winner_participant_id' => $winner->id,
                 'status' => 'completed',
             ]);
 
             // Atualizar participante como contemplado
-            $this->selectedWinner->update([
+            $winner->update([
                 'is_contemplated' => true,
                 'status' => 'contemplated',
+                'contemplation_date' => now(),
+                'contemplation_type' => 'draw',
             ]);
 
             // Criar registro de contemplação
             $contemplation = ConsortiumContemplation::create([
-                'consortium_participant_id' => $this->selectedWinner->id,
+                'consortium_participant_id' => $winner->id,
                 'draw_id' => $draw->id,
                 'contemplation_type' => 'draw',
                 'contemplation_date' => now(),

@@ -39,7 +39,7 @@
             $client = $items->first()->client;
             $payments = $items->flatMap->payments;
             $paid = $payments->where('status', 'paid')->count();
-            $overdue = $payments->where('status', 'overdue')->count();
+            $overdue = $payments->filter->is_late->count();
             $pending = $payments->where('status', 'pending')->count();
         @endphp
         <div class="client">
@@ -68,7 +68,7 @@
                                 <td>R$ {{ number_format($payment->amount, 2, ',', '.') }}</td>
                                 <td>
                                     @php
-                                        $class = $payment->status === 'paid' ? 'status-paid' : ($payment->status === 'overdue' ? 'status-overdue' : 'status-pending');
+                                        $class = $payment->status === 'paid' ? 'status-paid' : ($payment->is_late ? 'status-overdue' : 'status-pending');
                                         $label = $payment->status_label;
                                     @endphp
                                     <span class="badge {{ $class }}">{{ $label }}</span>

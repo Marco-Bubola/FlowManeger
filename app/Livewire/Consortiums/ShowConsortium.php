@@ -5,9 +5,11 @@ namespace App\Livewire\Consortiums;
 use Livewire\Component;
 use App\Models\Consortium;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Locked;
 
 class ShowConsortium extends Component
 {
+    #[Locked]
     public $consortiumId;
     public $activeTab = 'overview';
     public $showToggleParticipantModal = false;
@@ -23,6 +25,7 @@ class ShowConsortium extends Component
 
     public function mount(Consortium $consortium)
     {
+        $consortium->authorizeOwner();
         $this->consortiumId = $consortium->id;
     }
 
@@ -83,7 +86,8 @@ class ShowConsortium extends Component
 
     public function removeParticipant($participantId)
     {
-        $participant = \App\Models\ConsortiumParticipant::find($participantId);
+        // Só participantes deste consórcio.
+        $participant = \App\Models\ConsortiumParticipant::where('consortium_id', $this->consortiumId)->find($participantId);
 
         if (!$participant) {
             session()->flash('error', 'Participante não encontrado.');
@@ -120,7 +124,7 @@ class ShowConsortium extends Component
     public function toggleParticipantStatus($participantId = null)
     {
         $id = $participantId ?? $this->selectedParticipantId;
-        $participant = \App\Models\ConsortiumParticipant::find($id);
+        $participant = \App\Models\ConsortiumParticipant::where('consortium_id', $this->consortiumId)->find($id);
 
         if (!$participant) {
             session()->flash('error', 'Participante não encontrado.');
@@ -136,6 +140,11 @@ class ShowConsortium extends Component
             $participant->update(['status' => 'quit']);
             session()->flash('success', 'Participante desativado.');
         } elseif ($participant->status === 'quit') {
+            if (!$this->consortium->canAddParticipants()) {
+                session()->flash('error', 'Não há vaga livre para reativar este participante.');
+                $this->showToggleParticipantModal = false;
+                return;
+            }
             $participant->update(['status' => 'active']);
             session()->flash('success', 'Participante reativado.');
         }
@@ -145,9 +154,31 @@ class ShowConsortium extends Component
         $this->dispatch('$refresh');
     }
 
+    /** Resgate em dinheiro: marca como entregue ao contemplado. */
+    public function markCashRedeemed($contemplationId)
+    {
+        $contemplation = \App\Models\ConsortiumContemplation::whereHas(
+            'participant', fn ($q) => $q->where('consortium_id', $this->consortiumId)
+        )->find($contemplationId);
+
+        if (!$contemplation || $contemplation->status === 'redeemed') {
+            return;
+        }
+
+        $c = $this->consortium;
+        $contemplation->update([
+            'redemption_type' => 'cash',
+            'redemption_value' => $c->monthly_value * $c->duration_months,
+            'redemption_date' => now()->toDateString(),
+            'status' => 'redeemed',
+        ]);
+
+        session()->flash('success', 'Resgate em dinheiro registrado.');
+    }
+
     public function deactivateConsortium()
     {
-        $consortium = Consortium::find($this->consortiumId);
+        $consortium = $this->consortium;
         $consortium->update(['status' => 'cancelled']);
         session()->flash('success', 'Consórcio desativado com sucesso.');
         return redirect()->route('consortiums.index');

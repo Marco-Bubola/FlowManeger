@@ -27,6 +27,7 @@ class AddContemplationProducts extends Component
         // Calcular valor máximo disponível (valor total do consórcio)
         $participant = $contemplation->participant;
         $consortium = $participant->consortium;
+        $consortium->authorizeOwner();
         $this->maxValue = $consortium->monthly_value * $consortium->duration_months;
 
         // Se já existem produtos, carregar para edição

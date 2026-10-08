@@ -78,7 +78,7 @@
     </x-sales-header>
 
     <!-- Form sem Card - Layout por Linhas -->
-    <form id="consortium-form" wire:submit.prevent="save" class="space-y-3 transition-all duration-700 delay-100"
+    <form id="consortium-form" wire:submit.prevent="update" class="space-y-3 transition-all duration-700 delay-100"
         :class="loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'">
 
         <!-- LINHA 1: Calendário + Info Básica -->

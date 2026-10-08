@@ -93,7 +93,8 @@ class ConsortiumNotificationService
         $participants = ConsortiumParticipant::with(['client', 'consortium', 'contemplation'])
             ->where('is_contemplated', true)
             ->whereHas('contemplation', function ($query) {
-                $query->where('redemption_type', 'pending')
+                // Resgate não concluído (qualquer tipo, sem status "redeemed")
+                $query->where('status', '!=', 'redeemed')
                     ->where('contemplation_date', '<=', now()->subDays(7)); // Pelo menos 7 dias atrás
             })
             ->get();
@@ -219,7 +220,7 @@ class ConsortiumNotificationService
             ->with(['contemplation', 'client'])
             ->where('is_contemplated', true)
             ->whereHas('contemplation', function ($query) {
-                $query->where('redemption_type', 'pending');
+                $query->where('status', '!=', 'redeemed');
             })
             ->get();
 

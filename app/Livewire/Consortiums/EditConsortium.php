@@ -49,9 +49,7 @@ class EditConsortium extends Component
     public function mount(Consortium $consortium)
     {
         // Verificar se o usuário tem permissão
-        if ($consortium->user_id !== Auth::id()) {
-            abort(403, 'Acesso não autorizado.');
-        }
+        $consortium->authorizeOwner();
 
         $this->consortium = $consortium;
 
@@ -111,22 +109,21 @@ class EditConsortium extends Component
         $this->calculateTotalValue();
     }
 
+    // Setas do calendário: trocam o mês exibido da data de início.
     public function previousMonth()
     {
-        $this->duration_months = (int) $this->duration_months;
-        if ($this->duration_months > 1) {
-            $this->duration_months--;
-            $this->calculateTotalValue();
+        if ($this->hasParticipants) {
+            return;
         }
+        $this->start_date = \Carbon\Carbon::parse($this->start_date ?: now())->subMonthNoOverflow()->format('Y-m-d');
     }
 
     public function nextMonth()
     {
-        $this->duration_months = (int) $this->duration_months;
-        if ($this->duration_months < 120) {
-            $this->duration_months++;
-            $this->calculateTotalValue();
+        if ($this->hasParticipants) {
+            return;
         }
+        $this->start_date = \Carbon\Carbon::parse($this->start_date ?: now())->addMonthNoOverflow()->format('Y-m-d');
     }
 
     private function calculateTotalValue()
@@ -185,13 +182,23 @@ class EditConsortium extends Component
             }
         }
 
+        // Com participantes, as parcelas já foram geradas com estes termos:
+        // valor, duração, início e modo ficam como estão.
+        if ($this->hasParticipants) {
+            foreach (['monthly_value', 'duration_months', 'start_date', 'mode'] as $campo) {
+                $validated[$campo] = $campo === 'start_date'
+                    ? $this->consortium->start_date?->format('Y-m-d')
+                    : $this->consortium->{$campo};
+            }
+        }
+
         // Calcular valor total
         $validated['total_value'] = $validated['monthly_value'] * $validated['duration_months'] * $validated['max_participants'];
 
         // Atualizar o consórcio
         $this->consortium->update($validated);
 
-        session()->flash('message', 'Consórcio atualizado com sucesso!');
+        session()->flash('success', 'Consórcio atualizado com sucesso!');
 
         return redirect()->route('consortiums.show', $this->consortium);
     }

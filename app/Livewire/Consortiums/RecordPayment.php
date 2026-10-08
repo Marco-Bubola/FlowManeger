@@ -56,6 +56,7 @@ class RecordPayment extends Component
             'payment_date' => $this->payment_date,
             'payment_method' => $this->payment_method,
             'status' => 'paid',
+            'notes' => $this->notes ?: $this->payment->notes,
         ]);
 
         // Atualizar total pago do participante

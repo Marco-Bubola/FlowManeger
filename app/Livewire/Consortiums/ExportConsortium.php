@@ -76,6 +76,7 @@ class ExportConsortium extends Component
     protected function loadConsortiumData()
     {
         $this->consortium = Consortium::findOrFail($this->consortiumId);
+        $this->consortium->authorizeOwner();
         $this->participants = $this->consortium->participants()
             ->with('client')
             ->get()
@@ -101,6 +102,11 @@ class ExportConsortium extends Component
 
     public function export()
     {
+        // consortiumId vem do navegador: confere o dono antes de exportar.
+        if ($this->consortiumId) {
+            Consortium::findOrFail($this->consortiumId)->authorizeOwner();
+        }
+
         try {
             switch ($this->exportType) {
                 case 'pdf_full':

@@ -73,7 +73,10 @@ class Consortium extends Model
         static::deleting(function ($consortium) {
             // Excluir contemplações dos participantes
             foreach ($consortium->participants as $participant) {
-                $participant->contemplation()?->delete();
+                if ($participant->contemplation) {
+                    $participant->contemplation->returnProductsToStock();
+                    $participant->contemplation->delete();
+                }
             }
 
             // Excluir pagamentos
@@ -87,6 +90,12 @@ class Consortium extends Model
         });
     }
 
+    /** Só o dono abre ou mexe no consórcio. */
+    public function authorizeOwner(): void
+    {
+        abort_unless((int) $this->user_id === (int) \Illuminate\Support\Facades\Auth::id(), 403, 'Acesso não autorizado.');
+    }
+
     // Relationships
     public function user(): BelongsTo
     {
@@ -98,9 +107,10 @@ class Consortium extends Model
         return $this->hasMany(ConsortiumParticipant::class);
     }
 
+    /** Quem ocupa vaga: ativos e contemplados (só quem desistiu sai). */
     public function activeParticipants(): HasMany
     {
-        return $this->hasMany(ConsortiumParticipant::class)->where('status', 'active');
+        return $this->hasMany(ConsortiumParticipant::class)->where('status', '!=', 'quit');
     }
 
     public function draws(): HasMany
@@ -111,7 +121,8 @@ class Consortium extends Model
     // Accessors
     public function getActiveParticipantsCountAttribute(): int
     {
-        return $this->participants()->where('status', 'active')->count();
+        // Contemplado continua no grupo (paga até o fim) e ocupa vaga.
+        return $this->participants()->where('status', '!=', 'quit')->count();
     }
 
     public function getContemplatedCountAttribute(): int
@@ -129,7 +140,8 @@ class Consortium extends Model
         if ($this->total_value <= 0) {
             return 0;
         }
-        return ($this->total_collected / ($this->total_value * $this->max_participants)) * 100;
+        // total_value já é mensal × meses × vagas.
+        return min(100, ($this->total_collected / $this->total_value) * 100);
     }
 
     public function getStatusColorAttribute(): string
@@ -170,18 +182,8 @@ class Consortium extends Model
             return false;
         }
 
-        // Deve ter participantes ativos
-        if ($this->active_participants_count === 0) {
-            return false;
-        }
-
         // Verificar se há participantes elegíveis (não contemplados)
-        $eligibleCount = $this->participants()
-            ->where('status', 'active')
-            ->where('is_contemplated', false)
-            ->count();
-
-        if ($eligibleCount === 0) {
+        if ($this->eligibleParticipantsCount() === 0) {
             return false;
         }
 
@@ -190,28 +192,39 @@ class Consortium extends Model
             return false;
         }
 
-        // Verificar frequência de sorteios
+        return $this->daysUntilNextDraw() === 0;
+    }
+
+    /** Dias entre sorteios conforme a frequência. */
+    public function frequencyDays(): int
+    {
+        return match($this->draw_frequency) {
+            'weekly' => 7,
+            'biweekly' => 14,
+            'bimonthly' => 60,
+            'quarterly' => 90,
+            default => 30,
+        };
+    }
+
+    /**
+     * Quantos dias faltam para liberar o próximo sorteio (0 = já pode).
+     * Usa 80% do período como margem. Sempre inteiro e nunca negativo.
+     */
+    public function daysUntilNextDraw(): int
+    {
         $lastDraw = $this->draws()->orderBy('draw_date', 'desc')->first();
-
-        if ($lastDraw) {
-            // Se há sorteio anterior, verificar se já passou o período necessário
-            $daysSinceLastDraw = now()->diffInDays($lastDraw->draw_date);
-
-            // Converter frequência para dias
-            $frequencyDays = match($this->draw_frequency) {
-                'weekly' => 7,
-                'biweekly' => 14,
-                'monthly' => 30,
-                'quarterly' => 90,
-                default => 30
-            };
-
-            // Deve ter passado pelo menos 80% do período (para ter margem)
-            return $daysSinceLastDraw >= ($frequencyDays * 0.8);
+        if (!$lastDraw) {
+            return $this->start_date && now()->lt($this->start_date)
+                ? (int) ceil(now()->startOfDay()->diffInDays($this->start_date->copy()->startOfDay()))
+                : 0;
         }
 
-        // Se não há sorteio anterior, pode realizar o primeiro
-        return true;
+        // diffInDays no Carbon 3 tem sinal: mede do sorteio até hoje.
+        $since = (int) floor($lastDraw->draw_date->copy()->startOfDay()->diffInDays(now()->startOfDay()));
+        $needed = (int) ceil($this->frequencyDays() * 0.8);
+
+        return max(0, $needed - $since);
     }
 
     public function getRemainingSlots(): int
@@ -238,6 +251,7 @@ class Consortium extends Model
                 'weekly' => 'Semanal',
                 'biweekly' => 'Quinzenal',
                 'monthly' => 'Mensal',
+                'bimonthly' => 'Bimestral',
                 'quarterly' => 'Trimestral',
                 default => 'Mensal'
             }
@@ -265,7 +279,7 @@ class Consortium extends Model
             return 0;
         }
 
-        $monthsSinceStart = now()->diffInMonths($this->start_date);
+        $monthsSinceStart = (int) floor($this->start_date->diffInMonths(now()));
         $monthsSinceStart = min($monthsSinceStart + 1, $this->duration_months);
 
         return $this->monthly_value * $this->active_participants_count * $monthsSinceStart;
@@ -373,13 +387,7 @@ class Consortium extends Model
             return [];
         }
 
-        $frequencyDays = match($this->draw_frequency) {
-            'weekly' => 7,
-            'biweekly' => 14,
-            'monthly' => 30,
-            'quarterly' => 90,
-            default => 30
-        };
+        $frequencyDays = $this->frequencyDays();
 
         $upcomingDates = [];
         $currentDate = \Carbon\Carbon::parse($startDate);
@@ -390,7 +398,7 @@ class Consortium extends Model
                 $upcomingDates[] = [
                     'date' => $currentDate,
                     'draw_number' => ($lastDraw ? $lastDraw->draw_number : 0) + $i,
-                    'days_until' => now()->diffInDays($currentDate, false),
+                    'days_until' => (int) ceil(now()->diffInDays($currentDate, false)),
                 ];
             }
         }
