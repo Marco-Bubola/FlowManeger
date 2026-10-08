@@ -1,4 +1,4 @@
-<div class="mobile-393-base product-form-page">
+<div class="product-form-page w-full px-4 sm:px-6 lg:px-8 pt-4 pb-16">
     <!-- CSS modular responsivo por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-iphone15.css') }}">
@@ -6,63 +6,31 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ultrawide.css') }}">
-    <!-- Header Modernizado com botões de ação -->
-    <x-sales-header
-        title="Criar Novo Produto"
-        description="Adicione um novo produto ao seu catálogo"
-        :back-route="route('products.index')"
-        :current-step="1"
-        :steps="[]">
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('products.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-box mr-1"></i>Produtos
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">Novo Produto</span>
-            </div>
-        </x-slot>
-        <x-slot name="actions">
+    <x-product-page-header title="Novo produto" subtitle="Cadastre um produto no seu catálogo" active="novo">
+        <x-slot:actions>
             <button wire:click="toggleTips" type="button"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
-                <i class="bi bi-lightbulb text-lg"></i>
-                Dicas
+                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                <i class="bi bi-lightbulb"></i>Dicas
             </button>
             <a href="{{ route('products.index') }}"
-                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-700 dark:text-slate-200 font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 border border-slate-200 dark:border-slate-600">
-                <i class="bi bi-x-lg text-lg"></i>
+                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 Cancelar
             </a>
-            <button type="submit" form="create-product-form"
-                wire:loading.attr="disabled"
-                wire:loading.class="opacity-50 cursor-not-allowed"
-                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-200">
-                <span wire:loading.remove wire:target="store">
-                    <i class="bi bi-check-circle-fill text-lg"></i>
-                    Criar Produto
-                </span>
-                <span wire:loading wire:target="store" class="flex items-center gap-2">
-                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Criando...
-                </span>
+            <button type="submit" form="create-product-form" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
+                <span wire:loading.remove wire:target="store"><i class="bi bi-check2-circle mr-1"></i>Criar produto</span>
+                <span wire:loading wire:target="store"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>
             </button>
-        </x-slot>
-    </x-sales-header>
+        </x-slot:actions>
+    </x-product-page-header>
 
     <!-- Conteúdo Principal -->
-    <form id="create-product-form" wire:submit.prevent="store" class="pf-form py-6">
+    <form id="create-product-form" wire:submit.prevent="store" class="pf-form">
         <div class="pf-layout flex flex-col xl:flex-row gap-6">
 
             <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
             <div class="pf-left-col flex-1">
-                <div class="pf-form-card bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50">
+                <div class="pf-form-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70">
 
                     <!-- Informações Básicas -->
                     <div class="mb-8">
@@ -71,15 +39,15 @@
                                 <i class="bi bi-info-circle-fill text-white text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Informações Básicas</h3>
-                                <p class="text-xs text-slate-400">Dados essenciais do produto</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Informações Básicas</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Dados essenciais do produto</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <!-- Nome -->
                             <div class="space-y-2">
-                                <label for="name" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="name" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-tag-fill text-blue-400"></i>
                                     Nome do Produto <span class="text-red-400">*</span>
                                 </label>
@@ -87,8 +55,8 @@
                                     <input type="text"
                                         wire:model.live="name"
                                         id="name"
-                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                           {{ $errors->has('name') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-slate-600' }}
+                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
+                                           {{ $errors->has('name') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                            focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
                                         placeholder="Ex: Notebook Dell">
                                     @if($name && !$errors->has('name'))
@@ -106,7 +74,7 @@
 
                             <!-- Código -->
                             <div class="space-y-2">
-                                <label for="product_code" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="product_code" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-upc-scan text-purple-400"></i>
                                     Código <span class="text-red-400">*</span>
                                 </label>
@@ -114,8 +82,8 @@
                                     <input type="text"
                                         wire:model.live="product_code"
                                         id="product_code"
-                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                           {{ $errors->has('product_code') ? 'border-red-500 focus:border-red-400' : 'focus:border-purple-500 hover:border-slate-600' }}
+                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
+                                           {{ $errors->has('product_code') ? 'border-red-500 focus:border-red-400' : 'focus:border-purple-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                            focus:ring-4 focus:ring-purple-500/20 focus:outline-none"
                                         placeholder="Ex: NB-DELL-001">
                                     @if($product_code && !$errors->has('product_code'))
@@ -133,7 +101,7 @@
 
                             <!-- Categoria -->
                             <div class="space-y-2">
-                                <label for="category_id" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="category_id" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-tags-fill text-pink-400"></i>
                                     Categoria <span class="text-red-400">*</span>
                                 </label>
@@ -154,31 +122,31 @@
                                 }">
                                     <button type="button"
                                         @click="open = !open"
-                                        class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white font-medium transition-all duration-200
+                                        class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium transition-all duration-200
                                             {{ $errors->has('category_id') ? 'border-red-500' : 'hover:border-pink-500 focus:border-pink-500' }}
                                             focus:ring-4 focus:ring-pink-500/20 focus:outline-none">
                                         <span class="flex items-center gap-2">
                                             <i :class="selectedCategoryIcon" class="text-pink-400"></i>
                                             <span x-text="selectedCategoryName"></span>
                                         </span>
-                                        <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                                        <i class="bi bi-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
                                     </button>
 
                                     <div x-show="open"
                                         x-transition
                                         @click.away="open = false"
-                                        class="absolute z-50 w-full mt-2 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl">
+                                        class="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl">
                                         <!-- Campo de pesquisa -->
-                                        <div class="p-2 border-b border-slate-700">
+                                        <div class="p-2 border-b border-slate-200 dark:border-slate-700">
                                             <div class="relative">
-                                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm pointer-events-none"></i>
                                                 <input type="text"
                                                        x-model="search"
                                                        @click.stop
                                                        x-ref="searchInput"
                                                        x-init="$watch('open', v => v && $nextTick(() => $refs.searchInput.focus()))"
                                                        placeholder="Pesquisar categoria..."
-                                                       class="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-white text-sm placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20">
+                                                       class="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white text-sm placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20">
                                             </div>
                                         </div>
                                         <!-- Lista de categorias filtrada -->
@@ -187,9 +155,9 @@
                                         <button type="button"
                                             x-show="!search || '{{ strtolower($category->name) }}'.includes(search.toLowerCase())"
                                             @click="selectCategory({ id: {{ $category->id_category }}, name: '{{ $category->name }}', icon: '{{ $this->getCategoryIcon($category->icone) }}' })"
-                                            class="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-slate-700/80 transition-colors border-b border-slate-700 last:border-b-0">
+                                            class="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors border-b border-slate-200 dark:border-slate-700 last:border-b-0">
                                             <i class="{{ $this->getCategoryIcon($category->icone) }} text-pink-400"></i>
-                                            <span class="text-white text-sm font-medium">{{ $category->name }}</span>
+                                            <span class="text-slate-800 dark:text-white text-sm font-medium">{{ $category->name }}</span>
                                         </button>
                                         @endforeach
                                         </div>
@@ -205,7 +173,7 @@
                     </div>
 
                     <!-- Divisor -->
-                    <div class="border-t border-slate-700/50 my-6"></div>
+                    <div class="border-t border-slate-200/80 dark:border-slate-700/50 my-6"></div>
 
                     <!-- Descrição e Código de Barras -->
                     <div class="mb-8">
@@ -214,22 +182,22 @@
                                 <i class="bi bi-card-text text-white text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Descrição</h3>
-                                <p class="text-xs text-slate-400">Detalhes e características</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Descrição</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Detalhes e características</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div class="md:col-span-2 space-y-2">
-                                <label for="description" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="description" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-card-text text-indigo-400"></i>
                                     Descrição
                                 </label>
                                 <textarea wire:model.live="description"
                                     id="description"
                                     rows="4"
-                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium resize-none transition-all duration-200
-                                          {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
+                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium resize-none transition-all duration-200
+                                          {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                           focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
                                     placeholder="Descreva as principais características e benefícios do produto..."></textarea>
                                 @error('description')
@@ -239,7 +207,7 @@
                                 @enderror
                             </div>
                             <div class="space-y-2">
-                                <label for="barcode" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="barcode" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-upc text-indigo-400"></i>
                                     Código de Barras (EAN)
                                 </label>
@@ -247,8 +215,8 @@
                                     wire:model.live="barcode"
                                     id="barcode"
                                     maxlength="15"
-                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                       {{ $errors->has('barcode') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
+                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
+                                       {{ $errors->has('barcode') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                        focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
                                     placeholder="Ex: 7891234567890">
                                 @error('barcode')
@@ -261,7 +229,7 @@
                     </div>
 
                     <!-- Divisor -->
-                    <div class="border-t border-slate-700/50 my-6"></div>
+                    <div class="border-t border-slate-200/80 dark:border-slate-700/50 my-6"></div>
 
                     <!-- Preços e Estoque -->
                     <div>
@@ -270,12 +238,12 @@
                                 <i class="bi bi-currency-dollar text-white text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Preços e Estoque</h3>
-                                <p class="text-xs text-slate-400">Valores e quantidade</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Preços e Estoque</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Valores e quantidade</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
                             <x-currency-input
                                 name="price"
                                 id="price"
@@ -314,15 +282,15 @@
             </div>
 
             <!-- ========== COLUNA DIREITA: Upload ========== -->
-            <div class="pf-right-col w-full xl:w-[550px]">
-                <div class="pf-image-card bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
+            <div class="pf-right-col w-full xl:w-[400px]">
+                <div class="pf-image-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70 h-full flex flex-col">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
                             <i class="bi bi-image-fill text-white text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-white">Imagem do Produto</h3>
-                            <p class="text-xs text-slate-400">Adicione uma foto de alta qualidade</p>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Imagem do Produto</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Adicione uma foto de alta qualidade</p>
                         </div>
                     </div>
 
@@ -334,19 +302,19 @@
                             title="Upload da Imagem"
                             description="Clique ou arraste sua imagem aqui"
                             :existing-image="$image"
-                            height="h-[500px]" />
+                            height="h-[340px]" />
                     </div>
 
                     {{-- ── ML barcode image importer ── --}}
-                    <div class="mt-6 border-t border-slate-700/50 pt-6">
-                        <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+                    <div class="mt-6 border-t border-slate-200/80 dark:border-slate-700/50 pt-6">
+                        <div class="rounded-xl border border-slate-200/80 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 p-4">
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="w-7 h-7 rounded-lg bg-yellow-400/15 flex items-center justify-center flex-shrink-0">
                                     <i class="fas fa-barcode text-yellow-400 text-xs"></i>
                                 </div>
                                 <div>
-                                    <p class="text-xs font-bold text-slate-200">Importar imagens do Mercado Livre</p>
-                                    <p class="text-[10px] text-slate-400">Selecione as imagens antes de salvar — serão vinculadas automaticamente</p>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Importar imagens do Mercado Livre</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Selecione as imagens antes de salvar — serão vinculadas automaticamente</p>
                                 </div>
                             </div>
 
@@ -354,7 +322,7 @@
                                 <input type="text"
                                        wire:model="barcode"
                                        placeholder="Código de barras"
-                                       class="flex-1 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                                       class="flex-1 px-3 py-2 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500">
                                 <button type="button"
                                         wire:click="searchMlImages"
                                         wire:loading.attr="disabled"
@@ -376,7 +344,7 @@
 
                             @if(count($mlImageResults) > 0)
                             <div class="mt-3">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selecione as imagens:</p>
+                                <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Selecione as imagens:</p>
                                 <div class="grid grid-cols-4 gap-2">
                                     @foreach($mlImageResults as $i => $url)
                                     <label class="relative cursor-pointer group">
@@ -385,7 +353,7 @@
                                                class="sr-only peer">
                                         <div class="aspect-square rounded-lg overflow-hidden border-2 transition-all
                                                     peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500/30
-                                                    border-slate-700 hover:border-slate-500 bg-slate-800">
+                                                    border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800">
                                             <img src="{{ $url }}" alt="Foto ML {{ $i+1 }}" class="w-full h-full object-cover" loading="lazy">
                                         </div>
                                         <div class="absolute inset-0 rounded-lg bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
@@ -401,7 +369,7 @@
                     </div>
                     {{-- /ML importer --}}
 
-                    <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
+                    <div class="mt-4 flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <i class="bi bi-info-circle text-blue-400 mt-0.5"></i>
                         <p>JPG, PNG, JPEG • Máx 2MB • Recomendado: 800x800px</p>
                     </div>

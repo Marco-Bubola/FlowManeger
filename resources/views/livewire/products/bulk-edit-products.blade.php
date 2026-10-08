@@ -5,144 +5,76 @@
 
     <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/products-index-header.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/bulk-edit-products.css') }}">
+        <link rel="stylesheet" href="{{ asset('assets/css/bulk-edit-products.css') }}">
 
-    <!-- ───────────────── HEADER (idêntico ao products-index) ───────────────── -->
-    <x-products-header
-        title="Edição em Massa"
-        description="Edite seus produtos em cards interativos"
-        :total-products="$totalProducts"
-        :total-categories="$categories->count()"
-        :show-quick-actions="false">
+    {{-- Grade de cards se ajusta à largura disponível (o menu lateral ocupa parte da tela) --}}
+    <style>
+        .bulk-edit-page .bulk-products-grid { grid-template-columns: repeat(auto-fill, minmax(min(var(--bulk-card-min), 100%), 1fr)); }
+    </style>
 
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('products.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="bi bi-box-seam mr-1"></i>Produtos
-                </a>
-                <i class="bi bi-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                    <i class="bi bi-grid-3x3-gap-fill mr-1"></i>Edição em Massa
+    <x-product-page-header title="Edição em massa" icon="bi-pencil-square" active="massa"
+        subtitle="Altere categoria, custo, venda e código de barras direto nos cards e salve tudo de uma vez">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-box-seam"></i>{{ number_format($totalProducts, 0, ',', '.') }} {{ $totalProducts === 1 ? 'produto' : 'produtos' }}</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"><i class="bi bi-tags"></i>{{ $categories->count() }} categorias</span>
+        </x-slot:meta>
+        <x-slot:actions>
+            <button type="button" x-show="$store.bulkCart.count > 0" x-transition @click="showSaveAllModal = true" :disabled="savingAll"
+                    class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/25 transition disabled:opacity-50">
+                <span x-show="!savingAll" class="flex items-center gap-1.5">
+                    <i class="bi bi-cloud-arrow-up-fill"></i>Salvar editados
+                    <span class="rounded-full bg-white/25 px-1.5 text-xs" x-text="$store.bulkCart.count"></span>
                 </span>
-            </div>
-        </x-slot>
+                <span x-show="savingAll" class="flex items-center gap-1.5"><i class="bi bi-arrow-repeat animate-spin"></i>Salvando...</span>
+            </button>
+            <button type="button" wire:click="loadProducts" title="Recarregar" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-arrow-clockwise"></i>Recarregar
+            </button>
+        </x-slot:actions>
+    </x-product-page-header>
 
-        <!-- Controls slot — igual ao layout do products-index -->
-        <div class="w-full products-index-controls">
-
-            <!-- ── LINHA 1: Busca + Status filter ── -->
-            <div class="prod-header-row-1">
-                <div class="prod-header-search relative group">
-                    <input type="text"
-                        wire:model.live.debounce.300ms="search"
-                        placeholder="Buscar por nome, código, EAN/código de barras..."
-                        class="w-full pl-11 pr-10 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
-                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2">
-                        <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
-                    </div>
-                    <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
-                        class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 rounded-lg transition-all duration-200">
-                        <i class="bi bi-x text-sm"></i>
-                    </button>
-                    <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 -translate-y-1/2">
-                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
-                    </div>
-                </div>
-
-                <!-- Status filter -->
-                <div class="flex items-center gap-1 flex-shrink-0">
-                    <button type="button" wire:click="$set('filterStatus', '')"
-                        class="sale-filter-pill prod-pill-type {{ $filterStatus === '' ? 'active' : '' }}">
-                        <i class="bi bi-grid-3x3-gap"></i><span>Todos</span>
-                    </button>
-                    <button type="button" wire:click="$set('filterStatus', 'ativo')"
-                        class="sale-filter-pill {{ $filterStatus === 'ativo' ? 'active' : '' }}">
-                        <i class="bi bi-check-circle"></i><span class="hidden sm:inline">Ativos</span>
-                    </button>
-                    <button type="button" wire:click="$set('filterStatus', 'inativo')"
-                        class="sale-filter-pill {{ $filterStatus === 'inativo' ? 'active' : '' }}">
-                        <i class="bi bi-pause-circle"></i><span class="hidden sm:inline">Inativos</span>
-                    </button>
-                </div>
-
-                <!-- Voltar -->
-                <a href="{{ route('products.index') }}" class="sale-action-btn flex-shrink-0">
-                    <i class="bi bi-arrow-left"></i>
-                    <span>Voltar</span>
-                </a>
-            </div>
-
-            <!-- ── LINHA 2: Sort pills + Ações ── -->
-            <div class="prod-header-row-2">
-                <div class="prod-header-row-2-left">
-                    <div class="sale-filter-pills sale-sort-pills hidden md:flex">
-                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i></span>
-                        <button type="button" wire:click="$set('sortBy', 'name')"
-                            class="sale-filter-pill {{ $sortBy === 'name' ? 'active' : '' }}">
-                            <span>A-Z</span>
-                        </button>
-                        <button type="button" wire:click="$set('sortBy', 'updated_at')"
-                            class="sale-filter-pill {{ $sortBy === 'updated_at' ? 'active' : '' }}">
-                            <span>Recentes</span>
-                        </button>
-                        <button type="button" wire:click="$set('sortBy', 'price_sale')"
-                            class="sale-filter-pill {{ $sortBy === 'price_sale' ? 'active' : '' }}">
-                            <span>Preço</span>
-                        </button>
-                        <button type="button" wire:click="$set('sortBy', 'product_code')"
-                            class="sale-filter-pill {{ $sortBy === 'product_code' ? 'active' : '' }}" title="Agrupa produtos do mesmo código (ideal p/ vincular variações)">
-                            <span><i class="bi bi-upc-scan"></i> Código</span>
-                        </button>
-                    </div>
-
-                    <!-- Contagem -->
-                    <span class="bulk-count-label">
-                        <i class="bi bi-boxes"></i>
-                        <strong>{{ number_format($totalProducts, 0, ',', '.') }}</strong> produto{{ $totalProducts !== 1 ? 's' : '' }}
-                        <span class="bulk-count-page">· Página {{ $currentPage }}/{{ $totalPages }}</span>
-                    </span>
-                </div>
-
-                <div class="prod-header-row-2-right">
-                    <!-- Per page selector -->
-                    <div class="bulk-perpage-wrap">
-                        <label for="perPage" class="bulk-perpage-label"><i class="bi bi-grid"></i> Por página:</label>
-                        <select wire:model.live="perPage" id="perPage" class="bulk-perpage-select">
-                            <option value="60">60</option>
-                            <option value="120">120</option>
-                            <option value="180">180</option>
-                            <option value="240">240</option>
-                        </select>
-                    </div>
-
-                    <!-- Salvar editados (abre modal moderno) — só aparece quando há editados -->
-                    <button type="button"
-                            x-show="$store.bulkCart.count > 0"
-                            x-transition
-                            @click="showSaveAllModal = true"
-                            :disabled="savingAll"
-                            class="bulk-save-all-btn">
-                        <span x-show="!savingAll" class="flex items-center gap-1.5">
-                            <i class="bi bi-cloud-arrow-up-fill"></i>
-                            <span class="hidden sm:inline">Salvar Editados</span>
-                            <span class="bulk-save-all-count" x-text="$store.bulkCart.count"></span>
-                        </span>
-                        <span x-show="savingAll" class="flex items-center gap-1.5">
-                            <span class="bulk-btn-spinner"></span>
-                            <span class="hidden sm:inline">Salvando...</span>
-                        </span>
-                    </button>
-
-                    <button type="button" wire:click="loadProducts"
-                        class="sale-action-btn" title="Recarregar">
-                        <i class="bi bi-arrow-clockwise"></i>
-                        <span class="hidden sm:inline">Recarregar</span>
-                    </button>
-                </div>
+    <div class="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm 2xl:flex-row 2xl:items-center">
+        <div class="relative flex-1 min-w-0 2xl:min-w-[320px]">
+            <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por nome, código ou código de barras..."
+                   class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 pl-10 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30">
+            <button type="button" wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0" title="Limpar busca"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+            <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 -translate-y-1/2">
+                <div class="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
             </div>
         </div>
-    </x-products-header>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                    <button type="button" wire:click="$set('filterStatus', '')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $filterStatus === '' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-grid-3x3-gap"></i>Todos</button>
+                    <button type="button" wire:click="$set('filterStatus', 'ativo')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $filterStatus === 'ativo' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-check-circle"></i>Ativos</button>
+                    <button type="button" wire:click="$set('filterStatus', 'inativo')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $filterStatus === 'inativo' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-pause-circle"></i>Inativos</button>
+            </div>
+
+            <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                <span class="px-1.5 text-xs text-slate-400"><i class="bi bi-arrow-down-up"></i></span>
+                    <button type="button" wire:click="$set('sortBy', 'name')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'name' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">A-Z</button>
+                    <button type="button" wire:click="$set('sortBy', 'updated_at')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'updated_at' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Recentes</button>
+                    <button type="button" wire:click="$set('sortBy', 'price_sale')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'price_sale' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Preço</button>
+                    <button type="button" wire:click="$set('sortBy', 'product_code')" title="Agrupa produtos do mesmo código (ideal p/ vincular variações)" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'product_code' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-upc-scan"></i>Código</button>
+            </div>
+
+            <label class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <i class="bi bi-grid"></i>Por página
+                <select wire:model.live="perPage" id="perPage" class="rounded-lg border-0 bg-white dark:bg-slate-700 py-1 pl-2 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/30">
+                    <option value="60">60</option>
+                    <option value="120">120</option>
+                    <option value="180">180</option>
+                    <option value="240">240</option>
+                </select>
+            </label>
+
+            <span class="text-xs text-slate-500 dark:text-slate-400">Página {{ $currentPage }}/{{ $totalPages }}</span>
+        </div>
+    </div>
 
     @php
         $iconMap = [

@@ -36,89 +36,42 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/show-product-ultrawide.css') }}">
 
-<!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="relative overflow-hidden bg-gradient-to-r from-white/80 via-blue-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-    <!-- Efeito de brilho sutil -->
-    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-
-    <!-- Background decorativo -->
-    <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-indigo-400/20 rounded-full transform translate-x-16 -translate-y-16"></div>
-    <div class="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-tr from-green-400/10 via-blue-400/10 to-purple-400/10 rounded-full transform -translate-x-10 translate-y-10"></div>
-
-    <div class="relative px-4 sm:px-5 py-3.5">
-        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-            <!-- Título e Info do Produto -->
-            <div class="flex items-center gap-3 min-w-0 w-full lg:w-auto">
-                <!-- Voltar -->
-                <a href="{{ route('products.index') }}"
-                    class="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-white/70 dark:bg-slate-800/70 hover:bg-white dark:hover:bg-slate-700 text-slate-500 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60 transition-all shadow-sm group">
-                    <i class="bi bi-arrow-left group-hover:-translate-x-0.5 transition-transform"></i>
-                </a>
-
-                <!-- Imagem do produto -->
-                <div class="relative w-14 h-14 rounded-2xl overflow-hidden shadow-lg bg-gradient-to-br from-white to-slate-100 dark:from-slate-700 dark:to-slate-800 flex items-center justify-center shrink-0 group">
-                    @if($mainProduct->image)
-                    <img src="{{ asset('storage/products/' . $mainProduct->image) }}" alt="{{ $mainProduct->name }}"
-                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300">
-                    @else
-                    <i class="bi bi-box-seam text-2xl text-slate-400 dark:text-slate-500"></i>
-                    @endif
-                </div>
-
-                <div class="min-w-0">
-                    <h1 class="text-lg sm:text-2xl font-black bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent truncate leading-tight">
-                        {{ $mainProduct->name }}
-                    </h1>
-                    <!-- Badges do produto (compactos) -->
-                    <div class="flex items-center gap-1.5 flex-wrap mt-1">
-                        @if(($mainProduct->tipo ?? 'simples') === 'kit')
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-bold bg-gradient-to-r from-purple-500 via-fuchsia-500 to-pink-500 text-white shadow">
-                            <i class="bi bi-boxes mr-1"></i>KIT · {{ $kitMontaveis }} montáveis
-                        </span>
-                        @endif
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-bold bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow">
-                            <i class="bi bi-upc-scan mr-1"></i>{{ $productCode }}
-                        </span>
-                        @if($category)
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold bg-white/80 dark:bg-slate-700/80 text-purple-700 dark:text-purple-300 border border-purple-200/60 dark:border-purple-700/60">
-                            <i class="{{ $this->getCategoryIcon($category->icone) }} mr-1"></i>{{ $category->name }}
-                        </span>
-                        @endif
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold {{ $products->count() > 1 ? 'bg-amber-500 text-white' : 'bg-emerald-500 text-white' }}">
-                            <i class="bi bi-layers mr-1"></i>{{ $products->count() }} {{ $products->count() === 1 ? 'var.' : 'vars.' }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Ações (compactas, ícone + label) -->
-            <div class="flex items-center gap-2 shrink-0 flex-wrap">
-                <a href="{{ route('products.edit', $mainProduct) }}"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 transition shadow-sm">
-                    <i class="bi bi-pencil-fill text-amber-500"></i><span class="hidden sm:inline">Editar</span>
-                </a>
-                @php $showPromo = $mainProduct->livePromotion(); @endphp
-                <a href="{{ route('promotions.index', ['produto' => $mainProduct->id]) }}"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 shadow transition"
-                    title="{{ $showPromo ? 'Em promoção: R$ ' . number_format($showPromo->promo_price, 2, ',', '.') : 'Pôr em promoção' }}">
-                    <i class="bi bi-fire"></i><span class="hidden sm:inline">{{ $showPromo ? 'Promoção -' . $showPromo->discount_percent . '%' : 'Promoção' }}</span>
-                </a>
-                <button wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 shadow transition">
-                    <i class="bi bi-file-earmark-arrow-down"></i><span class="hidden sm:inline">Exportar</span>
-                </button>
-                <button wire:click="duplicateProduct({{ $mainProduct->id }})"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-purple-500 to-fuchsia-500 hover:from-purple-600 hover:to-fuchsia-600 shadow transition">
-                    <i class="bi bi-files"></i><span class="hidden sm:inline">Duplicar</span>
-                </button>
-                <button wire:click="confirmDelete({{ $mainProduct->id }})"
-                    class="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-rose-500 to-red-500 hover:from-rose-600 hover:to-red-600 shadow transition">
-                    <i class="bi bi-trash3"></i><span class="hidden sm:inline">Excluir</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+@php $showPromo = $mainProduct->livePromotion(); @endphp
+<x-product-page-header :title="$mainProduct->name" :product="$mainProduct">
+    <x-slot:meta>
+        @if(($mainProduct->tipo ?? 'simples') === 'kit')
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-fuchsia-50 text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300"><i class="bi bi-boxes"></i>Kit · {{ $kitMontaveis }} montáveis</span>
+        @endif
+        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-upc-scan"></i>{{ $productCode }}</span>
+        @if($category)
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"><i class="{{ $this->getCategoryIcon($category->icone) }}"></i>{{ $category->name }}</span>
+        @endif
+        <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $products->count() > 1 ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' : 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' }}"><i class="bi bi-layers"></i>{{ $products->count() }} {{ $products->count() === 1 ? 'variação' : 'variações' }}</span>
+        @if($showPromo)
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-rose-50 text-rose-700 dark:bg-rose-500/10 dark:text-rose-300"><i class="bi bi-fire"></i>Em promoção · R$ {{ number_format($showPromo->promo_price, 2, ',', '.') }}</span>
+        @endif
+    </x-slot:meta>
+    <x-slot:actions>
+        <a href="{{ route('products.edit', $mainProduct) }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+            <i class="bi bi-pencil text-amber-500"></i>Editar
+        </a>
+        <a href="{{ route('promotions.index', ['produto' => $mainProduct->id]) }}"
+           title="{{ $showPromo ? 'Em promoção: R$ ' . number_format($showPromo->promo_price, 2, ',', '.') : 'Pôr em promoção' }}"
+           class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600">
+            <i class="bi bi-fire"></i>{{ $showPromo ? 'Promoção -' . $showPromo->discount_percent . '%' : 'Promoção' }}
+        </a>
+        <button type="button" wire:click="$dispatch('openExportModal', { productId: {{ $mainProduct->id }} })" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+            <i class="bi bi-file-earmark-arrow-down text-indigo-500"></i>Exportar
+        </button>
+        <button type="button" wire:click="duplicateProduct({{ $mainProduct->id }})" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+            <i class="bi bi-files text-purple-500"></i>Duplicar
+        </button>
+        <button type="button" wire:click="confirmDelete({{ $mainProduct->id }})" title="Excluir produto"
+                class="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 text-slate-500 hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 transition shadow-sm">
+            <i class="bi bi-trash3"></i>
+        </button>
+    </x-slot:actions>
+</x-product-page-header>
 
 <!-- ===== PÁGINA ÚNICA (sem abas) — layout denso com dash ===== -->
 <div class="space-y-4">

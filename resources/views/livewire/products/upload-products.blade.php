@@ -13,82 +13,45 @@
     <!-- Toast Notifications Container -->
     <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
 
-    <!-- Header -->
     @if(!$showProductsTable)
-    <x-upload-header-original
-        title="Upload de Produtos"
-        description="Importe produtos atrav├®s de arquivo PDF ou CSV"
-        :back-route="route('products.index')">
-        <x-slot name="actions">
-            <!-- Bot├úo Dicas -->
-            <button wire:click="toggleTips"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm">
-                <i class="bi bi-lightbulb-fill mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                Dicas
+    <x-product-page-header title="Importar produtos" subtitle="Envie o PDF do catálogo ou um CSV e revise os produtos antes de salvar" icon="bi-cloud-upload" active="importar">
+        <x-slot:actions>
+            <button type="button" wire:click="toggleTips" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-lightbulb text-amber-500"></i>Dicas
             </button>
-
-            <!-- Bot├úo Processar Arquivo -->
             @if($pdf_file)
-            <button wire:click="processUpload"
-                    wire:loading.attr="disabled"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-purple-300 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed">
-                <i class="bi bi-lightning-charge-fill mr-2 group-hover:animate-pulse"></i>
-                <span wire:loading.remove wire:target="processUpload">Processar Arquivo</span>
-                <span wire:loading wire:target="processUpload" class="flex items-center gap-2">
-                    <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processando...
-                </span>
+            <button type="button" wire:click="processUpload" wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-indigo-500/25">
+                <span wire:loading.remove wire:target="processUpload"><i class="bi bi-lightning-charge-fill mr-1"></i>Processar arquivo</span>
+                <span wire:loading wire:target="processUpload"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Processando...</span>
             </button>
             @endif
-        </x-slot>
-    </x-upload-header-original>
+        </x-slot:actions>
+    </x-product-page-header>
     @else
-    <x-upload-header-original
-        title="Produtos Extra├¡dos"
-        description="Revise e edite os produtos antes de salvar"
-        :show-products-info="true"
-        :products-count="count($productsUpload ?? [])"
-        :back-route="null">
-        <x-slot name="actions">
-            <!-- Bot├úo Desfazer (se houver produtos removidos) -->
+    <x-product-page-header title="Produtos extraídos" subtitle="Revise e edite os produtos antes de salvar" icon="bi-list-check" active="importar">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-box-seam"></i>{{ count($productsUpload ?? []) }} produtos encontrados</span>
+        </x-slot:meta>
+        <x-slot:actions>
             @if(!empty($removedProducts))
-            <button wire:click="undoRemove"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-yellow-300 backdrop-blur-sm">
-                <i class="bi bi-arrow-counterclockwise mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                Desfazer ({{ count($removedProducts) }})
+            <button type="button" wire:click="undoRemove" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-arrow-counterclockwise text-amber-500"></i>Desfazer ({{ count($removedProducts) }})
             </button>
             @endif
-
-            <!-- Bot├úo Validar Duplicatas -->
-            <button wire:click="checkDuplicates"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-blue-300 backdrop-blur-sm">
-                <i class="bi bi-shield-check mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                Validar
+            <button type="button" wire:click="checkDuplicates" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-shield-check text-indigo-500"></i>Validar
             </button>
-
-            <button wire:click="$set('showProductsTable', false)"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-gray-400 to-gray-600 hover:from-gray-500 hover:to-gray-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-gray-300 backdrop-blur-sm">
-                <i class="bi bi-arrow-left mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                Voltar
+            <button type="button" wire:click="$set('showProductsTable', false)" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-arrow-left"></i>Voltar
             </button>
-
-            <button wire:click="store"
-                    class="group relative inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-gradient-to-br from-green-500 via-emerald-500 to-teal-600 hover:from-green-600 hover:via-emerald-600 hover:to-teal-700 text-white transition-all duration-300 shadow-lg hover:shadow-xl border border-green-300 backdrop-blur-sm"
-                    wire:loading.attr="disabled">
-                <span wire:loading.remove class="flex items-center">
-                    <i class="bi bi-check-circle mr-2 group-hover:scale-110 transition-transform duration-200"></i>
-                    Salvar ({{ count($productsUpload ?? []) }})
-                </span>
-                <span wire:loading class="flex items-center">
-                    <i class="bi bi-arrow-clockwise animate-spin mr-2"></i>
-                    Salvando...
-                </span>
+            <button type="button" wire:click="store" wire:loading.attr="disabled"
+                    class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white shadow-md transition disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-emerald-500/25">
+                <span wire:loading.remove><i class="bi bi-check-circle mr-1"></i>Salvar ({{ count($productsUpload ?? []) }})</span>
+                <span wire:loading><i class="bi bi-arrow-clockwise animate-spin mr-1"></i>Salvando...</span>
             </button>
-        </x-slot>
-    </x-upload-header-original>
+        </x-slot:actions>
+    </x-product-page-header>
     @endif
 
     <!-- Alerta de Duplicatas -->
@@ -103,7 +66,7 @@
                     {{ count($duplicates) }} produto(s) duplicado(s) encontrado(s)
                 </h3>
                 <div class="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
-                    <p>Escolha uma a├º├úo para cada produto duplicado abaixo:</p>
+                    <p>Escolha uma ação para cada produto duplicado abaixo:</p>
                 </div>
                 <div class="mt-4 space-y-3">
                     @foreach($duplicates as $index => $duplicate)
@@ -114,7 +77,7 @@
                                     {{ $duplicate['product']['name'] ?? 'Produto sem nome' }}
                                 </p>
                                 <p class="text-sm text-slate-500 dark:text-slate-400">
-                                    C├│digo: {{ $duplicate['product']['product_code'] }} |
+                                    Código: {{ $duplicate['product']['product_code'] }} |
                                     Estoque atual: {{ $duplicate['existing']->stock_quantity }} |
                                     Nova quantidade: {{ $duplicate['product']['stock_quantity'] }}
                                 </p>
@@ -145,7 +108,7 @@
     </div>
     @endif
 
-    <!-- Conte├║do Principal -->
+    <!-- Conteúdo Principal -->
     <div class="upload-main-content">
         {{-- Avisos do processamento.
              Estes blocos faltavam: o componente preenchia $errorMessage /
@@ -186,7 +149,7 @@
                     <div class="upload-stage-shell relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-br from-white via-indigo-50/70 to-sky-50/80 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-[0_24px_80px_-32px_rgba(79,70,229,0.35)]">
                         <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.14),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.12),transparent_30%)]"></div>
                         <div class="relative p-4 sm:p-5 lg:p-6 space-y-5">
-                            <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                            <div class="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
                                 <div class="space-y-2">
                                     <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 dark:border-indigo-500/30 bg-white/70 dark:bg-slate-800/70 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300 shadow-sm backdrop-blur-sm">
                                         <i class="bi bi-stars text-sky-500"></i>
@@ -405,96 +368,50 @@
                 </div>
 
                 <div class="upload-history-section space-y-4">
-                    <div class="upload-history-shell relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 shadow-[0_28px_90px_-38px_rgba(15,23,42,0.8)]">
-                        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.22),transparent_24%),radial-gradient(circle_at_bottom_left,rgba(20,184,166,0.12),transparent_24%)]"></div>
-                        <div class="relative p-4 sm:p-5 lg:p-6 space-y-5">
-                            <div class="upload-history-header flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div class="upload-history-shell relative overflow-hidden rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 shadow-sm">
+                        <div class="relative p-4 sm:p-5 space-y-4">
+                            <div class="upload-history-header flex flex-wrap items-center justify-between gap-3">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 via-violet-500 to-sky-500 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                                        <i class="bi bi-clock-history text-white text-xl"></i>
+                                    <div class="w-11 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/25">
+                                        <i class="bi bi-clock-history text-white text-lg"></i>
                                     </div>
                                     <div>
-                                        <div class="flex flex-wrap items-center gap-2 mb-1">
-                                            <h3 class="text-xl font-black text-white">Historico de Uploads</h3>
-                                            <span class="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">Timeline</span>
-                                        </div>
-                                        <p class="text-sm text-slate-300">Uploads recentes com navegacao paginada e leitura mais limpa.</p>
+                                        <h3 class="text-lg font-bold text-slate-900 dark:text-white">Histórico de importações</h3>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400">Os arquivos que você já enviou</p>
                                     </div>
                                 </div>
-
-                                <div class="flex flex-wrap items-center gap-2.5">
-                                    <div class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-white shadow-lg backdrop-blur-sm">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Registros</p>
-                                        <p class="text-sm font-extrabold">{{ $uploadHistory->total() }}</p>
-                                    </div>
-                                    <div class="rounded-2xl border border-white/10 bg-white/10 px-3 py-2 text-white shadow-lg backdrop-blur-sm">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-slate-400">Pagina</p>
-                                        <p class="text-sm font-extrabold">{{ $uploadHistory->currentPage() }}/{{ max($uploadHistory->lastPage(), 1) }}</p>
-                                    </div>
-                                </div>
+                                <span class="inline-flex items-center gap-1 rounded-full bg-indigo-50 dark:bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:text-indigo-300">
+                                    <i class="bi bi-files"></i>{{ $uploadHistory->total() }} {{ $uploadHistory->total() === 1 ? 'arquivo' : 'arquivos' }}
+                                </span>
                             </div>
 
-                            @if($uploadHistory->total() > 0)
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm shadow-lg">
-                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Exibindo</p>
-                                    <p class="mt-1 text-sm font-extrabold text-white">{{ $uploadHistory->firstItem() }} a {{ $uploadHistory->lastItem() }}</p>
-                                </div>
-                                <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm shadow-lg">
-                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Por pagina</p>
-                                    <p class="mt-1 text-sm font-extrabold text-white">{{ $historyPerPage }} cards</p>
-                                </div>
-                                <div class="rounded-2xl border border-white/10 bg-white/10 px-4 py-3 backdrop-blur-sm shadow-lg">
-                                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Status</p>
-                                    <p class="mt-1 text-sm font-extrabold text-emerald-300">Leitura em tempo real</p>
-                                </div>
-                            </div>
-                            @endif
-
-                            <div class="upload-history-grid grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="upload-history-grid-v2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2 gap-4">
                                 @forelse($uploadHistory as $upload)
                                 @php $badge = $upload->status_badge; @endphp
                                 <div class="upload-history-card group relative bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 hover:border-purple-400 dark:hover:border-purple-500 transition-all duration-300 shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 hover:-translate-y-1 overflow-hidden">
 
                             <!-- Header com Gradiente -->
-                            <div class="upload-card-header relative bg-gradient-to-br from-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-500 via-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-600 to-{{ $upload->file_type === 'pdf' ? 'red' : 'emerald' }}-700 p-4">
-                                <!-- Pattern decorativo -->
-                                <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
-                                <div class="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
-                                <div class="absolute bottom-0 left-0 w-24 h-24 bg-black/5 rounded-full -ml-12 -mb-12"></div>
-
-                                <div class="relative flex items-start justify-between">
-                                    <div class="flex items-center gap-3 flex-1 min-w-0">
-                                        <div class="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-xl border border-white/30 group-hover:scale-110 transition-transform duration-300">
-                                            <i class="bi bi-file-earmark-{{ $upload->file_type === 'pdf' ? 'pdf' : 'spreadsheet' }} text-white text-2xl drop-shadow-lg"></i>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h4 class="font-bold text-white truncate text-sm mb-1 drop-shadow-md" title="{{ $upload->filename }}">
-                                                {{ $upload->filename }}
-                                            </h4>
-                                            <p class="text-xs text-white/90 flex items-center gap-2">
-                                                <span class="flex items-center gap-1">
-                                                    <i class="bi bi-calendar3"></i>
-                                                    {{ $upload->created_at->format('d/m/Y') }}
-                                                </span>
-                                                <span>ÔÇó</span>
-                                                <span class="flex items-center gap-1">
-                                                    <i class="bi bi-clock"></i>
-                                                    {{ $upload->created_at->format('H:i') }}
-                                                </span>
-                                            </p>
-                                        </div>
+                            <div class="upload-card-header relative flex items-start justify-between gap-3 border-b border-slate-100 dark:border-slate-700/60 p-4">
+                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                    <div class="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center {{ $upload->file_type === 'pdf' ? 'bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-300' : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300' }}">
+                                        <i class="bi bi-file-earmark-{{ $upload->file_type === 'pdf' ? 'pdf' : 'spreadsheet' }} text-xl"></i>
                                     </div>
-                                    <span class="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold bg-white/90 text-{{ $badge['color'] }}-700 shadow-lg backdrop-blur-sm">
-                                        <i class="bi {{ $badge['icon'] }} mr-1"></i>
-                                        {{ $badge['label'] }}
-                                    </span>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-semibold text-slate-900 dark:text-white truncate text-sm" title="{{ $upload->filename }}">{{ $upload->filename }}</h4>
+                                        <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                                            <span class="flex items-center gap-1"><i class="bi bi-calendar3"></i>{{ $upload->created_at->format('d/m/Y') }}</span>
+                                            <span class="flex items-center gap-1"><i class="bi bi-clock"></i>{{ $upload->created_at->format('H:i') }}</span>
+                                        </p>
+                                    </div>
                                 </div>
+                                <span class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-{{ $badge['color'] }}-50 text-{{ $badge['color'] }}-700 dark:bg-{{ $badge['color'] }}-500/10 dark:text-{{ $badge['color'] }}-300">
+                                    <i class="bi {{ $badge['icon'] }}"></i>{{ $badge['label'] }}
+                                </span>
                             </div>
 
                             <!-- Corpo do Card -->
                             <div class="upload-card-body p-4">
-                                <!-- Estat├¡sticas -->
+                                <!-- Estatísticas -->
                                 <div class="upload-card-stats grid grid-cols-3 gap-2 mb-4">
                                     <div class="relative group/stat">
                                         <div class="absolute inset-0 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 rounded-xl opacity-50 group-hover/stat:opacity-100 transition-opacity"></div>
@@ -524,7 +441,7 @@
                                     </div>
                                 </div>
 
-                                <!-- Footer com A├º├Áes -->
+                                <!-- Footer com Ações -->
                                 <div class="flex items-center justify-between pt-3 border-t-2 border-slate-200 dark:border-slate-700">
                                     <div class="flex flex-col gap-1">
                                         <span class="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
@@ -539,9 +456,9 @@
                                         @endif
                                     </div>
 
-                                    <!-- Bot├Áes de A├º├úo -->
+                                    <!-- Botões de Ação -->
                                     <div class="flex items-center gap-2">
-                                        <!-- Bot├úo Ver Detalhes -->
+                                        <!-- Botão Ver Detalhes -->
                                         <button wire:click="showUploadDetails({{ $upload->id }})"
                                             class="group/btn inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-blue-500/50 hover:scale-105">
                                             <i class="bi bi-info-circle text-base group-hover/btn:rotate-12 transition-transform"></i>
@@ -549,7 +466,7 @@
                                         </button>
 
                                         @if($upload->file_type === 'pdf' && $upload->file_path)
-                                        <!-- Bot├úo Abrir PDF -->
+                                        <!-- Botão Abrir PDF -->
                                         <a href="{{ Storage::url($upload->file_path) }}"
                                            target="_blank"
                                            class="group/btn inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-gradient-to-r from-red-500 via-red-600 to-red-700 hover:from-red-600 hover:via-red-700 hover:to-red-800 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
@@ -558,7 +475,7 @@
                                         </a>
                                         @endif
 
-                                        <!-- Bot├úo Excluir -->
+                                        <!-- Botão Excluir -->
                                         <button wire:click="confirmDeleteUpload({{ $upload->id }})"
                                             class="group/btn inline-flex items-center justify-center p-2 rounded-xl bg-gradient-to-r from-red-500 via-rose-600 to-pink-600 hover:from-red-600 hover:via-rose-700 hover:to-pink-700 text-white text-xs font-bold transition-all duration-300 shadow-lg hover:shadow-xl hover:shadow-red-500/50 hover:scale-105">
                                             <i class="bi bi-trash text-base group-hover/btn:rotate-12 transition-transform"></i>
@@ -580,16 +497,16 @@
                             </div>
 
                             @if($uploadHistory->hasPages())
-                            <div class="upload-history-pagination flex flex-col gap-3 border-t border-white/10 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div class="text-sm text-slate-300">
-                                    Mostrando <span class="font-black text-white">{{ $uploadHistory->firstItem() }}</span> a <span class="font-black text-white">{{ $uploadHistory->lastItem() }}</span> de <span class="font-black text-white">{{ $uploadHistory->total() }}</span> uploads.
+                            <div class="upload-history-pagination flex flex-col gap-3 border-t border-slate-100 dark:border-slate-700/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div class="text-sm text-slate-500 dark:text-slate-400">
+                                    Mostrando <span class="font-bold text-slate-800 dark:text-white">{{ $uploadHistory->firstItem() }}</span> a <span class="font-bold text-slate-800 dark:text-white">{{ $uploadHistory->lastItem() }}</span> de <span class="font-bold text-slate-800 dark:text-white">{{ $uploadHistory->total() }}</span> uploads.
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-2">
                                     <button type="button"
                                             wire:click="previousPage('historyPage')"
                                             @disabled($uploadHistory->onFirstPage())
-                                            class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40">
+                                            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40">
                                         <i class="bi bi-arrow-left"></i>
                                         Anterior
                                     </button>
@@ -597,7 +514,7 @@
                                     @foreach($uploadHistory->getUrlRange(max(1, $uploadHistory->currentPage() - 1), min($uploadHistory->lastPage(), $uploadHistory->currentPage() + 1)) as $page => $url)
                                     <button type="button"
                                             wire:click="gotoPage({{ $page }}, 'historyPage')"
-                                            class="inline-flex h-11 min-w-11 items-center justify-center rounded-2xl border px-3 text-sm font-black transition-all {{ $page === $uploadHistory->currentPage() ? 'border-sky-400/60 bg-gradient-to-r from-indigo-500 to-sky-500 text-white shadow-lg shadow-sky-500/30' : 'border-white/10 bg-white/10 text-slate-200 hover:bg-white/15' }}">
+                                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-black transition-all {{ $page === $uploadHistory->currentPage() ? 'border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50' }}">
                                         {{ $page }}
                                     </button>
                                     @endforeach
@@ -605,7 +522,7 @@
                                     <button type="button"
                                             wire:click="nextPage('historyPage')"
                                             @disabled(!$uploadHistory->hasMorePages())
-                                            class="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-bold text-white shadow-lg backdrop-blur-sm transition-all hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-40">
+                                            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40">
                                         Proxima
                                         <i class="bi bi-arrow-right"></i>
                                     </button>
@@ -620,7 +537,7 @@
         @else
 
 
-            <!-- Tabela de Produtos Extra├¡dos -->
+            <!-- Tabela de Produtos Extraídos -->
             <x-products-preview-original
                 :products="$productsUpload ?? []"
                 :categories="$categories ?? []"
@@ -729,11 +646,11 @@
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
-                                        <span>Texto leg├¡vel e bem organizado</span>
+                                        <span>Texto legível e bem organizado</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-purple-500 mt-0.5"></i>
-                                        <span>M├íximo de 2MB por arquivo</span>
+                                        <span>Máximo de 2MB por arquivo</span>
                                     </li>
                                 </ul>
                             </div>
@@ -747,11 +664,11 @@
                                 <ul class="space-y-3 text-sm text-slate-700 dark:text-slate-300">
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
-                                        <span>Colunas: c├│digo, nome, pre├ºo, estoque</span>
+                                        <span>Colunas: código, nome, preço, estoque</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
-                                        <span>Separado por v├¡rgula ou ponto e v├¡rgula</span>
+                                        <span>Separado por vírgula ou ponto e vírgula</span>
                                     </li>
                                     <li class="flex items-start gap-2">
                                         <i class="bi bi-check-circle-fill text-indigo-500 mt-0.5"></i>
@@ -762,7 +679,7 @@
                         </div>
                     </div>
 
-                    <!-- Step 2: Fa├ºa o Upload -->
+                    <!-- Step 2: Faça o Upload -->
                     <div x-show="currentStep === 2"
                          x-transition:enter="transition ease-out duration-300 delay-75"
                          x-transition:enter-start="opacity-0 translate-x-8"
@@ -775,8 +692,8 @@
                             <div class="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-3xl shadow-2xl mb-6 ring-8 ring-blue-100 dark:ring-blue-900/30">
                                 <i class="bi bi-cloud-upload text-white text-5xl"></i>
                             </div>
-                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Fa├ºa o Upload</h4>
-                            <p class="text-lg text-slate-600 dark:text-slate-400">Envie seu arquivo de forma simples e r├ípida</p>
+                            <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">Faça o Upload</h4>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Envie seu arquivo de forma simples e rápida</p>
                         </div>
                         <div class="space-y-6">
                             <div class="p-8 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-2xl border-2 border-dashed border-blue-300 dark:border-blue-700">
@@ -793,7 +710,7 @@
                                     <div class="flex items-center gap-3">
                                         <i class="bi bi-shield-check text-3xl text-green-500"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Valida├º├úo Autom├ítica</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Validação Automática</p>
                                             <p class="text-xs text-slate-600 dark:text-slate-400">Formato verificado</p>
                                         </div>
                                     </div>
@@ -802,8 +719,8 @@
                                     <div class="flex items-center gap-3">
                                         <i class="bi bi-lightning-charge text-3xl text-yellow-500"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Processamento R├ípido</p>
-                                            <p class="text-xs text-slate-600 dark:text-slate-400">An├ílise inteligente</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white text-sm">Processamento Rápido</p>
+                                            <p class="text-xs text-slate-600 dark:text-slate-400">Análise inteligente</p>
                                         </div>
                                     </div>
                                 </div>
@@ -843,8 +760,8 @@
                                         <i class="bi bi-exclamation-triangle text-white text-2xl"></i>
                                     </div>
                                     <div class="flex-1">
-                                        <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Detec├º├úo de Duplicados</h5>
-                                        <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">Produtos que j├í existem no sistema ser├úo marcados automaticamente</p>
+                                        <h5 class="text-xl font-bold text-slate-800 dark:text-white mb-2">Detecção de Duplicados</h5>
+                                        <p class="text-sm text-slate-700 dark:text-slate-300 mb-3">Produtos que já existem no sistema serão marcados automaticamente</p>
                                         <div class="flex flex-wrap gap-2">
                                             <span class="px-3 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 rounded-lg text-xs font-semibold">Somar Estoque</span>
                                             <span class="px-3 py-1 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg text-xs font-semibold">Substituir</span>
@@ -856,8 +773,8 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
                                     <i class="bi bi-pencil-square text-3xl text-blue-500 mb-3"></i>
-                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Edi├º├úo R├ípida</h6>
-                                    <p class="text-sm text-slate-600 dark:text-slate-400">Ajuste categorias, pre├ºos e estoque</p>
+                                    <h6 class="font-bold text-slate-800 dark:text-white mb-1">Edição Rápida</h6>
+                                    <p class="text-sm text-slate-600 dark:text-slate-400">Ajuste categorias, preços e estoque</p>
                                 </div>
                                 <div class="p-5 bg-white dark:bg-slate-700 rounded-xl shadow-sm border border-slate-200 dark:border-slate-600">
                                     <i class="bi bi-trash text-3xl text-red-500 mb-3"></i>
@@ -882,7 +799,7 @@
                                 <i class="bi bi-stars text-white text-5xl"></i>
                             </div>
                             <h4 class="text-3xl font-bold text-slate-800 dark:text-white mb-3">IA Categoriza Automaticamente</h4>
-                            <p class="text-lg text-slate-600 dark:text-slate-400">Intelig├¬ncia artificial trabalhando para voc├¬</p>
+                            <p class="text-lg text-slate-600 dark:text-slate-400">Inteligência artificial trabalhando para você</p>
                         </div>
                         <div class="space-y-6">
                             <div class="p-8 bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 dark:from-green-900/20 dark:via-emerald-900/20 dark:to-teal-900/20 rounded-2xl border-2 border-green-200 dark:border-green-700">
@@ -892,29 +809,29 @@
                                     </div>
                                     <div class="flex-1">
                                         <h5 class="text-2xl font-bold text-slate-800 dark:text-white">Sistema Inteligente</h5>
-                                        <p class="text-sm text-slate-600 dark:text-slate-400">An├ílise autom├ítica de produtos</p>
+                                        <p class="text-sm text-slate-600 dark:text-slate-400">Análise automática de produtos</p>
                                     </div>
                                 </div>
                                 <div class="space-y-4">
                                     <div class="flex items-start gap-3">
                                         <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white">An├ílise de Nome e C├│digo</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Sistema identifica padr├Áes nos produtos</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Análise de Nome e Código</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Sistema identifica padrões nos produtos</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white">Aprendizado Cont├¡nuo</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Aprendizado Contínuo</p>
                                             <p class="text-sm text-slate-600 dark:text-slate-400">Melhora com cada upload realizado</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
                                         <i class="bi bi-check2-circle text-2xl text-green-600 mt-0.5"></i>
                                         <div>
-                                            <p class="font-semibold text-slate-800 dark:text-white">Sugest├Áes Precisas</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Categorias sugeridas baseadas no hist├│rico</p>
+                                            <p class="font-semibold text-slate-800 dark:text-white">Sugestões Precisas</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Categorias sugeridas baseadas no histórico</p>
                                         </div>
                                     </div>
                                 </div>
@@ -923,7 +840,7 @@
                                 <div class="flex items-start gap-3">
                                     <i class="bi bi-info-circle text-2xl text-blue-600"></i>
                                     <p class="text-sm text-slate-700 dark:text-slate-300">
-                                        <strong>Dica:</strong> Voc├¬ sempre pode revisar e modificar as categorias sugeridas antes de salvar.
+                                        <strong>Dica:</strong> Você sempre pode revisar e modificar as categorias sugeridas antes de salvar.
                                     </p>
                                 </div>
                             </div>
@@ -964,7 +881,7 @@
                                         <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
                                         <div>
                                             <p class="font-semibold text-slate-800 dark:text-white">Verifique Dados</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Pre├ºos e estoques corretos</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Preços e estoques corretos</p>
                                         </div>
                                     </div>
                                     <div class="flex items-start gap-3">
@@ -978,7 +895,7 @@
                                         <i class="bi bi-check-circle-fill text-2xl text-indigo-500"></i>
                                         <div>
                                             <p class="font-semibold text-slate-800 dark:text-white">Salve no Sistema</p>
-                                            <p class="text-sm text-slate-600 dark:text-slate-400">Hist├│rico registrado</p>
+                                            <p class="text-sm text-slate-600 dark:text-slate-400">Histórico registrado</p>
                                         </div>
                                     </div>
                                 </div>
@@ -986,7 +903,7 @@
                             <div class="grid grid-cols-3 gap-4">
                                 <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
                                     <i class="bi bi-clock-history text-3xl text-indigo-500 mb-2"></i>
-                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Hist├│rico Salvo</p>
+                                    <p class="font-semibold text-slate-800 dark:text-white text-sm">Histórico Salvo</p>
                                     <p class="text-xs text-slate-600 dark:text-slate-400">Acesso posterior</p>
                                 </div>
                                 <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
@@ -997,14 +914,14 @@
                                 <div class="p-5 text-center bg-white dark:bg-slate-700 rounded-xl shadow-sm">
                                     <i class="bi bi-trash text-3xl text-indigo-500 mb-2"></i>
                                     <p class="font-semibold text-slate-800 dark:text-white text-sm">Excluir Uploads</p>
-                                    <p class="text-xs text-slate-600 dark:text-slate-400">Gerenciar hist├│rico</p>
+                                    <p class="text-xs text-slate-600 dark:text-slate-400">Gerenciar histórico</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer com Navega├º├úo -->
+                <!-- Footer com Navegação -->
                 <div class="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 px-10 py-6 flex items-center justify-between border-t border-slate-200 dark:border-slate-700">
                     <button @click="prevStep()"
                             x-show="currentStep > 1"
@@ -1027,7 +944,7 @@
 
                     <button @click="currentStep < totalSteps ? nextStep() : $wire.toggleTips()"
                             class="inline-flex items-center gap-2 px-8 py-3 rounded-xl bg-gradient-to-r from-blue-500 via-indigo-600 to-purple-600 hover:from-blue-600 hover:via-indigo-700 hover:to-purple-700 text-white font-bold transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105">
-                        <span x-text="currentStep < totalSteps ? 'Pr├│ximo' : 'Concluir!'" class="text-lg"></span>
+                        <span x-text="currentStep < totalSteps ? 'Próximo' : 'Concluir!'" class="text-lg"></span>
                         <i class="bi text-xl" :class="currentStep < totalSteps ? 'bi-arrow-right' : 'bi-check-lg'"></i>
                     </button>
                 </div>
@@ -1078,9 +995,9 @@
                         </button>
                     </div>
 
-                    <!-- Conte├║do do Modal -->
+                    <!-- Conteúdo do Modal -->
                     <div class="p-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                        <!-- Estat├¡sticas -->
+                        <!-- Estatísticas -->
                         <div class="grid grid-cols-4 gap-4 mb-6">
                             <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 text-center">
                                 <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $selectedUpload->total_products }}</div>
@@ -1108,12 +1025,12 @@
                                 $summaryUpdated = $selectedUpload->summary['updated'] ?? [];
                                 $summarySkipped = $selectedUpload->summary['skipped'] ?? [];
 
-                                // Se forem n├║meros (formato antigo), criar arrays vazios
+                                // Se forem números (formato antigo), criar arrays vazios
                                 $created = is_array($summaryCreated) ? $summaryCreated : [];
                                 $updated = is_array($summaryUpdated) ? $summaryUpdated : [];
                                 $skipped = is_array($summarySkipped) ? $summarySkipped : [];
 
-                                // Flag para saber se ├® formato antigo
+                                // Flag para saber se é formato antigo
                                 $isOldFormat = !is_array($summaryCreated) || !is_array($summaryUpdated) || !is_array($summarySkipped);
                             @endphp
 
@@ -1124,8 +1041,8 @@
                                         <i class="bi bi-info-circle-fill text-yellow-600 dark:text-yellow-400 text-xl flex-shrink-0 mt-0.5"></i>
                                         <div class="text-sm text-gray-800 dark:text-gray-200">
                                             <p class="font-bold mb-1">Upload Antigo</p>
-                                            <p>Este upload foi criado com uma vers├úo anterior do sistema. Os detalhes dos produtos n├úo est├úo dispon├¡veis, mas voc├¬ pode ver os totais acima.</p>
-                                            <p class="mt-2 text-xs">Fa├ºa um novo upload para ver todos os detalhes dos produtos.</p>
+                                            <p>Este upload foi criado com uma versão anterior do sistema. Os detalhes dos produtos não estão disponíveis, mas você pode ver os totais acima.</p>
+                                            <p class="mt-2 text-xs">Faça um novo upload para ver todos os detalhes dos produtos.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -1145,7 +1062,7 @@
                                                     {{ $item['name'] ?? 'N/A' }}
                                                 </div>
                                                 <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                    C├│digo: {{ $item['code'] ?? 'N/A' }}
+                                                    Código: {{ $item['code'] ?? 'N/A' }}
                                                 </div>
                                                 @if(isset($item['price']))
                                                     <div class="text-xs text-green-600 dark:text-green-400 font-semibold mt-1">
@@ -1177,7 +1094,7 @@
                                                     {{ $item['name'] ?? 'N/A' }}
                                                 </div>
                                                 <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                    C├│digo: {{ $item['code'] ?? 'N/A' }}
+                                                    Código: {{ $item['code'] ?? 'N/A' }}
                                                 </div>
                                                 @if(isset($item['price']))
                                                     <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-1">
@@ -1210,11 +1127,11 @@
                                                 </div>
                                                 @if(isset($item['code']))
                                                     <div class="text-xs text-gray-600 dark:text-gray-400 mt-1">
-                                                        C├│digo: {{ $item['code'] }}
+                                                        Código: {{ $item['code'] }}
                                                     </div>
                                                 @endif
                                                 <div class="text-xs text-orange-600 dark:text-orange-400 mt-1 italic">
-                                                    {{ $item['reason'] ?? 'N├úo especificado' }}
+                                                    {{ $item['reason'] ?? 'Não especificado' }}
                                                 </div>
                                             </div>
                                         @endforeach
@@ -1233,7 +1150,7 @@
         </div>
     @endif
 
-    <!-- Modal de Confirma├º├úo de Exclus├úo -->
+    <!-- Modal de Confirmação de Exclusão -->
     <div x-data="{
         show: false,
         init() {
@@ -1274,7 +1191,7 @@
                     <div class="relative bg-gradient-to-r from-red-600 via-rose-600 to-pink-600 px-8 py-6">
                         <div class="flex items-start justify-between">
                             <div class="flex items-center gap-4">
-                                <!-- ├ìcone animado -->
+                                <!-- Ícone animado -->
                                 <div class="relative">
                                     <div class="absolute inset-0 bg-white/30 rounded-xl animate-ping"></div>
                                     <div class="relative w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
@@ -1282,8 +1199,8 @@
                                     </div>
                                 </div>
                                 <div>
-                                    <h3 class="text-xl font-bold text-white mb-1">Confirmar Exclus├úo</h3>
-                                    <p class="text-sm text-white/80">Esta a├º├úo n├úo pode ser desfeita</p>
+                                    <h3 class="text-xl font-bold text-white mb-1">Confirmar Exclusão</h3>
+                                    <p class="text-sm text-white/80">Esta ação não pode ser desfeita</p>
                                 </div>
                             </div>
                             <button @click="show = false"
@@ -1293,16 +1210,16 @@
                         </div>
                     </div>
 
-                    <!-- Conte├║do -->
+                    <!-- Conteúdo -->
                     <div class="relative p-8">
                         <!-- Alerta visual -->
                         <div class="bg-red-100 dark:bg-red-900/30 border-l-4 border-red-600 dark:border-red-500 rounded-lg p-4 mb-6">
                             <div class="flex gap-3">
                                 <i class="bi bi-info-circle-fill text-red-600 dark:text-red-400 text-xl flex-shrink-0 mt-0.5"></i>
                                 <div class="text-sm text-gray-800 dark:text-gray-200">
-                                    <p class="font-bold mb-1">O que ser├í exclu├¡do:</p>
+                                    <p class="font-bold mb-1">O que será excluído:</p>
                                     <ul class="list-disc list-inside space-y-1">
-                                        <li>Hist├│rico de upload</li>
+                                        <li>Histórico de upload</li>
                                         <li>Arquivo PDF/CSV associado</li>
                                         <li>Dados de produtos importados</li>
                                     </ul>
@@ -1311,10 +1228,10 @@
                         </div>
 
                         <p class="text-gray-700 dark:text-gray-300 text-center mb-8 font-medium">
-                            Deseja realmente continuar com a exclus├úo?
+                            Deseja realmente continuar com a exclusão?
                         </p>
 
-                        <!-- Bot├Áes Modernos -->
+                        <!-- Botões Modernos -->
                         <div class="grid grid-cols-2 gap-4">
                             <button @click="show = false" type="button"
                                 class="group relative px-6 py-4 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 text-gray-800 dark:text-gray-200 font-bold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden">
@@ -1339,9 +1256,9 @@
         </div>
     </div>
 
-    <!-- CSS personalizado para badges edit├íveis -->
+    <!-- CSS personalizado para badges editáveis -->
     <style>
-        /* Anima├º├úo float para part├¡culas */
+        /* Animação float para partículas */
         @keyframes float {
             0%, 100% { transform: translateY(0px) rotate(0deg); }
             33% { transform: translateY(-10px) rotate(1deg); }
@@ -1380,14 +1297,14 @@
             justify-content: flex-start;
         }
 
-        /* Reduzir espa├ºamento entre status e valores */
+        /* Reduzir espaçamento entre status e valores */
         .product-card-modern .card-body {
             padding: 0.8em 1em 0.5em 1em !important;
             min-height: auto !important;
             gap: 0.3em !important;
         }
 
-        /* Corrigir imagem para n├úo sair do quadrado */
+        /* Corrigir imagem para não sair do quadrado */
         .product-card-modern .product-img-area {
             position: relative;
             overflow: visible !important;
@@ -1403,20 +1320,20 @@
             border-top-right-radius: 1.2em;
         }
 
-        /* Corrigir categoria n├úo sendo cortada */
+        /* Corrigir categoria não sendo cortada */
         .product-card-modern .category-icon-wrapper {
             z-index: 10 !important;
             position: absolute !important;
         }
 
-        /* Grupo de bot├Áes de a├º├úo */
+        /* Grupo de botões de ação */
         .btn-action-group {
             display: flex;
             gap: 0.25rem;
             flex-wrap: wrap;
         }
 
-        /* Bot├úo de copiar nome (verde) */
+        /* Botão de copiar nome (verde) */
         .btn-success {
             background-color: #10b981;
             border-color: #10b981;
@@ -1434,7 +1351,7 @@
             transform: scale(0.95);
         }
 
-        /* Bot├úo de copiar c├│digo (azul) */
+        /* Botão de copiar código (azul) */
         .btn-info {
             background-color: #3b82f6;
             border-color: #3b82f6;
@@ -1452,7 +1369,7 @@
             transform: scale(0.95);
         }
 
-        /* Anima├º├úo de sucesso ao copiar */
+        /* Animação de sucesso ao copiar */
         @keyframes copySuccess {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
@@ -1464,7 +1381,7 @@
             animation: copySuccess 0.4s ease-in-out;
         }
 
-        /* Inputs edit├íveis em badges */
+        /* Inputs editáveis em badges */
         .editable-badge input {
             transition: all 0.2s ease;
             min-width: 60px;
@@ -1491,7 +1408,7 @@
             border-radius: 4px;
         }
 
-        /* Inputs de pre├ºo */
+        /* Inputs de preço */
         .editable-price-badge {
             display: flex !important;
             align-items: center !important;
@@ -1524,7 +1441,7 @@
             border-radius: 4px;
         }
 
-        /* T├¡tulo do produto edit├ível */
+        /* Título do produto editável */
         .product-title-editable input {
             transition: all 0.2s ease;
             background: transparent;
@@ -1611,7 +1528,7 @@
             opacity: 0.6;
         }
 
-        /* Anima├º├úo de foco */
+        /* Animação de foco */
         @keyframes focusGlow {
             0% { box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.4); }
             70% { box-shadow: 0 0 0 6px rgba(147, 51, 234, 0); }
@@ -1641,7 +1558,7 @@
 
     <!-- Script para upload de imagens (detecta produtos automaticamente) -->
     <script>
-        // Fun├º├úo para atualizar ├¡cone da categoria
+        // Função para atualizar ícone da categoria
         function updateCategoryIcon(productIndex, selectElement) {
             const selectedOption = selectElement.options[selectElement.selectedIndex];
             const iconClass = selectedOption.getAttribute('data-icon') || 'bi bi-box-seam';
@@ -1656,11 +1573,11 @@
             }
         }
 
-        // Fun├º├úo para limpar e copiar apenas o nome do produto
+        // Função para limpar e copiar apenas o nome do produto
         function copyProductName(index, name) {
             let productName = name || 'Sem nome';
 
-            // Limpeza: remover / ( ) - e colapsar m├║ltiplos espa├ºos
+            // Limpeza: remover / ( ) - e colapsar múltiplos espaços
             try {
                 productName = productName.replace(/[\/(\)\-]/g, '');
                 productName = productName.replace(/\s+/g, ' ').trim();
@@ -1682,17 +1599,17 @@
             }
         }
 
-        // Fun├º├úo para copiar apenas o c├│digo do produto
+        // Função para copiar apenas o código do produto
         function copyProductCode(index, code) {
-            // Remover pontos do c├│digo antes de copiar
-            const productCode = (code || 'Sem c├│digo').replace(/\./g, '');
+            // Remover pontos do código antes de copiar
+            const productCode = (code || 'Sem código').replace(/\./g, '');
 
             // Tentar usar a API moderna do clipboard
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(productCode).then(() => {
-                    showCopySuccess(index, 'C├│digo copiado!', 'code');
+                    showCopySuccess(index, 'Código copiado!', 'code');
                 }).catch(err => {
-                    console.error('Erro ao copiar c├│digo:', err);
+                    console.error('Erro ao copiar código:', err);
                     fallbackCopy(productCode, index, 'code');
                 });
             } else {
@@ -1701,14 +1618,14 @@
             }
         }
 
-        // Fun├º├úo para copiar informa├º├Áes do produto (mantida para compatibilidade)
+        // Função para copiar informações do produto (mantida para compatibilidade)
         function copyProductInfo(index, name, code) {
-            const productInfo = `Nome: ${name || 'Sem nome'}\nC├│digo: ${code || 'Sem c├│digo'}`;
+            const productInfo = `Nome: ${name || 'Sem nome'}\nCódigo: ${code || 'Sem código'}`;
 
             // Tentar usar a API moderna do clipboard
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(productInfo).then(() => {
-                    showCopySuccess(index, 'Informa├º├Áes copiadas!', 'info');
+                    showCopySuccess(index, 'Informações copiadas!', 'info');
                 }).catch(err => {
                     console.error('Erro ao copiar:', err);
                     fallbackCopy(productInfo, index, 'info');
@@ -1719,7 +1636,7 @@
             }
         }
 
-        // Fun├º├úo de fallback para copiar
+        // Função de fallback para copiar
         function fallbackCopy(text, index, type) {
             const textArea = document.createElement('textarea');
             textArea.value = text;
@@ -1733,7 +1650,7 @@
             try {
                 document.execCommand('copy');
                 const message = type === 'name' ? 'Nome copiado!' :
-                               type === 'code' ? 'C├│digo copiado!' : 'Informa├º├Áes copiadas!';
+                               type === 'code' ? 'Código copiado!' : 'Informações copiadas!';
                 showCopySuccess(index, message, type);
             } catch (err) {
                 console.error('Erro ao copiar:', err);
@@ -1743,7 +1660,7 @@
             }
         }
 
-        // Fun├º├úo para mostrar sucesso na c├│pia
+        // Função para mostrar sucesso na cópia
         function showCopySuccess(index, message, type) {
             let copyButton;
 
@@ -1760,7 +1677,7 @@
                 const originalTitle = copyButton.title;
                 copyButton.title = message;
 
-                // Mudar ├¡cone temporariamente
+                // Mudar ícone temporariamente
                 const icon = copyButton.querySelector('i');
                 if (icon) {
                     const originalClass = icon.className;
@@ -1778,7 +1695,7 @@
             showToast(message, 'success');
         }
 
-        // Fun├º├úo para mostrar erro na c├│pia
+        // Função para mostrar erro na cópia
         function showCopyError(index, message, type) {
             let copyButton;
 
@@ -1794,7 +1711,7 @@
                 copyButton.title = message;
                 setTimeout(() => {
                     copyButton.title = type === 'name' ? 'Copiar nome' :
-                                     type === 'code' ? 'Copiar c├│digo' : 'Copiar nome e c├│digo';
+                                     type === 'code' ? 'Copiar código' : 'Copiar nome e código';
                 }, 2000);
             }
 
@@ -1802,7 +1719,7 @@
             showToast(message, 'error');
         }
 
-        // Fun├º├úo para mostrar toast
+        // Função para mostrar toast
         function showToast(message, type) {
             // Remover toast anterior se existir
             const existingToast = document.getElementById('copy-toast');
@@ -1832,7 +1749,7 @@
                 toast.style.transform = 'translateX(0)';
             }, 100);
 
-            // Remover ap├│s 3 segundos
+            // Remover após 3 segundos
             setTimeout(() => {
                 toast.style.transform = 'translateX(100%)';
                 setTimeout(() => {
@@ -1846,19 +1763,19 @@
         // Adicionar atalho de teclado Ctrl+C para copiar produto focado
         document.addEventListener('keydown', function(e) {
             if (e.ctrlKey && e.key === 'c') {
-                // Verificar se o foco est├í em um input de produto
+                // Verificar se o foco está em um input de produto
                 const activeElement = document.activeElement;
                 if (activeElement && activeElement.tagName === 'INPUT') {
                     const productInput = activeElement.closest('.product-card-modern');
                     if (productInput) {
-                        // Encontrar o ├¡ndice do produto
+                        // Encontrar o índice do produto
                         const allCards = document.querySelectorAll('.product-card-modern');
                         const productIndex = Array.from(allCards).indexOf(productInput);
 
                         if (productIndex !== -1) {
                             e.preventDefault();
 
-                            // Verificar qual tipo de input est├í focado
+                            // Verificar qual tipo de input está focado
                             const wireModel = activeElement.getAttribute('wire:model.lazy');
 
                             if (wireModel && wireModel.includes('name')) {
@@ -1866,16 +1783,16 @@
                                 const name = activeElement.value || 'Sem nome';
                                 copyProductName(productIndex, name);
                             } else if (wireModel && wireModel.includes('product_code')) {
-                                // Copiar apenas o c├│digo
-                                const code = activeElement.value || 'Sem c├│digo';
+                                // Copiar apenas o código
+                                const code = activeElement.value || 'Sem código';
                                 copyProductCode(productIndex, code);
                             } else {
-                                // Copiar informa├º├Áes gerais
+                                // Copiar informações gerais
                                 const nameInput = productInput.querySelector('input[wire\\:model*="name"]');
                                 const codeInput = productInput.querySelector('input[wire\\:model*="product_code"]');
 
                                 const name = nameInput ? nameInput.value : 'Sem nome';
-                                const code = codeInput ? codeInput.value : 'Sem c├│digo';
+                                const code = codeInput ? codeInput.value : 'Sem código';
 
                                 copyProductInfo(productIndex, name, code);
                             }
@@ -1892,9 +1809,9 @@
         let systemInitialized = false;
 
         function initUploadSystem() {
-            console.log('Verificando se h├í produtos para inicializar...');
+            console.log('Verificando se há produtos para inicializar...');
 
-            // Debug: listar todos os elementos dispon├¡veis
+            // Debug: listar todos os elementos disponíveis
             const allElements = document.querySelectorAll('*[id*="product"]');
             console.log('Elementos com "product" no ID:', allElements.length);
             allElements.forEach(el => console.log('- Elemento encontrado:', el.id, el.tagName));
@@ -1908,11 +1825,11 @@
 
             if (productCards.length === 0 || imageInputs.length === 0) {
                 console.log('Nenhum produto encontrado. Aguardando...');
-                return false; // N├úo inicializar ainda
+                return false; // Não inicializar ainda
             }
 
             if (systemInitialized) {
-                console.log('Sistema j├í foi inicializado, pulando...');
+                console.log('Sistema já foi inicializado, pulando...');
                 return true;
             }
 
@@ -1943,7 +1860,7 @@
 
                     console.log('Arquivo:', file.name, 'Tamanho:', file.size);
 
-                    // Valida├º├Áes b├ísicas
+                    // Validações básicas
                     if (!file.type.startsWith('image/')) {
                         alert('Selecione apenas arquivos de imagem');
                         event.target.value = '';
@@ -1951,7 +1868,7 @@
                     }
 
                     if (file.size > 5 * 1024 * 1024) { // 5MB
-                        alert('Arquivo muito grande! M├íximo 5MB');
+                        alert('Arquivo muito grande! Máximo 5MB');
                         event.target.value = '';
                         return;
                     }
@@ -1969,7 +1886,7 @@
                             imgElement.src = base64;
                             console.log('Imagem atualizada!');
 
-                            // Chamar m├®todo Livewire
+                            // Chamar método Livewire
                             if (window.Livewire) {
                                 try {
                                     const component = window.Livewire.find('{{ $this->getId() }}');
@@ -1982,7 +1899,7 @@
                                 }
                             }
                         } else {
-                            console.error('Imagem n├úo encontrada:', 'product-image-' + productIndex);
+                            console.error('Imagem não encontrada:', 'product-image-' + productIndex);
                         }
                     };
 
@@ -2001,20 +1918,20 @@
 
             systemInitialized = true;
             console.log('=== SISTEMA DE UPLOAD INICIALIZADO COM SUCESSO ===');
-            return true; // Inicializa├º├úo bem-sucedida
+            return true; // Inicialização bem-sucedida
         }
 
-        // Fun├º├úo para verificar produtos periodicamente
+        // Função para verificar produtos periodicamente
         function checkForProducts() {
-            console.log('Verifica├º├úo peri├│dica de produtos...');
+            console.log('Verificação periódica de produtos...');
             const success = initUploadSystem();
             if (success) {
-                console.log('Produtos detectados na verifica├º├úo peri├│dica!');
+                console.log('Produtos detectados na verificação periódica!');
                 clearInterval(productCheckInterval);
             }
         }
 
-        // Observer para detectar mudan├ºas no DOM
+        // Observer para detectar mudanças no DOM
         const observer = new MutationObserver(function(mutations) {
             let shouldCheck = false;
             mutations.forEach(function(mutation) {
@@ -2024,7 +1941,7 @@
                             node.id && node.id.includes('product') ||
                             node.querySelector && node.querySelector('[id*="product"]')
                         )) {
-                            console.log('Mudan├ºa detectada no DOM com produtos');
+                            console.log('Mudança detectada no DOM com produtos');
                             shouldCheck = true;
                         }
                     });
@@ -2036,7 +1953,7 @@
             }
         });
 
-        // Iniciar observa├º├úo do DOM
+        // Iniciar observação do DOM
         observer.observe(document.body, {
             childList: true,
             subtree: true
@@ -2063,13 +1980,13 @@
             setTimeout(initUploadSystem, 100);
         });
 
-        // Verifica├º├úo peri├│dica (como fallback)
+        // Verificação periódica (como fallback)
         const productCheckInterval = setInterval(checkForProducts, 2000);
 
-        // Parar verifica├º├úo ap├│s 30 segundos
+        // Parar verificação após 30 segundos
         setTimeout(function() {
             if (!systemInitialized) {
-                console.log('Timeout: Parando verifica├º├úo de produtos');
+                console.log('Timeout: Parando verificação de produtos');
                 clearInterval(productCheckInterval);
             }
         }, 30000);
@@ -2081,14 +1998,14 @@
                 return;
             }
 
-            // Tentar inicializar, mas n├úo for├ºar se n├úo h├í produtos
+            // Tentar inicializar, mas não forçar se não há produtos
             initUploadSystem();
         }
 
-        // Inicializa├º├úo inicial
+        // Inicialização inicial
         tryInitialize();
 
-        console.log('Sistema de detec├º├úo de produtos configurado');
+        console.log('Sistema de detecção de produtos configurado');
     </script>
 
     <!-- Toast Notification System -->
@@ -2107,7 +2024,7 @@
             const container = document.getElementById('toast-container');
             if (!container) return;
 
-            // Cores e ├¡cones por tipo
+            // Cores e ícones por tipo
             const config = {
                 success: {
                     bg: 'bg-gradient-to-r from-green-500 to-green-600',
@@ -2152,13 +2069,13 @@
 
             container.appendChild(toast);
 
-            // Anima├º├úo de entrada
+            // Animação de entrada
             setTimeout(() => {
                 toast.style.opacity = '1';
                 toast.style.transform = 'translateX(0)';
             }, 10);
 
-            // Auto-remover ap├│s dura├º├úo
+            // Auto-remover após duração
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transform = 'translateX(400px)';

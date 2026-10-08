@@ -5,78 +5,34 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-kit-ultrawide.css') }}">
-    <!-- Header Compacto no Estilo das Outras Páginas -->
-    <div class="create-kit-header sticky top-0 z-40 relative overflow-hidden bg-gradient-to-r from-white/80 via-purple-50/90 to-indigo-50/80 dark:from-slate-800/90 dark:via-slate-700/30 dark:to-slate-800/30 backdrop-blur-xl border-b border-white/20 dark:border-slate-700/50 rounded-3xl shadow-2xl mb-6">
-        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent dark:via-white/5 animate-pulse"></div>
-
-        <div class="create-kit-header-inner relative px-8 py-4">
-            <div class="create-kit-header-row flex justify-between items-center">
-                <!-- Título e Progress -->
-                <div class="create-kit-header-left flex items-center gap-6">
-                    <!-- Ícone principal -->
-                    <div class="relative flex items-center justify-center w-14 h-14 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl shadow-xl shadow-purple-500/25">
-                        <i class="bi bi-boxes text-white text-2xl"></i>
-                        <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-white/20 to-transparent opacity-50"></div>
-                    </div>
-
-                    <div class="space-y-2">
-                        <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-indigo-300 dark:via-purple-300 dark:to-pink-300 bg-clip-text text-transparent">
-                            Criar Novo Kit
-                        </h1>
-
-                        <!-- Progress Steps Horizontal -->
-                        <div class="flex items-center gap-3">
-                            <div class="flex items-center gap-2">
-                                <div class="flex items-center justify-center w-6 h-6 rounded-full {{ $currentStep >= 1 ? 'bg-gradient-to-br from-purple-500 to-indigo-500' : 'bg-slate-300 dark:bg-slate-600' }} transition-all duration-300">
-                                    <i class="bi bi-collection text-white text-xs"></i>
-                                </div>
-                                <span class="text-sm font-medium {{ $currentStep >= 1 ? 'text-purple-600 dark:text-purple-400' : 'text-slate-500 dark:text-slate-400' }}">Produtos</span>
-                            </div>
-
-                            <div class="w-12 h-0.5 rounded {{ $currentStep >= 2 ? 'bg-gradient-to-r from-purple-500 to-indigo-500' : 'bg-slate-300 dark:bg-slate-600' }} transition-all duration-300"></div>
-
-                            <div class="flex items-center gap-2">
-                                <div class="flex items-center justify-center w-6 h-6 rounded-full {{ $currentStep >= 2 ? 'bg-gradient-to-br from-indigo-500 to-blue-500' : 'bg-slate-300 dark:bg-slate-600' }} transition-all duration-300">
-                                    <i class="bi bi-gear text-white text-xs"></i>
-                                </div>
-                                <span class="text-sm font-medium {{ $currentStep >= 2 ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400' }}">Configuração</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Botões de Ação -->
-                <div class="create-kit-header-actions flex items-center gap-3">
-                    <a href="{{ route('products.index') }}" class="px-5 py-2.5 bg-white/60 dark:bg-slate-700/60 hover:bg-white dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200 dark:border-slate-600">
-                        <i class="bi bi-x-circle mr-2"></i>Cancelar
-                    </a>
-
-                    @if($currentStep > 1)
-                    <button type="button" wire:click="previousStep" class="px-5 py-2.5 bg-white/60 dark:bg-slate-700/60 hover:bg-white dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-semibold rounded-xl transition-all duration-200 shadow-md hover:shadow-lg border border-slate-200 dark:border-slate-600">
-                        <i class="bi bi-arrow-left mr-2"></i>Anterior
-                    </button>
-                    @endif
-
-                    @if($currentStep < 2)
-                        <button type="button" wire:click="nextStep" class="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl">
-                        Próximo<i class="bi bi-arrow-right ml-2"></i>
-                        </button>
-                        @endif
-
-                        @if($currentStep == 2)
-                        <button type="button" wire:click="store" wire:loading.attr="disabled" class="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl disabled:opacity-50">
-                            <span wire:loading.remove wire:target="store">
-                                <i class="bi bi-check-circle mr-2"></i>Criar Kit
-                            </span>
-                            <span wire:loading wire:target="store">
-                                <i class="bi bi-arrow-repeat animate-spin mr-2"></i>Criando...
-                            </span>
-                        </button>
-                        @endif
-                </div>
-            </div>
-        </div>
-    </div>
+    <x-product-page-header title="Novo kit" icon="bi-boxes" active="kit" class="create-kit-header-v2 sticky top-2 z-40">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold {{ $currentStep == 1 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' }}"><i class="bi bi-collection"></i>1. Escolher produtos</span>
+            <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+            <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold {{ $currentStep == 2 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300' : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' }}"><i class="bi bi-gear"></i>2. Configurar kit</span>
+        </x-slot:meta>
+        <x-slot:actions>
+            <a href="{{ route('products.index') }}" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-x-circle"></i>Cancelar
+            </a>
+            @if($currentStep > 1)
+                <button type="button" wire:click="previousStep" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                    <i class="bi bi-arrow-left"></i>Anterior
+                </button>
+            @endif
+            @if($currentStep < 2)
+                <button type="button" wire:click="nextStep" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition">
+                    Próximo<i class="bi bi-arrow-right"></i>
+                </button>
+            @endif
+            @if($currentStep == 2)
+                <button type="button" wire:click="store" wire:loading.attr="disabled" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-md shadow-emerald-500/25 transition disabled:opacity-50">
+                    <span wire:loading.remove wire:target="store"><i class="bi bi-check-circle mr-1"></i>Criar kit</span>
+                    <span wire:loading wire:target="store"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Criando...</span>
+                </button>
+            @endif
+        </x-slot:actions>
+    </x-product-page-header>
 
     <!-- Conteúdo Principal Moderno -->
     <div class="create-kit-main relative flex-1 overflow-y-auto">

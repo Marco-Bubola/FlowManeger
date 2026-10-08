@@ -513,18 +513,10 @@
     </div>
 
     {{-- ========== HEADER ========== --}}
-    <x-modern-header
-        icon="fas fa-barcode"
-        title="Scanner de Código de Barras"
-        :subtitle="'Consulte, identifique e gerencie produtos pelo código de barras — busca <strong>local</strong> e <strong>online</strong>'"
-        :breadcrumb="[
-            ['icon' => 'fas fa-home', 'url' => route('dashboard.index'), 'label' => 'Dashboard'],
-            ['icon' => 'fas fa-box', 'url' => route('products.index'), 'label' => 'Produtos'],
-            ['label' => 'Scanner de Barras'],
-        ]"
-        gradient="from-indigo-500 via-purple-500 to-pink-500"
-        iconBg="from-indigo-500 via-purple-500 to-pink-500">
-        <x-slot name="actions">
+    <div class="w-full px-2 sm:px-3 lg:px-4 xl:px-6">
+    <x-product-page-header title="Scanner de código de barras" icon="bi-upc-scan" active="scanner"
+        subtitle="Consulte, identifique e gerencie produtos pelo código de barras, no seu estoque e na internet">
+        <x-slot:actions>
             {{-- ══ MODO DE LEITURA: Dropdown compacto no header ══ --}}
             @php
             $modeHeaderMap = [
@@ -597,42 +589,19 @@
                 <i class="fas fa-lightbulb"></i>
                 <span class="hidden sm:inline">Dicas</span>
             </button>
-            <a href="{{ route('products.index') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm border border-slate-200 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold hover:bg-white dark:hover:bg-slate-600 transition-all shadow-sm">
-                <i class="fas fa-list text-indigo-500"></i>
-                <span class="hidden sm:inline">Ver Produtos</span>
+            <a href="{{ route('products.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition">
+                <i class="bi bi-plus-lg"></i><span class="hidden sm:inline">Novo produto</span>
             </a>
-            <a href="{{ route('products.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:scale-105 transition-all">
-                <i class="fas fa-plus"></i>
-                <span class="hidden sm:inline">Novo Produto</span>
-            </a>
-        </x-slot>
-        <x-slot name="extra">
-            @php $stats = $this->stats; @endphp
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-2">
-                <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/40 dark:border-slate-700/40">
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Total</p>
-                    <p class="text-2xl font-black text-slate-800 dark:text-white">{{ $stats['total'] }}</p>
-                </div>
-                <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/40 dark:border-slate-700/40">
-                    <p class="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Com Barcode</p>
-                    <p class="text-2xl font-black text-emerald-600 dark:text-emerald-400">{{ $stats['with_barcode'] }}</p>
-                </div>
-                <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/40 dark:border-slate-700/40">
-                    <p class="text-xs text-amber-600 dark:text-amber-400 font-medium">Sem Barcode</p>
-                    <p class="text-2xl font-black text-amber-600 dark:text-amber-400">{{ $stats['without_barcode'] }}</p>
-                </div>
-                <div class="bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-xl px-4 py-3 border border-white/40 dark:border-slate-700/40">
-                    <p class="text-xs text-slate-500 dark:text-slate-400 font-medium">Cobertura</p>
-                    <div class="flex items-center gap-2">
-                        <p class="text-2xl font-black text-indigo-600 dark:text-indigo-400">{{ $stats['percentage'] }}%</p>
-                        <div class="flex-1 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-500" style="width: {{ $stats['percentage'] }}%"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </x-slot>
-    </x-modern-header>
+        </x-slot:actions>
+    </x-product-page-header>
+    @php $stats = $this->stats; @endphp
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <x-gestao-stat label="Produtos" :value="$stats['total']" icon="bi-box-seam" tone="indigo" />
+        <x-gestao-stat label="Com código" :value="$stats['with_barcode']" icon="bi-upc-scan" tone="emerald" />
+        <x-gestao-stat label="Sem código" :value="$stats['without_barcode']" icon="bi-exclamation-triangle" tone="amber" />
+        <x-gestao-stat label="Cobertura" :value="$stats['percentage'] . '%'" icon="bi-pie-chart" tone="sky" />
+    </div>
+    </div>
 
     {{-- ========== MAIN CONTENT ========== --}}
     <div class="w-full px-2 sm:px-3 lg:px-4 xl:px-6 pb-10">

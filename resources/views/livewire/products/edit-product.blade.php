@@ -1,4 +1,4 @@
-<div class="mobile-393-base w-full product-form-page">
+<div class="product-form-page w-full px-4 sm:px-6 lg:px-8 pt-4 pb-16">
     <!-- CSS modular responsivo por dispositivo -->
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-mobile.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-iphone15.css') }}">
@@ -6,63 +6,31 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/product-form-ultrawide.css') }}">
-    <!-- Header Modernizado com botões de ação -->
-    <x-sales-header
-        title="Editar Produto"
-        description="Altere as informações do produto #{{ $product->product_code }}"
-        :back-route="route('products.index')"
-        :current-step="1"
-        :steps="[]">
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('products.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-box mr-1"></i>Produtos
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">Editar Produto</span>
-            </div>
-        </x-slot>
-        <x-slot name="actions">
+    <x-product-page-header title="Editar produto" :product="$product" :subtitle="e($product->name) . ' · ' . e($product->product_code)" active="">
+        <x-slot:actions>
             <button wire:click="toggleTips" type="button"
-                class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200">
-                <i class="bi bi-lightbulb text-lg"></i>
-                Dicas
+                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-amber-600 dark:text-amber-300 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
+                <i class="bi bi-lightbulb"></i>Dicas
             </button>
             <a href="{{ route('products.index') }}"
-                class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 text-slate-700 dark:text-slate-200 font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-all duration-200 border border-slate-200 dark:border-slate-600">
-                <i class="bi bi-x-lg text-lg"></i>
+                class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
                 Cancelar
             </a>
-            <button type="submit" form="edit-product-form"
-                wire:loading.attr="disabled"
-                wire:loading.class="opacity-50 cursor-not-allowed"
-                class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-xl hover:shadow-emerald-500/40 hover:scale-105 transition-all duration-200">
-                <span wire:loading.remove wire:target="update">
-                    <i class="bi bi-check-circle-fill text-lg"></i>
-                    Salvar Alterações
-                </span>
-                <span wire:loading wire:target="update" class="flex items-center gap-2">
-                    <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Salvando...
-                </span>
+            <button type="submit" form="edit-product-form" wire:loading.attr="disabled"
+                class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition disabled:opacity-60">
+                <span wire:loading.remove wire:target="update"><i class="bi bi-check2-circle mr-1"></i>Salvar alterações</span>
+                <span wire:loading wire:target="update"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Salvando...</span>
             </button>
-        </x-slot>
-    </x-sales-header>
+        </x-slot:actions>
+    </x-product-page-header>
 
     <!-- Conteúdo Principal -->
-    <form id="edit-product-form" wire:submit.prevent="update" class="pf-form ">
-        <div class="pf-layout flex flex-col xl:flex-row ">
+    <form id="edit-product-form" wire:submit.prevent="update" class="pf-form">
+        <div class="pf-layout flex flex-col xl:flex-row gap-6">
 
             <!-- ========== COLUNA ESQUERDA: Formulário ========== -->
             <div class="pf-left-col flex-1">
-                <div class="pf-form-card bg-gradient-to-br from-slate-900/95 via-slate-800/95 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50">
+                <div class="pf-form-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70">
 
                     <!-- Informações Básicas -->
                     <div class="mb-8">
@@ -71,15 +39,15 @@
                                 <i class="bi bi-info-circle-fill text-white text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Informações Básicas</h3>
-                                <p class="text-xs text-slate-400">Dados essenciais do produto</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Informações Básicas</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Dados essenciais do produto</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <!-- Nome -->
                             <div class="space-y-2">
-                                <label for="name" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="name" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-tag-fill text-blue-400"></i>
                                     Nome do Produto <span class="text-red-400">*</span>
                                 </label>
@@ -87,8 +55,8 @@
                                     <input type="text"
                                         wire:model.live="name"
                                         id="name"
-                                        class="w-full px-4 py-3 pr-20 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                           {{ $errors->has('name') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-slate-600' }}
+                                        class="w-full px-4 py-3 pr-20 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
+                                           {{ $errors->has('name') ? 'border-red-500 focus:border-red-400' : 'focus:border-blue-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                            focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
                                         placeholder="Ex: Notebook Dell">
                                     <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -104,11 +72,11 @@
                                                 "
                                                 :class="copied
                                                     ? 'bg-emerald-500/20 border-emerald-500/60 scale-110'
-                                                    : 'bg-slate-700/80 border-slate-600 hover:bg-blue-500/20 hover:border-blue-400 hover:scale-110'"
+                                                    : 'bg-slate-700/80 border-slate-200 dark:border-slate-600 hover:bg-blue-500/20 hover:border-blue-400 hover:scale-110'"
                                                 class="group flex items-center justify-center w-7 h-7 rounded-lg border transition-all duration-200 active:scale-95 cursor-pointer"
                                                 :title="copied ? 'Copiado!' : 'Copiar nome do produto'">
                                                 <i x-show="!copied"
-                                                   class="bi bi-clipboard text-slate-400 group-hover:text-blue-400 text-sm transition-colors duration-200"></i>
+                                                   class="bi bi-clipboard text-slate-500 dark:text-slate-400 group-hover:text-blue-400 text-sm transition-colors duration-200"></i>
                                                 <i x-show="copied"
                                                    x-transition:enter="transition ease-out duration-200"
                                                    x-transition:enter-start="opacity-0 scale-75"
@@ -127,7 +95,7 @@
 
                             <!-- Código -->
                             <div class="space-y-2">
-                                <label for="product_code" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="product_code" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-upc-scan text-purple-400"></i>
                                     Código <span class="text-red-400">*</span>
                                 </label>
@@ -135,8 +103,8 @@
                                     <input type="text"
                                         wire:model.live="product_code"
                                         id="product_code"
-                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                           {{ $errors->has('product_code') ? 'border-red-500 focus:border-red-400' : 'focus:border-purple-500 hover:border-slate-600' }}
+                                        class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
+                                           {{ $errors->has('product_code') ? 'border-red-500 focus:border-red-400' : 'focus:border-purple-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                            focus:ring-4 focus:ring-purple-500/20 focus:outline-none"
                                         placeholder="Ex: NB-DELL-001">
                                     @if($product_code && !$errors->has('product_code'))
@@ -154,7 +122,7 @@
 
                             <!-- Categoria -->
                             <div class="space-y-2">
-                                <label for="category_id" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="category_id" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-tags-fill text-pink-400"></i>
                                     Categoria <span class="text-red-400">*</span>
                                 </label>
@@ -175,31 +143,31 @@
                                 }">
                                     <button type="button"
                                         @click="open = !open"
-                                        class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white font-medium transition-all duration-200
+                                        class="w-full flex items-center justify-between px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white font-medium transition-all duration-200
                                             {{ $errors->has('category_id') ? 'border-red-500' : 'hover:border-pink-500 focus:border-pink-500' }}
                                             focus:ring-4 focus:ring-pink-500/20 focus:outline-none">
                                         <span class="flex items-center gap-2">
                                             <i :class="selectedCategoryIcon" class="text-pink-400"></i>
                                             <span x-text="selectedCategoryName"></span>
                                         </span>
-                                        <i class="bi bi-chevron-down text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
+                                        <i class="bi bi-chevron-down text-slate-500 dark:text-slate-400 transition-transform duration-200" :class="{ 'rotate-180': open }"></i>
                                     </button>
 
                                     <div x-show="open"
                                         x-transition
                                         @click.away="open = false"
-                                        class="absolute z-50 w-full mt-2 bg-slate-800 border-2 border-slate-700 rounded-xl shadow-2xl">
+                                        class="absolute z-50 w-full mt-2 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl">
                                         <!-- Campo de pesquisa -->
-                                        <div class="p-2 border-b border-slate-700">
+                                        <div class="p-2 border-b border-slate-200 dark:border-slate-700">
                                             <div class="relative">
-                                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm pointer-events-none"></i>
+                                                <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 dark:text-slate-400 text-sm pointer-events-none"></i>
                                                 <input type="text"
                                                     x-model="search"
                                                     @click.stop
                                                     x-ref="searchInput"
                                                     x-init="$watch('open', v => v && $nextTick(() => $refs.searchInput.focus()))"
                                                     placeholder="Pesquisar categoria..."
-                                                    class="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-700/60 border border-slate-600 text-white text-sm placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20">
+                                                    class="w-full pl-8 pr-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-700/60 border border-slate-200 dark:border-slate-600 text-slate-900 dark:text-white text-sm placeholder-slate-400 focus:outline-none focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20">
                                             </div>
                                         </div>
                                         <!-- Lista de categorias filtrada -->
@@ -208,9 +176,9 @@
                                             <button type="button"
                                                 x-show="!search || '{{ strtolower($category->name) }}'.includes(search.toLowerCase())"
                                                 @click="selectCategory({ id: {{ $category->id_category }}, name: '{{ $category->name }}', icon: '{{ $this->getCategoryIcon($category->icone) }}' })"
-                                                class="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-slate-700/80 transition-colors border-b border-slate-700 last:border-b-0">
+                                                class="w-full flex items-center gap-2 px-4 py-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors border-b border-slate-200 dark:border-slate-700 last:border-b-0">
                                                 <i class="{{ $this->getCategoryIcon($category->icone) }} text-pink-400"></i>
-                                                <span class="text-white text-sm font-medium">{{ $category->name }}</span>
+                                                <span class="text-slate-800 dark:text-white text-sm font-medium">{{ $category->name }}</span>
                                             </button>
                                             @endforeach
                                         </div>
@@ -226,7 +194,7 @@
                     </div>
 
                     <!-- Divisor -->
-                    <div class="border-t border-slate-700/50 my-6"></div>
+                    <div class="border-t border-slate-200/80 dark:border-slate-700/50 my-6"></div>
 
                     <!-- Descrição e Código de Barras -->
                     <div class="mb-8">
@@ -235,22 +203,22 @@
                                 <i class="bi bi-card-text text-white text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Descrição</h3>
-                                <p class="text-xs text-slate-400">Detalhes e características</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Descrição</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Detalhes e características</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
                             <div class="md:col-span-2 space-y-2">
-                                <label for="description" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="description" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-card-text text-indigo-400"></i>
                                     Descrição
                                 </label>
                                 <textarea wire:model.live="description"
                                     id="description"
                                     rows="4"
-                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium resize-none transition-all duration-200
-                                          {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
+                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium resize-none transition-all duration-200
+                                          {{ $errors->has('description') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                           focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
                                     placeholder="Descreva as principais características e benefícios do produto..."></textarea>
                                 @error('description')
@@ -260,7 +228,7 @@
                                 @enderror
                             </div>
                             <div class="space-y-2">
-                                <label for="barcode" class="flex items-center gap-2 text-sm font-semibold text-slate-300">
+                                <label for="barcode" class="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300">
                                     <i class="bi bi-upc text-indigo-400"></i>
                                     Código de Barras (EAN)
                                 </label>
@@ -268,8 +236,8 @@
                                     wire:model.live="barcode"
                                     id="barcode"
                                     maxlength="15"
-                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-800/60 border-slate-700 text-white placeholder-slate-500 font-medium transition-all duration-200
-                                       {{ $errors->has('barcode') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-600' }}
+                                    class="w-full px-4 py-3 rounded-xl border-2 bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 font-medium transition-all duration-200
+                                       {{ $errors->has('barcode') ? 'border-red-500 focus:border-red-400' : 'focus:border-indigo-500 hover:border-slate-300 dark:hover:border-slate-600' }}
                                        focus:ring-4 focus:ring-indigo-500/20 focus:outline-none"
                                     placeholder="Ex: 7891234567890">
                                 @error('barcode')
@@ -282,7 +250,7 @@
                     </div>
 
                     <!-- Divisor -->
-                    <div class="border-t border-slate-700/50 my-6"></div>
+                    <div class="border-t border-slate-200/80 dark:border-slate-700/50 my-6"></div>
 
                     <!-- Preços e Estoque -->
                     <div>
@@ -291,12 +259,12 @@
                                 <i class="bi bi-currency-dollar text-white text-lg"></i>
                             </div>
                             <div>
-                                <h3 class="text-lg font-bold text-white">Preços e Estoque</h3>
-                                <p class="text-xs text-slate-400">Valores e quantidade</p>
+                                <h3 class="text-lg font-bold text-slate-900 dark:text-white">Preços e Estoque</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">Valores e quantidade</p>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                             <x-currency-input
                                 name="price"
                                 id="price"
@@ -348,15 +316,15 @@
             </div>
 
             <!-- ========== COLUNA DIREITA: Upload ========== -->
-            <div class="pf-right-col w-full xl:w-[450px]">
-                <div class="pf-image-card bg-gradient-to-br from-slate-900/95 via-purple-900/20 to-slate-900/95 backdrop-blur-xl rounded-3xl p-8 shadow-2xl border border-slate-700/50 h-full flex flex-col">
+            <div class="pf-right-col w-full xl:w-[400px]">
+                <div class="pf-image-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70 h-full flex flex-col">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
                             <i class="bi bi-image-fill text-white text-lg"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-bold text-white">Imagem do Produto</h3>
-                            <p class="text-xs text-slate-400">Adicione uma foto de alta qualidade</p>
+                            <h3 class="text-lg font-bold text-slate-900 dark:text-white">Imagem do Produto</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">Adicione uma foto de alta qualidade</p>
                         </div>
                     </div>
 
@@ -369,17 +337,17 @@
                             description="Clique ou arraste sua imagem aqui"
                             :existing-image="$this->existingImageUrl"
                             :new-image="$image"
-                            height="h-[500px]" />
+                            height="h-[340px]" />
                     </div>
 
                     {{-- ── Galeria de imagens adicionais ── --}}
-                    <div class="mt-6 border-t border-slate-700/50 pt-6">
+                    <div class="mt-6 border-t border-slate-200/80 dark:border-slate-700/50 pt-6">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h4 class="text-sm font-bold text-white">Imagens Adicionais
-                                    <span class="ml-1.5 px-2 py-0.5 bg-indigo-500/20 text-indigo-300 text-xs font-bold rounded-full">{{ count($extraImages) }}</span>
+                                <h4 class="text-sm font-bold text-slate-900 dark:text-white">Imagens Adicionais
+                                    <span class="ml-1.5 px-2 py-0.5 bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 text-xs font-bold rounded-full">{{ count($extraImages) }}</span>
                                 </h4>
-                                <p class="text-xs text-slate-400 mt-0.5">Galeria do produto — aparece no portal do cliente</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Galeria do produto — aparece no portal do cliente</p>
                             </div>
                         </div>
 
@@ -387,7 +355,7 @@
                         @if(count($extraImages) > 0)
                         <div class="grid grid-cols-4 gap-3 mb-4">
                             @foreach($extraImages as $img)
-                            <div class="relative group rounded-xl overflow-hidden aspect-square bg-slate-800 border border-slate-700">
+                            <div class="relative group rounded-xl overflow-hidden aspect-square bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                 <img src="{{ $img['url'] }}" alt="Imagem" class="w-full h-full object-cover">
                                 @if($img['source'] === 'mercadolivre')
                                 <span class="absolute top-1 left-1 px-1.5 py-0.5 bg-yellow-400/90 text-yellow-900 text-[9px] font-bold rounded-full">ML</span>
@@ -404,14 +372,14 @@
                         @endif
 
                         {{-- Seção ML barcode importer --}}
-                        <div class="rounded-xl border border-slate-700/60 bg-slate-800/40 p-4">
+                        <div class="rounded-xl border border-slate-200/80 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-800/40 p-4">
                             <div class="flex items-center gap-2 mb-3">
                                 <div class="w-7 h-7 rounded-lg bg-yellow-400/15 flex items-center justify-center flex-shrink-0">
                                     <i class="fas fa-barcode text-yellow-400 text-xs"></i>
                                 </div>
                                 <div>
-                                    <p class="text-xs font-bold text-slate-200">Importar imagens do Mercado Livre</p>
-                                    <p class="text-[10px] text-slate-400">Busca pelo código de barras do produto no catálogo ML</p>
+                                    <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Importar imagens do Mercado Livre</p>
+                                    <p class="text-[10px] text-slate-500 dark:text-slate-400">Busca pelo código de barras do produto no catálogo ML</p>
                                 </div>
                             </div>
 
@@ -419,7 +387,7 @@
                                 <input type="text"
                                        wire:model="barcode"
                                        placeholder="Ex: 7891234567890"
-                                       class="flex-1 px-3 py-2 bg-slate-900/60 border border-slate-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-indigo-500">
+                                       class="flex-1 px-3 py-2 bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-700 dark:text-slate-200 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-500">
                                 <button type="button"
                                         wire:click="searchMlImages"
                                         wire:loading.attr="disabled"
@@ -443,7 +411,7 @@
                             {{-- Resultados ML --}}
                             @if(count($mlImageResults) > 0)
                             <div class="mt-3">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Selecione as imagens para importar:</p>
+                                <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Selecione as imagens para importar:</p>
                                 <div class="grid grid-cols-4 gap-2 mb-3">
                                     @foreach($mlImageResults as $i => $url)
                                     <label class="relative cursor-pointer group">
@@ -452,7 +420,7 @@
                                                class="sr-only peer">
                                         <div class="aspect-square rounded-lg overflow-hidden border-2 transition-all
                                                     peer-checked:border-indigo-500 peer-checked:ring-2 peer-checked:ring-indigo-500/30
-                                                    border-slate-700 hover:border-slate-500 bg-slate-800">
+                                                    border-slate-200 dark:border-slate-700 hover:border-slate-400 dark:hover:border-slate-500 bg-white dark:bg-slate-800">
                                             <img src="{{ $url }}" alt="Foto ML {{ $i+1 }}" class="w-full h-full object-cover" loading="lazy">
                                         </div>
                                         <div class="absolute inset-0 rounded-lg bg-indigo-500/20 opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none flex items-center justify-center">
@@ -478,7 +446,7 @@
                     </div>
                     {{-- /galeria --}}
 
-                    <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
+                    <div class="mt-4 flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <i class="bi bi-info-circle text-blue-400 mt-0.5"></i>
                         <p>JPG, PNG, JPEG • Máx 2MB • Recomendado: 800x800px</p>
                     </div>
@@ -491,62 +459,62 @@
     @php
         $familyStock = $product->stock_quantity + $variants->sum('stock_quantity');
     @endphp
-    <div class="mt-6 rounded-3xl border border-violet-500/20 bg-gradient-to-br from-slate-800/60 via-slate-900/40 to-violet-950/20 backdrop-blur-xl overflow-hidden shadow-2xl shadow-violet-950/20">
+    <div class="mt-6 rounded-2xl border border-slate-200/80 dark:border-violet-500/20 bg-white dark:bg-slate-900/80 overflow-hidden shadow-sm">
         {{-- Header --}}
         <button type="button" wire:click="toggleVariationsPanel"
-            class="group w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-white/5 transition-colors">
+            class="group w-full flex items-center justify-between gap-3 px-5 py-4 text-left hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
             <div class="flex items-center gap-3.5 min-w-0">
                 <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-500 via-purple-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/40 group-hover:scale-105 transition-transform">
                     <i class="bi bi-diagram-3-fill text-white text-xl"></i>
                 </div>
                 <div class="min-w-0">
-                    <h3 class="text-base font-black text-white flex items-center gap-2 flex-wrap">
+                    <h3 class="text-base font-black text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
                         Variações
                         @if($variants->count() > 0)
-                            <span class="px-2 py-0.5 bg-violet-500/25 text-violet-200 text-[11px] font-black rounded-full ring-1 ring-violet-400/30">{{ $variants->count() + 1 }} no grupo</span>
+                            <span class="px-2 py-0.5 bg-violet-500/25 text-violet-700 dark:text-violet-200 text-[11px] font-black rounded-full ring-1 ring-violet-400/30">{{ $variants->count() + 1 }} no grupo</span>
                         @endif
                     </h3>
-                    <p class="text-[11px] text-slate-400 mt-0.5 truncate">Vincule produtos do mesmo item que variam só no preço</p>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 truncate">Vincule produtos do mesmo item que variam só no preço</p>
                 </div>
             </div>
             <div class="flex items-center gap-3 shrink-0">
                 @if($variants->count() > 0)
                     <div class="hidden sm:flex flex-col items-end">
                         <span class="text-[9px] font-bold uppercase tracking-wider text-slate-500">Estoque grupo</span>
-                        <span class="text-sm font-black text-violet-200">{{ $familyStock }}</span>
+                        <span class="text-sm font-black text-violet-700 dark:text-violet-200">{{ $familyStock }}</span>
                     </div>
                 @endif
-                <span class="w-8 h-8 rounded-full bg-slate-700/50 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
-                    <i class="bi {{ $showVariationsPanel ? 'bi-chevron-up' : 'bi-chevron-down' }} text-slate-300 text-sm"></i>
+                <span class="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-700/50 flex items-center justify-center group-hover:bg-violet-500/20 transition-colors">
+                    <i class="bi {{ $showVariationsPanel ? 'bi-chevron-up' : 'bi-chevron-down' }} text-slate-600 dark:text-slate-300 text-sm"></i>
                 </span>
             </div>
         </button>
 
         @if($showVariationsPanel)
-        <div class="px-5 pb-5 border-t border-white/5 pt-5 space-y-5">
+        <div class="px-5 pb-5 border-t border-slate-100 dark:border-white/5 pt-5 space-y-5">
             {{-- Lista de variações vinculadas --}}
             @if($variants->count() > 0)
             <div>
-                <p class="text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> Variações vinculadas ({{ $variants->count() }})</p>
+                <p class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2.5 flex items-center gap-1.5"><i class="bi bi-collection-fill text-violet-400"></i> Variações vinculadas ({{ $variants->count() }})</p>
                 <div class="space-y-2">
                     @foreach($variants as $variant)
-                    <div class="group flex items-center gap-3 rounded-2xl bg-slate-900/60 border border-slate-700/60 px-3 py-2.5 hover:border-violet-500/40 transition-colors">
+                    <div class="group flex items-center gap-3 rounded-2xl bg-white dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-700/60 px-3 py-2.5 hover:border-violet-500/40 transition-colors">
                         <img src="{{ $variant->image ? asset('storage/products/' . $variant->image) : asset('storage/products/product-placeholder.png') }}"
-                            class="w-11 h-11 rounded-xl object-cover border border-slate-700 flex-shrink-0" alt="{{ $variant->name }}">
+                            class="w-11 h-11 rounded-xl object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0" alt="{{ $variant->name }}">
                         <div class="min-w-0 flex-1">
-                            <p class="text-sm font-bold text-white truncate">{{ $variant->name }}</p>
+                            <p class="text-sm font-bold text-slate-900 dark:text-white truncate">{{ $variant->name }}</p>
                             <div class="flex items-center gap-1.5 mt-1 flex-wrap">
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/15 text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-700/40 text-slate-400"><i class="bi bi-upc"></i>{{ $variant->product_code }}</span>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold {{ $variant->stock_quantity > 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300' }}"><i class="bi bi-stack"></i>{{ $variant->stock_quantity }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/15 text-sky-700 dark:text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($variant->price_sale, 2, ',', '.') }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold bg-slate-100 dark:bg-slate-700/40 text-slate-500 dark:text-slate-400"><i class="bi bi-upc"></i>{{ $variant->product_code }}</span>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-semibold {{ $variant->stock_quantity > 0 ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' : 'bg-rose-500/15 text-rose-700 dark:text-rose-300' }}"><i class="bi bi-stack"></i>{{ $variant->stock_quantity }}</span>
                             </div>
                         </div>
-                        <a href="{{ route('products.edit', $variant) }}" class="w-8 h-8 flex items-center justify-center text-xs text-slate-300 bg-slate-700/50 hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
+                        <a href="{{ route('products.edit', $variant) }}" class="w-8 h-8 flex items-center justify-center text-xs text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/50 hover:bg-slate-200 dark:hover:bg-slate-600/60 rounded-lg transition-colors" title="Editar variação">
                             <i class="bi bi-pencil"></i>
                         </a>
                         <button type="button" wire:click="detachVariation({{ $variant->id }})"
                             wire:confirm="Desvincular esta variação? O produto volta a ser independente (não será excluído)."
-                            class="w-8 h-8 flex items-center justify-center text-xs text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
+                            class="w-8 h-8 flex items-center justify-center text-xs text-red-600 dark:text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
                             <i class="bi bi-x-lg"></i>
                         </button>
                     </div>
@@ -554,23 +522,23 @@
                 </div>
             </div>
             @else
-            <div class="flex items-center gap-3 rounded-2xl bg-slate-900/40 border border-dashed border-slate-700/60 px-4 py-3 text-slate-400">
+            <div class="flex items-center gap-3 rounded-2xl bg-slate-50 dark:bg-slate-900/40 border border-dashed border-slate-200/80 dark:border-slate-700/60 px-4 py-3 text-slate-500 dark:text-slate-400">
                 <i class="bi bi-info-circle text-violet-400"></i>
                 <p class="text-xs">Nenhuma variação vinculada ainda. Busque um produto abaixo para vincular.</p>
             </div>
             @endif
 
             {{-- Vincular produto existente (busca por código/nome) --}}
-            <div class="rounded-2xl border border-sky-500/20 bg-gradient-to-br from-sky-950/20 to-slate-900/40 p-4">
-                <p class="text-xs font-black text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular variação</p>
+            <div class="rounded-2xl border border-sky-500/20 bg-sky-50/60 dark:bg-sky-950/20 p-4">
+                <p class="text-xs font-black text-sky-700 dark:text-sky-300 mb-3 flex items-center gap-1.5 uppercase tracking-wide"><i class="bi bi-link-45deg"></i> Vincular variação</p>
 
                 @if($linkVariantId && $linkSelectedLabel)
                     {{-- Produto escolhido + confirmar --}}
                     <div class="space-y-2.5">
                         <div class="flex items-center gap-2 rounded-xl bg-sky-500/10 border border-sky-500/30 px-3 py-2.5">
                             <i class="bi bi-check-circle-fill text-sky-400"></i>
-                            <span class="text-sm font-bold text-sky-100 flex-1 truncate">{{ $linkSelectedLabel }}</span>
-                            <button type="button" wire:click="clearLinkTarget" class="text-slate-400 hover:text-white" title="Trocar">
+                            <span class="text-sm font-bold text-sky-900 dark:text-sky-100 flex-1 truncate">{{ $linkSelectedLabel }}</span>
+                            <button type="button" wire:click="clearLinkTarget" class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-white" title="Trocar">
                                 <i class="bi bi-x-lg text-xs"></i>
                             </button>
                         </div>
@@ -585,7 +553,7 @@
                     <div class="relative mb-2.5">
                         <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                         <input type="text" wire:model.live.debounce.300ms="linkSearch" placeholder="Filtrar (opcional) por nome ou código…"
-                            class="w-full pl-9 pr-3 py-2.5 bg-slate-950/60 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
+                            class="w-full pl-9 pr-3 py-2.5 bg-white dark:bg-slate-950/60 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-2 focus:ring-sky-500/20 transition">
                     </div>
 
                     {{-- Rótulo da lista --}}
@@ -597,22 +565,22 @@
                         @endif
                     </p>
 
-                    <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-700/50 divide-y divide-slate-800/60 bg-slate-950/40">
+                    <div class="max-h-72 overflow-y-auto rounded-xl border border-slate-200/80 dark:border-slate-700/50 divide-y divide-slate-100 dark:divide-slate-800/60 bg-white dark:bg-slate-950/40">
                         @forelse($linkSearchResults as $lp)
                             @php $sameName = mb_strtolower(trim($lp->name)) === mb_strtolower(trim($product->name)); @endphp
                             <button type="button" wire:click="selectLinkTarget({{ $lp->id }})"
                                 class="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-sky-500/10 transition-colors">
                                 <img src="{{ $lp->image ? asset('storage/products/' . $lp->image) : asset('storage/products/product-placeholder.png') }}"
-                                    class="w-10 h-10 rounded-lg object-cover border border-slate-700 flex-shrink-0" alt="">
+                                    class="w-10 h-10 rounded-lg object-cover border border-slate-200 dark:border-slate-700 flex-shrink-0" alt="">
                                 <div class="min-w-0 flex-1">
-                                    <p class="text-sm font-semibold text-slate-100 truncate flex items-center gap-1.5">
+                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate flex items-center gap-1.5">
                                         {{ $lp->name }}
-                                        @if($sameName)<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-300">mesmo nome</span>@endif
+                                        @if($sameName)<span class="px-1.5 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">mesmo nome</span>@endif
                                     </p>
                                     <div class="flex items-center gap-1.5 mt-0.5 flex-wrap">
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400"><i class="bi bi-upc"></i>{{ $lp->product_code }}</span>
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($lp->price_sale, 2, ',', '.') }}</span>
-                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400"><i class="bi bi-stack"></i>{{ $lp->stock_quantity }}</span>
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400"><i class="bi bi-upc"></i>{{ $lp->product_code }}</span>
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-bold text-sky-700 dark:text-sky-300"><i class="bi bi-currency-dollar"></i>{{ number_format($lp->price_sale, 2, ',', '.') }}</span>
+                                        <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-slate-500 dark:text-slate-400"><i class="bi bi-stack"></i>{{ $lp->stock_quantity }}</span>
                                     </div>
                                 </div>
                                 <i class="bi bi-plus-circle-fill text-sky-400 text-lg"></i>

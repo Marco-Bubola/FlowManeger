@@ -164,158 +164,67 @@
 
     <x-loading-overlay message="Carregando produtos..." />
 
-    <!-- Header Modernizado (com slot para controles) -->
-    <x-products-header title="Catálogo de Produtos" description="" :total-products="$products->total() ?? 0" :total-categories="$categories->count()"
-        :show-quick-actions="false">
+    <x-product-page-header title="Catálogo de produtos" icon="bi-box-seam" active="catalogo" :back-route="route('dashboard')">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-box-seam"></i>{{ number_format($products->total() ?? 0, 0, ',', '.') }} {{ ($products->total() ?? 0) === 1 ? 'produto' : 'produtos' }}</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-300"><i class="bi bi-tags"></i>{{ $categories->count() }} categorias</span>
+        </x-slot:meta>
+        <x-slot:actions>
+            <button type="button" wire:click="toggleTips" title="Dicas" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-lightbulb text-amber-500"></i><span class="hidden sm:inline">Dicas</span>
+            </button>
+            <button type="button" @click="openFiltersModal()" title="Filtros avançados" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70" :class="{ 'ring-2 ring-indigo-400/50': showFilters }">
+                <i class="bi bi-sliders text-indigo-500"></i><span class="hidden sm:inline">Filtros</span>
+            </button>
+            <a href="{{ route('products.create') }}" class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition">
+                <i class="bi bi-plus-lg"></i>Novo produto
+            </a>
+        </x-slot:actions>
+    </x-product-page-header>
 
-        <!-- Breadcrumb dentro do header -->
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                    <i class="fas fa-box mr-1"></i>Produtos
-                </span>
-            </div>
-        </x-slot>
-
-        <!-- Barra de Controle integrada ao header (slot) -->
-        <div class="w-full products-index-controls">
-
-            <!-- ── LINHA 1: Busca + Novo Produto ─────────────────────── -->
-            <div class="prod-header-row-1">
-                <!-- Campo de Pesquisa -->
-                <div class="prod-header-search relative group">
-                    <input type="text" wire:model.live.debounce.300ms="search"
-                        placeholder="Buscar produtos por nome, código, categoria..."
-                        class="w-full pl-11 pr-10 py-2.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-600/80 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-purple-500/40 focus:border-purple-400 transition-all duration-200 shadow-sm hover:shadow-md text-sm font-medium backdrop-blur-sm">
-                    <div class="absolute left-3.5 top-1/2 transform -translate-y-1/2">
-                        <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
-                    </div>
-                    <button wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0"
-                        class="absolute right-2.5 top-1/2 transform -translate-y-1/2 p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-lg transition-all duration-200">
-                        <i class="bi bi-x text-sm"></i>
-                    </button>
-                    <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 transform -translate-y-1/2">
-                        <div class="animate-spin rounded-full h-4 w-4 border-2 border-purple-500 border-t-transparent"></div>
-                    </div>
-                </div>
-
-                <!-- Novo Produto (destaque) -->
-                <a href="{{ route('products.create') }}" class="prod-header-btn-create group">
-                    <i class="bi bi-plus-circle group-hover:rotate-90 transition-transform duration-300"></i>
-                    <span>Novo Produto</span>
-                </a>
-            </div>
-
-            <!-- ── LINHA 2: Pills de filtro + Paginação + Ações ───────── -->
-            <div class="prod-header-row-2">
-
-                <!-- Lado Esquerdo: Filtros pill group -->
-                <div class="prod-header-row-2-left">
-
-                    <!-- Tipo pills -->
-                    <div class="sale-filter-pills hidden md:inline-flex">
-                        <button type="button" wire:click="$set('tipo', '')"
-                            class="sale-filter-pill prod-pill-type {{ $tipo === '' ? 'active' : '' }}" title="Todos os tipos">
-                            <i class="bi bi-box-seam"></i>
-                            <span>Prods.</span>
-                        </button>
-                        <button type="button" wire:click="$set('tipo', 'kit')"
-                            class="sale-filter-pill prod-pill-type {{ $tipo === 'kit' ? 'active' : '' }}" title="Somente kits">
-                            <i class="bi bi-boxes"></i>
-                            <span>Kits</span>
-                        </button>
-                    </div>
-
-                    <!-- Ordenação -->
-                    <div class="sale-filter-pills sale-sort-pills hidden md:flex">
-                        <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i></span>
-                        <button type="button" wire:click="toggleSort('data')"
-                            class="sale-filter-pill {{ in_array($ordem, ['recentes','data_desc','data_asc']) ? 'active' : '' }}" title="Ordenar por data">
-                            <span>Recentes</span>
-                        </button>
-                        <button type="button" wire:click="toggleSort('nome')"
-                            class="sale-filter-pill {{ in_array($ordem, ['az','nome_asc','nome_desc']) ? 'active' : '' }}" title="Ordenar A-Z">
-                            <span>A-Z</span>
-                        </button>
-                        <button type="button" wire:click="toggleSort('preco')"
-                            class="sale-filter-pill {{ in_array($ordem, ['preco_desc','preco_asc']) ? 'active' : '' }}" title="Ordenar por preço">
-                            <span>Preço</span>
-                        </button>
-                    </div>
-
-                    <!-- Per-page pills -->
-                    <div class="sale-filter-pills sale-perpage-pills hidden md:inline-flex">
-                        @php $currentPerPage = $products->perPage(); @endphp
-                        @foreach(array_slice($perPageOptions, 0, 5) as $pp)
-                        <button type="button" wire:click="$set('perPage', {{ $pp }})"
-                            class="sale-filter-pill pill-perpage {{ $currentPerPage == $pp ? 'active' : '' }}" title="{{ $pp }} por página">
-                            <span>{{ $pp }}</span>
-                        </button>
-                        @endforeach
-                    </div>
-
-                </div>
-
-                <!-- Lado Direito: Paginação compact + Ações -->
-                <div class="prod-header-row-2-right">
-
-                    @if ($products->hasPages())
-                    <div class="sale-pagination-compact">
-                        @if ($products->currentPage() > 1)
-                        <button type="button" wire:click.prevent="previousPage" class="sale-pagination-btn" title="Página anterior">
-                            <i class="bi bi-chevron-left"></i>
-                        </button>
-                        @endif
-                        <span class="sale-pagination-indicator">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
-                        @if ($products->hasMorePages())
-                        <button type="button" wire:click.prevent="nextPage" class="sale-pagination-btn" title="Próxima página">
-                            <i class="bi bi-chevron-right"></i>
-                        </button>
-                        @endif
-                    </div>
-                    @endif
-
-                    <button type="button" wire:click="toggleTips"
-                        class="sale-action-btn sale-action-tips" title="Dicas">
-                        <i class="bi bi-lightbulb"></i>
-                        <span>Dicas</span>
-                    </button>
-
-                    <button type="button" @click="openFiltersModal()"
-                        class="sale-action-btn sale-action-filter"
-                        :class="{ 'active': showFilters }" title="Filtros Avançados">
-                        <i class="bi bi-sliders"></i>
-                        <span>Filtros</span>
-                    </button>
-
-                    <!-- Kit e Upload como ícones compactos -->
-                    <a href="{{ route('products.kit.create') }}"
-                        class="sale-action-btn prod-action-kit" title="Novo Kit">
-                        <i class="bi bi-boxes"></i>
-                        <span>Novo Kit</span>
-                    </a>
-
-                    <a href="{{ route('products.upload') }}"
-                        class="sale-action-btn prod-action-upload" title="Upload em Lote">
-                        <i class="bi bi-file-earmark-arrow-up"></i>
-                        <span>Upload</span>
-                    </a>
-
-                    <a href="{{ route('products.bulk-edit') }}"
-                        class="sale-action-btn prod-action-bulk-edit" title="Edição em Massa">
-                        <i class="bi bi-grid-3x3-gap-fill"></i>
-                        <span>Edição em Massa</span>
-                    </a>
-
-                </div>
+    <div class="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm xl:flex-row xl:items-center">
+        <div class="relative flex-1 min-w-0">
+            <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar produtos por nome, código, categoria..."
+                   class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 pl-10 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30">
+            <button type="button" wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0" title="Limpar busca"
+                    class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700">
+                <i class="bi bi-x-lg text-xs"></i>
+            </button>
+            <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 -translate-y-1/2">
+                <div class="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
             </div>
         </div>
 
-    </x-products-header>
+        <div class="-mx-1 flex items-center gap-2 overflow-x-auto px-1 pb-1 xl:pb-0">
+            <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                <button type="button" wire:click="$set('tipo', '')" title="Todos os tipos" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $tipo === '' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-box-seam"></i>Todos</button>
+                <button type="button" wire:click="$set('tipo', 'kit')" title="Somente kits" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $tipo === 'kit' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-boxes"></i>Kits</button>
+            </div>
+
+            <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                <span class="px-1.5 text-xs text-slate-400"><i class="bi bi-arrow-down-up"></i></span>
+                <button type="button" wire:click="toggleSort('data')" title="Ordenar por data" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['recentes','data_desc','data_asc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Recentes</button>
+                <button type="button" wire:click="toggleSort('nome')" title="Ordenar A-Z" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['az','nome_asc','nome_desc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">A-Z</button>
+                <button type="button" wire:click="toggleSort('preco')" title="Ordenar por preço" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ in_array($ordem, ['preco_desc','preco_asc']) ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Preço</button>
+            </div>
+
+            @php $currentPerPage = $products->perPage(); @endphp
+            <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1" title="Produtos por página">
+                @foreach(array_slice($perPageOptions, 0, 5) as $pp)
+                <button type="button" wire:click="$set('perPage', {{ $pp }})" title="{{ $pp }} por página" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $currentPerPage == $pp ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">{{ $pp }}</button>
+                @endforeach
+            </div>
+
+            @if ($products->hasPages())
+            <div class="inline-flex shrink-0 items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
+                <button type="button" wire:click.prevent="previousPage" @disabled($products->onFirstPage()) title="Página anterior" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-40"><i class="bi bi-chevron-left"></i></button>
+                <span class="px-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{{ $products->currentPage() }} / {{ $products->lastPage() }}</span>
+                <button type="button" wire:click.prevent="nextPage" @disabled(!$products->hasMorePages()) title="Próxima página" class="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-semibold transition text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-40"><i class="bi bi-chevron-right"></i></button>
+            </div>
+            @endif
+        </div>
+    </div>
 
 
 
