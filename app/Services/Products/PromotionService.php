@@ -524,6 +524,7 @@ class PromotionService
         $row = SaleItem::query()
             ->join('sales', 'sales.id', '=', 'sale_items.sale_id')
             ->where('sales.user_id', $userId)
+            ->whereNotIn('sales.status', ['cancelada', 'orcamento'])
             ->whereNotNull('sale_items.promotion_id')
             ->selectRaw('COALESCE(SUM(sale_items.quantity), 0) as qty')
             ->selectRaw('COALESCE(SUM(sale_items.quantity * sale_items.price_sale), 0) as revenue')

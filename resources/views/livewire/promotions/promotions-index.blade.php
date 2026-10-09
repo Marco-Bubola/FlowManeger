@@ -127,6 +127,9 @@
                                         <i class="bi bi-check2-square"></i><span>Selecionar</span>
                                     </button>
                                 @endif
+                                <a href="{{ route('promotions.report') }}" class="sale-action-btn" title="Vendas em promoção: quanto vendeu, desconto dado e lucro">
+                                    <i class="bi bi-bar-chart-line"></i><span>Vendas</span>
+                                </a>
                                 <button type="button" wire:click="openSettings" class="sale-action-btn sale-action-filter" title="Lucro mínimo, validade e mensagem">
                                     <i class="bi bi-gear"></i><span>Configurar</span>
                                 </button>
