@@ -24,6 +24,7 @@
         'precos' => ['label' => 'Preços', 'icon' => 'bi-currency-dollar', 'url' => route('sales.edit-prices', $sale->id)],
         'pagar' => ['label' => 'Adicionar pagamento', 'icon' => 'bi-credit-card', 'url' => route('sales.add-payments', $sale->id)],
         'pagamentos' => ['label' => 'Pagamentos', 'icon' => 'bi-wallet2', 'url' => route('sales.edit-payments', $sale->id)],
+        'todas' => ['label' => 'Todas as vendas', 'icon' => 'bi-cart3', 'url' => route('sales.index')],
     ];
     $client = $sale->client;
 @endphp

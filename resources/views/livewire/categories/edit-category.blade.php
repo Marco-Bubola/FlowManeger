@@ -1,5 +1,5 @@
 <div class="category-form-page w-full px-4 sm:px-6 lg:px-8 pt-4 pb-8 space-y-5">
-    <x-sales-header title="{{ $category->name }}" description="Edite as configurações desta categoria"
+    <x-sales-header tabs-section="categorias" title="{{ $category->name }}" description="Edite as configurações desta categoria"
         icon="bi-tags" icon-color="purple" :back-route="route('categories.index')">
         <x-slot name="breadcrumb">
             <div class="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">

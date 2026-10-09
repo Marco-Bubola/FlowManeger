@@ -15,6 +15,8 @@
         'recorrentes' => ['label' => 'Recorrentes', 'icon' => 'bi-arrow-repeat', 'url' => route('cashbook.recurring')],
         'importar' => ['label' => 'Importar extrato', 'icon' => 'bi-cloud-upload', 'url' => route('cashbook.upload2')],
         'contas' => ['label' => 'Contas', 'icon' => 'bi-bank', 'url' => route('accounts.index')],
+        'cartoes' => ['label' => 'Cartões', 'icon' => 'bi-credit-card-2-front', 'url' => route('banks.index')],
+        'cofrinhos' => ['label' => 'Cofrinhos', 'icon' => 'bi-piggy-bank', 'url' => route('cofrinhos.index')],
     ];
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
 @endphp

@@ -11,7 +11,7 @@
     <div class="w-full ">
 
     <!-- Header Moderno -->
-    <x-category-header
+    <x-category-header tabs-section="categorias" tabs-active="lista"
         title="Categorias"
         description="Organize e gerencie suas categorias com eficiência"
         :total-categories="$productCategories->count() + $transactionCategories->count()"

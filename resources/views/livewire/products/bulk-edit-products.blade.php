@@ -9,7 +9,15 @@
 
     {{-- Grade de cards se ajusta à largura disponível (o menu lateral ocupa parte da tela) --}}
     <style>
-        .bulk-edit-page .bulk-products-grid { grid-template-columns: repeat(auto-fill, minmax(min(var(--bulk-card-min), 100%), 1fr)); }
+        /* Colunas pela largura da área de cards (não da tela): proporcional em celular, notebook e ultrawide. */
+        .bulk-edit-page .bulk-grid-wrap { container-type: inline-size; }
+        .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 2; grid-template-columns: repeat(var(--bulk-fit-cols), minmax(0, 1fr)); }
+        @container (min-width: 760px)  { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 3; } }
+        @container (min-width: 1040px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 4; } }
+        @container (min-width: 1320px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 5; } }
+        @container (min-width: 1640px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 6; } }
+        @container (min-width: 2000px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 7; } }
+        @container (min-width: 2400px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 8; } }
     </style>
 
     <x-product-page-header title="Edição em massa" icon="bi-pencil-square" active="massa"
@@ -64,11 +72,10 @@
 
             <label class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
                 <i class="bi bi-grid"></i>Por página
-                <select wire:model.live="perPage" id="perPage" class="rounded-lg border-0 bg-white dark:bg-slate-700 py-1 pl-2 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/30">
-                    <option value="60">60</option>
-                    <option value="120">120</option>
-                    <option value="180">180</option>
-                    <option value="240">240</option>
+                <select wire:model.live="perPage" wire:key="per-page-{{ $gridCols }}-{{ $perPage }}" id="perPage" class="rounded-lg border-0 bg-white dark:bg-slate-700 py-1 pl-2 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/30">
+                    @foreach($this->perPageOptions as $opt)
+                        <option value="{{ $opt }}" @selected($opt === $perPage)>{{ $opt }}</option>
+                    @endforeach
                 </select>
             </label>
 
@@ -666,6 +673,17 @@ function bulkEditPage() {
                 const el = document.getElementById('bulk-grid-top');
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
             });
+            // Quantidade por página = colunas que cabem × linhas (sem linha pela metade).
+            const reportCols = () => {
+                const grid = document.querySelector('.bulk-edit-page .bulk-products-grid');
+                if (!grid) return;
+                const cols = getComputedStyle(grid).gridTemplateColumns.split(' ').filter(Boolean).length;
+                const pending = window.Alpine && Alpine.store('bulkCart') ? Alpine.store('bulkCart').count : 0;
+                if (cols > 0 && pending === 0) this.$wire.setGridColumns(cols);
+            };
+            this.$nextTick(reportCols);
+            let colsTimer = null;
+            window.addEventListener('resize', () => { clearTimeout(colsTimer); colsTimer = setTimeout(reportCols, 400); });
             // Nova listagem (paginação/busca/filtro) → limpa o carrinho
             this.$wire.on('bulk-reloaded', () => {
                 if (window.Alpine && Alpine.store('bulkCart')) Alpine.store('bulkCart').clear();

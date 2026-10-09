@@ -31,7 +31,7 @@
     <div class="">
 
         <!-- Header Moderno -->
-        <x-clients-index-header title="Clientes" :total-clients="$clients->total() ?? 0" :active-clients="$clients->where('status', 'ativo')->count() ?? 0" :premium-clients="$clients->where('type', 'premium')->count() ?? 0" :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
+        <x-clients-index-header tabs-section="clientes" tabs-active="lista" title="Clientes" :total-clients="$clients->total() ?? 0" :active-clients="$clients->where('status', 'ativo')->count() ?? 0" :premium-clients="$clients->where('type', 'premium')->count() ?? 0" :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
             :show-quick-actions="true">
 
             <!-- Breadcrumb -->

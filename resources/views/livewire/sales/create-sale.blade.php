@@ -80,7 +80,7 @@
 
     <!-- Header Flutuante / Sticky -->
     <div class="create-sale-sticky-header">
-    <x-sales-header
+    <x-sales-header tabs-section="vendas" tabs-active="nova"
         title="Nova Venda"
         description="Monte a venda com cliente, itens e fechamento em um fluxo rapido, seguro e proporcional em qualquer tela"
         :back-route="route('sales.index')"

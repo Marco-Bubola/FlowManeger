@@ -19,6 +19,7 @@
         'orcamentos' => ['label' => 'Orçamentos', 'icon' => 'bi-file-earmark-text', 'url' => route('clients.portal.quotes', $client->id)],
         'portal' => ['label' => 'Portal', 'icon' => 'bi-key', 'url' => route('clients.portal.access', $client->id)],
         'editar' => ['label' => 'Editar', 'icon' => 'bi-pencil-square', 'url' => route('clients.edit', $client->id)],
+        'todos' => ['label' => 'Todos os clientes', 'icon' => 'bi-people', 'url' => route('clients.index')],
     ] : [];
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
     $since = $client?->created_at ? $client->created_at->locale('pt_BR')->diffForHumans(null, true) : null;
@@ -28,7 +29,7 @@
     <div class="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(168,85,247,0.12),transparent_32%)]"></div>
     <div class="pointer-events-none absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
 
-    <div class="relative px-4 sm:px-6 pt-4 sm:pt-5 {{ $client ? 'pb-3' : 'pb-4 sm:pb-5' }}">
+    <div class="relative px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                 <a href="{{ $back }}" title="Voltar"
@@ -92,6 +93,8 @@
                     @endforeach
                 </nav>
             </div>
+        @else
+            <x-section-tabs section="clientes" :active="$active" />
         @endif
     </div>
 </div>

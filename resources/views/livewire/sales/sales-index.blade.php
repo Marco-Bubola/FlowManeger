@@ -60,7 +60,7 @@
     <div class="">
 
         <!-- Header Moderno -->
-        <x-sales-index-header
+        <x-sales-index-header tabs-section="vendas" tabs-active="lista"
             title="Vendas"
             :total-sales="$totalSales ?? 0"
             :pending-sales="$pendingSales ?? 0"

@@ -22,6 +22,9 @@
         : [
             'cartoes' => ['label' => 'Cartões', 'icon' => 'bi-credit-card-2-front', 'url' => route('banks.index')],
             'novo' => ['label' => 'Novo cartão', 'icon' => 'bi-plus-circle', 'url' => route('banks.create')],
+            'caixa' => ['label' => 'Livro caixa', 'icon' => 'bi-journal-text', 'url' => route('cashbook.index')],
+            'contas' => ['label' => 'Contas', 'icon' => 'bi-bank', 'url' => route('accounts.index')],
+            'cofrinhos' => ['label' => 'Cofrinhos', 'icon' => 'bi-piggy-bank', 'url' => route('cofrinhos.index')],
         ];
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
 @endphp

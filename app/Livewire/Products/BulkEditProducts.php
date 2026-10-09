@@ -22,6 +22,7 @@ class BulkEditProducts extends Component
 
     public int $currentPage = 1;
     public int $perPage = 120;
+    public int $gridCols = 0;   // colunas que cabem na tela (informado pelo navegador)
     public int $totalProducts = 0;
     public int $totalPages = 1;
 
@@ -96,6 +97,46 @@ class BulkEditProducts extends Component
     public function updatedFilterStatus(): void { $this->currentPage = 1; $this->loadProducts(); }
     public function updatedSortBy(): void       { $this->currentPage = 1; $this->loadProducts(); }
     public function updatedPerPage(): void      { $this->currentPage = 1; $this->loadProducts(); }
+
+    /** Linhas por página oferecidas; a quantidade por página é sempre colunas × linhas. */
+    public const ROWS_PER_PAGE = [6, 10, 15, 20];
+
+    /**
+     * O navegador informa quantos cards cabem por linha; a página passa a ter
+     * linhas completas (sem a última linha pela metade) em qualquer tela.
+     */
+    public function setGridColumns(int $cols): void
+    {
+        $cols = max(1, min(8, $cols));
+        if ($cols === $this->gridCols) {
+            return;
+        }
+        $this->gridCols = $cols;
+
+        $rows = max(1, (int) round($this->perPage / $cols));
+        $rows = collect(self::ROWS_PER_PAGE)->sortBy(fn ($r) => abs($r - $rows))->first();
+        $newPerPage = $rows * $cols;
+        if ($newPerPage === $this->perPage) {
+            return;
+        }
+
+        // Mantém o primeiro produto visível na nova página.
+        $firstIndex = ($this->currentPage - 1) * $this->perPage;
+        $this->perPage = $newPerPage;
+        $this->currentPage = (int) floor($firstIndex / $newPerPage) + 1;
+        $this->loadProducts();
+    }
+
+    public function getPerPageOptionsProperty(): array
+    {
+        $cols = $this->gridCols ?: 6;
+        $options = array_map(fn ($r) => $r * $cols, self::ROWS_PER_PAGE);
+        if (! in_array($this->perPage, $options, true)) {
+            $options[] = $this->perPage;
+            sort($options);
+        }
+        return $options;
+    }
 
     public function goToPage(int $page): void
     {

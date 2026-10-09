@@ -13,7 +13,7 @@
 
     <div class="w-full max-w-none px-4 sm:px-6 lg:px-8">
 
-        <x-client-page-header title="Novo cliente" subtitle="Cadastre um cliente com contato, documento e endereço" icon="bi-person-plus">
+        <x-client-page-header active="novo" title="Novo cliente" subtitle="Cadastre um cliente com contato, documento e endereço" icon="bi-person-plus">
             <x-slot name="actions">
                 <a href="{{ route('clients.index') }}"
                     class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/85 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm font-semibold hover:bg-white dark:hover:bg-slate-700 shadow-sm transition">

@@ -1,4 +1,6 @@
 @props([
+    'tabsSection' => null,
+    'tabsActive' => null,
     'title' => 'Clientes',
     'description' => '',
     'backRoute' => null,
@@ -86,4 +88,9 @@
             </div>
         </div>
     </div>
+    @if($tabsSection)
+        <div class="relative px-4 sm:px-6 pb-3 -mt-2">
+            <x-section-tabs :section="$tabsSection" :active="$tabsActive" class="!mt-0" />
+        </div>
+    @endif
 </div>
