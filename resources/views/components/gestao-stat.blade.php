@@ -12,13 +12,13 @@
     [$gradient, $valueClass] = $tones[$tone] ?? $tones['indigo'];
 @endphp
 
-<div class="flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-4 shadow-sm">
-    <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $gradient }} text-white shadow-md">
+<div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 sm:p-4 shadow-sm">
+    <div class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $gradient }} text-white shadow-md">
         <i class="bi {{ $icon }} text-lg"></i>
     </div>
-    <div class="min-w-0">
+    <div class="min-w-0 max-w-full">
         <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
-        <p class="truncate text-lg sm:text-xl font-black {{ $valueClass }}">{{ $value }}</p>
+        <p class="break-words text-base sm:text-xl font-black leading-tight {{ $valueClass }}">{{ $value }}</p>
         @if($hint)
             <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ $hint }}</p>
         @endif

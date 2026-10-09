@@ -10,12 +10,19 @@ class CreateCofrinho extends Component
 {
     public $nome = '';
     public $meta_valor = '';
-    public $description = '';
+    public $icone = 'fa-piggy-bank';
+
+    /** Ícones que o usuário pode escolher (Font Awesome, coluna cofrinhos.icone). */
+    public const ICONES = [
+        'fa-piggy-bank' => 'Cofrinho', 'fa-shield-alt' => 'Reserva', 'fa-plane' => 'Viagem', 'fa-car' => 'Carro',
+        'fa-home' => 'Casa', 'fa-laptop' => 'Eletrônico', 'fa-graduation-cap' => 'Estudos', 'fa-gift' => 'Presente',
+        'fa-heart' => 'Saúde', 'fa-ring' => 'Casamento', 'fa-baby' => 'Filhos', 'fa-store' => 'Negócio',
+    ];
 
     protected $rules = [
         'nome' => 'required|string|max:255',
         'meta_valor' => 'required|numeric|min:0',
-        'description' => 'nullable|string|max:500',
+        'icone' => 'required|string|max:50',
     ];
 
     protected $messages = [
@@ -24,7 +31,6 @@ class CreateCofrinho extends Component
         'meta_valor.required' => 'A meta de valor é obrigatória.',
         'meta_valor.numeric' => 'A meta de valor deve ser um número.',
         'meta_valor.min' => 'A meta de valor deve ser maior que zero.',
-        'description.max' => 'A descrição não pode ter mais de 500 caracteres.',
     ];
 
     public function save()
@@ -35,7 +41,7 @@ class CreateCofrinho extends Component
             'user_id' => Auth::id(),
             'nome' => $this->nome,
             'meta_valor' => $this->meta_valor,
-            'description' => $this->description,
+            'icone' => array_key_exists($this->icone, self::ICONES) ? $this->icone : 'fa-piggy-bank',
             'status' => 'ativo',
         ]);
 

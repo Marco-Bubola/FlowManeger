@@ -1,249 +1,100 @@
-<div class="cofrinhos-show-page w-full mobile-393-base">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-mobile.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-iphone15.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-ipad-portrait.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-ipad-landscape.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-notebook.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/responsive/cofrinhos-show-ultrawide.css') }}">
-    <!-- Header -->
-    <div class="w-full px-6 py-8 bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 shadow-xl">
-        <div class="w-full px-4">
-            <div class="flex items-center gap-4">
-                <a href="{{ route('cofrinhos.index') }}" wire:navigate
-                   class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center hover:bg-white/30 transition-colors backdrop-blur-sm">
-                    <i class="bi bi-arrow-left text-white text-xl"></i>
-                </a>
-                <div class="flex items-center gap-4">
-                    <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-                        <i class="bi bi-piggy-bank text-white text-3xl"></i>
-                    </div>
-                    <div>
-                        <h1 class="text-4xl font-bold text-white mb-2">{{ $cofrinho->nome }}</h1>
-                        <p class="text-white/90 text-lg">Acompanhe o progresso da sua meta</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div class="cofrinhos-show-page w-full pb-8">
+    @php
+        $meta = (float) $cofrinho->meta_valor;
+        $done = $meta > 0 && $valor_acumulado >= $meta;
+        $pct = (float) $porcentagem;
+    @endphp
+
+    <x-cashbook-page-header :title="$cofrinho->nome" subtitle="Quanto já foi guardado e cada movimentação deste cofrinho"
+        :icon="'fas ' . ($cofrinho->icone ?: 'fa-piggy-bank')" active="cofrinhos" :back-route="route('cofrinhos.index')">
+        <x-slot:meta>
+            @if($done)
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"><i class="bi bi-trophy-fill"></i>Meta alcançada</span>
+            @elseif($cofrinho->status !== 'ativo')
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><i class="bi bi-archive"></i>Arquivado</span>
+            @else
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"><i class="bi bi-hourglass-split"></i>Em andamento</span>
+            @endif
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><i class="bi bi-calendar3"></i>Criado em {{ $cofrinho->created_at?->format('d/m/Y') }}</span>
+        </x-slot:meta>
+        <x-slot:actions>
+            <a href="{{ route('cofrinhos.edit', $cofrinho->id) }}" wire:navigate
+               class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-pencil"></i>Editar</a>
+            <a href="{{ route('cashbook.create') }}" wire:navigate
+               class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition"><i class="bi bi-plus-lg"></i>Novo lançamento</a>
+        </x-slot:actions>
+    </x-cashbook-page-header>
+
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <x-gestao-stat label="Guardado" :value="'R$ ' . number_format($valor_acumulado, 2, ',', '.')" icon="bi-piggy-bank" tone="emerald" />
+        <x-gestao-stat label="Meta" :value="'R$ ' . number_format($meta, 2, ',', '.')" icon="bi-flag" tone="indigo" />
+        <x-gestao-stat label="Falta" :value="'R$ ' . number_format(max(0, $estatisticas['valor_restante']), 2, ',', '.')" icon="bi-hourglass-split" tone="amber" />
+        <x-gestao-stat label="Movimentações no mês" :value="$estatisticas['transacoes_mes']" icon="bi-calendar-check" tone="sky" />
     </div>
 
-    <!-- Conteúdo Principal -->
-    <div class="w-full px-6 py-8">
-
-        <!-- Resumo do Cofrinho -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-            <!-- Progresso Principal -->
-            <div class="lg:col-span-2">
-                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-8">
-                    <div class="text-center mb-8">
-                        <div class="text-6xl font-bold text-transparent bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text mb-4">
-                            {{ number_format($porcentagem, 1) }}%
-                        </div>
-                        <div class="text-2xl font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                            R$ {{ number_format($valor_acumulado, 2, ',', '.') }}
-                        </div>
-                        <div class="text-lg text-gray-500 dark:text-gray-400">
-                            de R$ {{ number_format($cofrinho->meta_valor, 2, ',', '.') }}
-                        </div>
-                    </div>
-
-                    <!-- Barra de Progresso -->
-                    <div class="relative mb-6">
-                        <div class="w-full bg-gray-200 dark:bg-zinc-700 rounded-full h-6">
-                            <div class="bg-gradient-to-r from-purple-500 to-blue-500 h-6 rounded-full transition-all duration-1000 relative overflow-hidden"
-                                 style="width: {{ min($porcentagem, 100) }}%">
-                                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
-                            </div>
-                        </div>
-                        <div class="absolute top-0 left-0 h-6 flex items-center justify-center w-full">
-                            <span class="text-xs font-semibold text-white drop-shadow-lg">
-                                {{ number_format($porcentagem, 1) }}%
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Status -->
-                    <div class="text-center">
-                        @if($valor_acumulado >= $cofrinho->meta_valor)
-                        <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-full font-semibold">
-                            <i class="bi bi-trophy-fill mr-2"></i>Meta Alcançada!
-                        </div>
-                        @else
-                        <div class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-full font-semibold">
-                            <i class="bi bi-hourglass-split mr-2"></i>Em Progresso
-                        </div>
-                        @endif
-                    </div>
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-4">
+        <div class="space-y-4">
+            <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-5 shadow-sm">
+                <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Progresso da meta</p>
+                <p class="mt-2 text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{{ number_format($pct, 1, ',', '.') }}%</p>
+                <div class="mt-3 h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                    <div class="h-full rounded-full {{ $done ? 'bg-gradient-to-r from-emerald-500 to-teal-500' : 'bg-gradient-to-r from-indigo-500 to-purple-500' }}" style="width: {{ min($pct, 100) }}%"></div>
                 </div>
+                <p class="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                    R$ {{ number_format($valor_acumulado, 2, ',', '.') }} de R$ {{ number_format($meta, 2, ',', '.') }}
+                </p>
             </div>
 
-            <!-- Informações Gerais -->
-            <div class="space-y-6">
-                <!-- Card Status -->
-                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Status</h3>
-                        <span class="px-3 py-1 rounded-full text-sm font-medium
-                                     @if($cofrinho->status === 'ativo') bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400
-                                     @else bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400 @endif">
-                            {{ ucfirst($cofrinho->status) }}
-                        </span>
-                    </div>
-                    <div class="space-y-3">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600 dark:text-gray-400">Criado em:</span>
-                            <span class="font-medium text-gray-900 dark:text-white">{{ $cofrinho->created_at->format('d/m/Y') }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600 dark:text-gray-400">Transações:</span>
-                            <span class="font-medium text-gray-900 dark:text-white">{{ count($transacoes) }}</span>
-                        </div>
-                    </div>
+            <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-5 shadow-sm space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400"><i class="bi bi-arrow-down-circle text-emerald-500"></i>Guardado ({{ $estatisticas['qtd_receitas'] }})</span>
+                    <span class="font-bold text-emerald-600 dark:text-emerald-400">R$ {{ number_format($estatisticas['total_receitas'], 2, ',', '.') }}</span>
                 </div>
-
-                <!-- Card Ações -->
-                <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Ações</h3>
-                    <div class="space-y-3">
-                        <a href="{{ route('cofrinhos.edit', $cofrinho->id) }}" wire:navigate
-                           class="w-full flex items-center justify-center px-4 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg transition-all duration-200">
-                            <i class="bi bi-pencil mr-2"></i>Editar Cofrinho
-                        </a>
-                        <a href="{{ route('cashbook.index') }}" wire:navigate
-                           class="w-full flex items-center justify-center px-4 py-2 bg-green-50 hover:bg-green-100 dark:bg-green-900/20 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg transition-all duration-200">
-                            <i class="bi bi-plus-circle mr-2"></i>Nova Transação
-                        </a>
-                    </div>
+                <div class="flex items-center justify-between">
+                    <span class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400"><i class="bi bi-arrow-up-circle text-rose-500"></i>Retirado ({{ $estatisticas['qtd_despesas'] }})</span>
+                    <span class="font-bold text-rose-600 dark:text-rose-400">R$ {{ number_format($estatisticas['total_despesas'], 2, ',', '.') }}</span>
                 </div>
+                <p class="border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
+                    Para guardar, lance uma <b>receita</b> no Livro caixa escolhendo este cofrinho. Para retirar, lance uma <b>despesa</b>.
+                </p>
             </div>
         </div>
 
-        <!-- Estatísticas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-green-100 dark:bg-green-900/20 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-arrow-up-circle text-green-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Receitas</span>
+        <div class="xl:col-span-2 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-5 shadow-sm">
+            <div class="mb-4 flex items-center gap-3">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-md"><i class="bi bi-clock-history"></i></div>
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 dark:text-white">Movimentações</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ count($transacoes) }} {{ count($transacoes) === 1 ? 'lançamento' : 'lançamentos' }} ligados a este cofrinho</p>
                 </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                    R$ {{ number_format($estatisticas['total_receitas'], 2, ',', '.') }}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ $estatisticas['qtd_receitas'] }} transações
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-red-100 dark:bg-red-900/20 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-arrow-down-circle text-red-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Despesas</span>
-                </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                    R$ {{ number_format($estatisticas['total_despesas'], 2, ',', '.') }}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    {{ $estatisticas['qtd_despesas'] }} transações
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900/20 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-calendar-month text-purple-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Este Mês</span>
-                </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                    {{ $estatisticas['transacoes_mes'] }}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    transações
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center justify-between mb-2">
-                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900/20 rounded-xl flex items-center justify-center">
-                        <i class="bi bi-flag text-blue-600 text-xl"></i>
-                    </div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">Restante</span>
-                </div>
-                <div class="text-2xl font-bold text-gray-900 dark:text-white">
-                    R$ {{ number_format($estatisticas['valor_restante'], 2, ',', '.') }}
-                </div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">
-                    para a meta
-                </div>
-            </div>
-        </div>
-
-        <!-- Descrição -->
-        @if($cofrinho->description)
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6 mb-8">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                <i class="bi bi-chat-text text-blue-600 mr-2"></i>Descrição
-            </h3>
-            <p class="text-gray-700 dark:text-gray-300 leading-relaxed">{{ $cofrinho->description }}</p>
-        </div>
-        @endif
-
-        <!-- Histórico de Transações -->
-        <div class="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl border border-gray-200 dark:border-zinc-700 p-6">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-                    <i class="bi bi-clock-history text-indigo-600 mr-2"></i>Histórico de Transações
-                </h3>
-                <a href="{{ route('cashbook.index') }}" wire:navigate
-                   class="px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 rounded-lg transition-all duration-200">
-                    <i class="bi bi-plus mr-2"></i>Nova Transação
-                </a>
             </div>
 
             @if(count($transacoes) > 0)
-            <div class="space-y-4 max-h-96 overflow-y-auto">
-                @foreach($transacoes as $transacao)
-                <div class="flex items-center justify-between p-4 bg-gray-50 dark:bg-zinc-700 rounded-xl">
-                    <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-xl flex items-center justify-center mr-4
-                                    @if($transacao['type_id'] == 1) bg-green-100 dark:bg-green-900/20
-                                    @else bg-red-100 dark:bg-red-900/20 @endif">
-                            <i class="bi bi-{{ $transacao['type_id'] == 1 ? 'arrow-up-circle' : 'arrow-down-circle' }}
-                               text-{{ $transacao['type_id'] == 1 ? 'green' : 'red' }}-600 text-xl"></i>
-                        </div>
-                        <div>
-                            <div class="font-medium text-gray-900 dark:text-white">
-                                {{ $transacao['type_id'] == 1 ? 'Receita' : 'Despesa' }}
+                <div class="divide-y divide-slate-100 dark:divide-slate-800">
+                    @foreach($transacoes as $transacao)
+                        @php $in = $transacao['type_id'] == 1; @endphp
+                        <a href="{{ route('cashbook.edit', $transacao['id']) }}" wire:navigate
+                           class="flex items-center gap-3 py-3 px-2 -mx-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $in ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300' }}">
+                                <i class="bi {{ $in ? 'bi-arrow-down-circle' : 'bi-arrow-up-circle' }} text-lg"></i>
                             </div>
-                            <div class="text-sm text-gray-500 dark:text-gray-400">
-                                {{ \Carbon\Carbon::parse($transacao['created_at'])->format('d/m/Y H:i') }}
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate font-semibold text-slate-900 dark:text-white">{{ $transacao['description'] ?: ($in ? 'Guardado' : 'Retirado') }}</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ $in ? 'Guardado' : 'Retirado' }} · {{ \Carbon\Carbon::parse($transacao['date'] ?? $transacao['created_at'])->format('d/m/Y') }}</p>
                             </div>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="text-lg font-semibold
-                                    @if($transacao['type_id'] == 1) text-green-600
-                                    @else text-red-600 @endif">
-                            {{ $transacao['type_id'] == 1 ? '+' : '-' }}R$ {{ number_format($transacao['value'], 2, ',', '.') }}
-                        </div>
-                    </div>
+                            <span class="shrink-0 font-bold {{ $in ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }}">
+                                {{ $in ? '+' : '-' }} R$ {{ number_format($transacao['value'], 2, ',', '.') }}
+                            </span>
+                        </a>
+                    @endforeach
                 </div>
-                @endforeach
-            </div>
             @else
-            <div class="text-center py-12">
-                <div class="w-16 h-16 bg-gray-100 dark:bg-gray-700 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <i class="bi bi-clock-history text-gray-400 text-2xl"></i>
+                <div class="py-10 text-center">
+                    <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800"><i class="bi bi-clock-history text-2xl text-slate-400"></i></div>
+                    <p class="font-semibold text-slate-900 dark:text-white">Nenhuma movimentação ainda</p>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Lance uma receita no Livro caixa escolhendo este cofrinho para começar.</p>
+                    <a href="{{ route('cashbook.create') }}" wire:navigate class="mt-4 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-plus-lg"></i>Novo lançamento</a>
                 </div>
-                <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Nenhuma transação encontrada</h4>
-                <p class="text-gray-500 dark:text-gray-400 mb-4">Adicione sua primeira transação para começar a acompanhar o progresso</p>
-                <a href="{{ route('cashbook.index') }}" wire:navigate
-                   class="inline-flex items-center px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200">
-                    <i class="bi bi-plus-circle mr-2"></i>Adicionar Transação
-                </a>
-            </div>
             @endif
         </div>
     </div>

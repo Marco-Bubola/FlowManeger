@@ -11,14 +11,15 @@ class EditCofrinho extends Component
     public Cofrinho $cofrinho;
     public $nome = '';
     public $meta_valor = '';
-    public $description = '';
+    public $icone = 'fa-piggy-bank';
+
     public $status = 'ativo';
 
     protected $rules = [
         'nome' => 'required|string|max:255',
         'meta_valor' => 'required|numeric|min:0',
-        'description' => 'nullable|string|max:500',
-        'status' => 'required|in:ativo,inativo',
+        'icone' => 'required|string|max:50',
+        'status' => 'required|in:ativo,arquivado',
     ];
 
     protected $messages = [
@@ -27,9 +28,8 @@ class EditCofrinho extends Component
         'meta_valor.required' => 'A meta de valor é obrigatória.',
         'meta_valor.numeric' => 'A meta de valor deve ser um número.',
         'meta_valor.min' => 'A meta de valor deve ser maior que zero.',
-        'description.max' => 'A descrição não pode ter mais de 500 caracteres.',
         'status.required' => 'O status é obrigatório.',
-        'status.in' => 'O status deve ser ativo ou inativo.',
+        'status.in' => 'O status deve ser ativo ou arquivado.',
     ];
 
     public function mount(Cofrinho $cofrinho)
@@ -42,7 +42,7 @@ class EditCofrinho extends Component
         $this->cofrinho = $cofrinho;
         $this->nome = $cofrinho->nome;
         $this->meta_valor = $cofrinho->meta_valor;
-        $this->description = $cofrinho->description ?? '';
+        $this->icone = $cofrinho->icone ?: 'fa-piggy-bank';
         $this->status = $cofrinho->status;
     }
 
@@ -53,7 +53,7 @@ class EditCofrinho extends Component
         $this->cofrinho->update([
             'nome' => $this->nome,
             'meta_valor' => $this->meta_valor,
-            'description' => $this->description,
+            'icone' => array_key_exists($this->icone, CreateCofrinho::ICONES) ? $this->icone : 'fa-piggy-bank',
             'status' => $this->status,
         ]);
 
