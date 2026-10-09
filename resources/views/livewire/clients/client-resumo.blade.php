@@ -18,12 +18,12 @@
     </x-client-page-header>
 
         <!-- Cards de Resumo Financeiro (linha única, mais compactos) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4 mb-6">
             <!-- Total Recebido -->
             <div class="group relative bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/30 rounded-xl shadow-lg border border-green-200 dark:border-green-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div class="absolute top-0 right-0 w-14 h-14 bg-green-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-9 h-9 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
                                 <i class="fas fa-arrow-down text-white text-base"></i>
@@ -45,7 +45,7 @@
             <div class="group relative bg-gradient-to-br from-red-50 to-rose-100 dark:from-red-900/20 dark:to-rose-900/30 rounded-xl shadow-lg border border-red-200 dark:border-red-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div class="absolute top-0 right-0 w-14 h-14 bg-red-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-9 h-9 bg-gradient-to-br from-red-500 to-rose-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
                                 <i class="fas fa-arrow-up text-white text-base"></i>
@@ -67,7 +67,7 @@
             <div class="group relative bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-900/20 dark:to-amber-900/30 rounded-xl shadow-lg border border-orange-200 dark:border-orange-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div class="absolute top-0 right-0 w-14 h-14 bg-orange-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-9 h-9 bg-gradient-to-br from-orange-500 to-amber-600 rounded-lg flex items-center justify-center shadow-md group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
                                 <i class="fas fa-file-invoice-dollar text-white text-base"></i>
@@ -89,7 +89,7 @@
             <div class="group relative bg-gradient-to-br from-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-50 to-{{ $saldoAtual >= 0 ? 'indigo' : 'rose' }}-100 dark:from-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-900/20 dark:to-{{ $saldoAtual >= 0 ? 'indigo' : 'rose' }}-900/30 rounded-xl shadow-lg border border-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-200 dark:border-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-800 p-3 hover:shadow-xl transition-all duration-200 overflow-hidden">
                 <div class="absolute top-0 right-0 w-14 h-14 bg-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-400/10 rounded-full transform translate-x-5 -translate-y-5"></div>
                 <div class="relative">
-                    <div class="flex items-center justify-between">
+                    <div class="flex flex-col items-start gap-1.5 sm:flex-row sm:items-center sm:justify-between">
                         <div class="flex items-center gap-3 min-w-0">
                             <div class="w-9 h-9 bg-gradient-to-br from-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-500 to-{{ $saldoAtual >= 0 ? 'indigo' : 'rose' }}-600 rounded-lg flex items-center justify-center shadow-md shadow-{{ $saldoAtual >= 0 ? 'blue' : 'red' }}-500/25 group-hover:scale-105 transition-transform duration-200 flex-shrink-0">
                                 <i class="fas fa-wallet text-white text-base"></i>

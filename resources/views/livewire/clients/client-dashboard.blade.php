@@ -10,11 +10,11 @@
         <x-client-page-header :client="$client" title="Dashboard do cliente" icon="bi-speedometer2" active="dashboard">
             <x-slot name="actions">
                 @if($totalVendas >= 5 && ($totalFaturado > 0 ? ($totalPago / $totalFaturado) * 100 : 0) >= 90)
-                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow"><i class="bi bi-trophy"></i>VIP</span>
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-400 to-orange-500 text-white shadow"><i class="bi bi-trophy"></i><b class="app-ph-label">VIP</b></span>
                 @endif
-                <a href="{{ route('sales.create') }}?client_id={{ $client->id }}"
+                <a href="{{ route('sales.create') }}?client_id={{ $client->id }}" title="Nova venda"
                    class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white text-sm font-semibold shadow-md transition">
-                    <i class="bi bi-plus-lg"></i>Nova venda
+                    <i class="bi bi-plus-lg"></i><span class="app-ph-label">Nova venda</span>
                 </a>
             </x-slot>
         </x-client-page-header>
@@ -114,7 +114,7 @@
                     </div>
                     <div class="flex-1">
                         <p class="text-xs text-teal-800 dark:text-teal-300 font-medium">Última Compra</p>
-                        <p class="text-lg font-bold text-teal-700 dark:text-teal-400">{{ count($vendas) > 0 ? \Carbon\Carbon::parse($vendas[0]['created_at'])->diffForHumans() : 'Nunca' }}</p>
+                        <p class="text-lg font-bold text-teal-700 dark:text-teal-400">{{ count($vendas) > 0 ? \Carbon\Carbon::parse($vendas[0]['created_at'])->locale('pt_BR')->diffForHumans() : 'Nunca' }}</p>
                     </div>
                 </div>
             </div>

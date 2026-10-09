@@ -9,76 +9,19 @@
         <x-client-page-header :client="$client" title="Transferências" icon="bi-arrow-left-right" active="transferencias" />
 
         <!-- Filtros e Estatísticas -->
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <!-- Filtros -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-                    <i class="bi bi-funnel text-indigo-600 dark:text-indigo-400 mr-2"></i>
-                    Filtros
-                </h3>
-                <div class="space-y-2">
-                    <button wire:click="setTipo('all')"
-                            class="w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 {{ $tipo === 'all' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
-                        <i class="bi bi-list mr-2"></i>
-                        Todas
-                    </button>
-                    <button wire:click="setTipo('recebidas')"
-                            class="w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 {{ $tipo === 'recebidas' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
-                        <i class="bi bi-arrow-down mr-2"></i>
-                        Recebidas
-                    </button>
-                    <button wire:click="setTipo('enviadas')"
-                            class="w-full text-left px-3 py-2 rounded-lg transition-colors duration-200 {{ $tipo === 'enviadas' ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' : 'hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300' }}">
-                        <i class="bi bi-arrow-up mr-2"></i>
-                        Enviadas
-                    </button>
-                </div>
+        <div class="space-y-3 mb-6">
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
+                <x-gestao-stat label="Total recebido" :value="'R$ ' . number_format($totalRecebido, 2, ',', '.')" icon="bi-arrow-down-circle" tone="emerald" />
+                <x-gestao-stat label="Total enviado" :value="'R$ ' . number_format($totalEnviado, 2, ',', '.')" icon="bi-arrow-up-circle" tone="amber" />
+                <x-gestao-stat label="Saldo" :value="'R$ ' . number_format($totalRecebido - $totalEnviado, 2, ',', '.')" icon="bi-calculator" :tone="($totalRecebido - $totalEnviado) >= 0 ? 'sky' : 'rose'" />
             </div>
-
-            <!-- Total Recebido -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-arrow-down-circle text-green-600 dark:text-green-400 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Recebido</p>
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-                            R$ {{ number_format($totalRecebido, 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Enviado -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-arrow-up-circle text-orange-600 dark:text-orange-400 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total Enviado</p>
-                        <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                            R$ {{ number_format($totalEnviado, 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Saldo -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 {{ ($totalRecebido - $totalEnviado) >= 0 ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-red-100 dark:bg-red-900/30' }} rounded-lg flex items-center justify-center">
-                        <i class="bi bi-calculator {{ ($totalRecebido - $totalEnviado) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400' }} text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Saldo Transferências</p>
-                        <p class="text-2xl font-bold {{ ($totalRecebido - $totalEnviado) >= 0 ? 'text-blue-600 dark:text-blue-400' : 'text-red-600 dark:text-red-400' }}">
-                            R$ {{ number_format($totalRecebido - $totalEnviado, 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <x-list-toolbar model="" class="!mb-0">
+                <x-toolbar.group icon="bi-funnel">
+                    <x-toolbar.chip wire:click="setTipo('all')" :active="$tipo === 'all'" icon="bi-list">Todas</x-toolbar.chip>
+                    <x-toolbar.chip wire:click="setTipo('recebidas')" :active="$tipo === 'recebidas'" icon="bi-arrow-down">Recebidas</x-toolbar.chip>
+                    <x-toolbar.chip wire:click="setTipo('enviadas')" :active="$tipo === 'enviadas'" icon="bi-arrow-up">Enviadas</x-toolbar.chip>
+                </x-toolbar.group>
+            </x-list-toolbar>
         </div>
 
         <!-- Lista de Transferências -->

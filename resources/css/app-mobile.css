@@ -94,6 +94,11 @@
         font-size: 0 !important;
         border-radius: 0.75rem !important;
     }
+    html body .app-ph .app-ph-actions .app-ph-label { display: none !important; }
+    html body .app-ph .app-ph-actions > span {
+        width: 2.25rem !important; height: 2.25rem !important; padding: 0 !important;
+        justify-content: center !important; border-radius: 0.75rem !important;
+    }
     html body .app-ph .app-ph-actions > a > i,
     html body .app-ph .app-ph-actions > button > i,
     html body .app-ph .app-ph-actions > div > button > i { font-size: 1rem !important; }
@@ -147,6 +152,22 @@
     html body .grid-cols-7 > [class*="min-h-[4"][wire\:click] { border-width: 1px !important; }
     html body .grid-cols-7 > [class*="min-h-[4"] > div:first-child { font-size: 0.78rem !important; }
 
+    /* Foto do cliente no cabeçalho, menor */
+    html body .app-ph .app-ph-avatar { width: 2.25rem !important; height: 2.25rem !important; font-size: 0.8rem !important; --tw-ring-offset-width: 0px; box-shadow: none !important; }
+
+    /* Botão com texto que troca ao salvar (Salvar / Salvando...): vira só o ícone */
+    html body .app-ph .app-ph-actions > button > span[wire\:loading],
+    html body .app-ph .app-ph-actions > button > span[wire\:loading\.remove] {
+        position: static !important;
+        min-width: 0 !important; height: auto !important; padding: 0 !important;
+        font-size: 0 !important; line-height: 1 !important; background: none !important;
+    }
+    html body .app-ph .app-ph-actions > button > span[wire\:loading] > i,
+    html body .app-ph .app-ph-actions > button > span[wire\:loading\.remove] > i { font-size: 1rem !important; margin: 0 !important; }
+
+    /* Dashboard do cliente: números dos cards em uma linha */
+    html body .client-dashboard-page .grid > div p.text-2xl { font-size: 1rem !important; line-height: 1.3 !important; white-space: nowrap; }
+
     /* Paginação no fim da lista */
     html body .pagination-bar { margin-top: 1rem !important; padding: 0.6rem !important; gap: 0.5rem !important; }
 }
@@ -182,17 +203,32 @@
  * O <flux:main> já tem padding e várias páginas somavam o seu próprio (px-4, 6px...),
  * o que deixava 30 a 64px de borda. Agora a margem vem só do main: 12px no celular,
  * 20px no iPad e 24px no computador. Nova venda e Configurações têm layout próprio. */
-html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) {
+html body [data-flux-main]:not(:has(.sales-create-page:not(.cs-cart-body), .settings-page-header)) {
     padding-left: 24px !important;
     padding-right: 24px !important;
     padding-top: 20px !important;
 }
-html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) > [wire\:id] {
+html body [data-flux-main]:not(:has(.sales-create-page:not(.cs-cart-body), .settings-page-header)) > [wire\:id] {
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
+/* Containers internos de página com o padrão antigo "px-4 sm:px-6 lg:px-8" também somavam margem */
+html body [data-flux-main] > [wire\:id] > [class~="px-4"][class~="sm:px-6"][class~="lg:px-8"]:not(#_),
+html body [data-flux-main] > [wire\:id] > * > [class~="px-4"][class~="sm:px-6"][class~="lg:px-8"]:not(#_),
+html body [data-flux-main] [class~="px-4"][class~="sm:px-6"][class~="lg:px-8"]:not(#_):has(.app-ph) {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+/* Configurações: a margem vem do cabeçalho e do .settings-wrap; a raiz da página não soma outra */
+html body [data-flux-main]:has(.settings-page-header) > [wire\:id]:not(#_) { padding-left: 0 !important; padding-right: 0 !important; }
+/* Editar venda usa a margem do main (o carrinho dela tem .sales-create-page, que não conta) */
+html body .edit-sale-page.w-full { padding-left: 0 !important; padding-right: 0 !important; }
+html body .edit-sale-page.w-full > .create-sale-sticky-header,
+html body .edit-sale-page.w-full .create-sale-sticky-header:not(.cs-cart-body *) {
+    margin-left: 0 !important; margin-right: 0 !important; padding-left: 0 !important; padding-right: 0 !important;
+}
 @media (max-width: 1180px) {
-    html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) {
+    html body [data-flux-main]:not(:has(.sales-create-page:not(.cs-cart-body), .settings-page-header)) {
         padding-left: 20px !important;
         padding-right: 20px !important;
         padding-top: 16px !important;
@@ -202,7 +238,7 @@ html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) 
     html body [data-flux-main] > [wire\:id] { padding-bottom: 0 !important; }
 }
 @media (max-width: 767px) {
-    html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) {
+    html body [data-flux-main]:not(:has(.sales-create-page:not(.cs-cart-body), .settings-page-header)) {
         padding-left: 12px !important;
         padding-right: 12px !important;
         padding-top: 12px !important;

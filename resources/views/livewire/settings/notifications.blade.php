@@ -41,7 +41,7 @@ new class extends Component {
                 quiet_enabled: this.quiet_enabled,
             };
             localStorage.setItem('flowmanager:notif', JSON.stringify(payload));
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const csrf = document.querySelector('meta[name=csrf-token]')?.content ?? '';
             fetch('/settings/preferences/notifications', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf},

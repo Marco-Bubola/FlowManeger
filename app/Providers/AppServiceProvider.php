@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
         // Pagamentos de venda viram receita no livro-caixa (se o usuário ativar)
         \App\Models\SalePayment::observe(\App\Services\Cashbook\SalePaymentCashbookSync::class);
 
+        // Datas relativas ("há 2 dias") em português em todo o app
+        \Carbon\Carbon::setLocale('pt_BR');
+
         // Mensagens flash de ações Livewire aparecem no aviso global
         \App\Livewire\Hooks\FlashToNotify::register();
 

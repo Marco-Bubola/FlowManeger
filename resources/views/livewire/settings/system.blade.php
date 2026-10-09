@@ -33,7 +33,7 @@ new class extends Component {
                 paper_size: this.paper_size,
             };
             localStorage.setItem('flowmanager:system', JSON.stringify(payload));
-            const csrf = document.querySelector('meta[name="csrf-token"]')?.content ?? '';
+            const csrf = document.querySelector('meta[name=csrf-token]')?.content ?? '';
             fetch('/settings/preferences/system', {
                 method: 'POST',
                 headers: {'Content-Type':'application/json','X-CSRF-TOKEN':csrf},

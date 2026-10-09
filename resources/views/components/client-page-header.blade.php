@@ -38,7 +38,7 @@
                 </a>
 
                 @if($client)
-                    <x-client-avatar :client="$client" size="w-12 h-12 sm:w-14 sm:h-14 text-lg" rounded="rounded-full" class="ring-4 ring-white/70 dark:ring-slate-700/70" />
+                    <x-client-avatar :client="$client" size="w-12 h-12 sm:w-14 sm:h-14 text-lg" rounded="rounded-full" class="app-ph-avatar ring-4 ring-white/70 dark:ring-slate-700/70" />
                 @else
                     <div class="flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 shrink-0 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 shadow-lg">
                         <i class="{{ $headerIcon }} text-white text-2xl"></i>
@@ -55,7 +55,7 @@
                         {{ $client?->name ?? $title }}
                     </h1>
                     @if($client)
-                        <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
+                        <div class="app-ph-sub mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-600 dark:text-slate-400">
                             @if($client->email)
                                 <span class="inline-flex items-center gap-1 truncate max-w-[220px]"><i class="bi bi-envelope"></i>{{ $client->email }}</span>
                             @endif

@@ -14,7 +14,7 @@
             </button>
             <a href="{{ route('products.index') }}"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-white/85 dark:bg-slate-900/80 border border-slate-200/70 dark:border-slate-700/70 px-3.5 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 shadow-sm transition">
-                Cancelar
+                <i class="bi bi-x-lg"></i>Cancelar
             </a>
             <button type="submit" form="edit-product-form" wire:loading.attr="disabled"
                 class="inline-flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-indigo-500/25 transition disabled:opacity-60">

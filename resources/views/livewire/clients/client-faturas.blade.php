@@ -10,49 +10,10 @@
         <x-client-page-header :client="$client" title="Faturas" icon="bi-receipt" active="faturas" />
 
         <!-- Estatísticas das Faturas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Total de Faturas -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-receipt text-blue-600 dark:text-blue-400 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Total de Faturas</p>
-                        <p class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $faturas->total() }}</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Valor Total Original -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-currency-dollar text-orange-600 dark:text-orange-400 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Valor Total Original</p>
-                        <p class="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                            R$ {{ number_format($faturas->sum('value'), 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Valor Atual (com divisões) -->
-            <div class="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-gray-200 dark:border-zinc-700 p-6">
-                <div class="flex items-center">
-                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
-                        <i class="bi bi-calculator text-green-600 dark:text-green-400 text-xl"></i>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Valor Atual</p>
-                        <p class="text-2xl font-bold text-green-600 dark:text-green-400">
-                            R$ {{ number_format($faturas->sum(function($f) { return $f->dividida ? $f->value / 2 : $f->value; }), 2, ',', '.') }}
-                        </p>
-                    </div>
-                </div>
-            </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 mb-6">
+            <x-gestao-stat label="Faturas" :value="$faturas->total()" icon="bi-receipt" tone="indigo" />
+            <x-gestao-stat label="Valor original" :value="'R$ ' . number_format($faturas->sum('value'), 2, ',', '.')" icon="bi-currency-dollar" tone="amber" />
+            <x-gestao-stat label="Valor atual" :value="'R$ ' . number_format($faturas->sum(function($f) { return $f->dividida ? $f->value / 2 : $f->value; }), 2, ',', '.')" icon="bi-wallet2" tone="emerald" />
         </div>
 
         <!-- Lista de Faturas -->
