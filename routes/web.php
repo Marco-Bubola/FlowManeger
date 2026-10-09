@@ -209,6 +209,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/clients/{client}/portal/quotes', [ClientPortalController::class, 'adminClientQuotes'])->name('clients.portal.quotes');
     Route::patch('/clients/portal/quotes/{quote}', [ClientPortalController::class, 'adminRespondQuote'])->name('clients.portal.quotes.update');
     Route::post('/clients/portal/quotes/{quote}/confirm', [ClientPortalController::class, 'adminConfirmQuote'])->name('clients.portal.quotes.confirm');
+    Route::get('/clients/portal/quotes/{quote}/whatsapp', [ClientPortalController::class, 'adminWhatsappQuote'])->name('clients.portal.quotes.whatsapp');
 
     // Manter algumas rotas específicas se necessário
     // Route::get('/client/{id}/data', [SaleController::class, 'getClientData']);
@@ -224,10 +225,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/upload', UploadProducts::class)->name('products.upload');
     Route::get('/products/bulk-edit', BulkEditProducts::class)->name('products.bulk-edit');
     Route::get('/products/barcode-scanner', BarcodeScanner::class)->name('products.barcode-scanner');
+    Route::get('/products/variation-stock', \App\Livewire\Products\VariationStockFix::class)->name('products.variation-stock');
 
     // --- Promoções ---
     Route::get('/promotions', PromotionsIndex::class)->name('promotions.index');
     Route::get('/promotions/create', PromotionsCreate::class)->name('promotions.create');
+    Route::get('/promotions/report', \App\Livewire\Promotions\PromotionsReport::class)->name('promotions.report');
 
     // Manter rotas que ainda usam controller para funcionalidades específicas
     // Route::get('/products/search', [ProductController::class, 'search'])->name('products.search');

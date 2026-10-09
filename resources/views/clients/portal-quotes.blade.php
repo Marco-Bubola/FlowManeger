@@ -205,6 +205,46 @@
     </div>
     @endif
 
+    {{-- Aviso ao cliente depois de confirmar/recusar: WhatsApp em um clique --}}
+    @if($notify = session('portal_notify'))
+    @php $notifyOk = ($notify['status'] ?? '') === 'approved'; @endphp
+    <div class="mx-4 sm:mx-6 lg:mx-8 mb-5 rounded-2xl border {{ $notifyOk ? 'border-emerald-200 dark:border-emerald-700/40' : 'border-rose-200 dark:border-rose-700/40' }} bg-white dark:bg-slate-900 shadow-sm overflow-hidden" data-testid="portal-notify">
+        <div class="flex flex-col gap-4 p-4 sm:p-5 lg:flex-row lg:items-center">
+            <div class="flex items-start gap-3 flex-1 min-w-0">
+                <div class="w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 {{ $notifyOk ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-300' : 'bg-rose-100 text-rose-600 dark:bg-rose-900/40 dark:text-rose-300' }}">
+                    <i class="fab fa-whatsapp text-xl"></i>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-sm font-black text-slate-900 dark:text-slate-100">
+                        Avise {{ $notify['client'] ?? 'o cliente' }} que o pedido #{{ $notify['quote_id'] }} foi {{ $notifyOk ? 'confirmado' : 'recusado' }}
+                    </p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        O cliente também vê o novo status em "Meus pedidos" no portal.
+                        @if(!empty($notify['mailed'])) E-mail enviado. @endif
+                        @if(empty($notify['has_phone'])) <span class="text-amber-600 dark:text-amber-400 font-semibold">Cliente sem celular válido: escolha o contato no WhatsApp.</span> @endif
+                    </p>
+                    <details class="mt-2 group">
+                        <summary class="cursor-pointer text-xs font-bold text-indigo-600 dark:text-indigo-400">Ver mensagem</summary>
+                        <pre class="mt-2 whitespace-pre-wrap rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 p-3 text-xs text-slate-700 dark:text-slate-300 font-sans" style="overflow-wrap:anywhere">{{ $notify['message'] }}</pre>
+                    </details>
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 shrink-0">
+                <a href="{{ $notify['url'] }}" target="_blank" rel="noopener"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#25d366] hover:bg-[#1ebe5b] px-4 py-2.5 text-sm font-black text-white shadow-md transition">
+                    <i class="fab fa-whatsapp text-base"></i> Avisar cliente no WhatsApp
+                </a>
+                @if(!empty($notify['sale_id']))
+                <a href="{{ route('sales.show', $notify['sale_id']) }}"
+                   class="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition">
+                    <i class="fas fa-receipt"></i> Ver venda #{{ $notify['sale_id'] }}
+                </a>
+                @endif
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- ══════════════════════════════════════════════════════════════ --}}
     {{-- GRID DE ORÇAMENTOS                                             --}}
     {{-- ══════════════════════════════════════════════════════════════ --}}
@@ -454,7 +494,7 @@
                 </form>
 
                 {{-- Confirmar como Venda --}}
-                @if(in_array($quote->status,['pending','reviewing','quoted']))
+                @if(in_array($quote->status,['pending','reviewing','quoted']) || ($quote->status === 'approved' && ! $quote->sale))
                 <button type="button"
                         @click="confirmModal = {{ $modalPayload }}"
                         class="w-full flex items-center justify-center gap-2 rounded-xl
@@ -467,7 +507,23 @@
                 @elseif($quote->status === 'approved')
                 <div class="flex items-center justify-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700/30 py-3 text-sm font-black text-emerald-700 dark:text-emerald-300">
                     <i class="fas fa-check-double"></i> Venda já criada
+                    @if($quote->sale)
+                        <a href="{{ route('sales.show', $quote->sale->id) }}" class="underline underline-offset-2">#{{ $quote->sale->id }}</a>
+                    @endif
                 </div>
+                @endif
+                @if(in_array($quote->status, ['approved', 'rejected']) && ($quote->status === 'rejected' || $quote->sale))
+                <a href="{{ route('clients.portal.quotes.whatsapp', $quote) }}" target="_blank" rel="noopener"
+                   class="w-full flex items-center justify-center gap-2 rounded-xl border border-emerald-200 dark:border-emerald-700/40 bg-white dark:bg-slate-800 py-2.5 text-sm font-bold text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition"
+                   data-testid="notify-whatsapp">
+                    <i class="fab fa-whatsapp text-base"></i>
+                    {{ $quote->client_notified_at ? 'Avisar de novo no WhatsApp' : 'Avisar cliente no WhatsApp' }}
+                </a>
+                @if($quote->client_notified_at)
+                <p class="text-center text-[10px] text-slate-400">Avisado em {{ $quote->client_notified_at->format('d/m/Y H:i') }}{{ $quote->client_seen_status === $quote->status ? ' · cliente já viu no portal' : '' }}</p>
+                @elseif($quote->client_seen_status === $quote->status)
+                <p class="text-center text-[10px] text-slate-400">Cliente já viu no portal</p>
+                @endif
                 @endif
             </div>
 

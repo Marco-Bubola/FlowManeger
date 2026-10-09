@@ -234,7 +234,9 @@
         <nav class="flex-1 px-2.5 pb-3 space-y-0.5 overflow-y-auto" style="-ms-overflow-style:none;scrollbar-width:none">
             @php
                 $portalQuoteAlerts = Auth::guard('portal')->check()
-                    ? \App\Models\ClientQuoteRequest::where('client_id', Auth::guard('portal')->id())->where('status', 'quoted')->count()
+                    ? \App\Models\ClientQuoteRequest::where('client_id', Auth::guard('portal')->id())
+                        ->where(fn ($q) => $q->where('status', 'quoted')->orWhere(fn ($q) => $q->unseenByClient()))
+                        ->count()
                     : 0;
             @endphp
 
@@ -345,6 +347,7 @@
 
         {{-- Page content --}}
         <main class="flex-1 overflow-y-auto px-4 lg:px-6 py-4 pb-6">
+            @include('portal.partials.order-updates', ['variant' => 'app'])
             {{ $slot }}
         </main>
 

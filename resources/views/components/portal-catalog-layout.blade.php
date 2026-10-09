@@ -1,9 +1,15 @@
-@props(['title' => 'Catálogo de Produtos', 'store' => null, 'ownerId' => null, 'search' => ''])
+@props(['title' => 'Catálogo de Produtos', 'store' => null, 'ownerId' => null, 'search' => '', 'cartHref' => null])
 @php
     $storeName = $store?->name ?: config('app.name');
     // Cores da logo do app (rosa, roxo e azul), escolhidas pelo dono.
     $theme = ['header' => 'linear-gradient(90deg, #ec4899 0%, #a855f7 50%, #3b82f6 100%)', 'primary' => '#8b5cf6', 'dark' => '#7c3aed', 'soft' => '#ede9fe', 'hero' => 'linear-gradient(135deg, #db2777 0%, #8b5cf6 55%, #2563eb 100%)', 'meta' => '#a855f7'];
     $cartUrl = Auth::guard('portal')->check() ? route('portal.quotes.create') : route('portal.login', ['redirect' => 'cart']);
+    // Novidades nos pedidos (confirmado/recusado/proposta) para o menu da conta.
+    $orderAlerts = Auth::guard('portal')->check()
+        ? \App\Models\ClientQuoteRequest::where('client_id', Auth::guard('portal')->id())
+            ->where(fn ($q) => $q->where('status', 'quoted')->orWhere(fn ($q) => $q->unseenByClient()))
+            ->count()
+        : 0;
 @endphp
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -64,6 +70,19 @@
         .ml-icon-btn:active { background: rgba(255,255,255,.18); }
         .ml-count { position: absolute; top: 1px; right: -1px; min-width: 19px; height: 19px; padding: 0 5px; border-radius: 999px; background: #fff; color: var(--ml-blue-dark); font-size: 11px; font-weight: 900; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
         @media (max-width: 380px) { .ml-login span { display: none; } .ml-login { width: 36px; padding: 0; justify-content: center; } }
+
+        /* Menu da conta (cliente logado) */
+        .ml-acc { position: relative; }
+        .ml-acc .ml-login { cursor: pointer; position: relative; }
+        .ml-acc-dot { position: absolute; top: -2px; right: -2px; width: 11px; height: 11px; border-radius: 50%; background: #facc15; border: 2px solid #fff; }
+        .ml-acc-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 220px; background: #fff; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,.18); padding: 6px; z-index: 80; color: var(--ml-text); }
+        .ml-acc-menu::before { content: ''; position: absolute; top: -6px; right: 22px; width: 12px; height: 12px; background: #fff; transform: rotate(45deg); }
+        .ml-acc-name { margin: 4px 10px 6px; font-size: 12px; color: var(--ml-muted); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ml-acc-menu a, .ml-acc-menu button { position: relative; display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px; border: 0; background: none; border-radius: 8px; font-size: 14px; font-weight: 600; text-align: left; cursor: pointer; }
+        .ml-acc-menu a:hover, .ml-acc-menu button:hover { background: var(--ml-blue-soft); color: var(--ml-blue-dark); }
+        .ml-acc-menu i { width: 18px; text-align: center; color: var(--ml-blue); }
+        .ml-acc-menu form { margin: 4px 0 0; padding-top: 4px; border-top: 1px solid var(--ml-line); }
+        .ml-acc-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--ml-blue); color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
         main { padding-bottom: 96px; }
         .ml-foot { text-align: center; color: #999; font-size: 12px; padding: 24px 12px 110px; }
@@ -135,20 +154,45 @@ document.addEventListener('alpine:init', () => {
             </form>
             <div class="ml-head-actions">
                 @if(Auth::guard('portal')->check())
-                    <a href="{{ route('portal.dashboard') }}" class="ml-login"><i class="fas fa-circle-user"></i><span>Minha conta</span></a>
+                    <div class="ml-acc" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
+                        <button type="button" class="ml-login" @click="open = !open" :aria-expanded="open" aria-haspopup="menu">
+                            <i class="fas fa-circle-user"></i><span>Minha conta</span>
+                            @if($orderAlerts > 0)<span class="ml-acc-dot" aria-label="Novidades nos pedidos"></span>@endif
+                        </button>
+                        <div class="ml-acc-menu" x-show="open" x-cloak x-transition.opacity role="menu">
+                            <p class="ml-acc-name">{{ Str::limit(Auth::guard('portal')->user()->name, 28) }}</p>
+                            <a href="{{ route('portal.quotes') }}" role="menuitem"><i class="fas fa-box"></i> Meus pedidos
+                                @if($orderAlerts > 0)<span class="ml-acc-badge">{{ $orderAlerts }}</span>@endif</a>
+                            <a href="{{ route('portal.sales') }}" role="menuitem"><i class="fas fa-bag-shopping"></i> Minhas compras</a>
+                            <a href="{{ route('portal.profile') }}" role="menuitem"><i class="fas fa-user-pen"></i> Meus dados</a>
+                            <a href="{{ route('portal.dashboard') }}" role="menuitem"><i class="fas fa-house"></i> Painel da conta</a>
+                            <form method="POST" action="{{ route('portal.logout') }}">
+                                @csrf
+                                <button type="submit" role="menuitem"><i class="fas fa-right-from-bracket"></i> Sair</button>
+                            </form>
+                        </div>
+                    </div>
                 @else
                     <a href="{{ route('portal.login') }}" class="ml-login"><i class="fas fa-circle-user"></i><span>Entrar</span></a>
                 @endif
+                @if($cartHref)
+                <a href="{{ $cartHref }}" class="ml-icon-btn" x-data aria-label="Abrir carrinho">
+                    <i class="fas fa-cart-shopping"></i>
+                    <span class="ml-count" x-show="$store.cart.count > 0" x-text="$store.cart.count" x-cloak></span>
+                </a>
+                @else
                 <button type="button" class="ml-icon-btn" x-data @click="$dispatch('open-cart')" aria-label="Abrir carrinho">
                     <i class="fas fa-cart-shopping"></i>
                     <span class="ml-count" x-show="$store.cart.count > 0" x-text="$store.cart.count" x-cloak></span>
                 </button>
+                @endif
             </div>
         </div>
     </div>
 </header>
 
 <main>
+    @include('portal.partials.order-updates', ['variant' => 'ml'])
     {{ $slot }}
 </main>
 

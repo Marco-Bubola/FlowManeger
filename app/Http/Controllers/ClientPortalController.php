@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use App\Notifications\PortalQuoteReceived;
+use App\Services\Portal\PortalOrderService;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
@@ -494,12 +495,51 @@ class ClientPortalController extends Controller
         /** @var \App\Models\Client $client */
         $client = Auth::guard('portal')->user();
 
-        $quotes = ClientQuoteRequest::where('client_id', $client->id)
-            ->orderByRaw("CASE status WHEN 'quoted' THEN 0 WHEN 'pending' THEN 1 WHEN 'reviewing' THEN 2 WHEN 'approved' THEN 3 ELSE 4 END")
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $filter = in_array(request('status'), ['open', 'confirmed', 'rejected'], true) ? request('status') : '';
 
-        return view('portal.quotes.index', compact('client', 'quotes'));
+        $base = ClientQuoteRequest::where('client_id', $client->id);
+        $counts = [
+            ''          => (clone $base)->count(),
+            'open'      => (clone $base)->whereIn('status', ['pending', 'reviewing', 'quoted'])->count(),
+            'confirmed' => (clone $base)->where('status', 'approved')->count(),
+            'rejected'  => (clone $base)->where('status', 'rejected')->count(),
+        ];
+
+        $quotes = (clone $base)
+            ->with(['sale' => fn ($q) => $q->with(['saleItems', 'payments'])])
+            ->when($filter === 'open', fn ($q) => $q->whereIn('status', ['pending', 'reviewing', 'quoted']))
+            ->when($filter === 'confirmed', fn ($q) => $q->where('status', 'approved'))
+            ->when($filter === 'rejected', fn ($q) => $q->where('status', 'rejected'))
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->paginate(10)
+            ->withQueryString();
+
+        $products = $this->portalProductsFor($client, $quotes->getCollection());
+        $orders = app(PortalOrderService::class);
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+        $otherSales = $this->portalSales($client)->whereNull('portal_quote_id')->count();
+
+        return view('portal.quotes.index', compact('client', 'quotes', 'products', 'orders', 'store', 'filter', 'counts', 'otherSales'));
+    }
+
+    /** Produtos dos pedidos (sem o escopo da equipe, só da loja do cliente), por id. */
+    private function portalProductsFor(Client $client, $quotes)
+    {
+        $ids = $quotes->flatMap(fn ($q) => collect($q->items ?? [])->pluck('product_id')
+            ->merge($q->sale?->saleItems?->pluck('product_id') ?? []))
+            ->filter()->unique()->values();
+
+        if ($ids->isEmpty()) {
+            return collect();
+        }
+
+        return Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $client->user_id)
+            ->whereIn('id', $ids)
+            ->with('images')
+            ->get()
+            ->keyBy('id');
     }
 
     public function createQuote()
@@ -681,9 +721,18 @@ class ClientPortalController extends Controller
         /** @var \App\Models\Client $client */
         $client = Auth::guard('portal')->user();
 
-        abort_if($quote->client_id !== $client->id, 403);
+        abort_if((int) $quote->client_id !== (int) $client->id, 403);
 
-        return view('portal.quotes.show', compact('client', 'quote'));
+        $quote->load(['sale' => fn ($q) => $q->with(['saleItems', 'payments'])]);
+        $sale = $quote->sale;
+        $isNew = $quote->has_unseen_update;
+        $quote->markSeenByClient();
+
+        $orders = app(PortalOrderService::class);
+        $products = $this->portalProductsFor($client, collect([$quote]));
+        $store = User::select('id', 'name', 'phone')->find($client->user_id);
+
+        return view('portal.quotes.show', compact('client', 'quote', 'sale', 'isNew', 'orders', 'products', 'store'));
     }
 
     public function respondToQuote(Request $request, ClientQuoteRequest $quote)
@@ -699,7 +748,8 @@ class ClientPortalController extends Controller
 
         abort_unless($quote->status === 'quoted', 422, 'Somente orçamentos respondidos podem ser aprovados ou recusados.');
 
-        $quote->update(['status' => $validated['status']]);
+        // A resposta é do próprio cliente: não vira "novidade" para ele.
+        $quote->update(['status' => $validated['status'], 'client_seen_status' => $validated['status']]);
 
         if ($validated['status'] === 'approved') {
             return back()->with('success', 'Orçamento aceito! Nosso time confirmará em breve.');
@@ -1032,10 +1082,53 @@ class ClientPortalController extends Controller
         $quote->update([
             'status'       => 'approved',
             'quoted_total' => $validated['total_price'],
+            'responded_at' => now(),
         ]);
 
-        return redirect()->route('sales.show', $sale)
-            ->with('success', "Orçamento confirmado! Venda #{$sale->id} criada com sucesso.");
+        return $this->redirectWithClientNotice($quote, $sale, "Pedido confirmado! Venda #{$sale->id} criada com sucesso.");
+    }
+
+    /**
+     * Depois de confirmar ou recusar: volta à lista de pedidos do cliente com
+     * o botão "Avisar cliente no WhatsApp" pronto (e e-mail, se configurado).
+     */
+    private function redirectWithClientNotice(ClientQuoteRequest $quote, ?Sale $sale, string $message)
+    {
+        $orders = app(PortalOrderService::class);
+        $client = $quote->client;
+        $mailed = $orders->mailClient($quote, $client);
+
+        return redirect()->route('clients.portal.quotes', $quote->client_id)
+            ->with('success', $message)
+            ->with('portal_notify', [
+                'quote_id'  => $quote->id,
+                'status'    => $quote->status,
+                'sale_id'   => $sale?->id,
+                'client'    => $client?->name,
+                'has_phone' => $orders->hasWhatsappPhone($client),
+                'mailed'    => $mailed,
+                'url'       => route('clients.portal.quotes.whatsapp', $quote),
+                'message'   => $orders->whatsappMessage($quote, $client, $this->storeName($quote), $sale),
+            ]);
+    }
+
+    /** Abre o aviso no WhatsApp (wa.me) e registra que o cliente foi avisado. */
+    public function adminWhatsappQuote(ClientQuoteRequest $quote)
+    {
+        $this->assertCanManageClient($quote->client);
+
+        $quote->forceFill(['client_notified_at' => now()]);
+        $quote->timestamps = false;
+        $quote->save();
+
+        $sale = $quote->status === 'approved' ? $quote->sale : null;
+
+        return redirect()->away(app(PortalOrderService::class)->whatsappUrl($quote, $quote->client, $this->storeName($quote), $sale));
+    }
+
+    private function storeName(ClientQuoteRequest $quote): ?string
+    {
+        return User::whereKey($quote->user_id)->value('name') ?? Auth::user()?->name;
     }
 
     /** Admin visualiza orçamentos de um cliente */
@@ -1043,7 +1136,7 @@ class ClientPortalController extends Controller
     {
         $this->assertCanManageClient($client);
 
-        $quotes = ClientQuoteRequest::where('client_id', $client->id)->latest()->get();
+        $quotes = ClientQuoteRequest::where('client_id', $client->id)->with('sale')->latest()->get();
 
         return view('clients.portal-quotes', compact('client', 'quotes'));
     }
@@ -1060,7 +1153,16 @@ class ClientPortalController extends Controller
             'valid_until'  => ['nullable', 'date', 'after:today'],
         ]);
 
+        $changed = $quote->status !== $validated['status'];
+        if ($changed && in_array($validated['status'], ClientQuoteRequest::CLIENT_UPDATE_STATUSES, true)) {
+            $validated['responded_at'] = now();
+        }
+
         $quote->update($validated);
+
+        if ($changed && $quote->status === 'rejected') {
+            return $this->redirectWithClientNotice($quote, null, "Pedido #{$quote->id} recusado.");
+        }
 
         return back()->with('success', 'Orçamento atualizado!');
     }
