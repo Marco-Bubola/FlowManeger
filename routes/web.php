@@ -116,6 +116,11 @@ use App\Livewire\Achievements\AchievementsPage;
 use App\Http\Controllers\UploadCashbookController;
 use App\Http\Controllers\ClienteResumoController;
 
+// Navegadores e iPhone pedem estes caminhos fixos; os arquivos ficam no build do Vite.
+Route::get('/favicon.ico', fn () => redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/favicon.ico'), 301));
+Route::get('/apple-touch-icon.png', fn () => redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/apple-touch-icon-180.png'), 301));
+Route::get('/apple-touch-icon-precomposed.png', fn () => redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/apple-touch-icon-180.png'), 301));
+
 Route::get('/', function () {
     return view('welcome');
 })->name('home');

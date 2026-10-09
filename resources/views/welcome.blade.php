@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="FlowManager — dashboard de vendas, CRM, gestão de produtos e integração com Mercado Livre. Comece grátis hoje.">
     <title>FlowManager — Gerencie seu negócio com inteligência</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-    <link rel="icon" href="/favicon.ico" sizes="any">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180.png">
+    @include('partials.favicons')
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter:300,400,500,600,700,800,900&display=swap" rel="stylesheet">
     <style>
@@ -653,7 +650,7 @@
 <!-- ━━ NAVBAR ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <nav id="navbar">
     <a href="/" class="nav-logo">
-        <img src="/logo-128.png" alt="FlowManager">
+        <img src="{{ Vite::asset('resources/images/icons/logo-128.png') }}" alt="FlowManager">
         <span class="nav-logo-text">FlowManager</span>
     </a>
 
@@ -1218,7 +1215,7 @@
     <div class="footer-top">
         <div class="footer-brand">
             <div class="footer-logo">
-                <img src="/logo-128.png" alt="FlowManager">
+                <img src="{{ Vite::asset('resources/images/icons/logo-128.png') }}" alt="FlowManager">
                 <div class="footer-logo-text"><span>FlowManager</span></div>
             </div>
             <p class="footer-tagline">A plataforma completa para gestão de vendas online. Dashboard, pedidos, CRM, integrações e muito mais.</p>

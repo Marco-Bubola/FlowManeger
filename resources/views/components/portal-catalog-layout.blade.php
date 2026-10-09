@@ -15,8 +15,7 @@
     <title>{{ $title }} · {{ $storeName }}</title>
     <meta property="og:title" content="{{ $storeName }} · Catálogo">
     <meta property="og:description" content="Veja os produtos e ofertas de {{ $storeName }}.">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-    <link rel="icon" href="/favicon.ico" sizes="any">
+    @include('partials.favicons')
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -128,7 +127,7 @@ document.addEventListener('alpine:init', () => {
     <div class="ml-wrap">
         <div class="ml-header-row">
             <a href="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : '#' }}" class="ml-logo" aria-label="Início do catálogo">
-                <img src="/logo-64.png" alt="">
+                <img src="{{ Vite::asset('resources/images/icons/logo-64.png') }}" alt="">
             </a>
             <form method="GET" action="{{ $ownerId ? route('portal.catalog', ['userId' => $ownerId]) : route('portal.catalog') }}" class="ml-search" role="search">
                 <input type="search" name="search" value="{{ $search }}" placeholder="Buscar" aria-label="Buscar produtos" enterkeyhint="search">
