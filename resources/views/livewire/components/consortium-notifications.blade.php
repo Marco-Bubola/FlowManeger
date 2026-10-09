@@ -3,11 +3,17 @@
         open: false,
         style: '',
         mobile: false,
+        anchor: null,
         place() {
-            const r = this.$refs.bell.getBoundingClientRect();
+            const r = (this.anchor || this.$refs.bell).getBoundingClientRect();
             this.mobile = window.innerWidth < 640;
             if (this.mobile) { this.style = ''; return; }
             const w = Math.min(410, window.innerWidth - 16);
+            if (this.anchor) {
+                // Aberto pelo sino do topo (tablet): painel logo abaixo, alinhado à direita
+                this.style = `left:${Math.max(8, r.right - w)}px;top:${r.bottom + 8}px;width:${w}px`;
+                return;
+            }
             let left = r.right + 12;
             if (left + w > window.innerWidth - 8) left = Math.max(8, r.left - w + r.width);
             const vertical = r.top > window.innerHeight / 2
@@ -15,8 +21,10 @@
                 : `top:${Math.max(8, r.top)}px`;
             this.style = `left:${left}px;${vertical};width:${w}px`;
         },
-        toggle() { this.open = !this.open; if (this.open) this.$nextTick(() => this.place()); },
+        toggle() { this.anchor = null; this.open = !this.open; if (this.open) this.$nextTick(() => this.place()); },
+        openFrom(el) { this.anchor = el || null; this.open = true; this.$nextTick(() => this.place()); },
     }"
+    @open-notifications.window="openFrom($event.detail?.anchor)"
     @keydown.escape.window="open = false"
     @resize.window="open && place()">
 

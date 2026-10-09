@@ -11,7 +11,8 @@ use Livewire\Component;
 /**
  * Sino de notificações (rodapé da sidebar). Mostra as 8 mais recentes e leva à
  * central completa (/notificacoes). Atualiza por polling e pelo evento
- * "notifications-updated" disparado pela central.
+ * "notifications-updated" disparado pela central. No celular, o botão do topo
+ * (layout sidebar) abre este mesmo painel via evento "open-notifications".
  */
 class ConsortiumNotifications extends Component
 {
@@ -83,13 +84,17 @@ class ConsortiumNotifications extends Component
     public function render()
     {
         $userId = Auth::id();
+        $unreadCount = ConsortiumNotification::unreadCountForUser($userId);
+
+        // O sino do topo no celular (layout) só mostra este contador.
+        $this->dispatch('notifications-count', count: $unreadCount);
 
         return view('livewire.components.consortium-notifications', [
             'notifications' => ConsortiumNotification::forUser($userId)
                 ->latest('created_at')->latest('id')
                 ->limit(self::LIMIT)
                 ->get(),
-            'unreadCount' => ConsortiumNotification::unreadCountForUser($userId),
+            'unreadCount' => $unreadCount,
         ]);
     }
 }

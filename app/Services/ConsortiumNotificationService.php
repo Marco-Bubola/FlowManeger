@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Consortium;
 use App\Models\ConsortiumNotification;
 use App\Models\ConsortiumParticipant;
+use App\Models\ConsortiumPayment;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -19,6 +20,7 @@ class ConsortiumNotificationService
         $stats = [
             'draw_available' => 0,
             'redemption_pending' => 0,
+            'installment_overdue' => 0,
             'total' => 0,
         ];
 
@@ -31,7 +33,10 @@ class ConsortiumNotificationService
             // Verificar resgates pendentes
             $stats['redemption_pending'] = $this->checkRedemptionsPending();
 
-            $stats['total'] = $stats['draw_available'] + $stats['redemption_pending'];
+            // Parcelas que venceram sem pagamento (um aviso por parcela)
+            $stats['installment_overdue'] = $this->checkOverdueInstallments();
+
+            $stats['total'] = $stats['draw_available'] + $stats['redemption_pending'] + $stats['installment_overdue'];
 
             DB::commit();
 
@@ -140,6 +145,117 @@ class ConsortiumNotificationService
         return $count;
     }
 
+    /** Só parcelas vencidas há no máximo N dias avisam (sem enxurrada de atrasos antigos). */
+    public const OVERDUE_WINDOW_DAYS = 7;
+
+    /**
+     * Parcelas de consórcio que venceram e não foram pagas. Avisa o dono do
+     * consórcio uma vez por parcela; várias do mesmo consórcio no mesmo dia
+     * viram um aviso só ("3 parcelas atrasadas").
+     *
+     * @return int notificações criadas
+     */
+    public function checkOverdueInstallments(?int $consortiumId = null): int
+    {
+        $payments = ConsortiumPayment::query()
+            ->with(['participant.client', 'participant.consortium'])
+            ->whereIn('status', ['pending', 'overdue', 'late'])
+            ->whereNotNull('due_date')
+            ->whereDate('due_date', '<', today())
+            ->whereDate('due_date', '>=', today()->subDays(self::OVERDUE_WINDOW_DAYS))
+            ->whereHas('participant', fn ($q) => $q->where('status', '!=', 'quit')
+                ->whereHas('consortium', fn ($c) => $c->where('status', '!=', 'cancelled')
+                    ->when($consortiumId, fn ($w) => $w->whereKey($consortiumId))))
+            ->orderBy('due_date')
+            ->get();
+
+        if ($payments->isEmpty()) {
+            return 0;
+        }
+
+        $notified = $this->notifiedOverduePaymentIds();
+        $count = 0;
+
+        $pending = $payments
+            ->reject(fn (ConsortiumPayment $p) => isset($notified[$p->id]) || !$p->participant?->consortium?->user_id)
+            ->groupBy(fn (ConsortiumPayment $p) => $p->participant->consortium_id);
+
+        foreach ($pending as $group) {
+            if ($this->createInstallmentOverdue($group)) {
+                $count++;
+            }
+        }
+
+        return $count;
+    }
+
+    /** IDs de parcelas que já geraram aviso (inclui avisos excluídos pelo usuário). */
+    protected function notifiedOverduePaymentIds(): array
+    {
+        $ids = [];
+        ConsortiumNotification::withoutGlobalScopes()
+            ->where('type', 'installment_overdue')
+            ->where('created_at', '>=', now()->subDays(self::OVERDUE_WINDOW_DAYS + 30))
+            ->get(['entity_id', 'data'])
+            ->each(function ($n) use (&$ids) {
+                if ($n->entity_id) {
+                    $ids[(int) $n->entity_id] = true;
+                }
+                foreach ((array) ($n->data['payment_ids'] ?? []) as $id) {
+                    $ids[(int) $id] = true;
+                }
+            });
+
+        return $ids;
+    }
+
+    /** @param Collection<int, ConsortiumPayment> $payments parcelas de um mesmo consórcio */
+    protected function createInstallmentOverdue(Collection $payments): ?ConsortiumNotification
+    {
+        $first = $payments->first();
+        $consortium = $first->participant->consortium;
+        $total = (float) $payments->sum('amount');
+        $money = fn (float $v) => 'R$ ' . number_format($v, 2, ',', '.');
+        $name = fn (ConsortiumPayment $p) => $p->participant->client?->name ?? 'Participante';
+
+        if ($payments->count() === 1) {
+            $ref = $first->reference_month_name
+                ? "de {$first->reference_month_name}/{$first->reference_year}"
+                : 'de ' . $first->due_date->format('d/m');
+            $title = 'Parcela atrasada';
+            $message = "A parcela {$ref} de {$name($first)} ({$money($total)}) no consórcio \"{$consortium->name}\" venceu em "
+                . $first->due_date->format('d/m') . ' e ainda não foi paga.';
+        } else {
+            $names = $payments->map($name)->unique()->values();
+            $who = $names->count() > 2
+                ? $names->take(2)->implode(', ') . ' e mais ' . ($names->count() - 2)
+                : $names->implode(' e ');
+            $title = 'Parcelas atrasadas';
+            $message = "{$payments->count()} parcelas do consórcio \"{$consortium->name}\" venceram sem pagamento ({$money($total)}): {$who}.";
+        }
+
+        return ConsortiumNotification::createGeneric(
+            'consortium',
+            'installment_overdue',
+            (int) $consortium->user_id,
+            $title,
+            $message,
+            [
+                'entity_type' => 'ConsortiumPayment',
+                'entity_id' => $first->id,
+                'consortium_id' => $consortium->id,
+                'related_participant_id' => $payments->count() === 1 ? $first->consortium_participant_id : null,
+                'priority' => 'high',
+                'action_url' => route('consortiums.show', $consortium, false),
+                'data' => [
+                    'payment_ids' => $payments->pluck('id')->map(fn ($id) => (int) $id)->values()->all(),
+                    'total' => round($total, 2),
+                    'oldest_due_date' => $payments->min('due_date')?->toDateString(),
+                ],
+            ]
+        );
+    }
+
     /**
      * Limpar notificações antigas (90 dias lidas, 180 dias não lidas)
      */
@@ -236,6 +352,9 @@ class ConsortiumNotificationService
                 $count++;
             }
         }
+
+        // Parcelas vencidas deste consórcio
+        $count += $this->checkOverdueInstallments($consortium->id);
 
         return $count;
     }

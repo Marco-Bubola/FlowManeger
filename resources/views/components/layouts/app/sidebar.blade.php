@@ -993,6 +993,50 @@
 
         <div id="mobileSidebarBackdrop" class="mobile-sidebar-backdrop lg:hidden" onclick="closeMobileSidebar()" aria-hidden="true"></div>
 
+        {{-- Sino no topo para quem navega pela tab bar (celular/iPad), onde a sidebar
+             fica escondida. Não é outro componente Livewire: só abre o painel do sino
+             da sidebar (evento open-notifications) e acompanha o contador dele. --}}
+        @php $__bellUnread = auth()->check() ? \App\Models\ConsortiumNotification::unreadCountForUser(auth()->id()) : 0; @endphp
+        <button type="button" class="mobile-top-bell" x-data="{ count: {{ (int) $__bellUnread }} }"
+            @notifications-count.window="count = $event.detail.count"
+            @click="$dispatch('open-notifications', { anchor: $el })"
+            :class="count > 0 && 'has-unread'"
+            :aria-label="count > 0 ? `Notificações (${count} não lidas)` : 'Notificações'" title="Notificações">
+            <i class="bi {{ $__bellUnread > 0 ? 'bi-bell-fill' : 'bi-bell' }}" :class="count > 0 ? 'bi-bell-fill' : 'bi-bell'"></i>
+            <span class="mobile-top-bell-badge" x-show="count > 0" x-text="count > 99 ? '99+' : count" @if(!$__bellUnread) style="display:none" @endif>{{ $__bellUnread > 99 ? '99+' : $__bellUnread }}</span>
+        </button>
+        <style>
+            .mobile-top-bell {
+                position: fixed; z-index: 58;
+                top: calc(env(safe-area-inset-top, 0px) + 0.35rem); right: 0.35rem;
+                width: 2.2rem; height: 2.2rem; border-radius: 0.8rem;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 0.95rem; color: #475569;
+                background: rgba(255,255,255,0.88);
+                backdrop-filter: blur(16px) saturate(1.8); -webkit-backdrop-filter: blur(16px) saturate(1.8);
+                border: 1px solid rgba(148,163,184,0.28);
+                box-shadow: 0 6px 20px -6px rgba(15,23,42,0.22);
+                transition: transform .15s ease, color .15s ease;
+            }
+            .mobile-top-bell:active { transform: scale(.94); }
+            .mobile-top-bell.has-unread { color: #6366f1; }
+            .dark .mobile-top-bell { color: #cbd5e1; background: rgba(15,23,42,0.85); border-color: rgba(71,85,105,0.5); }
+            .dark .mobile-top-bell.has-unread { color: #a5b4fc; }
+            .mobile-top-bell-badge {
+                position: absolute; top: -0.35rem; right: -0.35rem;
+                min-width: 1.15rem; height: 1.15rem; padding: 0 0.28rem; border-radius: 999px;
+                display: flex; align-items: center; justify-content: center;
+                background: #f43f5e; color: #fff; font-size: 0.62rem; font-weight: 700; line-height: 1;
+                box-shadow: 0 0 0 2px #fff;
+            }
+            .dark .mobile-top-bell-badge { box-shadow: 0 0 0 2px #0f172a; }
+            /* Mesma regra da tab bar: some quando a sidebar fixa (com o sino) está na tela */
+            @media (min-width: 1367px) {
+                body:not(.tablet-nav-tabbar) .mobile-top-bell { display: none; }
+            }
+            @media print { .mobile-top-bell { display: none; } }
+        </style>
+
         <!-- Mobile Bottom Tab Bar (premium) -->
         <nav class="mobile-bottom-tabbar" role="navigation" aria-label="Navegação principal">
 

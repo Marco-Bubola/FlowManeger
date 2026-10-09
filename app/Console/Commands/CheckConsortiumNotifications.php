@@ -21,7 +21,7 @@ class CheckConsortiumNotifications extends Command
      *
      * @var string
      */
-    protected $description = 'Verifica consórcios e cria notificações para sorteios disponíveis e resgates pendentes';
+    protected $description = 'Verifica consórcios e cria notificações para sorteios disponíveis, resgates pendentes e parcelas atrasadas';
 
     /**
      * Execute the console command.
@@ -77,6 +77,7 @@ class CheckConsortiumNotifications extends Command
                 [
                     ['🎯 Sorteios Disponíveis', $stats['draw_available']],
                     ['⏰ Resgates Pendentes', $stats['redemption_pending']],
+                    ['📅 Parcelas Atrasadas', $stats['installment_overdue']],
                     ['📋 Total', $stats['total']],
                 ]
             );

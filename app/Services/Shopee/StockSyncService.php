@@ -197,6 +197,9 @@ class StockSyncService extends ShopeeService
             }
         }
 
+        // Sino: "nova venda na Shopee" (uma vez por pedido, só pedidos recentes e pagos)
+        app(ShopeeNotificationService::class)->notifyNewOrder($order);
+
         return ['success' => true, 'message' => $message, 'order' => $order, 'restored' => $restored];
     }
 

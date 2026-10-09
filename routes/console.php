@@ -27,7 +27,7 @@ Schedule::command('ml:refresh-tokens')
     ->withoutOverlapping()
     ->runInBackground();
 
-// Notificações de consórcios (sorteios disponíveis e resgates pendentes)
+// Notificações de consórcios (sorteios disponíveis, resgates pendentes e parcelas atrasadas)
 Schedule::command('consortium:check-notifications')
     ->dailyAt('08:00')
     ->withoutOverlapping()
