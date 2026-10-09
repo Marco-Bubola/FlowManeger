@@ -177,3 +177,75 @@
     html body .cashbook-main-grid > .cashbook-side > * { margin-top: 0 !important; }
     html body .cashbook-main-grid .group-transactions { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.75rem !important; }
 }
+
+/* ───────────── Margem das bordas (todas as telas) ─────────────
+ * O <flux:main> já tem padding e várias páginas somavam o seu próprio (px-4, 6px...),
+ * o que deixava 30 a 64px de borda. Agora a margem vem só do main: 12px no celular,
+ * 20px no iPad e 24px no computador. Nova venda e Configurações têm layout próprio. */
+html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+    padding-top: 20px !important;
+}
+html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) > [wire\:id] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+@media (max-width: 1180px) {
+    html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+        padding-top: 16px !important;
+        padding-bottom: 20px !important;
+    }
+    /* O layout já reserva o espaço da barra inferior; as páginas não precisam somar outro */
+    html body [data-flux-main] > [wire\:id] { padding-bottom: 0 !important; }
+}
+@media (max-width: 767px) {
+    html body [data-flux-main]:not(:has(.sales-create-page, .settings-page-header)) {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+        padding-top: 12px !important;
+        padding-bottom: 12px !important;
+    }
+    html body .sales-create-page { padding-left: 12px !important; padding-right: 12px !important; }
+    html body .sales-create-page .create-sale-sticky-header { margin-left: -12px !important; margin-right: -12px !important; padding-left: 12px !important; padding-right: 12px !important; }
+    html body .settings-page-header { margin-left: 12px !important; margin-right: 12px !important; }
+}
+
+/* ───────────── Carrinho da Nova venda ─────────────
+ * Os CSS antigos da tela (public/assets) forçam 4 colunas e rótulos grandes nos blocos
+ * de cliente/data/pagamento; no carrinho eles ficam numa coluna, compactos. */
+html body .cs-cart-side .create-sale-summary-info-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 0.5rem !important;
+    margin: 0 !important;
+}
+html body .cs-cart-side .create-sale-summary-info-grid > div:not(.hidden) {
+    padding: 0.55rem 0.75rem !important;
+    border-radius: 0.9rem !important;
+    min-height: 0 !important;
+    box-shadow: none !important;
+}
+html body .cs-cart-side .create-sale-summary-info-grid > div.hidden { display: none !important; }
+html body .cs-cart-side .create-sale-summary-info-grid label,
+html body .cs-cart-side .create-sale-summary-info-grid label span {
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+}
+html body .cs-cart-side .create-sale-summary-info-grid > div > div > button,
+html body .cs-cart-side .create-sale-summary-info-grid > div > button { min-height: 2.25rem !important; }
+html body .cs-cart-side .create-sale-summary-info-grid label.text-\[10px\],
+html body .cs-cart-side .create-sale-summary-info-grid .text-\[10px\] { font-size: 0.68rem !important; text-transform: uppercase !important; letter-spacing: 0.04em !important; }
+html body .cs-cart-side .create-sale-summary-info-grid .text-sm { font-size: 0.85rem !important; }
+html body .cs-cart-side .create-sale-summary-info-grid > div i:not(.bi-check-circle-fill) { font-size: 1rem !important; }
+html body .cs-cart-side .create-sale-summary-alert { padding: 0.6rem 0.75rem !important; border-radius: 0.9rem !important; font-size: 0.8rem !important; }
+html body .cs-cart-side .create-sale-summary-alert p { font-size: 0.8rem !important; }
+html body .cs-cart-side .create-sale-summary-alert ul { margin-top: 0.15rem !important; font-size: 0.75rem !important; }
+html body .cs-cart-body .cs-qty-input::-webkit-inner-spin-button,
+html body .cs-cart-body .cs-qty-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+html body .cs-cart-body .cs-qty-input { -moz-appearance: textfield; }
+@media (max-width: 767px) {
+    html body .cs-cart-panel { max-height: 92vh !important; }
+}

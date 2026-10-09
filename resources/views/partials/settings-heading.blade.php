@@ -42,7 +42,7 @@
     $hCurrentTitle = $hCurrent[1] ?? 'Configurações';
 @endphp
 
-<div class="settings-page-header app-ph relative mx-4 sm:mx-6 lg:mx-10 mb-2 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+<div class="settings-page-header app-ph relative mx-3 sm:mx-5 lg:mx-6 mb-2 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
     <div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_32%)]"></div>
         <div class="absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
@@ -104,7 +104,7 @@
     </div>
 </div>
 
-<div class="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 mx-4 sm:mx-6 lg:mx-10 mt-4">
+<div class="hidden sm:grid grid-cols-2 lg:grid-cols-4 gap-3 mx-3 sm:mx-5 lg:mx-6 mt-4">
     <x-gestao-stat label="Segurança" :value="$hScorePct . '% · ' . $hScoreLbl" icon="bi-shield-check" :tone="$hScoreTone" />
     <x-gestao-stat label="E-mail" :value="$hVerified ? 'Verificado' : 'Pendente'" icon="bi-envelope" :tone="$hVerified ? 'emerald' : 'amber'" />
     <x-gestao-stat label="Membro desde" :value="$hUser->created_at ? ucfirst($hUser->created_at->locale('pt_BR')->translatedFormat('M/Y')) : '—'" icon="bi-calendar-check" tone="sky" />

@@ -16,6 +16,8 @@
 
 <link rel="stylesheet" href="{{ asset('assets/css/produtos.css') }}">
 <link rel="stylesheet" href="{{ asset('assets/css/produtos-extra.css') }}">
+{{-- Mesmo card da lista de produtos, da Nova venda e da Edição em massa --}}
+<link rel="stylesheet" href="{{ asset('assets/css/responsive/product-card-standard.css') }}?v=20260806">
 
 @php
     $totalCategories = is_countable($categories) ? count($categories) : 0;
@@ -28,7 +30,8 @@
 
 <div
     x-data="modernProductSelector()"
-    class="modern-product-selector relative w-full h-auto lg:h-[81vh] flex flex-col lg:flex-row gap-4 lg:gap-5 {{ $compactCards ? 'compact-cards' : '' }}"
+    x-ref="root"
+    class="modern-product-selector relative w-full h-auto flex flex-col lg:flex-row gap-3 lg:gap-4"
 >
     <template x-ref="catData">
         @foreach($categories as $category)
@@ -37,12 +40,12 @@
     </template>
 
     {{-- =================== COLUNA ESQUERDA: LISTA =================== --}}
-    <div class="mps-list-pane w-full lg:w-3/4 flex flex-col rounded-2xl bg-gradient-to-br from-white/70 via-purple-50/60 to-indigo-50/60 dark:from-slate-900/85 dark:via-slate-800/75 dark:to-slate-900/85 border border-white/40 dark:border-slate-700/60 backdrop-blur-xl shadow-2xl overflow-hidden">
+    <div class="mps-list-pane w-full lg:w-3/4 flex-1 min-h-0 flex flex-col rounded-2xl bg-gradient-to-br from-white/70 via-purple-50/60 to-indigo-50/60 dark:from-slate-900/85 dark:via-slate-800/75 dark:to-slate-900/85 border border-white/40 dark:border-slate-700/60 backdrop-blur-xl shadow-2xl overflow-hidden">
 
         {{-- ===== TOOLBAR ===== --}}
         <div class="mps-toolbar px-4 sm:px-5 py-4 border-b border-white/30 dark:border-slate-700/60 bg-gradient-to-r from-white/50 to-transparent dark:from-slate-800/50">
             <div class="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
-                <div class="relative flex-1 group">
+                <div class="relative flex-1 group" style="position: relative">
                     <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                         <i class="bi bi-search text-slate-400 group-focus-within:text-purple-500 transition-colors"></i>
                     </div>
@@ -52,7 +55,7 @@
                         class="mps-search-input w-full pl-10 pr-10 py-2.5 rounded-xl bg-white/80 dark:bg-slate-800/70 text-slate-800 dark:text-slate-100 placeholder-slate-400 border border-slate-200/70 dark:border-slate-700/60 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none shadow-sm transition-all" />
                     @if($searchTerm)
                         <button type="button" wire:click="$set('searchTerm', '')"
-                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-rose-500 transition-colors" title="Limpar busca">
+                            class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-rose-500 transition-colors" style="position: absolute; top: 0; bottom: 0; right: 0; left: auto" title="Limpar busca">
                             <i class="bi bi-x-circle-fill"></i>
                         </button>
                     @endif
@@ -124,7 +127,7 @@
         </div>
 
         {{-- ===== GRID DE PRODUTOS ===== --}}
-        <div class="flex-1 p-3 md:p-5 overflow-y-auto mps-scroll">
+        <div x-ref="pane" class="flex-1 min-h-0 p-3 md:p-4 overflow-y-auto md:overflow-hidden mps-scroll flex flex-col">
             @if(count($products) === 0)
                 <div class="flex flex-col items-center justify-center h-full text-center py-10">
                     <div class="w-24 h-24 mb-5 rounded-3xl bg-gradient-to-br from-purple-500/20 to-indigo-500/20 flex items-center justify-center">
@@ -136,7 +139,7 @@
                     </p>
                 </div>
             @else
-                <div class="mps-grid grid gap-3 md:gap-4">
+                <div x-ref="grid" class="mps-grid grid gap-3">
                     @foreach($products as $product)
                         <x-modern-product-card
                             :product="$product"
@@ -144,6 +147,15 @@
                             clickAction="toggleProduct({{ $product->id }})"
                         />
                     @endforeach
+                </div>
+                {{-- Páginas: no iPad e no computador a lista cabe numa tela só, sem rolagem --}}
+                <div x-show="pages > 1" x-cloak class="mps-pager mt-auto pt-3 flex items-center justify-between gap-3 text-sm text-slate-600 dark:text-slate-400">
+                    <span x-text="rangeLabel()"></span>
+                    <div class="flex items-center gap-1">
+                        <button type="button" @click="go(page - 1)" :disabled="page <= 1" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl px-2.5 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30" aria-label="Página anterior"><i class="bi bi-chevron-left"></i></button>
+                        <span class="inline-flex h-9 min-w-[3.5rem] items-center justify-center rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 px-3 font-semibold text-white shadow-md shadow-indigo-500/25" x-text="page + ' / ' + pages"></span>
+                        <button type="button" @click="go(page + 1)" :disabled="page >= pages" class="inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-xl px-2.5 font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30" aria-label="Próxima página"><i class="bi bi-chevron-right"></i></button>
+                    </div>
                 </div>
             @endif
         </div>
@@ -332,6 +344,69 @@
             return {
                 showFilters: false,
                 showCart: false,
+                page: 1, pages: 1, perPage: 0, total: 0,
+                // Cabe numa tela (iPad e computador): altura até o fim da tela e
+                // quantos cards cabem = colunas x linhas; o resto vai para as páginas.
+                fit() {
+                    const root = this.$refs.root, grid = this.$refs.grid, pane = this.$refs.pane;
+                    if (!root) return;
+                    if (window.innerWidth < 768 || !grid) {
+                        root.style.height = '';
+                        if (grid) { grid.style.gridTemplateColumns = ''; grid.style.justifyContent = ''; }
+                        this.perPage = 0; this.apply(); return;
+                    }
+                    const top = root.getBoundingClientRect().top + window.scrollY;
+                    root.style.height = Math.max(420, window.innerHeight - top - 16 - (this._trimPx || 0)) + 'px';
+                    const cards = Array.from(grid.children);
+                    this.total = cards.length;
+                    cards.forEach(c => c.style.display = '');
+                    const first = cards[0];
+                    if (!first) { this.perPage = 0; this.apply(); return; }
+                    // Quantos cards cabem na área sem rolar (largura x altura)
+                    const gap = parseFloat(getComputedStyle(grid).rowGap) || 12;
+                    const ps = getComputedStyle(pane);
+                    const W = grid.clientWidth;
+                    const avail = pane.clientHeight - parseFloat(ps.paddingTop) - parseFloat(ps.paddingBottom) - 48;
+                    const extra = Math.max(0, first.offsetHeight - first.offsetWidth); // parte de baixo (nome e preços)
+                    // Para cada número de linhas, o maior card que cabe na altura; fica a opção com mais produtos
+                    let best = { n: 0, cols: 1, cw: 0 };
+                    for (let rows = 1; rows <= 8; rows++) {
+                        const ch = (avail + gap) / rows - gap;
+                        let cw = Math.min(230, ch - extra);
+                        if (cw < 125) break;
+                        // mais colunas com cards menores (até 125px) também valem
+                        for (let cols = Math.max(1, Math.floor((W + gap) / (cw + gap))); cols <= Math.floor((W + gap) / (125 + gap)); cols++) {
+                            const w = Math.min(cw, (W - (cols - 1) * gap) / cols);
+                            if (cols * rows > best.n || (cols * rows === best.n && w > best.cw)) best = { n: cols * rows, cols, cw: w };
+                        }
+                    }
+                    if (!best.n) best = { n: Math.max(1, Math.floor((W + gap) / (140 + gap))), cols: Math.max(1, Math.floor((W + gap) / (140 + gap))), cw: 140 };
+                    // Card no maior tamanho que ainda cabe na altura
+                    const cwFill = Math.min((W - (best.cols - 1) * gap) / best.cols, best.cw);
+                    grid.style.gridTemplateColumns = 'repeat(' + best.cols + ', ' + Math.floor(cwFill) + 'px)';
+                    grid.style.justifyContent = 'center';
+                    this.perPage = best.n;
+                    this.apply();
+                    // Sem barra de rolagem na página: corta o que sobrar no fim
+                    const over = document.documentElement.scrollHeight - window.innerHeight;
+                    if (over > 0 && !this._trim) { this._trim = true; this._trimPx = (this._trimPx || 0) + over; this.fit(); this._trim = false; }
+                },
+                apply() {
+                    const grid = this.$refs.grid;
+                    if (!grid) { this.pages = 1; return; }
+                    const cards = Array.from(grid.children);
+                    this.total = cards.length;
+                    this.pages = this.perPage ? Math.max(1, Math.ceil(cards.length / this.perPage)) : 1;
+                    if (this.page > this.pages) this.page = this.pages;
+                    const from = (this.page - 1) * this.perPage, to = from + this.perPage;
+                    cards.forEach((c, i) => { c.style.display = (!this.perPage || (i >= from && i < to)) ? '' : 'none'; });
+                },
+                go(n) { this.page = Math.min(this.pages, Math.max(1, n)); this.apply(); },
+                rangeLabel() {
+                    if (!this.perPage) return '';
+                    const from = (this.page - 1) * this.perPage + 1;
+                    return 'Mostrando ' + from + '–' + Math.min(this.total, from + this.perPage - 1) + ' de ' + this.total;
+                },
                 openFilters() { this.showFilters = true; document.body.style.overflow = 'hidden'; },
                 closeFilters() { this.showFilters = false; document.body.style.overflow = ''; },
                 openCart() { this.showCart = true; document.body.style.overflow = 'hidden'; },
@@ -353,6 +428,21 @@
                         }
                     };
                     document.addEventListener('keydown', close);
+                    let t; const refit = () => { clearTimeout(t); t = setTimeout(() => this.fit(), 80); };
+                    window.addEventListener('resize', refit);
+                    if (window.ResizeObserver && this.$refs.pane) new ResizeObserver(refit).observe(this.$refs.pane);
+                    window.addEventListener('load', refit);
+                    this.$nextTick(() => { this.fit(); setTimeout(() => this.fit(), 400); });
+                    // A lista muda (busca, filtros, seleção): recalcula sem perder a página
+                    const watchGrid = () => {
+                        if (this._mo) this._mo.disconnect();
+                        if (!this.$refs.grid) return;
+                        this._mo = new MutationObserver(() => { if (this.$refs.grid && this.$refs.grid.children.length !== this.total) this.page = 1; refit(); });
+                        this._mo.observe(this.$refs.grid, { childList: true });
+                    };
+                    watchGrid();
+                    // Depois de cada atualização do Livewire os cards voltam visíveis: reaplica a página
+                    if (window.Livewire) Livewire.hook('commit', ({ succeed }) => succeed(() => setTimeout(() => { watchGrid(); this.fit(); }, 30)));
                 }
             };
         };
@@ -362,16 +452,11 @@
 <style>
     [x-cloak] { display: none !important; }
 
-    /* ============ GRID PROPORCIONAL ============ */
-    .mps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    @media (min-width: 480px)  { .mps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (min-width: 768px)  { .mps-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    /* iPad portrait — 4 cols conforme solicitado */
-    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-        .mps-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.7rem; }
-    }
-    /* Máximo de 5 colunas (inclusive em 1920+) para cards proporcionais */
-    @media (min-width: 1280px) { .mps-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    /* ============ GRID PROPORCIONAL (cards no tamanho dos da lista de produtos) ============ */
+    .mps-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; }
+    @media (min-width: 600px)  { .mps-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (min-width: 768px)  { .mps-grid { grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); } }
+    @media (min-width: 1280px) { .mps-grid { grid-template-columns: repeat(auto-fill, minmax(185px, 1fr)); } }
 
     /* ============ CHIPS ============ */
     .mps-chip {
@@ -440,73 +525,18 @@
     .product-card-modern:hover { transform: translateY(-2px) scale(1.01); }
     .product-card-modern.selected:hover { transform: translateY(-2px) scale(1.02); }
 
-    /* ============ COMPACT (kits) ============ */
-    .compact-cards .product-card-modern {
-        min-height: 282px !important; height: auto !important;
+    /* Ícone da categoria e espaço do título iguais aos da lista de produtos */
+    .modern-product-selector .product-card-modern .category-icon-wrapper {
+        width: calc(3.1rem * var(--pc-s)) !important;
+        height: calc(3.1rem * var(--pc-s)) !important;
+        bottom: calc(-1.55rem * var(--pc-s)) !important;
     }
-    .compact-cards .product-card-modern .product-img-area {
-        min-height: 178px !important; height: 178px !important;
-    }
-    .compact-cards .product-card-modern .card-body {
-        min-height: 0 !important;
-        padding: 2em 0.55em 0 0.55em !important;
-        display: flex !important; flex-direction: column !important;
-        justify-content: space-between !important;
-        gap: 0.15em !important; overflow: hidden !important;
-    }
-    .compact-cards .product-card-modern .product-title {
-        font-size: 0.9em !important; line-height: 1.2 !important;
-        margin: 0.05em 0 0.1em 0 !important; min-height: 2.2em !important;
-    }
-    .compact-cards .product-card-modern .price-area {
-        min-height: 1.65em !important; margin-top: auto !important;
-        position: relative !important;
-    }
-    .compact-cards .product-card-modern .badge-price,
-    .compact-cards .product-card-modern .badge-price-sale { bottom: 0 !important; }
+    .modern-product-selector .product-card-modern .category-icon-wrapper .category-icon { font-size: calc(1.45rem * var(--pc-s)) !important; }
+    .modern-product-selector .product-card-modern .card-body { padding-top: calc(2rem * var(--pc-s)) !important; }
+    .modern-product-selector .product-card-modern .price-area { min-height: 1.9em !important; margin-top: 0.4em !important; }
 
-    /* iPad portrait — proporcional p/ 4 colunas */
-    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-        .modern-product-selector { height: auto !important; }
-        .compact-cards .product-card-modern { min-height: 260px !important; }
-        .compact-cards .product-card-modern .product-img-area {
-            min-height: 150px !important; height: 150px !important;
-        }
-        .compact-cards .product-card-modern .card-body { padding: 1.6em 0.5em 0 0.5em !important; }
-        .compact-cards .product-card-modern .product-title {
-            font-size: 0.82em !important; line-height: 1.2 !important; min-height: 2.15em !important;
-        }
-        .compact-cards .product-card-modern .badge-price,
-        .compact-cards .product-card-modern .badge-price-sale,
-        .compact-cards .product-card-modern .badge-product-code,
-        .compact-cards .product-card-modern .badge-quantity {
-            font-size: 0.66em !important; padding: 0.16em 0.42em !important;
-        }
-    }
-
-    /* Mobile */
+    /* Celular: botão do carrinho acima da barra inferior */
     @media (max-width: 450px) {
-        .compact-cards .product-card-modern { min-height: 238px !important; }
-        .compact-cards .product-card-modern .product-img-area {
-            min-height: 140px !important; height: 140px !important;
-        }
-        .compact-cards .product-card-modern .card-body {
-            padding: 1.55em 0.45em 0 0.45em !important;
-        }
-        .compact-cards .product-card-modern .product-title {
-            font-size: 0.78em !important; line-height: 1.15 !important; min-height: 2.05em !important;
-        }
-        .compact-cards .product-card-modern .badge-price,
-        .compact-cards .product-card-modern .badge-price-sale,
-        .compact-cards .product-card-modern .badge-product-code,
-        .compact-cards .product-card-modern .badge-quantity {
-            font-size: 0.66em !important; padding: 0.14em 0.38em !important;
-        }
         .mps-fab { bottom: 5.5rem !important; right: 1rem !important; }
-    }
-
-    /* Ultrawide — pega tela inteira */
-    @media (min-width: 1441px) {
-        .modern-product-selector { height: calc(100vh - 180px) !important; max-height: none !important; }
     }
 </style>

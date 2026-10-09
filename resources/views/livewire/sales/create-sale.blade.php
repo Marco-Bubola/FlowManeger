@@ -318,37 +318,39 @@
 
                 <!-- ===== CARRINHO em MODAL (resumo + cliente + pagamento + produtos selecionados) ===== -->
                 <template x-teleport="body">
-                <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end lg:items-center justify-center p-0 lg:p-4" x-transition.opacity>
+                <div x-show="showCart" x-cloak class="cs-cart-overlay fixed inset-0 z-[120] flex items-end md:items-center justify-center p-0 md:p-6" x-transition.opacity>
                     <div class="absolute inset-0 bg-slate-950/70 backdrop-blur-md" @click="closeCart()"></div>
-                    <div class="cs-cart-panel cs-ios-sheet relative w-full lg:max-w-4xl xl:max-w-5xl max-h-[92vh] lg:max-h-[88vh] overflow-hidden rounded-t-[1.75rem] lg:rounded-[1.75rem] shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
+                    <div class="cs-cart-panel cs-ios-sheet relative w-full md:max-w-3xl lg:max-w-5xl xl:max-w-6xl max-h-[90vh] md:max-h-[86vh] overflow-hidden rounded-t-[1.75rem] md:rounded-[1.75rem] shadow-2xl bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/60 flex flex-col"
                         x-transition:enter="transition ease-out duration-[350ms]"
-                        x-transition:enter-start="opacity-0 translate-y-full lg:translate-y-0 lg:scale-95"
-                        x-transition:enter-end="opacity-100 translate-y-0 lg:scale-100"
+                        x-transition:enter-start="opacity-0 translate-y-full md:translate-y-0 md:scale-95"
+                        x-transition:enter-end="opacity-100 translate-y-0 md:scale-100"
                         x-transition:leave="transition ease-in duration-200"
-                        x-transition:leave-start="opacity-100 translate-y-0 lg:scale-100"
-                        x-transition:leave-end="opacity-0 translate-y-full lg:translate-y-0 lg:scale-95">
+                        x-transition:leave-start="opacity-100 translate-y-0 md:scale-100"
+                        x-transition:leave-end="opacity-0 translate-y-full md:translate-y-0 md:scale-95">
 
                         <!-- Grabber (alça) estilo iOS — só no modo bottom-sheet -->
-                        <div class="lg:hidden shrink-0 flex items-center justify-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing" @click="closeCart()">
+                        <div class="md:hidden shrink-0 flex items-center justify-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing" @click="closeCart()">
                             <span class="h-1.5 w-11 rounded-full bg-slate-300 dark:bg-slate-600"></span>
                         </div>
 
                         <!-- Header do modal -->
-                        <div class="shrink-0 px-5 py-3.5 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center gap-3">
+                        <div class="shrink-0 px-4 sm:px-5 py-3 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 flex items-center gap-3">
                             <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
                                 <i class="bi bi-cart-check-fill text-white text-lg"></i>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <h3 class="text-base font-bold text-slate-800 dark:text-white leading-tight">Carrinho da Venda</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'produto' : 'produtos' }} · revise antes do resumo</p>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'produto' : 'produtos' }} · {{ (int) collect($products)->sum('quantity') }} {{ (int) collect($products)->sum('quantity') === 1 ? 'unidade' : 'unidades' }}</p>
                             </div>
                             <button type="button" @click="closeCart()" class="w-9 h-9 inline-flex items-center justify-center rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition"><i class="bi bi-x-lg"></i></button>
                         </div>
 
                         <!-- Corpo rolável (sales-create-page reativa o CSS escopado dos itens) -->
-                        <div class="cs-cart-body sales-create-page flex-1 min-h-0 overflow-y-auto p-4">
+                        <div class="cs-cart-body sales-create-page flex-1 min-h-0 overflow-y-auto p-3 sm:p-4">
+                    {{-- Itens à esquerda e dados da venda à direita (no celular: itens primeiro) --}}
+                    <div class="cs-cart-grid grid gap-3 sm:gap-4 md:grid-cols-[minmax(0,1fr)_290px] lg:grid-cols-[minmax(0,1fr)_340px] items-start">
                     <!-- Painel de Resumo da Venda Modernizado -->
-                    <div class="p-0 create-sale-summary-card">
+                    <div class="cs-cart-side create-sale-summary-card order-2 md:sticky md:top-0 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-slate-50/80 dark:bg-slate-800/40 !p-3 sm:!p-4 !m-0 !shadow-none">
                         @php
                             $selectedItemsCount = count($selectedProducts);
                             $selectedUnitsCount = collect($products)->sum('quantity');
@@ -356,41 +358,15 @@
                             $summaryReady = $client_id && $selectedItemsCount > 0;
                         @endphp
 
-                        <div class="create-sale-summary-topbar">
-                            <div class="create-sale-summary-title-wrap">
-                                <span class="create-sale-summary-icon">
-                                    <i class="bi bi-receipt text-2xl"></i>
-                                </span>
-                                <div>
-                                    <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center gap-2">
-                                        <span>Resumo da Venda</span>
-                                    </h3>
-                                    <p class="text-sm text-slate-500 dark:text-slate-400">Painel vivo com cliente, pagamento e totais antes da confirmacao final.</p>
-                                </div>
-                            </div>
-                            <span class="create-sale-summary-status">
-                                <i class="bi {{ $summaryReady ? 'bi-check2-circle' : 'bi-hourglass-split' }}"></i>
-                                {{ $summaryReady ? 'Pronto para revisar' : 'Em montagem' }}
+                        <div class="mb-3 flex items-center justify-between gap-2">
+                            <h3 class="text-sm font-bold text-slate-800 dark:text-white flex items-center gap-2"><i class="bi bi-receipt text-indigo-500"></i>Dados da venda</h3>
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $summaryReady ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' }}">
+                                <i class="bi {{ $summaryReady ? 'bi-check2-circle' : 'bi-hourglass-split' }}"></i>{{ $summaryReady ? 'Pronto' : 'Em montagem' }}
                             </span>
                         </div>
 
-                        <div class="create-sale-summary-stats">
-                            <div class="create-sale-summary-stat">
-                                <span class="create-sale-summary-stat-label">Produtos</span>
-                                <span class="create-sale-summary-stat-value">{{ $selectedItemsCount }}</span>
-                            </div>
-                            <div class="create-sale-summary-stat">
-                                <span class="create-sale-summary-stat-label">Unidades</span>
-                                <span class="create-sale-summary-stat-value">{{ $selectedUnitsCount }}</span>
-                            </div>
-                            <div class="create-sale-summary-stat">
-                                <span class="create-sale-summary-stat-label">Modo</span>
-                                <span class="create-sale-summary-stat-value">{{ $tipo_pagamento === 'a_vista' ? 'Vista' : 'Parcelado' }}</span>
-                            </div>
-                        </div>
-
                         <!-- Grid de Informações 2x2 -->
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 create-sale-summary-info-grid">
+                        <div class="grid grid-cols-1 gap-2 create-sale-summary-info-grid">
 
                             <!-- Bloco Cliente -->
                             <div class="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl shadow-sm" x-data="{ open: false }">
@@ -672,8 +648,8 @@
                                 @endif
                             </div>
 
-                            <!-- Bloco Parcelas -->
-                            <div class="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-xl shadow-sm">
+                            <!-- Bloco Parcelas (só aparece em venda parcelada) -->
+                            <div class="p-3 bg-amber-50 dark:bg-amber-900/30 rounded-xl shadow-sm {{ $tipo_pagamento == 'parcelado' ? '' : 'hidden' }}">
                                 @if($tipo_pagamento == 'parcelado')
                                 <div x-data="{ open: false }" x-transition class="h-full">
                                     <div class="relative h-full">
@@ -716,29 +692,8 @@
                             </div>
                         </div>
 
-                        @if(!empty($selectedProducts))
-                        <div class="create-sale-total-panel">
-                            <div class="create-sale-total-grid">
-                                <div class="create-sale-total-metric">
-                                    <span class="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Ticket medio por unidade</span>
-                                    <strong class="mt-1 block text-base text-slate-900 dark:text-white">R$ {{ number_format($averageItemTicket, 2, ',', '.') }}</strong>
-                                </div>
-                                <div class="create-sale-total-metric">
-                                    <span class="block text-[11px] font-bold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-400">Parcelas atuais</span>
-                                    <strong class="mt-1 block text-base text-slate-900 dark:text-white">{{ $tipo_pagamento === 'parcelado' ? $parcelas . 'x' : '1x' }}</strong>
-                                </div>
-                            </div>
-                            <div class="flex justify-between items-center gap-4">
-                                <span class="text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center gap-2"><i class="bi bi-currency-dollar"></i>Valor Total</span>
-                                <span class="text-2xl font-bold text-green-500">
-                                    R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}
-                                </span>
-                            </div>
-                        </div>
-                        @endif
-
                         @if(!$summaryReady)
-                            <div class="create-sale-summary-alert">
+                            <div class="create-sale-summary-alert !mt-3 !mb-0">
                                 <p class="text-sm font-bold flex items-center gap-2"><i class="bi bi-exclamation-circle"></i>Faltando para liberar o resumo</p>
                                 <ul>
                                     @if(empty($client_id))<li>Selecionar o cliente da venda.</li>@endif
@@ -747,119 +702,74 @@
                             </div>
                         @endif
 
-                        @php
-                            $canProceedMobile = count($selectedProducts) > 0 && $client_id;
-                        @endphp
-                        <button
-                            type="button"
-                            @if($canProceedMobile)
-                                @click="currentStep = 2"
-                            @endif
-                            @if(!$canProceedMobile) disabled @endif
-                            class="sm:hidden mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-semibold text-white transition-all duration-300
-                                {{ $canProceedMobile
-                                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 shadow-md'
-                                    : 'bg-slate-400/60 dark:bg-slate-700/60 cursor-not-allowed opacity-60'
-                                }}"
-                        >
-                            <span>Prosseguir para Resumo</span>
-                            <i class="bi bi-arrow-right"></i>
-                        </button>
                     </div>
 
 
 
-                    <!-- Lista de produtos selecionados com scroll -->
-                    <div class="flex-1 overflow-y-auto create-sale-selected-list">
+                    <!-- Itens do carrinho (estilo app: foto, nome, quantidade com - e +, preço e subtotal) -->
+                    <div class="cs-cart-items order-1 min-w-0">
                         @if(empty($selectedProducts))
-                        <div class="p-4 text-center create-sale-selected-empty">
-                            <div class="text-gray-400 mb-3">
-                                <i class="bi bi-cart-x text-2xl"></i>
-                            </div>
-                            <p class="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                Seu carrinho ainda esta vazio
-                            </p>
-                            <p class="text-gray-500 dark:text-gray-400 text-xs mt-1">
-                                Clique nos produtos da esquerda para montar uma venda mais rapido.
-                            </p>
+                        <div class="rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-8 text-center">
+                            <i class="bi bi-cart-x text-3xl text-slate-400"></i>
+                            <p class="mt-2 text-sm font-semibold text-slate-700 dark:text-slate-200">Seu carrinho ainda está vazio</p>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Toque nos produtos da lista para montar a venda.</p>
                         </div>
                         @else
-                        <div class="p-4 ">
+                        <div class="space-y-2">
                             @foreach($products as $index => $productItem)
                                 @php
                                     $selectedProduct = $availableProducts->find($productItem['product_id']);
                                 @endphp
 
                                 @if($selectedProduct)
-                                {{-- Card de produto selecionado — redesign moderno --}}
-                                <div class="group create-sale-selected-item" wire:key="selected-product-{{ $selectedProduct->id }}">
-
-                                    {{-- Cabeçalho: thumbnail + info + botão remover --}}
-                                    <div class="flex items-start gap-2.5">
-
-                                        {{-- Thumbnail com badge de tipo --}}
-                                        <div class="relative shrink-0">
-                                            <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
-                                                 alt="{{ $selectedProduct->name }}"
-                                                 class="create-sale-selected-thumb border border-white/40 dark:border-slate-700/50">
-                                            <span class="csi-type-badge {{ ($selectedProduct->tipo ?? 'simples') === 'kit' ? 'bg-violet-500' : 'bg-indigo-500' }}">
-                                                <i class="bi {{ ($selectedProduct->tipo ?? 'simples') === 'kit' ? 'bi-boxes' : 'bi-box' }} text-white" style="font-size:7px"></i>
-                                            </span>
-                                        </div>
-
-                                        {{-- Informações do produto --}}
-                                        <div class="flex-1 min-w-0">
-                                            <h4 class="text-sm font-bold text-slate-800 dark:text-white leading-tight truncate" title="{{ $selectedProduct->name }}">
-                                                {{ $selectedProduct->name }}
-                                            </h4>
-                                            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                                                <span class="text-[10px] font-mono text-slate-400 dark:text-slate-500">#{{ $selectedProduct->product_code }}</span>
-                                                @if(($selectedProduct->tipo ?? 'simples') === 'simples')
-                                                    <span class="text-[10px] text-slate-400 dark:text-slate-500 inline-flex items-center gap-0.5">
-                                                        <i class="bi bi-stack text-[9px]"></i>Est.{{ $selectedProduct->stock_quantity }}
-                                                    </span>
-                                                @endif
-                                                <span class="text-[10px] text-slate-400 dark:text-slate-500 inline-flex items-center gap-0.5">
-                                                    <i class="bi bi-tag text-[9px]"></i>R${{ number_format($selectedProduct->price, 2, ',', '.') }}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {{-- Botão remover --}}
-                                        <button type="button"
-                                                wire:click.stop="toggleProduct({{ $selectedProduct->id }})"
-                                                class="create-sale-remove-btn shrink-0 mt-0.5"
-                                                title="Remover item">
-                                            <i class="bi bi-x-lg text-xs"></i>
-                                        </button>
+                                @php
+                                    $isKit = ($selectedProduct->tipo ?? 'simples') === 'kit';
+                                    $qty = (int) $productItem['quantity'];
+                                    $atMax = ! $isKit && $qty >= (int) $selectedProduct->stock_quantity;
+                                @endphp
+                                <div class="cs-item flex gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-800/60 p-2.5 sm:p-3 shadow-sm" wire:key="selected-product-{{ $selectedProduct->id }}">
+                                    <div class="relative shrink-0">
+                                        <img src="{{ $selectedProduct->image ? asset('storage/products/' . $selectedProduct->image) : asset('storage/products/product-placeholder.png') }}"
+                                             alt="{{ $selectedProduct->name }}"
+                                             class="h-16 w-16 sm:h-[76px] sm:w-[76px] rounded-xl object-cover bg-slate-100 dark:bg-slate-700 border border-slate-200/70 dark:border-slate-700">
+                                        @if($isKit)
+                                            <span class="absolute -bottom-1 -right-1 inline-flex items-center gap-0.5 rounded-md bg-violet-600 px-1 py-px text-[9px] font-bold text-white"><i class="bi bi-boxes"></i>Kit</span>
+                                        @endif
                                     </div>
 
-                                    {{-- Separador decorativo --}}
-                                    <div class="my-2 h-px bg-gradient-to-r from-transparent via-slate-200/80 dark:via-slate-700/50 to-transparent"></div>
-
-                                    {{-- Linha de controles: quantidade | preço de venda | subtotal --}}
-                                    <div class="create-sale-selected-grid">
-
-                                        <div class="create-sale-selected-field">
-                                            <label for="quantity-{{ $selectedProduct->id }}">Qtd
-                                                @if(($selectedProduct->tipo ?? 'simples') === 'simples')
-                                                    <span class="font-normal {{ $productItem['quantity'] >= $selectedProduct->stock_quantity ? 'text-amber-600 dark:text-amber-400' : 'text-slate-400' }}" title="Em estoque">/ {{ (int) $selectedProduct->stock_quantity }}</span>
-                                                @endif
-                                            </label>
-                                            <input type="number"
-                                                   wire:key="quantity-{{ $selectedProduct->id }}-{{ $productItem['quantity'] }}"
-                                                   id="quantity-{{ $selectedProduct->id }}"
-                                                   wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
-                                                   value="{{ $productItem['quantity'] }}"
-                                                   min="1"
-                                                   @if(isset($selectedProduct->tipo) && $selectedProduct->tipo === 'simples')
-                                                       max="{{ $selectedProduct->stock_quantity }}"
-                                                   @endif
-                                                   class="text-center">
+                                    <div class="flex-1 min-w-0 flex flex-col gap-2">
+                                        <div class="flex items-start gap-2">
+                                            <div class="min-w-0 flex-1">
+                                                <h4 class="text-sm font-semibold text-slate-800 dark:text-white leading-snug line-clamp-2" title="{{ $selectedProduct->name }}">{{ $selectedProduct->name }}</h4>
+                                                <p class="mt-0.5 flex flex-wrap items-center gap-x-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                                    <span class="font-mono">#{{ $selectedProduct->product_code }}</span>
+                                                    @unless($isKit)
+                                                        <span class="{{ $atMax ? 'text-amber-600 dark:text-amber-400 font-semibold' : '' }}"><i class="bi bi-stack"></i> {{ (int) $selectedProduct->stock_quantity }} em estoque</span>
+                                                    @endunless
+                                                </p>
+                                            </div>
+                                            <button type="button" wire:click.stop="toggleProduct({{ $selectedProduct->id }})"
+                                                    class="shrink-0 inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition" title="Remover item" aria-label="Remover item">
+                                                <i class="bi bi-trash3"></i>
+                                            </button>
                                         </div>
 
-                                        <div class="create-sale-selected-field">
-                                            <label for="price-{{ $selectedProduct->id }}">Preço</label>
+                                        <div class="flex flex-wrap items-center gap-2">
+                                            {{-- Quantidade --}}
+                                            <div class="inline-flex h-9 items-center rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900/60">
+                                                <button type="button" wire:click="updateProductQuantity({{ $selectedProduct->id }}, {{ $qty - 1 }})" @disabled($qty <= 1)
+                                                        class="inline-flex h-9 w-8 items-center justify-center rounded-l-xl text-slate-600 dark:text-slate-300 hover:text-indigo-600 disabled:opacity-30" aria-label="Diminuir"><i class="bi bi-dash-lg"></i></button>
+                                                <input type="number" inputmode="numeric"
+                                                       wire:key="quantity-{{ $selectedProduct->id }}-{{ $qty }}"
+                                                       id="quantity-{{ $selectedProduct->id }}"
+                                                       wire:change="updateProductQuantity({{ $selectedProduct->id }}, $event.target.value)"
+                                                       value="{{ $qty }}" min="1" @unless($isKit) max="{{ $selectedProduct->stock_quantity }}" @endunless
+                                                       class="cs-qty-input !h-9 !w-10 !border-0 !bg-transparent !p-0 !text-center !text-sm !font-bold text-slate-800 dark:text-white focus:!ring-0" aria-label="Quantidade">
+                                                <button type="button" wire:click="updateProductQuantity({{ $selectedProduct->id }}, {{ $qty + 1 }})" @disabled($atMax)
+                                                        class="inline-flex h-9 w-8 items-center justify-center rounded-r-xl text-slate-600 dark:text-slate-300 hover:text-indigo-600 disabled:opacity-30" aria-label="Aumentar"><i class="bi bi-plus-lg"></i></button>
+                                            </div>
+
+                                            {{-- Preço unitário --}}
                                             <div class="relative"
                                                  x-data="{
                                                      cts: {{ (int)round($productItem['unit_price'] * 100) }},
@@ -876,21 +786,21 @@
                                                          e.target.value = this.fmt();
                                                      }
                                                  }">
-                                                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-medium text-slate-400 dark:text-slate-500 pointer-events-none">R$</span>
-                                                <input type="text"
-                                                       inputmode="numeric"
+                                                <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-slate-400 pointer-events-none">R$</span>
+                                                <input type="text" inputmode="numeric"
                                                        id="price-{{ $selectedProduct->id }}"
                                                        x-init="$el.value = fmt()"
                                                        @focus="$el.select()"
                                                        @input="inp($event)"
                                                        @blur="$wire.updateProductPrice({{ $selectedProduct->id }}, (cts / 100).toFixed(2))"
-                                                       class="pl-6 text-green-600 dark:text-green-400">
+                                                       class="cs-price-input !h-9 !w-[6.5rem] !rounded-xl !border !border-slate-200 dark:!border-slate-600 !bg-slate-50 dark:!bg-slate-900/60 !pl-8 !pr-2 !text-sm !font-semibold !text-emerald-700 dark:!text-emerald-400" aria-label="Preço unitário" title="Preço unitário">
                                             </div>
-                                        </div>
+                                            <span class="hidden sm:inline text-[11px] text-slate-400">cada</span>
 
-                                        <div class="create-sale-selected-subtotal">
-                                            <span class="csi-total-label">Total</span>
-                                            <span class="csi-total-value">R$&nbsp;{{ number_format($productItem['quantity'] * $productItem['unit_price'], 2, ',', '.') }}</span>
+                                            <div class="ml-auto text-right leading-tight">
+                                                <span class="block text-[10px] font-semibold uppercase tracking-wide text-slate-400">Subtotal</span>
+                                                <span class="block text-sm sm:text-base font-black text-slate-900 dark:text-white whitespace-nowrap">R$&nbsp;{{ number_format($qty * $productItem['unit_price'], 2, ',', '.') }}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -899,33 +809,36 @@
                         </div>
                         @endif
                     </div>
+                    </div>{{-- /.cs-cart-grid --}}
 
                         </div>{{-- /.cs-cart-body --}}
 
                         {{-- Footer fixo do carrinho: total + Ir para Resumo --}}
                         @php $cartCanProceed = count($selectedProducts) > 0 && !empty($client_id); @endphp
-                        <div class="shrink-0 px-5 py-4 border-t border-slate-200/60 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/50">
-                            <div class="flex items-center justify-between mb-3">
-                                <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Total da venda</span>
-                                <span class="text-xl font-black text-emerald-600 dark:text-emerald-400">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</span>
+                        <div class="cs-cart-footer shrink-0 px-4 sm:px-5 py-3 border-t border-slate-200/60 dark:border-slate-700/60 bg-white/95 dark:bg-slate-900/95 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+                            <div class="flex items-center gap-3">
+                                <div class="min-w-0 flex-1 leading-tight">
+                                    <span class="block text-[11px] font-semibold text-slate-500 dark:text-slate-400">Total{{ $tipo_pagamento === 'parcelado' ? ' · ' . $parcelas . 'x' : '' }}</span>
+                                    <span class="block text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</span>
+                                    @unless($cartCanProceed)
+                                        <span class="block text-[11px] text-amber-600 dark:text-amber-400 truncate">
+                                            @if(empty($client_id) && count($selectedProducts) === 0) Escolha o cliente e adicione produtos
+                                            @elseif(empty($client_id)) Escolha o cliente para continuar
+                                            @else Adicione ao menos um produto @endif
+                                        </span>
+                                    @endunless
+                                </div>
+                                <button type="button"
+                                    @if($cartCanProceed) @click="goToResumo()" @endif
+                                    @if(!$cartCanProceed) disabled @endif
+                                    class="shrink-0 inline-flex items-center justify-center gap-2 h-11 px-5 sm:px-7 rounded-xl text-sm font-bold transition
+                                        {{ $cartCanProceed
+                                            ? 'text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg shadow-indigo-500/30'
+                                            : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed' }}">
+                                    Continuar
+                                    <i class="bi bi-arrow-right"></i>
+                                </button>
                             </div>
-                            <button type="button"
-                                @if($cartCanProceed) @click="goToResumo()" @endif
-                                @if(!$cartCanProceed) disabled @endif
-                                class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white transition
-                                    {{ $cartCanProceed
-                                        ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/30'
-                                        : 'bg-slate-300 dark:bg-slate-700 text-slate-500 dark:text-slate-400 cursor-not-allowed' }}">
-                                <i class="bi bi-arrow-right-circle"></i>
-                                Ir para Resumo
-                            </button>
-                            @unless($cartCanProceed)
-                                <p class="mt-2 text-[11px] text-center text-slate-500 dark:text-slate-400">
-                                    @if(empty($client_id) && count($selectedProducts) === 0) Selecione um cliente e adicione produtos
-                                    @elseif(empty($client_id)) Selecione um cliente
-                                    @else Adicione ao menos um produto @endif
-                                </p>
-                            @endunless
                         </div>
                     </div>{{-- /.cs-cart-panel --}}
                 </div>{{-- /.cs-cart-overlay --}}

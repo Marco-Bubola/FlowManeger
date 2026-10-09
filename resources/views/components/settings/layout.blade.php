@@ -31,13 +31,13 @@
 
 <style>
 /* O menu lateral virou abas no cabeçalho: o conteúdo usa a largura toda, alinhado ao cabeçalho. */
-.settings-wrap { display: block; padding: 1.25rem 2.5rem 1.5rem; }
+.settings-wrap { display: block; padding: 1rem 1.5rem 1.5rem; }
 .settings-content-area { min-width: 0; max-width: 100%; }
 .settings-content-area > * { min-width: 0; max-width: 100%; }
 .s-pg-grid > .s-col-main, .s-pg-grid > .s-col-side { min-width: 0; }
 @media (max-width: 767px) { .s-pg-grid { grid-template-columns: minmax(0, 1fr) !important; } }
-@media (max-width: 1023px) { .settings-wrap { padding: 1rem 1.5rem; } }
-@media (max-width: 639px) { .settings-wrap { padding: 1rem; } }
+@media (max-width: 1023px) { .settings-wrap { padding: 1rem 1.25rem; } }
+@media (max-width: 639px) { .settings-wrap { padding: 0.75rem; } }
 /* A prévia da foto só aparece depois de escolher um arquivo (antes mostrava o texto alternativo quebrado). */
 .settings-avatar-img.hidden, #avatarPlaceholder.hidden { display: none !important; }
 </style>
