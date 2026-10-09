@@ -33,7 +33,7 @@
 @endphp
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
-<div class="sales-create-header relative overflow-hidden border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(238,242,255,0.88),rgba(224,231,255,0.92))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl rounded-[28px] shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
+<div class="sales-create-header app-ph relative overflow-hidden border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(238,242,255,0.88),rgba(224,231,255,0.92))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl rounded-[28px] shadow-[0_24px_80px_rgba(15,23,42,0.16)]">
     <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.18),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_30%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.24),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.16),transparent_30%)]"></div>
     <div class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent dark:via-slate-400/30"></div>
 
@@ -42,19 +42,19 @@
     <div class="absolute -bottom-8 left-0 h-28 w-28 rounded-full bg-emerald-400/15 blur-2xl"></div>
 
     <div class="sales-create-header-inner relative px-3 sm:px-6 py-4">
-        <div class="sales-create-header-main flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="sales-create-header-main app-ph-main flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex items-start sm:items-center gap-3 sm:gap-4 min-w-0">
                 @if($backRoute)
                 <!-- Botão voltar compacto -->
                 <a href="{{ $backRoute }}"
-                    class="group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 shadow-sm border border-slate-200/70 dark:border-slate-700/70 backdrop-blur-sm shrink-0">
+                    class="app-ph-back group relative inline-flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 transition-all duration-200 shadow-sm border border-slate-200/70 dark:border-slate-700/70 backdrop-blur-sm shrink-0">
                     <i class="bi bi-arrow-left text-lg text-indigo-600 dark:text-indigo-300 group-hover:-translate-x-0.5 transition-transform duration-150"></i>
                     <div class="absolute inset-0 rounded-xl bg-indigo-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                 </a>
                 @endif
 
                 <!-- Ícone principal e título (compacto) -->
-                <div class="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br {{ $headerIconGradient }} shadow-lg shrink-0">
+                <div class="app-ph-icon relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br {{ $headerIconGradient }} shadow-lg shrink-0">
                     <i class="{{ $headerIcon }} text-white text-2xl"></i>
                     <div class="absolute inset-[1px] rounded-2xl border border-white/25"></div>
                 </div>
@@ -73,15 +73,15 @@
                         {{ $title }}
                     </h1>
 @if($headerDescription)
-                    <p class="sales-create-header-subtitle mt-0.5 text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:line-clamp-none">{!! $headerDescription !!}</p>
+                    <p class="sales-create-header-subtitle app-ph-sub mt-0.5 text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:line-clamp-none">{!! $headerDescription !!}</p>
                     @endif
                     @isset($meta)
-                        <div class="mt-1 flex flex-wrap items-center gap-1.5">{{ $meta }}</div>
+                        <div class="app-ph-meta mt-1 flex flex-wrap items-center gap-1.5">{{ $meta }}</div>
                     @endisset
                 </div>
             </div>
 
-            <div class="sales-create-header-actions flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full lg:w-auto">
+            <div class="sales-create-header-actions app-ph-actions flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full lg:w-auto">
                 {{-- Slot de ações (botões) passado pelo componente pai --}}
                 {!! $actions ?? '' !!}
 

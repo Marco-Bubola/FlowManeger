@@ -30,131 +30,42 @@
 
     <div class="">
 
-        <!-- Header Moderno -->
-        <x-clients-index-header tabs-section="clientes" tabs-active="lista" title="Clientes" :total-clients="$clients->total() ?? 0" :active-clients="$clients->where('status', 'ativo')->count() ?? 0" :premium-clients="$clients->where('type', 'premium')->count() ?? 0" :new-clients-this-month="$clients->where('created_at', '>=', now()->startOfMonth())->count() ?? 0"
-            :show-quick-actions="true">
+        <x-page-header title="Clientes" icon="bi-people" section="clientes" tabs-section="clientes" tabs-active="lista">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-people"></i>{{ $clients->total() }} {{ $clients->total() === 1 ? 'cliente' : 'clientes' }}</span>
+                @if($this->activeClients > 0)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-person-check"></i>{{ $this->activeClients }} ativos</span>
+                @endif
+                @if($this->premiumClients > 0)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-star"></i>{{ $this->premiumClients }} premium</span>
+                @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" @click="showFilters = !showFilters" title="Filtros avançados" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-sliders text-indigo-500"></i>Filtros</button>
+                <a href="{{ route('clients.create') }}" title="Novo cliente"
+                   class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition"><i class="bi bi-person-plus"></i>Novo cliente</a>
+            </x-slot:actions>
+        </x-page-header>
 
-            <!-- Breadcrumb -->
-            <x-slot name="breadcrumb">
-                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <i class="fas fa-chevron-right text-xs"></i>
-                    <span class="text-slate-800 dark:text-slate-200 font-medium">
-                        <i class="fas fa-users mr-1"></i>Clientes
-                    </span>
-                </div>
-            </x-slot>
-
-            <!-- Bloco de Controles Central -->
-            <div class="w-full">
-                <div class="flex flex-col gap-4 clients-index-controls-wrap">
-                    <!-- Linha 1: Pesquisa e Contadores -->
-                    <div class="flex items-center gap-4 clients-index-controls-row-1">
-                        <!-- Input de Pesquisa -->
-                        <div class="relative flex-1 group">
-                            <input type="text"
-                                wire:model.live.debounce.300ms="search"
-                                placeholder="Buscar clientes por nome, email, telefone ou cidade..."
-                                class="w-full pl-10 pr-4 py-2.5 bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-600/50 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500 dark:focus:border-purple-400 transition-all duration-300 shadow-sm backdrop-blur-sm text-sm font-medium">
-                            <div class="absolute left-3 top-1/2 transform -translate-y-1/2">
-                                <i class="bi bi-search text-slate-500 dark:text-slate-400 text-sm group-focus-within:text-purple-500 transition-colors duration-200"></i>
-                            </div>
-                            @if ($search)
-                            <div class="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                <button wire:click="$set('search', '')"
-                                    class="group/clear p-1 bg-slate-200 hover:bg-red-500 dark:bg-slate-600 dark:hover:bg-red-500 text-slate-600 hover:text-white dark:text-slate-300 dark:hover:text-white rounded-md transition-all duration-200"
-                                    title="Limpar busca">
-                                    <i class="bi bi-x-lg text-xs"></i>
-                                </button>
-                            </div>
-                            @endif
-                        </div>
-
-                        <!-- Contadores e Filtros -->
-                        <div class="flex items-center gap-2 clients-index-controls-actions">
-                            <div
-                                class="flex items-center gap-2 px-3 py-2 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm">
-                                <i class="bi bi-people text-purple-600 dark:text-purple-400"></i>
-                                <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">
-                                    {{ $clients->total() }} Clientes
-                                </div>
-                                <span class="text-xs text-slate-500 dark:text-slate-400">
-                                    {{ $clients->firstItem() ?? 0 }}-{{ $clients->lastItem() ?? 0 }}
-                                </span>
-                            </div>
-                            <button @click="showFilters = !showFilters"
-                                class="p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm transition-all"
-                                :class="{ 'bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 ring-2 ring-purple-500': showFilters }"
-                                title="Filtros avançados">
-                                <i class="bi bi-funnel text-base"></i>
-                            </button>
-
-                            <a href="{{ route('clients.create') }}"
-                                class="flex items-center gap-2 p-2.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50 shadow-sm transition-all text-purple-600 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-900/50 hover:ring-2 hover:ring-purple-500"
-                                title="Novo Cliente">
-                                <i class="bi bi-plus-lg text-base"></i>
-                                <span class="text-sm font-semibold">Cliente</span>
-                            </a>
-                        </div>
-                    </div>
-
-                    <!-- Linha 2: Ordenação e Paginação -->
-                    <div class="flex items-center justify-between clients-index-controls-row-2">
-                        <!-- Paginação Compacta -->
-                        @if ($clients->hasPages())
-                        <div
-                            class="flex items-center gap-1 bg-white/80 dark:bg-slate-800/80 rounded-lg p-1 border border-slate-200/50 dark:border-slate-600/50">
-                            @if ($clients->previousPageUrl())
-                            <a href="{{ $clients->previousPageUrl() }}"
-                                class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
-                                title="Página anterior">
-                                <i class="bi bi-chevron-left text-sm"></i>
-                            </a>
-                            @endif
-                            <div class="flex items-center px-3 py-1">
-                                <span class="text-sm font-medium text-slate-700 dark:text-slate-300">
-                                    {{ $clients->currentPage() }} / {{ $clients->lastPage() }}
-                                </span>
-                            </div>
-                            @if ($clients->nextPageUrl())
-                            <a href="{{ $clients->nextPageUrl() }}"
-                                class="p-2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-600 rounded transition-all duration-200"
-                                title="Próxima página">
-                                <i class="bi bi-chevron-right text-sm"></i>
-                            </a>
-                            @endif
-                        </div>
-                        @endif
-
-                        <!-- Ordenação e Stats -->
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="flex items-center gap-2 px-3 py-1.5 bg-white/80 dark:bg-slate-800/80 rounded-xl border border-slate-200/50 dark:border-slate-600/50">
-                                <span class="text-sm font-semibold text-slate-800 dark:text-slate-300">
-                                    Por
-                                    {{ match ($sortBy ?? 'name') {'created_at' => 'Data','name' => 'Nome','email' => 'Email','status' => 'Status','phone' => 'Telefone','most_sales' => 'Compras',default => 'Nome'} }}
-                                </span>
-                                <button wire:click="toggleSort('{{ $sortBy }}')">
-                                    <i class="bi bi-{{ ($sortDirection ?? 'asc') === 'asc' ? 'arrow-up' : 'arrow-down' }}"></i>
-                                </button>
-                            </div>
-                            <div class="hidden lg:flex items-center gap-4 text-sm">
-                                <div class="flex items-center gap-1 text-green-600 dark:text-green-400">
-                                    <i class="bi bi-person-check"></i>
-                                    <span>{{ $this->activeClients }} ativos</span>
-                                </div>
-                                <div class="flex items-center gap-1 text-purple-600 dark:text-purple-400">
-                                    <i class="bi bi-star"></i>
-                                    <span>{{ $this->premiumClients }} premium</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </x-clients-index-header>
+        <x-list-toolbar placeholder="Buscar clientes por nome, email, telefone ou cidade...">
+            <x-toolbar.group>
+                <x-toolbar.chip wire:click="$set('statusFilter', '')" :active="$statusFilter === ''" icon="bi-grid">Todos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'ativo')" :active="$statusFilter === 'ativo'" icon="bi-person-check">Ativos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'inativo')" :active="$statusFilter === 'inativo'" icon="bi-person-dash">Inativos</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'premium')" :active="$statusFilter === 'premium'" icon="bi-star">Premium</x-toolbar.chip>
+            </x-toolbar.group>
+            <x-toolbar.group icon="bi-arrow-down-up">
+                <x-toolbar.chip wire:click="toggleSort('created_at')" :active="$sortBy === 'created_at'">Recentes</x-toolbar.chip>
+                <x-toolbar.chip wire:click="toggleSort('name')" :active="$sortBy === 'name'">A-Z</x-toolbar.chip>
+                <x-toolbar.chip wire:click="toggleSort('most_sales')" :active="$sortBy === 'most_sales'">Mais compras</x-toolbar.chip>
+            </x-toolbar.group>
+            <x-toolbar.group title="Clientes por página">
+                @foreach([12, 24, 48, 96] as $pp)
+                    <x-toolbar.chip wire:click="$set('perPage', {{ $pp }})" :active="$perPage == $pp">{{ $pp }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            <x-toolbar.pager :paginator="$clients" />
+        </x-list-toolbar>
 
 
         <!-- Filtros Avançados (usando showFilters do Alpine.js) -->

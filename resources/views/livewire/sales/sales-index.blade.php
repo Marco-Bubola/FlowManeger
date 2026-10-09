@@ -60,25 +60,51 @@
     <div class="">
 
         <!-- Header Moderno -->
-        <x-sales-index-header tabs-section="vendas" tabs-active="lista"
-            title="Vendas"
-            :total-sales="$totalSales ?? 0"
-            :pending-sales="$pendingSales ?? 0"
-            :today-sales="$todaySales ?? 0"
-            :total-revenue="$totalRevenue ?? 0"
-            :show-quick-actions="true"
-            :sales="$sales"
-            :search="$search"
-            :sort-by="$sortBy"
-            :sort-direction="$sortDirection"
-            :status-filter="$statusFilter"
-            :client-filter="$clientFilter"
-            :start-date="$startDate"
-            :end-date="$endDate"
-            :min-value="$minValue"
-            :max-value="$maxValue"
-            :quick-filter="$quickFilter">
-        </x-sales-index-header>
+        <x-page-header title="Vendas" icon="bi-cart3" section="vendas" tabs-section="vendas" tabs-active="lista">
+            <x-slot:meta>
+                <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-cart-check"></i>{{ $totalSales ?? 0 }} vendas</span>
+                @if(($pendingSales ?? 0) > 0)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-amber-50 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"><i class="bi bi-clock"></i>{{ $pendingSales }} pendentes</span>
+                @endif
+                @if(($todaySales ?? 0) > 0)
+                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-calendar-check"></i>{{ $todaySales }} hoje</span>
+                @endif
+            </x-slot:meta>
+            <x-slot:actions>
+                <button type="button" wire:click="toggleTips" title="Dicas"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-lightbulb text-amber-500"></i>Dicas</button>
+                <button type="button" @click="showFilters = !showFilters" title="Filtros avançados"
+                        class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-sliders text-indigo-500"></i>Filtros</button>
+                <a href="{{ route('sales.create', ['scanner' => 1]) }}" title="Criar venda com scanner"
+                   class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-upc-scan text-indigo-500"></i>Scanner</a>
+                <a href="{{ route('sales.create') }}" title="Nova venda"
+                   class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition"><i class="bi bi-plus-lg"></i>Nova venda</a>
+            </x-slot:actions>
+        </x-page-header>
+
+        <x-list-toolbar placeholder="Buscar por cliente ou número da venda...">
+            <x-toolbar.group>
+                <x-toolbar.chip wire:click="$set('statusFilter', '')" :active="$statusFilter === ''" icon="bi-grid">Todas</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'pendente')" :active="$statusFilter === 'pendente'" icon="bi-clock-history">Pendentes</x-toolbar.chip>
+                <x-toolbar.chip wire:click="$set('statusFilter', 'pago')" :active="$statusFilter === 'pago'" icon="bi-check-circle">Pagas</x-toolbar.chip>
+            </x-toolbar.group>
+            <x-toolbar.group icon="bi-calendar-week">
+                <x-toolbar.chip wire:click="setQuickFilter('today')" :active="$quickFilter === 'today'">Hoje</x-toolbar.chip>
+                <x-toolbar.chip wire:click="setQuickFilter('week')" :active="$quickFilter === 'week'">Semana</x-toolbar.chip>
+                <x-toolbar.chip wire:click="setQuickFilter('month')" :active="$quickFilter === 'month'">Mês</x-toolbar.chip>
+            </x-toolbar.group>
+            <x-toolbar.group icon="bi-arrow-down-up">
+                <x-toolbar.chip wire:click="setSortOrder('created_at', 'desc')" :active="$sortBy === 'created_at' && $sortDirection === 'desc'">Recentes</x-toolbar.chip>
+                <x-toolbar.chip wire:click="setSortOrder('created_at', 'asc')" :active="$sortBy === 'created_at' && $sortDirection === 'asc'">Antigas</x-toolbar.chip>
+                <x-toolbar.chip wire:click="setSortOrder('total_price', 'desc')" :active="$sortBy === 'total_price' && $sortDirection === 'desc'">Maior valor</x-toolbar.chip>
+            </x-toolbar.group>
+            <x-toolbar.group title="Vendas por página">
+                @foreach(array_slice($perPageOptions, 0, 5) as $pp)
+                    <x-toolbar.chip wire:click="$set('perPage', {{ $pp }})" :active="$sales->perPage() == $pp">{{ $pp }}</x-toolbar.chip>
+                @endforeach
+            </x-toolbar.group>
+            <x-toolbar.pager :paginator="$sales" />
+        </x-list-toolbar>
 
         <!-- Filtros Avançados -->
         <x-sales-filters :show-filters="false" :clients="$clients ?? collect()" :sellers="$sellers ?? collect()" :status-filter="$statusFilter" :client-filter="$clientFilter"

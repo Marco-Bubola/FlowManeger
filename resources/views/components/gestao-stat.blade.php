@@ -12,15 +12,15 @@
     [$gradient, $valueClass] = $tones[$tone] ?? $tones['indigo'];
 @endphp
 
-<div class="flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 sm:p-4 shadow-sm">
-    <div class="flex h-9 w-9 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br {{ $gradient }} text-white shadow-md">
-        <i class="bi {{ $icon }} text-lg"></i>
+<div class="gestao-stat flex items-center gap-2.5 sm:gap-3 rounded-xl sm:rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-2.5 sm:p-4 shadow-sm min-w-0">
+    <div class="flex h-8 w-8 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-lg sm:rounded-xl bg-gradient-to-br {{ $gradient }} text-white shadow-md">
+        <i class="bi {{ $icon }} text-base sm:text-lg"></i>
     </div>
     <div class="min-w-0 max-w-full">
-        <p class="text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
-        <p class="break-words text-base sm:text-xl font-black leading-tight {{ $valueClass }}">{{ $value }}</p>
+        <p class="truncate text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
+        <p class="break-words text-[15px] sm:text-xl font-black leading-tight {{ $valueClass }}">{{ $value }}</p>
         @if($hint)
-            <p class="text-[11px] text-slate-500 dark:text-slate-400">{{ $hint }}</p>
+            <p class="truncate text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">{{ $hint }}</p>
         @endif
     </div>
 </div>

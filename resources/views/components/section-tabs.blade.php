@@ -31,7 +31,7 @@
     }
 @endphp
 
-<div {{ $attributes->merge(['class' => 'mt-4 -mx-1 overflow-x-auto']) }}>
+<div {{ $attributes->merge(['class' => 'app-ph-tabs mt-4 -mx-1 overflow-x-auto']) }}>
     <nav class="flex min-w-max items-center gap-1 px-1 pb-1">
         @foreach($tabs as $key => $tab)
             <a href="{{ $tab['url'] }}"

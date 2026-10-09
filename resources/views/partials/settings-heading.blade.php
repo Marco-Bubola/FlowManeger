@@ -42,7 +42,7 @@
     $hCurrentTitle = $hCurrent[1] ?? 'Configurações';
 @endphp
 
-<div class="settings-page-header relative mx-4 sm:mx-6 lg:mx-10 mb-2 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
+<div class="settings-page-header app-ph relative mx-4 sm:mx-6 lg:mx-10 mb-2 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]">
     <div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_32%)]"></div>
         <div class="absolute -top-12 right-10 h-36 w-36 rounded-full bg-purple-400/20 blur-2xl"></div>
@@ -87,7 +87,7 @@
             </div>
         </div>
 
-        <div class="mt-4 -mx-1 overflow-x-auto">
+        <div class="app-ph-tabs mt-4 -mx-1 overflow-x-auto">
             <nav class="flex min-w-max items-center gap-1 px-1 pb-1" aria-label="Configurações">
                 @foreach($hTabs as [$hRoute, $hLabel, $hIcon])
                     @php $hIsActive = request()->routeIs($hRoute . '*'); @endphp

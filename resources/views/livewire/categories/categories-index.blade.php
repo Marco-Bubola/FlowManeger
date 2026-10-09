@@ -10,105 +10,36 @@
 
     <div class="w-full ">
 
-    <!-- Header Moderno -->
-    <x-category-header tabs-section="categorias" tabs-active="lista"
-        title="Categorias"
-        description="Organize e gerencie suas categorias com eficiência"
-        :total-categories="$productCategories->count() + $transactionCategories->count()"
-        :product-categories="$productCategories->count()"
-        :transaction-categories="$transactionCategories->count()"
-        :active-tab="$activeTab"
-        :show-quick-actions="true"
-    >
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                    <i class="fas fa-tags mr-1"></i>Categorias
-                </span>
-            </div>
-        </x-slot>
-    </x-category-header>
+    @php
+        $catTotal = $productCategories->count() + $transactionCategories->count();
+        $catActive = $productCategories->where('is_active', 1)->count() + $transactionCategories->where('is_active', 1)->count();
+    @endphp
+    <x-page-header title="Categorias" icon="bi-tags" section="categorias" tabs-section="categorias" tabs-active="lista">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-box-seam"></i>{{ $productCategories->count() }} de produtos</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-arrow-left-right"></i>{{ $transactionCategories->count() }} de transações</span>
+        </x-slot:meta>
+        <x-slot:actions>
+            <button type="button" wire:click="createTransactionCategory" title="Nova categoria de transação" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"><i class="bi bi-arrow-left-right text-emerald-500"></i>De transação</button>
+            <button type="button" wire:click="createProductCategory" title="Nova categoria de produto"
+                    class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition"><i class="bi bi-plus-lg"></i>Categoria de produto</button>
+        </x-slot:actions>
+    </x-page-header>
 
-    <!-- Dashboard de Estatísticas -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <x-category-stats-card
-            title="Categorias de Produtos"
-            :value="$productCategories->count()"
-            icon="fa-box"
-            color="blue"
-            :subtitle="round(($productCategories->count() / max(($productCategories->count() + $transactionCategories->count()), 1)) * 100) . '% do total'"
-        />
-
-        <x-category-stats-card
-            title="Categorias de Transações"
-            :value="$transactionCategories->count()"
-            icon="fa-exchange-alt"
-            color="emerald"
-            :subtitle="round(($transactionCategories->count() / max(($productCategories->count() + $transactionCategories->count()), 1)) * 100) . '% do total'"
-        />
-
-        <x-category-stats-card
-            title="Categorias Ativas"
-            :value="$productCategories->where('is_active', 1)->count() + $transactionCategories->where('is_active', 1)->count()"
-            icon="fa-check-circle"
-            color="orange"
-            :subtitle="($productCategories->where('is_active', 0)->count() + $transactionCategories->where('is_active', 0)->count()) . ' inativas'"
-        />
+    <div class="grid grid-cols-3 gap-3 mb-4">
+        <x-gestao-stat label="De produtos" :value="$productCategories->count()" icon="bi-box-seam" tone="indigo" :hint="round(($productCategories->count() / max($catTotal, 1)) * 100) . '% do total'" />
+        <x-gestao-stat label="De transações" :value="$transactionCategories->count()" icon="bi-arrow-left-right" tone="emerald" :hint="round(($transactionCategories->count() / max($catTotal, 1)) * 100) . '% do total'" />
+        <x-gestao-stat label="Ativas" :value="$catActive" icon="bi-check-circle" tone="amber" :hint="($catTotal - $catActive) . ' inativas'" />
     </div>
 
-    <!-- Sistema de Navegação por Abas -->
-    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden mb-4">
-        <div class="flex border-b border-slate-200 dark:border-slate-700">
-            <!-- Aba Categorias de Produtos -->
-            <button wire:click="setActiveTab('products')"
-                    class="flex-1 flex items-center justify-center px-6 py-3 text-sm font-semibold transition-all duration-300 {{ $activeTab === 'products' ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700' }}">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-box"></i>
-                    <span>Produtos</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $activeTab === 'products' ? 'bg-white/20 text-white' : 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200' }}">
-                        {{ $productCategories->count() }}
-                    </span>
-                </div>
-            </button>
-
-            <!-- Aba Categorias de Transações -->
-            <button wire:click="setActiveTab('transactions')"
-                    class="flex-1 flex items-center justify-center px-6 py-3 text-sm font-semibold transition-all duration-300 {{ $activeTab === 'transactions' ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700' }}">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-exchange-alt"></i>
-                    <span>Transações</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $activeTab === 'transactions' ? 'bg-white/20 text-white' : 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' }}">
-                        {{ $transactionCategories->count() }}
-                    </span>
-                </div>
-            </button>
-
-            <!-- Aba Todas as Categorias -->
-            <button wire:click="setActiveTab('all')"
-                    class="flex-1 flex items-center justify-center px-6 py-3 text-sm font-semibold transition-all duration-300 {{ $activeTab === 'all' ? 'bg-gradient-to-r from-purple-500 to-pink-600 text-white shadow-lg' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700' }}">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-list"></i>
-                    <span>Todas</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $activeTab === 'all' ? 'bg-white/20 text-white' : 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200' }}">
-                        {{ $productCategories->count() + $transactionCategories->count() }}
-                    </span>
-                </div>
-            </button>
-
-            <!-- Aba Dicas Inteligentes -->
-            <button wire:click="setActiveTab('tips')"
-                    class="flex-1 flex items-center justify-center px-6 py-3 text-sm font-semibold transition-all duration-300 {{ $activeTab === 'tips' ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg' : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700' }}">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-lightbulb"></i>
-                    <span>Dicas</span>
-                </div>
-            </button>
-        </div>
-    </div>
+    <x-list-toolbar model="">
+        <x-toolbar.group>
+            <x-toolbar.chip wire:click="setActiveTab('products')" :active="$activeTab === 'products'" icon="bi-box-seam">Produtos <span class="opacity-70">{{ $productCategories->count() }}</span></x-toolbar.chip>
+            <x-toolbar.chip wire:click="setActiveTab('transactions')" :active="$activeTab === 'transactions'" icon="bi-arrow-left-right">Transações <span class="opacity-70">{{ $transactionCategories->count() }}</span></x-toolbar.chip>
+            <x-toolbar.chip wire:click="setActiveTab('all')" :active="$activeTab === 'all'" icon="bi-list-ul">Todas <span class="opacity-70">{{ $catTotal }}</span></x-toolbar.chip>
+            <x-toolbar.chip wire:click="setActiveTab('tips')" :active="$activeTab === 'tips'" icon="bi-lightbulb">Dicas</x-toolbar.chip>
+        </x-toolbar.group>
+    </x-list-toolbar>
 
     <!-- Filtros Avançados (Apenas para aba 'all') -->
     @if($activeTab === 'all')

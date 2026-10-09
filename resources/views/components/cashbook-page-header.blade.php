@@ -21,7 +21,7 @@
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
 @endphp
 
-<div {{ $attributes->merge(['class' => "cashbook-page-header relative mb-6 rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]"]) }}>
+<div {{ $attributes->merge(['class' => "cashbook-page-header relative mb-6 app-ph rounded-[28px] border border-white/60 dark:border-slate-700/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(238,242,255,0.9),rgba(245,243,255,0.94))] dark:bg-[linear-gradient(135deg,rgba(15,23,42,0.94),rgba(30,41,59,0.92),rgba(17,24,39,0.96))] backdrop-blur-2xl shadow-[0_20px_60px_rgba(15,23,42,0.12)]"]) }}>
     {{-- Decoração recortada à parte, para menus abertos nas ações não serem cortados --}}
     <div class="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
         <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(99,102,241,0.16),transparent_38%),radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.12),transparent_32%)]"></div>
@@ -29,10 +29,10 @@
     </div>
 
     <div class="relative px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
-        <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div class="app-ph-main flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                 <a href="{{ $back }}" title="Voltar"
-                   class="group inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition">
+                   class="app-ph-back group inline-flex items-center justify-center w-10 h-10 shrink-0 rounded-xl bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70 shadow-sm transition">
                     <i class="bi bi-arrow-left text-lg text-indigo-600 dark:text-indigo-300 group-hover:-translate-x-0.5 transition-transform"></i>
                 </a>
 
@@ -50,22 +50,22 @@
                         {{ $title }}
                     </h1>
                     @if($subtitle)
-                        <p class="mt-0.5 text-sm text-slate-600 dark:text-slate-400">{!! $subtitle !!}</p>
+                        <p class="app-ph-sub mt-0.5 text-sm text-slate-600 dark:text-slate-400">{!! $subtitle !!}</p>
                     @endif
                     @isset($meta)
-                        <div class="mt-1 flex flex-wrap items-center gap-1.5">{{ $meta }}</div>
+                        <div class="app-ph-meta mt-1 flex flex-wrap items-center gap-1.5">{{ $meta }}</div>
                     @endisset
                 </div>
             </div>
 
             @isset($actions)
-                <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+                <div class="app-ph-actions flex flex-wrap items-center gap-2 lg:justify-end">
                     {{ $actions }}
                 </div>
             @endisset
         </div>
 
-        <div class="mt-4 -mx-1 overflow-x-auto">
+        <div class="app-ph-tabs mt-4 -mx-1 overflow-x-auto">
             <nav class="flex min-w-max items-center gap-1 px-1 pb-1">
                 @foreach($tabs as $key => $tab)
                     <a href="{{ $tab['url'] }}"
