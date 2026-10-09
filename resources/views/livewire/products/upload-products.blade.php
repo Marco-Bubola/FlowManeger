@@ -496,39 +496,7 @@
                                 @endforelse
                             </div>
 
-                            @if($uploadHistory->hasPages())
-                            <div class="upload-history-pagination flex flex-col gap-3 border-t border-slate-100 dark:border-slate-700/60 pt-4 sm:flex-row sm:items-center sm:justify-between">
-                                <div class="text-sm text-slate-500 dark:text-slate-400">
-                                    Mostrando <span class="font-bold text-slate-800 dark:text-white">{{ $uploadHistory->firstItem() }}</span> a <span class="font-bold text-slate-800 dark:text-white">{{ $uploadHistory->lastItem() }}</span> de <span class="font-bold text-slate-800 dark:text-white">{{ $uploadHistory->total() }}</span> uploads.
-                                </div>
-
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <button type="button"
-                                            wire:click="previousPage('historyPage')"
-                                            @disabled($uploadHistory->onFirstPage())
-                                            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40">
-                                        <i class="bi bi-arrow-left"></i>
-                                        Anterior
-                                    </button>
-
-                                    @foreach($uploadHistory->getUrlRange(max(1, $uploadHistory->currentPage() - 1), min($uploadHistory->lastPage(), $uploadHistory->currentPage() + 1)) as $page => $url)
-                                    <button type="button"
-                                            wire:click="gotoPage({{ $page }}, 'historyPage')"
-                                            class="inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-sm font-black transition-all {{ $page === $uploadHistory->currentPage() ? 'border-transparent bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-md shadow-indigo-500/25' : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-50' }}">
-                                        {{ $page }}
-                                    </button>
-                                    @endforeach
-
-                                    <button type="button"
-                                            wire:click="nextPage('historyPage')"
-                                            @disabled(!$uploadHistory->hasMorePages())
-                                            class="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-40">
-                                        Proxima
-                                        <i class="bi bi-arrow-right"></i>
-                                    </button>
-                                </div>
-                            </div>
-                            @endif
+                            <x-pagination-bar :paginator="$uploadHistory" label="uploads" :scroll-top="false" class="!mt-4 !shadow-none" />
                         </div>
                     </div>
                 </div>

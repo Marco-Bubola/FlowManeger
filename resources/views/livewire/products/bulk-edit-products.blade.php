@@ -421,74 +421,11 @@
             </div>
 
             <!-- ───────────────── PAGINAÇÃO ───────────────── -->
-            @if($totalPages > 1)
-            <nav class="bulk-pagination" aria-label="Paginação">
-                <div class="bulk-pagination-info">
-                    <i class="bi bi-collection"></i>
-                    Mostrando
-                    <strong>{{ ($currentPage - 1) * $perPage + 1 }}</strong>
-                    -
-                    <strong>{{ min($currentPage * $perPage, $totalProducts) }}</strong>
-                    de
-                    <strong>{{ number_format($totalProducts, 0, ',', '.') }}</strong>
-                </div>
-
-                <div class="bulk-pagination-controls">
-                    <!-- Primeira página -->
-                    <button type="button"
-                            wire:click="goToPage(1)"
-                            @disabled($currentPage === 1)
-                            class="bulk-page-btn bulk-page-btn-arrow"
-                            title="Primeira página">
-                        <i class="bi bi-chevron-double-left"></i>
-                    </button>
-
-                    <!-- Anterior -->
-                    <button type="button"
-                            wire:click="previousPage"
-                            @disabled($currentPage === 1)
-                            class="bulk-page-btn bulk-page-btn-arrow"
-                            title="Anterior">
-                        <i class="bi bi-chevron-left"></i>
-                        <span class="hidden sm:inline">Anterior</span>
-                    </button>
-
-                    <!-- Números de página -->
-                    <div class="bulk-page-numbers">
-                        @foreach($pagesArray as $p)
-                            @if($p === '...')
-                                <span class="bulk-page-dots">...</span>
-                            @else
-                                <button type="button"
-                                        wire:click="goToPage({{ $p }})"
-                                        class="bulk-page-btn bulk-page-btn-num {{ $p == $currentPage ? 'bulk-page-btn--active' : '' }}">
-                                    {{ $p }}
-                                </button>
-                            @endif
-                        @endforeach
-                    </div>
-
-                    <!-- Próxima -->
-                    <button type="button"
-                            wire:click="nextPage"
-                            @disabled($currentPage === $totalPages)
-                            class="bulk-page-btn bulk-page-btn-arrow"
-                            title="Próxima">
-                        <span class="hidden sm:inline">Próxima</span>
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-
-                    <!-- Última página -->
-                    <button type="button"
-                            wire:click="goToPage({{ $totalPages }})"
-                            @disabled($currentPage === $totalPages)
-                            class="bulk-page-btn bulk-page-btn-arrow"
-                            title="Última página">
-                        <i class="bi bi-chevron-double-right"></i>
-                    </button>
-                </div>
-            </nav>
-            @endif
+            {{-- Mesma paginação do resto do sistema (goToPage/previousPage/nextPage do componente). --}}
+            @php
+                $bulkPaginator = new \Illuminate\Pagination\LengthAwarePaginator($productsData, $totalProducts, max(1, $perPage), $currentPage);
+            @endphp
+            <x-pagination-bar :paginator="$bulkPaginator" label="produtos" goto-method="goToPage" />
         @endif
     </div>
 

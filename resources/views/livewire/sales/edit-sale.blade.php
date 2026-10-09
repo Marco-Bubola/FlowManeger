@@ -15,6 +15,11 @@
     {{-- Camada compacta comum das telas de venda (sempre por último) --}}
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/sales-compact.css') }}?v=20260806">
 
+    <style>
+        /* Faixa do cabeçalho fixo sem cor própria: o cartão do cabeçalho fica igual ao das outras telas. */
+        .sales-create-page .create-sale-sticky-header,
+        .edit-sale-page .create-sale-sticky-header { background: transparent !important; border-bottom-color: transparent !important; }
+    </style>
     <!-- Header Sticky (mesmo estilo do Create) -->
     <div class="create-sale-sticky-header">
     <x-sales-header tabs-section="vendas"
@@ -38,6 +43,11 @@
                 'gradient' => 'from-green-500 to-emerald-500'
             ]
         ]">
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-box-seam"></i>{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'item' : 'itens' }}</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-cash-coin"></i>R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><i class="bi bi-calendar3"></i>Venda de {{ $sale->created_at?->format('d/m/Y') }}</span>
+        </x-slot:meta>
         <x-slot name="actions">
             @php
                 $canProceed = count($selectedProducts) > 0 && $client_id;
@@ -59,12 +69,11 @@
                 x-show="currentStep === 1"
                 @click="openCart()"
                 title="Abrir carrinho e resumo da venda"
-                class="create-header-cart-btn group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 transition-all"
+                class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70"
             >
-                <i class="bi bi-cart3 text-lg"></i>
-                <span class="hidden sm:inline">Carrinho</span>
+                <i class="bi bi-cart3 text-indigo-500"></i>Carrinho
                 @if(count($selectedProducts) > 0)
-                    <span class="inline-flex items-center justify-center min-w-[1.4rem] h-5 px-1.5 rounded-full bg-white text-purple-700 text-[11px] font-black shadow ring-2 ring-white/40">{{ count($selectedProducts) }}</span>
+                    <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200 text-[11px] font-bold">{{ count($selectedProducts) }}</span>
                 @endif
             </button>
 
@@ -76,24 +85,13 @@
                 @endif
                 title="{{ $tooltip }}"
                 @if(!$canProceed) disabled @endif
-                class="create-header-next-btn group relative inline-flex items-center justify-center rounded-lg font-semibold tracking-wide text-white transition-all duration-300
-                    focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-slate-900
+                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white transition
                     {{ $canProceed
-                        ? 'bg-black/20 dark:bg-white/10 backdrop-blur-md border border-white/20 shadow-lg shadow-indigo-500/20 hover:bg-gradient-to-r from-indigo-500 to-purple-600'
-                        : 'bg-slate-400/50 dark:bg-slate-700/50 cursor-not-allowed opacity-60'
+                        ? 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25'
+                        : 'bg-slate-400 dark:bg-slate-700 cursor-not-allowed opacity-70'
                     }}"
             >
-                <span class="create-header-next-content">
-                    <span class="create-header-next-copy">
-                        <span class="create-header-next-label">Ir para Resumo</span>
-                        <span class="create-header-next-meta">{{ $canProceed ? 'Revisar e salvar alterações' : 'Complete cliente e produtos para continuar' }}</span>
-                    </span>
-                    <span class="create-header-next-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transform transition-transform duration-300 group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                        </svg>
-                    </span>
-                </span>
+                Ir para resumo<i class="bi bi-arrow-right"></i>
             </button>
         </x-slot>
     </x-sales-header>
@@ -113,33 +111,21 @@
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
                     <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col edit-sale-products-pane">
-                        <!-- Header com Controles -->
-                        <div class="p-2">
-                            <div class="flex flex-row items-center gap-2 md:gap-4 edit-sale-products-controls">
-                                <div class="flex-1">
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="bi bi-search text-gray-400"></i>
-                                        </div>
-                                        <input type="text"
-                                            wire:model.live.debounce.300ms="searchTerm"
-                                            placeholder="Pesquisar produtos por nome ou código..."
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                                    </div>
+                        <!-- Barra de busca (mesmo visual de cartão das outras telas) -->
+                        <div class="mt-3 mb-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm">
+                            <div class="flex flex-col md:flex-row md:items-center gap-2 sale-search-bar">
+                                <div class="relative flex-1 min-w-0">
+                                    <i class="bi bi-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text"
+                                        wire:model.live.debounce.300ms="searchTerm"
+                                        placeholder="Pesquisar produtos por nome ou código..."
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition pl-10 pr-4">
                                 </div>
-                                <div class="flex items-center shrink-0">
-                                    <label class="toggle-filter">
-                                        <input type="checkbox"
-                                               wire:model.live="showOnlySelected"
-                                               class="toggle-filter-input">
-                                        <span class="toggle-filter-track">
-                                            <span class="toggle-filter-thumb"></span>
-                                        </span>
-                                        <span class="toggle-filter-text text-gray-700 dark:text-gray-300 font-medium">
-                                            Selecionados
-                                        </span>
-                                    </label>
-                                </div>
+                                <label class="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 select-none">
+                                    <input type="checkbox" wire:model.live="showOnlySelected" class="peer sr-only">
+                                    <span class="relative h-5 w-9 rounded-full bg-slate-300 dark:bg-slate-600 transition peer-checked:bg-indigo-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4"></span>
+                                    Só selecionados
+                                </label>
                             </div>
                         </div>
 

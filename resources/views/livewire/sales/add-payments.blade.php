@@ -23,7 +23,13 @@
             $apStatus  = $sale->remaining_amount <= 0 ? 'pago' : ($sale->total_paid > 0 ? 'parcial' : 'pendente');
             $apPercent = $sale->total_price > 0 ? min(100, ($sale->total_paid / $sale->total_price) * 100) : 0;
         @endphp
-        
+
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+            <x-gestao-stat label="Total da venda" :value="'R$ ' . number_format($sale->total_price, 2, ',', '.')" icon="bi-receipt" tone="indigo" />
+            <x-gestao-stat label="Já pago" :value="'R$ ' . number_format($sale->total_paid, 2, ',', '.')" icon="bi-check-circle" tone="emerald" />
+            <x-gestao-stat label="Falta receber" :value="'R$ ' . number_format(max(0, $sale->remaining_amount), 2, ',', '.')" icon="bi-hourglass-split" tone="amber" />
+            <x-gestao-stat label="Quitado" :value="number_format($apPercent, 0) . '%'" icon="bi-pie-chart" tone="sky" :hint="$apStatus === 'pago' ? 'Venda paga' : ($apStatus === 'parcial' ? 'Pagamento parcial' : 'Nada pago ainda')" />
+        </div>
 
         {{-- Layout 2 colunas no tablet+: formulários | sidebar --}}
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 items-start mb-6">
@@ -42,7 +48,7 @@
                 </div>
 
                 <button wire:click="addPaymentRow"
-                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-zinc-900 border-2 border-dashed border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 text-indigo-600 dark:text-indigo-400 font-semibold rounded-2xl transition-all duration-200 text-sm shadow-sm">
+                        class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-slate-900/60 border-2 border-dashed border-indigo-300 dark:border-indigo-500/40 hover:border-indigo-500 dark:hover:border-indigo-500 hover:bg-indigo-50/50 dark:hover:bg-indigo-900/10 text-indigo-600 dark:text-indigo-300 font-semibold rounded-2xl transition-all duration-200 text-sm shadow-sm">
                     <i class="bi bi-plus-circle"></i>
                     Adicionar outra linha de pagamento
                 </button>
@@ -107,10 +113,10 @@
                                             stroke-dashoffset="{{ number_format($offPago, 4, '.', '') }}"/>
                                 </svg>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center">
-                                    <span class="text-lg font-extrabold text-gray-900 dark:text-white leading-none">
+                                    <span class="text-lg font-extrabold text-slate-900 dark:text-white leading-none">
                                         {{ number_format(($pctPago + $pctLancamento) * 100, 0) }}%
                                     </span>
-                                    <span class="text-[10px] text-gray-400 dark:text-gray-500">quitado</span>
+                                    <span class="text-[10px] text-slate-400 dark:text-slate-500">quitado</span>
                                 </div>
                             </div>
                         </div>
@@ -119,28 +125,28 @@
                         <div class="flex items-center justify-center gap-4 pb-1">
                             <div class="flex items-center gap-1.5">
                                 <div class="w-2.5 h-2.5 rounded-full bg-emerald-400"></div>
-                                <span class="text-[10px] text-gray-500 dark:text-gray-400">Pago</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">Pago</span>
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <div class="w-2.5 h-2.5 rounded-full bg-indigo-400"></div>
-                                <span class="text-[10px] text-gray-500 dark:text-gray-400">Este lanc.</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">Este lanc.</span>
                             </div>
                             <div class="flex items-center gap-1.5">
                                 <div class="w-2.5 h-2.5 rounded-full bg-red-400"></div>
-                                <span class="text-[10px] text-gray-500 dark:text-gray-400">Restante</span>
+                                <span class="text-[10px] text-slate-500 dark:text-slate-400">Restante</span>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between py-2 px-3 bg-slate-50 dark:bg-zinc-800 rounded-xl">
-                            <span class="text-xs text-gray-500 dark:text-gray-400 font-medium">Pendente atual</span>
-                            <span class="text-sm font-extrabold text-gray-900 dark:text-white">R$ {{ number_format($this->remainingAmount, 2, ',', '.') }}</span>
+                        <div class="flex items-center justify-between py-2 px-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                            <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">Pendente atual</span>
+                            <span class="text-sm font-extrabold text-slate-900 dark:text-white">R$ {{ number_format($this->remainingAmount, 2, ',', '.') }}</span>
                         </div>
-                        <div class="flex items-center justify-between py-2 px-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl">
-                            <span class="text-xs text-indigo-700 dark:text-indigo-400 font-medium">Este lançamento</span>
-                            <span class="text-sm font-extrabold text-indigo-700 dark:text-indigo-400">R$ {{ number_format($apTotal, 2, ',', '.') }}</span>
+                        <div class="flex items-center justify-between py-2 px-3 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl">
+                            <span class="text-xs text-indigo-700 dark:text-indigo-300 font-medium">Este lançamento</span>
+                            <span class="text-sm font-extrabold text-indigo-700 dark:text-indigo-300">R$ {{ number_format($apTotal, 2, ',', '.') }}</span>
                         </div>
                         <div class="flex items-center justify-between py-2 px-3 rounded-xl
-                            {{ $apNewRemaining <= 0 ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-red-50 dark:bg-red-900/20' }}">
+                            {{ $apNewRemaining <= 0 ? 'bg-emerald-50 dark:bg-emerald-500/10' : 'bg-red-50 dark:bg-rose-500/10' }}">
                             <span class="text-xs font-medium
                                 {{ $apNewRemaining <= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400' }}">
                                 {{ $apNewRemaining <= 0 ? 'Ficará quitado' : 'Ficará pendente' }}
@@ -168,7 +174,7 @@
                         </button>
 
                         <a href="{{ route('sales.show', $sale->id) }}"
-                           class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-zinc-800 hover:bg-gray-100 dark:hover:bg-zinc-700 text-gray-600 dark:text-gray-400 font-medium rounded-xl transition-all text-sm">
+                           class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium rounded-xl transition-all text-sm">
                             <i class="bi bi-x-lg text-xs"></i>
                             Cancelar
                         </a>

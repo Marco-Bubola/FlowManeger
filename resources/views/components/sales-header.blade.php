@@ -22,7 +22,14 @@
         'purple' => 'from-purple-500 via-fuchsia-500 to-pink-500 shadow-purple-500/20',
         'red' => 'from-rose-500 via-red-500 to-orange-500 shadow-rose-500/20',
     ];
-    $headerIconGradient = $headerIconGradients[$iconColor] ?? 'from-indigo-500 via-sky-500 to-emerald-500 shadow-indigo-500/20';
+    // Mesmo gradiente dos outros cabeçalhos (Clientes, Produtos...) para todas as telas.
+    $headerIconGradient = 'from-indigo-500 via-purple-500 to-pink-500 shadow-indigo-500/20';
+    $sectionCrumbs = [
+        'vendas' => ['Vendas', 'bi-cart3', 'sales.index'],
+        'categorias' => ['Categorias', 'bi-tags', 'categories.index'],
+        'clientes' => ['Clientes', 'bi-people', 'clients.index'],
+    ];
+    $sectionCrumb = $tabsSection ? ($sectionCrumbs[$tabsSection] ?? null) : null;
 @endphp
 
 <!-- Header Moderno com Gradiente e Glassmorphism -->
@@ -53,20 +60,24 @@
                 </div>
 
                 <div class="space-y-1 min-w-0">
-                    @isset($breadcrumb)
+                    @if($sectionCrumb)
+                        <nav class="hidden sm:flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
+                            <a href="{{ route($sectionCrumb[2]) }}" class="hover:text-indigo-600 dark:hover:text-indigo-300"><i class="bi {{ $sectionCrumb[1] }} mr-1"></i>{{ $sectionCrumb[0] }}</a>
+                            <i class="bi bi-chevron-right text-[10px]"></i>
+                            <span class="truncate text-indigo-600 dark:text-indigo-300">{{ $title }}</span>
+                        </nav>
+                    @elseif(isset($breadcrumb))
                         <div class="hidden sm:block">{{ $breadcrumb }}</div>
-                    @endisset
+                    @endif
                     <h1 class="sales-create-header-title text-lg sm:text-2xl font-bold bg-gradient-to-r from-slate-800 via-indigo-700 to-purple-700 dark:from-slate-100 dark:via-indigo-300 dark:to-purple-300 bg-clip-text text-transparent truncate">
                         {{ $title }}
                     </h1>
 @if($headerDescription)
-                                        <p class="sales-create-header-subtitle flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium line-clamp-2 sm:line-clamp-none text-center sm:text-left">
-                        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-300 shrink-0">
-                            <i class="bi bi-stars text-[11px]"></i>
-                        </span>
-                        <span>{!! $headerDescription !!}</span>
-                    </p>
+                    <p class="sales-create-header-subtitle mt-0.5 text-sm text-slate-600 dark:text-slate-400 line-clamp-2 sm:line-clamp-none">{!! $headerDescription !!}</p>
                     @endif
+                    @isset($meta)
+                        <div class="mt-1 flex flex-wrap items-center gap-1.5">{{ $meta }}</div>
+                    @endisset
                 </div>
             </div>
 
@@ -74,45 +85,36 @@
                 {{-- Slot de ações (botões) passado pelo componente pai --}}
                 {!! $actions ?? '' !!}
 
-                <!-- Steppers compactos -->
-                @if(count($steps) > 0)
-                <div class="hidden sm:flex items-center justify-start lg:justify-center w-full lg:w-auto overflow-x-auto pb-1">
-                    <div class="flex items-center space-x-3 sm:space-x-4 min-w-max">
-                        @foreach($steps as $index => $step)
-                            @php $stepNumber = $index + 1; @endphp
-
-                            <!-- Step -->
-                            <div class="flex items-center">
-                                <div class="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg transition-all duration-200 shrink-0"
-                                    :class="$wire.currentStep === {{ $stepNumber }} ? 'bg-gradient-to-br {{ $step['gradient'] ?? 'from-indigo-500 to-purple-500' }} text-white shadow-md shadow-indigo-500/20' : ($wire.currentStep > {{ $stepNumber }} ? 'bg-green-500 text-white' : 'bg-gray-200 dark:bg-zinc-700 text-gray-600 dark:text-gray-400')">
-                                    <i class="bi {{ $step['icon'] ?? 'bi-circle' }} text-lg" x-show="$wire.currentStep === {{ $stepNumber }}"></i>
-                                    <i class="bi bi-check-lg text-lg" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
-                                </div>
-                                <div class="ml-2 sm:ml-3">
-                                    <div class="flex items-center">
-                                        <p class="text-xs sm:text-sm font-semibold transition-colors duration-200 whitespace-nowrap"
-                                            :class="$wire.currentStep === {{ $stepNumber }} ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'">{{ $step['title'] }}</p>
-                                        <i class="bi bi-check-circle-fill text-green-500 ml-2 text-sm" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
-                                    </div>
-                                    <p class="hidden sm:block text-xs text-gray-600 dark:text-gray-400">{{ $step['description'] }}</p>
-                                </div>
-                            </div>
-
-                            <!-- Connector -->
-                            @if(!$loop->last)
-                            <div class="w-8 sm:w-12 h-1 rounded-full transition-all duration-200"
-                                :class="$wire.currentStep >= {{ $stepNumber + 1 }} ? 'bg-gradient-to-r {{ $step['connector_gradient'] ?? 'from-indigo-500 to-purple-500' }}' : 'bg-gray-300 dark:bg-zinc-600'"></div>
-                            @endif
-                        @endforeach
-                    </div>
-                </div>
-                @endif
             </div>
         </div>
     </div>
-    @if($tabsSection)
-        <div class="relative px-4 sm:px-6 pb-3 -mt-2">
-            <x-section-tabs :section="$tabsSection" :active="$tabsActive" class="!mt-0" />
+    @if($tabsSection || count($steps) > 0)
+        <div class="relative px-4 sm:px-6 pb-3 -mt-2 flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+            @if($tabsSection)
+                <x-section-tabs :section="$tabsSection" :active="$tabsActive" class="!mt-0 min-w-0" />
+            @endif
+            @if(count($steps) > 0)
+                {{-- Etapas do fluxo em pílulas compactas (mesma altura das abas) --}}
+                <div class="hidden sm:flex items-center gap-1.5 shrink-0">
+                    @foreach($steps as $index => $step)
+                        @php $stepNumber = $index + 1; @endphp
+                        <span class="inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold transition"
+                              :class="$wire.currentStep === {{ $stepNumber }}
+                                    ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-200 dark:ring-indigo-500/30'
+                                    : ($wire.currentStep > {{ $stepNumber }} ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500 dark:text-slate-400')">
+                            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold"
+                                  :class="$wire.currentStep === {{ $stepNumber }} ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white' : ($wire.currentStep > {{ $stepNumber }} ? 'bg-emerald-500 text-white' : 'bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300')">
+                                <span x-show="$wire.currentStep <= {{ $stepNumber }}">{{ $stepNumber }}</span>
+                                <i class="bi bi-check-lg" x-show="$wire.currentStep > {{ $stepNumber }}"></i>
+                            </span>
+                            {{ $step['title'] }}
+                        </span>
+                        @if(!$loop->last)
+                            <i class="bi bi-chevron-right text-[10px] text-slate-400"></i>
+                        @endif
+                    @endforeach
+                </div>
+            @endif
         </div>
     @endif
 </div>

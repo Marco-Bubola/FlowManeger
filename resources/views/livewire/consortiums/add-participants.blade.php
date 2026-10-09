@@ -203,78 +203,7 @@
                 @endforeach
             </div>
 
-            <!-- Paginação Ultra Moderna -->
-            @if ($availableClients->hasPages())
-                <div class="mt-6 px-6 pb-6">
-                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                        <!-- Info de Página -->
-                        <div class="text-sm text-slate-600 dark:text-slate-400 font-medium">
-                            Mostrando
-                            <span
-                                class="font-black text-emerald-600 dark:text-emerald-400">{{ $availableClients->firstItem() ?? 0 }}</span>
-                            até
-                            <span
-                                class="font-black text-emerald-600 dark:text-emerald-400">{{ $availableClients->lastItem() ?? 0 }}</span>
-                            de
-                            <span
-                                class="font-black text-emerald-600 dark:text-emerald-400">{{ $availableClients->total() }}</span>
-                            clientes
-                        </div>
-
-                        <!-- Botões de Paginação -->
-                        <div class="flex items-center gap-2">
-                            {{-- Botão Anterior --}}
-                            @if ($availableClients->onFirstPage())
-                                <div
-                                    class="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-xl font-bold text-sm cursor-not-allowed flex items-center gap-2">
-                                    <i class="bi bi-chevron-left"></i>
-                                    <span class="hidden sm:inline">Anterior</span>
-                                </div>
-                            @else
-                                <button wire:click="previousPage"
-                                    class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2">
-                                    <i class="bi bi-chevron-left"></i>
-                                    <span class="hidden sm:inline">Anterior</span>
-                                </button>
-                            @endif
-
-                            {{-- Números de Página --}}
-                            <div class="flex items-center gap-2">
-                                @foreach (range(1, $availableClients->lastPage()) as $page)
-                                    @if ($page == $availableClients->currentPage())
-                                        <div
-                                            class="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 text-white rounded-xl font-black text-sm flex items-center justify-center shadow-lg scale-110">
-                                            {{ $page }}
-                                        </div>
-                                    @elseif($page == 1 || $page == $availableClients->lastPage() || abs($page - $availableClients->currentPage()) <= 1)
-                                        <button wire:click="gotoPage({{ $page }})"
-                                            class="w-10 h-10 bg-white dark:bg-slate-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 text-slate-700 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 rounded-xl font-bold text-sm flex items-center justify-center border-2 border-slate-200 dark:border-slate-600 transition-all hover:scale-110 hover:border-emerald-400">
-                                            {{ $page }}
-                                        </button>
-                                    @elseif(abs($page - $availableClients->currentPage()) == 2)
-                                        <div class="text-slate-400 dark:text-slate-600 font-black px-1">•••</div>
-                                    @endif
-                                @endforeach
-                            </div>
-
-                            {{-- Botão Próximo --}}
-                            @if ($availableClients->hasMorePages())
-                                <button wire:click="nextPage"
-                                    class="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white rounded-xl font-bold text-sm transition-all shadow-lg hover:shadow-xl hover:scale-105 flex items-center gap-2">
-                                    <span class="hidden sm:inline">Próximo</span>
-                                    <i class="bi bi-chevron-right"></i>
-                                </button>
-                            @else
-                                <div
-                                    class="px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-xl font-bold text-sm cursor-not-allowed flex items-center gap-2">
-                                    <span class="hidden sm:inline">Próximo</span>
-                                    <i class="bi bi-chevron-right"></i>
-                                </div>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            @endif
+            <div class="px-6 pb-6"><x-pagination-bar :paginator="$availableClients" label="clientes" :scroll-top="false" /></div>
         </div>
     @else
         <div class="p-16 text-center">

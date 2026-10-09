@@ -78,6 +78,11 @@
              x-text="scanToast.message"></div>
     </div>
 
+    <style>
+        /* Faixa do cabeçalho fixo sem cor própria: o cartão do cabeçalho fica igual ao das outras telas. */
+        .sales-create-page .create-sale-sticky-header,
+        .edit-sale-page .create-sale-sticky-header { background: transparent !important; border-bottom-color: transparent !important; }
+    </style>
     <!-- Header Flutuante / Sticky -->
     <div class="create-sale-sticky-header">
     <x-sales-header tabs-section="vendas" tabs-active="nova"
@@ -100,66 +105,19 @@
                 'gradient' => 'from-green-500 to-emerald-500'
             ]
         ]">
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('sales.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-shopping-cart mr-1"></i>Vendas
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">Nova Venda</span>
-            </div>
-        </x-slot>
+        <x-slot:meta>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-indigo-50 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-300"><i class="bi bi-box-seam"></i>{{ count($selectedProducts) }} {{ count($selectedProducts) === 1 ? 'item' : 'itens' }}</span>
+            <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300"><i class="bi bi-cash-coin"></i>R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</span>
+            <span class="inline-flex sm:hidden items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"><i class="bi bi-signpost-split"></i><span x-text="`Passo ${currentStep}/2`"></span></span>
+        </x-slot:meta>
         <x-slot name="actions">
-            <span class="create-header-stat-pill hidden md:inline-flex">
-                <i class="bi bi-box-seam text-indigo-500"></i>
-                <span class="text-left leading-tight">
-                    <strong class="block text-sm font-extrabold text-slate-900 dark:text-white">{{ count($selectedProducts) }}</strong>
-                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">itens ativos</span>
-                </span>
-            </span>
-
-            <span class="create-header-stat-pill hidden xl:inline-flex">
-                <i class="bi bi-cash-coin text-emerald-500"></i>
-                <span class="text-left leading-tight">
-                    <strong class="block text-sm font-extrabold text-slate-900 dark:text-white">R$ {{ number_format($this->getTotalPrice(), 2, ',', '.') }}</strong>
-                    <span class="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">total parcial</span>
-                </span>
-            </span>
-
-            <button wire:click="toggleTips" type="button"
-                class="create-header-action p-2 bg-gradient-to-br from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105">
-                <i class="bi bi-lightbulb"></i>
+            <button wire:click="toggleTips" type="button" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-lightbulb text-amber-500"></i>Dicas
             </button>
 
-            <button type="button"
-                @click="openScanner()"
-                class="create-header-action p-2 bg-gradient-to-br from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg transition-all duration-200 shadow-md hover:shadow-lg hover:scale-105"
-                title="Abrir scanner">
-                <i class="bi bi-upc-scan"></i>
+            <button type="button" @click="openScanner()" title="Abrir scanner" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold transition shadow-sm bg-white/85 dark:bg-slate-900/80 hover:bg-white dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/70 dark:border-slate-700/70">
+                <i class="bi bi-upc-scan text-indigo-500"></i>Scanner
             </button>
-
-            <span class="create-header-step-badge inline-flex sm:hidden items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 whitespace-nowrap">
-                <i class="bi bi-signpost-split mr-1"></i>
-                <span x-text="`Passo ${currentStep}/2`"></span>
-            </span>
-
-            @php
-                $canProceed = count($selectedProducts) > 0 && $client_id;
-                $tooltip = 'Ir para o resumo da venda';
-                if (!$canProceed) {
-                    if (empty($client_id) && count($selectedProducts) === 0) {
-                        $tooltip = 'Selecione um cliente e adicione produtos para poder continuar.';
-                    } elseif (empty($client_id)) {
-                        $tooltip = 'Selecione um cliente para poder continuar.';
-                    } elseif (count($selectedProducts) === 0) {
-                        $tooltip = 'Adicione ao menos um produto para poder continuar.';
-                    }
-                }
-            @endphp
 
             {{-- Botão "Carrinho" no header (abre o modal de carrinho/resumo) — apenas no Step 1 --}}
             <button
@@ -167,12 +125,11 @@
                 x-show="currentStep === 1"
                 @click="openCart()"
                 title="Abrir carrinho e resumo da venda"
-                class="create-header-cart-btn group relative inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-white bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 shadow-lg shadow-purple-500/25 transition-all"
+                class="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-md shadow-indigo-500/25 transition"
             >
-                <i class="bi bi-cart3 text-lg"></i>
-                <span class="hidden sm:inline">Carrinho</span>
+                <i class="bi bi-cart3"></i>Carrinho
                 @if(count($selectedProducts) > 0)
-                    <span class="inline-flex items-center justify-center min-w-[1.4rem] h-5 px-1.5 rounded-full bg-white text-purple-700 text-[11px] font-black shadow ring-2 ring-white/40">{{ count($selectedProducts) }}</span>
+                    <span class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full bg-white/90 text-indigo-700 text-[11px] font-bold">{{ count($selectedProducts) }}</span>
                 @endif
             </button>
         </x-slot>
@@ -195,71 +152,38 @@
 
                     <!-- Lado Esquerdo: Lista de Produtos (3/4 da tela) -->
                     <div class="w-full lg:flex-1 lg:min-w-0 flex flex-col create-sale-products-pane">
-                        <!-- Header com Controles -->
-                        <div class="p-2  ">
-
-
-                            <!-- Controles de pesquisa e filtro -->
-                            <div class="flex flex-row items-center gap-2 md:gap-4 create-sale-products-controls">
-                                <!-- Campo de pesquisa -->
-                                <div class="flex-1">
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="bi bi-search text-gray-400"></i>
-                                        </div>
-                                        <input type="text"
-                                            wire:model.live.debounce.300ms="searchProduct"
-                                            placeholder="Pesquisar produtos por nome ou código..."
-                                            class="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors duration-200">
-                                    </div>
+                        <!-- Barra de busca (mesmo visual de cartão das outras telas) -->
+                        <div class="mt-3 mb-1 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm">
+                            <div class="flex flex-col md:flex-row md:items-center gap-2 sale-search-bar">
+                                <div class="relative flex-1 min-w-0">
+                                    <i class="bi bi-search pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                                    <input type="text"
+                                        wire:model.live.debounce.300ms="searchProduct"
+                                        placeholder="Pesquisar produtos por nome ou código..."
+                                        class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition pl-10 pr-4">
                                 </div>
 
-                                <!-- Toggle para mostrar apenas selecionados -->
-                                <div class="flex items-center shrink-0">
-                                    <label class="toggle-filter">
-                                        <input type="checkbox"
-                                               wire:model.live="showOnlySelected"
-                                               class="toggle-filter-input">
-                                        <span class="toggle-filter-track">
-                                            <span class="toggle-filter-thumb"></span>
-                                        </span>
-                                        <span class="toggle-filter-text text-gray-700 dark:text-gray-300 font-medium">
-                                            Selecionados
-                                        </span>
-                                    </label>
-                                </div>
-
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <button type="button"
-                                            @click="openScanner()"
-                                            class="inline-flex items-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-600 text-white text-sm font-semibold shadow hover:shadow-lg transition-all">
-                                        <i class="bi bi-upc-scan"></i>
-                                        <span class="hidden sm:inline">Scanner</span>
+                                <div class="flex md:w-72 shrink-0 items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 pl-3.5 pr-1 focus-within:border-indigo-500 focus-within:ring-2 focus-within:ring-indigo-500/20 transition">
+                                    <i class="bi bi-upc text-slate-400"></i>
+                                    <input type="text"
+                                           x-model="manualScanCode"
+                                           @keydown.enter.prevent="submitManualCode()"
+                                           placeholder="Código de barras + Enter"
+                                           style="border:0;box-shadow:none;background:transparent;padding:0.625rem 0;margin:0;height:auto"
+                                           class="min-w-0 flex-1 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-0">
+                                    <button type="button" @click="submitManualCode()" title="Adicionar pelo código"
+                                            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-indigo-600 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-500/15">
+                                        <i class="bi bi-arrow-right-circle-fill"></i>
                                     </button>
                                 </div>
-                            </div>
 
-                            <div class="mt-2 flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between">
-                                <div class="w-full sm:max-w-sm">
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <i class="bi bi-123 text-slate-400"></i>
-                                        </div>
-                                        <input type="text"
-                                               x-model="manualScanCode"
-                                               @keydown.enter.prevent="submitManualCode()"
-                                               placeholder="Bip manual: digite o codigo e tecle Enter"
-                                               class="w-full pl-10 pr-10 py-2 border border-slate-300 dark:border-zinc-600 rounded-lg bg-white dark:bg-zinc-700 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
-                                        <button type="button"
-                                                @click="submitManualCode()"
-                                                class="absolute inset-y-0 right-0 px-3 text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-100">
-                                            <i class="bi bi-arrow-right-circle"></i>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div class="text-xs text-slate-600 dark:text-slate-300" x-show="lastScanMessage" x-text="lastScanMessage"></div>
+                                <label class="inline-flex shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 select-none">
+                                    <input type="checkbox" wire:model.live="showOnlySelected" class="peer sr-only">
+                                    <span class="relative h-5 w-9 rounded-full bg-slate-300 dark:bg-slate-600 transition peer-checked:bg-indigo-600 after:absolute after:left-0.5 after:top-0.5 after:h-4 after:w-4 after:rounded-full after:bg-white after:shadow after:transition peer-checked:after:translate-x-4"></span>
+                                    Só selecionados
+                                </label>
                             </div>
+                            <p class="mt-2 text-xs text-slate-600 dark:text-slate-300" x-show="lastScanMessage" x-text="lastScanMessage"></p>
                         </div>
 
                         <!-- Grid de Produtos com Scroll -->
