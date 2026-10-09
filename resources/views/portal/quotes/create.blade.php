@@ -331,8 +331,8 @@
                         {{-- Badge estoque --}}
                         <span class="badge-stock"
                               :class="item.stock > 5 ? 'bg-emerald-500/90 text-white shadow-sm' : 'bg-amber-400/90 text-white shadow-sm'">
-                            <i class="fas fa-layer-group text-[9px]"></i>
-                            <span x-text="item.stock"></span>
+                            <i class="fas fa-check text-[9px]"></i>
+                            <span x-text="item.stock > 3 ? 'Em estoque' : 'Últimas'"></span>
                         </span>
                         {{-- Botão remover --}}
                         <button type="button" @click="removeItem(item.id)"
@@ -522,8 +522,8 @@
                                     </template>
                                     <span class="badge-stock"
                                           :class="p.stock>5 ? 'bg-emerald-500/90 text-white' : p.stock>0 ? 'bg-amber-400/90 text-white' : 'bg-red-400/90 text-white'">
-                                        <i class="fas fa-layer-group text-[9px]"></i>
-                                        <span x-text="p.stock > 0 ? p.stock : '!'"></span>
+                                        <i class="fas fa-check text-[9px]"></i>
+                                        <span x-text="p.stock > 3 ? 'Em estoque' : (p.stock > 0 ? 'Últimas' : 'Esgotado')"></span>
                                     </span>
                                     <div x-show="!isSelected(p.id) && recentIds.slice(0,5).includes(p.id)" class="ec-smart-tag recent">
                                         <i class="fas fa-eye text-[8px]"></i> Recente
@@ -606,8 +606,8 @@
                             </template>
                             <span class="badge-stock"
                                   :class="p.stock>5 ? 'bg-emerald-500/90 text-white' : p.stock>0 ? 'bg-amber-400/90 text-white' : 'bg-red-400/90 text-white'">
-                                <i class="fas fa-layer-group text-[9px]"></i>
-                                <span x-text="p.stock > 0 ? p.stock : '!'"></span>
+                                <i class="fas fa-check text-[9px]"></i>
+                                <span x-text="p.stock > 3 ? 'Em estoque' : (p.stock > 0 ? 'Últimas' : 'Esgotado')"></span>
                             </span>
                             <div x-show="!isSelected(p.id) && recentIds.slice(0,5).includes(p.id)" class="ec-smart-tag recent">
                                 <i class="fas fa-eye text-[8px]"></i> Recente

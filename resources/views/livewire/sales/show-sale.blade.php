@@ -29,7 +29,7 @@
     <x-sale-page-header :sale="$sale" title="Resumo" active="resumo">
         <x-slot:actions>
             @if($sale->remaining_amount > 0)
-                <button wire:click="payFull"
+                <button wire:click="payFull" wire:confirm="Registrar o pagamento de todo o valor que falta e marcar a venda como paga?"
                         class="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-500/20 transition">
                     <i class="bi bi-cash-stack"></i>Quitar tudo
                 </button>

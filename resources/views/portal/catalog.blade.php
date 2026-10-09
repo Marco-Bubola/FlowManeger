@@ -270,8 +270,7 @@
             <p>Escolha, adicione ao carrinho e finalize seu pedido em poucos toques.</p>
             <div class="ml-hero-stats">
                 <span><i class="fas fa-tag"></i> {{ $offers->count() }} {{ $offers->count() === 1 ? 'oferta' : 'ofertas' }}</span>
-                <span><i class="fas fa-box"></i> {{ $stockMap->count() }} produtos em estoque</span>
-                <span><i class="fas fa-cubes"></i> {{ $unitsInStock }} unidades</span>
+                <span><i class="fas fa-box"></i> {{ $stockMap->count() }} produtos disponíveis</span>
             </div>
         </section>
     @endif
@@ -327,7 +326,7 @@
     @endif
 
     <div class="ml-toolbar">
-        <span class="ml-count-txt">{{ $products->total() }} {{ $products->total() === 1 ? 'produto' : 'produtos' }} em estoque</span>
+        <span class="ml-count-txt">{{ $products->total() }} {{ $products->total() === 1 ? 'produto' : 'produtos' }} disponíveis</span>
         @if($offers->isNotEmpty())
             <a href="{{ $catalogUrl(['ofertas' => $onlyOffers ? null : 1, 'page' => null]) }}" class="ml-chip hot {{ $onlyOffers ? 'on' : '' }}">
                 <i class="fas fa-fire"></i> Ofertas
@@ -447,7 +446,7 @@
                         </div>
 
                         <div class="ml-qty">
-                            <span class="ml-qty-label">Quantidade<small x-text="'(' + p.stock + (p.stock === 1 ? ' disponível)' : ' disponíveis)')"></small></span>
+                            <span class="ml-qty-label">Quantidade<small x-text="p.stock <= 3 ? '(últimas unidades)' : ''"></small></span>
                             <div class="ml-step">
                                 <button type="button" @click="qty = Math.max(1, qty - 1)" :disabled="qty <= 1" aria-label="Menos"><i class="fas fa-minus"></i></button>
                                 <span x-text="qty"></span>

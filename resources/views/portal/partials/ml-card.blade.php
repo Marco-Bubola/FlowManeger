@@ -40,10 +40,11 @@
         @if($d['ends'])
             <span class="ml-ends"><i class="fas fa-clock"></i> {{ $d['ends'] }}</span>
         @endif
+        {{-- O cliente não vê quantas unidades há em estoque. --}}
         @if($d['stock'] <= 3)
-            <span class="ml-stock low">{{ $d['stock'] === 1 ? 'Última unidade!' : 'Últimas ' . $d['stock'] . ' unidades!' }}</span>
+            <span class="ml-stock low">Últimas unidades!</span>
         @else
-            <span class="ml-stock"><i class="fas fa-box"></i> {{ $d['stock'] }} em estoque</span>
+            <span class="ml-stock"><i class="fas fa-box"></i> Em estoque</span>
         @endif
     </div>
 </div>

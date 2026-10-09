@@ -525,7 +525,7 @@
                             <i class="bi bi-pencil"></i>
                         </a>
                         @unless($isVariant)
-                        <button type="button" wire:click="detachVariation({{ $variant->id }})"
+                        <button type="button" wire:click="detachVariation({{ $variant->id }})" wire:confirm="Tirar esta variação do grupo? Ela continua cadastrada como produto separado."
                             wire:confirm="Desvincular esta variação? O produto volta a ser independente (não será excluído)."
                             class="w-8 h-8 flex items-center justify-center text-xs text-red-600 dark:text-red-300 bg-red-500/15 hover:bg-red-500/25 rounded-lg transition-colors" title="Desvincular">
                             <i class="bi bi-x-lg"></i>

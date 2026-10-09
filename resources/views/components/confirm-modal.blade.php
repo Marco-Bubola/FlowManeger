@@ -176,8 +176,13 @@ window.fmAlert = function(opts) {
         }).then(function (ok) {
             if (!ok) return;
             // Re-dispara o clique sem o wire:confirm → Livewire executa a ação normalmente
+            // O Livewire guarda o confirm() nativo no próprio elemento: tira
+            // durante o novo clique para não abrir a caixa do navegador depois.
+            const nativeConfirm = el.__livewire_confirm;
+            el.__livewire_confirm = null;
             el.removeAttribute('wire:confirm');
             el.click();
+            el.__livewire_confirm = nativeConfirm;
             setTimeout(function () { el.setAttribute('wire:confirm', message); }, 400);
         });
     }, true); // capture = true

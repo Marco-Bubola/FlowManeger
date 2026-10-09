@@ -199,8 +199,8 @@
                                         </template>
                                         <span class="badge-stock shadow-sm"
                                               :class="p.stock > 5 ? 'bg-emerald-500/90 text-white' : 'bg-amber-400/90 text-white'">
-                                            <i class="fas fa-layer-group" style="font-size:0.55rem"></i>
-                                            <span x-text="p.stock"></span>
+                                            <i class="fas fa-check" style="font-size:0.55rem"></i>
+                                            <span x-text="p.stock > 3 ? 'Em estoque' : 'Últimas'"></span>
                                         </span>
                                         <div class="pcard-cat-circle">
                                             <i :class="p.catIcon"></i>
