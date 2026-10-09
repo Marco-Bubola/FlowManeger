@@ -511,19 +511,17 @@ class DashboardIndex extends Component
         $this->totalCofrinhos = Cofrinho::where('user_id', $userId)->where('status', 'ativo')->count();
 
         // Total economizado nos cofrinhos
-        // LÓGICA CORRIGIDA:
-        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
-        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
+        // Despesa na conta = guardar no cofrinho (soma); receita na conta = retirar (subtrai).
         $cofrinhos = Cofrinho::where('user_id', $userId)->where('status', 'ativo')->get();
         $this->totalEconomizado = 0;
         foreach ($cofrinhos as $cofrinho) {
             $entradas = Cashbook::where('user_id', $userId)
                 ->where('cofrinho_id', $cofrinho->id)
-                ->where('type_id', 1)
+                ->where('type_id', Cofrinho::TIPO_GUARDAR)
                 ->sum('value');
             $saidas = Cashbook::where('user_id', $userId)
                 ->where('cofrinho_id', $cofrinho->id)
-                ->where('type_id', 2)
+                ->where('type_id', Cofrinho::TIPO_RETIRAR)
                 ->sum('value');
             $this->totalEconomizado += ($entradas - $saidas);
         }

@@ -72,8 +72,8 @@
         <div class="rounded-2xl border border-indigo-200/70 dark:border-indigo-500/20 bg-indigo-50/60 dark:bg-indigo-500/5 p-5">
             <p class="flex items-center gap-1.5 text-sm font-bold text-indigo-800 dark:text-indigo-200"><i class="bi bi-lightbulb text-amber-500"></i>Como funciona</p>
             <ul class="mt-2 space-y-1.5 text-sm text-indigo-900/80 dark:text-indigo-100/80">
-                <li class="flex gap-2"><i class="bi bi-arrow-down-circle text-emerald-500 mt-0.5"></i><span>Uma <b>receita</b> no Livro caixa com este cofrinho guarda dinheiro nele.</span></li>
-                <li class="flex gap-2"><i class="bi bi-arrow-up-circle text-rose-500 mt-0.5"></i><span>Uma <b>despesa</b> com este cofrinho retira dinheiro dele.</span></li>
+                <li class="flex gap-2"><i class="bi bi-arrow-down-circle text-emerald-500 mt-0.5"></i><span>Uma <b>despesa</b> no Livro caixa com este cofrinho é dinheiro que sai da conta e entra no cofrinho.</span></li>
+                <li class="flex gap-2"><i class="bi bi-arrow-up-circle text-rose-500 mt-0.5"></i><span>Uma <b>receita</b> com este cofrinho é dinheiro que sai do cofrinho e volta para a conta.</span></li>
                 <li class="flex gap-2"><i class="bi bi-flag text-indigo-500 mt-0.5"></i><span>A barra mostra quanto falta para a meta.</span></li>
             </ul>
         </div>

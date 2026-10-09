@@ -55,7 +55,7 @@
                     <span class="font-bold text-rose-600 dark:text-rose-400">R$ {{ number_format($estatisticas['total_despesas'], 2, ',', '.') }}</span>
                 </div>
                 <p class="border-t border-slate-100 dark:border-slate-800 pt-3 text-xs text-slate-500 dark:text-slate-400">
-                    Para guardar, lance uma <b>receita</b> no Livro caixa escolhendo este cofrinho. Para retirar, lance uma <b>despesa</b>.
+                    O Livro caixa é a sua conta corrente: uma <b>despesa</b> com este cofrinho é dinheiro que saiu da conta e entrou aqui. Uma <b>receita</b> com este cofrinho é dinheiro que voltou para a conta.
                 </p>
             </div>
         </div>
@@ -72,7 +72,7 @@
             @if(count($transacoes) > 0)
                 <div class="divide-y divide-slate-100 dark:divide-slate-800">
                     @foreach($transacoes as $transacao)
-                        @php $in = $transacao['type_id'] == 1; @endphp
+                        @php $in = $transacao['type_id'] == \App\Models\Cofrinho::TIPO_GUARDAR; @endphp
                         <a href="{{ route('cashbook.edit', $transacao['id']) }}" wire:navigate
                            class="flex items-center gap-3 py-3 px-2 -mx-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/60 transition">
                             <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl {{ $in ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300' : 'bg-rose-50 text-rose-600 dark:bg-rose-500/15 dark:text-rose-300' }}">
@@ -92,7 +92,7 @@
                 <div class="py-10 text-center">
                     <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800"><i class="bi bi-clock-history text-2xl text-slate-400"></i></div>
                     <p class="font-semibold text-slate-900 dark:text-white">Nenhuma movimentação ainda</p>
-                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Lance uma receita no Livro caixa escolhendo este cofrinho para começar.</p>
+                    <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Lance uma despesa no Livro caixa escolhendo este cofrinho para guardar dinheiro nele.</p>
                     <a href="{{ route('cashbook.create') }}" wire:navigate class="mt-4 inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 shadow-md"><i class="bi bi-plus-lg"></i>Novo lançamento</a>
                 </div>
             @endif

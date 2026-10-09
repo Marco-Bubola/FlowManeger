@@ -36,14 +36,12 @@ class ShowCofrinho extends Component
             ->toArray();
 
         // Calcular valor acumulado
-        // LÓGICA CORRIGIDA:
-        // type_id=1 (receita) = dinheiro ENTRANDO no cofrinho (guardando) - ADICIONA
-        // type_id=2 (despesa) = dinheiro SAINDO do cofrinho (retirando) - SUBTRAI
+        // Despesa na conta = guardar no cofrinho (soma); receita na conta = retirar (subtrai).
         $this->valor_acumulado = 0;
         foreach ($this->transacoes as $transacao) {
-            if ($transacao['type_id'] == 1) { // Receita = guardando no cofrinho
+            if ($transacao['type_id'] == \App\Models\Cofrinho::TIPO_GUARDAR) {
                 $this->valor_acumulado += $transacao['value'];
-            } elseif ($transacao['type_id'] == 2) { // Despesa = retirando do cofrinho
+            } elseif ($transacao['type_id'] == \App\Models\Cofrinho::TIPO_RETIRAR) {
                 $this->valor_acumulado -= $transacao['value'];
             }
         }
@@ -59,8 +57,8 @@ class ShowCofrinho extends Component
 
     public function calculateStatistics()
     {
-        $receitas = collect($this->transacoes)->where('type_id', 1);
-        $despesas = collect($this->transacoes)->where('type_id', 2);
+        $receitas = collect($this->transacoes)->where('type_id', \App\Models\Cofrinho::TIPO_GUARDAR); // guardado
+        $despesas = collect($this->transacoes)->where('type_id', \App\Models\Cofrinho::TIPO_RETIRAR); // retirado
 
         $this->estatisticas = [
             'total_receitas' => $receitas->sum('value'),

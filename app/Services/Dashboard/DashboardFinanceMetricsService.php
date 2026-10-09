@@ -209,13 +209,13 @@ class DashboardFinanceMetricsService
                 $monthEntries = (float) Cashbook::query()
                     ->where('user_id', $userId)
                     ->where('cofrinho_id', $cofrinhoFiltro)
-                    ->where('type_id', 1)
+                    ->where('type_id', Cofrinho::TIPO_GUARDAR)
                     ->whereBetween('date', [$startOfMonth, $endOfMonth])
                     ->sum('value');
                 $monthExits = (float) Cashbook::query()
                     ->where('user_id', $userId)
                     ->where('cofrinho_id', $cofrinhoFiltro)
-                    ->where('type_id', 2)
+                    ->where('type_id', Cofrinho::TIPO_RETIRAR)
                     ->whereBetween('date', [$startOfMonth, $endOfMonth])
                     ->sum('value');
 
@@ -512,8 +512,8 @@ class DashboardFinanceMetricsService
 
         return [
             'cofrinhos' => $cofrinhos->map(function ($cofrinho) use ($userId) {
-                $entradas = (float) Cashbook::query()->where('user_id', $userId)->where('cofrinho_id', $cofrinho->id)->where('type_id', 1)->sum('value');
-                $saidas = (float) Cashbook::query()->where('user_id', $userId)->where('cofrinho_id', $cofrinho->id)->where('type_id', 2)->sum('value');
+                $entradas = (float) Cashbook::query()->where('user_id', $userId)->where('cofrinho_id', $cofrinho->id)->where('type_id', Cofrinho::TIPO_GUARDAR)->sum('value');
+                $saidas = (float) Cashbook::query()->where('user_id', $userId)->where('cofrinho_id', $cofrinho->id)->where('type_id', Cofrinho::TIPO_RETIRAR)->sum('value');
                 $valorGuardado = $entradas - $saidas;
                 $progresso = $cofrinho->meta_valor > 0 ? ($valorGuardado / $cofrinho->meta_valor) * 100 : 0.0;
 

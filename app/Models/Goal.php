@@ -165,7 +165,7 @@ class Goal extends Model
     {
         if ($this->cofrinho_id && $this->valor_meta > 0) {
             $valorAtual = $this->cofrinho->cashbooks()
-                ->selectRaw('SUM(CASE WHEN type_id = 1 THEN value ELSE -value END) as total')
+                ->selectRaw('SUM(CASE WHEN type_id = ? THEN value ELSE -value END) as total', [Cofrinho::TIPO_GUARDAR])
                 ->value('total') ?? 0;
 
             $this->update([
