@@ -188,7 +188,12 @@
 
         /* Social grid */
         .auth-social-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.6rem; }
-        @media (max-width: 380px) { .auth-social-grid { grid-template-columns: 1fr; } }
+        .auth-social-grid > * { min-width: 0; }
+        /* Celular: os três botões cabem lado a lado só com o ícone (o nome fica no title) */
+        @media (max-width: 480px) {
+            .auth-social-btn { padding: 0.8rem 0.5rem; }
+            .auth-social-btn [data-label] { display: none; }
+        }
 
         /* Divider */
         .auth-divider { display: flex; align-items: center; gap: 0.875rem; color: rgba(255,255,255,0.2); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }

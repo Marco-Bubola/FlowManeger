@@ -48,7 +48,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         </div>
         <button type="submit" class="auth-btn-primary" wire:loading.attr="disabled">
             <span wire:loading.remove wire:target="sendPasswordResetLink">Enviar link de redefinição →</span>
-            <span wire:loading wire:target="sendPasswordResetLink" style="display:inline-flex;align-items:center;gap:0.5rem;">
+            <span wire:loading.inline-flex wire:target="sendPasswordResetLink" style="align-items:center;gap:0.5rem;">
                 <svg style="animation:spin 0.8s linear infinite;" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="rgba(255,255,255,0.3)" stroke-width="3"/><path d="M12 2a10 10 0 0110 10" stroke="#fff" stroke-width="3" stroke-linecap="round"/></svg>
                 Enviando...
             </span>
