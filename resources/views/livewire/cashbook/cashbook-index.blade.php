@@ -30,10 +30,10 @@
 
     <!-- Main Content Layout -->
     <div class="w-full">
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div class="cashbook-main-grid grid grid-cols-1 lg:grid-cols-4 gap-4">
 
             <!-- Left Column - Calendar & Chart (25% - 1 col) -->
-            <div class="lg:col-span-1 space-y-3">
+            <div class="cashbook-side lg:col-span-1 space-y-3">
                 <!-- Calendar - Modernizado -->
                 <div class="relative rounded-3xl shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:-translate-y-1"
                     style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(139, 92, 246, 0.05) 100%); border: 2px solid rgba(59, 130, 246, 0.2);">

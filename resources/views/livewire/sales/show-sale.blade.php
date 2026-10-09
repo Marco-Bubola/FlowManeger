@@ -60,7 +60,7 @@
             $subtotal = $sale->saleItems->sum(fn($i) => $i->quantity * $i->price_sale);
         @endphp
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+        <div class="grid grid-cols-2 xl:grid-cols-4 gap-2 sm:gap-3">
             <x-gestao-stat label="Total da venda" :value="'R$ ' . number_format($sale->total_price, 2, ',', '.')" icon="bi-cash-stack" tone="indigo" :hint="$tipoLabel . ($sale->tipo_pagamento === 'parcelado' && $sale->parcelas ? ' · ' . $sale->parcelas . 'x' : '')" />
             <x-gestao-stat label="Pago" :value="'R$ ' . number_format($sale->total_paid, 2, ',', '.')" icon="bi-check2-circle" tone="emerald" :hint="number_format($percentage, 0) . '% da venda'" />
             <x-gestao-stat label="Falta receber" :value="'R$ ' . number_format($sale->remaining_amount, 2, ',', '.')" icon="bi-hourglass-split" :tone="$sale->remaining_amount > 0 ? 'rose' : 'slate'" />

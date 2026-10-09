@@ -2,7 +2,7 @@
     <x-gestao-header title="Produtos para repor" subtitle="Estoque no mínimo ou abaixo, ordenado pelo que mais vende"
         icon="bi-box-seam" active="repor" />
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
         <x-gestao-stat label="Para repor" :value="$rows->count() . ' ' . ($rows->count() === 1 ? 'produto' : 'produtos')" icon="bi-box-seam" tone="amber" />
         <x-gestao-stat label="Esgotados" :value="$zeroCount" icon="bi-x-octagon" tone="rose" />
         <div class="flex items-center gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-4 shadow-sm">

@@ -2,20 +2,19 @@
     <x-gestao-header title="Contas a receber" subtitle="Parcelas e saldos que os clientes ainda devem, por data de vencimento"
         icon="bi-cash-coin" active="receber" />
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
         <x-gestao-stat label="Total a receber" :value="'R$ ' . number_format($totals['all'], 2, ',', '.')" icon="bi-wallet2" tone="indigo" />
         <x-gestao-stat label="Vencido" :value="'R$ ' . number_format($totals['overdue'], 2, ',', '.')" icon="bi-exclamation-octagon" tone="rose" />
         <x-gestao-stat label="Vence em 7 dias" :value="'R$ ' . number_format($totals['week'], 2, ',', '.')" icon="bi-calendar-week" tone="amber" />
     </div>
 
-    <div class="rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 sm:p-4 shadow-sm flex flex-wrap gap-1.5">
-        @foreach (['todas' => 'Todas', 'vencidas' => 'Vencidas', 'semana' => 'Próximos 7 dias', 'mes' => 'Até o fim do mês'] as $key => $label)
-            <button type="button" wire:click="$set('filter', '{{ $key }}')"
-                class="rounded-xl px-3 py-2 text-sm font-semibold transition {{ $filter === $key ? 'bg-indigo-600 text-white shadow' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700' }}">
-                {{ $label }}
-            </button>
-        @endforeach
-    </div>
+    <x-list-toolbar model="" class="!mb-0">
+        <x-toolbar.group icon="bi-funnel">
+            @foreach (['todas' => 'Todas', 'vencidas' => 'Vencidas', 'semana' => 'Próximos 7 dias', 'mes' => 'Até o fim do mês'] as $key => $label)
+                <x-toolbar.chip wire:click="$set('filter', '{{ $key }}')" :active="$filter === $key">{{ $label }}</x-toolbar.chip>
+            @endforeach
+        </x-toolbar.group>
+    </x-list-toolbar>
 
     <div class="relative space-y-2">
         <div wire:loading.flex class="absolute inset-0 rounded-2xl bg-white/60 dark:bg-slate-900/60 items-center justify-center z-10">

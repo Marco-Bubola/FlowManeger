@@ -133,6 +133,20 @@
     html body .app-toolbar .app-toolbar-groups::-webkit-scrollbar { display: none; }
     html body .app-toolbar .app-toolbar-groups button { font-size: 0.72rem !important; padding: 0.3rem 0.55rem !important; }
 
+    /* Cards de produto (lista, edição em massa, nova venda): escala menor */
+    html body .product-card-modern.product-card-modern.product-card-modern.product-card-modern { --pc-s: 0.72 !important; }
+    html body .products-grid,
+    html body .bulk-products-grid { gap: 0.6rem !important; }
+
+    /* Calendários do Livro caixa e dos cartões: dias menores */
+    html body .grid-cols-7 > [class*="min-h-[4"] {
+        min-height: 2.15rem !important;
+        padding: 0.3rem !important;
+        border-radius: 0.6rem !important;
+    }
+    html body .grid-cols-7 > [class*="min-h-[4"][wire\:click] { border-width: 1px !important; }
+    html body .grid-cols-7 > [class*="min-h-[4"] > div:first-child { font-size: 0.78rem !important; }
+
     /* Paginação no fim da lista */
     html body .pagination-bar { margin-top: 1rem !important; padding: 0.6rem !important; gap: 0.5rem !important; }
 }
@@ -148,4 +162,18 @@
     html body .app-ph h1 { font-size: 1.35rem !important; }
     html body .app-ph .app-ph-icon { width: 3rem !important; height: 3rem !important; }
     html body .app-ph .app-ph-tabs a { font-size: 0.85rem !important; }
+}
+
+/* ───────────── iPad em pé (768px a 1023px) ───────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+    /* Livro caixa: lançamentos em largura total; calendário e gráfico lado a lado em cima */
+    html body .cashbook-main-grid.cashbook-main-grid.cashbook-main-grid.cashbook-main-grid { grid-template-columns: minmax(0, 1fr) !important; }
+    html body .cashbook-main-grid > .cashbook-side {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+        align-items: start;
+    }
+    html body .cashbook-main-grid > .cashbook-side > * { margin-top: 0 !important; }
+    html body .cashbook-main-grid .group-transactions { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.75rem !important; }
 }

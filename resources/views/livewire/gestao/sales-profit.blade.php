@@ -16,7 +16,7 @@
         </x-slot:actions>
     </x-gestao-header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
         <x-gestao-stat label="Faturamento" :value="'R$ ' . number_format($summary['revenue'], 2, ',', '.')" icon="bi-cash-stack" tone="indigo" />
         <x-gestao-stat label="Custo dos produtos" :value="'R$ ' . number_format($summary['cost'], 2, ',', '.')" icon="bi-box-seam" tone="slate" />
         <x-gestao-stat label="Lucro" :value="'R$ ' . number_format($summary['profit'], 2, ',', '.')" icon="bi-graph-up-arrow" :tone="$summary['profit'] >= 0 ? 'emerald' : 'rose'" />

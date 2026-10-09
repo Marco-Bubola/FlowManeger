@@ -12,8 +12,8 @@
         /* Colunas pela largura da área de cards (não da tela): proporcional em celular, notebook e ultrawide. */
         .bulk-edit-page .bulk-grid-wrap { container-type: inline-size; }
         .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 2; grid-template-columns: repeat(var(--bulk-fit-cols), minmax(0, 1fr)); }
-        @container (min-width: 760px)  { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 3; } }
-        @container (min-width: 1040px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 4; } }
+        @container (min-width: 600px)  { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 3; } }
+        @container (min-width: 900px)  { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 4; } }
         @container (min-width: 1320px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 5; } }
         @container (min-width: 1640px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 6; } }
         @container (min-width: 2000px) { .bulk-edit-page .bulk-products-grid { --bulk-fit-cols: 7; } }
@@ -41,47 +41,31 @@
         </x-slot:actions>
     </x-product-page-header>
 
-    <div class="mb-4 flex flex-col gap-3 rounded-2xl border border-slate-200/80 dark:border-slate-700/70 bg-white dark:bg-slate-900/80 p-3 shadow-sm 2xl:flex-row 2xl:items-center">
-        <div class="relative flex-1 min-w-0 2xl:min-w-[320px]">
-            <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-            <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar por nome, código ou código de barras..."
-                   class="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 py-2.5 pl-10 pr-10 text-sm text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-500/30">
-            <button type="button" wire:click="$set('search', '')" x-show="$wire.search && $wire.search.length > 0" title="Limpar busca"
-                    class="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-lg p-1 text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 hover:text-slate-700">
-                <i class="bi bi-x-lg text-xs"></i>
-            </button>
-            <div wire:loading.delay wire:target="search" class="absolute right-10 top-1/2 -translate-y-1/2">
-                <div class="animate-spin rounded-full h-4 w-4 border-2 border-indigo-500 border-t-transparent"></div>
-            </div>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-2">
-            <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
-                    <button type="button" wire:click="$set('filterStatus', '')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $filterStatus === '' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-grid-3x3-gap"></i>Todos</button>
-                    <button type="button" wire:click="$set('filterStatus', 'ativo')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $filterStatus === 'ativo' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-check-circle"></i>Ativos</button>
-                    <button type="button" wire:click="$set('filterStatus', 'inativo')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $filterStatus === 'inativo' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-pause-circle"></i>Inativos</button>
-            </div>
-
-            <div class="inline-flex items-center gap-0.5 rounded-xl bg-slate-100 dark:bg-slate-800 p-1">
-                <span class="px-1.5 text-xs text-slate-400"><i class="bi bi-arrow-down-up"></i></span>
-                    <button type="button" wire:click="$set('sortBy', 'name')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'name' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">A-Z</button>
-                    <button type="button" wire:click="$set('sortBy', 'updated_at')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'updated_at' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Recentes</button>
-                    <button type="button" wire:click="$set('sortBy', 'price_sale')" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'price_sale' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}">Preço</button>
-                    <button type="button" wire:click="$set('sortBy', 'product_code')" title="Agrupa produtos do mesmo código (ideal p/ vincular variações)" class="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition {{ $sortBy === 'product_code' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700' }}"><i class="bi bi-upc-scan"></i>Código</button>
-            </div>
-
-            <label class="inline-flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                <i class="bi bi-grid"></i>Por página
-                <select wire:model.live="perPage" wire:key="per-page-{{ $gridCols }}-{{ $perPage }}" id="perPage" class="rounded-lg border-0 bg-white dark:bg-slate-700 py-1 pl-2 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/30">
-                    @foreach($this->perPageOptions as $opt)
-                        <option value="{{ $opt }}" @selected($opt === $perPage)>{{ $opt }}</option>
-                    @endforeach
-                </select>
-            </label>
-
-            <span class="text-xs text-slate-500 dark:text-slate-400">Página {{ $currentPage }}/{{ $totalPages }}</span>
-        </div>
-    </div>
+    @php
+        $bulkTopPaginator = new \Illuminate\Pagination\LengthAwarePaginator($productsData, $totalProducts, max(1, $perPage), $currentPage);
+    @endphp
+    <x-list-toolbar placeholder="Buscar por nome, código ou código de barras...">
+        <x-toolbar.group>
+            <x-toolbar.chip wire:click="$set('filterStatus', '')" :active="$filterStatus === ''" icon="bi-grid-3x3-gap">Todos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('filterStatus', 'ativo')" :active="$filterStatus === 'ativo'" icon="bi-check-circle">Ativos</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('filterStatus', 'inativo')" :active="$filterStatus === 'inativo'" icon="bi-pause-circle">Inativos</x-toolbar.chip>
+        </x-toolbar.group>
+        <x-toolbar.group icon="bi-arrow-down-up">
+            <x-toolbar.chip wire:click="$set('sortBy', 'name')" :active="$sortBy === 'name'">A-Z</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('sortBy', 'updated_at')" :active="$sortBy === 'updated_at'">Recentes</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('sortBy', 'price_sale')" :active="$sortBy === 'price_sale'">Preço</x-toolbar.chip>
+            <x-toolbar.chip wire:click="$set('sortBy', 'product_code')" :active="$sortBy === 'product_code'" icon="bi-upc-scan" title="Agrupa produtos do mesmo código (ideal p/ vincular variações)">Código</x-toolbar.chip>
+        </x-toolbar.group>
+        <label class="inline-flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+            <i class="bi bi-grid"></i>Por página
+            <select wire:model.live="perPage" wire:key="per-page-{{ $gridCols }}-{{ $perPage }}" id="perPage" class="rounded-lg border-0 bg-white dark:bg-slate-700 py-1 pl-2 pr-7 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:ring-2 focus:ring-indigo-500/30">
+                @foreach($this->perPageOptions as $opt)
+                    <option value="{{ $opt }}" @selected($opt === $perPage)>{{ $opt }}</option>
+                @endforeach
+            </select>
+        </label>
+        <x-toolbar.pager :paginator="$bulkTopPaginator" />
+    </x-list-toolbar>
 
     @php
         $iconMap = [
@@ -125,37 +109,6 @@
                 <p>{{ $search ? 'Tente outro termo de busca.' : 'Cadastre produtos para editá-los aqui.' }}</p>
             </div>
         @else
-            <!-- ── Paginação do topo (compacta) ── -->
-            @if($totalPages > 1)
-            <nav class="bulk-pagination bulk-pagination--top" aria-label="Paginação (topo)">
-                <div class="bulk-pagination-info">
-                    <i class="bi bi-collection"></i>
-                    <strong>{{ ($currentPage - 1) * $perPage + 1 }}</strong>–<strong>{{ min($currentPage * $perPage, $totalProducts) }}</strong>
-                    de <strong>{{ number_format($totalProducts, 0, ',', '.') }}</strong>
-                </div>
-                <div class="bulk-pagination-controls">
-                    <button type="button" wire:click="previousPage" @disabled($currentPage === 1)
-                            class="bulk-page-btn bulk-page-btn-arrow" title="Anterior">
-                        <i class="bi bi-chevron-left"></i>
-                    </button>
-                    <div class="bulk-page-numbers">
-                        @foreach($pagesArray as $p)
-                            @if($p === '...')
-                                <span class="bulk-page-dots">...</span>
-                            @else
-                                <button type="button" wire:click="goToPage({{ $p }})"
-                                        class="bulk-page-btn bulk-page-btn-num {{ $p == $currentPage ? 'bulk-page-btn--active' : '' }}">{{ $p }}</button>
-                            @endif
-                        @endforeach
-                    </div>
-                    <button type="button" wire:click="nextPage" @disabled($currentPage === $totalPages)
-                            class="bulk-page-btn bulk-page-btn-arrow" title="Próxima">
-                        <i class="bi bi-chevron-right"></i>
-                    </button>
-                </div>
-            </nav>
-            @endif
-
             <div class="bulk-products-grid">
                 @foreach($productsData as $index => $product)
                 @php

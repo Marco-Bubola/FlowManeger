@@ -18,7 +18,7 @@
     </div>
     <div class="min-w-0 max-w-full">
         <p class="truncate text-[10px] sm:text-[11px] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ $label }}</p>
-        <p class="break-words text-[15px] sm:text-xl font-black leading-tight {{ $valueClass }}">{{ $value }}</p>
+        <p class="truncate sm:whitespace-normal sm:break-words text-[14px] sm:text-xl font-black leading-tight {{ $valueClass }}" title="{{ $value }}">{{ $value }}</p>
         @if($hint)
             <p class="truncate text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400">{{ $hint }}</p>
         @endif

@@ -38,7 +38,7 @@
         </x-slot:actions>
     </x-bank-page-header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 mb-4">
         <x-gestao-stat label="Total da fatura" :value="'R$ ' . number_format($hdrTotal, 2, ',', '.')" icon="bi-cash-stack" tone="rose" />
         <x-gestao-stat label="Compras" :value="$hdrCount" icon="bi-receipt" tone="indigo" />
         <x-gestao-stat label="Média por compra" :value="'R$ ' . number_format($hdrCount > 0 ? $hdrTotal / $hdrCount : 0, 2, ',', '.')" icon="bi-calculator" tone="emerald" />

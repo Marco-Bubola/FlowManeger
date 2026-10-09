@@ -19,7 +19,7 @@
     @endforeach
 
     @php $difference = (float) $sale->total_price - (float) $this->totalPayments; @endphp
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
         <x-gestao-stat label="Total da venda" :value="'R$ ' . number_format($sale->total_price, 2, ',', '.')" icon="bi-cash-stack" tone="indigo" />
         <x-gestao-stat label="Soma dos pagamentos" :value="'R$ ' . number_format($this->totalPayments, 2, ',', '.')" icon="bi-wallet2" tone="emerald" hint="como está salvo agora" />
         <x-gestao-stat label="Falta receber" :value="'R$ ' . number_format(max(0, $difference), 2, ',', '.')" icon="bi-hourglass-split" :tone="$difference > 0 ? 'rose' : 'slate'" />

@@ -2,7 +2,7 @@
     <x-gestao-header title="Movimentações de estoque" subtitle="Toda entrada e saída de estoque, com data, origem e quantidade"
         icon="bi-arrow-left-right" active="movimentacoes" />
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1">
         <x-gestao-stat label="Entradas" :value="'+' . $totals['in'] . ' un.'" icon="bi-box-arrow-in-down" tone="emerald" />
         <x-gestao-stat label="Saídas" :value="'-' . $totals['out'] . ' un.'" icon="bi-box-arrow-up" tone="rose" />
         <x-gestao-stat label="Movimentações" :value="$totals['count']" icon="bi-list-ul" tone="indigo" hint="no período escolhido" />

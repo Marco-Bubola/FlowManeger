@@ -39,7 +39,7 @@
         </x-slot:actions>
     </x-bank-page-header>
 
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-3 [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1 mb-4">
         <x-gestao-stat :label="$displayLabel" :value="'R$ ' . number_format($displayTotal, 2, ',', '.')" icon="bi-cash-stack" tone="rose" />
         <x-gestao-stat label="Compras" :value="$invCount" icon="bi-receipt" tone="indigo" :hint="$invCount === 1 ? 'lançamento no período' : 'lançamentos no período'" />
         <x-gestao-stat label="Média por compra" :value="'R$ ' . number_format($invCount > 0 ? $displayTotal / $invCount : 0, 2, ',', '.')" icon="bi-calculator" tone="emerald" />
