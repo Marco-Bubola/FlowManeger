@@ -26,6 +26,25 @@ class PromotionSetting extends Model
         'curto' => ['Curto e direto', 'bi-chat-dots-fill', "*{nome}*\n~{de}~ ➜ *{por}* ({desconto} OFF) 🔥"],
     ];
 
+    /** Cobranças: modelos de lembrete de parcela (vencendo / vencida). */
+    public const COLLECTION_DUE_TEMPLATE = "Oi, {cliente}! Tudo bem? 😊\nPassando para lembrar que a parcela de *{valor}* ({descricao}) vence em *{vencimento}*.\nSe já pagou, pode desconsiderar. Obrigada! 💜\n{loja}";
+
+    public const COLLECTION_OVERDUE_TEMPLATE = "Oi, {cliente}! Tudo bem?\nNotei que a parcela de *{valor}* ({descricao}), com vencimento em *{vencimento}*, está em aberto há {dias} dia(s).\nConsegue verificar para mim? Se já pagou, me envia o comprovante, por favor. 🙏\n{loja}";
+
+    public const COLLECTION_TEMPLATES = [
+        'due' => ['Cobrança - parcela vencendo', 'bi-calendar-check', 'collection_due_template', self::COLLECTION_DUE_TEMPLATE],
+        'overdue' => ['Cobrança - parcela vencida', 'bi-exclamation-octagon', 'collection_overdue_template', self::COLLECTION_OVERDUE_TEMPLATE],
+    ];
+
+    public const COLLECTION_VARIABLES = [
+        '{cliente}'    => 'Primeiro nome do cliente',
+        '{valor}'      => 'Valor da parcela',
+        '{vencimento}' => 'Data de vencimento',
+        '{descricao}'  => 'Venda ou consórcio e parcela',
+        '{dias}'       => 'Dias de atraso / até vencer',
+        '{loja}'       => 'Nome da loja',
+    ];
+
     /** Final do preço de promoção. */
     public const PRICE_ENDINGS = [
         'none' => ['Como calcular', 'R$ 36,47'],
@@ -50,6 +69,7 @@ class PromotionSetting extends Model
         'user_id', 'min_margin_percent', 'suggest_min_discount', 'default_days',
         'message_template', 'footer', 'footer_catalog_link',
         'default_discount', 'price_ending', 'auto_end_out_of_stock', 'greet_client',
+        'collection_due_template', 'collection_overdue_template',
     ];
 
     protected $casts = [
@@ -85,11 +105,22 @@ class PromotionSetting extends Model
             'price_ending'         => 'none',
             'auto_end_out_of_stock' => true,
             'greet_client'         => true,
+            'collection_due_template'     => self::COLLECTION_DUE_TEMPLATE,
+            'collection_overdue_template' => self::COLLECTION_OVERDUE_TEMPLATE,
         ];
     }
 
     public function template(): string
     {
         return trim((string) $this->message_template) !== '' ? $this->message_template : self::DEFAULT_TEMPLATE;
+    }
+
+    /** Modelo de cobrança ('due' = vencendo, 'overdue' = vencida). */
+    public function collectionTemplate(string $kind): string
+    {
+        [, , $column, $default] = self::COLLECTION_TEMPLATES[$kind] ?? self::COLLECTION_TEMPLATES['due'];
+        $text = (string) ($this->getAttribute($column) ?? '');
+
+        return trim($text) !== '' ? $text : $default;
     }
 }

@@ -21,6 +21,10 @@ new class extends Component {
             browser: false, reminders: true, due_dates: true,
             achievements: true, low_stock: false
         },
+        inapp: {
+            vendas: true, estoque: true, mercadolivre: true, shopee: true,
+            consorcio: true, financeiro: true
+        },
         frequency: 'instant',
         quiet_from: '22:00',
         quiet_to: '08:00',
@@ -30,6 +34,7 @@ new class extends Component {
             const payload = {
                 email: this.email,
                 system: this.system,
+                inapp: this.inapp,
                 frequency: this.frequency,
                 quiet_from: this.quiet_from,
                 quiet_to: this.quiet_to,
@@ -52,6 +57,7 @@ new class extends Component {
         if (dbData) {
             if (dbData.email) Object.assign(email, dbData.email);
             if (dbData.system) Object.assign(system, dbData.system);
+            if (dbData.inapp) Object.assign(inapp, dbData.inapp);
             if (dbData.frequency) frequency = dbData.frequency;
             if (dbData.quiet_from) quiet_from = dbData.quiet_from;
             if (dbData.quiet_to) quiet_to = dbData.quiet_to;
@@ -62,6 +68,7 @@ new class extends Component {
                 if (s) {
                     if (s.email) Object.assign(email, s.email);
                     if (s.system) Object.assign(system, s.system);
+                    if (s.inapp) Object.assign(inapp, s.inapp);
                     if (s.frequency) frequency = s.frequency;
                     if (s.quiet_from) quiet_from = s.quiet_from;
                     if (s.quiet_to) quiet_to = s.quiet_to;
@@ -299,6 +306,52 @@ new class extends Component {
             </div>
         </div>
 
+        {{-- ── CARD: Central de notificações (sino) ── --}}
+        <div class="settings-card">
+            <div class="settings-card-header">
+                <div class="settings-card-title-row">
+                    <div class="settings-card-icon">
+                        <i class="bi bi-bell" style="font-size:1rem"></i>
+                    </div>
+                    <div>
+                        <p class="settings-card-title">Central de notificações</p>
+                        <p class="settings-card-desc">O que aparece no sino e em <a href="{{ route('notifications.index') }}" wire:navigate style="color:var(--s-accent);font-weight:600">Notificações</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-notif-list">
+                @foreach (\App\Models\ConsortiumNotification::CATEGORIES as $catKey => $cat)
+                    @continue($catKey === 'sistema')
+                    @php
+                        $catDesc = [
+                            'vendas' => 'Pedidos, orçamentos do portal e promoções',
+                            'estoque' => 'Estoque baixo e produtos esgotados',
+                            'mercadolivre' => 'Pedidos, perguntas, mensagens e reclamações',
+                            'shopee' => 'Pedidos e avisos da loja Shopee',
+                            'consorcio' => 'Sorteios disponíveis e resgates pendentes',
+                            'financeiro' => 'Pagamentos a vencer e em atraso',
+                        ][$catKey] ?? '';
+                    @endphp
+                    <label class="settings-notif-row">
+                        <div class="settings-notif-info">
+                            <div class="settings-notif-icon" style="{{ \App\Models\ConsortiumNotification::toneStyle($cat['tone'], 0.12) }}">
+                                <i class="bi {{ $cat['icon'] }}" style="font-size:0.9rem"></i>
+                            </div>
+                            <div>
+                                <p class="settings-notif-title">{{ $cat['label'] }}</p>
+                                <p class="settings-notif-desc">{{ $catDesc }}</p>
+                            </div>
+                        </div>
+                        <div class="settings-toggle-switch" :class="inapp.{{ $catKey }} ? 'active' : ''" @click="inapp.{{ $catKey }} = !inapp.{{ $catKey }}; saveAll()">
+                            <div class="settings-toggle-track"></div>
+                            <div class="settings-toggle-thumb"></div>
+                        </div>
+                    </label>
+                @endforeach
+            </div>
+        </div>
+
         {{-- ── CARD: Notificações do sistema ── --}}
         <div class="settings-card">
             <div class="settings-card-header">
@@ -348,21 +401,6 @@ new class extends Component {
                     </div>
                 </label>
 
-                <label class="settings-notif-row">
-                    <div class="settings-notif-info">
-                        <div class="settings-notif-icon" style="background:rgba(234,88,12,0.1);color:#ea580c">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:0.95rem;height:0.95rem"><path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"/></svg>
-                        </div>
-                        <div>
-                            <p class="settings-notif-title">Estoque baixo</p>
-                            <p class="settings-notif-desc">Produtos com estoque abaixo do mínimo configurado</p>
-                        </div>
-                    </div>
-                    <div class="settings-toggle-switch" :class="system.low_stock ? 'active' : ''" @click="system.low_stock = !system.low_stock; saveAll()">
-                        <div class="settings-toggle-track"></div>
-                        <div class="settings-toggle-thumb"></div>
-                    </div>
-                </label>
 
             </div>
         </div>

@@ -261,7 +261,17 @@ class OrderService extends MercadoLivreService
             $attrs['product_id'] = $productId;
         }
 
-        return MercadoLivreOrder::updateOrCreate(['ml_order_id' => (string) $orderData['id']], $attrs);
+        $order = MercadoLivreOrder::updateOrCreate(['ml_order_id' => (string) $orderData['id']], $attrs);
+
+        // Tarifa de venda do ML (sale_fee é por unidade). Só grava quando veio no pedido.
+        $fees = collect($orderData['order_items'] ?? [])->filter(fn ($i) => isset($i['sale_fee']) && is_numeric($i['sale_fee']));
+        if ($fees->isNotEmpty() && \Illuminate\Support\Facades\Schema::hasColumn('mercadolivre_orders', 'fee_amount')) {
+            $order->forceFill([
+                'fee_amount' => round($fees->sum(fn ($i) => (float) $i['sale_fee'] * max(1, (int) ($i['quantity'] ?? 1))), 2),
+            ])->save();
+        }
+
+        return $order;
     }
 
     /**

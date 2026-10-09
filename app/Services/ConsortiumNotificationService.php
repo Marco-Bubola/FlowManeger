@@ -64,19 +64,20 @@ class ConsortiumNotificationService
                 continue;
             }
 
-            // Verificar se já existe notificação recente (últimas 24h)
+            // Não repete enquanto houver aviso não lido ou um aviso dos últimos 3 dias
             $hasRecentNotification = ConsortiumNotification::where('consortium_id', $consortium->id)
                 ->where('type', 'draw_available')
-                ->where('created_at', '>=', now()->subDay())
+                ->where(fn ($q) => $q->where('is_read', false)->orWhere('created_at', '>=', now()->subDays(3)))
                 ->exists();
 
             if ($hasRecentNotification) {
                 continue;
             }
 
-            // Criar notificação
-            ConsortiumNotification::createDrawAvailable($consortium);
-            $count++;
+            // Criar notificação (null = usuário desligou avisos de consórcio)
+            if (ConsortiumNotification::createDrawAvailable($consortium)) {
+                $count++;
+            }
         }
 
         return $count;
@@ -93,8 +94,8 @@ class ConsortiumNotificationService
         $participants = ConsortiumParticipant::with(['client', 'consortium', 'contemplation'])
             ->where('is_contemplated', true)
             ->whereHas('contemplation', function ($query) {
-                // Resgate não concluído (qualquer tipo, sem status "redeemed")
-                $query->where('status', '!=', 'redeemed')
+                // Resgate ainda pendente (resgatado ou cancelado não avisa)
+                $query->whereNotIn('status', ['redeemed', 'cancelled'])
                     ->where('contemplation_date', '<=', now()->subDays(7)); // Pelo menos 7 dias atrás
             })
             ->get();
@@ -104,17 +105,14 @@ class ConsortiumNotificationService
                 continue;
             }
 
-            $daysSince = $participant->contemplation->contemplation_date->diffInDays(now());
+            // Carbon 3 devolve float: usa dias inteiros
+            $daysSince = (int) floor($participant->contemplation->contemplation_date->diffInDays(now()));
 
             // Notificar a cada 7 dias, 15 dias, 30 dias e depois a cada 30 dias
             $shouldNotify = false;
 
-            if ($daysSince >= 7 && $daysSince < 8) {
-                $shouldNotify = true; // 7 dias
-            } elseif ($daysSince >= 15 && $daysSince < 16) {
-                $shouldNotify = true; // 15 dias
-            } elseif ($daysSince >= 30 && $daysSince < 31) {
-                $shouldNotify = true; // 30 dias
+            if (in_array($daysSince, [7, 15, 30], true)) {
+                $shouldNotify = true; // 7, 15 e 30 dias
             } elseif ($daysSince > 30 && $daysSince % 30 === 0) {
                 $shouldNotify = true; // A cada 30 dias após os 30 primeiros
             }
@@ -133,9 +131,10 @@ class ConsortiumNotificationService
                 continue;
             }
 
-            // Criar notificação
-            ConsortiumNotification::createRedemptionPending($participant);
-            $count++;
+            // Criar notificação (null = usuário desligou avisos de consórcio)
+            if (ConsortiumNotification::createRedemptionPending($participant)) {
+                $count++;
+            }
         }
 
         return $count;
@@ -149,20 +148,26 @@ class ConsortiumNotificationService
         $stats = [
             'read' => 0,
             'unread' => 0,
+            'deleted' => 0,
             'total' => 0,
         ];
 
         // Deletar notificações lidas com mais de 90 dias
-        $stats['read'] = ConsortiumNotification::read()
-            ->where('created_at', '<', now()->subDays(90))
-            ->forceDelete();
+        $stats['read'] = ConsortiumNotification::purge(ConsortiumNotification::withoutGlobalScopes()
+            ->where('is_read', true)
+            ->where('created_at', '<', now()->subDays(90)));
 
         // Deletar notificações não lidas com mais de 180 dias
-        $stats['unread'] = ConsortiumNotification::unread()
-            ->where('created_at', '<', now()->subDays(180))
-            ->forceDelete();
+        $stats['unread'] = ConsortiumNotification::purge(ConsortiumNotification::withoutGlobalScopes()
+            ->where('is_read', false)
+            ->where('created_at', '<', now()->subDays(180)));
 
-        $stats['total'] = $stats['read'] + $stats['unread'];
+        // Excluídas pelo usuário (soft delete) há mais de 30 dias
+        $stats['deleted'] = ConsortiumNotification::supportsSoftDeletes()
+            ? (int) ConsortiumNotification::onlyTrashed()->where('deleted_at', '<', now()->subDays(30))->forceDelete()
+            : 0;
+
+        $stats['total'] = $stats['read'] + $stats['unread'] + $stats['deleted'];
 
         Log::info('Old consortium notifications cleaned', $stats);
 
@@ -196,8 +201,8 @@ class ConsortiumNotificationService
     public function getRecentNotifications(int $userId, int $limit = 10): Collection
     {
         return ConsortiumNotification::forUser($userId)
-            ->with(['consortium', 'participant.client'])
-            ->orderBy('created_at', 'desc')
+            ->latest('created_at')
+            ->latest('id')
             ->limit($limit)
             ->get();
     }
@@ -210,9 +215,9 @@ class ConsortiumNotificationService
         $count = 0;
 
         // Verificar sorteio disponível
-        if ($consortium->canPerformDraw()) {
-            ConsortiumNotification::createDrawAvailable($consortium);
-            $count++;
+        if ($consortium->canPerformDraw()
+            && !ConsortiumNotification::where('consortium_id', $consortium->id)->where('type', 'draw_available')->unread()->exists()) {
+            $count += ConsortiumNotification::createDrawAvailable($consortium) ? 1 : 0;
         }
 
         // Verificar resgates pendentes neste consórcio
@@ -220,13 +225,16 @@ class ConsortiumNotificationService
             ->with(['contemplation', 'client'])
             ->where('is_contemplated', true)
             ->whereHas('contemplation', function ($query) {
-                $query->where('status', '!=', 'redeemed');
+                $query->whereNotIn('status', ['redeemed', 'cancelled']);
             })
             ->get();
 
         foreach ($participants as $participant) {
-            ConsortiumNotification::createRedemptionPending($participant);
-            $count++;
+            $pending = ConsortiumNotification::where('related_participant_id', $participant->id)
+                ->where('type', 'redemption_pending')->unread()->exists();
+            if (!$pending && ConsortiumNotification::createRedemptionPending($participant)) {
+                $count++;
+            }
         }
 
         return $count;

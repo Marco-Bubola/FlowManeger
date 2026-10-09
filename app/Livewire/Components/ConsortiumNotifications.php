@@ -3,120 +3,93 @@
 namespace App\Livewire\Components;
 
 use App\Models\ConsortiumNotification;
-use App\Services\ConsortiumNotificationService;
+use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\Component;
 
+/**
+ * Sino de notificações (rodapé da sidebar). Mostra as 8 mais recentes e leva à
+ * central completa (/notificacoes). Atualiza por polling e pelo evento
+ * "notifications-updated" disparado pela central.
+ */
 class ConsortiumNotifications extends Component
 {
-    public $notifications = [];
-    public $unreadCount = 0;
-    public $showDropdown = false;
-    public $showAll = false;
+    use HasNotifications;
 
-    public function mount()
-    {
-        $this->loadNotifications();
-    }
+    public const LIMIT = 8;
 
     #[On('notification-created')]
-    public function loadNotifications()
+    #[On('notifications-updated')]
+    public function refreshList(): void
     {
-        $query = ConsortiumNotification::forUser(Auth::id())
-            ->with(['consortium', 'participant.client'])
-            ->orderBy('created_at', 'desc');
+        // Só re-renderiza.
+    }
 
-        if (!$this->showAll) {
-            $query->limit(10);
+    /** Abre a ação da notificação e a marca como lida. */
+    public function visit(int $id)
+    {
+        $notification = $this->find($id);
+        if (!$notification) {
+            return null;
         }
 
-        $this->notifications = $query->get();
-        $this->unreadCount = ConsortiumNotification::unreadCountForUser(Auth::id());
-    }
+        $notification->markAsRead();
+        $this->dispatch('notifications-updated')->to(\App\Livewire\Notifications\NotificationsIndex::class);
 
-    public function toggleDropdown()
-    {
-        $this->showDropdown = !$this->showDropdown;
-
-        if ($this->showDropdown) {
-            $this->loadNotifications();
+        $link = $notification->link;
+        if ($link) {
+            return $notification->is_external_link ? redirect()->away($link) : $this->redirect($link, navigate: true);
         }
+
+        return null;
     }
 
-    public function closeDropdown()
+    public function markAsRead(int $id): void
     {
-        $this->showDropdown = false;
+        $this->find($id)?->markAsRead();
+        $this->dispatch('notifications-updated')->to(\App\Livewire\Notifications\NotificationsIndex::class);
     }
 
-    public function markAsRead($notificationId)
+    public function markAsUnread(int $id): void
     {
-        $notification = ConsortiumNotification::find($notificationId);
-
-        if ($notification && $notification->user_id === Auth::id()) {
-            $notification->markAsRead();
-            $this->loadNotifications();
-
-            // Redirecionar se tiver URL de ação
-            if ($notification->action_url) {
-                return redirect($notification->action_url);
-            }
-        }
+        $this->find($id)?->markAsUnread();
+        $this->dispatch('notifications-updated')->to(\App\Livewire\Notifications\NotificationsIndex::class);
     }
 
-    public function markAsUnread($notificationId)
+    public function markAllAsRead(): void
     {
-        $notification = ConsortiumNotification::find($notificationId);
-
-        if ($notification && $notification->user_id === Auth::id()) {
-            $notification->markAsUnread();
-            $this->loadNotifications();
+        $count = ConsortiumNotification::markAllAsReadForUser(Auth::id());
+        $this->dispatch('notifications-updated')->to(\App\Livewire\Notifications\NotificationsIndex::class);
+        if ($count > 0) {
+            $this->notifySuccess($count === 1 ? '1 notificação marcada como lida.' : "{$count} notificações marcadas como lidas.");
         }
     }
 
-    public function markAllAsRead()
+    public function delete(int $id): void
     {
-        ConsortiumNotification::markAllAsReadForUser(Auth::id());
-        $this->loadNotifications();
-
-        session()->flash('success', 'Todas as notificações foram marcadas como lidas.');
-    }
-
-    public function delete($notificationId)
-    {
-        $notification = ConsortiumNotification::find($notificationId);
-
-        if ($notification && $notification->user_id === Auth::id()) {
+        $notification = $this->find($id);
+        if ($notification) {
             $notification->delete();
-            $this->loadNotifications();
-
-            session()->flash('success', 'Notificação removida.');
+            $this->dispatch('notifications-updated')->to(\App\Livewire\Notifications\NotificationsIndex::class);
         }
     }
 
-    public function toggleShowAll()
+    protected function find(int $id): ?ConsortiumNotification
     {
-        $this->showAll = !$this->showAll;
-        $this->loadNotifications();
-    }
-
-    public function refreshNotifications()
-    {
-        $service = new ConsortiumNotificationService();
-        $stats = $service->checkAndCreateNotifications();
-
-        $this->loadNotifications();
-        $this->dispatch('notification-created');
-
-        if ($stats['total'] > 0) {
-            session()->flash('success', "{$stats['total']} nova(s) notificação(ões) criada(s)!");
-        } else {
-            session()->flash('info', 'Nenhuma nova notificação.');
-        }
+        return ConsortiumNotification::forUser(Auth::id())->find($id);
     }
 
     public function render()
     {
-        return view('livewire.components.consortium-notifications');
+        $userId = Auth::id();
+
+        return view('livewire.components.consortium-notifications', [
+            'notifications' => ConsortiumNotification::forUser($userId)
+                ->latest('created_at')->latest('id')
+                ->limit(self::LIMIT)
+                ->get(),
+            'unreadCount' => ConsortiumNotification::unreadCountForUser($userId),
+        ]);
     }
 }

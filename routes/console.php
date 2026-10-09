@@ -47,3 +47,29 @@ Schedule::command('promotions:refresh')
 Schedule::command('recorrentes:gerar')
     ->dailyAt('06:00')
     ->withoutOverlapping();
+
+// Estoque baixo: notifica produtos no mínimo/esgotados com sugestão de reposição
+Schedule::command('stock:check-low')
+    ->dailyAt('08:30')
+    ->withoutOverlapping();
+
+// Cobranças: resumo diário de parcelas vencendo hoje e vencidas sem lembrete
+Schedule::command('reminders:due')
+    ->dailyAt('09:00')
+    ->withoutOverlapping();
+
+// Shopee: renova os tokens que vencem em até 1 hora (a loja não desconecta
+// mesmo sem uso; o refresh_token também é estendido a cada renovação)
+Schedule::call(function () {
+    $auth = app(\App\Services\Shopee\AuthService::class);
+    \App\Models\ShopeeToken::where('is_active', true)
+        ->where('expires_at', '<=', now()->addHour())
+        ->get()
+        ->each(function ($token) use ($auth) {
+            try {
+                $auth->refreshToken($token);
+            } catch (\Throwable $e) {
+                \Log::warning('Renovação agendada do token Shopee falhou', ['token_id' => $token->id, 'error' => $e->getMessage()]);
+            }
+        });
+})->name('shopee:refresh-tokens')->everyThirtyMinutes()->withoutOverlapping();

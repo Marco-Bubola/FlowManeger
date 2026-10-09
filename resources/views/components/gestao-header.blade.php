@@ -11,7 +11,9 @@
         'movimentacoes' => ['label' => 'Movimentações', 'icon' => 'bi-arrow-left-right', 'url' => route('gestao.stock-movements')],
         'repor' => ['label' => 'Repor estoque', 'icon' => 'bi-box-seam', 'url' => route('gestao.restock')],
         'receber' => ['label' => 'A receber', 'icon' => 'bi-cash-coin', 'url' => route('gestao.receivables')],
+        'cobrancas' => ['label' => 'Cobranças', 'icon' => 'bi-bell', 'url' => route('gestao.collections')],
         'lucro' => ['label' => 'Lucro por venda', 'icon' => 'bi-graph-up-arrow', 'url' => route('gestao.profit')],
+        'lucro-real' => ['label' => 'Lucro real', 'icon' => 'bi-pie-chart', 'url' => route('gestao.channel-profit')],
     ];
 @endphp
 

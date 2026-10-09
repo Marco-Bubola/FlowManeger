@@ -384,6 +384,8 @@ class PromotionsIndex extends Component
             'price_ending'         => $s->price_ending ?: 'none',
             'auto_end_out_of_stock' => (bool) ($s->auto_end_out_of_stock ?? true),
             'greet_client'         => (bool) ($s->greet_client ?? true),
+            'collection_due_template'     => $s->collectionTemplate('due'),
+            'collection_overdue_template' => $s->collectionTemplate('overdue'),
         ];
         $this->resetErrorBag();
         $this->showSettingsModal = true;
@@ -406,6 +408,8 @@ class PromotionsIndex extends Component
             'settingsForm.footer'               => 'nullable|string|max:500',
             'settingsForm.default_discount'     => 'required|numeric|min:1|max:90',
             'settingsForm.price_ending'         => 'required|in:' . implode(',', array_keys(PromotionSetting::PRICE_ENDINGS)),
+            'settingsForm.collection_due_template'     => 'nullable|string|max:2000',
+            'settingsForm.collection_overdue_template' => 'nullable|string|max:2000',
         ], [], [
             'settingsForm.default_discount'     => 'desconto padrão',
             'settingsForm.min_margin_percent'   => 'lucro mínimo',
@@ -427,6 +431,8 @@ class PromotionsIndex extends Component
             'price_ending'         => $form['price_ending'],
             'auto_end_out_of_stock' => (bool) ($form['auto_end_out_of_stock'] ?? true),
             'greet_client'         => (bool) ($form['greet_client'] ?? true),
+            'collection_due_template'     => $form['collection_due_template'] ?? null,
+            'collection_overdue_template' => $form['collection_overdue_template'] ?? null,
         ])->save();
 
         $this->showSettingsModal = false;
@@ -436,6 +442,14 @@ class PromotionsIndex extends Component
     public function resetTemplate(): void
     {
         $this->settingsForm['message_template'] = PromotionSetting::DEFAULT_TEMPLATE;
+    }
+
+    public function resetCollectionTemplate(string $kind): void
+    {
+        if (isset(PromotionSetting::COLLECTION_TEMPLATES[$kind])) {
+            [, , $column, $default] = PromotionSetting::COLLECTION_TEMPLATES[$kind];
+            $this->settingsForm[$column] = $default;
+        }
     }
 
     public function useTemplate(string $key): void

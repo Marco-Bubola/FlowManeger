@@ -8,151 +8,51 @@ use Illuminate\Console\Command;
 
 class TestGenericNotification extends Command
 {
-    protected $signature = 'notification:test-generic';
-    protected $description = 'Cria notificações de teste para diferentes módulos';
+    protected $signature = 'notification:test-generic {--user= : ID ou e-mail do usuário (padrão: primeiro usuário)}';
+    protected $description = 'Cria notificações de teste (uma por categoria) para conferir o sino e a central';
 
-    public function handle()
+    public function handle(): int
     {
-        $this->info('🧪 Criando notificações de teste...');
-        $this->newLine();
-
-        $user = User::first();
+        $opt = $this->option('user');
+        $user = $opt
+            ? User::where('id', $opt)->orWhere('email', $opt)->first()
+            : User::first();
 
         if (!$user) {
-            $this->error('❌ Nenhum usuário encontrado no sistema.');
-            return 1;
+            $this->error('Nenhum usuário encontrado.');
+            return self::FAILURE;
         }
 
-        $this->info("👤 Usuário: {$user->name} (ID: {$user->id})");
-        $this->newLine();
+        $this->info("Usuário: {$user->name} (ID: {$user->id})");
 
-        $notifications = [];
+        $url = fn (string $name) => rescue(fn () => route($name, [], false), null, false);
 
-        // Teste 1: Notificação de Venda
-        $notifications[] = ConsortiumNotification::createGeneric(
-            module: 'sale',
-            type: 'sale_pending',
-            userId: $user->id,
-            title: '🛒 Nova Venda Pendente',
-            message: 'Venda #1234 criada para o cliente João Silva. Aguardando aprovação.',
-            options: [
-                'entity_type' => 'Sale',
-                'entity_id' => 1234,
-                'priority' => 'medium',
-                'action_url' => route('sales.index'),
-                'data' => [
-                    'sale_id' => 1234,
-                    'amount' => 1500.00,
-                    'client_name' => 'João Silva',
-                ]
-            ]
-        );
+        $samples = [
+            ['sale', 'sale_completed', 'Venda concluída', 'Venda #5678 concluída. Total: R$ 2.500,00.', 'medium', $url('sales.index')],
+            ['estoque', 'low_stock', 'Estoque baixo', 'Camiseta básica (M): restam 2 un. (≈ 4 dias). Sugestão: repor 20 un.', 'high', $url('gestao.restock')],
+            ['estoque', 'out_of_stock', 'Produto esgotado', 'Caneca personalizada: esgotado.', 'high', $url('gestao.restock')],
+            ['mercadolivre', 'question_received', 'Nova pergunta no Mercado Livre', 'Tem pronta entrega na cor azul?', 'high', $url('mercadolivre.questions')],
+            ['shopee', 'order_received', 'Novo pedido na Shopee', 'Pedido 240901ABC recebido.', 'medium', null],
+            ['consortium', 'draw_available', 'Sorteio disponível', 'O consórcio "Grupo Teste" está pronto para um novo sorteio.', 'high', $url('consortiums.index')],
+            ['payment', 'payment_due', 'Pagamento a vencer', 'Parcela de Maria Santos vence amanhã (R$ 150,00).', 'medium', $url('sales.index')],
+            ['system', 'system_update', 'Novidade no FlowManager', 'Central de notificações com filtros por categoria.', 'low', null],
+        ];
 
-        // Teste 2: Notificação de Pagamento Atrasado
-        $notifications[] = ConsortiumNotification::createGeneric(
-            module: 'payment',
-            type: 'payment_overdue',
-            userId: $user->id,
-            title: '⚠️ Pagamento Atrasado',
-            message: 'Pagamento #567 está 5 dias em atraso. Cliente: Maria Santos.',
-            options: [
-                'entity_type' => 'Payment',
-                'entity_id' => 567,
-                'priority' => 'high',
-                'action_url' => route('sales.index'),
-                'data' => [
-                    'payment_id' => 567,
-                    'amount' => 850.00,
-                    'due_date' => now()->subDays(5)->format('Y-m-d'),
-                    'days_overdue' => 5,
-                ]
-            ]
-        );
-
-        // Teste 3: Notificação de Cliente Novo
-        $notifications[] = ConsortiumNotification::createGeneric(
-            module: 'client',
-            type: 'client_new',
-            userId: $user->id,
-            title: '👤 Novo Cliente Cadastrado',
-            message: 'Cliente Pedro Oliveira foi cadastrado com sucesso no sistema.',
-            options: [
-                'entity_type' => 'Client',
-                'entity_id' => 789,
-                'priority' => 'low',
-                'action_url' => route('clients.index'),
-                'data' => [
-                    'client_id' => 789,
-                    'client_name' => 'Pedro Oliveira',
-                    'registration_date' => now()->format('Y-m-d H:i:s'),
-                ]
-            ]
-        );
-
-        // Teste 4: Notificação de Venda Completa
-        $notifications[] = ConsortiumNotification::createGeneric(
-            module: 'sale',
-            type: 'sale_completed',
-            userId: $user->id,
-            title: '✅ Venda Concluída',
-            message: 'Venda #5678 foi concluída com sucesso! Valor total: R$ 2.500,00',
-            options: [
-                'entity_type' => 'Sale',
-                'entity_id' => 5678,
-                'priority' => 'medium',
-                'action_url' => route('sales.index'),
-                'data' => [
-                    'sale_id' => 5678,
-                    'amount' => 2500.00,
-                    'completion_date' => now()->format('Y-m-d H:i:s'),
-                ]
-            ]
-        );
-
-        // Teste 5: Notificação de Aniversário de Cliente
-        $notifications[] = ConsortiumNotification::createGeneric(
-            module: 'client',
-            type: 'client_birthday',
-            userId: $user->id,
-            title: '🎂 Aniversário de Cliente',
-            message: 'Hoje é aniversário da cliente Ana Costa! Que tal enviar uma mensagem?',
-            options: [
-                'entity_type' => 'Client',
-                'entity_id' => 321,
-                'priority' => 'low',
-                'action_url' => route('clients.index'),
-                'data' => [
-                    'client_id' => 321,
-                    'client_name' => 'Ana Costa',
-                    'birthday' => now()->format('d/m'),
-                ]
-            ]
-        );
-
-        $this->newLine();
-        $this->info('✅ Notificações de teste criadas:');
-        $this->newLine();
-
-        $table = [];
-        foreach ($notifications as $notification) {
-            $table[] = [
-                'ID' => $notification->id,
-                'Módulo' => strtoupper($notification->module),
-                'Tipo' => $notification->type,
-                'Título' => $notification->title,
-                'Prioridade' => strtoupper($notification->priority),
-            ];
+        $rows = [];
+        foreach ($samples as [$module, $type, $title, $message, $priority, $action]) {
+            $n = ConsortiumNotification::createGeneric($module, $type, $user->id, $title, $message, [
+                'priority' => $priority,
+                'action_url' => $action,
+                'data' => ['test' => true],
+            ]);
+            $rows[] = $n
+                ? [$n->id, $n->category_label, $type, $title, $priority]
+                : ['-', ConsortiumNotification::CATEGORIES[ConsortiumNotification::categoryFor($module, $type)]['label'], $type, '(desligada nas preferências)', $priority];
         }
 
-        $this->table(
-            ['ID', 'Módulo', 'Tipo', 'Título', 'Prioridade'],
-            $table
-        );
+        $this->table(['ID', 'Categoria', 'Tipo', 'Título', 'Prioridade'], $rows);
+        $this->info('Abra /notificacoes para conferir.');
 
-        $this->newLine();
-        $this->info('🎉 Total de notificações criadas: ' . count($notifications));
-        $this->info('📱 Acesse o sistema para visualizar as notificações na sidebar!');
-
-        return 0;
+        return self::SUCCESS;
     }
 }

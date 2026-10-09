@@ -67,6 +67,9 @@ return [
 
     'timezone' => 'UTC',
 
+    // Horários do agendador (cron) no horário de Brasília: 08:00 é 08:00 aqui.
+    'schedule_timezone' => 'America/Sao_Paulo',
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

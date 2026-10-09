@@ -39,8 +39,14 @@ class CheckConsortiumNotifications extends Command
 
                 $this->info("   ✓ Lidas deletadas: {$cleanStats['read']}");
                 $this->info("   ✓ Não lidas deletadas: {$cleanStats['unread']}");
+                $this->info("   ✓ Excluídas pelo usuário (>30 dias): {$cleanStats['deleted']}");
                 $this->info("   ✓ Total deletado: {$cleanStats['total']}");
                 $this->newLine();
+
+                // A limpeza semanal roda separada da verificação diária.
+                if (!$this->option('consortium')) {
+                    return self::SUCCESS;
+                }
             }
 
             // Verificar consórcio específico

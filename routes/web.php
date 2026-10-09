@@ -266,7 +266,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/gestao/estoque/movimentacoes', \App\Livewire\Gestao\StockMovements::class)->name('gestao.stock-movements');
     Route::get('/gestao/estoque/repor', \App\Livewire\Gestao\Restock::class)->name('gestao.restock');
     Route::get('/gestao/a-receber', \App\Livewire\Gestao\Receivables::class)->name('gestao.receivables');
+    Route::get('/gestao/cobrancas', \App\Livewire\Gestao\Collections::class)->name('gestao.collections');
     Route::get('/gestao/lucro', \App\Livewire\Gestao\SalesProfit::class)->name('gestao.profit');
+    Route::get('/gestao/lucro-real', \App\Livewire\Gestao\ChannelProfit::class)->name('gestao.channel-profit');
     Route::get('/cashbook/{cashbook}/edit', EditCashbook::class)->name('cashbook.edit');
     Route::get('/cashbook/upload', UploadCashbook::class)->name('cashbook.upload');
     Route::get('/cashbook/upload2', \App\Livewire\Cashbook\UploadCashbookMinimal::class)->name('cashbook.upload.minimal');
@@ -303,6 +305,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/daily-habits/edit/{habitId}', EditHabit::class)->name('daily-habits.edit');
     // --- Rotas de Achievements/Conquistas (Livewire) ---
     Route::get('/achievements', AchievementsPage::class)->name('achievements.index');
+    Route::get('/notificacoes', \App\Livewire\Notifications\NotificationsIndex::class)->name('notifications.index');
 
     // --- Preferências de usuário (persistência DB) ---
     Route::post('/settings/preferences/{group}', function(\Illuminate\Http\Request $req, string $group) {

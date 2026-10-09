@@ -32,8 +32,8 @@
                 </div>
                 <button type="button" wire:click="$set('showSettingsModal', false)" class="w-9 h-9 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10"><i class="bi bi-x-lg"></i></button>
             </div>
-            <div class="mt-3 grid grid-cols-3 gap-1 p-1 rounded-2xl bg-white/70 dark:bg-slate-900/60">
-                @foreach(['precos' => ['Preços', 'bi-cash-coin'], 'mensagem' => ['Mensagem', 'bi-chat-heart'], 'auto' => ['Automático', 'bi-magic']] as $key => [$label, $icon])
+            <div class="mt-3 grid grid-cols-4 gap-1 p-1 rounded-2xl bg-white/70 dark:bg-slate-900/60">
+                @foreach(['precos' => ['Preços', 'bi-cash-coin'], 'mensagem' => ['Mensagem', 'bi-chat-heart'], 'auto' => ['Automático', 'bi-magic'], 'cobranca' => ['Cobrança', 'bi-bell']] as $key => [$label, $icon])
                     <button type="button" @click="tab = '{{ $key }}'"
                             :class="tab === '{{ $key }}' ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow' : 'text-slate-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-800'"
                             class="py-2 rounded-xl text-xs sm:text-sm font-semibold transition flex items-center justify-center gap-1.5">
@@ -187,6 +187,45 @@
                         <span wire:loading wire:target="backfillOriginalPrices">Lendo…</span>
                     </button>
                 </div>
+            </div>
+
+            {{-- ===== COBRANÇA (lembretes de parcela pelo WhatsApp) ===== --}}
+            <div x-show="tab === 'cobranca'" x-cloak class="space-y-3">
+                <p class="text-xs text-slate-500 dark:text-slate-400"><i class="bi bi-info-circle"></i> Usados na tela <b>Gestão › Cobranças</b> ao lembrar o cliente de uma parcela.</p>
+                @foreach(\App\Models\PromotionSetting::COLLECTION_TEMPLATES as $kind => [$label, $icon, $column, $default])
+                    @php
+                        $collectionSample = ['{cliente}' => 'Maria', '{valor}' => 'R$ 150,00', '{vencimento}' => now()->format('d/m/Y'), '{descricao}' => 'Venda #12 · parcela 2/5', '{dias}' => '3', '{loja}' => auth()->user()->name ?? 'Minha loja'];
+                        $collectionPreview = preg_replace(['/\*([^*\n]+)\*/', '/~([^~\n]+)~/', '/_([^_\n]+)_/'], ['<b>$1</b>', '<s>$1</s>', '<i>$1</i>'], e(strtr((string) ($f[$column] ?? ''), $collectionSample)));
+                    @endphp
+                    <div class="set-card" wire:key="collection-tpl-{{ $kind }}" x-data="{
+                            insert(v) {
+                                const el = this.$refs.ctpl; const a = el.selectionStart ?? el.value.length; const b = el.selectionEnd ?? a;
+                                el.value = el.value.slice(0, a) + v + el.value.slice(b);
+                                el.focus(); el.selectionStart = el.selectionEnd = a + v.length;
+                                el.dispatchEvent(new Event('input'));
+                            }
+                         }">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="set-head"><span class="set-icon {{ $kind === 'overdue' ? 'bg-rose-500' : 'bg-amber-500' }}"><i class="bi {{ $icon }}"></i></span>
+                                <div><h4>{{ $label }}</h4><p>{{ $kind === 'overdue' ? 'Para parcelas que já venceram.' : 'Para parcelas que vencem nos próximos dias.' }}</p></div></div>
+                            <button type="button" wire:click="resetCollectionTemplate('{{ $kind }}')" class="text-[11px] text-rose-600 font-semibold hover:underline whitespace-nowrap"><i class="bi bi-arrow-counterclockwise"></i> Padrão</button>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-3">
+                            <div>
+                                <textarea x-ref="ctpl" wire:model.live.debounce.500ms="settingsForm.{{ $column }}" rows="6" class="set-textarea font-mono"></textarea>
+                                @error('settingsForm.' . $column) <p class="set-error">{{ $message }}</p> @enderror
+                                <div class="mt-1.5 flex flex-wrap gap-1">
+                                    @foreach(\App\Models\PromotionSetting::COLLECTION_VARIABLES as $var => $varLabel)
+                                        <button type="button" @click="insert('{{ $var }}')" class="set-var" title="{{ $var }}">{{ $varLabel }}</button>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <div class="set-wa">
+                                <div class="set-wa-bubble">{!! nl2br($collectionPreview) !!}</div>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
             </div>
         </div>
 

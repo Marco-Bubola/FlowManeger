@@ -156,6 +156,19 @@ class Sale extends Model
         });
 
         $this->dispatchMlStockSync();
+
+        // Alerta de estoque baixo/esgotado (nunca pode quebrar a venda)
+        try {
+            app(\App\Services\Stock\LowStockService::class)->checkProducts(
+                (int) $this->user_id,
+                $this->saleItems->pluck('product_id')->filter()->all()
+            );
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Falha ao verificar estoque baixo da venda', [
+                'sale_id' => $this->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     /**

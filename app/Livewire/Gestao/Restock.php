@@ -3,13 +3,14 @@
 namespace App\Livewire\Gestao;
 
 use App\Models\Product;
-use App\Models\SaleItem;
+use App\Services\Stock\LowStockService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 /**
- * Produtos para repor: estoque abaixo do mínimo, com quanto vendeu nos
- * últimos 30 dias e quantos dias o estoque atual ainda dura.
+ * Produtos para repor: estoque abaixo do mínimo (global ou do próprio produto),
+ * com quanto vendeu nos últimos 30 dias, quantos dias o estoque atual ainda dura
+ * e quanto repor. Kits entram pelo que dá para montar com os componentes.
  */
 class Restock extends Component
 {
@@ -17,7 +18,7 @@ class Restock extends Component
 
     public function mount(): void
     {
-        $this->minimum = (int) (Auth::user()->preferences['stock']['minimum'] ?? 3);
+        $this->minimum = LowStockService::userMinimum(Auth::user());
     }
 
     public function updatedMinimum($value): void
@@ -31,34 +32,66 @@ class Restock extends Component
         $user->save();
     }
 
+    /** Mínimo próprio do produto (vazio = usa o mínimo global). */
+    public function setMinStock(int $productId, $value): void
+    {
+        $product = $this->baseQuery()->whereKey($productId)->first();
+        if (! $product) {
+            return;
+        }
+
+        $value = ($value === '' || $value === null) ? null : max(0, min(9999, (int) $value));
+        Product::withoutGlobalScopes()->whereKey($product->id)->update(['min_stock' => $value]);
+
+        try {
+            app(LowStockService::class)->checkProducts((int) ($product->user_id ?: Auth::id()), [$product->id]);
+        } catch (\Throwable $e) {
+            // alerta é secundário; a alteração do mínimo já foi salva
+        }
+    }
+
+    protected function baseQuery()
+    {
+        return Product::query()
+            ->when(Auth::user()->isAdmin(), fn ($q) => $q->where('user_id', Auth::id()))
+            ->where(fn ($q) => $q->whereNull('status')->orWhere('status', 'ativo'))
+            ->where(fn ($q) => $q->whereNull('is_variation_parent')->orWhere('is_variation_parent', false));
+    }
+
     public function render()
     {
-        $products = Product::query()
-            ->when(Auth::user()->isAdmin(), fn ($q) => $q->where('user_id', Auth::id()))
+        $cols = ['id', 'user_id', 'name', 'product_code', 'stock_quantity', 'min_stock', 'price', 'image', 'tipo', 'variation_value'];
+
+        $simple = $this->baseQuery()
             ->where('tipo', '!=', 'kit')
-            ->where(fn ($q) => $q->whereNull('status')->orWhere('status', 'ativo'))
-            ->where('stock_quantity', '<=', $this->minimum)
+            ->whereRaw('stock_quantity <= COALESCE(min_stock, ?)', [$this->minimum])
             ->orderBy('stock_quantity')
             ->orderBy('name')
             ->limit(300)
-            ->get(['id', 'name', 'product_code', 'stock_quantity', 'price', 'image']);
+            ->get($cols)
+            ->map(fn ($p) => ['product' => $p, 'stock' => max(0, (int) $p->stock_quantity), 'isKit' => false]);
 
-        // Vendas dos últimos 30 dias por produto (vendas não canceladas)
-        $sold = SaleItem::query()
-            ->whereIn('product_id', $products->pluck('id'))
-            ->whereHas('sale', fn ($q) => $q->where('created_at', '>=', now()->subDays(30))
-                ->whereNotIn('status', ['cancelada', 'orcamento']))
-            ->selectRaw('product_id, SUM(quantity) as qty')
-            ->groupBy('product_id')
-            ->pluck('qty', 'product_id');
+        $kits = $this->baseQuery()
+            ->where('tipo', 'kit')
+            ->limit(300)
+            ->get($cols)
+            ->map(fn ($p) => ['product' => $p, 'stock' => $p->availableStock(), 'isKit' => true])
+            ->filter(fn ($r) => $r['stock'] <= ($r['product']->min_stock ?? $this->minimum));
 
-        $rows = $products->map(function ($p) use ($sold) {
-            $perDay = ((int) ($sold[$p->id] ?? 0)) / 30;
+        $all = $simple->concat($kits);
+        $sold = LowStockService::soldUnits($all->map(fn ($r) => $r['product']->id)->all());
 
-            return [
-                'product' => $p,
-                'sold30' => (int) ($sold[$p->id] ?? 0),
-                'daysLeft' => $perDay > 0 ? (int) floor($p->stock_quantity / $perDay) : null,
+        $rows = $all->map(function ($r) use ($sold) {
+            $p = $r['product'];
+            $min = $p->min_stock !== null ? (int) $p->min_stock : $this->minimum;
+            $sold30 = (int) ($sold[$p->id] ?? 0);
+            $s = LowStockService::suggestion($r['stock'], $sold30, $min);
+
+            return $r + [
+                'sold30' => $sold30,
+                'avgDaily' => $s['avg_daily'],
+                'daysLeft' => $s['days_left'],
+                'suggested' => $s['suggested'],
             ];
         })->sortBy([
             fn ($a, $b) => ($b['sold30'] <=> $a['sold30']),
@@ -66,7 +99,7 @@ class Restock extends Component
 
         return view('livewire.gestao.restock', [
             'rows' => $rows,
-            'zeroCount' => $products->where('stock_quantity', '<=', 0)->count(),
+            'zeroCount' => $rows->where('stock', '<=', 0)->count(),
         ]);
     }
 }

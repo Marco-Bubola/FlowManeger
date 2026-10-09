@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
  */
 class MlNotificationService
 {
-    public function notifyNewOrder(int $userId, string $orderId, ?string $detail = null): void
+    public function notifyNewOrder(?int $userId, string $orderId, ?string $detail = null): void
     {
         $this->create(
             $userId,
@@ -31,7 +31,7 @@ class MlNotificationService
         );
     }
 
-    public function notifyNewQuestion(int $userId, string $questionId, ?string $text = null): void
+    public function notifyNewQuestion(?int $userId, string $questionId, ?string $text = null): void
     {
         $this->create(
             $userId,
@@ -46,7 +46,7 @@ class MlNotificationService
         );
     }
 
-    public function notifyNewMessage(int $userId, string $messageId): void
+    public function notifyNewMessage(?int $userId, string $messageId): void
     {
         $this->create(
             $userId,
@@ -61,7 +61,7 @@ class MlNotificationService
         );
     }
 
-    public function notifyClaim(int $userId, string $claimId, ?string $reason = null): void
+    public function notifyClaim(?int $userId, string $claimId, ?string $reason = null): void
     {
         $this->create(
             $userId,
@@ -76,7 +76,7 @@ class MlNotificationService
         );
     }
 
-    public function notifySyncError(int $userId, string $itemId, string $error): void
+    public function notifySyncError(?int $userId, string $itemId, string $error): void
     {
         $this->create(
             $userId,
@@ -130,19 +130,46 @@ class MlNotificationService
         return $userId ? (int) $userId : null;
     }
 
-    protected function create(int $userId, string $type, string $title, string $message, array $options = []): void
+    protected function create(?int $userId, string $type, string $title, string $message, array $options = []): void
     {
+        if (!$userId) {
+            // Webhook sem dono identificado: não há para quem avisar.
+            return;
+        }
+
         try {
+            // O ML reenvia o mesmo webhook várias vezes: um aviso por evento.
+            $data = $options['data'] ?? [];
+            $key = array_key_first($data);
+            if ($key !== null && $this->alreadyNotified($userId, $type, $key, (string) $data[$key])) {
+                return;
+            }
+
             ConsortiumNotification::createGeneric('mercadolivre', $type, $userId, $title, $message, $options);
         } catch (\Throwable $e) {
             Log::warning('Falha ao criar notificação ML', ['type' => $type, 'error' => $e->getMessage()]);
         }
     }
 
+    protected function alreadyNotified(int $userId, string $type, string $key, string $value): bool
+    {
+        try {
+            return ConsortiumNotification::withoutGlobalScopes()
+                ->where('user_id', $userId)
+                ->where('module', 'mercadolivre')
+                ->where('type', $type)
+                ->where('created_at', '>=', $type === 'sync_error' ? now()->subDay() : now()->subDays(30))
+                ->where('data', 'like', '%"' . $key . '":"' . addcslashes($value, '%_') . '"%')
+                ->exists();
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
     protected function safeRoute(string $name, $param = null): ?string
     {
         try {
-            return $param !== null ? route($name, $param) : route($name);
+            return $param !== null ? route($name, $param, false) : route($name, [], false);
         } catch (\Throwable $e) {
             return null;
         }
