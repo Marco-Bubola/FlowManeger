@@ -154,7 +154,9 @@ class AuthService extends MercadoLivreService
                 'user_id' => $userId,
                 'ml_user_id' => $userInfo['id'] ?? null,
                 'access_token' => $response['access_token'],
-                'refresh_token' => $response['refresh_token'],
+                // Sem o escopo offline_access o ML não manda refresh_token:
+                // o token vale 6h e depois é preciso conectar de novo.
+                'refresh_token' => $response['refresh_token'] ?? '',
                 'token_type' => $response['token_type'] ?? 'Bearer',
                 'expires_at' => now()->addSeconds($response['expires_in'] ?? 21600), // 6 horas padrão
                 'scope' => $response['scope'] ?? null,
@@ -195,47 +197,72 @@ class AuthService extends MercadoLivreService
             throw new Exception('No refresh token available');
         }
 
-        $data = [
-            'grant_type' => 'refresh_token',
-            'client_id' => $this->appId,
-            'client_secret' => $this->secretKey,
-            'refresh_token' => $token->refresh_token,
-        ];
+        // Só uma renovação por vez: o refresh_token do ML vale uma vez só,
+        // e duas renovações juntas derrubavam a conexão.
+        $lock = \Illuminate\Support\Facades\Cache::lock("ml_refresh_{$token->user_id}", 30);
 
         try {
-            $response = $this->makeRequest('POST', '/oauth/token', $data, null, $token->user_id);
+            $lock->block(20);
+        } catch (\Illuminate\Contracts\Cache\LockTimeoutException $e) {
+            return $token->fresh() ?? $token;
+        }
 
-            if (!isset($response['access_token'])) {
-                throw new Exception('New access token not received');
+        try {
+            // Outra execução pode ter renovado enquanto esperávamos.
+            $current = $token->fresh() ?? $token;
+            if ($current->updated_at && $token->updated_at && $current->updated_at->gt($token->updated_at) && !$current->needsRefresh() && $current->is_active) {
+                return $current;
             }
+            $token = $current;
 
-            // Atualizar token — preserva o refresh_token atual se o ML não enviar um novo
-            $token->update([
-                'access_token' => $response['access_token'],
-                'refresh_token' => $response['refresh_token'] ?? $token->refresh_token,
-                'expires_at' => now()->addSeconds($response['expires_in'] ?? 21600),
-                'is_active' => true,
-            ]);
+            $data = [
+                'grant_type' => 'refresh_token',
+                'client_id' => $this->appId,
+                'client_secret' => $this->secretKey,
+                'refresh_token' => $token->refresh_token,
+            ];
 
-            Log::info('ML Token refreshed successfully', [
-                'user_id' => $token->user_id,
-                'ml_user_id' => $token->ml_user_id,
-                'new_expires_at' => $token->expires_at,
-            ]);
+            try {
+                $response = $this->makeRequest('POST', '/oauth/token', $data, null, $token->user_id);
 
-            return $token->fresh();
+                if (!isset($response['access_token'])) {
+                    throw new Exception('New access token not received');
+                }
 
-        } catch (Exception $e) {
-            Log::error('ML Token refresh failed', [
-                'token_id' => $token->id,
-                'user_id' => $token->user_id,
-                'error' => $e->getMessage(),
-            ]);
+                // Atualizar token — preserva o refresh_token atual se o ML não enviar um novo
+                $token->update([
+                    'access_token' => $response['access_token'],
+                    'refresh_token' => $response['refresh_token'] ?? $token->refresh_token,
+                    'expires_at' => now()->addSeconds($response['expires_in'] ?? 21600),
+                    'is_active' => true,
+                ]);
 
-            // Desativar token se refresh falhar
-            $token->update(['is_active' => false]);
-            
-            throw new Exception('Failed to refresh token: ' . $e->getMessage());
+                Log::info('ML Token refreshed successfully', [
+                    'user_id' => $token->user_id,
+                    'ml_user_id' => $token->ml_user_id,
+                    'new_expires_at' => $token->expires_at,
+                ]);
+
+                return $token->fresh();
+
+            } catch (Exception $e) {
+                Log::error('ML Token refresh failed', [
+                    'token_id' => $token->id,
+                    'user_id' => $token->user_id,
+                    'error' => $e->getMessage(),
+                ]);
+
+                // Só desconecta quando o ML recusa o refresh_token (vencido ou
+                // revogado). Falha de rede ou do ML não derruba a conexão.
+                $msg = strtolower($e->getMessage());
+                if (str_contains($msg, 'invalid_grant') || (str_contains($msg, '400') && str_contains($msg, 'grant'))) {
+                    $token->update(['is_active' => false]);
+                }
+
+                throw new Exception('Failed to refresh token: ' . $e->getMessage());
+            }
+        } finally {
+            $lock->release();
         }
     }
 
@@ -254,22 +281,6 @@ class AuthService extends MercadoLivreService
 
             if (!$token) {
                 return true; // Já estava desconectado
-            }
-
-            // Tentar revogar na API do ML (não é obrigatório, mas é boa prática)
-            try {
-                $this->makeRequest(
-                    'DELETE', 
-                    '/oauth/token/' . $token->access_token,
-                    [],
-                    $token->access_token,
-                    $userId
-                );
-            } catch (Exception $e) {
-                // Ignorar erros de revogação na API
-                Log::warning('Failed to revoke token on ML API', [
-                    'error' => $e->getMessage(),
-                ]);
             }
 
             // Desativar token localmente

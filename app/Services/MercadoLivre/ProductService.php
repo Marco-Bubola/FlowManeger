@@ -1052,6 +1052,10 @@ class ProductService extends MercadoLivreService
                 }
             }
             
+            // Daqui em diante o item JÁ EXISTE no ML: falha local não pode virar
+            // "erro" (quem chama apagaria a publicação e o retry duplicaria o anúncio).
+            $mlProduct = null;
+            try {
             // Salvar relacionamento no banco
             $mlProduct = MercadoLivreProduct::create([
                 'product_id' => $product->id,
@@ -1077,6 +1081,13 @@ class ProductService extends MercadoLivreService
                 [],
                 ['ml_item_id' => $response['id'], 'product_id' => $product->id]
             );
+            } catch (\Throwable $localE) {
+                Log::error('Item criado no ML, mas falhou o registro local (mercadolivre_products)', [
+                    'ml_item_id' => $response['id'] ?? null,
+                    'product_id' => $product->id,
+                    'error' => $localE->getMessage(),
+                ]);
+            }
             
             DB::commit();
             
@@ -1087,7 +1098,7 @@ class ProductService extends MercadoLivreService
             
             return [
                 'success' => true,
-                'ml_product' => $mlProduct->fresh(),
+                'ml_product' => $mlProduct?->fresh(),
                 'ml_response' => $response,
                 'ml_item_id' => $response['id'], // ID real do Mercado Livre
                 'ml_permalink' => $response['permalink'] ?? null,
@@ -1507,6 +1518,11 @@ class ProductService extends MercadoLivreService
         
         // category_id é SEMPRE obrigatório pela API do ML
         $payload['category_id'] = $mlData['category_id'];
+
+        // Publicação vinculada ao catálogo do ML
+        if (!empty($mlData['catalog_product_id'])) {
+            $payload['catalog_product_id'] = $mlData['catalog_product_id'];
+        }
         
         // NOTA: description NÃO é adicionada ao payload principal — a API ML exige endpoint separado
         // POST /items/{id}/description — feito após criação em createProduct()

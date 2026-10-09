@@ -360,7 +360,7 @@
                                 </div>
                                 <div>
                                     <p class="text-[10px] text-slate-400 uppercase font-bold mb-0.5">Status</p>
-                                    <p class="font-bold text-slate-800 dark:text-white capitalize">{{ $ship['status'] ?? '—' }}</p>
+                                    <p class="font-bold text-slate-800 dark:text-white capitalize">{{ ['pending'=>'Pendente','handling'=>'Em preparação','ready_to_ship'=>'Pronto para envio','shipped'=>'Enviado','delivered'=>'Entregue','not_delivered'=>'Não entregue','cancelled'=>'Cancelado'][$ship['status'] ?? ''] ?? ($ship['status'] ?? '—') }}</p>
                                 </div>
                                 @if(!empty($ship['date_created']))
                                 <div>

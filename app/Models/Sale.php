@@ -139,6 +139,8 @@ class Sale extends Model
                 }
 
                 if (($product->tipo ?? 'simples') === 'kit') {
+                    // Publicações que contêm o próprio kit também precisam ressincronizar
+                    $affected->push($product->id);
                     foreach ($product->componentes()->get() as $pc) {
                         $comp = $pc->componente()->first();
                         if (!$comp) {
@@ -177,6 +179,8 @@ class Sale extends Model
                 }
 
                 if (($product->tipo ?? 'simples') === 'kit') {
+                    // Publicações que contêm o próprio kit também precisam ressincronizar
+                    $affected->push($product->id);
                     foreach ($product->componentes()->get() as $pc) {
                         $comp = $pc->componente()->first();
                         if (!$comp) {
@@ -212,6 +216,8 @@ class Sale extends Model
                     continue;
                 }
                 if (($product->tipo ?? 'simples') === 'kit') {
+                    // Publicações que contêm o próprio kit também precisam ressincronizar
+                    $affected->push($product->id);
                     foreach ($product->componentes()->get() as $pc) {
                         if ($pc->componente_produto_id) {
                             $affected->push($pc->componente_produto_id);
@@ -221,6 +227,12 @@ class Sale extends Model
                     $affected->push($product->id);
                 }
             }
+
+            // Kits que usam algum produto afetado mudam de disponibilidade também
+            $affected = $affected->merge(
+                \App\Models\ProdutoComponente::whereIn('componente_produto_id', $affected->filter()->all())
+                    ->pluck('kit_produto_id')
+            );
 
             $affected = $affected->filter()->unique()->values();
             if ($affected->isEmpty()) {

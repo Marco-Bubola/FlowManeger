@@ -5,9 +5,11 @@ namespace App\Http\Controllers\MercadoLivre;
 use App\Http\Controllers\Controller;
 use App\Services\MercadoLivre\ProductService;
 use App\Services\MercadoLivre\SyncService;
+use App\Models\MercadoLivreProduct;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,15 +28,69 @@ class ProductController extends Controller
         $this->productService = $productService;
         $this->syncService = $syncService;
     }
+
+    /**
+     * Produto do usuário logado (ou null se não existir / não for dele).
+     */
+    protected function findOwnedProduct(int $id): ?Product
+    {
+        return Product::where('id', $id)->where('user_id', Auth::id())->first();
+    }
+
+    /**
+     * Resolve produto + anúncio legado (mercadolivre_products) do usuário.
+     * Retorna [MercadoLivreProduct|null, JsonResponse|null].
+     */
+    protected function resolveMlProduct(int $id): array
+    {
+        $product = $this->findOwnedProduct($id);
+        if (!$product) {
+            return [null, $this->fail('Produto não encontrado', 404)];
+        }
+
+        $mlProduct = $product->mercadoLivreProduct;
+        if (!$mlProduct || !$mlProduct->ml_item_id) {
+            return [null, $this->fail('Produto não está publicado no ML', 404)];
+        }
+
+        return [$mlProduct, null];
+    }
+
+    protected function fail(string $message, int $status = 400, array $extra = []): JsonResponse
+    {
+        return response()->json(['success' => false, 'message' => $message] + $extra, $status);
+    }
+
+    /**
+     * Resposta padrão para os métodos do ProductService (retornam 'error' em falha).
+     */
+    protected function respond(array $result, string $okMessage, string $errMessage): JsonResponse
+    {
+        if (!empty($result['success'])) {
+            return response()->json([
+                'success' => true,
+                'message' => $result['message'] ?? $okMessage,
+                'data' => $result,
+            ], 200);
+        }
+
+        return $this->fail($result['error'] ?? $result['message'] ?? $errMessage, 400);
+    }
+
+    protected function handleException(string $label, int $id, \Throwable $e): JsonResponse
+    {
+        Log::error("Erro ao {$label} produto", [
+            'product_id' => $id,
+            'error' => $e->getMessage(),
+        ]);
+
+        return $this->fail("Erro ao {$label} produto: " . $e->getMessage(), 500);
+    }
     
     /**
      * Publicar produto no Mercado Livre
      * 
-     * POST /mercadolivre/products/{id}/publish
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
+     * POST /mercadolivre/api/products/{id}/publish
      */
     public function publish(Request $request, int $id): JsonResponse
     {
@@ -45,253 +101,126 @@ class ProductController extends Controller
                 'condition' => 'required|string|in:new,used',
                 'warranty' => 'nullable|string',
                 'attributes' => 'nullable|array',
+                'price' => 'nullable|numeric|min:0.01',
+                'quantity' => 'nullable|integer|min:1',
+                'description' => 'nullable|string',
+                'free_shipping' => 'nullable|boolean',
+                'local_pickup' => 'nullable|boolean',
             ]);
             
             if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Dados inválidos',
-                    'errors' => $validator->errors(),
-                ], 422);
+                return $this->fail('Dados inválidos', 422, ['errors' => $validator->errors()]);
             }
             
-            $product = Product::find($id);
-            
+            $product = $this->findOwnedProduct($id);
             if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não encontrado',
-                ], 404);
+                return $this->fail('Produto não encontrado', 404);
+            }
+
+            if ($product->mercadoLivreProduct && $product->mercadoLivreProduct->ml_item_id
+                && $product->mercadoLivreProduct->status !== 'closed') {
+                return $this->fail('Produto já está publicado no ML', 409);
             }
             
-            // Publicar produto
-            $result = $this->productService->publishProduct(
-                $product,
-                $request->input('category_id'),
-                $request->input('listing_type'),
-                $request->input('condition'),
-                $request->input('warranty'),
-                $request->input('attributes', [])
+            $publishData = array_filter(
+                $request->only([
+                    'category_id', 'listing_type', 'condition', 'warranty', 'attributes',
+                    'price', 'quantity', 'description', 'free_shipping', 'local_pickup',
+                ]),
+                fn ($v) => $v !== null
             );
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Produto publicado com sucesso',
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erro ao publicar produto',
-                    'errors' => $result['errors'] ?? [],
-                ], 400);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao publicar produto', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao publicar produto: ' . $e->getMessage(),
-            ], 500);
+
+            $result = $this->productService->publishProduct($product, $publishData, Auth::id());
+
+            return $this->respond($result, 'Produto publicado com sucesso', 'Erro ao publicar produto');
+        } catch (\Throwable $e) {
+            return $this->handleException('publicar', $id, $e);
         }
     }
     
     /**
      * Sincronizar produto com Mercado Livre
      * 
-     * POST /mercadolivre/products/{id}/sync
-     * 
-     * @param int $id
-     * @return JsonResponse
+     * POST /mercadolivre/api/products/{id}/sync
      */
     public function sync(int $id): JsonResponse
     {
         try {
-            $result = $this->syncService->syncProduct($id);
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => $result['message'],
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'],
-                ], 400);
+            [$mlProduct, $error] = $this->resolveMlProduct($id);
+            if ($error) {
+                return $error;
             }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao sincronizar produto', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao sincronizar produto: ' . $e->getMessage(),
-            ], 500);
+
+            // ProductService::syncProduct usa o token do dono do produto
+            $result = $this->productService->syncProduct($mlProduct);
+
+            return $this->respond($result, 'Produto sincronizado', 'Erro ao sincronizar produto');
+        } catch (\Throwable $e) {
+            return $this->handleException('sincronizar', $id, $e);
         }
     }
     
     /**
      * Pausar produto no Mercado Livre
      * 
-     * POST /mercadolivre/products/{id}/pause
-     * 
-     * @param int $id
-     * @return JsonResponse
+     * POST /mercadolivre/api/products/{id}/pause
      */
     public function pause(int $id): JsonResponse
     {
         try {
-            $product = Product::find($id);
-            
-            if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não encontrado',
-                ], 404);
+            [$mlProduct, $error] = $this->resolveMlProduct($id);
+            if ($error) {
+                return $error;
             }
-            
-            $result = $this->productService->pauseProduct($product);
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Produto pausado com sucesso',
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erro ao pausar produto',
-                ], 400);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao pausar produto', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao pausar produto: ' . $e->getMessage(),
-            ], 500);
+
+            return $this->respond($this->productService->pauseProduct($mlProduct), 'Produto pausado com sucesso', 'Erro ao pausar produto');
+        } catch (\Throwable $e) {
+            return $this->handleException('pausar', $id, $e);
         }
     }
     
     /**
      * Ativar produto no Mercado Livre
      * 
-     * POST /mercadolivre/products/{id}/activate
-     * 
-     * @param int $id
-     * @return JsonResponse
+     * POST /mercadolivre/api/products/{id}/activate
      */
     public function activate(int $id): JsonResponse
     {
         try {
-            $product = Product::find($id);
-            
-            if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não encontrado',
-                ], 404);
+            [$mlProduct, $error] = $this->resolveMlProduct($id);
+            if ($error) {
+                return $error;
             }
-            
-            $result = $this->productService->activateProduct($product);
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Produto ativado com sucesso',
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erro ao ativar produto',
-                ], 400);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao ativar produto', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao ativar produto: ' . $e->getMessage(),
-            ], 500);
+
+            return $this->respond($this->productService->activateProduct($mlProduct), 'Produto ativado com sucesso', 'Erro ao ativar produto');
+        } catch (\Throwable $e) {
+            return $this->handleException('ativar', $id, $e);
         }
     }
     
     /**
-     * Deletar produto do Mercado Livre (fechar anúncio)
+     * Encerrar anúncio do produto no Mercado Livre (status closed)
      * 
-     * DELETE /mercadolivre/products/{id}
-     * 
-     * @param int $id
-     * @return JsonResponse
+     * DELETE /mercadolivre/api/products/{id}
      */
     public function delete(int $id): JsonResponse
     {
         try {
-            $product = Product::find($id);
-            
-            if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não encontrado',
-                ], 404);
+            [$mlProduct, $error] = $this->resolveMlProduct($id);
+            if ($error) {
+                return $error;
             }
-            
-            $result = $this->productService->deleteProduct($product);
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Produto removido do ML com sucesso',
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erro ao remover produto',
-                ], 400);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao deletar produto', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao deletar produto: ' . $e->getMessage(),
-            ], 500);
+
+            return $this->respond($this->productService->closeProduct($mlProduct), 'Produto removido do ML com sucesso', 'Erro ao remover produto');
+        } catch (\Throwable $e) {
+            return $this->handleException('deletar', $id, $e);
         }
     }
     
     /**
      * Atualizar estoque de produto no ML
      * 
-     * POST /mercadolivre/products/{id}/update-stock
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
+     * POST /mercadolivre/api/products/{id}/update-stock
      */
     public function updateStock(Request $request, int $id): JsonResponse
     {
@@ -301,70 +230,26 @@ class ProductController extends Controller
             ]);
             
             if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Quantidade inválida',
-                    'errors' => $validator->errors(),
-                ], 422);
+                return $this->fail('Quantidade inválida', 422, ['errors' => $validator->errors()]);
             }
             
-            $product = Product::find($id);
-            
-            if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não encontrado',
-                ], 404);
+            [$mlProduct, $error] = $this->resolveMlProduct($id);
+            if ($error) {
+                return $error;
             }
-            
-            $mlProduct = $product->mercadoLivreProduct;
-            
-            if (!$mlProduct) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não está publicado no ML',
-                ], 404);
-            }
-            
-            $result = $this->productService->updateStock(
-                $mlProduct->ml_item_id,
-                $request->input('quantity')
-            );
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Estoque atualizado com sucesso',
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erro ao atualizar estoque',
-                ], 400);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao atualizar estoque', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao atualizar estoque: ' . $e->getMessage(),
-            ], 500);
+
+            $result = $this->productService->updateStock($mlProduct, (int) $request->input('quantity'));
+
+            return $this->respond($result, 'Estoque atualizado com sucesso', 'Erro ao atualizar estoque');
+        } catch (\Throwable $e) {
+            return $this->handleException('atualizar estoque do', $id, $e);
         }
     }
     
     /**
      * Atualizar preço de produto no ML
      * 
-     * POST /mercadolivre/products/{id}/update-price
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
+     * POST /mercadolivre/api/products/{id}/update-price
      */
     public function updatePrice(Request $request, int $id): JsonResponse
     {
@@ -374,100 +259,56 @@ class ProductController extends Controller
             ]);
             
             if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Preço inválido',
-                    'errors' => $validator->errors(),
-                ], 422);
+                return $this->fail('Preço inválido', 422, ['errors' => $validator->errors()]);
             }
             
-            $product = Product::find($id);
-            
-            if (!$product) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não encontrado',
-                ], 404);
+            [$mlProduct, $error] = $this->resolveMlProduct($id);
+            if ($error) {
+                return $error;
             }
-            
-            $mlProduct = $product->mercadoLivreProduct;
-            
-            if (!$mlProduct) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Produto não está publicado no ML',
-                ], 404);
-            }
-            
-            $result = $this->productService->updatePrice(
-                $mlProduct->ml_item_id,
-                $request->input('price')
-            );
-            
-            if ($result['success']) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'Preço atualizado com sucesso',
-                    'data' => $result,
-                ], 200);
-            } else {
-                return response()->json([
-                    'success' => false,
-                    'message' => $result['message'] ?? 'Erro ao atualizar preço',
-                ], 400);
-            }
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao atualizar preço', [
-                'product_id' => $id,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao atualizar preço: ' . $e->getMessage(),
-            ], 500);
+
+            $result = $this->productService->updatePrice($mlProduct, (float) $request->input('price'));
+
+            return $this->respond($result, 'Preço atualizado com sucesso', 'Erro ao atualizar preço');
+        } catch (\Throwable $e) {
+            return $this->handleException('atualizar preço do', $id, $e);
         }
     }
     
     /**
-     * Listar produtos publicados no ML
+     * Listar produtos do usuário publicados no ML
      * 
-     * GET /mercadolivre/products
-     * 
-     * @param Request $request
-     * @return JsonResponse
+     * GET /mercadolivre/api/products
      */
     public function index(Request $request): JsonResponse
     {
         try {
-            $products = Product::whereHas('mercadoLivreProduct')
+            $products = Product::where('user_id', Auth::id())
+                ->whereHas('mercadoLivreProduct')
                 ->with('mercadoLivreProduct')
                 ->when($request->input('search'), function ($query, $search) {
-                    $query->where('name', 'like', "%{$search}%")
-                          ->orWhere('code', 'like', "%{$search}%");
+                    $query->where(function ($q) use ($search) {
+                        $q->where('name', 'like', "%{$search}%")
+                          ->orWhere('product_code', 'like', "%{$search}%");
+                    });
                 })
                 ->when($request->input('status'), function ($query, $status) {
                     $query->whereHas('mercadoLivreProduct', function ($q) use ($status) {
                         $q->where('status', $status);
                     });
                 })
-                ->paginate($request->input('per_page', 20));
+                ->paginate(min(100, max(1, (int) $request->input('per_page', 20))));
             
             return response()->json([
                 'success' => true,
                 'data' => $products,
             ], 200);
-            
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             Log::error('Erro ao listar produtos', [
                 'error' => $e->getMessage(),
             ]);
-            
-            return response()->json([
-                'success' => false,
-                'message' => 'Erro ao listar produtos: ' . $e->getMessage(),
-            ], 500);
+
+            return $this->fail('Erro ao listar produtos: ' . $e->getMessage(), 500);
         }
     }
 }

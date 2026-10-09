@@ -29,8 +29,12 @@ class ProcessMercadoLivreWebhook implements ShouldQueue
      */
     public function handle(WebhookController $controller): void
     {
-        $this->webhook->incrementAttempts();
-        $controller->process($this->webhook);
+        $result = $controller->process($this->webhook);
+
+        // Falhou: deixa a fila tentar de novo (tries/backoff acima).
+        if (!($result['success'] ?? false)) {
+            throw new \RuntimeException($result['message'] ?? 'Falha ao processar webhook do ML');
+        }
     }
 
     /**

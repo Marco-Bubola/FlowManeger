@@ -3,6 +3,7 @@
 namespace App\Livewire\MercadoLivre;
 
 use App\Models\MlPublication;
+use App\Services\MercadoLivre\MlStockSyncService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -40,7 +41,7 @@ class ShowPublication extends Component
             'total_stock_available' => $this->publication->calculateAvailableQuantity(),
             'total_sales' => $this->publication->orders()->count(),
             'total_revenue' => $this->publication->orders()
-                ->where('order_status', 'completed')
+                ->whereIn('order_status', ['paid', 'confirmed'])
                 ->sum('total_amount'),
             'stock_logs_count' => $this->publication->stockLogs()->count(),
         ];
@@ -59,9 +60,31 @@ class ShowPublication extends Component
     public function syncToMercadoLivre()
     {
         try {
-            $this->publication->syncQuantityToMl();
-            $this->notifySuccess('Sincronização iniciada com sucesso!');
-            $this->publication->refresh();
+            if (!$this->publication->ml_item_id || str_starts_with($this->publication->ml_item_id, 'TEMP_')) {
+                $this->notifyError('Esta publicação ainda não foi publicada no Mercado Livre');
+                return;
+            }
+
+            $syncService = app(MlStockSyncService::class);
+
+            // Traz do ML o que mudou lá (título, preço, status...)
+            $fetch = $syncService->fetchPublicationFromMercadoLivre($this->publication);
+            if (!$fetch['success']) {
+                $this->notifyError('Erro ao buscar no ML: ' . $fetch['message']);
+                return;
+            }
+
+            // Envia a quantidade calculada pelo estoque local (ignorado se não há produtos vinculados)
+            $push = $syncService->syncQuantityToMercadoLivre($this->publication->refresh());
+            if (!$push['success']) {
+                $this->notifyWarning('Dados atualizados do ML, mas falhou ao enviar a quantidade: ' . $push['message']);
+            } else {
+                $this->notifySuccess('Publicação sincronizada com o Mercado Livre');
+            }
+
+            $this->publication->refresh()->load(['products.category', 'stockLogs.product', 'orders', 'user']);
+            $this->loadStats();
+            $this->loadStockHistory();
         } catch (\Exception $e) {
             $this->notifyError('Erro ao sincronizar: ' . $e->getMessage());
         }

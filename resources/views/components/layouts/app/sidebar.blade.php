@@ -682,7 +682,7 @@
                                         <div class="{{ Request::is('mercadolivre/settings') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-amber-600 rounded-l-full"></div>
                                     </a>
 
-                                    <a href="{{ route('mercadolivre.auth.redirect') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/auth/*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                    <a href="{{ route('mercadolivre.auth.redirect') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('mercadolivre/auth/*') ? 'bg-gradient-to-r from-yellow-400/15 to-amber-500/15 dark:from-yellow-500/20 dark:to-amber-600/20 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}">
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('mercadolivre/auth/*') ? 'bg-gradient-to-br from-yellow-400 to-amber-600 text-white shadow-lg shadow-yellow-500/30' : '' }}">
                                             <i class="bi bi-plug text-base"></i>
                                         </div>
@@ -1267,7 +1267,7 @@
                                 </div>
                                 <span>Publicar ML</span>
                             </a>
-                            <a href="{{ route('mercadolivre.auth.redirect') }}" class="fab-area-action" wire:navigate.hover onclick="closeFabSheet()">
+                            <a href="{{ route('mercadolivre.auth.redirect') }}" class="fab-area-action" onclick="closeFabSheet()">
                                 <div class="fab-area-action-icon" style="background:linear-gradient(135deg,#fbbf24,#f59e0b)">
                                     <i class="bi bi-plug text-white"></i>
                                 </div>
@@ -1622,7 +1622,7 @@
                         </div>
                         <span class="more-app-label">Configurações</span>
                     </a>
-                    <a href="{{ route('mercadolivre.auth.redirect') }}" class="more-app-card {{ Request::is('mercadolivre/auth/*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                    <a href="{{ route('mercadolivre.auth.redirect') }}" class="more-app-card {{ Request::is('mercadolivre/auth/*') ? 'is-active' : '' }}" onclick="closeMoreSheet()">
                         <div class="more-app-icon" style="background:linear-gradient(135deg,#14b8a6,#0f766e)">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m8-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>

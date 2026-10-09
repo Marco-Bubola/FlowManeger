@@ -281,7 +281,9 @@ class ProductIntegration extends Component
     }
 
     /**
-     * Publica o produto no Mercado Livre
+     * Publica o produto no Mercado Livre.
+     * A publicação é feita na página PublishProduct (que cria a MlPublication,
+     * vincula os produtos e usa o token do usuário); aqui só redireciona.
      */
     public function publishProduct()
     {
@@ -290,69 +292,10 @@ class ProductIntegration extends Component
             return;
         }
 
-        // Validações
-        if (empty($this->mlCategoryId)) {
-            $this->notifyError('Selecione uma categoria do Mercado Livre');
-            return;
-        }
-
-        // Valida atributos obrigatórios
-        foreach ($this->mlCategoryAttributes as $attr) {
-            if (empty($this->selectedAttributes[$attr['id']])) {
-                $this->notifyError("Campo obrigatório: {$attr['name']}");
-                return;
-            }
-        }
-
-        $this->loading = true;
-
-        try {
-            $productService = new ProductService();
-
-            // Monta os dados adicionais
-            $mlData = [
-                'category_id' => $this->mlCategoryId,
-                'listing_type' => $this->listingType,
-                'attributes' => [],
-                'shipping' => [
-                    'mode' => 'me2',
-                    'free_shipping' => $this->freeShipping,
-                    'local_pick_up' => $this->localPickup,
-                ],
-            ];
-
-            // Adiciona atributos selecionados
-            foreach ($this->selectedAttributes as $attrId => $attrValue) {
-                if (!empty($attrValue)) {
-                    $mlData['attributes'][] = [
-                        'id' => $attrId,
-                        'value_name' => $attrValue,
-                    ];
-                }
-            }
-
-            // Publica o produto
-            $result = $productService->createProduct($this->selectedProduct, $mlData);
-
-            if ($result['success']) {
-                $this->notifySuccess('Produto publicado no Mercado Livre com sucesso!');
-                $this->closePublishModal();
-                $this->dispatch('productPublished');
-            } else {
-                $this->notifyError($result['error'] ?? 'Erro ao publicar produto');
-            }
-
-        } catch (\Exception $e) {
-            Log::error('Erro ao publicar produto no ML', [
-                'product_id' => $this->selectedProduct->id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-
-            $this->notifyError('Erro ao publicar: ' . $e->getMessage());
-        } finally {
-            $this->loading = false;
-        }
+        return $this->redirect(
+            route('mercadolivre.products.publish', ['product' => $this->selectedProduct->id]),
+            navigate: false
+        );
     }
 
     /**

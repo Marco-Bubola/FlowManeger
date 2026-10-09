@@ -276,11 +276,13 @@ class EditPublication extends Component
     public function pausePublication()
     {
         try {
-            $this->publication->update(['status' => 'paused']);
-            $this->notifySuccess('Publicação pausada');
-            
-            // TODO: Chamar API ML para pausar
-            
+            $result = app(MlStockSyncService::class)->pausePublication($this->publication);
+            if ($result['success']) {
+                $this->publication->refresh();
+                $this->notifySuccess('Publicação pausada');
+            } else {
+                $this->notifyError('Erro ao pausar: ' . $result['message']);
+            }
         } catch (\Exception $e) {
             $this->notifyError('Erro ao pausar publicação');
         }
@@ -292,11 +294,13 @@ class EditPublication extends Component
     public function activatePublication()
     {
         try {
-            $this->publication->update(['status' => 'active']);
-            $this->notifySuccess('Publicação ativada');
-            
-            // TODO: Chamar API ML para ativar
-            
+            $result = app(MlStockSyncService::class)->activatePublication($this->publication);
+            if ($result['success']) {
+                $this->publication->refresh();
+                $this->notifySuccess('Publicação ativada');
+            } else {
+                $this->notifyError('Erro ao ativar: ' . $result['message']);
+            }
         } catch (\Exception $e) {
             $this->notifyError('Erro ao ativar publicação');
         }
@@ -308,8 +312,13 @@ class EditPublication extends Component
     public function deletePublication()
     {
         try {
-            // TODO: Chamar API ML para deletar antes
-            
+            // Encerra no ML antes; só remove localmente se deu certo
+            $result = app(MlStockSyncService::class)->closePublication($this->publication);
+            if (!$result['success']) {
+                $this->notifyError('Erro ao encerrar no Mercado Livre: ' . $result['message']);
+                return;
+            }
+
             $this->publication->delete();
             $this->notifySuccess('Publicação deletada');
             

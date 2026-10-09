@@ -16,6 +16,8 @@ class Messages extends Component
     public string  $packIdInput  = '';
     public array   $messages     = [];
     public bool    $loading      = false;
+    public ?int    $sellerId     = null; // ml_user_id do vendedor logado
+    public ?int    $buyerId      = null; // comprador da conversa (detectado pelas mensagens)
 
     // Nova mensagem
     public string  $newMessage   = '';
@@ -47,6 +49,8 @@ class Messages extends Component
 
             if ($result['success']) {
                 $this->messages = $result['messages'];
+                $this->sellerId = $result['seller_id'] ?? $this->sellerId;
+                $this->buyerId  = $this->detectBuyerId($this->messages);
             } else {
                 $this->notifyError($result['message'] ?? 'Erro ao carregar mensagens.');
                 $this->messages = [];
@@ -67,7 +71,8 @@ class Messages extends Component
             return;
         }
 
-        $this->packId = $packId;
+        $this->packId  = $packId;
+        $this->buyerId = null;
         $this->loadMessages();
     }
 
@@ -83,7 +88,7 @@ class Messages extends Component
 
         try {
             $service = app(MessageService::class);
-            $result  = $service->sendMessage($this->packId, $this->newMessage);
+            $result  = $service->sendMessage($this->packId, $this->newMessage, $this->buyerId);
 
             if ($result['success']) {
                 $this->notifySuccess($result['message']);
@@ -99,11 +104,32 @@ class Messages extends Component
         }
     }
 
-    public function formatDate(string $date): string
+    /**
+     * Detecta o comprador a partir das mensagens: o participante que não é o vendedor.
+     */
+    protected function detectBuyerId(array $messages): ?int
     {
+        foreach ($messages as $msg) {
+            $from = (int)($msg['from']['user_id'] ?? 0);
+            $to   = (int)($msg['to']['user_id'] ?? ($msg['to'][0]['user_id'] ?? 0));
+            if ($from && $from !== (int)$this->sellerId) {
+                return $from;
+            }
+            if ($to && $to !== (int)$this->sellerId) {
+                return $to;
+            }
+        }
+        return null;
+    }
+
+    public function formatDate(?string $date): string
+    {
+        if (empty($date)) {
+            return '—';
+        }
         try {
             return \Carbon\Carbon::parse($date)
-                ->setTimezone(config('app.timezone', 'America/Sao_Paulo'))
+                ->setTimezone('America/Sao_Paulo')
                 ->format('d/m H:i');
         } catch (\Exception) {
             return $date;
@@ -112,7 +138,16 @@ class Messages extends Component
 
     public function render()
     {
-        return view('livewire.mercadolivre.messages')
+        if ($this->sellerId === null) {
+            $token = auth()->check()
+                ? (new \App\Services\MercadoLivre\AuthService())->getActiveToken(auth()->id(), false)
+                : null;
+            $this->sellerId = $token?->ml_user_id ? (int)$token->ml_user_id : null;
+        }
+
+        return view('livewire.mercadolivre.messages', [
+                'sellerMlUserId' => $this->sellerId,
+            ])
             ->layout('components.layouts.app', [
                 'title' => 'Mensagens – Mercado Livre',
             ]);

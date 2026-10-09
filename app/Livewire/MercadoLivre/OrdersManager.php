@@ -31,6 +31,7 @@ class OrdersManager extends Component
 
     // Paginação
     public int $perPage = 20;
+    public int $mlPage = 1;
 
     // Dados
     public array $orders = [];
@@ -47,9 +48,9 @@ class OrdersManager extends Component
     public function mount()
     {
         // Definir datas padrão (últimos 30 dias)
-        $this->dateTo = Carbon::now()->format('Y-m-d');
-        $this->dateFrom = Carbon::now()->subDays(30)->format('Y-m-d');
-        
+        $this->dateTo = Carbon::now('America/Sao_Paulo')->format('Y-m-d');
+        $this->dateFrom = Carbon::now('America/Sao_Paulo')->subDays(30)->format('Y-m-d');
+
         $this->loadOrders();
     }
 
@@ -64,8 +65,8 @@ class OrdersManager extends Component
             $orderService = new OrderService();
             
             $filters = [
-                'limit' => $this->perPage,
-                'offset' => 0,
+                'limit' => min(50, $this->perPage),
+                'offset' => ($this->mlPage - 1) * min(50, $this->perPage),
             ];
             
             if ($this->statusFilter) {
@@ -120,16 +121,26 @@ class OrdersManager extends Component
      */
     public function updatedStatusFilter()
     {
+        $this->mlPage = 1;
         $this->loadOrders();
     }
 
     public function updatedDateFrom()
     {
+        $this->mlPage = 1;
         $this->loadOrders();
     }
 
     public function updatedDateTo()
     {
+        $this->mlPage = 1;
+        $this->loadOrders();
+    }
+
+    public function updatedPerPage()
+    {
+        $this->perPage = min(50, max(1, (int) $this->perPage));
+        $this->mlPage = 1;
         $this->loadOrders();
     }
 
@@ -138,6 +149,19 @@ class OrdersManager extends Component
         if (strlen($this->searchTerm) >= 3 || $this->searchTerm === '') {
             $this->loadOrders();
         }
+    }
+
+    /** Total de páginas segundo o ML. */
+    public function getMlLastPageProperty(): int
+    {
+        $total = (int) ($this->paging['total'] ?? 0);
+        return max(1, (int) ceil($total / max(1, min(50, $this->perPage))));
+    }
+
+    public function goToMlPage(int $page)
+    {
+        $this->mlPage = max(1, min($page, $this->mlLastPage));
+        $this->loadOrders();
     }
 
     /**
@@ -236,9 +260,10 @@ class OrdersManager extends Component
     {
         $this->searchTerm = '';
         $this->statusFilter = '';
-        $this->dateTo = Carbon::now()->format('Y-m-d');
-        $this->dateFrom = Carbon::now()->subDays(30)->format('Y-m-d');
-        
+        $this->dateTo = Carbon::now('America/Sao_Paulo')->format('Y-m-d');
+        $this->dateFrom = Carbon::now('America/Sao_Paulo')->subDays(30)->format('Y-m-d');
+        $this->mlPage = 1;
+
         $this->loadOrders();
     }
 
@@ -273,7 +298,7 @@ class OrdersManager extends Component
      */
     public function formatDate($date): string
     {
-        return Carbon::parse($date)->format('d/m/Y H:i');
+        return Carbon::parse($date)->setTimezone('America/Sao_Paulo')->format('d/m/Y H:i');
     }
 
     public function render()

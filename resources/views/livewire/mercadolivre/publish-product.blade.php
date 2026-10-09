@@ -1061,6 +1061,37 @@
                 </div>
             </div>
 
+            @php $requiredAttrs = $catalogProductId ? [] : $this->manualRequiredAttributes(); @endphp
+            @if(!empty($requiredAttrs))
+            <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 overflow-hidden shadow-lg">
+                <div class="px-5 py-3 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border-b border-amber-200 dark:border-amber-800">
+                    <h4 class="font-bold text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                        <i class="bi bi-list-check text-lg"></i> Atributos obrigatórios
+                    </h4>
+                </div>
+                <div class="p-4 space-y-3">
+                    @foreach($requiredAttrs as $attr)
+                    <div wire:key="req-attr-{{ $attr['id'] }}">
+                        <label class="text-xs font-bold text-slate-500 uppercase block mb-1">{{ $attr['name'] ?? $attr['id'] }} *</label>
+                        @if(!empty($attr['values']) && is_array($attr['values']))
+                        <select wire:model="selectedAttributes.{{ $attr['id'] }}"
+                            class="w-full px-4 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm">
+                            <option value="">Selecione</option>
+                            @foreach($attr['values'] as $val)
+                            <option value="{{ $val['name'] ?? $val['id'] }}">{{ $val['name'] ?? $val['id'] }}</option>
+                            @endforeach
+                        </select>
+                        @else
+                        <input type="text" wire:model="selectedAttributes.{{ $attr['id'] }}"
+                            placeholder="{{ $attr['hint'] ?? '' }}"
+                            class="w-full px-4 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-sm">
+                        @endif
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
 
         </div>
     </div>

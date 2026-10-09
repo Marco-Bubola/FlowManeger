@@ -109,20 +109,21 @@
                 $metrics    = $rep['metrics'] ?? [];
                 $total      = $tx['total'] ?? 0;
                 $completed  = $tx['completed'] ?? 0;
-                $cancelled  = $tx['cancelled'] ?? 0;
+                $cancelled  = $tx['canceled'] ?? ($tx['cancelled'] ?? 0);
                 $cancelRate = $metrics['cancellations']['rate'] ?? 0;
                 $delayRate  = $metrics['delayed_handling_time']['rate'] ?? 0;
                 $claimRate  = $metrics['claims']['rate'] ?? 0;
                 $powerSeller= $rep['power_seller_status'] ?? null;
                 $nickname   = $seller['nickname'] ?? 'Vendedor';
                 $email      = $seller['email'] ?? '';
-                $registDate = isset($seller['registration_date']) ? \Carbon\Carbon::parse($seller['registration_date'])->format('d/m/Y') : '';
-                // Feedback
-                $positive   = $feedback['total_positive'] ?? 0;
-                $negative   = $feedback['total_negative'] ?? 0;
-                $neutral    = $feedback['total_neutral'] ?? 0;
-                $totalFb    = $positive + $negative + $neutral;
-                $posRate    = $totalFb > 0 ? round($positive / $totalFb * 100, 1) : 0;
+                $registDate = isset($seller['registration_date']) ? \Carbon\Carbon::parse($seller['registration_date'])->setTimezone('America/Sao_Paulo')->format('d/m/Y') : '';
+                // Avaliações: seller_reputation.transactions.ratings.{positive,negative,neutral} (frações 0-1)
+                $ratings    = $tx['ratings'] ?? [];
+                $positive   = round(((float)($ratings['positive'] ?? 0)) * 100, 1);
+                $negative   = round(((float)($ratings['negative'] ?? 0)) * 100, 1);
+                $neutral    = round(((float)($ratings['neutral'] ?? 0)) * 100, 1);
+                $posRate    = $positive;
+                $txPeriod   = $tx['period'] ?? null;
             @endphp
 
             {{-- Perfil header --}}
@@ -225,14 +226,14 @@
                             ];
                         @endphp
                         @foreach($fbItems as $fb)
-                            @php $pct = $totalFb > 0 ? round($fb['value'] / $totalFb * 100, 1) : 0; @endphp
+                            @php $pct = min($fb['value'], 100); @endphp
                             <div>
                                 <div class="flex items-center justify-between mb-1">
                                     <div class="flex items-center gap-1.5">
                                         <i class="bi {{ $fb['icon'] }} text-xs text-{{ $fb['color'] }}-500"></i>
                                         <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">{{ $fb['label'] }}</span>
                                     </div>
-                                    <span class="text-xs text-slate-500">{{ number_format($fb['value']) }} ({{ $pct }}%)</span>
+                                    <span class="text-xs text-slate-500">{{ $pct }}%</span>
                                 </div>
                                 <div class="h-2 rep-bar-bg rounded-full overflow-hidden">
                                     <div class="h-2 rounded-full bg-{{ $fb['color'] }}-500 transition-all duration-700"
@@ -241,8 +242,8 @@
                             </div>
                         @endforeach
                         <div class="mt-2 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                            <span class="text-xs text-slate-500">Total de avaliações</span>
-                            <span class="text-sm font-extrabold text-slate-800 dark:text-white">{{ number_format($totalFb) }}</span>
+                            <span class="text-xs text-slate-500">Período considerado</span>
+                            <span class="text-sm font-extrabold text-slate-800 dark:text-white">{{ $txPeriod === 'historic' ? 'Histórico' : ($txPeriod ?? '-') }}</span>
                         </div>
                     </div>
                 </div>
@@ -257,9 +258,9 @@
                 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 text-xs">
                     @php $infoItems = [
                         ['label'=>'ID do vendedor', 'value'=> $seller['id'] ?? '-'],
-                        ['label'=>'Tipo de conta',  'value'=> ucfirst($seller['account_type'] ?? '-')],
+                        ['label'=>'Tipo de conta',  'value'=> ucfirst((string)($seller['account_type'] ?? ($seller['user_type'] ?? '-')))],
                         ['label'=>'País',            'value'=> $seller['country_id'] ?? '-'],
-                        ['label'=>'Status',          'value'=> ucfirst($seller['status'] ?? '-')],
+                        ['label'=>'Status',          'value'=> ucfirst((string)(is_array($seller['status'] ?? null) ? ($seller['status']['site_status'] ?? '-') : ($seller['status'] ?? '-')))],
                     ]; @endphp
                     @foreach($infoItems as $info)
                         <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">

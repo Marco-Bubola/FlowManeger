@@ -43,12 +43,12 @@ class Promotions extends Component
         $this->errorMessage = '';
 
         $service = new PromotionService();
-        $filters = array_filter([
+        $filters = [
             'type'   => $this->typeFilter   ?: null,
             'status' => $this->statusFilter ?: null,
             'limit'  => $this->perPage,
             'offset' => $this->offset,
-        ]);
+        ];
 
         $result = $service->getPromotions($filters);
 
@@ -67,11 +67,19 @@ class Promotions extends Component
     public function updatedTypeFilter(): void   { $this->offset = 0; $this->loadPromotions(); }
     public function updatedStatusFilter(): void { $this->offset = 0; $this->loadPromotions(); }
 
+    public function clearFilters(): void
+    {
+        $this->typeFilter   = '';
+        $this->statusFilter = '';
+        $this->offset       = 0;
+        $this->loadPromotions();
+    }
+
     // ---------------------------------------------------------------
     // Detalhe de uma promoção
     // ---------------------------------------------------------------
 
-    public function openDetail(string $promoId): void
+    public function openDetail(string $promoId, string $promoType = ''): void
     {
         $this->selectedPromotion = null;
         $this->promoItems        = [];
@@ -80,12 +88,25 @@ class Promotions extends Component
 
         $service = new PromotionService();
 
-        $promo = $service->getPromotion($promoId);
-        if ($promo['success'] ?? false) {
-            $this->selectedPromotion = $promo['data'];
+        // A API exige o tipo da promoção; usa o da listagem se não vier na chamada
+        if ($promoType === '') {
+            foreach ($this->promotions as $p) {
+                if ((string)($p['id'] ?? '') === $promoId) {
+                    $promoType = (string)($p['type'] ?? '');
+                    break;
+                }
+            }
         }
 
-        $items = $service->getPromotionItems($promoId, 30, 0);
+        $promo = $service->getPromotion($promoId, $promoType);
+        if ($promo['success'] ?? false) {
+            // Mantém o tipo mesmo que a resposta de detalhe não o traga
+            $this->selectedPromotion = array_merge(['id' => $promoId, 'type' => $promoType], $promo['data'] ?? []);
+        } else {
+            $this->notifyError($promo['message'] ?? 'Erro ao carregar a promoção.');
+        }
+
+        $items = $service->getPromotionItems($promoId, $promoType, 30);
         if ($items['success'] ?? false) {
             $this->promoItems = $items['items'];
         }
@@ -127,29 +148,42 @@ class Promotions extends Component
     public function getStatusBadge(?string $status): array
     {
         return match(strtolower($status ?? '')) {
-            'started'  => ['label' => 'Ativa',      'bg' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'],
-            'stopped'  => ['label' => 'Pausada',    'bg' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'],
-            'finished' => ['label' => 'Encerrada',  'bg' => 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'],
-            'scheduled'=> ['label' => 'Agendada',   'bg' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'],
-            default    => ['label' => ucfirst($status ?? '-'), 'bg' => 'bg-slate-100 text-slate-500'],
+            'started'   => ['label' => 'Ativa',      'bg' => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'],
+            'pending'   => ['label' => 'Agendada',   'bg' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'],
+            'candidate' => ['label' => 'Convite',    'bg' => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'],
+            'finished'  => ['label' => 'Encerrada',  'bg' => 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'],
+            default     => ['label' => ucfirst($status ?? '-'), 'bg' => 'bg-slate-100 text-slate-500'],
         };
     }
 
     public function getTypeBadge(?string $type): array
     {
-        return match(strtoupper($type ?? '')) {
-            'DEAL'          => ['label' => 'Oferta do Dia',    'bg' => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'],
-            'LIGHTNING_DEAL'=> ['label' => 'Oferta Relâmpago', 'bg' => 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'],
-            'BRAND_PROMO'   => ['label' => 'Promo de Marca',   'bg' => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'],
-            default         => ['label' => $type ?? 'Promoção','bg' => 'bg-slate-100 text-slate-600'],
-        };
+        $labels = PromotionService::TYPES;
+        $colors = [
+            'DEAL'                 => 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+            'LIGHTNING'            => 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+            'DOD'                  => 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+            'SELLER_CAMPAIGN'      => 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+            'MARKETPLACE_CAMPAIGN' => 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+            'PRICE_DISCOUNT'       => 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+            'VOLUME'               => 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+            'PRE_NEGOTIATED'       => 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+            'SMART'                => 'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+            'UNHEALTHY_STOCK'      => 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+        ];
+        $key = strtoupper($type ?? '');
+
+        return [
+            'label' => $labels[$key] ?? ($type ?: 'Promoção'),
+            'bg'    => $colors[$key] ?? 'bg-slate-100 text-slate-600',
+        ];
     }
 
     public function formatDate(?string $date): string
     {
         if (!$date) return '';
         try {
-            return \Carbon\Carbon::parse($date)->setTimezone(config('app.timezone', 'America/Sao_Paulo'))->format('d/m/Y H:i');
+            return \Carbon\Carbon::parse($date)->setTimezone('America/Sao_Paulo')->format('d/m/Y H:i');
         } catch (\Throwable) {
             return $date;
         }
@@ -163,7 +197,9 @@ class Promotions extends Component
 
     public function render()
     {
-        return view('livewire.mercadolivre.promotions')
+        return view('livewire.mercadolivre.promotions', [
+                'promotionTypes' => PromotionService::TYPES,
+            ])
             ->layout('components.layouts.app', ['title' => 'Promoções ML']);
     }
 }

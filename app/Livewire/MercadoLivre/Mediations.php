@@ -88,6 +88,8 @@ class Mediations extends Component
 
         if ($details['success'] ?? false) {
             $this->selectedClaim = $details['data'];
+        } else {
+            $this->notifyError($details['message'] ?? 'Erro ao carregar a mediação.');
         }
         if ($messages['success'] ?? false) {
             $this->claimMessages = $messages['messages'];
@@ -168,7 +170,7 @@ class Mediations extends Component
             return '';
         }
         try {
-            return \Carbon\Carbon::parse($date)->setTimezone(config('app.timezone', 'America/Sao_Paulo'))->format('d/m/Y H:i');
+            return \Carbon\Carbon::parse($date)->setTimezone('America/Sao_Paulo')->format('d/m/Y H:i');
         } catch (\Throwable) {
             return $date;
         }

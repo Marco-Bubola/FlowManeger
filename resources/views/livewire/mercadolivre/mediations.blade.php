@@ -299,7 +299,7 @@
                             <p class="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2">Mensagens ({{ count($claimMessages) }})</p>
                             <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
                                 @foreach($claimMessages as $msg)
-                                    @php $fromSeller = ($msg['author']['type'] ?? '') === 'users'; @endphp
+                                    @php $fromSeller = ($msg['sender_role'] ?? '') === 'respondent'; @endphp
                                     <div class="flex {{ $fromSeller ? 'justify-end' : 'justify-start' }}">
                                         <div class="max-w-xs px-3 py-2 rounded-xl text-xs {{ $fromSeller ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' }}">
                                             <p>{{ $msg['message'] ?? $msg['text'] ?? '' }}</p>

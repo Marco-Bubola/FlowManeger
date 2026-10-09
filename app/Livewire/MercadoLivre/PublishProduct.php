@@ -585,6 +585,21 @@ class PublishProduct extends Component
     }
 
     /**
+     * Atributos obrigatórios da categoria que o usuário precisa preencher
+     * (os que o ProductService já completa sozinho ficam de fora).
+     */
+    public function manualRequiredAttributes(): array
+    {
+        $autoFilled = ['GTIN', 'EMPTY_GTIN_REASON', 'SALE_FORMAT', 'UNITS_PER_PACK', 'NAME'];
+
+        return array_values(array_filter($this->mlCategoryAttributes, function ($attr) use ($autoFilled) {
+            $tags = $attr['tags'] ?? [];
+            $readOnly = is_array($tags) && (in_array('read_only', $tags, true) || !empty($tags['read_only']));
+            return !empty($attr['id']) && !in_array($attr['id'], $autoFilled, true) && !$readOnly;
+        }));
+    }
+
+    /**
      * Atualiza a categoria selecionada
      */
     public function updatedMlCategoryId()
@@ -855,8 +870,9 @@ class PublishProduct extends Component
 
         // Validar atributos obrigatórios apenas se NÃO estiver usando product_id do catálogo
         if (!$this->catalogProductId) {
-            foreach ($this->mlCategoryAttributes as $attr) {
-                if (!isset($this->selectedAttributes[$attr['id']])) {
+            foreach ($this->manualRequiredAttributes() as $attr) {
+                $val = $this->selectedAttributes[$attr['id']] ?? null;
+                if ($val === null || trim((string) $val) === '') {
                     $this->notifyError("O campo '{$attr['name']}' é obrigatório");
                     return;
                 }

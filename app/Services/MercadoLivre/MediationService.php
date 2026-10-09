@@ -9,10 +9,12 @@ use Illuminate\Support\Facades\Log;
  * Service para gerenciar mediações (devoluções / disputas) no Mercado Livre.
  *
  * API referenciada:
- *   GET  /users/{seller_id}/claims                  – lista reclamações/disputas
- *   GET  /claims/{claim_id}                         – detalhes de uma mediação
- *   POST /claims/{claim_id}/messages                – enviar mensagem na mediação
- *   GET  /claims/{claim_id}/messages                – histórico de mensagens
+ *   GET  /post-purchase/v1/claims/search?player_role=respondent  – lista reclamações
+ *   GET  /post-purchase/v1/claims/{claim_id}                      – detalhes
+ *   GET  /post-purchase/v1/claims/{claim_id}/messages             – histórico de mensagens
+ *   POST /post-purchase/v1/claims/{claim_id}/actions/send-message – enviar mensagem
+ *
+ * Obs.: makeRequest lança exceção em erro HTTP e devolve o corpo JSON cru em sucesso.
  */
 class MediationService extends MercadoLivreService
 {
@@ -42,33 +44,24 @@ class MediationService extends MercadoLivreService
                 return ['success' => false, 'message' => 'Token ML não encontrado.', 'claims' => [], 'paging' => []];
             }
 
-            $sellerId = $token->ml_user_id;
-            $params = array_merge([
-                'role'   => 'respondent', // seller role
-                'limit'  => 25,
-                'offset' => 0,
-            ], $filters);
+            $params = array_filter([
+                'player_role' => 'respondent', // vendedor
+                'status'      => $filters['status'] ?? null,
+                'limit'       => $filters['limit'] ?? 25,
+                'offset'      => $filters['offset'] ?? 0,
+            ], fn($v) => $v !== null && $v !== '');
 
             $query    = http_build_query($params);
-            $endpoint = "/users/{$sellerId}/claims?{$query}";
+            $endpoint = "/post-purchase/v1/claims/search?{$query}";
 
             $response = $this->makeRequest('GET', $endpoint, [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                $data = $response['data'] ?? [];
-                return [
-                    'success' => true,
-                    'claims'  => $data['claims']  ?? ($data['data'] ?? []),
-                    'paging'  => $data['paging']  ?? [],
-                    'total'   => $data['paging']['total'] ?? count($data['claims'] ?? $data['data'] ?? []),
-                ];
-            }
-
+            $claims = $response['data'] ?? [];
             return [
-                'success' => false,
-                'message' => $response['message'] ?? 'Erro ao buscar mediações.',
-                'claims'  => [],
-                'paging'  => [],
+                'success' => true,
+                'claims'  => $claims,
+                'paging'  => $response['paging'] ?? [],
+                'total'   => (int)($response['paging']['total'] ?? count($claims)),
             ];
         } catch (\Throwable $e) {
             Log::error('[MediationService] getClaims: ' . $e->getMessage());
@@ -87,13 +80,9 @@ class MediationService extends MercadoLivreService
                 return ['success' => false, 'message' => 'Token ML não encontrado.', 'data' => null];
             }
 
-            $response = $this->makeRequest('GET', "/claims/{$claimId}", [], $token->access_token, Auth::id());
+            $response = $this->makeRequest('GET', "/post-purchase/v1/claims/{$claimId}", [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                return ['success' => true, 'data' => $response['data'] ?? []];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro.', 'data' => null];
+            return ['success' => true, 'data' => $response];
         } catch (\Throwable $e) {
             Log::error('[MediationService] getClaimDetails: ' . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage(), 'data' => null];
@@ -112,17 +101,19 @@ class MediationService extends MercadoLivreService
             }
 
             $payload = [
-                'message' => $text,
-                'author'  => ['type' => 'users', 'id' => $token->ml_user_id],
+                'receiver_role' => 'complainant',
+                'message'       => trim($text),
             ];
 
-            $response = $this->makeRequest('POST', "/claims/{$claimId}/messages", $payload, $token->access_token, Auth::id());
+            $response = $this->makeRequest(
+                'POST',
+                "/post-purchase/v1/claims/{$claimId}/actions/send-message",
+                $payload,
+                $token->access_token,
+                Auth::id()
+            );
 
-            if ($response['success'] ?? false) {
-                return ['success' => true, 'data' => $response['data'] ?? []];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro ao enviar mensagem.'];
+            return ['success' => true, 'data' => $response];
         } catch (\Throwable $e) {
             Log::error('[MediationService] sendMessage: ' . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage()];
@@ -140,17 +131,16 @@ class MediationService extends MercadoLivreService
                 return ['success' => false, 'message' => 'Token ML não encontrado.', 'messages' => []];
             }
 
-            $response = $this->makeRequest('GET', "/claims/{$claimId}/messages", [], $token->access_token, Auth::id());
+            $response = $this->makeRequest('GET', "/post-purchase/v1/claims/{$claimId}/messages", [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                $data = $response['data'] ?? [];
-                return [
-                    'success'  => true,
-                    'messages' => $data['messages'] ?? ($data['data'] ?? []),
-                ];
-            }
+            // A API devolve uma lista de mensagens (ou, eventualmente, {data|messages: [...]})
+            $messages = array_is_list($response) ? $response : ($response['messages'] ?? ($response['data'] ?? []));
+            usort($messages, fn($a, $b) => strcmp((string)($a['date_created'] ?? ''), (string)($b['date_created'] ?? '')));
 
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro.', 'messages' => []];
+            return [
+                'success'  => true,
+                'messages' => $messages,
+            ];
         } catch (\Throwable $e) {
             Log::error('[MediationService] getClaimMessages: ' . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage(), 'messages' => []];

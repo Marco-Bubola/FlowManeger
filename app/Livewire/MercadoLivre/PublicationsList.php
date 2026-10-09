@@ -20,7 +20,9 @@ class PublicationsList extends Component
     public string $viewMode = 'cards'; // cards ou table
     
     // Sincronização automática
-    public bool $autoSyncEnabled = true;
+    // Desligado: sincronizar no mount fazia 2 chamadas HTTP por publicação a
+    // cada carregamento da página. Use o botão "Sincronizar" (syncAllPublications).
+    public bool $autoSyncEnabled = false;
     public bool $isSyncing = false;
     public int $syncedCount = 0;
     public int $totalToSync = 0;
@@ -121,12 +123,13 @@ class PublicationsList extends Component
             }
             
             $this->isSyncing = false;
+            \Illuminate\Support\Facades\Cache::forget('ml_only_on_ml_' . Auth::id());
             
             // Notificar resultado
             if ($this->syncedCount > 0) {
                 $message = "✅ {$this->syncedCount} de {$this->totalToSync} publicações sincronizadas";
                 if (count($this->syncErrors) > 0) {
-                    $message .= " ({$this->syncErrors} com erro)";
+                    $message .= " (" . count($this->syncErrors) . " com erro)";
                 }
                 $this->dispatch('sync-completed', ['message' => $message]);
             }
@@ -196,7 +199,12 @@ class PublicationsList extends Component
         try {
             $userId = Auth::id();
             $syncService = app(MlStockSyncService::class);
-            $result = $syncService->fetchUserItemIdsFromMl($userId);
+            // render() roda a cada interação: guarda a lista do ML por alguns minutos
+            $result = \Illuminate\Support\Facades\Cache::remember(
+                'ml_only_on_ml_' . $userId,
+                now()->addMinutes(5),
+                fn () => $syncService->fetchUserItemIdsFromMl($userId)
+            );
             
             if (!$result['success'] || empty($result['item_ids'])) {
                 return collect();
@@ -249,6 +257,7 @@ class PublicationsList extends Component
         $syncService = app(MlStockSyncService::class);
         $result = $syncService->createPublicationFromMlItem(Auth::id(), $mlItemId);
         if ($result['success']) {
+            \Illuminate\Support\Facades\Cache::forget('ml_only_on_ml_' . Auth::id());
             $this->notifySuccess($result['message'] . '. Você pode editar na lista.');
         } else {
             $this->notifyError($result['message']);
@@ -342,7 +351,14 @@ class PublicationsList extends Component
             $publication = MlPublication::where('id', $publicationId)
                 ->where('user_id', Auth::id())
                 ->firstOrFail();
-            
+
+            // Encerra no ML antes; só remove localmente se deu certo
+            $result = app(MlStockSyncService::class)->closePublication($publication);
+            if (!$result['success']) {
+                $this->notifyError('Erro ao encerrar no Mercado Livre: ' . $result['message']);
+                return;
+            }
+
             $publication->delete();
             
             $this->notifySuccess('Publicação excluída com sucesso!');

@@ -111,8 +111,12 @@ class MercadoLivreService
         // Tentar a requisição com retry
         $attempt = 0;
         $lastException = null;
+        // POST não é idempotente (timeout pode já ter criado o item/resposta no ML):
+        // só repete GET/PUT/DELETE.
+        $idempotent = in_array(strtoupper($method), ['GET', 'PUT', 'DELETE'], true);
 
         while ($attempt < $this->maxRetries) {
+            $retryable = false;
             try {
                 $attempt++;
                 
@@ -185,11 +189,18 @@ class MercadoLivreService
                     $errorDetails .= ' - Validation: ' . json_encode($responseBody);
                 }
                 
+                // Só 429 e 5xx são transitórios; 4xx nunca é repetido
+                $retryable = $response->status() === 429 || $response->serverError();
+
                 throw new Exception(
-                    "ML API Error: {$response->status()} - {$errorMessage}{$errorDetails}"
+                    "ML API Error: {$response->status()} - {$errorMessage}{$errorDetails}",
+                    $response->status()
                 );
 
             } catch (Exception $e) {
+                if ($e instanceof \Illuminate\Http\Client\ConnectionException) {
+                    $retryable = true; // erro de conexão/timeout
+                }
                 $lastException = $e;
                 
                 Log::warning("ML API Request Failed", [
@@ -199,7 +210,7 @@ class MercadoLivreService
                 ]);
 
                 // Se não for a última tentativa, aguardar antes de tentar novamente
-                if ($attempt < $this->maxRetries) {
+                if ($idempotent && $retryable && $attempt < $this->maxRetries) {
                     usleep($this->retryDelay * 1000 * $attempt); // Exponential backoff
                     continue;
                 }

@@ -71,17 +71,19 @@ class OrderService extends MercadoLivreService
             
             // Filtro de data inicial
             if (!empty($filters['date_from'])) {
-                $params['order.date_created.from'] = Carbon::parse($filters['date_from'])->toIso8601String();
+                // Datas da tela são do horário de Brasília (dia inteiro).
+                $params['order.date_created.from'] = Carbon::parse($filters['date_from'], 'America/Sao_Paulo')->startOfDay()->toIso8601String();
             }
             
             // Filtro de data final
             if (!empty($filters['date_to'])) {
-                $params['order.date_created.to'] = Carbon::parse($filters['date_to'])->toIso8601String();
+                $params['order.date_created.to'] = Carbon::parse($filters['date_to'], 'America/Sao_Paulo')->endOfDay()->toIso8601String();
             }
             
             // Limite de resultados
-            $params['limit'] = $filters['limit'] ?? 50;
-            $params['offset'] = $filters['offset'] ?? 0;
+            // O ML aceita no máximo 51 por página.
+            $params['limit'] = min(50, max(1, (int) ($filters['limit'] ?? 50)));
+            $params['offset'] = max(0, (int) ($filters['offset'] ?? 0));
             
             // Ordenação
             $params['sort'] = 'date_desc';
@@ -122,7 +124,18 @@ class OrderService extends MercadoLivreService
                 return null;
             }
             $response = $this->makeRequest('GET', "/orders/{$mlOrderId}", [], $token->access_token, Auth::id());
-            
+
+            // O pedido traz só o id do envio: busca status e endereço.
+            $shippingId = $response['shipping']['id'] ?? null;
+            if ($shippingId) {
+                try {
+                    $shipment = $this->makeRequest('GET', "/shipments/{$shippingId}", [], $token->access_token, Auth::id());
+                    $response['shipping'] = array_merge($shipment, $response['shipping'] ?? []);
+                } catch (\Exception $e) {
+                    Log::warning('Envio do pedido ML não encontrado', ['shipping_id' => $shippingId, 'error' => $e->getMessage()]);
+                }
+            }
+
             return $response;
             
         } catch (\Exception $e) {
@@ -177,35 +190,7 @@ class OrderService extends MercadoLivreService
                 $client = $this->getOrCreateClient($orderData['buyer'] ?? []);
                 $sale = $this->createSaleFromOrder($orderData, $client);
 
-                $item = $orderData['order_items'][0] ?? [];
-                $buyer = $orderData['buyer'] ?? [];
-                $payment = $orderData['payments'][0] ?? [];
-
-                MercadoLivreOrder::updateOrCreate(
-                    ['ml_order_id' => (string) $mlOrderId],
-                    [
-                        'ml_item_id' => $item['item']['id'] ?? null,
-                        'product_id' => $sale->saleItems()->value('product_id'),
-                        'buyer_id' => $buyer['id'] ?? null,
-                        'buyer_nickname' => $buyer['nickname'] ?? null,
-                        'buyer_email' => $buyer['email'] ?? null,
-                        'buyer_phone' => $buyer['phone']['number'] ?? null,
-                        'quantity' => (int) collect($orderData['order_items'] ?? [])->sum('quantity'),
-                        'unit_price' => $item['unit_price'] ?? 0,
-                        'total_amount' => $orderData['total_amount'] ?? 0,
-                        'currency_id' => $orderData['currency_id'] ?? 'BRL',
-                        'order_status' => $orderData['status'] ?? null,
-                        'payment_status' => $payment['status'] ?? null,
-                        'payment_method' => $payment['payment_method_id'] ?? null,
-                        'payment_type' => $payment['payment_type'] ?? null,
-                        'shipping_id' => $orderData['shipping']['id'] ?? null,
-                        'date_created' => !empty($orderData['date_created']) ? Carbon::parse($orderData['date_created']) : now(),
-                        'date_closed' => !empty($orderData['date_closed']) ? Carbon::parse($orderData['date_closed']) : null,
-                        'date_last_updated' => !empty($orderData['last_updated']) ? Carbon::parse($orderData['last_updated']) : null,
-                        'imported_to_sale_id' => $sale->id,
-                        'sync_status' => 'processed',
-                    ]
-                );
+                $this->recordOrder($orderData, $sale->id, $sale->saleItems()->value('product_id'));
 
                 return $sale;
             });
@@ -234,6 +219,49 @@ class OrderService extends MercadoLivreService
                 'message' => 'Erro ao importar pedido: ' . $e->getMessage(),
             ];
         }
+    }
+
+    /**
+     * Grava/atualiza o pedido do ML na tabela local (valor, comprador, status).
+     * Mantém a ligação com a venda se já existir.
+     */
+    public function recordOrder(array $orderData, ?int $saleId = null, ?int $productId = null): MercadoLivreOrder
+    {
+        $item = $orderData['order_items'][0] ?? [];
+        $buyer = $orderData['buyer'] ?? [];
+        $payment = $orderData['payments'][0] ?? [];
+        $shipping = $orderData['shipping'] ?? [];
+
+        $attrs = [
+            'ml_item_id' => $item['item']['id'] ?? null,
+            'buyer_id' => $buyer['id'] ?? null,
+            'buyer_nickname' => $buyer['nickname'] ?? null,
+            'buyer_email' => $buyer['email'] ?? null,
+            'buyer_phone' => $buyer['phone']['number'] ?? null,
+            'quantity' => (int) collect($orderData['order_items'] ?? [])->sum('quantity'),
+            'unit_price' => $item['unit_price'] ?? 0,
+            'total_amount' => $orderData['total_amount'] ?? 0,
+            'currency_id' => $orderData['currency_id'] ?? 'BRL',
+            'order_status' => $orderData['status'] ?? null,
+            'payment_status' => $payment['status'] ?? null,
+            'payment_method' => $payment['payment_method_id'] ?? null,
+            'payment_type' => $payment['payment_type'] ?? null,
+            'shipping_id' => $shipping['id'] ?? null,
+            'tracking_number' => $shipping['tracking_number'] ?? null,
+            'shipping_cost' => $shipping['shipping_option']['cost'] ?? ($shipping['lead_time']['cost'] ?? null),
+            'date_created' => !empty($orderData['date_created']) ? Carbon::parse($orderData['date_created']) : now(),
+            'date_closed' => !empty($orderData['date_closed']) ? Carbon::parse($orderData['date_closed']) : null,
+            'date_last_updated' => !empty($orderData['last_updated']) ? Carbon::parse($orderData['last_updated']) : now(),
+            'sync_status' => 'processed',
+        ];
+        if ($saleId) {
+            $attrs['imported_to_sale_id'] = $saleId;
+        }
+        if ($productId) {
+            $attrs['product_id'] = $productId;
+        }
+
+        return MercadoLivreOrder::updateOrCreate(['ml_order_id' => (string) $orderData['id']], $attrs);
     }
 
     /**
@@ -436,68 +464,6 @@ class OrderService extends MercadoLivreService
     }
     
     /**
-     * Atualizar status de envio no ML
-     * 
-     * @param string $mlOrderId ID do pedido
-     * @param string $status Novo status
-     * @param array $trackingData Dados de rastreamento
-     * @return array
-     */
-    public function updateShippingStatus(string $mlOrderId, string $status, array $trackingData = []): array
-    {
-        try {
-            $token = $this->getToken();
-            if (!$token) {
-                return [
-                    'success' => false,
-                    'message' => 'Você precisa conectar sua conta do Mercado Livre.',
-                ];
-            }
-
-            $data = [
-                'status' => $status,
-            ];
-            
-            if (!empty($trackingData)) {
-                $data['tracking_number'] = $trackingData['tracking_number'] ?? null;
-                $data['tracking_method'] = $trackingData['tracking_method'] ?? null;
-            }
-            
-            $response = $this->makeRequest('PUT', "/orders/{$mlOrderId}/shipments", $data, $token->access_token, Auth::id());
-            
-            // Atualizar no banco de dados
-            $mlOrder = MercadoLivreOrder::where('ml_order_id', $mlOrderId)
-                ->where('user_id', Auth::id())
-                ->first();
-            
-            if ($mlOrder) {
-                $shipping = json_decode($mlOrder->shipping, true) ?? [];
-                $shipping['status'] = $status;
-                $shipping['tracking'] = $trackingData;
-                $mlOrder->shipping = json_encode($shipping);
-                $mlOrder->save();
-            }
-            
-            return [
-                'success' => true,
-                'message' => 'Status de envio atualizado com sucesso',
-                'response' => $response,
-            ];
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao atualizar status de envio', [
-                'ml_order_id' => $mlOrderId,
-                'error' => $e->getMessage(),
-            ]);
-            
-            return [
-                'success' => false,
-                'message' => 'Erro ao atualizar status: ' . $e->getMessage(),
-            ];
-        }
-    }
-    
-    /**
      * Sincronizar pedidos recentes
      * 
      * @param string|null $dateFrom Data inicial (padrão: últimas 24h)
@@ -510,7 +476,7 @@ class OrderService extends MercadoLivreService
             
             $orders = $this->getOrders([
                 'date_from' => $dateFrom,
-                'limit' => 100,
+                'limit' => 50,
             ]);
             
             if (!$orders['success']) {

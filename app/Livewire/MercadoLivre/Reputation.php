@@ -44,11 +44,17 @@ class Reputation extends Component
             return;
         }
 
-        // Feedback summary
-        $fbRes = $service->getFeedbackSummary();
-        if ($fbRes['success'] ?? false) {
-            $this->feedback = $fbRes['data'] ?? [];
-        }
+        // Avaliações (seller_reputation.transactions.ratings, frações 0-1) – mesma resposta de /users/{id}
+        $tx      = $this->rep['transactions'] ?? [];
+        $ratings = $tx['ratings'] ?? [];
+        $this->feedback = [
+            'positive'  => (float)($ratings['positive'] ?? 0),
+            'negative'  => (float)($ratings['negative'] ?? 0),
+            'neutral'   => (float)($ratings['neutral'] ?? 0),
+            'completed' => (int)($tx['completed'] ?? 0),
+            'canceled'  => (int)($tx['canceled'] ?? 0),
+            'total'     => (int)($tx['total'] ?? 0),
+        ];
 
         $this->loading = false;
     }

@@ -14,7 +14,7 @@ class SyncPublications extends Command
      *
      * @var string
      */
-    protected $signature = 'ml:sync-publications 
+    protected $signature = 'ml:sync-publications-legacy 
                             {--publication= : ID específico da publicação para sincronizar}
                             {--pending : Sincronizar apenas publicações com sync pendente}
                             {--all : Sincronizar todas as publicações ativas}
@@ -25,7 +25,7 @@ class SyncPublications extends Command
      *
      * @var string
      */
-    protected $description = 'Sincroniza estoque de publicações do ML com produtos internos';
+    protected $description = 'Envia ao ML a quantidade calculada pelo estoque interno (legado; o agendado é ml:sync-publications)';
 
     /**
      * Execute the console command.
@@ -54,9 +54,9 @@ class SyncPublications extends Command
             
         } elseif ($this->option('pending')) {
             // Sincronizar apenas pending
-            $publicationsToSync = MlPublication::where('needs_sync', true)
+            $publicationsToSync = MlPublication::where('sync_status', 'pending')
                 ->where('status', 'active')
-                ->with(['publicationProducts.product'])
+                ->with(['products'])
                 ->get();
                 
             $this->info("⏳ Sincronizando " . $publicationsToSync->count() . " publicações pendentes...");
@@ -64,16 +64,16 @@ class SyncPublications extends Command
         } elseif ($this->option('all')) {
             // Sincronizar todas ativas
             $publicationsToSync = MlPublication::where('status', 'active')
-                ->with(['publicationProducts.product'])
+                ->with(['products'])
                 ->get();
                 
             $this->info("🌍 Sincronizando TODAS as " . $publicationsToSync->count() . " publicações ativas...");
             
         } else {
             // Padrão: pending
-            $publicationsToSync = MlPublication::where('needs_sync', true)
+            $publicationsToSync = MlPublication::where('sync_status', 'pending')
                 ->where('status', 'active')
-                ->with(['publicationProducts.product'])
+                ->with(['products'])
                 ->get();
                 
             $this->info("⏳ Sincronizando " . $publicationsToSync->count() . " publicações pendentes (padrão)...");
@@ -97,7 +97,7 @@ class SyncPublications extends Command
         foreach ($publicationsToSync as $publication) {
             try {
                 // Verificar se precisa sincronizar (exceto se --force)
-                if (!$this->option('force') && !$publication->needs_sync) {
+                if (!$this->option('force') && $publication->sync_status !== 'pending') {
                     $skippedCount++;
                     $bar->advance();
                     continue;

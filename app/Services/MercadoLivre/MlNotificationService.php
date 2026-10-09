@@ -105,8 +105,12 @@ class MlNotificationService
             return (int) $userId;
         }
 
-        $product = MercadoLivreProduct::where('ml_item_id', $mlItemId)->with('product')->first();
-        return $product?->product?->user_id;
+        if (!\Illuminate\Support\Facades\Schema::hasTable('mercadolivre_products')) {
+            return null;
+        }
+        $productId = MercadoLivreProduct::where('ml_item_id', $mlItemId)->value('product_id');
+        $userId = $productId ? \Illuminate\Support\Facades\DB::table('products')->where('id', $productId)->value('user_id') : null;
+        return $userId ? (int) $userId : null;
     }
 
     /**
@@ -117,7 +121,13 @@ class MlNotificationService
         if (!$mlUserId) {
             return null;
         }
-        return MercadoLivreToken::where('ml_user_id', $mlUserId)->value('user_id');
+        // A mesma conta ML pode ter sido conectada por mais de um usuário:
+        // vale a conexão ativa mais recente.
+        $userId = MercadoLivreToken::where('ml_user_id', $mlUserId)
+            ->orderByDesc('is_active')
+            ->latest('id')
+            ->value('user_id');
+        return $userId ? (int) $userId : null;
     }
 
     protected function create(int $userId, string $type, string $title, string $message, array $options = []): void

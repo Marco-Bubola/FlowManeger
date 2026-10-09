@@ -156,11 +156,14 @@ class Questions extends Component
         $this->loadQuestions();
     }
 
-    public function formatDate(string $date): string
+    public function formatDate(?string $date): string
     {
+        if (empty($date)) {
+            return '—';
+        }
         try {
             return \Carbon\Carbon::parse($date)
-                ->setTimezone(config('app.timezone', 'America/Sao_Paulo'))
+                ->setTimezone('America/Sao_Paulo')
                 ->format('d/m/Y H:i');
         } catch (\Exception) {
             return $date;

@@ -196,11 +196,9 @@
                     @else
                         @foreach($messages as $msg)
                             @php
-                                $isMine = ($msg['from']['user_id'] ?? 0) != ($msg['to'][0]['user_id'] ?? null);
-                                // Seller messages = 'isMine', buyer messages = not isMine
-                                // Actually let's determine by message_type or check if from is seller
-                                $isSellerMsg = ($msg['message_type'] ?? '') === 'seller_message'
-                                    || !empty($msg['from']['seller']);
+                                // Mensagem é do vendedor quando from.user_id == ml_user_id do vendedor logado
+                                $isSellerMsg = !empty($sellerMlUserId)
+                                    && (int)($msg['from']['user_id'] ?? 0) === (int)$sellerMlUserId;
                             @endphp
                             <div class="flex {{ $isSellerMsg ? 'justify-end' : 'justify-start' }}">
                                 <div class="max-w-xs sm:max-w-sm lg:max-w-md">

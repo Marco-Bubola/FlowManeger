@@ -516,6 +516,20 @@
             </div>
         @endif
 
+        @if(($paging['total'] ?? 0) > count($orders) || $mlPage > 1)
+            <div class="mt-6 flex items-center justify-center gap-2 text-sm">
+                <button wire:click="goToMlPage({{ $mlPage - 1 }})" @disabled($mlPage <= 1)
+                        class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 disabled:opacity-40">
+                    <i class="bi bi-chevron-left"></i> Anterior
+                </button>
+                <span class="px-3 text-slate-600 dark:text-slate-300">Página {{ $mlPage }} de {{ $this->mlLastPage }} · {{ $paging['total'] ?? 0 }} pedidos</span>
+                <button wire:click="goToMlPage({{ $mlPage + 1 }})" @disabled($mlPage >= $this->mlLastPage)
+                        class="px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 disabled:opacity-40">
+                    Próxima <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        @endif
+
     </div>
     {{-- /max-w --}}
 
@@ -593,7 +607,6 @@
                         <option value="10">10 pedidos</option>
                         <option value="20">20 pedidos</option>
                         <option value="50">50 pedidos</option>
-                        <option value="100">100 pedidos</option>
                     </select>
                 </div>
             </div>

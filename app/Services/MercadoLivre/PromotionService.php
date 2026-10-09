@@ -8,14 +8,29 @@ use Illuminate\Support\Facades\Log;
 /**
  * Service para gerenciar promoções de vendedor no Mercado Livre.
  *
- * API referenciada:
- *   GET  /seller-promotions/search?seller_id={id}&type={type}  – lista promoções
- *   GET  /seller-promotions/{promotion_id}                      – detalhes
- *   PUT  /seller-promotions/{promotion_id}/items               – adicionar itens
- *   POST /seller-promotions                                     – criar promoção
+ * API referenciada (app_version=v2):
+ *   GET /seller-promotions/users/{user_id}                                   – lista promoções
+ *   GET /seller-promotions/promotions/{id}?promotion_type={TYPE}             – detalhes
+ *   GET /seller-promotions/promotions/{id}/items?promotion_type={TYPE}       – itens
+ *
+ * Obs.: makeRequest lança exceção em erro HTTP e devolve o corpo JSON cru em sucesso.
  */
 class PromotionService extends MercadoLivreService
 {
+    /** Tipos de promoção válidos na API (com rótulo em português). */
+    public const TYPES = [
+        'DEAL'                 => 'Campanha tradicional',
+        'LIGHTNING'            => 'Oferta relâmpago',
+        'DOD'                  => 'Oferta do dia',
+        'SELLER_CAMPAIGN'      => 'Campanha do vendedor',
+        'MARKETPLACE_CAMPAIGN' => 'Campanha co-participada',
+        'PRICE_DISCOUNT'       => 'Desconto individual',
+        'VOLUME'               => 'Desconto por volume',
+        'PRE_NEGOTIATED'       => 'Desconto pré-acordado',
+        'SMART'                => 'Campanha automatizada',
+        'UNHEALTHY_STOCK'      => 'Liquidação de estoque',
+    ];
+
     protected function getToken(): ?\App\Models\MercadoLivreToken
     {
         $userId = Auth::id();
@@ -31,8 +46,9 @@ class PromotionService extends MercadoLivreService
 
     /**
      * Lista promoções do vendedor.
+     * Filtros (type, status) e paginação (limit, offset) são aplicados localmente.
      *
-     * @param array $filters  keys: type (DEAL, LIGHTNING_DEAL, BRAND_PROMO), status (started, stopped, finished), limit, offset
+     * @param array $filters  keys: type (ver self::TYPES), status (started, pending, candidate, finished), limit, offset
      */
     public function getPromotions(array $filters = []): array
     {
@@ -43,34 +59,34 @@ class PromotionService extends MercadoLivreService
             }
 
             $sellerId = $token->ml_user_id;
-            $params   = array_merge([
-                'seller_id' => $sellerId,
-                'limit'     => 20,
-                'offset'    => 0,
-            ], array_filter($filters));
-
-            $query    = http_build_query($params);
-            $endpoint = "/seller-promotions/search?{$query}";
+            $endpoint = "/seller-promotions/users/{$sellerId}?app_version=v2";
 
             $response = $this->makeRequest('GET', $endpoint, [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                $data = $response['data'] ?? [];
-                // A API pode retornar diretamente um array ou {'results':[], 'paging':{}}
-                $promotions = $data['results'] ?? (is_array($data) && !isset($data['id']) ? $data : []);
-                return [
-                    'success'    => true,
-                    'promotions' => $promotions,
-                    'paging'     => $data['paging'] ?? [],
-                    'total'      => $data['paging']['total'] ?? count($promotions),
-                ];
+            $promotions = $response['results'] ?? [];
+
+            if (!empty($filters['type'])) {
+                $type = strtoupper($filters['type']);
+                $promotions = array_filter($promotions, fn($p) => strtoupper($p['type'] ?? '') === $type);
+            }
+            if (!empty($filters['status'])) {
+                $status = strtolower($filters['status']);
+                $promotions = array_filter($promotions, fn($p) => strtolower($p['status'] ?? '') === $status);
+            }
+            $promotions = array_values($promotions);
+
+            $total  = count($promotions);
+            $limit  = (int)($filters['limit'] ?? 0);
+            $offset = (int)($filters['offset'] ?? 0);
+            if ($limit > 0) {
+                $promotions = array_slice($promotions, $offset, $limit);
             }
 
             return [
-                'success'    => false,
-                'message'    => $response['message'] ?? 'Erro ao buscar promoções.',
-                'promotions' => [],
-                'paging'     => [],
+                'success'    => true,
+                'promotions' => $promotions,
+                'paging'     => $response['paging'] ?? [],
+                'total'      => $total,
             ];
         } catch (\Throwable $e) {
             Log::error('[PromotionService] getPromotions: ' . $e->getMessage());
@@ -81,7 +97,7 @@ class PromotionService extends MercadoLivreService
     /**
      * Retorna detalhes de uma promoção específica.
      */
-    public function getPromotion(string $promotionId): array
+    public function getPromotion(string $promotionId, string $promotionType): array
     {
         try {
             $token = $this->getToken();
@@ -89,13 +105,10 @@ class PromotionService extends MercadoLivreService
                 return ['success' => false, 'message' => 'Token ML não encontrado.', 'data' => null];
             }
 
-            $response = $this->makeRequest('GET', "/seller-promotions/{$promotionId}", [], $token->access_token, Auth::id());
+            $query    = http_build_query(['promotion_type' => $promotionType, 'app_version' => 'v2']);
+            $response = $this->makeRequest('GET', "/seller-promotions/promotions/{$promotionId}?{$query}", [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                return ['success' => true, 'data' => $response['data'] ?? []];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro.', 'data' => null];
+            return ['success' => true, 'data' => $response];
         } catch (\Throwable $e) {
             Log::error('[PromotionService] getPromotion: ' . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage(), 'data' => null];
@@ -105,7 +118,7 @@ class PromotionService extends MercadoLivreService
     /**
      * Retorna os itens participantes de uma promoção.
      */
-    public function getPromotionItems(string $promotionId, int $limit = 50, int $offset = 0): array
+    public function getPromotionItems(string $promotionId, string $promotionType, int $limit = 50): array
     {
         try {
             $token = $this->getToken();
@@ -113,55 +126,31 @@ class PromotionService extends MercadoLivreService
                 return ['success' => false, 'message' => 'Token ML não encontrado.', 'items' => []];
             }
 
-            $endpoint = "/seller-promotions/{$promotionId}/items?limit={$limit}&offset={$offset}";
+            $query    = http_build_query(['promotion_type' => $promotionType, 'app_version' => 'v2', 'limit' => $limit]);
+            $endpoint = "/seller-promotions/promotions/{$promotionId}/items?{$query}";
             $response = $this->makeRequest('GET', $endpoint, [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                $data = $response['data'] ?? [];
-                return [
-                    'success' => true,
-                    'items'   => $data['results'] ?? ($data['items'] ?? []),
-                    'paging'  => $data['paging'] ?? [],
-                ];
-            }
+            $items = array_map(function ($item) {
+                // Normaliza: preço promocional vem em "price"
+                if (!isset($item['new_price']) && isset($item['price'])) {
+                    $item['new_price'] = $item['price'];
+                }
+                $orig = (float)($item['original_price'] ?? 0);
+                $new  = (float)($item['new_price'] ?? 0);
+                if (!isset($item['discount']) && $orig > 0 && $new > 0 && $new < $orig) {
+                    $item['discount'] = round((1 - $new / $orig) * 100);
+                }
+                return $item;
+            }, $response['results'] ?? []);
 
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro.', 'items' => []];
+            return [
+                'success' => true,
+                'items'   => $items,
+                'paging'  => $response['paging'] ?? [],
+            ];
         } catch (\Throwable $e) {
             Log::error('[PromotionService] getPromotionItems: ' . $e->getMessage());
             return ['success' => false, 'message' => $e->getMessage(), 'items' => []];
-        }
-    }
-
-    /**
-     * Adiciona item(ns) a uma promoção existente.
-     *
-     * @param string $promotionId
-     * @param array  $items  [['item_id' => 'MLB...', 'discount' => 10], ...]
-     */
-    public function addItemsToPromotion(string $promotionId, array $items): array
-    {
-        try {
-            $token = $this->getToken();
-            if (!$token) {
-                return ['success' => false, 'message' => 'Token ML não encontrado.'];
-            }
-
-            $response = $this->makeRequest(
-                'PUT',
-                "/seller-promotions/{$promotionId}/items",
-                $items,
-                $token->access_token,
-                Auth::id()
-            );
-
-            if ($response['success'] ?? false) {
-                return ['success' => true, 'data' => $response['data'] ?? []];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro ao adicionar itens.'];
-        } catch (\Throwable $e) {
-            Log::error('[PromotionService] addItemsToPromotion: ' . $e->getMessage());
-            return ['success' => false, 'message' => $e->getMessage()];
         }
     }
 }

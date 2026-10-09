@@ -48,23 +48,22 @@ class QuestionService extends MercadoLivreService
                 'item_id'   => $filters['item_id'] ?? null,
                 'limit'     => $filters['limit'] ?? 50,
                 'offset'    => $filters['offset'] ?? 0,
-                'sort'      => $filters['sort'] ?? 'date_desc',
-            ]);
+                'sort_fields' => 'date_created',
+                'sort_types'  => 'DESC',
+                'api_version' => 4,
+            ], fn($v) => $v !== null && $v !== '');
 
             $query    = http_build_query($params);
             $response = $this->makeRequest('GET', "/questions/search?{$query}", [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                $data = $response['data'] ?? [];
-                return [
-                    'success'   => true,
-                    'questions' => $data['questions'] ?? [],
-                    'total'     => $data['total'] ?? 0,
-                    'paging'    => $data['paging'] ?? [],
-                ];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro ao buscar perguntas.', 'questions' => [], 'total' => 0];
+            // makeRequest lança exceção em erro HTTP; aqui a resposta é o corpo JSON cru
+            $data = $response;
+            return [
+                'success'   => true,
+                'questions' => $data['questions'] ?? [],
+                'total'     => (int)($data['total'] ?? ($data['paging']['total'] ?? 0)),
+                'paging'    => $data['paging'] ?? ['total' => $data['total'] ?? 0, 'limit' => $data['limit'] ?? null],
+            ];
 
         } catch (\Exception $e) {
             Log::error('QuestionService::getQuestions', ['error' => $e->getMessage()]);
@@ -103,11 +102,7 @@ class QuestionService extends MercadoLivreService
                 'text'        => trim($text),
             ], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                return ['success' => true, 'message' => 'Pergunta respondida com sucesso!', 'data' => $response['data'] ?? []];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro ao responder pergunta.'];
+            return ['success' => true, 'message' => 'Pergunta respondida com sucesso!', 'data' => $response];
 
         } catch (\Exception $e) {
             Log::error('QuestionService::answerQuestion', ['id' => $questionId, 'error' => $e->getMessage()]);
@@ -129,11 +124,7 @@ class QuestionService extends MercadoLivreService
 
             $response = $this->makeRequest('DELETE', "/questions/{$questionId}", [], $token->access_token, Auth::id());
 
-            if ($response['success'] ?? false) {
-                return ['success' => true, 'message' => 'Pergunta removida.'];
-            }
-
-            return ['success' => false, 'message' => $response['message'] ?? 'Erro ao remover pergunta.'];
+            return ['success' => true, 'message' => 'Pergunta removida.'];
 
         } catch (\Exception $e) {
             Log::error('QuestionService::deleteQuestion', ['id' => $questionId, 'error' => $e->getMessage()]);

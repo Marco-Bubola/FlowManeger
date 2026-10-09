@@ -102,7 +102,7 @@ class ShowOrder extends Component
     {
         try {
             return \Carbon\Carbon::parse($date)
-                ->setTimezone(config('app.timezone', 'America/Sao_Paulo'))
+                ->setTimezone('America/Sao_Paulo')
                 ->format('d/m/Y H:i');
         } catch (\Exception) {
             return $date;

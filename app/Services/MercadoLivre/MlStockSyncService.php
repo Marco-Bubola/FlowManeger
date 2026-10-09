@@ -29,6 +29,16 @@ class MlStockSyncService
     public function syncQuantityToMercadoLivre(MlPublication $publication): array
     {
         try {
+            // Publicação sem produtos vinculados (ex.: importada do ML) não tem
+            // estoque local: enviar 0 zeraria o anúncio no ML.
+            if ($publication->linkedProducts()->isEmpty()) {
+                return [
+                    'success' => true,
+                    'message' => 'Publicação sem produtos vinculados: quantidade não enviada ao ML',
+                    'data' => ['skipped' => true, 'ml_item_id' => $publication->ml_item_id],
+                ];
+            }
+
             // Recalcula quantidade baseada no estoque
             $availableQuantity = $publication->calculateAvailableQuantity();
 
@@ -134,7 +144,7 @@ class MlStockSyncService
                 ['ml_order_id' => $mlOrderId],
                 [
                     'ml_item_id' => $mlItemId,
-                    'product_id' => $publication->products->first()->id ?? null,
+                    'product_id' => $publication->linkedProducts()->first()->id ?? null,
                     'quantity' => $quantity,
                     'order_status' => 'paid',
                     'payment_status' => 'approved',
@@ -147,7 +157,7 @@ class MlStockSyncService
                 'ml_order_id' => $mlOrderId,
                 'ml_item_id' => $mlItemId,
                 'quantity' => $quantity,
-                'products_affected' => $publication->products->count(),
+                'products_affected' => $publication->linkedProducts()->count(),
             ]);
 
             return [
@@ -342,8 +352,12 @@ class MlStockSyncService
             $payload = [
                 'title' => $publication->title,
                 'price' => (float) $publication->price,
-                'available_quantity' => $publication->calculateAvailableQuantity(),
             ];
+            // Sem produtos vinculados (importada do ML) não há estoque local:
+            // não envia quantidade para não zerar o anúncio.
+            if ($publication->linkedProducts()->isNotEmpty()) {
+                $payload['available_quantity'] = $publication->calculateAvailableQuantity();
+            }
 
             $response = Http::withToken($token->access_token)
                 ->put("https://api.mercadolibre.com/items/{$publication->ml_item_id}", $payload);
@@ -361,12 +375,11 @@ class MlStockSyncService
             }
 
             if ($response->successful()) {
-                $publication->update([
-                    'available_quantity' => $payload['available_quantity'],
+                $publication->update(array_filter([
+                    'available_quantity' => $payload['available_quantity'] ?? null,
                     'sync_status' => 'synced',
                     'last_sync_at' => now(),
-                    'error_message' => null,
-                ]);
+                ], fn ($v, $k) => $k === 'error_message' || $v !== null, ARRAY_FILTER_USE_BOTH));
                 Log::info('Publicação atualizada no ML', [
                     'ml_item_id' => $publication->ml_item_id,
                     'fields' => array_keys($payload),
@@ -448,8 +461,8 @@ class MlStockSyncService
                 'available_quantity' => (int) ($data['available_quantity'] ?? $publication->available_quantity),
                 'description' => $description,
                 'ml_permalink' => $data['permalink'] ?? $publication->ml_permalink,
-                'status' => $data['status'] ?? $publication->status,
-                'condition' => $data['condition'] ?? $publication->condition,
+                'status' => self::mapMlStatus($data['status'] ?? null, $publication->status),
+                'condition' => self::mapMlCondition($data['condition'] ?? null, $publication->condition),
                 'listing_type' => $data['listing_type_id'] ?? $publication->listing_type,
                 'ml_category_id' => $data['category_id'] ?? $publication->ml_category_id,
                 'warranty' => $data['warranty'] ?? $publication->warranty,
@@ -473,9 +486,11 @@ class MlStockSyncService
                 'publication' => $publication->fresh(),
             ];
         } catch (\Exception $e) {
+            // Descarta o que ficou "sujo" de um update que falhou antes de gravar o erro
+            $publication->discardChanges();
             $publication->update([
                 'sync_status' => 'error',
-                'error_message' => $e->getMessage(),
+                'error_message' => mb_substr($e->getMessage(), 0, 2000),
             ]);
             Log::error('Erro ao buscar publicação do ML', [
                 'ml_item_id' => $publication->ml_item_id,
@@ -487,6 +502,29 @@ class MlStockSyncService
                 'publication' => null,
             ];
         }
+    }
+
+    /**
+     * Status do ML -> enum local (pending, active, paused, closed, under_review).
+     * Status desconhecidos (inactive, payment_required, not_yet_active...) viram 'paused'.
+     */
+    public static function mapMlStatus(?string $mlStatus, ?string $current = null): string
+    {
+        if ($mlStatus === null || $mlStatus === '') {
+            return $current ?: 'pending';
+        }
+        return in_array($mlStatus, ['active', 'paused', 'closed', 'under_review'], true) ? $mlStatus : 'paused';
+    }
+
+    /**
+     * Condição do ML -> enum local (new, used). not_specified e outros viram 'new'.
+     */
+    public static function mapMlCondition(?string $mlCondition, ?string $current = null): string
+    {
+        if ($mlCondition === null || $mlCondition === '') {
+            return $current ?: 'new';
+        }
+        return $mlCondition === 'used' ? 'used' : 'new';
     }
 
     /**
@@ -659,6 +697,53 @@ class MlStockSyncService
     }
 
     /**
+     * Encerra (status=closed) o anúncio no Mercado Livre, com o token do dono.
+     * Publicação ainda não enviada (sem ID / TEMP_) ou item inexistente no ML
+     * conta como sucesso: não há o que encerrar lá.
+     *
+     * @return array ['success' => bool, 'message' => string]
+     */
+    public function closePublication(MlPublication $publication): array
+    {
+        $itemId = $publication->ml_item_id;
+        if (!$itemId || str_starts_with($itemId, 'TEMP_')) {
+            return ['success' => true, 'message' => 'Publicação não existe no ML'];
+        }
+
+        try {
+            $token = $this->getTokenForPublication($publication);
+            if (!$token) {
+                throw new \Exception('Token do Mercado Livre não encontrado ou expirado');
+            }
+
+            $response = Http::withToken($token->access_token)
+                ->put("https://api.mercadolibre.com/items/{$itemId}", [
+                    'status' => 'closed',
+                ]);
+
+            if ($response->status() === 404) {
+                return ['success' => true, 'message' => 'Item não encontrado no ML'];
+            }
+
+            if (!$response->successful()) {
+                $errorBody = $response->json();
+                $errorMessage = $errorBody['message'] ?? $errorBody['error'] ?? 'Erro desconhecido';
+                throw new \Exception("Erro ao encerrar item no ML: {$errorMessage}");
+            }
+
+            Log::info('Publicação encerrada no ML', ['ml_item_id' => $itemId]);
+
+            return ['success' => true, 'message' => 'Publicação encerrada no Mercado Livre'];
+        } catch (\Exception $e) {
+            Log::error('Erro ao encerrar publicação no ML', [
+                'ml_item_id' => $itemId,
+                'error' => $e->getMessage(),
+            ]);
+            return ['success' => false, 'message' => $e->getMessage()];
+        }
+    }
+
+    /**
      * Importa um anúncio do ML para o sistema (cria MlPublication com dados do ML).
      *
      * @param int $userId
@@ -679,12 +764,14 @@ class MlStockSyncService
             'publication_type' => 'simple',
             'status' => 'active',
             'sync_status' => 'pending',
-        ]);
+        ])->fresh(); // carrega os defaults do banco (listing_type, condition...)
         $result = $this->fetchPublicationFromMercadoLivre($pub);
         if ($result['success'] && $result['publication']) {
             $result['publication']->update(['publication_type' => 'simple']);
             return ['success' => true, 'message' => 'Importado do ML', 'publication' => $result['publication']];
         }
-        return ['success' => false, 'message' => $result['message'] ?? 'Erro ao importar', 'publication' => $pub];
+        // Não deixa a linha provisória (título = ID, preço 0) para trás
+        $pub->delete();
+        return ['success' => false, 'message' => $result['message'] ?? 'Erro ao importar', 'publication' => null];
     }
 }

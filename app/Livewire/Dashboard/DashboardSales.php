@@ -280,18 +280,22 @@ class DashboardSales extends Component
 
     private function loadMarketplaceMetrics(int $userId): void
     {
-        $internalOrdersCount = Sale::where('user_id', $userId)->count();
+        // Pedidos do ML importados como venda contam só no ML.
+        $internalOrdersCount = Sale::where('user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('source')->orWhere('source', '!=', 'mercadolivre'))
+            ->count();
 
         $mlOrdersBase = DB::table('mercadolivre_orders as mo')
             ->join('ml_publications as mp', 'mp.ml_item_id', '=', 'mo.ml_item_id')
-            ->where('mp.user_id', $userId);
+            ->where('mp.user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('mo.order_status')->orWhere('mo.order_status', '!=', 'cancelled'));
 
         $this->mlOrdersCount = (clone $mlOrdersBase)->count('mo.id');
         $this->mlRevenue = (float) (clone $mlOrdersBase)->sum('mo.total_amount');
         $this->mlPaidOrders = (clone $mlOrdersBase)
             ->where(function ($query) {
                 $query->where('mo.payment_status', 'approved')
-                    ->orWhere('mo.order_status', 'delivered');
+                    ->orWhereIn('mo.order_status', ['paid', 'confirmed', 'delivered']);
             })
             ->count('mo.id');
         $this->mlPublicationsAtivas = MlPublication::where('user_id', $userId)
@@ -315,6 +319,7 @@ class DashboardSales extends Component
 
         $internalMonthly = Sale::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as period, SUM(total_price) as total")
             ->where('user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('source')->orWhere('source', '!=', 'mercadolivre'))
             ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
             ->groupBy('period')
             ->pluck('total', 'period');
@@ -322,6 +327,7 @@ class DashboardSales extends Component
         $mlMonthly = DB::table('mercadolivre_orders as mo')
             ->join('ml_publications as mp', 'mp.ml_item_id', '=', 'mo.ml_item_id')
             ->where('mp.user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('mo.order_status')->orWhere('mo.order_status', '!=', 'cancelled'))
             ->where('mo.date_created', '>=', now()->subMonths(5)->startOfMonth())
             ->selectRaw("DATE_FORMAT(mo.date_created, '%Y-%m') as period, SUM(mo.total_amount) as total")
             ->groupBy('period')

@@ -79,9 +79,9 @@
                     <select wire:model.live="typeFilter"
                             class="text-xs font-semibold bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="">Todos os tipos</option>
-                        <option value="DEAL">Oferta do Dia</option>
-                        <option value="LIGHTNING_DEAL">Oferta Relâmpago</option>
-                        <option value="BRAND_PROMO">Promo de Marca</option>
+                        @foreach($promotionTypes as $typeValue => $typeLabel)
+                            <option value="{{ $typeValue }}">{{ $typeLabel }}</option>
+                        @endforeach
                     </select>
                 </div>
                 {{-- Status --}}
@@ -91,8 +91,8 @@
                             class="text-xs font-semibold bg-transparent text-slate-700 dark:text-slate-300 focus:outline-none cursor-pointer">
                         <option value="">Todos os status</option>
                         <option value="started">Ativas</option>
-                        <option value="stopped">Pausadas</option>
-                        <option value="scheduled">Agendadas</option>
+                        <option value="pending">Agendadas</option>
+                        <option value="candidate">Convites</option>
                         <option value="finished">Encerradas</option>
                     </select>
                 </div>
@@ -148,7 +148,7 @@
                     Tente outro filtro ou aguarde convites de promoção do Mercado Livre.
                 </p>
                 <div class="flex flex-wrap gap-3 justify-center">
-                    <button wire:click="$set('typeFilter', '')" wire:click.queueing="$set('statusFilter', '')"
+                    <button wire:click="clearFilters"
                             class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl
                                    bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-sm
                                    shadow-lg shadow-amber-500/25 hover:shadow-xl hover:from-amber-600 hover:to-orange-600
@@ -173,7 +173,7 @@
                         $type      = $this->getTypeBadge($promo['type'] ?? null);
                         $status    = $this->getStatusBadge($promo['status'] ?? null);
                         $startDate = $this->formatDate($promo['start_time'] ?? $promo['start_date'] ?? null);
-                        $endDate   = $this->formatDate($promo['finish_time'] ?? $promo['end_date'] ?? null);
+                        $endDate   = $this->formatDate($promo['finish_date'] ?? $promo['finish_time'] ?? $promo['end_date'] ?? null);
                         $discount  = $promo['discount'] ?? $promo['percentage_discount'] ?? null;
                         $itemCount = $promo['items_count'] ?? $promo['offers_count'] ?? null;
                     @endphp
@@ -220,7 +220,7 @@
 
                         @if($promoId)
                             <div class="px-5 pb-4">
-                                <button wire:click="openDetail('{{ $promoId }}')"
+                                <button wire:click="openDetail('{{ $promoId }}', '{{ $promo['type'] ?? '' }}')"
                                         class="w-full px-3 py-2 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20
                                                border border-amber-200 dark:border-amber-700/30 hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-all">
                                     <i class="bi bi-eye-fill mr-1"></i> Ver Detalhes
@@ -305,9 +305,9 @@
                     <div class="grid grid-cols-2 gap-3 text-xs">
                         @php $sdItems = [
                             ['label'=>'Desconto',   'value'=> isset($sp['discount']) ? $sp['discount'].'%' : '-'],
-                            ['label'=>'Itens',      'value'=> number_format($sp['items_count'] ?? $sp['offers_count'] ?? 0)],
+                            ['label'=>'Itens',      'value'=> number_format($sp['items_count'] ?? $sp['offers_count'] ?? count($promoItems))],
                             ['label'=>'Início',     'value'=> $this->formatDate($sp['start_time'] ?? $sp['start_date'] ?? null)],
-                            ['label'=>'Término',    'value'=> $this->formatDate($sp['finish_time'] ?? $sp['end_date'] ?? null)],
+                            ['label'=>'Término',    'value'=> $this->formatDate($sp['finish_date'] ?? $sp['finish_time'] ?? $sp['end_date'] ?? null)],
                         ]; @endphp
                         @foreach($sdItems as $sd)
                             <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl">

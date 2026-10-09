@@ -196,13 +196,56 @@ class MlPublication extends Model
     {
         $minQuantity = PHP_INT_MAX;
 
-        foreach ($this->products as $product) {
-            $quantityNeeded = $product->pivot->quantity; // Quantidade do produto por venda
-            $availableUnits = (int) floor($product->stock_quantity / $quantityNeeded);
+        // Webhook/fila rodam sem usuário logado: tira o filtro de equipe
+        // (a publicação já é do dono).
+        foreach ($this->linkedProducts() as $product) {
+            $quantityNeeded = max(1, (int) $product->pivot->quantity); // Quantidade do produto por venda
+            $availableUnits = intdiv(self::productAvailableStock($product), $quantityNeeded);
             $minQuantity = min($minQuantity, $availableUnits);
         }
 
         return $minQuantity === PHP_INT_MAX ? 0 : $minQuantity;
+    }
+
+    /**
+     * Produtos vinculados sem o filtro de equipe (seguro em webhook/fila).
+     */
+    public function linkedProducts()
+    {
+        return $this->products()->withoutGlobalScope('team_visibility')->get();
+    }
+
+    /**
+     * Componentes de um kit (sem filtro de equipe): [[Product $comp, int $porKit], ...]
+     */
+    protected static function kitComponents(Product $kit): array
+    {
+        $out = [];
+        foreach ($kit->componentes()->get() as $pc) {
+            $comp = Product::withoutGlobalScope('team_visibility')->find($pc->componente_produto_id);
+            $per = (int) ($pc->quantidade ?? 0);
+            if ($comp && $per > 0) {
+                $out[] = [$comp, $per];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Estoque vendável do produto. Kit não tem estoque próprio: vale o
+     * componente que acaba primeiro (mesma regra de Product::availableStock()).
+     */
+    protected static function productAvailableStock(Product $product): int
+    {
+        if (! $product->isKit()) {
+            return $product->availableStock();
+        }
+        $min = null;
+        foreach (self::kitComponents($product) as [$comp, $per]) {
+            $can = intdiv(max(0, (int) $comp->stock_quantity), $per);
+            $min = $min === null ? $can : min($min, $can);
+        }
+        return $min ?? 0;
     }
 
     /**
@@ -242,27 +285,35 @@ class MlPublication extends Model
 
             foreach ($products as $product) {
                 $quantityToDeduct = $product->pivot->quantity * $quantity; // Ex: kit com 2 shampoos, vendeu 3 kits = 6 unidades
-                $oldStock = $product->stock_quantity;
-                $newStock = max(0, $oldStock - $quantityToDeduct);
 
-                // Atualiza estoque
-                $product->update(['stock_quantity' => $newStock]);
+                // Produto kit não tem estoque próprio: baixa dos componentes
+                // (equivale a Product::adjustStock(-qty), sem filtro de equipe).
+                $targets = $product->isKit()
+                    ? array_map(fn ($c) => [$c[0], $c[1] * $quantityToDeduct], self::kitComponents($product))
+                    : [[$product, $quantityToDeduct]];
 
-                // Registra log
-                $log = MlStockLog::create([
-                    'product_id' => $product->id,
-                    'ml_publication_id' => $this->id,
-                    'operation_type' => 'ml_sale',
-                    'quantity_before' => $oldStock,
-                    'quantity_after' => $newStock,
-                    'quantity_change' => -$quantityToDeduct,
-                    'source' => 'MlPublication::deductStock',
-                    'ml_order_id' => $mlOrderId,
-                    'notes' => "Venda ML: {$quantity} unidade(s) de publicação ID {$this->id}",
-                    'transaction_id' => $transactionId,
-                ]);
+                foreach ($targets as [$target, $qty]) {
+                    $oldStock = (int) $target->stock_quantity;
+                    $target->adjustStock(-$qty);
+                    $newStock = (int) $target->stock_quantity;
 
-                $logs[] = $log;
+                    // Registra log
+                    $log = MlStockLog::create([
+                        'product_id' => $target->id,
+                        'ml_publication_id' => $this->id,
+                        'operation_type' => 'ml_sale',
+                        'quantity_before' => $oldStock,
+                        'quantity_after' => $newStock,
+                        'quantity_change' => $newStock - $oldStock,
+                        'source' => 'MlPublication::deductStock',
+                        'ml_order_id' => $mlOrderId,
+                        'notes' => "Venda ML: {$quantity} unidade(s) de publicação ID {$this->id}"
+                            . ($target->id !== $product->id ? " (componente do kit {$product->id})" : ''),
+                        'transaction_id' => $transactionId,
+                    ]);
+
+                    $logs[] = $log;
+                }
             }
 
             // Atualiza quantidade disponível na publicação

@@ -4,7 +4,9 @@ namespace App\Services\MercadoLivre;
 
 use App\Models\MercadoLivreWebhook;
 use App\Models\MercadoLivreOrder;
-use App\Models\MercadoLivreProduct;
+use App\Models\MlPublication;
+use App\Models\Sale;
+use Illuminate\Support\Facades\Auth;
 use App\Services\MercadoLivre\MlNotificationService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
@@ -27,6 +29,9 @@ class WebhookService extends MercadoLivreService
     protected MlStockSyncService $stockSyncService;
     protected MlNotificationService $notifications;
 
+    /** Token do dono da conta ML do webhook em processamento. */
+    protected ?string $accessToken = null;
+
     public function __construct()
     {
         parent::__construct();
@@ -45,46 +50,18 @@ class WebhookService extends MercadoLivreService
      */
     public function validateWebhook(Request $request): bool
     {
-        try {
-            // ML envia assinatura no header X-Hub-Signature
-            $signature = $request->header('X-Hub-Signature');
-            
-            if (!$signature) {
-                Log::warning('Webhook sem assinatura recebido');
-                return false;
-            }
-            
-            // Verificar com secret do .env (se configurado)
-            $webhookSecret = config('mercadolivre.webhook_secret');
-            
-            if (!$webhookSecret) {
-                // Se não tiver secret configurado, aceitar (modo desenvolvimento)
-                Log::info('Webhook aceito sem validação (secret não configurado)');
-                return true;
-            }
-            
-            // Calcular assinatura esperada
-            $payload = $request->getContent();
-            $expectedSignature = 'sha256=' . hash_hmac('sha256', $payload, $webhookSecret);
-            
-            if (!hash_equals($expectedSignature, $signature)) {
-                Log::warning('Assinatura de webhook inválida', [
-                    'expected' => $expectedSignature,
-                    'received' => $signature,
-                ]);
-                return false;
-            }
-            
-            return true;
-            
-        } catch (\Exception $e) {
-            Log::error('Erro ao validar webhook', [
-                'error' => $e->getMessage(),
-            ]);
+        // O ML não assina as notificações: confere se vieram para o nosso app.
+        $appId = (string) config('services.mercadolivre.app_id');
+        $received = (string) $request->input('application_id', '');
+
+        if ($appId !== '' && $received !== '' && $received !== $appId) {
+            Log::warning('Webhook ML de outro aplicativo ignorado', ['application_id' => $received]);
             return false;
         }
+
+        return true;
     }
-    
+
     /**
      * Processar notificação de webhook
      * 
@@ -113,18 +90,32 @@ class WebhookService extends MercadoLivreService
      */
     public function processLogged(MercadoLivreWebhook $webhook): array
     {
+        // O webhook chega sem ninguém logado: age como o dono da conta ML,
+        // para usar o token dele e enxergar os produtos dele.
+        $ownerId = $this->notifications->resolveUserBySeller((int) $webhook->ml_user_id);
+        $previousUser = Auth::user();
+
         try {
+            if (!$ownerId) {
+                $result = ['success' => false, 'message' => 'Conta do Mercado Livre não conectada a nenhum usuário'];
+                $webhook->markAsError($result['message']);
+                return $result;
+            }
+
+            Auth::onceUsingId($ownerId);
+            $this->accessToken = app(AuthService::class)->getActiveToken($ownerId)?->access_token;
+
             $resourceId = $webhook->getResourceId() ?: $webhook->resource;
 
             $result = match($webhook->topic) {
-                'orders'    => $this->handleOrderWebhook($resourceId),
+                'orders', 'orders_v2' => $this->handleOrderWebhook($resourceId),
                 'items'     => $this->handleItemWebhook($resourceId),
                 'questions' => $this->handleQuestionWebhook($resourceId),
                 'claims'    => $this->handleClaimWebhook($resourceId),
                 'messages'  => $this->handleMessageWebhook($resourceId),
                 default     => [
-                    'success' => false,
-                    'message' => "Tópico desconhecido: {$webhook->topic}",
+                    'success' => true,
+                    'message' => "Tópico ignorado: {$webhook->topic}",
                 ],
             };
 
@@ -150,6 +141,12 @@ class WebhookService extends MercadoLivreService
                 'success' => false,
                 'message' => 'Erro ao processar webhook: ' . $e->getMessage(),
             ];
+        } finally {
+            if ($previousUser) {
+                Auth::setUser($previousUser);
+            } elseif (method_exists(Auth::guard(), 'forgetUser')) {
+                Auth::guard()->forgetUser();
+            }
         }
     }
 
@@ -181,113 +178,81 @@ class WebhookService extends MercadoLivreService
     {
         try {
             Log::info('Processando webhook de pedido', ['order_id' => $orderId]);
-            
-            // Buscar pedido no ML
+
             $orderData = $this->orderService->getOrderDetails($orderId);
-            
+
             if (!$orderData) {
                 return [
                     'success' => false,
                     'message' => 'Pedido não encontrado no ML',
                 ];
             }
-            
-            // Processar estoque via novo sistema MlPublication (suporte kits)
+
+            $status = $orderData['status'] ?? '';
+            $existing = MercadoLivreOrder::where('ml_order_id', $orderId)->first();
+            $wasPaid = in_array($existing?->order_status, ['paid', 'confirmed'], true);
+
+            // Baixa o estoque (uma vez por pedido; repetições são ignoradas).
             $stockResults = [];
-            if (in_array($orderData['status'], ['paid', 'confirmed'])) {
+            if (in_array($status, ['paid', 'confirmed'], true)) {
                 foreach ($orderData['order_items'] ?? [] as $item) {
                     $mlItemId = $item['item']['id'] ?? null;
-                    $quantity = $item['quantity'] ?? 1;
-                    
-                    if ($mlItemId) {
-                        $stockResult = $this->stockSyncService->processMercadoLivreSale(
-                            $orderId,
-                            $mlItemId,
-                            $quantity
-                        );
-                        
-                        $stockResults[] = $stockResult;
-                        
-                        if (!$stockResult['success']) {
-                            Log::warning('Falha ao processar estoque de item', [
-                                'order_id' => $orderId,
-                                'ml_item_id' => $mlItemId,
-                                'error' => $stockResult['message'] ?? 'Unknown error',
-                            ]);
-                        }
+                    if (!$mlItemId) {
+                        continue;
+                    }
+                    $stockResult = $this->stockSyncService->processMercadoLivreSale($orderId, $mlItemId, (int) ($item['quantity'] ?? 1));
+                    $stockResults[] = $stockResult;
+
+                    if (!($stockResult['success'] ?? false)) {
+                        Log::warning('Falha ao processar estoque de item', [
+                            'order_id' => $orderId,
+                            'ml_item_id' => $mlItemId,
+                            'error' => $stockResult['message'] ?? 'Unknown error',
+                        ]);
                     }
                 }
             }
 
-            // Notificar o usuário do novo pedido (resolve dono pelo item ou pelo vendedor)
-            $notifyUserId = null;
-            foreach ($orderData['order_items'] ?? [] as $it) {
-                $notifyUserId = $this->notifications->resolveUserByItem($it['item']['id'] ?? null);
-                if ($notifyUserId) {
-                    break;
+            // Guarda valor, comprador e status (o painel soma daqui).
+            $order = $this->orderService->recordOrder($orderData);
+            $order->update(['raw_data' => $orderData]);
+
+            // Cancelado no ML: devolve o estoque e cancela a venda importada.
+            if ($status === 'cancelled') {
+                $this->stockSyncService->restoreMercadoLivreSale((string) $orderId);
+
+                $sale = $order->imported_to_sale_id ? Sale::find($order->imported_to_sale_id) : null;
+                if ($sale && $sale->status !== 'cancelada') {
+                    // O estoque já voltou pelo histórico do ML acima.
+                    $sale->forceFill(['status' => 'cancelada', 'stock_applied' => false])->save();
                 }
             }
-            $notifyUserId = $notifyUserId ?: $this->notifications->resolveUserBySeller($orderData['seller']['id'] ?? null);
-            if ($notifyUserId && in_array($orderData['status'] ?? '', ['paid', 'confirmed'])) {
-                $this->notifications->notifyNewOrder($notifyUserId, (string) $orderId);
-            }
-            
-            // Verificar se já existe no sistema
-            $existingOrder = MercadoLivreOrder::where('ml_order_id', $orderId)->first();
-            
-            if ($existingOrder) {
-                // Atualizar pedido existente (colunas reais da tabela)
-                $existingOrder->update([
-                    'order_status' => $orderData['status'] ?? $existingOrder->order_status,
-                    'payment_status' => $orderData['payments'][0]['status'] ?? $existingOrder->payment_status,
-                    'date_last_updated' => isset($orderData['last_updated']) ? Carbon::parse($orderData['last_updated']) : Carbon::now(),
-                    'raw_data' => $orderData,
-                ]);
 
-                // Se cancelado no ML: cancela a venda vinculada e devolve estoque (idempotente)
-                if (($orderData['status'] ?? null) === 'cancelled') {
-                    if ($existingOrder->sale) {
-                        $existingOrder->sale->update(['status' => 'cancelled']);
-                        $existingOrder->sale->restoreStock();
-                    }
-                    // Devolve o que o webhook baixou na hora da venda.
-                    $this->stockSyncService->restoreMercadoLivreSale((string) $orderId);
-                }
-
-                return [
-                    'success' => true,
-                    'message' => 'Pedido atualizado com sucesso',
-                    'action' => 'updated',
-                    'order_id' => $orderId,
-                    'stock_results' => $stockResults,
-                ];
-                
-            } else {
-                // Importar novo pedido
-                $result = $this->orderService->importOrder($orderId);
-                
-                return [
-                    'success' => $result['success'],
-                    'message' => $result['message'],
-                    'action' => 'imported',
-                    'order_id' => $orderId,
-                    'stock_results' => $stockResults,
-                ];
+            // Avisa só na primeira vez que o pedido aparece pago.
+            if (!$wasPaid && in_array($status, ['paid', 'confirmed'], true)) {
+                $this->notifications->notifyNewOrder(Auth::id(), (string) $orderId);
             }
-            
+
+            return [
+                'success' => true,
+                'message' => $existing ? 'Pedido atualizado' : 'Pedido registrado',
+                'order_id' => $orderId,
+                'stock_results' => $stockResults,
+            ];
+
         } catch (\Exception $e) {
             Log::error('Erro ao processar webhook de pedido', [
                 'order_id' => $orderId,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Erro ao processar pedido: ' . $e->getMessage(),
             ];
         }
     }
-    
+
     /**
      * Processar webhook de item (produto)
      * 
@@ -297,67 +262,46 @@ class WebhookService extends MercadoLivreService
     public function handleItemWebhook(string $itemId): array
     {
         try {
-            Log::info('Processando webhook de item', ['item_id' => $itemId]);
-            
-            // Buscar item no ML
-            $itemData = $this->makeRequest('GET', "/items/{$itemId}");
-            
-            if (!$itemData) {
+            $publication = MlPublication::where('ml_item_id', $itemId)->where('user_id', Auth::id())->first();
+
+            if (!$publication) {
                 return [
-                    'success' => false,
-                    'message' => 'Item não encontrado no ML',
+                    'success' => true,
+                    'message' => 'Anúncio não está no sistema (ignorado)',
                 ];
             }
-            
-            // Verificar se item pertence ao usuário
-            $mlProduct = MercadoLivreProduct::where('ml_item_id', $itemId)->first();
-            
-            if (!$mlProduct) {
-                return [
-                    'success' => false,
-                    'message' => 'Item não está vinculado a nenhum produto no sistema',
-                ];
-            }
-            
-            // Atualizar informações do produto
-            $mlProduct->update([
-                'status' => $itemData['status'],
-                'price' => $itemData['price'],
-                'available_quantity' => $itemData['available_quantity'],
-                'sold_quantity' => $itemData['sold_quantity'],
-                'permalink' => $itemData['permalink'],
-                'last_updated' => Carbon::now(),
-            ]);
-            
-            // Sincronizar com produto local se necessário
-            if ($mlProduct->product && $itemData['status'] === 'paused') {
-                // Produto pausado no ML, marcar como inativo localmente?
-                // Ou apenas registrar log
-                Log::info('Produto pausado no ML', [
-                    'ml_item_id' => $itemId,
-                    'product_id' => $mlProduct->product_id,
-                ]);
-            }
-            
+
+            $itemData = $this->makeRequest('GET', "/items/{$itemId}", [], $this->accessToken, Auth::id());
+
+            // Status do ML fora da lista da tabela vira "pausado".
+            $mlStatus = $itemData['status'] ?? null;
+            $status = in_array($mlStatus, ['active', 'paused', 'closed', 'under_review'], true) ? $mlStatus : 'paused';
+
+            $publication->update(array_filter([
+                'status' => $mlStatus ? $status : null,
+                'price' => $itemData['price'] ?? null,
+                'ml_permalink' => $itemData['permalink'] ?? null,
+            ], fn ($v) => $v !== null));
+
             return [
                 'success' => true,
-                'message' => 'Item atualizado com sucesso',
+                'message' => 'Anúncio atualizado',
                 'item_id' => $itemId,
             ];
-            
+
         } catch (\Exception $e) {
             Log::error('Erro ao processar webhook de item', [
                 'item_id' => $itemId,
                 'error' => $e->getMessage(),
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Erro ao processar item: ' . $e->getMessage(),
             ];
         }
     }
-    
+
     /**
      * Processar webhook de pergunta
      * 
@@ -370,7 +314,7 @@ class WebhookService extends MercadoLivreService
             Log::info('Webhook de pergunta recebido', ['question_id' => $questionId]);
             
             // Buscar pergunta no ML
-            $questionData = $this->makeRequest('GET', "/questions/{$questionId}");
+            $questionData = $this->makeRequest('GET', "/questions/{$questionId}", [], $this->accessToken, Auth::id());
             
             if (!$questionData) {
                 return [
@@ -392,8 +336,7 @@ class WebhookService extends MercadoLivreService
             ]);
 
             // Notificar o dono do anúncio
-            $userId = $this->notifications->resolveUserByItem($questionData['item_id'] ?? null)
-                ?: $this->notifications->resolveUserBySeller($questionData['seller_id'] ?? null);
+            $userId = Auth::id();
             if ($userId) {
                 $this->notifications->notifyNewQuestion($userId, (string) $questionId, $questionData['text'] ?? null);
             }
@@ -429,7 +372,7 @@ class WebhookService extends MercadoLivreService
             Log::info('Webhook de reclamação recebido', ['claim_id' => $claimId]);
             
             // Buscar reclamação no ML
-            $claimData = $this->makeRequest('GET', "/claims/{$claimId}");
+            $claimData = $this->makeRequest('GET', "/post-purchase/v1/claims/{$claimId}", [], $this->accessToken, Auth::id());
             
             if (!$claimData) {
                 return [
@@ -441,15 +384,14 @@ class WebhookService extends MercadoLivreService
             // Registrar log de reclamação
             Log::warning('Reclamação no ML', [
                 'claim_id' => $claimId,
-                'reason' => $claimData['reason'] ?? null,
+                'reason' => $claimData['reason_id'] ?? null,
                 'status' => $claimData['status'] ?? null,
             ]);
 
             // Notificar (resolve pelo item relacionado, se houver)
-            $userId = $this->notifications->resolveUserByItem($claimData['resource_id'] ?? ($claimData['item_id'] ?? null))
-                ?: $this->notifications->resolveUserBySeller($claimData['seller_id'] ?? null);
+            $userId = Auth::id();
             if ($userId) {
-                $this->notifications->notifyClaim($userId, (string) $claimId, $claimData['reason'] ?? null);
+                $this->notifications->notifyClaim($userId, (string) $claimId, $claimData['reason_id'] ?? null);
             }
 
             return [
@@ -483,7 +425,7 @@ class WebhookService extends MercadoLivreService
             Log::info('Webhook de mensagem recebido', ['message_id' => $messageId]);
             
             // Buscar mensagem no ML
-            $messageData = $this->makeRequest('GET', "/messages/{$messageId}");
+            $messageData = $this->makeRequest('GET', "/messages/{$messageId}?tag=post_sale", [], $this->accessToken, Auth::id());
             
             if (!$messageData) {
                 return [
@@ -500,7 +442,7 @@ class WebhookService extends MercadoLivreService
             ]);
 
             // Notificar o destinatário (vendedor) da mensagem
-            $userId = $this->notifications->resolveUserBySeller($messageData['to']['user_id'] ?? null);
+            $userId = Auth::id();
             if ($userId) {
                 $this->notifications->notifyNewMessage($userId, (string) $messageId);
             }
@@ -535,8 +477,8 @@ class WebhookService extends MercadoLivreService
         try {
             $date = Carbon::now()->subDays($days);
             
-            $deleted = MercadoLivreWebhook::where('received', '<', $date)
-                ->where('status', 'processed')
+            $deleted = MercadoLivreWebhook::where('received_at', '<', $date)
+                ->where('processed', true)
                 ->delete();
             
             Log::info("Webhooks antigos limpos: {$deleted} registros");
