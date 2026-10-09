@@ -36,10 +36,19 @@ class ProductService extends ShopeeService
     {
         $startTime = microtime(true);
 
+        // Já publicado (clique duplo / reenvio): não cria anúncio repetido
+        if ($publication->shopee_item_id) {
+            return [
+                'success'        => true,
+                'shopee_item_id' => (string) $publication->shopee_item_id,
+                'message'        => 'Anúncio já existe na Shopee.',
+            ];
+        }
+
         try {
             $token = $this->getActiveToken($userId);
 
-            $payload = $this->buildItemPayload($publication);
+            $payload = $this->buildItemPayload($publication, $token);
 
             $path     = '/api/v2/product/add_item';
             $response = $this->post($path, $payload, $token);
@@ -200,7 +209,7 @@ class ProductService extends ShopeeService
      * @param int    $userId
      * @param string $lang Idioma ('pt-BR' para Brasil)
      */
-    public function getCategories(int $userId, string $lang = 'pt-BR'): array
+    public function getCategories(int $userId, string $lang = 'pt-br'): array
     {
         try {
             $token = $this->getActiveToken($userId);
@@ -212,7 +221,17 @@ class ProductService extends ShopeeService
                 throw new Exception($response['message'] ?? $response['error']);
             }
 
-            return $response['response']['category_list'] ?? [];
+            // Só categoria final (sem filhas) é aceita no add_item
+            return collect($response['response']['category_list'] ?? [])
+                ->filter(fn ($c) => empty($c['has_children']))
+                ->map(fn ($c) => [
+                    'category_id'            => $c['category_id'] ?? null,
+                    'display_category_name'  => $c['display_category_name'] ?? null,
+                    'original_category_name' => $c['original_category_name'] ?? null,
+                ])
+                ->sortBy(fn ($c) => $c['display_category_name'] ?? $c['original_category_name'] ?? '')
+                ->values()
+                ->all();
 
         } catch (Exception $e) {
             Log::warning('ShopeeProductService: erro ao buscar categorias', [
@@ -282,71 +301,156 @@ class ProductService extends ShopeeService
     // =========================================================================
 
     /**
-     * Monta o payload para criação/atualização de um item na Shopee.
+     * Monta o payload do add_item (Shopee Open Platform v2).
      */
-    private function buildItemPayload(ShopeePublication $publication): array
+    private function buildItemPayload(ShopeePublication $publication, \App\Models\ShopeeToken $token): array
     {
-        $pictures = collect($publication->pictures ?? [])
-            ->map(fn($url) => ['url' => $url])
-            ->values()
-            ->toArray();
+        // add_item só aceita image_id_list: sobe as fotos no media_space antes
+        $imageIds = [];
+        foreach (array_slice((array) ($publication->pictures ?? []), 0, 9) as $url) {
+            $id = $this->uploadImage((string) $url);
+            if ($id) {
+                $imageIds[] = $id;
+            }
+        }
+        if (empty($imageIds)) {
+            throw new Exception('Nenhuma foto pôde ser enviada para a Shopee (a Shopee exige ao menos uma imagem).');
+        }
 
         $payload = [
             'original_price'   => (float) $publication->price,
-            'description'      => $publication->description ?? '',
+            'description'      => $publication->description ?: $publication->title,
             'item_name'        => $publication->title,
             'item_status'      => 'NORMAL',
             'item_sku'         => 'FLW-' . $publication->user_id . '-' . $publication->id,
             'condition'        => $publication->condition ?? 'NEW',
-            'days_to_ship'     => $publication->days_to_ship,
             'category_id'      => (int) $publication->shopee_category_id,
-            'image'            => ['image_url_list' => array_column($pictures, 'url')],
-            'weight'           => round(max(1, $publication->weight_grams) / 1000, 3), // Shopee usa KG
+            'image'            => ['image_id_list' => $imageIds],
+            'weight'           => round(max(1, (int) $publication->weight_grams) / 1000, 3), // Shopee usa KG
+            'pre_order'        => [
+                'is_pre_order' => (int) $publication->days_to_ship > 3,
+                'days_to_ship' => max(1, (int) $publication->days_to_ship),
+            ],
         ];
 
         // Buscar canais de logística reais da loja (obrigatório — logistic_id não pode ser 0)
         $logisticChannels = $this->getLogisticsChannels($publication->user_id);
-        if (!empty($logisticChannels)) {
-            $payload['logistic_info'] = collect($logisticChannels)
-                ->filter(fn($ch) => ($ch['enabled'] ?? false))
-                ->map(fn($ch) => [
-                    'logistic_id' => (int) $ch['logistic_id'],
-                    'enabled'     => true,
-                    'is_free'     => false,
-                ])
-                ->values()
-                ->toArray();
-        } else {
-            // Fallback: sem logística configurada — a Shopee retornará erro descritivo
-            Log::warning('ShopeeProductService: nenhum canal de logística encontrado para a loja', [
+        $payload['logistic_info'] = collect($logisticChannels)
+            ->filter(fn($ch) => ($ch['enabled'] ?? false))
+            ->map(fn($ch) => [
+                'logistic_id' => (int) $ch['logistic_id'],
+                'enabled'     => true,
+                'is_free'     => false,
+            ])
+            ->values()
+            ->toArray();
+
+        if (empty($payload['logistic_info'])) {
+            Log::warning('ShopeeProductService: nenhum canal de logística ativo para a loja', [
                 'user_id'          => $publication->user_id,
                 'publication_id'   => $publication->id,
             ]);
-            $payload['logistic_info'] = [];
+            throw new Exception('Nenhum canal de envio ativo na sua loja Shopee. Ative um canal de logística no Seller Centre.');
         }
 
         // Dimensões (opcional mas recomendado)
         if ($publication->length_cm && $publication->width_cm && $publication->height_cm) {
             $payload['dimension'] = [
-                'package_length' => (int) $publication->length_cm,
-                'package_width'  => (int) $publication->width_cm,
-                'package_height' => (int) $publication->height_cm,
+                'package_length' => max(1, (int) ceil((float) $publication->length_cm)),
+                'package_width'  => max(1, (int) ceil((float) $publication->width_cm)),
+                'package_height' => max(1, (int) ceil((float) $publication->height_cm)),
             ];
         }
 
-        // Atributos da categoria
-        if ($publication->shopee_attributes) {
-            $payload['attribute_list'] = $publication->shopee_attributes;
+        // Atributos da categoria (formato attribute_list do add_item)
+        $attributes = $this->buildAttributeList((array) ($publication->shopee_attributes ?? []));
+        if ($attributes) {
+            $payload['attribute_list'] = $attributes;
         }
 
-        // Sem variação — estoque direto
+        // Estoque do anúncio (sem variação)
         if (!$publication->has_variations) {
-            $payload['stock_list'] = [
-                ['seller_stock' => [['stock' => $publication->available_quantity]]],
-            ];
+            $payload['seller_stock'] = [['stock' => max(0, (int) $publication->available_quantity)]];
         }
 
         return $payload;
+    }
+
+    /**
+     * Converte [attribute_id => texto] ou itens já no formato da Shopee para attribute_list.
+     */
+    private function buildAttributeList(array $attributes): array
+    {
+        $list = [];
+        foreach ($attributes as $key => $value) {
+            if (is_array($value) && isset($value['attribute_id'])) {
+                $list[] = $value; // já no formato da API
+                continue;
+            }
+            $text = trim((string) (is_array($value) ? ($value['value'] ?? '') : $value));
+            if (!is_numeric($key) || (int) $key <= 0 || $text === '') {
+                continue;
+            }
+            $list[] = [
+                'attribute_id'         => (int) $key,
+                'attribute_value_list' => [[
+                    'value_id'            => 0,
+                    'original_value_name' => $text,
+                ]],
+            ];
+        }
+        return $list;
+    }
+
+    /**
+     * Envia uma imagem para o media_space da Shopee e devolve o image_id.
+     * Aceita URL pública ou arquivo do storage local (storage/products/...).
+     */
+    public function uploadImage(string $source): ?string
+    {
+        try {
+            $contents = null;
+            $path = parse_url($source, PHP_URL_PATH) ?: $source;
+
+            // Arquivo local: /storage/... → storage/app/public/...
+            if (str_contains($path, '/storage/')) {
+                $local = storage_path('app/public/' . ltrim(substr($path, strpos($path, '/storage/') + 9), '/'));
+                if (is_file($local)) {
+                    $contents = file_get_contents($local);
+                }
+            }
+            if ($contents === null && str_starts_with($source, 'http')) {
+                $download = \Illuminate\Support\Facades\Http::timeout($this->timeout)->get($source);
+                if ($download->successful()) {
+                    $contents = $download->body();
+                }
+            }
+            if (!$contents) {
+                return null;
+            }
+
+            $apiPath   = '/api/v2/media_space/upload_image';
+            $timestamp = time();
+            $response  = \Illuminate\Support\Facades\Http::timeout($this->timeout)
+                ->withQueryParameters([
+                    'partner_id' => (int) $this->partnerId,
+                    'timestamp'  => $timestamp,
+                    'sign'       => $this->signPublic($apiPath, $timestamp),
+                ])
+                ->attach('image', $contents, basename($path) ?: 'image.jpg')
+                ->post($this->getBaseUrl() . $apiPath);
+
+            $data = $response->json() ?? [];
+            if (!$response->successful() || !empty($data['error'])) {
+                throw new Exception($data['message'] ?? $data['error'] ?? $response->body());
+            }
+
+            return $data['response']['image_info']['image_id'] ?? null;
+
+        } catch (\Throwable $e) {
+            Log::warning('ShopeeProductService: falha ao enviar imagem', ['source' => $source, 'error' => $e->getMessage()]);
+            return null;
+        }
     }
 
     /**
@@ -354,7 +458,7 @@ class ProductService extends ShopeeService
      */
     private function buildVariationsStockList(ShopeePublication $publication, int $totalQuantity): array
     {
-        $products = $publication->products;
+        $products = $publication->linkedProducts();
         $list     = [];
 
         foreach ($products as $product) {
@@ -363,7 +467,7 @@ class ProductService extends ShopeeService
                 continue;
             }
             $pivotQty  = max(1, (int) $product->pivot->quantity);
-            $available = (int) floor($product->stock_quantity / $pivotQty);
+            $available = intdiv(ShopeePublication::productAvailableStock($product), $pivotQty);
 
             $list[] = [
                 'model_id'      => (int) $modelId,

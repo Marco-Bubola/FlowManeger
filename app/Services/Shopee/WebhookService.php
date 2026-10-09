@@ -2,6 +2,7 @@
 
 namespace App\Services\Shopee;
 
+use App\Models\ShopeeOrder;
 use App\Models\ShopeeToken;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Log;
  * Serviço para validação e despacho de Webhooks da Shopee.
  *
  * A Shopee envia webhooks com:
- * - Header `Authorization`: assinatura HMAC-SHA256 do body
+ * - Header `Authorization`: HMAC-SHA256(url + '|' + body, partner_key)
  * - Body JSON com: code, shop_id, timestamp, data
  *
  * Documentação: https://open.shopee.com/documents/v2/OpenAPI_Guide#Webhook
@@ -19,10 +20,10 @@ class WebhookService extends ShopeeService
 {
     protected StockSyncService $stockSyncService;
 
-    // Códigos de notificação da Shopee
-    const NOTIFICATION_ORDER_STATUS = 3;   // Mudança de status de pedido
-    const NOTIFICATION_ITEM_UPDATE  = 9;   // Atualização de item
-    const NOTIFICATION_BANNED       = 11;  // Loja/item banido
+    // Códigos de push da Shopee (Open Platform v2)
+    const NOTIFICATION_ORDER_STATUS   = 3;   // order_status_push
+    const NOTIFICATION_TRACKING_NO    = 4;   // order_trackingno_push
+    const NOTIFICATION_BANNED_ITEM    = 6;   // banned_item_push (só registra)
 
     public function __construct(StockSyncService $stockSyncService)
     {
@@ -35,39 +36,44 @@ class WebhookService extends ShopeeService
     // =========================================================================
 
     /**
-     * Valida a autenticidade de um webhook recebido da Shopee.
+     * Valida a autenticidade de um push recebido da Shopee.
      *
-     * A Shopee inclui o header "Authorization" com:
-     *   HMAC-SHA256( partner_id + partner_key + timestamp + shop_id + body )
-     * ou
-     *   SHA256( url_path + "|" + body )  (dependendo da versão)
-     *
-     * Ref: https://open.shopee.com/documents/v2/OpenAPI_Guide#Webhook
+     * Header "Authorization" = HMAC-SHA256( URL de callback + "|" + body, partner_key ),
+     * onde a URL é a URL completa cadastrada no console da Shopee.
+     * Atrás de proxy o esquema pode chegar como http: confere as variações.
      */
     public function validateWebhook(Request $request): bool
     {
-        $authorization = $request->header('Authorization');
+        $authorization = trim((string) $request->header('Authorization'));
 
-        if (!$authorization) {
-            Log::warning('ShopeeWebhook: header Authorization ausente');
+        if ($authorization === '' || $this->partnerKey === '') {
+            Log::warning('ShopeeWebhook: header Authorization ausente ou partner_key não configurada');
             return false;
         }
 
         $rawBody = $request->getContent();
 
-        // A assinatura da Shopee é: HMAC_SHA256(partner_key, URL + "|" + body)
-        $urlPath  = $request->getPathInfo();
-        $expected = hash_hmac('sha256', $urlPath . '|' . $rawBody, $this->partnerKey);
+        $urls = array_unique(array_filter([
+            $request->url(),
+            $request->fullUrl(),
+            preg_replace('#^http://#', 'https://', $request->url()),
+            preg_replace('#^http://#', 'https://', $request->fullUrl()),
+            route('shopee.webhook.handle'),
+            preg_replace('#^http://#', 'https://', route('shopee.webhook.handle')),
+        ]));
 
-        if (!hash_equals($expected, $authorization)) {
-            Log::warning('ShopeeWebhook: assinatura inválida', [
-                'expected'  => substr($expected, 0, 10) . '...',
-                'received'  => substr($authorization, 0, 10) . '...',
-            ]);
-            return false;
+        foreach ($urls as $url) {
+            $expected = hash_hmac('sha256', $url . '|' . $rawBody, $this->partnerKey);
+            if (hash_equals($expected, strtolower($authorization))) {
+                return true;
+            }
         }
 
-        return true;
+        Log::warning('ShopeeWebhook: assinatura inválida', [
+            'url'      => $request->url(),
+            'received' => substr($authorization, 0, 10) . '...',
+        ]);
+        return false;
     }
 
     // =========================================================================
@@ -75,7 +81,8 @@ class WebhookService extends ShopeeService
     // =========================================================================
 
     /**
-     * Processa o payload de um webhook recebido.
+     * Processa o payload de um push recebido.
+     * Roda como o dono da loja (sem usuário logado os produtos não aparecem).
      *
      * @param array $payload Dados do webhook
      * @param int   $userId  Usuário dono da loja (resolvido via shop_id)
@@ -90,11 +97,11 @@ class WebhookService extends ShopeeService
             'shop_id' => $shopId,
         ]);
 
-        return match ($code) {
+        return self::runAsUser($userId, fn () => match ($code) {
             self::NOTIFICATION_ORDER_STATUS => $this->handleOrderStatus($payload, $userId),
-            self::NOTIFICATION_ITEM_UPDATE  => $this->handleItemUpdate($payload, $userId),
+            self::NOTIFICATION_TRACKING_NO  => $this->handleTrackingNumber($payload, $userId),
             default                         => ['success' => true, 'message' => "Notificação {$code} recebida (não processada)."],
-        };
+        });
     }
 
     // =========================================================================
@@ -102,13 +109,14 @@ class WebhookService extends ShopeeService
     // =========================================================================
 
     /**
-     * Processa notificação de mudança de status de pedido.
-     * Código 3: order status change
+     * Código 3: mudança de status de pedido.
+     * O push só traz ordersn/status: busca o pedido completo (itens, valores)
+     * e grava; o estoque é baixado uma vez por pedido e devolvido no cancelamento.
      */
     private function handleOrderStatus(array $payload, int $userId): array
     {
         $data    = $payload['data'] ?? [];
-        $orderSn = (string) ($data['ordersn'] ?? '');
+        $orderSn = (string) ($data['ordersn'] ?? $data['order_sn'] ?? '');
         $status  = (string) ($data['status'] ?? '');
 
         if (!$orderSn) {
@@ -120,46 +128,50 @@ class WebhookService extends ShopeeService
             'status'   => $status,
         ]);
 
-        // Deduzir estoque apenas quando o pedido está pronto para envio
-        if (in_array($status, ['READY_TO_SHIP', 'PROCESSED'])) {
-            return $this->stockSyncService->processShopeeOrder(
-                orderSn:       $orderSn,
-                shopeeItemId:  (string) ($data['shopee_item_id'] ?? ''),
-                shopeeModelId: (string) ($data['model_id'] ?? '') ?: null,
-                quantity:      (int) ($data['quantity'] ?? 1),
-                userId:        $userId,
-                rawData:       array_merge($payload['data'] ?? [], [
-                    'shop_id' => $payload['shop_id'] ?? '',
-                    'status'  => $status,
-                ])
-            );
+        try {
+            $result = app(OrderService::class)->syncOrderBySn($userId, $orderSn);
+            if ($result['success'] ?? false) {
+                return $result;
+            }
+        } catch (\Exception $e) {
+            $result = ['success' => false, 'message' => $e->getMessage()];
         }
 
-        // Pedido cancelado: devolve o que foi baixado (uma vez só)
+        // Sem detalhes da API: ainda assim cancelamento devolve o estoque
         if ($status === 'CANCELLED') {
             $back = $this->stockSyncService->restoreShopeeOrder($orderSn, $userId);
             return ['success' => true, 'message' => "Pedido cancelado: {$back} item(ns) devolvido(s) ao estoque."];
         }
 
-        return ['success' => true, 'message' => "Status {$status} registrado (sem ação de estoque)."];
+        if ($status !== '') {
+            ShopeeOrder::where('shopee_order_sn', $orderSn)
+                ->where('user_id', $userId)
+                ->where('order_status', '!=', 'CANCELLED')
+                ->update(['order_status' => $status]);
+        }
+
+        // Falha na API: devolve erro para a fila/Shopee tentar de novo
+        throw new \RuntimeException('Não foi possível buscar o pedido na Shopee: ' . ($result['message'] ?? ''));
     }
 
     /**
-     * Processa notificação de atualização de item.
-     * Código 9: item update
+     * Código 4: código de rastreio do pedido.
      */
-    private function handleItemUpdate(array $payload, int $userId): array
+    private function handleTrackingNumber(array $payload, int $userId): array
     {
-        $data       = $payload['data'] ?? [];
-        $itemId     = (string) ($data['item_id'] ?? '');
-        $updateType = (string) ($data['update_type'] ?? '');
+        $data     = $payload['data'] ?? [];
+        $orderSn  = (string) ($data['ordersn'] ?? $data['order_sn'] ?? '');
+        $tracking = (string) ($data['tracking_no'] ?? $data['tracking_number'] ?? '');
 
-        Log::info('ShopeeWebhook: atualização de item', [
-            'item_id'     => $itemId,
-            'update_type' => $updateType,
-        ]);
+        if (!$orderSn || !$tracking) {
+            return ['success' => true, 'message' => 'Push de rastreio sem pedido/código.'];
+        }
 
-        return ['success' => true, 'message' => "Item {$itemId} atualização recebida: {$updateType}"];
+        $n = ShopeeOrder::where('shopee_order_sn', $orderSn)
+            ->where('user_id', $userId)
+            ->update(['tracking_number' => mb_substr($tracking, 0, 100)]);
+
+        return ['success' => true, 'message' => $n ? "Rastreio {$tracking} salvo." : "Pedido {$orderSn} ainda não importado."];
     }
 
     // =========================================================================
@@ -171,8 +183,13 @@ class WebhookService extends ShopeeService
      */
     public function resolveUserByShopId(string $shopId): ?int
     {
+        if ($shopId === '') {
+            return null;
+        }
+
         $token = ShopeeToken::where('shop_id', $shopId)
             ->where('is_active', true)
+            ->latest('updated_at')
             ->first();
 
         return $token?->user_id;

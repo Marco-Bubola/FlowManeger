@@ -10,6 +10,7 @@ use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 /**
  * Componente de publicação de produto na Shopee.
@@ -25,7 +26,7 @@ use Livewire\Component;
  */
 class PublishProduct extends Component
 {
-    use HasNotifications;
+    use HasNotifications, WithPagination;
 
     // -------------------------------------------------------------------------
     // Estado de steps
@@ -79,6 +80,9 @@ class PublishProduct extends Component
     public bool   $isPublishing = false;
     public ?int   $productId    = null;
 
+    /** Rascunho já gravado (reenvio após erro reaproveita em vez de duplicar) */
+    public ?int   $draftPublicationId = null;
+
     // -------------------------------------------------------------------------
     // Mount
     // -------------------------------------------------------------------------
@@ -93,7 +97,7 @@ class PublishProduct extends Component
         }
 
         if ($product) {
-            if ($product->user_id !== Auth::id()) {
+            if ((int) $product->user_id !== (int) Auth::id()) {
                 abort(403);
             }
             $this->productId = $product->id;
@@ -213,8 +217,14 @@ class PublishProduct extends Component
         }
     }
 
+    public function updatedSearchTerm(): void
+    {
+        $this->resetPage();
+    }
+
     public function updatedShopeeCategoryId(): void
     {
+        $this->selectedAttributes = [];
         if (!$this->shopeeCategoryId) {
             return;
         }
@@ -240,19 +250,42 @@ class PublishProduct extends Component
             return;
         }
 
+        if (empty($this->selectedProducts) || !$this->shopeeCategoryId || (float) $this->publishPrice <= 0 || (int) $this->weightGrams <= 0) {
+            $this->notifyError('Preencha produto, categoria, preço e peso antes de publicar.');
+            return;
+        }
+
+        // Clique duplo / reenvio do POST: um envio por vez por usuário
+        $lock = \Illuminate\Support\Facades\Cache::lock('shopee-publish-' . Auth::id(), 120);
+        if (!$lock->get()) {
+            $this->notifyWarning('A publicação já está sendo enviada. Aguarde.');
+            return;
+        }
+
         $this->isPublishing = true;
 
-        DB::beginTransaction();
         try {
-            // Criar publicação interna
-            $publication = ShopeePublication::create([
+            // Só produtos do próprio usuário
+            $products = Product::where('user_id', Auth::id())
+                ->whereIn('id', array_keys($this->selectedProducts))
+                ->get();
+            if ($products->isEmpty()) {
+                $this->notifyError('Produto não encontrado.');
+                return;
+            }
+
+            $pictures = $products->filter(fn ($p) => $p->image && $p->image !== 'product-placeholder.png')
+                ->map(fn ($p) => $p->image_url)
+                ->unique()->values()->all();
+
+            $data = [
                 'user_id'             => Auth::id(),
                 'shop_id'             => ShopeeToken::getActiveForUser(Auth::id())?->shop_id ?? '',
                 'shopee_category_id'  => $this->shopeeCategoryId,
-                'title'               => $this->title,
+                'title'               => mb_substr($this->title, 0, 120),
                 'description'         => $this->description,
                 'price'               => (float) $this->publishPrice,
-                'available_quantity'  => $this->publishQuantity,
+                'available_quantity'  => max(0, (int) $this->publishQuantity),
                 'condition'           => $this->productCondition,
                 'weight_grams'        => (int) $this->weightGrams,
                 'length_cm'           => $this->lengthCm ? (float) $this->lengthCm : null,
@@ -260,38 +293,60 @@ class PublishProduct extends Component
                 'height_cm'           => $this->heightCm ? (float) $this->heightCm : null,
                 'days_to_ship'        => $this->daysToShip,
                 'has_variations'      => $this->hasVariations,
+                'pictures'            => $pictures,
                 'status'              => 'draft',
                 'sync_status'         => 'pending',
-                'shopee_attributes'   => array_values($this->selectedAttributes),
-            ]);
+                // [attribute_id => valor]; o serviço converte para o formato da Shopee
+                'shopee_attributes'   => array_filter($this->selectedAttributes, fn ($v) => trim((string) $v) !== ''),
+            ];
 
-            // Vincular produtos
-            foreach ($this->selectedProducts as $pid => $data) {
-                $publication->products()->attach($pid, [
-                    'quantity'   => $data['quantity'] ?? 1,
-                    'unit_cost'  => $data['unit_cost'] ?? 0,
-                    'sort_order' => 0,
-                ]);
-            }
+            $publication = DB::transaction(function () use ($data, $products) {
+                $publication = $this->draftPublicationId
+                    ? ShopeePublication::where('user_id', Auth::id())
+                        ->whereNull('shopee_item_id')
+                        ->find($this->draftPublicationId)
+                    : null;
 
-            DB::commit();
+                if ($publication) {
+                    $publication->update($data);
+                } else {
+                    $publication = ShopeePublication::create($data);
+                }
+
+                // Vincular produtos
+                $sync = [];
+                foreach ($products as $p) {
+                    $sel = $this->selectedProducts[$p->id] ?? [];
+                    $sync[$p->id] = [
+                        'quantity'   => max(1, (int) ($sel['quantity'] ?? 1)),
+                        'unit_cost'  => $sel['unit_cost'] ?? 0,
+                        'sort_order' => 0,
+                    ];
+                }
+                $publication->products()->sync($sync);
+
+                return $publication;
+            });
+
+            $this->draftPublicationId = $publication->id;
 
             // Publicar na Shopee via serviço
             $service = app(ProductService::class);
-            $result  = $service->createListing($publication->fresh()->load('products'), Auth::id());
+            $result  = $service->createListing($publication->fresh(), Auth::id());
 
             if ($result['success']) {
+                $this->draftPublicationId = null;
                 $this->notifySuccess('Produto publicado com sucesso na Shopee! Item ID: ' . $result['shopee_item_id']);
                 return $this->redirect(route('shopee.publications'), navigate: true);
-            } else {
-                $this->notifyError('Publicação salva, mas houve um erro na Shopee: ' . $result['message']);
             }
 
+            $this->notifyError('Publicação salva, mas houve um erro na Shopee: ' . $result['message']);
+
         } catch (\Exception $e) {
-            DB::rollBack();
             $this->notifyError('Erro ao publicar: ' . $e->getMessage());
         } finally {
             $this->isPublishing = false;
+            $lock->release();
         }
     }
 

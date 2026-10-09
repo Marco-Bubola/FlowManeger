@@ -121,37 +121,7 @@ class ShopeeService
      */
     protected function get(string $path, array $params, ShopeeToken $token): array
     {
-        $authParams = $this->getShopParams($path, $token->access_token, $token->shop_id);
-        $allParams  = array_merge($authParams, $params);
-
-        $url = $this->getBaseUrl() . $path;
-
-        for ($attempt = 1; $attempt <= $this->maxRetries; $attempt++) {
-            try {
-                $response = Http::timeout($this->timeout)->get($url, $allParams);
-
-                if ($response->successful()) {
-                    return $response->json() ?? [];
-                }
-
-                // Erro de rate limit — aguarda e tenta novamente
-                if ($response->status() === 429 && $attempt < $this->maxRetries) {
-                    sleep(2 ** $attempt);
-                    continue;
-                }
-
-                throw new Exception(
-                    "Shopee API GET error [{$response->status()}]: " . $response->body()
-                );
-            } catch (Exception $e) {
-                if ($attempt === $this->maxRetries) {
-                    throw $e;
-                }
-                sleep($attempt);
-            }
-        }
-
-        return [];
+        return $this->send('GET', $path, $params, [], $token);
     }
 
     /**
@@ -164,38 +134,81 @@ class ShopeeService
      */
     protected function post(string $path, array $body, ShopeeToken $token, array $query = []): array
     {
-        $authParams = $this->getShopParams($path, $token->access_token, $token->shop_id);
-        $allQuery   = array_merge($authParams, $query);
+        return $this->send('POST', $path, $query, $body, $token);
+    }
 
+    /**
+     * Envia a requisição. Só tenta de novo em limite de taxa (429), erro do
+     * servidor (5xx) ou falha de conexão; erro de dados (4xx) volta na hora.
+     * A assinatura é refeita a cada tentativa (timestamp novo).
+     */
+    private function send(string $method, string $path, array $query, array $body, ShopeeToken $token): array
+    {
         $url = $this->getBaseUrl() . $path;
+        $lastError = null;
 
         for ($attempt = 1; $attempt <= $this->maxRetries; $attempt++) {
+            $allQuery = array_merge($this->getShopParams($path, $token->access_token, $token->shop_id), $query);
+
             try {
-                $response = Http::timeout($this->timeout)
-                    ->withQueryParameters($allQuery)
-                    ->post($url, $body);
-
-                if ($response->successful()) {
-                    return $response->json() ?? [];
+                $request  = Http::timeout($this->timeout)->acceptJson();
+                $response = $method === 'GET'
+                    ? $request->get($url, $allQuery)
+                    : $request->withQueryParameters($allQuery)->post($url, $body);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                $lastError = $e;
+                if ($attempt < $this->maxRetries) {
+                    sleep($attempt);
                 }
+                continue;
+            }
 
-                if ($response->status() === 429 && $attempt < $this->maxRetries) {
-                    sleep(2 ** $attempt);
-                    continue;
-                }
+            $json = $response->json();
 
-                throw new Exception(
-                    "Shopee API POST error [{$response->status()}]: " . $response->body()
-                );
-            } catch (Exception $e) {
-                if ($attempt === $this->maxRetries) {
-                    throw $e;
-                }
-                sleep($attempt);
+            if ($response->successful()) {
+                return is_array($json) ? $json : [];
+            }
+
+            $retryable = $response->status() === 429 || $response->serverError();
+            $lastError = new Exception(
+                "Shopee API {$method} error [{$response->status()}]: "
+                . (is_array($json) ? ($json['message'] ?? $json['error'] ?? $response->body()) : $response->body())
+            );
+
+            if (!$retryable) {
+                throw $lastError;
+            }
+            if ($attempt < $this->maxRetries) {
+                sleep(2 ** ($attempt - 1));
             }
         }
 
-        return [];
+        throw $lastError ?? new Exception("Shopee API {$method} {$path}: sem resposta.");
+    }
+
+    /**
+     * Executa $fn como o dono da loja. Webhook e fila rodam sem ninguém logado,
+     * e os models com filtro de equipe (Product etc.) devolveriam nada (1 = 0).
+     */
+    public static function runAsUser(int $userId, callable $fn): mixed
+    {
+        $guard = \Illuminate\Support\Facades\Auth::guard();
+        $previous = $guard->user();
+
+        if ($previous && (int) $previous->getAuthIdentifier() === $userId) {
+            return $fn();
+        }
+
+        try {
+            \Illuminate\Support\Facades\Auth::onceUsingId($userId);
+            return $fn();
+        } finally {
+            if ($previous) {
+                $guard->setUser($previous);
+            } elseif (method_exists($guard, 'forgetUser')) {
+                $guard->forgetUser();
+            }
+        }
     }
 
     // =========================================================================

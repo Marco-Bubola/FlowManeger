@@ -36,10 +36,10 @@ class Settings extends Component
     {
         $this->token = ShopeeToken::getActiveForUser(Auth::id());
 
-        if ($this->token) {
+        if ($this->token && ($this->token->isAccessTokenValid() || $this->token->isRefreshTokenValid())) {
             $this->isConnected = true;
             $this->shopInfo    = $this->token->shop_info ?? [];
-            $this->expiresAt   = $this->token->expires_at?->format('d/m/Y H:i');
+            $this->expiresAt   = $this->token->expires_at?->copy()->setTimezone('America/Sao_Paulo')->format('d/m/Y H:i');
         } else {
             $this->isConnected = false;
             $this->shopInfo    = [];
@@ -50,16 +50,15 @@ class Settings extends Component
     /**
      * Retorna a URL de autorização e redireciona o usuário para a Shopee.
      */
-    public function connect(): mixed
+    public function connect(): void
     {
         try {
             $authService = app(AuthService::class);
             $url = $authService->getAuthorizationUrl(Auth::id());
-            return redirect()->away($url);
+            $this->redirect($url);
         } catch (\Exception $e) {
             $this->notifyError('Erro ao conectar: ' . $e->getMessage());
         }
-        return null;
     }
 
     /**

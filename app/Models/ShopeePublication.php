@@ -94,12 +94,54 @@ class ShopeePublication extends Model
     // -------------------------------------------------------------------------
 
     /**
+     * Produtos vinculados sem o filtro de equipe (webhook/fila rodam sem
+     * usuário logado; a publicação já é do dono).
+     */
+    public function linkedProducts()
+    {
+        return $this->products()->withoutGlobalScope('team_visibility')->get();
+    }
+
+    /**
+     * Componentes de um kit (sem filtro de equipe): [[Product $comp, int $porKit], ...]
+     */
+    public static function kitComponents(Product $kit): array
+    {
+        $out = [];
+        foreach ($kit->componentes()->get() as $pc) {
+            $comp = Product::withoutGlobalScope('team_visibility')->find($pc->componente_produto_id);
+            $per = (int) ($pc->quantidade ?? 0);
+            if ($comp && $per > 0) {
+                $out[] = [$comp, $per];
+            }
+        }
+        return $out;
+    }
+
+    /**
+     * Estoque vendável de um produto. Kit não tem estoque próprio:
+     * vale o componente que acaba primeiro.
+     */
+    public static function productAvailableStock(Product $product): int
+    {
+        if (! $product->isKit()) {
+            return max(0, (int) $product->stock_quantity);
+        }
+        $min = null;
+        foreach (self::kitComponents($product) as [$comp, $per]) {
+            $can = intdiv(max(0, (int) $comp->stock_quantity), $per);
+            $min = $min === null ? $can : min($min, $can);
+        }
+        return $min ?? 0;
+    }
+
+    /**
      * Calcula a quantidade disponível com base no estoque dos produtos vinculados.
-     * Respeita as quantidades configuradas no pivot.
+     * Respeita as quantidades configuradas no pivot e os componentes de kits.
      */
     public function calculateAvailableQuantity(): int
     {
-        $products = $this->products;
+        $products = $this->linkedProducts();
 
         if ($products->isEmpty()) {
             return 0;
@@ -108,11 +150,8 @@ class ShopeePublication extends Model
         $minQuantity = PHP_INT_MAX;
 
         foreach ($products as $product) {
-            $pivotQty = $product->pivot->quantity ?? 1;
-            if ($pivotQty <= 0) {
-                $pivotQty = 1;
-            }
-            $available = (int) floor($product->stock_quantity / $pivotQty);
+            $pivotQty = max(1, (int) ($product->pivot->quantity ?? 1));
+            $available = intdiv(self::productAvailableStock($product), $pivotQty);
             $minQuantity = min($minQuantity, $available);
         }
 

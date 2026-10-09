@@ -89,7 +89,7 @@
                 @foreach($errorLogs as $log)
                 <div class="flex items-start gap-2.5 text-xs">
                     <span class="text-red-400 text-xs flex-shrink-0 mt-0.5">
-                        {{ $log->created_at->format('d/m H:i') }}
+                        {{ $log->created_at?->copy()->setTimezone('America/Sao_Paulo')->format('d/m H:i') }}
                     </span>
                     <span class="px-1.5 py-0.5 rounded bg-red-100 dark:bg-red-900/40 text-red-700 dark:text-red-400 font-medium flex-shrink-0">
                         {{ $log->sync_type }}

@@ -57,9 +57,19 @@ class WebhookController extends Controller
             return response()->json(['success' => true, 'message' => 'Shop not registered'], 200);
         }
 
-        // Despacha para fila — libera a resposta HTTP imediatamente
-        ProcessShopeeWebhook::dispatch($payload, $userId)
-            ->onQueue('marketplace');
+        // Despacha para fila — libera a resposta HTTP imediatamente.
+        // Com QUEUE_CONNECTION=sync o job roda aqui mesmo: se falhar, responde 500
+        // para a Shopee reenviar (o processamento é idempotente).
+        try {
+            ProcessShopeeWebhook::dispatch($payload, $userId)
+                ->onQueue('marketplace');
+        } catch (\Throwable $e) {
+            Log::error('ShopeeWebhook: erro ao processar', [
+                'shop_id' => $shopId,
+                'error'   => $e->getMessage(),
+            ]);
+            return response()->json(['success' => false, 'message' => 'Processing error'], 500);
+        }
 
         return response()->json(['success' => true, 'message' => 'Webhook received'], 200);
     }

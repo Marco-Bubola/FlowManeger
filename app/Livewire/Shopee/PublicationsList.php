@@ -34,6 +34,13 @@ class PublicationsList extends Component
      */
     public function importOrders(): void
     {
+        // Evita importação dupla (clique repetido / duas abas)
+        $lock = \Illuminate\Support\Facades\Cache::lock('shopee-import-orders-' . Auth::id(), 300);
+        if (!$lock->get()) {
+            $this->notifyWarning('Uma importação de pedidos já está em andamento.');
+            return;
+        }
+
         $this->isImporting = true;
         try {
             $service = app(OrderService::class);
@@ -45,17 +52,20 @@ class PublicationsList extends Component
             $this->notifyError('Erro ao importar pedidos: ' . $e->getMessage());
         } finally {
             $this->isImporting = false;
+            $lock->release();
         }
     }
 
     public function render()
     {
         $publications = ShopeePublication::where('user_id', Auth::id())
-            ->when($this->searchTerm, fn($q) => $q->where('title', 'like', '%' . $this->searchTerm . '%')
-                ->orWhere('shopee_item_id', 'like', '%' . $this->searchTerm . '%'))
+            // Agrupado: o OR solto mostrava anúncios de outros usuários
+            ->when($this->searchTerm, fn($q) => $q->where(fn ($w) => $w
+                ->where('title', 'like', '%' . $this->searchTerm . '%')
+                ->orWhere('shopee_item_id', 'like', '%' . $this->searchTerm . '%')))
             ->when($this->statusFilter, fn($q) => $q->where('status', $this->statusFilter))
             ->when($this->syncFilter, fn($q) => $q->where('sync_status', $this->syncFilter))
-            ->with('products')
+            ->with(['products' => fn ($q) => $q->withoutGlobalScope('team_visibility')])
             ->latest()
             ->paginate(15);
 

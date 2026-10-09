@@ -57,7 +57,7 @@ class AuthController extends Controller
         }
 
         try {
-            $token = $this->authService->handleCallback($code, $shopId, $state ?? '');
+            $token = $this->authService->handleCallback($code, $shopId, $state ?? '', Auth::id() ? (int) Auth::id() : null);
 
             $shopName = $token->shop_name ?? $shopId;
             return redirect()->route('shopee.settings')

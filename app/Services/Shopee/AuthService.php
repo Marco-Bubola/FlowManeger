@@ -62,8 +62,8 @@ class AuthService extends ShopeeService
         $timestamp = time();
         $sign      = $this->signPublic($this->authPath, $timestamp);
 
-        // Encode state para segurança (anti-CSRF)
-        $state = base64_encode(json_encode([
+        // State cifrado com a APP_KEY (anti-CSRF): não dá para forjar o user_id.
+        $state = \Illuminate\Support\Facades\Crypt::encryptString(json_encode([
             'user_id'   => $userId,
             'timestamp' => $timestamp,
             'random'    => bin2hex(random_bytes(16)),
@@ -92,21 +92,33 @@ class AuthService extends ShopeeService
      * @return ShopeeToken
      * @throws Exception
      */
-    public function handleCallback(string $code, string $shopId, string $state): ShopeeToken
+    public function handleCallback(string $code, string $shopId, string $state, ?int $loggedUserId = null): ShopeeToken
     {
-        // Validar state
-        $stateData = json_decode(base64_decode($state), true);
-
-        if (!$stateData || !isset($stateData['user_id'])) {
-            throw new Exception('Parâmetro state inválido na autorização Shopee.');
+        // Validar state (cifrado; um state forjado/alterado não decifra)
+        try {
+            $stateData = json_decode(\Illuminate\Support\Facades\Crypt::decryptString($state), true);
+        } catch (\Throwable $e) {
+            $stateData = null;
         }
 
-        // Verificar validade (5 minutos)
-        if (isset($stateData['timestamp']) && (time() - $stateData['timestamp']) > 300) {
+        if (!$stateData || !isset($stateData['user_id'])) {
+            // Sem state válido, só aceita se houver alguém logado (a loja vai para ele).
+            if (!$loggedUserId) {
+                throw new Exception('Parâmetro state inválido na autorização Shopee.');
+            }
+            $stateData = ['user_id' => $loggedUserId, 'timestamp' => time()];
+        }
+
+        if ($loggedUserId && (int) $stateData['user_id'] !== $loggedUserId) {
+            throw new Exception('A autorização Shopee foi iniciada por outro usuário.');
+        }
+
+        // Verificar validade (30 minutos — dá tempo de fazer login na Shopee)
+        if (isset($stateData['timestamp']) && (time() - $stateData['timestamp']) > 1800) {
             throw new Exception('Autorização Shopee expirada. Tente novamente.');
         }
 
-        $userId    = $stateData['user_id'];
+        $userId    = (int) $stateData['user_id'];
         $timestamp = time();
         $sign      = $this->signPublic($this->tokenPath, $timestamp);
 
@@ -152,48 +164,65 @@ class AuthService extends ShopeeService
      */
     public function refreshToken(ShopeeToken $token): ShopeeToken
     {
-        $timestamp = time();
-        $sign      = $this->signPublic($this->refreshPath, $timestamp);
+        // Um refresh_token só vale uma vez: duas renovações ao mesmo tempo
+        // (fila + tela) fariam a segunda falhar. Trava a linha e confere de novo.
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($token) {
+            $locked = ShopeeToken::whereKey($token->id)->lockForUpdate()->first() ?? $token;
 
-        $payload = [
-            'refresh_token' => $token->refresh_token,
-            'shop_id'       => (int) $token->shop_id,
-            'partner_id'    => (int) $this->partnerId,
-        ];
+            if ($locked->isAccessTokenValid() && $locked->access_token !== $token->access_token) {
+                return $locked; // outro processo já renovou
+            }
 
-        $query = [
-            'partner_id' => (int) $this->partnerId,
-            'timestamp'  => $timestamp,
-            'sign'       => $sign,
-        ];
+            $timestamp = time();
+            $sign      = $this->signPublic($this->refreshPath, $timestamp);
 
-        $response = Http::timeout($this->timeout)
-            ->withQueryParameters($query)
-            ->post($this->getBaseUrl() . $this->refreshPath, $payload);
+            $payload = [
+                'refresh_token' => $locked->refresh_token,
+                'shop_id'       => (int) $locked->shop_id,
+                'partner_id'    => (int) $this->partnerId,
+            ];
 
-        if (!$response->successful()) {
-            throw new Exception('Erro ao renovar token Shopee: ' . $response->body());
-        }
+            $query = [
+                'partner_id' => (int) $this->partnerId,
+                'timestamp'  => $timestamp,
+                'sign'       => $sign,
+            ];
 
-        $data = $response->json();
+            $response = Http::timeout($this->timeout)
+                ->withQueryParameters($query)
+                ->post($this->getBaseUrl() . $this->refreshPath, $payload);
 
-        if (!empty($data['error'])) {
-            throw new Exception('Erro de renovação Shopee: ' . ($data['message'] ?? $data['error']));
-        }
+            $data = $response->json() ?? [];
 
-        $token->update([
-            'access_token'       => $data['access_token'],
-            'refresh_token'      => $data['refresh_token'] ?? $token->refresh_token,
-            'expires_at'         => now()->addSeconds($data['expire_in'] ?? 14400),
-            'last_refreshed_at'  => now(),
-        ]);
+            if (!$response->successful() || !empty($data['error']) || empty($data['access_token'])) {
+                $msg = $data['message'] ?? $data['error'] ?? $response->body();
+                // refresh_token recusado: a loja precisa ser reconectada
+                if (!empty($data['error'])
+                    && (in_array($data['error'], ['error_auth', 'invalid_refresh_token'], true)
+                        || str_contains(strtolower((string) $msg), 'refresh'))) {
+                    $locked->update(['refresh_expires_at' => now()]);
+                }
+                throw new Exception('Erro ao renovar token Shopee: ' . $msg);
+            }
 
-        Log::info('ShopeeAuthService: token renovado', [
-            'user_id' => $token->user_id,
-            'shop_id' => $token->shop_id,
-        ]);
+            $locked->update([
+                'access_token'       => $data['access_token'],
+                'refresh_token'      => $data['refresh_token'] ?? $locked->refresh_token,
+                'expires_at'         => now()->addSeconds((int) ($data['expire_in'] ?? 14400)),
+                // Cada renovação gera um refresh_token novo, válido por 30 dias
+                'refresh_expires_at' => !empty($data['refresh_token'])
+                    ? now()->addDays(30)
+                    : $locked->refresh_expires_at,
+                'last_refreshed_at'  => now(),
+            ]);
 
-        return $token->fresh();
+            Log::info('ShopeeAuthService: token renovado', [
+                'user_id' => $locked->user_id,
+                'shop_id' => $locked->shop_id,
+            ]);
+
+            return $locked->fresh();
+        });
     }
 
     // =========================================================================
@@ -205,7 +234,11 @@ class AuthService extends ShopeeService
      */
     private function saveToken(int $userId, string $shopId, array $data): ShopeeToken
     {
-        $expiresAt        = now()->addSeconds($data['expire_in'] ?? 14400);
+        if (empty($data['access_token'])) {
+            throw new Exception('Shopee não devolveu o access_token.');
+        }
+
+        $expiresAt        = now()->addSeconds((int) ($data['expire_in'] ?? 14400));
         $refreshExpiresAt = isset($data['refresh_token_expire_in'])
             ? now()->addSeconds($data['refresh_token_expire_in'])
             : now()->addDays(30);
@@ -222,6 +255,11 @@ class AuthService extends ShopeeService
                 'last_refreshed_at'   => now(),
             ]
         );
+
+        // Uma loja pertence a uma conta só: os webhooks dela vão para este usuário.
+        ShopeeToken::where('shop_id', $shopId)
+            ->where('user_id', '!=', $userId)
+            ->update(['is_active' => false]);
 
         Log::info('ShopeeAuthService: token salvo', [
             'user_id' => $userId,
