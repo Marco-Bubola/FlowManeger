@@ -39,9 +39,7 @@
                     @endif
                 </div>
             </div>
-            @isset($actions)
-                <div class="app-ph-actions flex flex-wrap items-center gap-2 lg:justify-end">{{ $actions }}</div>
-            @endisset
+                <div class="app-ph-actions flex flex-wrap items-center gap-2 lg:justify-end">{{ $actions ?? '' }}<x-header-bell /></div>
         </div>
 
         <div class="app-ph-tabs mt-4 -mx-1 overflow-x-auto">

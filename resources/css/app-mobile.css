@@ -285,3 +285,11 @@ html body .cs-cart-body .cs-qty-input { -moz-appearance: textfield; }
 @media (max-width: 767px) {
     html body .cs-cart-panel { max-height: 92vh !important; }
 }
+
+/* ───────────── Sino de notificações no cabeçalho ─────────────
+ * No celular e no iPad o sino fica dentro do cabeçalho de cada tela (x-header-bell).
+ * No computador o sino já está na sidebar. O sino flutuante só aparece em telas sem cabeçalho. */
+@media (min-width: 1367px) {
+    html body:not(.tablet-nav-tabbar) .app-ph-bell { display: none !important; }
+}
+html body:has(.app-ph-bell) .mobile-top-bell { display: none !important; }

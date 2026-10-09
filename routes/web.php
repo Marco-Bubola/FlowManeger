@@ -120,6 +120,29 @@ use App\Http\Controllers\ClienteResumoController;
 Route::get('/favicon.ico', fn () => redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/favicon.ico'), 301));
 Route::get('/apple-touch-icon.png', fn () => redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/apple-touch-icon-180.png'), 301));
 Route::get('/apple-touch-icon-precomposed.png', fn () => redirect(\Illuminate\Support\Facades\Vite::asset('resources/images/icons/apple-touch-icon-180.png'), 301));
+// Manifesto do app (instalar na tela de início): escopo "/" para o app inteiro abrir em tela
+// cheia no iPhone/Android, não só a primeira tela. Vem por rota porque o deploy não envia public/*.
+Route::get('/manifest.webmanifest', function () {
+    $icon = fn (string $f) => \Illuminate\Support\Facades\Vite::asset('resources/images/icons/' . $f);
+
+    return response()->json([
+        'name' => 'FlowManager',
+        'short_name' => 'FlowManager',
+        'id' => '/dashboard',
+        'start_url' => '/dashboard',
+        'scope' => '/',
+        'display' => 'standalone',
+        'orientation' => 'any',
+        'background_color' => '#0f172a',
+        'theme_color' => '#0f172a',
+        'lang' => 'pt-BR',
+        'icons' => [
+            ['src' => $icon('pwa-192.png'), 'sizes' => '192x192', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $icon('pwa-512.png'), 'sizes' => '512x512', 'type' => 'image/png', 'purpose' => 'any'],
+            ['src' => $icon('apple-touch-icon-180.png'), 'sizes' => '180x180', 'type' => 'image/png'],
+        ],
+    ], 200, ['Content-Type' => 'application/manifest+json'], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+})->name('manifest');
 
 Route::get('/', function () {
     return view('welcome');

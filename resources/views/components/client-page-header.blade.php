@@ -72,11 +72,10 @@
                 </div>
             </div>
 
-            @isset($actions)
                 <div class="app-ph-actions flex flex-wrap items-center gap-2 lg:justify-end">
-                    {{ $actions }}
+                    {{ $actions ?? '' }}
+                    <x-header-bell />
                 </div>
-            @endisset
         </div>
 
         @if($client)

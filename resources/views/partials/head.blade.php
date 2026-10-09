@@ -5,6 +5,14 @@
 <title>{{ $title ?? config('app.name') }}</title>
 
 @include('partials.favicons')
+{{-- App na tela de início (iPhone/Android): abre em tela cheia em todas as telas --}}
+<link rel="manifest" href="{{ route('manifest') }}">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="FlowManager">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
 
 <link rel="preconnect" href="https://fonts.bunny.net">
 <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />

@@ -84,6 +84,7 @@
                         @endif
                     </div>
                 </div>
+                <div class="app-ph-actions ml-auto flex items-center gap-2"><x-header-bell /></div>
             </div>
         </div>
 

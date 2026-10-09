@@ -84,6 +84,7 @@
             <div class="sales-create-header-actions app-ph-actions flex flex-wrap items-center justify-center sm:justify-start gap-2 sm:gap-3 w-full lg:w-auto">
                 {{-- Slot de ações (botões) passado pelo componente pai --}}
                 {!! $actions ?? '' !!}
+                <x-header-bell />
 
             </div>
         </div>

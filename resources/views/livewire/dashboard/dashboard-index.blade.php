@@ -54,6 +54,7 @@
                     <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="refreshData"></i>
                     <span class="hidden sm:inline">Atualizar</span>
                 </button>
+                <x-header-bell />
             </div>
         </div>
 
