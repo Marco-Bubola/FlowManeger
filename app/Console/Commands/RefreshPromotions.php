@@ -20,6 +20,8 @@ class RefreshPromotions extends Command
     {
         $result = $service->refreshStatuses();
         $notified = $notifications->check();
+        // "Avise-me": agendadas que começaram agora (ligadas em massa, sem eventos do model).
+        app(\App\Services\Portal\WishlistService::class)->sweepPromotions();
 
         $this->info(sprintf(
             'Iniciadas: %d | Vencidas: %d | Sem estoque: %d',
@@ -27,7 +29,7 @@ class RefreshPromotions extends Command
             $result['expired'],
             $result['out_of_stock']
         ));
-        $this->info(sprintf('Avisos: %d acabando | %d encerradas', $notified['ending'], $notified['ended']));
+        $this->info(sprintf('Avisos: %d começaram | %d acabando | %d encerradas', $notified['started'], $notified['ending'], $notified['ended']));
 
         return self::SUCCESS;
     }

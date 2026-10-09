@@ -145,12 +145,18 @@ class Product extends Model
         return $this->hasMany(Promotion::class);
     }
 
-    /** Promoção ativa mais recente (pode estar fora do prazo; use isLive()). */
+    /**
+     * Promoção ativa mais recente dentro do prazo (sem olhar estoque; use isLive()).
+     * Inclui a agendada cujo início já chegou, para valer mesmo se a rotina
+     * horária atrasar; agendada no futuro nunca entra.
+     */
     public function activePromotion()
     {
         return $this->hasOne(Promotion::class)->ofMany(
             ['id' => 'max'],
-            fn ($q) => $q->where('status', Promotion::ATIVA)
+            fn ($q) => $q->where(fn ($w) => $w->where('promotions.status', Promotion::ATIVA)
+                ->orWhere(fn ($a) => $a->where('promotions.status', Promotion::AGENDADA)->where('promotions.starts_at', '<=', now())))
+                ->where(fn ($w) => $w->whereNull('promotions.ends_at')->orWhere('promotions.ends_at', '>', now()))
         );
     }
 

@@ -161,7 +161,7 @@
                                                     @if ($row['code'])<span>#{{ $row['code'] }}</span>·@endif
                                                     @if ($st)<span class="rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase {{ $st[1] }}">{{ $st[0] }}</span>@endif
                                                     @if ($row['starts_at'])
-                                                        <span>{{ $row['starts_at']->format('d/m') }}{{ $row['ends_at'] ? ' – ' . $row['ends_at']->format('d/m') : ' em diante' }}</span>
+                                                        <span>{{ $row['starts_at']->copy()->timezone(\App\Models\Promotion::tz())->format('d/m') }}{{ $row['ends_at'] ? ' – ' . $row['ends_at']->copy()->timezone(\App\Models\Promotion::tz())->format('d/m') : ' em diante' }}</span>
                                                     @endif
                                                     @if ($row['missingCost'])· <span class="font-semibold text-amber-600">custo incompleto</span>@endif
                                                 </p>

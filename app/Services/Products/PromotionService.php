@@ -197,8 +197,10 @@ class PromotionService
     }
 
     /**
-     * Põe o produto em promoção. Uma promoção ativa ou agendada que já
-     * existir para o produto é encerrada como "substituída".
+     * Põe o produto em promoção. Começando agora, a promoção ativa que já
+     * existir para o produto é encerrada como "substituída". Uma agendada
+     * (ou uma ativa, quando a nova é agendada) que cruze o período da nova
+     * impede a criação: o produto não pode ter duas promoções ao mesmo tempo.
      *
      * @param array{original_price:float, promo_price:float, starts_at?:mixed, ends_at?:mixed, message?:?string, source?:string} $data
      */
@@ -215,12 +217,19 @@ class PromotionService
         $startsAt = $this->date($data['starts_at'] ?? null);
         $endsAt = $this->date($data['ends_at'] ?? null, true);
         $this->assertDates($startsAt, $endsAt);
+        $scheduled = $startsAt && $startsAt->isFuture();
 
-        return DB::transaction(function () use ($product, $data, $original, $promo, $startsAt, $endsAt) {
-            Promotion::where('product_id', $product->id)
-                ->whereIn('status', [Promotion::ATIVA, Promotion::AGENDADA])
-                ->get()
-                ->each(fn (Promotion $p) => $this->end($p, 'substituida'));
+        if ($error = $this->overlapError($product, $startsAt, $endsAt, null, !$scheduled)) {
+            throw new InvalidArgumentException($error);
+        }
+
+        return DB::transaction(function () use ($product, $data, $original, $promo, $startsAt, $endsAt, $scheduled) {
+            if (!$scheduled) {
+                Promotion::where('product_id', $product->id)
+                    ->where('status', Promotion::ATIVA)
+                    ->get()
+                    ->each(fn (Promotion $p) => $this->end($p, 'substituida'));
+            }
 
             // O "de" vira o preço de tabela, menos quando é só o revenda (produto
             // sem tabela), para não confundir as sugestões depois.
@@ -235,11 +244,54 @@ class PromotionService
                 'promo_price'    => $promo,
                 'starts_at'      => $startsAt,
                 'ends_at'        => $endsAt,
-                'status'         => $startsAt && $startsAt->isFuture() ? Promotion::AGENDADA : Promotion::ATIVA,
+                'status'         => $scheduled ? Promotion::AGENDADA : Promotion::ATIVA,
                 'message'        => $this->cleanMessage($data['message'] ?? null),
                 'source'         => $data['source'] ?? 'manual',
             ]);
         });
+    }
+
+    /**
+     * Confere se o período [início, fim) cruza outra promoção ativa ou
+     * agendada do produto. Devolve a mensagem de erro ou null.
+     * $replacingActive: a nova começa agora e vai substituir a ativa atual,
+     * então só as agendadas contam.
+     */
+    public function overlapError(Product $product, ?Carbon $startsAt, ?Carbon $endsAt, ?int $exceptId = null, bool $replacingActive = false): ?string
+    {
+        $from = $startsAt && $startsAt->isFuture() ? $startsAt : now();
+
+        $other = Promotion::where('product_id', $product->id)
+            ->whereIn('status', $replacingActive ? [Promotion::AGENDADA] : [Promotion::ATIVA, Promotion::AGENDADA])
+            ->when($exceptId, fn ($q) => $q->whereKeyNot($exceptId))
+            // a outra termina depois que a nova começa…
+            ->where(fn ($q) => $q->whereNull('ends_at')->orWhere('ends_at', '>', $from))
+            // …e começa antes de a nova terminar
+            ->when($endsAt, fn ($q) => $q->where(fn ($w) => $w->whereNull('starts_at')->orWhere('starts_at', '<', $endsAt)))
+            ->orderByRaw('starts_at IS NOT NULL')->orderBy('starts_at')
+            ->first();
+
+        if (!$other) {
+            return null;
+        }
+
+        $name = mb_convert_case(mb_strtolower((string) $product->name), MB_CASE_TITLE, 'UTF-8')
+            . ($product->variation_value ? ' (' . $product->variation_value . ')' : '');
+
+        if ($other->isScheduled()) {
+            return sprintf(
+                '%s já tem promoção agendada de %s%s. Mude as datas ou cancele a agendada.',
+                $name,
+                Promotion::humanDateTime($other->starts_at),
+                $other->ends_at ? ' até ' . Promotion::humanDateTime($other->ends_at, false) : ' em diante'
+            );
+        }
+
+        return sprintf(
+            '%s já está em promoção %s. A nova precisa começar depois que a atual terminar (ou retire a atual).',
+            $name,
+            $other->ends_at ? 'até ' . Promotion::humanDateTime($other->ends_at) : 'sem data de fim'
+        );
     }
 
     /** Edita valores, datas ou mensagem de uma promoção ativa ou agendada. */
@@ -256,6 +308,10 @@ class PromotionService
         $startsAt = array_key_exists('starts_at', $data) ? $this->date($data['starts_at']) : $promotion->starts_at;
         $endsAt = array_key_exists('ends_at', $data) ? $this->date($data['ends_at'], true) : $promotion->ends_at;
         $this->assertDates($startsAt, $endsAt);
+
+        if ($error = $this->overlapError($product, $startsAt, $endsAt, $promotion->id)) {
+            throw new InvalidArgumentException($error);
+        }
 
         DB::transaction(function () use ($promotion, $product, $data, $original, $promo, $startsAt, $endsAt) {
             $promotion->fill([
@@ -275,6 +331,35 @@ class PromotionService
             if (round((float) $product->price_original, 2) !== $original && $original !== round((float) $product->price_sale, 2)) {
                 $product->forceFill(['price_original' => $original])->save();
             }
+        });
+
+        return $promotion->refresh();
+    }
+
+    /**
+     * "Começar agora": liga uma agendada antes da data. A promoção ativa do
+     * produto, se houver, é substituída; outra agendada no caminho impede.
+     */
+    public function startNow(Promotion $promotion): Promotion
+    {
+        if ($promotion->status !== Promotion::AGENDADA) {
+            throw new InvalidArgumentException('Só promoções agendadas podem começar antes.');
+        }
+        if ($promotion->ends_at && $promotion->ends_at->isPast()) {
+            throw new InvalidArgumentException('O fim desta promoção já passou.');
+        }
+        if ($error = $this->overlapError($promotion->product, null, $promotion->ends_at, $promotion->id, true)) {
+            throw new InvalidArgumentException($error);
+        }
+
+        DB::transaction(function () use ($promotion) {
+            Promotion::where('product_id', $promotion->product_id)
+                ->where('status', Promotion::ATIVA)
+                ->whereKeyNot($promotion->id)
+                ->get()
+                ->each(fn (Promotion $p) => $this->end($p, 'substituida'));
+
+            $promotion->forceFill(['status' => Promotion::ATIVA, 'starts_at' => now()])->save();
         });
 
         return $promotion->refresh();
@@ -304,16 +389,31 @@ class PromotionService
     {
         $scope = fn (Builder $q) => $userId ? $q->where('user_id', $userId) : $q;
 
-        $started = $scope(Promotion::query())
-            ->where('status', Promotion::AGENDADA)
-            ->where('starts_at', '<=', now())
-            ->update(['status' => Promotion::ATIVA, 'updated_at' => now()]);
-
         $expired = $scope(Promotion::query())
             ->whereIn('status', [Promotion::ATIVA, Promotion::AGENDADA])
             ->whereNotNull('ends_at')
             ->where('ends_at', '<=', now())
             ->update(['status' => Promotion::ENCERRADA, 'ended_reason' => 'vencida', 'ended_at' => now(), 'updated_at' => now()]);
+
+        // Agendadas que chegaram na hora (as vencidas já saíram acima).
+        // Se o produto ainda tiver outra ativa (dados antigos), ela é substituída.
+        $started = 0;
+        $scope(Promotion::query())
+            ->where('status', Promotion::AGENDADA)
+            ->where('starts_at', '<=', now())
+            ->orderBy('starts_at')
+            ->get()
+            ->each(function (Promotion $promo) use (&$started) {
+                DB::transaction(function () use ($promo) {
+                    Promotion::where('product_id', $promo->product_id)
+                        ->where('status', Promotion::ATIVA)
+                        ->whereKeyNot($promo->id)
+                        ->get()
+                        ->each(fn (Promotion $p) => $this->end($p, 'substituida'));
+                    $promo->forceFill(['status' => Promotion::ATIVA])->save();
+                });
+                $started++;
+            });
 
         // Quem desligou "encerrar ao zerar o estoque" fica de fora.
         $keepOpen = Schema::hasColumn('promotion_settings', 'auto_end_out_of_stock')
@@ -606,7 +706,7 @@ class PromotionService
     {
         $stock = (int) ($promotion->product?->stock_quantity ?? 0);
         $validity = $promotion->ends_at
-            ? 'Válido até ' . $promotion->ends_at->format('d/m') . ' ou enquanto durar o estoque (' . $stock . ' un.)'
+            ? 'Válido até ' . $promotion->endsLocal()->format('d/m') . ' ou enquanto durar o estoque (' . $stock . ' un.)'
             : 'Enquanto durar o estoque (' . $stock . ' un.)';
 
         $text = strtr($template, [
@@ -654,19 +754,25 @@ class PromotionService
         return $message === '' ? null : $message;
     }
 
+    /**
+     * Data digitada (texto) é lida no fuso de São Paulo e gravada em UTC.
+     * Campo só com data: o início vale desde 00:00 e o fim até 23:59:59 do dia.
+     */
     private function date($value, bool $endOfDay = false): ?Carbon
     {
         if ($value === null || $value === '') {
             return null;
         }
-        $date = $value instanceof Carbon ? $value->copy() : Carbon::parse($value);
+        if ($value instanceof \DateTimeInterface) {
+            return Carbon::instance($value)->utc();
+        }
 
-        // Campo de data sem hora: a promoção vale até o fim do dia escolhido.
+        $date = Carbon::parse((string) $value, Promotion::tz());
         if ($endOfDay && $date->format('H:i:s') === '00:00:00') {
             $date->endOfDay();
         }
 
-        return $date;
+        return $date->utc();
     }
 
     private function assertDates(?Carbon $startsAt, ?Carbon $endsAt): void

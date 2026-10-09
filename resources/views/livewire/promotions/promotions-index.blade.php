@@ -101,7 +101,7 @@
                                         </button>
                                     @endforeach
                                 </div>
-                                @if(in_array($tab, ['ativas', 'agendadas']))
+                                @if($tab === 'ativas')
                                     <div class="sale-filter-pills sale-sort-pills hidden md:flex">
                                         <span class="sale-filter-pill-label"><i class="bi bi-arrow-down-up"></i></span>
                                         @foreach(['desconto' => 'Desconto', 'validade' => 'Validade', 'recentes' => 'Recentes', 'nome' => 'A-Z'] as $key => $label)
@@ -127,6 +127,9 @@
                                         <i class="bi bi-check2-square"></i><span>Selecionar</span>
                                     </button>
                                 @endif
+                                <button type="button" wire:click="openFlyer" class="sale-action-btn promo-flyer-btn" title="Folheto com as ofertas para o status do WhatsApp e o Instagram">
+                                    <i class="bi bi-images"></i><span>Folheto</span>
+                                </button>
                                 <a href="{{ route('promotions.report') }}" class="sale-action-btn" title="Vendas em promoção: quanto vendeu, desconto dado e lucro">
                                     <i class="bi bi-bar-chart-line"></i><span>Vendas</span>
                                 </a>
@@ -251,6 +254,10 @@
                             <button type="button" wire:click="quickStart({{ $item->id }})" class="btn btn-danger" title="Pôr em promoção agora"><i class="bi bi-fire"></i></button>
                         @elseif($tab === 'encerradas')
                             <button type="button" wire:click="restart({{ $item->id }})" class="btn btn-primary" title="Reativar"><i class="bi bi-arrow-repeat"></i></button>
+                        @elseif($tab === 'agendadas')
+                            <button type="button" wire:click="openEdit({{ $item->id }})" class="btn btn-primary" title="Editar agendamento"><i class="bi bi-pencil-square"></i></button>
+                            <button type="button" wire:click="startNow({{ $item->id }})" wire:confirm="Começar esta promoção agora? O preço muda na hora." class="btn btn-success" title="Começar agora"><i class="bi bi-play-fill"></i></button>
+                            <button type="button" wire:click="cancelScheduled({{ $item->id }})" wire:confirm="Cancelar o agendamento? A promoção não vai começar e o preço não muda." class="btn btn-danger" title="Cancelar agendamento"><i class="bi bi-x-circle"></i></button>
                         @else
                             <button type="button" wire:click="openEdit({{ $item->id }})" class="btn btn-primary" title="Editar"><i class="bi bi-pencil-square"></i></button>
                             <button type="button" wire:click="openShare({{ $item->id }})" class="btn btn-success" title="Enviar no WhatsApp"><i class="bi bi-whatsapp"></i></button>
@@ -289,10 +296,11 @@
                             @elseif($tab === 'encerradas')
                                 <span class="promo-meta-pill"><i class="bi bi-archive"></i> {{ \App\Models\Promotion::ENDED_REASONS[$item->ended_reason] ?? 'Encerrada' }} {{ $item->ended_at?->format('d/m') }}</span>
                             @elseif($item->starts_at && $item->starts_at->isFuture())
-                                <span class="promo-meta-pill"><i class="bi bi-calendar-event"></i> começa {{ $item->starts_at->format('d/m') }}</span>
+                                <span class="promo-meta-pill promo-meta-sched" title="Horário de Brasília"><i class="bi bi-alarm"></i> começa {{ \App\Models\Promotion::humanDateTime($item->starts_at) }}</span>
+                                <span class="promo-meta-pill"><i class="bi bi-flag"></i> {{ $item->ends_at ? 'até ' . \App\Models\Promotion::humanDateTime($item->ends_at, false) : 'sem data de fim' }}</span>
                             @elseif($progress !== null)
                                 <div class="promo-time {{ $progress >= 70 ? 'late' : '' }}">
-                                    <div class="promo-time-text"><span><i class="bi bi-hourglass-split"></i> {{ $timeLeft }}</span><span>até {{ $item->ends_at->format('d/m') }}</span></div>
+                                    <div class="promo-time-text"><span><i class="bi bi-hourglass-split"></i> {{ $timeLeft }}</span><span>até {{ $item->endsLocal()->format('d/m') }}</span></div>
                                     <div class="promo-time-bar"><i style="width: {{ $progress }}%"></i></div>
                                 </div>
                             @else
@@ -328,7 +336,7 @@
             <div class="w-full sm:max-w-md max-h-[95vh] overflow-y-auto bg-white dark:bg-slate-800 rounded-t-3xl sm:rounded-3xl shadow-2xl">
                 <div class="sticky top-0 z-10 flex items-center gap-3 px-5 py-4 border-b border-slate-100 dark:border-slate-700 bg-gradient-to-r from-rose-500/10 via-pink-500/10 to-orange-500/10 backdrop-blur-xl">
                     <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 via-pink-500 to-orange-500 flex items-center justify-center shadow-lg"><i class="bi bi-pencil-square text-white"></i></div>
-                    <h3 class="flex-1 font-bold text-lg text-slate-800 dark:text-slate-100">Editar promoção</h3>
+                    <h3 class="flex-1 font-bold text-lg text-slate-800 dark:text-slate-100">{{ $tab === 'agendadas' ? 'Editar agendamento' : 'Editar promoção' }}</h3>
                     <button type="button" wire:click="$set('showEditModal', false)" class="w-9 h-9 inline-flex items-center justify-center rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-500/10"><i class="bi bi-x-lg"></i></button>
                 </div>
                 @if($editingProduct)
@@ -367,11 +375,8 @@
                             @error('promoPrice') <p class="mt-1.5 text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="grid grid-cols-2 gap-2">
-                            <label class="promo-field"><span>Começa</span><input type="date" wire:model="startsAt"></label>
-                            <label class="promo-field"><span>Termina</span><input type="date" wire:model="endsAt"></label>
-                        </div>
-                        <p class="text-[11px] text-slate-400 -mt-2">Começo vazio = agora. Fim vazio = até acabar o estoque.</p>
+                        @include('livewire.promotions.partials.schedule-fields', ['schedKey' => 'edit'])
+                        @error('dates') <p class="-mt-2 text-xs font-semibold text-red-600">{{ $message }}</p> @enderror
 
                         <div>
                             <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Mensagem própria <span class="font-normal text-slate-400">(opcional)</span></label>
@@ -432,6 +437,8 @@
         .promo-card .promo-card-meta { display: flex; flex-wrap: wrap; justify-content: center; gap: .3em; margin: .4em 0 2.1em; font-size: .66em; }
         .promo-card .promo-meta-pill { display: inline-flex; align-items: center; gap: .25em; max-width: 100%; padding: .2em .6em; border-radius: 999px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
             background: rgba(148,163,184,.15); color: rgb(71 85 105); font-weight: 600; }
+        .promo-card .promo-meta-sched { background: rgba(168,85,247,.14); color: rgb(109 40 217); }
+        .promotions-page .sale-action-btn.promo-flyer-btn { color: #fff !important; border-color: transparent !important; background: linear-gradient(135deg, #ec4899, #a855f7 55%, #3b82f6) !important; box-shadow: 0 4px 12px rgba(168,85,247,.3); }
         .promo-card .promo-meta-wa { background: rgba(34,197,94,.15); color: rgb(21 128 61); }
         .promo-card .promo-time { flex: 1 1 100%; width: 100%; min-width: 0; padding: 0 .3em; }
         .promo-card .promo-time-text { display: flex !important; justify-content: space-between; gap: .6em; font-weight: 700; color: rgb(71 85 105); margin-bottom: .25em; white-space: nowrap; }
@@ -504,6 +511,11 @@
     @if($showShareModal)
         @include('livewire.promotions.partials.settings-modal-styles')
         @include('livewire.promotions.partials.share-modal')
+    @endif
+
+    {{-- Modal: folheto --}}
+    @if($showFlyerModal)
+        @include('livewire.promotions.partials.flyer-modal')
     @endif
 
     {{-- Modal: configurações --}}
@@ -820,6 +832,520 @@
 
         toast(message) {
             window.dispatchEvent(new CustomEvent('notify', { detail: { type: 'success', message, duration: 3000 } }));
+        },
+    }));
+
+    /**
+     * Folheto das promoções: várias ofertas por imagem, em quantas imagens
+     * forem precisas (1/3, 2/3…), nos formatos status, quadrado e feed.
+     * Nunca mostra estoque. As fotos são da mesma origem (storage); se alguma
+     * "sujar" o canvas, refaz sem fotos para o PNG continuar saindo.
+     */
+    Alpine.data('promoFlyer', (data) => ({
+        all: data.cards || [],
+        sort: 'desconto',
+        selected: (data.cards || []).map((c) => c.id),
+        format: 'story',
+        perPage: 6,
+        title: 'Ofertas da semana',
+        titles: ['Ofertas da semana', 'Promoções', 'Só esta semana', 'Queima de estoque', 'Fim de semana de ofertas'],
+        showValidity: true,
+        validity: '',
+        validityEdited: false,
+        showFooter: true,
+        footer: '',
+        theme: 'logo',
+        pages: [],
+        current: 0,
+        busy: false,
+        tainted: false,
+        noPhotos: false,
+        canShare: false,
+        canCopy: false,
+        images: {},
+        token: 0,
+        timer: null,
+        formats: [
+            { key: 'story', label: 'Story', size: '1080×1920', ratio: '9/16' },
+            { key: 'square', label: 'Quadrado', size: '1080×1080', ratio: '1/1' },
+            { key: 'feed', label: 'Feed', size: '1080×1350', ratio: '4/5' },
+        ],
+        themes: {
+            logo:    { name: 'Cores da logo', g: ['#ec4899', '#a855f7', '#3b82f6'], bg1: '#fdf2f8', bg2: '#e0e7ff', price: '#9333ea', price2: '#db2777', badge: ['#ec4899', '#8b5cf6'], foot: '#4c1d95', sub: '#64748b' },
+            rosa:    { name: 'Rosa', g: ['#f43f5e', '#ec4899', '#f97316'], bg1: '#fff1f2', bg2: '#ffedd5', price: '#e11d48', price2: '#f97316', badge: ['#f97316', '#e11d48'], foot: '#881337', sub: '#64748b' },
+            noite:   { name: 'Preto e dourado', g: ['#0f172a', '#312e81', '#a16207'], bg1: '#1e293b', bg2: '#020617', price: '#b45309', price2: '#ca8a04', badge: ['#facc15', '#ca8a04'], foot: '#fde68a', sub: '#94a3b8', dark: true },
+            verde:   { name: 'Verde', g: ['#059669', '#10b981', '#84cc16'], bg1: '#ecfdf5', bg2: '#d1fae5', price: '#047857', price2: '#059669', badge: ['#f59e0b', '#ea580c'], foot: '#064e3b', sub: '#64748b' },
+            azul:    { name: 'Azul', g: ['#1d4ed8', '#3b82f6', '#06b6d4'], bg1: '#eff6ff', bg2: '#e0f2fe', price: '#1d4ed8', price2: '#0891b2', badge: ['#f43f5e', '#db2777'], foot: '#172554', sub: '#64748b' },
+        },
+        layouts: {
+            story:  { 1: [1, 1], 2: [1, 2], 4: [2, 2], 6: [2, 3], 9: [3, 3] },
+            square: { 1: [1, 1], 2: [2, 1], 4: [2, 2], 6: [3, 2], 9: [3, 3] },
+            feed:   { 1: [1, 1], 2: [2, 1], 4: [2, 2], 6: [3, 2], 9: [3, 3] },
+        },
+        FONT: '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+
+        init() {
+            const phone = String(data.phone || '').replace(/\D/g, '').replace(/^55(?=\d{10,11}$)/, '');
+            const fone = phone.length === 11 ? `(${phone.slice(0, 2)}) ${phone.slice(2, 7)}-${phone.slice(7)}`
+                : phone.length === 10 ? `(${phone.slice(0, 2)}) ${phone.slice(2, 6)}-${phone.slice(6)}` : '';
+            this.footer = [data.store || '', fone].filter(Boolean).join(' · ');
+            this.showFooter = this.footer !== '';
+            try {
+                const f = new File([new Blob(['x'], { type: 'image/png' })], 'x.png', { type: 'image/png' });
+                this.canShare = !!(navigator.canShare && navigator.canShare({ files: [f] }));
+            } catch (e) { this.canShare = false; }
+            this.canCopy = !!(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write)
+                && !window.matchMedia('(pointer: coarse)').matches;
+            this.updateValidity();
+            this.render();
+        },
+
+        get list() {
+            const cards = [...this.all];
+            if (this.sort === 'nome') cards.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
+            else cards.sort((a, b) => b.discount - a.discount || a.name.localeCompare(b.name, 'pt-BR'));
+            return cards;
+        },
+        get selectedCards() { return this.list.filter((c) => this.selected.includes(c.id)); },
+        get palette() { return this.themes[this.theme] || this.themes.logo; },
+
+        isOn(id) { return this.selected.includes(id); },
+        toggle(id) {
+            this.selected = this.isOn(id) ? this.selected.filter((x) => x !== id) : [...this.selected, id];
+            this.updateValidity(); this.schedule();
+        },
+        selectAll(on) { this.selected = on ? this.all.map((c) => c.id) : []; this.updateValidity(); this.schedule(); },
+        sortBy(key) { this.sort = key; this.schedule(); },
+        setFormat(key) { this.format = key; this.schedule(); },
+
+        updateValidity() {
+            if (this.validityEdited) return;
+            const cards = this.selectedCards;
+            const ends = cards.map((c) => c.ends);
+            if (cards.length && ends.every(Boolean)) {
+                const min = ends.sort()[0];
+                const [, m, d] = min.split('-');
+                this.validity = `Válido até ${d}/${m} ou enquanto durar o estoque`;
+            } else {
+                this.validity = 'Enquanto durar o estoque';
+            }
+        },
+
+        schedule() {
+            clearTimeout(this.timer);
+            this.timer = setTimeout(() => this.render(), 160);
+        },
+
+        loadImage(src) {
+            if (!src || this.noPhotos) return Promise.resolve(null);
+            if (src in this.images) return Promise.resolve(this.images[src]);
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.decoding = 'async';
+                img.onload = () => { this.images[src] = img; resolve(img); };
+                img.onerror = () => { this.images[src] = null; resolve(null); };
+                img.src = src;
+            });
+        },
+
+        chunks() {
+            const cards = this.selectedCards, n = this.perPage, out = [];
+            for (let i = 0; i < cards.length; i += n) out.push(cards.slice(i, i + n));
+            return out;
+        },
+
+        toBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                try { canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('blob'))), 'image/png'); }
+                catch (e) { reject(e); }
+            });
+        },
+
+        async render() {
+            const token = ++this.token;
+            const groups = this.chunks();
+            const maxOff = Math.max(0, ...this.selectedCards.map((c) => c.discount));
+            const out = [];
+            for (let i = 0; i < groups.length; i++) {
+                const canvas = await this.drawPage(groups[i], i, groups.length, maxOff);
+                if (token !== this.token) return;
+                let blob;
+                try {
+                    blob = await this.toBlob(canvas);
+                } catch (e) {
+                    // Canvas "sujo" (foto de outra origem): refaz tudo sem fotos.
+                    if (!this.noPhotos) { this.noPhotos = true; this.tainted = true; return this.render(); }
+                    return;
+                }
+                out.push({ blob, url: URL.createObjectURL(blob), ids: groups[i].map((c) => c.id) });
+            }
+            if (token !== this.token) { out.forEach((p) => URL.revokeObjectURL(p.url)); return; }
+            this.pages.forEach((p) => URL.revokeObjectURL(p.url));
+            this.pages = out;
+            if (this.current >= out.length) this.current = Math.max(0, out.length - 1);
+            this.$nextTick(() => this.goTo(this.current, false));
+        },
+
+        goTo(i, smooth = true) {
+            const strip = this.$refs.strip;
+            if (!strip || !this.pages.length) return;
+            this.current = Math.max(0, Math.min(this.pages.length - 1, i));
+            strip.scrollTo({ left: strip.clientWidth * this.current + this.current * 16, behavior: smooth ? 'smooth' : 'auto' });
+        },
+        syncPage() {
+            const strip = this.$refs.strip;
+            if (strip && strip.clientWidth) this.current = Math.round(strip.scrollLeft / (strip.clientWidth + 16));
+        },
+
+        // ─── Desenho ───────────────────────────────────────────
+
+        font(weight, size) { return `${weight} ${Math.round(size)}px ${this.FONT}`; },
+
+        fit(ctx, text, weight, size, maxW, min = 12) {
+            ctx.font = this.font(weight, size);
+            while (ctx.measureText(text).width > maxW && size > min) { size -= 1; ctx.font = this.font(weight, size); }
+            return size;
+        },
+
+        wrap(ctx, text, maxWidth, maxLines) {
+            const words = String(text).split(/\s+/).filter(Boolean);
+            const lines = [];
+            let line = '';
+            for (let i = 0; i < words.length; i++) {
+                const test = line ? line + ' ' + words[i] : words[i];
+                if (ctx.measureText(test).width > maxWidth && line) {
+                    lines.push(line); line = words[i];
+                    if (lines.length === maxLines) { line = ''; break; }
+                } else { line = test; }
+            }
+            if (line && lines.length < maxLines) lines.push(line);
+            const used = lines.join(' ').split(/\s+/).length;
+            if (used < words.length && lines.length) {
+                let last = lines[lines.length - 1];
+                while (last && ctx.measureText(last + '…').width > maxWidth) last = last.replace(/\s*\S+$/, '');
+                lines[lines.length - 1] = (last || lines[lines.length - 1]) + '…';
+            }
+            // Palavra sozinha maior que a largura: corta com reticências.
+            return lines.map((l) => {
+                if (ctx.measureText(l).width <= maxWidth) return l;
+                let s = l; while (s.length > 1 && ctx.measureText(s + '…').width > maxWidth) s = s.slice(0, -1);
+                return s + '…';
+            });
+        },
+
+        grad(ctx, x0, y0, x1, y1, stops) {
+            const g = ctx.createLinearGradient(x0, y0, x1, y1);
+            stops.forEach((c, i) => g.addColorStop(stops.length === 1 ? 0 : i / (stops.length - 1), c));
+            return g;
+        },
+
+        async drawPage(cards, index, total, maxOff) {
+            const t = this.palette;
+            const W = 1080, H = { story: 1920, square: 1080, feed: 1350 }[this.format];
+            const story = this.format === 'story', square = this.format === 'square';
+            const canvas = document.createElement('canvas');
+            canvas.width = W; canvas.height = H;
+            const ctx = canvas.getContext('2d');
+            const M = story ? 52 : 40;
+
+            // Fundo
+            ctx.fillStyle = this.grad(ctx, 0, 0, W, H, [t.bg1, t.bg2]);
+            ctx.fillRect(0, 0, W, H);
+            ctx.globalAlpha = t.dark ? .22 : .13;
+            ctx.fillStyle = t.g[0]; ctx.beginPath(); ctx.arc(W - 40, H * .42, story ? 380 : 260, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = t.g[2]; ctx.beginPath(); ctx.arc(30, H - 40, story ? 340 : 230, 0, Math.PI * 2); ctx.fill();
+            ctx.globalAlpha = 1;
+
+            // Faixa do título
+            const hh = story ? 290 : square ? 188 : 220;
+            const bx = M, by = M, bw = W - M * 2;
+            ctx.save();
+            ctx.shadowColor = 'rgba(76,29,149,.28)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 14;
+            ctx.fillStyle = this.grad(ctx, bx, by, bx + bw, by + hh, t.g);
+            ctx.beginPath(); ctx.roundRect(bx, by, bw, hh, story ? 52 : 40); ctx.fill();
+            ctx.restore();
+            // brilhos
+            ctx.save();
+            ctx.beginPath(); ctx.roundRect(bx, by, bw, hh, story ? 52 : 40); ctx.clip();
+            ctx.globalAlpha = .14; ctx.fillStyle = '#fff';
+            ctx.beginPath(); ctx.arc(bx + bw - 90, by + 20, hh * .75, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(bx + 60, by + hh + 30, hh * .5, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+
+            const title = (this.title || 'Ofertas da semana').trim().toUpperCase();
+            const sub = maxOff > 0 ? `ATÉ ${maxOff}% OFF` : '';
+            const tSize = this.fit(ctx, title, 900, story ? 104 : square ? 76 : 86, bw - (total > 1 ? 230 : 110), 34);
+            const sSize = Math.round((story ? 46 : square ? 34 : 38));
+            const blockH = tSize + (sub ? sSize + (story ? 26 : 16) : 0);
+            let ty = by + (hh - blockH) / 2 + tSize * .82;
+            ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.18)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
+            ctx.font = this.font(900, tSize);
+            ctx.fillText(title, W / 2, ty);
+            ctx.restore();
+            if (sub) {
+                ctx.font = this.font(800, sSize);
+                const sw = ctx.measureText(sub).width + sSize * 1.4, sh = sSize * 1.55;
+                const sy = ty + (story ? 26 : 16);
+                ctx.fillStyle = 'rgba(255,255,255,.95)';
+                ctx.beginPath(); ctx.roundRect(W / 2 - sw / 2, sy, sw, sh, sh / 2); ctx.fill();
+                ctx.fillStyle = t.dark ? '#a16207' : t.price;
+                ctx.fillText(sub, W / 2, sy + sh / 2 + sSize * .36);
+            }
+            if (total > 1) {
+                const label = `${index + 1}/${total}`;
+                ctx.font = this.font(800, story ? 36 : 28);
+                const pw = ctx.measureText(label).width + 36, ph = story ? 58 : 46;
+                const px = bx + bw - pw - 22, py = by + 22;
+                ctx.fillStyle = 'rgba(255,255,255,.25)';
+                ctx.beginPath(); ctx.roundRect(px, py, pw, ph, ph / 2); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.textAlign = 'center';
+                ctx.fillText(label, px + pw / 2, py + ph / 2 + (story ? 12 : 10));
+            }
+
+            // Rodapé
+            const lines = [];
+            if (this.showValidity && this.validity.trim()) lines.push('validity');
+            if (this.showFooter && this.footer.trim()) lines.push('footer');
+            const vH = story ? 72 : 54, fH = story ? 44 : 34;
+            const footH = (lines.includes('validity') ? vH : 0) + (lines.includes('footer') ? fH : 0) + (lines.length === 2 ? (story ? 18 : 10) : 0);
+            const gridTop = by + hh + (story ? 40 : 26);
+            const gridBottom = H - M - (footH ? footH + (story ? 30 : 20) : 0);
+            let fy = H - M - footH;
+            if (lines.includes('validity')) {
+                const text = this.validity.trim();
+                const size = this.fit(ctx, text, 700, story ? 34 : 26, W - M * 2 - 120, 16);
+                const tw = ctx.measureText(text).width, iconW = size * 1.3;
+                const pw = tw + iconW + size * 2, ph = vH;
+                const px = (W - pw) / 2;
+                ctx.fillStyle = t.dark ? 'rgba(250,204,21,.16)' : 'rgba(255,255,255,.9)';
+                ctx.beginPath(); ctx.roundRect(px, fy, pw, ph, ph / 2); ctx.fill();
+                const color = t.dark ? '#fde68a' : t.price;
+                // relógio
+                const cx = px + size + iconW / 2 - size * .2, cy = fy + ph / 2, r = size * .5;
+                ctx.strokeStyle = color; ctx.lineWidth = Math.max(2.5, size * .1);
+                ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx, cy - r * .55); ctx.lineTo(cx, cy); ctx.lineTo(cx + r * .45, cy + r * .2); ctx.stroke();
+                ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.font = this.font(700, size);
+                ctx.fillText(text, px + size + iconW + size * .2, cy + size * .36);
+                fy += vH + (lines.length === 2 ? (story ? 18 : 10) : 0);
+            }
+            if (lines.includes('footer')) {
+                const size = this.fit(ctx, this.footer.trim(), 700, story ? 34 : 26, W - M * 2, 14);
+                ctx.fillStyle = t.foot; ctx.textAlign = 'center';
+                ctx.fillText(this.footer.trim(), W / 2, fy + fH * .72);
+            }
+
+            // Grade de ofertas
+            const avail = [1, 2, 4, 6, 9];
+            const slots = cards.length >= this.perPage ? this.perPage : (avail.find((n) => n >= cards.length) || this.perPage);
+            const [cols, rows] = this.layouts[this.format][Math.min(slots, this.perPage)] || this.layouts[this.format][this.perPage];
+            const gap = story ? 28 : 22;
+            const gx = M, gw = W - M * 2, gh = gridBottom - gridTop;
+            const tw = (gw - gap * (cols - 1)) / cols;
+            const th = Math.min((gh - gap * (rows - 1)) / rows, cols === 1 && rows === 1 ? gh : Infinity);
+            const usedH = th * rows + gap * (rows - 1);
+            const oy = gridTop + (gh - usedH) / 2;
+            for (let i = 0; i < cards.length; i++) {
+                const r = Math.floor(i / cols), c = i % cols;
+                const inRow = Math.min(cols, cards.length - r * cols);
+                const rowOffset = (cols - inRow) * (tw + gap) / 2;
+                await this.drawTile(ctx, cards[i], gx + rowOffset + c * (tw + gap), oy + r * (th + gap), tw, th);
+            }
+            ctx.textAlign = 'left';
+            return canvas;
+        },
+
+        async drawTile(ctx, c, x, y, w, h) {
+            const t = this.palette;
+            const R = Math.min(40, w * .08);
+            ctx.save();
+            ctx.shadowColor = 'rgba(15,23,42,.16)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath(); ctx.roundRect(x, y, w, h, R); ctx.fill();
+            ctx.restore();
+
+            // Lado a lado só quando sobra largura de verdade para o texto.
+            const horizontal = w - h >= Math.max(300, w * .45);
+            const pad = Math.max(14, Math.min(w, h) * .055);
+            let img, text;
+            if (horizontal) {
+                const s = h - pad * 2;
+                img = { x: x + pad, y: y + pad, w: s, h: s };
+                text = { x: x + pad * 2 + s, y: y + pad, w: w - s - pad * 3, h: h - pad * 2 };
+            } else {
+                const ih = Math.max(h * .52, h - pad * 2 - Math.max(150, h * .40));
+                img = { x: x + pad, y: y + pad, w: w - pad * 2, h: ih };
+                text = { x: x + pad, y: y + pad + ih, w: w - pad * 2, h: h - ih - pad * 2 };
+            }
+
+            // Foto (ou desenho)
+            ctx.save();
+            ctx.beginPath(); ctx.roundRect(img.x, img.y, img.w, img.h, R * .7); ctx.clip();
+            const photo = await this.loadImage(c.image);
+            ctx.fillStyle = photo ? '#ffffff' : '#f8fafc'; ctx.fillRect(img.x, img.y, img.w, img.h);
+            if (photo && photo.width) {
+                const inset = Math.min(img.w, img.h) * .04;
+                const bw = img.w - inset * 2, bh = img.h - inset * 2;
+                const k = Math.min(bw / photo.width, bh / photo.height);
+                const pw = photo.width * k, ph = photo.height * k;
+                ctx.drawImage(photo, img.x + (img.w - pw) / 2, img.y + (img.h - ph) / 2, pw, ph);
+            } else {
+                this.drawPlaceholder(ctx, img, c);
+            }
+            ctx.restore();
+
+            // Selo -X%
+            const br = Math.max(30, Math.min(78, Math.min(img.w, img.h) * .2));
+            const bxc = img.x + img.w - br * .82, byc = img.y + br * .82;
+            ctx.save();
+            ctx.shadowColor = 'rgba(0,0,0,.22)'; ctx.shadowBlur = 16; ctx.shadowOffsetY = 6;
+            ctx.fillStyle = this.grad(ctx, bxc - br, byc - br, bxc + br, byc + br, t.badge);
+            ctx.beginPath(); ctx.arc(bxc, byc, br, 0, Math.PI * 2); ctx.fill();
+            ctx.restore();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = Math.max(3, br * .08);
+            ctx.beginPath(); ctx.arc(bxc, byc, br - ctx.lineWidth / 2, 0, Math.PI * 2); ctx.stroke();
+            ctx.fillStyle = t.dark ? '#1e293b' : '#fff'; ctx.textAlign = 'center';
+            const off = '-' + c.discount + '%';
+            const os = this.fit(ctx, off, 900, br * .62, br * 1.6, 12);
+            ctx.fillText(off, bxc, byc + os * .18);
+            ctx.font = this.font(800, br * .27);
+            ctx.fillText('OFF', bxc, byc + os * .18 + br * .36);
+
+            // Textos
+            const align = horizontal ? 'left' : 'center';
+            const ax = horizontal ? text.x : text.x + text.w / 2;
+            ctx.textAlign = align;
+            let ns = Math.max(17, Math.min(44, text.w * .075, text.h * .16));
+            let ps = Math.max(26, Math.min(96, text.w * .17, text.h * .34));
+            const ds = ns * .86;
+            ctx.font = this.font(700, ns);
+            // Pouca altura: nome em uma linha só.
+            const maxLines = text.h < ns * 6.2 ? 1 : 2;
+            let nameLines = this.wrap(ctx, c.name, text.w, maxLines);
+            const block = nameLines.length * ns * 1.18 + ds * 1.45 + ps * 1.02;
+            // Sobra pouco espaço: diminui tudo junto.
+            const k = Math.min(1, (text.h * .96) / block);
+            if (k < 1) { ns *= k; ps *= k; ctx.font = this.font(700, ns); nameLines = this.wrap(ctx, c.name, text.w, maxLines); }
+            const ds2 = ns * .86;
+            const total = nameLines.length * ns * 1.18 + ds2 * 1.45 + ps * 1.02;
+            let ty = text.y + (text.h - total) / 2 + ns;
+            if (!horizontal) ty += Math.min(10, (text.h - total) * .15);
+            ctx.fillStyle = '#1e293b';
+            for (const line of nameLines) { ctx.fillText(line, ax, ty); ty += ns * 1.18; }
+
+            // de (riscado)
+            ty += ds2 * .3;
+            const de = 'de ' + c.original;
+            ctx.font = this.font(600, ds2); ctx.fillStyle = '#64748b';
+            ctx.fillText(de, ax, ty);
+            const dw = ctx.measureText('de ').width, ow = ctx.measureText(de).width;
+            const sx = align === 'center' ? ax - ow / 2 + dw : ax + dw;
+            ctx.strokeStyle = '#64748b'; ctx.lineWidth = Math.max(2, ds2 * .09);
+            ctx.beginPath(); ctx.moveTo(sx - 2, ty - ds2 * .32); ctx.lineTo(sx + ow - dw + 2, ty - ds2 * .32); ctx.stroke();
+
+            // por (grande)
+            ty += ps * 1.0;
+            const por = 'por ';
+            ctx.font = this.font(900, ps);
+            let pw = ctx.measureText(c.promo).width;
+            let ls = ps * .36;
+            ctx.font = this.font(700, ls);
+            let lw = ctx.measureText(por).width;
+            if (pw + lw > text.w) {
+                const kk = text.w / (pw + lw);
+                ps *= kk; ls *= kk; ctx.font = this.font(900, ps); pw = ctx.measureText(c.promo).width; ctx.font = this.font(700, ls); lw = ctx.measureText(por).width;
+            }
+            const startX = align === 'center' ? ax - (pw + lw) / 2 : ax;
+            ctx.textAlign = 'left';
+            ctx.fillStyle = '#64748b'; ctx.font = this.font(700, ls);
+            ctx.fillText(por, startX, ty);
+            ctx.fillStyle = this.grad(ctx, startX + lw, 0, startX + lw + pw, 0, [t.price, t.price2]);
+            ctx.font = this.font(900, ps);
+            ctx.fillText(c.promo, startX + lw, ty);
+            ctx.textAlign = 'center';
+        },
+
+        drawPlaceholder(ctx, box, c) {
+            const t = this.palette;
+            ctx.fillStyle = this.grad(ctx, box.x, box.y, box.x + box.w, box.y + box.h, [t.dark ? '#f1f5f9' : t.bg1, t.dark ? '#e2e8f0' : t.bg2]);
+            ctx.fillRect(box.x, box.y, box.w, box.h);
+            // sacola
+            const s = Math.min(box.w, box.h) * .42;
+            const cx = box.x + box.w / 2, cy = box.y + box.h / 2 + s * .08;
+            ctx.save();
+            ctx.globalAlpha = .9;
+            ctx.fillStyle = this.grad(ctx, cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2, t.g);
+            ctx.beginPath(); ctx.roundRect(cx - s / 2, cy - s * .32, s, s * .82, s * .12); ctx.fill();
+            ctx.strokeStyle = t.g[1]; ctx.lineWidth = s * .08; ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.arc(cx, cy - s * .32, s * .22, Math.PI, 0); ctx.stroke();
+            // coração
+            ctx.fillStyle = '#fff';
+            const hs = s * .2, hx = cx, hy = cy + s * .1;
+            ctx.beginPath();
+            ctx.moveTo(hx, hy + hs * .6);
+            ctx.bezierCurveTo(hx - hs * 1.2, hy - hs * .2, hx - hs * .5, hy - hs * 1.1, hx, hy - hs * .45);
+            ctx.bezierCurveTo(hx + hs * .5, hy - hs * 1.1, hx + hs * 1.2, hy - hs * .2, hx, hy + hs * .6);
+            ctx.fill();
+            ctx.restore();
+        },
+
+        // ─── Ações ─────────────────────────────────────────────
+
+        fileName(i) {
+            const n = this.pages.length;
+            return n > 1 ? `folheto-${this.format}-${i + 1}-de-${n}.png` : `folheto-${this.format}.png`;
+        },
+        allIds() { return this.pages.flatMap((p) => p.ids); },
+        record(channel) { try { $wire.recordFlyer(this.allIds(), channel); } catch (e) {} },
+
+        async download() {
+            if (!this.pages.length) return;
+            this.busy = true;
+            for (let i = 0; i < this.pages.length; i++) {
+                const a = document.createElement('a');
+                a.href = this.pages[i].url; a.download = this.fileName(i);
+                document.body.appendChild(a); a.click(); a.remove();
+                if (i < this.pages.length - 1) await new Promise((r) => setTimeout(r, 350));
+            }
+            this.busy = false;
+            this.record('baixar');
+            this.toast(this.pages.length > 1 ? `${this.pages.length} imagens baixadas.` : 'Imagem baixada.');
+        },
+
+        async share() {
+            if (!this.pages.length) return;
+            const files = this.pages.map((p, i) => new File([p.blob], this.fileName(i), { type: 'image/png' }));
+            try {
+                if (navigator.canShare && navigator.canShare({ files })) {
+                    await navigator.share({ files, title: this.title });
+                    this.record('compartilhar');
+                    return;
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') return;
+            }
+            // Sem compartilhar arquivos: baixa as imagens.
+            this.download();
+        },
+
+        async copy() {
+            const page = this.pages[this.current];
+            if (!page) return;
+            try {
+                await navigator.clipboard.write([new ClipboardItem({ 'image/png': page.blob })]);
+                this.record('copiar');
+                this.toast(this.pages.length > 1
+                    ? `Imagem ${this.current + 1} de ${this.pages.length} copiada. Cole com Ctrl+V.`
+                    : 'Imagem copiada. Cole com Ctrl+V no WhatsApp Web.');
+            } catch (e) {
+                this.toast('Não deu para copiar aqui. Baixe a imagem.', 'warning');
+            }
+        },
+
+        toast(message, type = 'success') {
+            window.dispatchEvent(new CustomEvent('notify', { detail: { type, message, duration: 3500 } }));
         },
     }));
 </script>

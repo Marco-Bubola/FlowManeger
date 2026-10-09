@@ -11,7 +11,8 @@ use Illuminate\Support\Facades\Log;
 /**
  * Avisos de promoções no sino (module = 'promotions', categoria Vendas):
  *  - promotion_ending: a promoção acaba nas próximas 48 h (uma vez por promoção);
- *  - promotion_ended: a promoção foi encerrada sozinha (prazo ou estoque zerado).
+ *  - promotion_ended: a promoção foi encerrada sozinha (prazo ou estoque zerado);
+ *  - promotion_started: uma promoção agendada começou (uma vez por promoção).
  * Várias promoções do mesmo usuário na mesma rodada viram um aviso só.
  * Roda junto com promotions:refresh (de hora em hora).
  */
@@ -23,13 +24,35 @@ class PromotionNotificationService
     /** Encerramentos mais antigos que isso não avisam (rotina parada, migração). */
     public const ENDED_WINDOW_HOURS = 24;
 
-    /** @return array{ending:int, ended:int} notificações criadas */
+    /** Agendadas que começaram há mais tempo que isso não avisam. */
+    public const STARTED_WINDOW_HOURS = 24;
+
+    /** @return array{started:int, ending:int, ended:int} notificações criadas */
     public function check(?int $userId = null): array
     {
         return [
+            'started' => $this->notifyStarted($userId),
             'ending' => $this->notifyEndingSoon($userId),
             'ended' => $this->notifyAutoEnded($userId),
         ];
+    }
+
+    /** Promoções agendadas (criadas antes do início) que já começaram. */
+    public function notifyStarted(?int $userId = null): int
+    {
+        $promotions = $this->query($userId)
+            ->where('status', Promotion::ATIVA)
+            ->whereNotNull('starts_at')
+            ->where('starts_at', '<=', now())
+            ->where('starts_at', '>=', now()->subHours(self::STARTED_WINDOW_HOURS))
+            // Só as que foram agendadas (criadas pelo menos 1 min antes do início)
+            ->whereColumn('created_at', '<', 'starts_at')
+            ->orderBy('starts_at')
+            ->get()
+            ->filter(fn (Promotion $p) => $p->created_at && $p->created_at->lt($p->starts_at->copy()->subMinute()))
+            ->values();
+
+        return $this->notifyGrouped($promotions, 'promotion_started');
     }
 
     public function notifyEndingSoon(?int $userId = null): int
@@ -79,9 +102,11 @@ class PromotionNotificationService
             ->groupBy('user_id')
             ->each(function (Collection $group, $userId) use ($type, &$count) {
                 try {
-                    $created = $type === 'promotion_ending'
-                        ? $this->createEnding((int) $userId, $group)
-                        : $this->createEnded((int) $userId, $group);
+                    $created = match ($type) {
+                        'promotion_started' => $this->createStarted((int) $userId, $group),
+                        'promotion_ending' => $this->createEnding((int) $userId, $group),
+                        default => $this->createEnded((int) $userId, $group),
+                    };
                     $count += $created ? 1 : 0;
                 } catch (\Throwable $e) {
                     Log::warning('Falha ao criar notificação de promoção', ['type' => $type, 'error' => $e->getMessage()]);
@@ -89,6 +114,22 @@ class PromotionNotificationService
             });
 
         return $count;
+    }
+
+    protected function createStarted(int $userId, Collection $group): ?ConsortiumNotification
+    {
+        $first = $group->first();
+
+        if ($group->count() === 1) {
+            $title = 'Promoção começou';
+            $message = "A promoção agendada de {$this->name($first)} começou: {$this->money($first->promo_price)}"
+                . ($first->ends_at ? ", até " . Promotion::humanDateTime($first->ends_at, false) : '') . '. Hora de divulgar!';
+        } else {
+            $title = "{$group->count()} promoções começaram";
+            $message = "As promoções agendadas de {$this->names($group)} estão valendo. Que tal mandar o folheto das ofertas?";
+        }
+
+        return $this->create($userId, 'promotion_started', $title, $message, $group, '/promotions', 'medium');
     }
 
     protected function createEnding(int $userId, Collection $group): ?ConsortiumNotification

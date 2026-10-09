@@ -104,21 +104,17 @@
 
         {{-- Validade e salvar --}}
         <div class="px-4 py-3 border-t border-slate-200/70 dark:border-slate-700/60 bg-slate-50/70 dark:bg-slate-800/50 space-y-2.5">
-            <div class="grid grid-cols-2 gap-2">
-                <label class="promo-field">
-                    <span>Começa</span>
-                    <input type="date" wire:model="startsAt">
-                </label>
-                <label class="promo-field">
-                    <span>Termina</span>
-                    <input type="date" wire:model="endsAt">
-                </label>
-            </div>
-            <p class="text-[10px] text-slate-400 -mt-1">Começo vazio = agora. Fim vazio = até acabar o estoque.</p>
+            @include('livewire.promotions.partials.schedule-fields', ['schedKey' => ($mobile ?? false) ? 'm' : 'd'])
             @error('dates') <p class="text-[11px] font-semibold text-red-600">{{ $message }}</p> @enderror
             <button type="button" wire:click="save" wire:loading.attr="disabled" wire:target="save"
                     class="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-rose-500 via-pink-500 to-orange-500 hover:from-rose-600 hover:via-pink-600 hover:to-orange-600 shadow-lg shadow-rose-500/30 transition disabled:opacity-60">
-                <span wire:loading.remove wire:target="save"><i class="bi bi-fire"></i> Pôr {{ count($rows) }} em promoção</span>
+                <span wire:loading.remove wire:target="save">
+                    @if($startMode === 'date' && $startDate)
+                        <i class="bi bi-alarm"></i> Agendar {{ count($rows) }} {{ count($rows) === 1 ? 'promoção' : 'promoções' }}
+                    @else
+                        <i class="bi bi-fire"></i> Pôr {{ count($rows) }} em promoção
+                    @endif
+                </span>
                 <span wire:loading wire:target="save"><i class="bi bi-hourglass-split"></i> Salvando…</span>
             </button>
         </div>

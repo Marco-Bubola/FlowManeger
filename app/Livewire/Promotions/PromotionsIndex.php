@@ -2,11 +2,13 @@
 
 namespace App\Livewire\Promotions;
 
+use App\Livewire\Promotions\Concerns\SchedulesPromotion;
 use App\Models\Client;
 use App\Models\Product;
 use App\Models\Promotion;
 use App\Models\PromotionSetting;
 use App\Services\Products\OrderPdfParser;
+use App\Services\Products\PromotionNotificationService;
 use App\Services\Products\PromotionService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +25,7 @@ use Livewire\WithPagination;
  */
 class PromotionsIndex extends Component
 {
-    use HasNotifications, WithPagination;
+    use HasNotifications, SchedulesPromotion, WithPagination;
 
     public string $tab = 'ativas'; // ativas | sugestoes | agendadas | encerradas
     public string $search = '';
@@ -43,8 +45,6 @@ class PromotionsIndex extends Component
     public ?int $editingProductId = null;
     public $originalPrice = '';
     public $promoPrice = '';
-    public string $startsAt = '';
-    public string $endsAt = '';
     public string $message = '';
 
     // Ações em massa
@@ -60,6 +60,9 @@ class PromotionsIndex extends Component
     public string $shareText = '';
     public string $shareTemplate = ''; // '' = mensagem da promoção ou modelo das configurações
 
+    // Folheto das promoções (imagem com várias ofertas)
+    public bool $showFlyerModal = false;
+
     // Configurações
     public bool $showSettingsModal = false;
     public array $settingsForm = [];
@@ -72,7 +75,13 @@ class PromotionsIndex extends Component
 
     public function mount(PromotionService $service): void
     {
+        // Liga as agendadas que já chegaram na hora, mesmo se a rotina horária atrasar.
         $service->refreshStatuses(Auth::id());
+        try {
+            app(PromotionNotificationService::class)->notifyStarted(Auth::id());
+        } catch (\Throwable $e) {
+            report($e);
+        }
 
         // Vindo do produto (/promotions?produto=ID): abre a promoção dele ou uma nova.
         if ($productId = (int) request()->query('produto')) {
@@ -140,8 +149,7 @@ class PromotionsIndex extends Component
         $this->editingProductId = $promo->product_id;
         $this->originalPrice = $this->fmt((float) $promo->original_price);
         $this->promoPrice = $this->fmt((float) $promo->promo_price);
-        $this->startsAt = $promo->starts_at?->format('Y-m-d') ?? '';
-        $this->endsAt = $promo->ends_at?->format('Y-m-d') ?? '';
+        $this->fillScheduleFrom($promo);
         $this->message = (string) $promo->message;
         $this->showEditModal = true;
     }
@@ -186,26 +194,34 @@ class PromotionsIndex extends Component
             return;
         }
 
+        // "Agora" numa promoção que já está no ar mantém o início original.
+        $current = $this->editingPromotionId ? $this->ownPromotion($this->editingPromotionId) : null;
+        $startsAt = $this->startsAtValue()
+            ?? ($current && $current->status === Promotion::ATIVA ? $current->starts_at : null)
+            ?? ($current ? now() : null);
+
         $data = [
             'original_price' => $this->num($this->originalPrice),
             'promo_price'    => $this->num($this->promoPrice),
-            'starts_at'      => $this->startsAt ?: null,
+            'starts_at'      => $startsAt,
             'ends_at'        => $this->endsAt ?: null,
             'message'        => $this->message,
         ];
 
         try {
-            if ($this->editingPromotionId) {
-                $service->update($this->ownPromotion($this->editingPromotionId), $data);
-                $this->notifySuccess('Promoção atualizada.');
+            if ($current) {
+                $updated = $service->update($current, $data);
+                $this->notifySuccess($updated->isScheduled()
+                    ? 'Promoção agendada para ' . Promotion::humanDateTime($updated->starts_at) . '.'
+                    : 'Promoção atualizada.');
             } else {
                 $promo = $service->start($product, $data);
                 $this->notifySuccess($promo->status === Promotion::AGENDADA
-                    ? 'Promoção agendada para ' . $promo->starts_at->format('d/m') . '.'
+                    ? 'Promoção agendada para ' . Promotion::humanDateTime($promo->starts_at) . '.'
                     : $product->name . ' está em promoção.');
             }
         } catch (InvalidArgumentException $e) {
-            $this->addError('promoPrice', $e->getMessage());
+            $this->addError(str_contains($e->getMessage(), 'promoção') || str_contains($e->getMessage(), 'data') ? 'dates' : 'promoPrice', $e->getMessage());
             return;
         }
 
@@ -225,9 +241,36 @@ class PromotionsIndex extends Component
         $this->selected = [];
     }
 
+    /** Agendada: começa já, sem esperar a data. */
+    public function startNow(int $promotionId, PromotionService $service): void
+    {
+        try {
+            $promo = $service->startNow($this->ownPromotion($promotionId));
+            $this->notifySuccess(ucwords(mb_strtolower((string) $promo->product?->name)) . ' já está em promoção.');
+        } catch (InvalidArgumentException $e) {
+            $this->notifyError($e->getMessage(), 8000);
+        }
+    }
+
+    /** Agendada: cancela antes de começar. */
+    public function cancelScheduled(int $promotionId, PromotionService $service): void
+    {
+        $promo = $this->ownPromotion($promotionId);
+        if ($promo->status !== Promotion::AGENDADA) {
+            return;
+        }
+        $service->end($promo, 'cancelada');
+        $this->selected = array_values(array_diff($this->selected, [$promotionId]));
+        $this->notifySuccess('Agendamento cancelado. O preço de ' . ucwords(mb_strtolower((string) $promo->product?->name)) . ' não muda.');
+    }
+
     public function endPromotion(int $promotionId, PromotionService $service): void
     {
         $promo = $this->ownPromotion($promotionId);
+        if ($promo->status === Promotion::AGENDADA) {
+            $this->cancelScheduled($promotionId, $service);
+            return;
+        }
         $service->end($promo);
         $this->selected = array_values(array_diff($this->selected, [$promotionId]));
         $this->notifySuccess('Promoção retirada. ' . $promo->product?->name . ' volta para ' . $service->money((float) $promo->product?->price_sale) . '.');
@@ -237,7 +280,7 @@ class PromotionsIndex extends Component
     {
         $count = 0;
         foreach ($this->selectedPromotions() as $promo) {
-            $service->end($promo);
+            $service->end($promo, $promo->status === Promotion::AGENDADA ? 'cancelada' : 'manual');
             $count++;
         }
         $this->selected = [];
@@ -270,7 +313,7 @@ class PromotionsIndex extends Component
         }
         $this->bulkAction = $action;
         $this->bulkPercent = '';
-        $this->bulkEndsAt = $this->settings->default_days ? now()->addDays($this->settings->default_days)->format('Y-m-d') : '';
+        $this->bulkEndsAt = $this->settings->default_days ? now(Promotion::tz())->addDays($this->settings->default_days)->format('Y-m-d') : '';
         $this->resetErrorBag();
         $this->showBulkModal = true;
     }
@@ -366,6 +409,73 @@ class PromotionsIndex extends Component
         );
 
         return $service->whatsappUrl($text, $client);
+    }
+
+    // ─── Folheto ──────────────────────────────────────────────────
+
+    public function openFlyer(): void
+    {
+        app(PromotionService::class)->refreshStatuses(Auth::id());
+        $this->showFlyerModal = true;
+    }
+
+    /**
+     * Promoções no ar com estoque, do maior desconto ao menor, para o
+     * folheto. Nunca leva a quantidade em estoque.
+     */
+    public function getFlyerDataProperty(): array
+    {
+        if (!$this->showFlyerModal) {
+            return ['cards' => [], 'store' => '', 'phone' => ''];
+        }
+        $service = app(PromotionService::class);
+        $user = Auth::user();
+
+        $promos = Promotion::ofUser(Auth::id())
+            ->live()
+            ->with('product')
+            ->get()
+            ->filter(fn (Promotion $p) => $p->product)
+            ->sortByDesc(fn (Promotion $p) => $p->discount_percent)
+            ->values();
+
+        return [
+            'cards' => $promos->map(function (Promotion $p) use ($service) {
+                $name = mb_convert_case(mb_strtolower((string) $p->product->name), MB_CASE_TITLE, 'UTF-8');
+                // "400Ml" → "400ml", "Cuide-Se" → "Cuide-se"
+                $name = preg_replace_callback('/(\d)(Ml|Mg|G|Kg|Cm|Un)\b/u', fn ($m) => $m[1] . mb_strtolower($m[2]), $name);
+                $name = preg_replace_callback('/-(\p{Lu})/u', fn ($m) => '-' . mb_strtolower($m[1]), $name);
+
+                return [
+                    'id'       => $p->id,
+                    'name'     => $name . ($p->product->variation_value ? ' · ' . $p->product->variation_value : ''),
+                    // Caminho relativo: mesma origem, senão o canvas fica "sujo" e não vira PNG
+                    'image'    => $p->product->image && $p->product->image !== 'product-placeholder.png' ? parse_url($p->product->image_url, PHP_URL_PATH) : null,
+                    'original' => $service->money((float) $p->original_price),
+                    'promo'    => $service->money((float) $p->promo_price),
+                    'discount' => $p->discount_percent,
+                    'ends'     => $p->ends_at ? $p->endsLocal()->format('Y-m-d') : null,
+                ];
+            })->all(),
+            'store' => (string) ($user?->name ?? ''),
+            'phone' => (string) ($user?->phone ?? ''),
+        ];
+    }
+
+    /** Registra o envio do folheto (baixar, compartilhar ou copiar). */
+    public function recordFlyer(array $ids, string $channel): void
+    {
+        $ids = Promotion::ofUser(Auth::id())->whereIn('id', array_map('intval', $ids))->pluck('id')->all();
+        if (!$ids) {
+            return;
+        }
+        app(PromotionService::class)->recordSend(
+            Auth::id(),
+            $ids,
+            null,
+            in_array($channel, ['compartilhar', 'copiar', 'baixar'], true) ? $channel : 'compartilhar',
+            'folheto'
+        );
     }
 
     // ─── Configurações ────────────────────────────────────────────
@@ -527,7 +637,8 @@ class PromotionsIndex extends Component
             ->select('promotions.*')
             ->when($term !== '', fn ($q) => $q->where(fn ($w) => $w->where('products.name', 'like', "%{$term}%")->orWhere('products.product_code', 'like', "%{$term}%")));
 
-        match ($this->tab === 'encerradas' ? 'recentes' : $this->sort) {
+        match ($this->tab === 'encerradas' ? 'recentes' : ($this->tab === 'agendadas' ? 'inicio' : $this->sort)) {
+            'inicio'   => $query->orderBy('promotions.starts_at')->orderBy('products.name'),
             'validade' => $query->orderByRaw('promotions.ends_at IS NULL')->orderBy('promotions.ends_at'),
             'nome'     => $query->orderBy('products.name'),
             'recentes' => $query->orderByDesc($this->tab === 'encerradas' ? 'promotions.ended_at' : 'promotions.created_at'),
@@ -574,7 +685,7 @@ class PromotionsIndex extends Component
                 'original' => $service->money((float) $p->original_price),
                 'promo'    => $service->money((float) $p->promo_price),
                 'discount' => $p->discount_percent,
-                'validity' => $p->ends_at ? 'Válido até ' . $p->ends_at->format('d/m') : 'Enquanto durar o estoque',
+                'validity' => $p->ends_at ? 'Válido até ' . $p->endsLocal()->format('d/m') : 'Enquanto durar o estoque',
                 'savings'  => $service->money(max(0, (float) $p->original_price - (float) $p->promo_price)),
                 'stock'    => (int) $p->product->stock_quantity,
             ])->values()->all(),
@@ -669,7 +780,7 @@ class PromotionsIndex extends Component
 
     private function resetEditForm(): void
     {
-        $this->reset(['editingPromotionId', 'editingProductId', 'originalPrice', 'promoPrice', 'startsAt', 'endsAt', 'message']);
+        $this->reset(['editingPromotionId', 'editingProductId', 'originalPrice', 'promoPrice', 'startMode', 'startDate', 'startTime', 'endsAt', 'message']);
         $this->resetErrorBag();
     }
 

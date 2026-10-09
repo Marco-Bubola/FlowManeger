@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Promotions;
 
+use App\Livewire\Promotions\Concerns\SchedulesPromotion;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Promotion;
@@ -9,6 +10,7 @@ use App\Models\PromotionSetting;
 use App\Services\Products\PromotionService;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Livewire\Component;
 
@@ -21,7 +23,7 @@ use Livewire\Component;
  */
 class PromotionsCreate extends Component
 {
-    use HasNotifications;
+    use HasNotifications, SchedulesPromotion;
 
     public string $search = '';
     public string $category = '';
@@ -34,13 +36,10 @@ class PromotionsCreate extends Component
      */
     public array $items = [];
 
-    public string $startsAt = '';
-    public string $endsAt = '';
-
     public function mount(): void
     {
         $days = $this->settings->default_days;
-        $this->endsAt = $days ? now()->addDays($days)->format('Y-m-d') : '';
+        $this->endsAt = $days ? now(Promotion::tz())->addDays($days)->format('Y-m-d') : '';
 
         if ($productId = (int) request()->query('produto')) {
             $this->toggleProduct($productId);
@@ -179,25 +178,29 @@ class PromotionsCreate extends Component
 
         $created = 0;
         $scheduled = 0;
+        $startsAt = $this->startsAtValue();
         try {
-            foreach ($this->items as $id => $item) {
-                $promo = $service->start($products->get($id), [
-                    'original_price' => $this->num($item['original']),
-                    'promo_price'    => $this->num($item['promo']),
-                    'starts_at'      => $this->startsAt ?: null,
-                    'ends_at'        => $this->endsAt ?: null,
-                ]);
-                $promo->status === Promotion::AGENDADA ? $scheduled++ : $created++;
-            }
+            // Tudo ou nada: se um produto cruzar outra promoção, nenhuma é criada.
+            DB::transaction(function () use ($service, $products, $startsAt, &$created, &$scheduled) {
+                foreach ($this->items as $id => $item) {
+                    $promo = $service->start($products->get($id), [
+                        'original_price' => $this->num($item['original']),
+                        'promo_price'    => $this->num($item['promo']),
+                        'starts_at'      => $startsAt,
+                        'ends_at'        => $this->endsAt ?: null,
+                    ]);
+                    $promo->status === Promotion::AGENDADA ? $scheduled++ : $created++;
+                }
+            });
         } catch (InvalidArgumentException $e) {
             $this->addError('dates', $e->getMessage());
-            $this->notifyError($e->getMessage());
+            $this->notifyError($e->getMessage(), 8000);
             return null;
         }
 
         $total = $created + $scheduled;
         session()->flash('success', $scheduled
-            ? $total . ' promoção(ões) agendada(s).'
+            ? ($total === 1 ? 'Promoção agendada' : $total . ' promoções agendadas') . ' para ' . Promotion::humanDateTime(\Carbon\Carbon::parse($startsAt, Promotion::tz())) . '.'
             : ($total === 1 ? 'Produto em promoção.' : $total . ' produtos em promoção.'));
 
         return redirect()->route('promotions.index', $scheduled ? ['tab' => 'agendadas'] : []);
