@@ -139,8 +139,6 @@ class Sale extends Model
                 }
 
                 if (($product->tipo ?? 'simples') === 'kit') {
-                    // Publicações que contêm o próprio kit também precisam ressincronizar
-                    $affected->push($product->id);
                     foreach ($product->componentes()->get() as $pc) {
                         $comp = $pc->componente()->first();
                         if (!$comp) {
@@ -179,8 +177,6 @@ class Sale extends Model
                 }
 
                 if (($product->tipo ?? 'simples') === 'kit') {
-                    // Publicações que contêm o próprio kit também precisam ressincronizar
-                    $affected->push($product->id);
                     foreach ($product->componentes()->get() as $pc) {
                         $comp = $pc->componente()->first();
                         if (!$comp) {
