@@ -90,7 +90,7 @@
 
                             <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
                                 <i class="bi bi-info-circle text-green-400 mt-0.5"></i>
-                                <p>PDF, CSV • Máx 10MB • Arquivo com transações do cashbook</p>
+                                <p>PDF, CSV • Máx 10MB • Arquivo com transações do livro caixa</p>
                             </div>
                         </div>
                     </div>

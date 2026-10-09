@@ -301,8 +301,10 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/gestao/lucro', \App\Livewire\Gestao\SalesProfit::class)->name('gestao.profit');
     Route::get('/gestao/lucro-real', \App\Livewire\Gestao\ChannelProfit::class)->name('gestao.channel-profit');
     Route::get('/cashbook/{cashbook}/edit', EditCashbook::class)->name('cashbook.edit');
-    Route::get('/cashbook/upload', UploadCashbook::class)->name('cashbook.upload');
-    Route::get('/cashbook/upload2', \App\Livewire\Cashbook\UploadCashbookMinimal::class)->name('cashbook.upload.minimal');
+    // Importar extrato é uma tela só (upload3); as duas versões antigas (uma de teste e outra
+    // que dava erro) redirecionam para ela.
+    Route::get('/cashbook/upload', fn () => redirect()->route('cashbook.upload2'))->name('cashbook.upload');
+    Route::get('/cashbook/upload2', fn () => redirect()->route('cashbook.upload2'))->name('cashbook.upload.minimal');
     Route::get('/cashbook/upload3', \App\Livewire\Cashbook\UploadCashbook2::class)->name('cashbook.upload2');
 
     // --- Rotas de Cofrinhos (Livewire) ---

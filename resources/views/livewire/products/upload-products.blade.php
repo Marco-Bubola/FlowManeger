@@ -120,7 +120,7 @@
                  role="alert" wire:key="upload-error">
                 <i class="bi bi-exclamation-octagon-fill mt-0.5 text-lg text-rose-600 dark:text-rose-400"></i>
                 <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-rose-800 dark:text-rose-200">Nao foi possivel processar o arquivo</p>
+                    <p class="text-sm font-bold text-rose-800 dark:text-rose-200">Não foi possível processar o arquivo</p>
                     <p class="mt-0.5 text-[13px] leading-relaxed text-rose-700 dark:text-rose-300">{{ $errorMessage }}</p>
                 </div>
                 <button type="button" wire:click="$set('errorMessage', '')"
@@ -153,11 +153,11 @@
                                 <div class="space-y-2">
                                     <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 dark:border-indigo-500/30 bg-white/70 dark:bg-slate-800/70 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300 shadow-sm backdrop-blur-sm">
                                         <i class="bi bi-stars text-sky-500"></i>
-                                        Central de Importacao
+                                        Central de importação
                                     </span>
                                     <div>
-                                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Envie, processe e revise em um fluxo so</h3>
-                                        <p class="text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 max-w-2xl">Interface repaginada para importar arquivos com clareza, feedback visual imediato e leitura confortavel em qualquer dispositivo.</p>
+                                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Envie, processe e revise em um fluxo só</h3>
+                                        <p class="text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 max-w-2xl">Envie o PDF do catálogo ou um CSV, confira os produtos encontrados e salve no estoque.</p>
                                     </div>
                                 </div>
 
@@ -168,11 +168,11 @@
                                     </div>
                                     <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm">
                                         <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Limite</p>
-                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Ate 2 MB</p>
+                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Até 2 MB</p>
                                     </div>
                                     <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm col-span-2 sm:col-span-1">
                                         <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Leitura</p>
-                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Revisao assistida</p>
+                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Revisão assistida</p>
                                     </div>
                                 </div>
                             </div>
@@ -240,7 +240,7 @@
                                                     </h3>
                                                     <p class="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-xl mx-auto">
                                                         <span class="font-bold bg-gradient-to-r from-indigo-600 to-sky-600 bg-clip-text text-transparent">Clique ou arraste seu arquivo aqui</span>
-                                                        para iniciar uma importacao mais limpa, rapida e pronta para revisao.
+                                                        para iniciar uma importação mais limpa, rápida e pronta para revisão.
                                                     </p>
 
                                                     <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
@@ -254,7 +254,7 @@
                                                         </div>
                                                         <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
                                                             <i class="bi bi-shield-check text-indigo-500 mr-3 text-lg"></i>
-                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Validacao guiada</span>
+                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Validação guiada</span>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -350,7 +350,7 @@
                                             <i class="bi bi-check2-square"></i>
                                         </div>
                                         <div>
-                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">3. Revisao</p>
+                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">3. Revisão</p>
                                             <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Ajuste antes de salvar</p>
                                         </div>
                                     </div>
@@ -491,7 +491,7 @@
                                         <i class="bi bi-inbox text-4xl text-purple-400 dark:text-purple-500"></i>
                                     </div>
                                     <h4 class="text-lg font-bold text-slate-700 dark:text-slate-300 mb-2">Nenhum upload realizado</h4>
-                                    <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Envie seu primeiro arquivo para ver o historico aqui</p>
+                                    <p class="text-sm text-slate-500 dark:text-slate-400 text-center">Envie seu primeiro arquivo para ver o histórico aqui</p>
                                 </div>
                                 @endforelse
                             </div>
