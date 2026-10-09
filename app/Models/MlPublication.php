@@ -18,6 +18,9 @@ class MlPublication extends Model
         'ml_item_id',
         'ml_category_id',
         'ml_permalink',
+        'ml_family_name',
+        'ml_user_product_id',
+        'ml_variations',
         'title',
         'description',
         'price',
@@ -44,6 +47,7 @@ class MlPublication extends Model
         'last_sync_at' => 'datetime',
         'ml_attributes' => 'array',
         'pictures' => 'array',
+        'ml_variations' => 'array',
     ];
 
     /*
@@ -186,6 +190,22 @@ class MlPublication extends Model
     public function isSynced(): bool
     {
         return $this->sync_status === 'synced';
+    }
+
+    /**
+     * Anúncio de família/catálogo (User Products): o título só muda no ML.
+     */
+    public function hasLockedTitle(): bool
+    {
+        return filled($this->ml_family_name);
+    }
+
+    /**
+     * Quantidade de variações do anúncio no ML (0 = sem variações).
+     */
+    public function mlVariationCount(): int
+    {
+        return is_array($this->ml_variations) ? count($this->ml_variations) : 0;
     }
 
     /**
@@ -346,7 +366,12 @@ class MlPublication extends Model
     /**
      * Adiciona um produto à publicação
      */
-    public function addProduct(int $productId, int $quantity = 1, ?float $unitCost = null, int $sortOrder = 0): void
+    /**
+     * Com $syncStock = false só grava o vínculo: a quantidade guardada (a do ML)
+     * fica como está e a publicação não é marcada para envio — usado ao ligar
+     * um anúncio importado, para não sobrescrever o estoque do ML sem o dono pedir.
+     */
+    public function addProduct(int $productId, int $quantity = 1, ?float $unitCost = null, int $sortOrder = 0, bool $syncStock = true): void
     {
         $this->products()->attach($productId, [
             'quantity' => $quantity,
@@ -355,30 +380,36 @@ class MlPublication extends Model
         ]);
 
         // Recalcula quantidade disponível
-        $this->syncQuantityToMl();
+        if ($syncStock) {
+            $this->syncQuantityToMl();
+        }
     }
 
     /**
      * Remove um produto da publicação
      */
-    public function removeProduct(int $productId): void
+    public function removeProduct(int $productId, bool $syncStock = true): void
     {
         $this->products()->detach($productId);
         
         // Recalcula quantidade disponível
-        $this->syncQuantityToMl();
+        if ($syncStock) {
+            $this->syncQuantityToMl();
+        }
     }
 
     /**
      * Atualiza quantidade de um produto na publicação
      */
-    public function updateProductQuantity(int $productId, int $quantity): void
+    public function updateProductQuantity(int $productId, int $quantity, bool $syncStock = true): void
     {
         $this->products()->updateExistingPivot($productId, [
             'quantity' => $quantity,
         ]);
 
         // Recalcula quantidade disponível
-        $this->syncQuantityToMl();
+        if ($syncStock) {
+            $this->syncQuantityToMl();
+        }
     }
 }

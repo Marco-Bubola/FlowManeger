@@ -1081,11 +1081,22 @@ class PublishProduct extends Component
                     ?? null;
                 
                 if ($mlItemId) {
-                    $publication->update([
+                    $mlResponse = is_array($result['ml_response'] ?? null) ? $result['ml_response'] : [];
+                    $publication->update(array_merge([
                         'ml_item_id' => $mlItemId,
                         'ml_permalink' => $mlPermalink,
                         'status' => 'active',
-                    ]);
+                        // Acabou de ser criado com esta quantidade: já está em dia
+                        'sync_status' => 'synced',
+                        'last_sync_at' => now(),
+                        'error_message' => null,
+                        // Publicado com family_name (User Products): o ML não aceita
+                        // mudar o título depois; a edição mostra o título travado.
+                        'ml_family_name' => $mlResponse['family_name'] ?? $title,
+                    ], !empty($mlResponse['id']) ? array_filter(
+                        \App\Services\MercadoLivre\MlStockSyncService::itemMeta($mlResponse),
+                        fn ($v) => $v !== null
+                    ) : []));
                     
                     // CORREÇÃO: Vincular TODOS os produtos selecionados em mercadolivre_products
                     // Quando há múltiplos produtos (kit/combo), o ProductService cria apenas para o primeiro

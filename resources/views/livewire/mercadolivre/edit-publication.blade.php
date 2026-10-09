@@ -404,8 +404,20 @@
             <i class="bi bi-exclamation-triangle-fill text-red-500 mt-0.5 flex-shrink-0 text-sm"></i>
             <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-red-800 dark:text-red-200">Erro na última sincronização</p>
-                <p class="text-[10px] text-red-600 dark:text-red-300 mt-0.5">{{ $publication->error_message }}</p>
+                <p class="text-[10px] text-red-600 dark:text-red-300 mt-0.5 break-words">{{ $publication->error_message }}</p>
             </div>
+        </div>
+        @endif
+
+        {{-- Aviso: não deu para ler o ML ao abrir --}}
+        @if($mlFetchWarning)
+        <div class="flex items-start gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-800 shadow-sm">
+            <i class="bi bi-wifi-off text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0 text-sm"></i>
+            <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-semibold text-amber-800 dark:text-amber-200 break-words">{{ $mlFetchWarning }}</p>
+            </div>
+            <button wire:click="refreshFromMl" wire:loading.attr="disabled" wire:target="refreshFromMl"
+                class="flex-shrink-0 text-[10px] font-bold text-amber-700 dark:text-amber-300 underline hover:no-underline">Tentar de novo</button>
         </div>
         @endif
 
@@ -424,6 +436,15 @@
                 </div>
                 <div class="ep-card-body space-y-2">
                     <div>
+                        @if($titleLocked)
+                        <div class="flex items-center justify-between mb-0.5">
+                            <label class="ep-lbl">Título do anúncio</label>
+                            <span class="text-[10px] font-bold text-slate-400 dark:text-slate-500"><i class="bi bi-lock-fill mr-0.5"></i>Definido pelo ML</span>
+                        </div>
+                        <input type="text" value="{{ $title }}" readonly
+                            class="ep-input cursor-not-allowed opacity-80" title="O título só pode ser mudado no Mercado Livre">
+                        <p class="mt-0.5 text-[10px] text-slate-500 dark:text-slate-400 leading-snug"><i class="bi bi-info-circle mr-0.5"></i>O título deste anúncio só pode ser mudado no Mercado Livre (anúncio de catálogo/família). Preço, descrição e estoque continuam editáveis aqui.</p>
+                        @else
                         <div class="flex items-center justify-between mb-0.5">
                             <label class="ep-lbl">Título do anúncio *</label>
                             <span class="text-[10px] font-mono font-bold {{ strlen($title) > 60 ? 'text-red-500' : 'text-slate-400 dark:text-slate-500' }}">{{ strlen($title) }}/60</span>
@@ -435,6 +456,7 @@
                         <p class="mt-0.5 text-[10px] text-red-500 font-semibold"><i class="bi bi-exclamation-triangle mr-0.5"></i>O ML limita títulos a 60 caracteres</p>
                         @endif
                         @error('title')<p class="mt-0.5 text-[10px] text-red-500">{{ $message }}</p>@enderror
+                        @endif
                     </div>
                     <div>
                         <div class="flex items-center justify-between mb-0.5">
@@ -541,9 +563,19 @@
                             <span class="ep-info-value font-mono text-[10px]">{{ $publication->ml_item_id ?? '—' }}</span>
                         </div>
                         <div class="ep-info-row">
-                            <span class="ep-info-label">Disponível</span>
-                            <span class="ep-info-value text-base font-black" style="color: var(--primary-dark, #512da8);">{{ $availableQuantity }}</span>
+                            <span class="ep-info-label">Estoque no ML</span>
+                            <span class="ep-info-value text-base font-black" style="color: var(--primary-dark, #512da8);">{{ $mlQuantity }}</span>
                         </div>
+                        <div class="ep-info-row">
+                            <span class="ep-info-label">Seu estoque dá</span>
+                            <span class="ep-info-value {{ !empty($products) && $availableQuantity !== $mlQuantity ? 'text-amber-600 dark:text-amber-400' : '' }}">{{ !empty($products) ? $availableQuantity . ' un.' : 'sem produto' }}</span>
+                        </div>
+                        @if(count($mlVariations) > 0)
+                        <div class="ep-info-row">
+                            <span class="ep-info-label">Variações</span>
+                            <span class="ep-info-value">{{ count($mlVariations) }}</span>
+                        </div>
+                        @endif
                         <div class="ep-info-row">
                             <span class="ep-info-label">Listagem</span>
                             <span class="ep-info-value">{{ ucwords(str_replace('_', ' ', $listingType)) }}</span>
@@ -578,10 +610,13 @@
                             Atualizar do ML
                         </button>
                         <button wire:click="syncPublication" wire:loading.attr="disabled" wire:target="syncPublication"
-                            class="ep-action-btn bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50 hover:bg-emerald-100">
+                            @if(!empty($products)) wire:confirm="O ML tem {{ $mlQuantity }} unidades, seu estoque dá {{ $availableQuantity }}. Atualizar o ML para {{ $availableQuantity }}?" @endif
+                            @disabled(empty($products))
+                            title="{{ empty($products) ? 'Vincule um produto para enviar o estoque' : 'Envia ao ML a quantidade calculada pelo seu estoque' }}"
+                            class="ep-action-btn disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50 hover:bg-emerald-100">
                             <i class="bi bi-arrow-repeat" wire:loading.remove wire:target="syncPublication"></i>
                             <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="syncPublication"></i>
-                            Sincronizar estoque
+                            Enviar meu estoque ao ML
                         </button>
                         @if($publication->ml_item_id)
                         @php $mlUrl2 = $publication->ml_permalink ?: 'https://articulo.mercadolibre.com.br/' . $publication->ml_item_id; @endphp
@@ -655,6 +690,38 @@
                 </div>
 
                 <div class="ep-card-body space-y-3">
+                    {{-- Estoque local diferente do ML: pergunta antes de sobrescrever --}}
+                    @if($showStockPrompt)
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700">
+                        <div class="flex items-start gap-2 flex-1 min-w-0">
+                            <i class="bi bi-arrow-left-right text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"></i>
+                            <p class="text-[11px] text-amber-900 dark:text-amber-100 leading-snug">
+                                O ML tem <strong>{{ $mlQuantity }}</strong> {{ $mlQuantity === 1 ? 'unidade' : 'unidades' }}, seu estoque dá <strong>{{ $availableQuantity }}</strong>.
+                                Atualizar o ML para {{ $availableQuantity }}?
+                            </p>
+                        </div>
+                        <div class="flex items-center gap-1.5 flex-shrink-0">
+                            <button wire:click="keepMlQuantity"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-white">
+                                Manter {{ $mlQuantity }}
+                            </button>
+                            <button wire:click="syncPublication" wire:loading.attr="disabled" wire:target="syncPublication"
+                                wire:confirm="O ML tem {{ $mlQuantity }} unidades, seu estoque dá {{ $availableQuantity }}. Atualizar o ML para {{ $availableQuantity }}?"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm disabled:opacity-50">
+                                <i class="bi bi-cloud-arrow-up" wire:loading.remove wire:target="syncPublication"></i>
+                                <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="syncPublication"></i>
+                                Atualizar para {{ $availableQuantity }}
+                            </button>
+                        </div>
+                    </div>
+                    @endif
+
+                    @if(count($mlVariations) > 1)
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-snug px-1">
+                        <i class="bi bi-diagram-3 mr-0.5"></i>Este anúncio tem {{ count($mlVariations) }} variações no ML ({{ collect($mlVariations)->pluck('label')->filter()->take(4)->implode(', ') }}{{ count($mlVariations) > 4 ? '…' : '' }}). O estoque de cada variação é ajustado no próprio ML.
+                    </p>
+                    @endif
+
                     {{-- Busca inline --}}
                     @if($showProductSelector)
                     <div class="rounded-xl border-2 border-dashed p-2 space-y-2" style="border-color: var(--card-border, #b39ddb); background: rgba(149,117,205,0.05);">
@@ -674,9 +741,11 @@
                                     onerror="this.style.display='none'">
                                 <div class="flex-1 min-w-0">
                                     <p class="text-[11px] font-bold text-slate-800 dark:text-white truncate">{{ ucwords($sp->name) }}</p>
+                                    @php $spStock = $sp->isKit() ? $sp->availableStock() : (int) $sp->stock_quantity; @endphp
                                     <div class="flex items-center gap-1 mt-0.5">
-                                        <span class="text-[9px] font-mono" style="color: var(--primary, #9575cd);">{{ $sp->product_code }}</span>
-                                        <span class="text-[9px] font-bold text-emerald-600 dark:text-emerald-400">{{ $sp->stock_quantity }} un.</span>
+                                        <span class="text-[9px] font-mono truncate" style="color: var(--primary, #9575cd);">{{ $sp->product_code }}</span>
+                                        @if($sp->isKit())<span class="text-[8px] font-bold px-1 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">KIT</span>@endif
+                                        <span class="text-[9px] font-bold whitespace-nowrap {{ $spStock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500' }}">{{ $spStock }} un.</span>
                                     </div>
                                 </div>
                                 <i class="bi bi-plus-circle opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" style="color: var(--primary, #9575cd);"></i>
@@ -774,7 +843,8 @@
                             <i class="bi bi-box-seam text-xl" style="color: var(--primary, #9575cd);"></i>
                         </div>
                         <p class="text-xs font-bold" style="color: var(--gray-700, #424242);">Nenhum produto vinculado</p>
-                        <p class="text-[10px]" style="color: var(--primary, #9575cd);">Clique em "Adicionar" para vincular produtos</p>
+                        <p class="text-[10px]" style="color: var(--primary, #9575cd);">Clique em "Adicionar" para ligar este anúncio a um produto do seu estoque</p>
+                        <p class="text-[9px] mt-0.5 text-slate-400 dark:text-slate-500">Ligar não muda nada no Mercado Livre; depois você escolhe se envia o seu estoque.</p>
                     </div>
                     @endif
                 </div>

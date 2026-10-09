@@ -405,6 +405,7 @@
                             <span class="hidden sm:inline">Editar</span>
                         </a>
                         <button wire:click="syncToMercadoLivre" wire:loading.attr="disabled" wire:target="syncToMercadoLivre"
+                            @if($stats['total_products'] > 0) wire:confirm="Trazer os dados do ML e enviar ao ML o estoque calculado pelos seus produtos ({{ $stats['total_stock_available'] }} un.)?" @endif
                             class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white font-semibold rounded-lg transition-all shadow-md text-xs whitespace-nowrap">
                             <i class="bi bi-arrow-repeat" wire:loading.class="animate-spin" wire:target="syncToMercadoLivre"></i>
                             <span class="hidden sm:inline" wire:loading.remove wire:target="syncToMercadoLivre">Sincronizar</span>
@@ -603,6 +604,7 @@
                             Editar publicação
                         </a>
                         <button wire:click="syncToMercadoLivre" wire:loading.attr="disabled" wire:target="syncToMercadoLivre"
+                            @if($stats['total_products'] > 0) wire:confirm="Trazer os dados do ML e enviar ao ML o estoque calculado pelos seus produtos ({{ $stats['total_stock_available'] }} un.)?" @endif
                             class="sp-action-btn bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800/50 hover:bg-blue-100">
                             <i class="bi bi-arrow-repeat" wire:loading.class="animate-spin" wire:target="syncToMercadoLivre"></i>
                             Sincronizar com ML

@@ -457,6 +457,34 @@
                                 </div>{{-- /pub-product-slide --}}
                             @endforeach
 
+                            {{-- Anúncio sem produto ligado (ex.: importado do ML) --}}
+                            @if($publication->products->isEmpty())
+                                @php
+                                    $pic = $mainImage;
+                                    if (is_array($pic)) { $pic = $pic['secure_url'] ?? $pic['url'] ?? null; }
+                                @endphp
+                                <div class="pub-product-slide">
+                                    <div class="product-img-area pub-img-area">
+                                        @if($pic)
+                                            <img src="{{ $pic }}" class="product-img" alt="{{ $publication->title }}" style="object-fit: contain; background: #fff;">
+                                        @else
+                                            <div class="w-full h-full flex items-center justify-center" style="background: var(--card-bg);">
+                                                <i class="bi bi-image text-5xl" style="color: var(--card-border);"></i>
+                                            </div>
+                                        @endif
+                                    </div>
+                                    @if($publication->ml_item_id)
+                                    <div class="pt-3 pb-1 flex flex-col items-center gap-1.5 text-center" style="padding-left: 0.75rem; padding-right: 3.25rem;">
+                                        <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-300"><i class="bi bi-link-45deg"></i> Sem produto do estoque ligado</span>
+                                        <button wire:click="openLinkModal({{ $publication->id }})"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-all shadow-sm">
+                                            <i class="bi bi-link-45deg"></i> Ligar a um produto
+                                        </button>
+                                    </div>
+                                    @endif
+                                </div>
+                            @endif
+
                             {{-- Setas de navegação (só quando há mais de 1 produto) --}}
                             @if($publication->products->count() > 1)
                                 <button x-on:click.prevent="slide = (slide - 1 + count) % count"
@@ -542,8 +570,8 @@
                                     <i class="bi bi-tag-fill"></i>
                                     R$ {{ number_format($publication->price, 2, ',', '.') }}
                                 </span>
-                                <span class="badge-price-sale" title="Quantidade disponível">
-                                    <i class="bi bi-stack"></i> {{ $availableQty }}
+                                <span class="badge-price-sale" title="{{ $publication->products->isEmpty() ? 'Quantidade no Mercado Livre' : 'Quantidade disponível pelo seu estoque' }}">
+                                    <i class="bi bi-stack"></i> {{ $publication->products->isEmpty() ? (int) $publication->available_quantity : $availableQty }}
                                 </span>
                             </div>
 
@@ -1012,6 +1040,113 @@
             </div>
         </div>
     </div>
+
+    {{-- ═══════════════════════════════════════════════════════════════
+         MODAL "LIGAR A UM PRODUTO" (depois de importar do ML)
+    ═══════════════════════════════════════════════════════════════ --}}
+    @if($linkPublicationId && $this->linkPublication)
+    @php $lp = $this->linkPublication; $lpPic = $lp->pictures[0] ?? null; if (is_array($lpPic)) { $lpPic = $lpPic['secure_url'] ?? $lpPic['url'] ?? null; } @endphp
+    <div class="fixed inset-0 z-[210] flex items-end sm:items-center justify-center" wire:key="link-modal-{{ $lp->id }}"
+         x-data @keydown.escape.window="$wire.closeLinkModal()">
+        <div class="absolute inset-0 bg-black/50 backdrop-blur-sm cursor-pointer" wire:click="closeLinkModal"></div>
+
+        <div class="relative w-full sm:w-auto sm:min-w-[540px] sm:max-w-xl mx-0 sm:mx-4 bg-white/98 dark:bg-slate-900/98 backdrop-blur-xl rounded-t-3xl sm:rounded-3xl shadow-2xl border border-white/20 dark:border-slate-700/50 overflow-hidden">
+            <div class="sm:hidden mx-auto mt-3 mb-1 w-12 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+
+            {{-- Header --}}
+            <div style="flex-wrap: nowrap;" class="flex items-center justify-between gap-3 px-5 sm:px-6 pt-4 sm:pt-5 pb-4 border-b border-slate-200/60 dark:border-slate-700/60 bg-gradient-to-r from-amber-50/80 to-orange-50/80 dark:from-amber-950/30 dark:to-orange-950/30">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg shadow-amber-500/20 shrink-0">
+                        <i class="bi bi-link-45deg text-white text-xl"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-slate-100">Ligar a um produto</h2>
+                        <p class="text-xs text-slate-500 dark:text-slate-400">Qual produto do seu estoque é vendido neste anúncio?</p>
+                    </div>
+                </div>
+                <button wire:click="closeLinkModal"
+                        class="flex items-center justify-center w-9 h-9 rounded-xl hover:bg-amber-100 dark:hover:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all duration-200 shrink-0">
+                    <i class="bi bi-x-lg text-lg"></i>
+                </button>
+            </div>
+
+            {{-- Body --}}
+            <div class="px-5 sm:px-6 py-4 space-y-3 max-h-[65vh] overflow-y-auto">
+                {{-- Anúncio --}}
+                <div class="flex items-center gap-3 p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                    @if($lpPic)
+                        <img src="{{ $lpPic }}" alt="" class="w-12 h-12 rounded-xl object-contain bg-white shrink-0">
+                    @else
+                        <div class="w-12 h-12 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0"><i class="bi bi-image text-slate-400"></i></div>
+                    @endif
+                    <div class="min-w-0">
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 line-clamp-2">{{ $lp->title }}</p>
+                        <p class="text-[11px] text-slate-500 dark:text-slate-400 font-mono">{{ $lp->ml_item_id }} · {{ (int) $lp->available_quantity }} un. no ML · R$ {{ number_format($lp->price, 2, ',', '.') }}</p>
+                    </div>
+                </div>
+
+                {{-- Busca --}}
+                <div class="relative">
+                    <i class="bi bi-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none"></i>
+                    <input type="text" wire:model.live.debounce.300ms="linkSearch" autofocus
+                           placeholder="Buscar por nome, código ou código de barras..."
+                           class="w-full pl-9 pr-3 py-2.5 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm text-slate-800 dark:text-slate-100 focus:border-amber-400 focus:ring-2 focus:ring-amber-200 dark:focus:ring-amber-900 outline-none">
+                </div>
+
+                <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+                    {{ mb_strlen(trim($linkSearch)) >= 2 ? 'Resultados' : 'Sugestões pelo nome do anúncio' }}
+                </p>
+
+                @php $cands = $this->linkCandidates; @endphp
+                @if($cands->isNotEmpty())
+                    <div class="space-y-1.5">
+                        @foreach($cands as $cand)
+                            @php $candStock = $cand->isKit() ? $cand->availableStock() : (int) $cand->stock_quantity; @endphp
+                            <button type="button" wire:click="linkProduct({{ $cand->id }})" wire:key="cand-{{ $cand->id }}"
+                                    wire:loading.attr="disabled" wire:target="linkProduct"
+                                    class="w-full flex items-center gap-3 p-2.5 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/60 hover:border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/20 transition-all text-left group disabled:opacity-60">
+                                <img src="{{ $cand->image_url }}" alt="" class="w-10 h-10 rounded-xl object-cover shrink-0 bg-slate-100 dark:bg-slate-700"
+                                     onerror="this.style.visibility='hidden'">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">{{ $cand->name }}</p>
+                                    <div class="flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400">
+                                        <span class="font-mono truncate">{{ $cand->product_code }}</span>
+                                        @if($cand->isKit())<span class="px-1.5 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 font-bold text-[10px]">KIT</span>@endif
+                                        <span class="font-semibold whitespace-nowrap {{ $candStock > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500' }}">{{ $candStock }} un.</span>
+                                    </div>
+                                </div>
+                                <span class="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-500 group-hover:bg-amber-600 text-white text-xs font-semibold">
+                                    <i class="bi bi-link-45deg"></i> Ligar
+                                </span>
+                            </button>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-center py-6 text-sm text-slate-400 dark:text-slate-500">
+                        <i class="bi bi-search mr-1"></i>
+                        {{ mb_strlen(trim($linkSearch)) >= 2 ? 'Nenhum produto encontrado' : 'Nenhuma sugestão — digite o nome ou o código do produto' }}
+                    </p>
+                @endif
+
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                    <i class="bi bi-info-circle mr-0.5"></i>Ligar não muda nada no Mercado Livre. Na tela de edição você confere e escolhe se envia o seu estoque.
+                </p>
+            </div>
+
+            {{-- Footer --}}
+            <div class="px-5 sm:px-6 pb-5 pt-3 flex items-center justify-between gap-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                <a href="{{ route('mercadolivre.publications.edit', $lp->id) }}"
+                   class="text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-amber-600">
+                    <i class="bi bi-pencil-square"></i> Abrir edição
+                </a>
+                <button wire:click="closeLinkModal"
+                        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold transition-all text-sm">
+                    Ligar depois
+                </button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- ═══════════════════════════════════════════════════════════════
          MODAL DE DICAS DE PUBLICAÇÃO

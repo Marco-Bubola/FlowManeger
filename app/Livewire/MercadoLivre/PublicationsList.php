@@ -4,6 +4,7 @@ namespace App\Livewire\MercadoLivre;
 
 use App\Services\MercadoLivre\MlStockSyncService;
 use App\Models\MlPublication;
+use App\Models\Product;
 use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -27,6 +28,10 @@ class PublicationsList extends Component
     public int $syncedCount = 0;
     public int $totalToSync = 0;
     public array $syncErrors = [];
+
+    // Modal "Ligar a um produto" (depois de importar sem achar o produto)
+    public ?int $linkPublicationId = null;
+    public string $linkSearch = '';
     
     protected $queryString = [
         'search' => ['except' => ''],
@@ -250,17 +255,120 @@ class PublicationsList extends Component
     }
     
     /**
-     * Importa um anúncio do ML para o sistema.
+     * Importa um anúncio do ML para o sistema. Tenta ligar sozinho a um produto
+     * (SKU, GTIN ou título); se não achar, abre "Ligar a um produto".
      */
     public function importFromMl(string $mlItemId): void
     {
         $syncService = app(MlStockSyncService::class);
         $result = $syncService->createPublicationFromMlItem(Auth::id(), $mlItemId);
-        if ($result['success']) {
-            \Illuminate\Support\Facades\Cache::forget('ml_only_on_ml_' . Auth::id());
-            $this->notifySuccess($result['message'] . '. Você pode editar na lista.');
-        } else {
+        if (!$result['success']) {
             $this->notifyError($result['message']);
+            return;
+        }
+
+        \Illuminate\Support\Facades\Cache::forget('ml_only_on_ml_' . Auth::id());
+        $publication = $result['publication'];
+
+        if (!empty($result['linked_product'])) {
+            $how = match ($result['match']) {
+                'sku' => 'pelo SKU',
+                'gtin' => 'pelo código de barras',
+                'title' => 'pelo nome',
+                default => '',
+            };
+            $this->notifySuccess("Importado e ligado ao produto \"{$result['linked_product']->name}\" {$how}. O estoque do ML não foi alterado.");
+            return;
+        }
+
+        if ($publication && $publication->products()->count() === 0) {
+            $this->openLinkModal($publication->id);
+            $this->notifySuccess('Anúncio importado. Agora escolha o produto do seu estoque.');
+            return;
+        }
+
+        $this->notifySuccess($result['message']);
+    }
+
+    public function openLinkModal(int $publicationId): void
+    {
+        $pub = MlPublication::where('id', $publicationId)->where('user_id', Auth::id())->first();
+        if (!$pub) {
+            $this->notifyError('Publicação não encontrada');
+            return;
+        }
+        $this->linkPublicationId = $pub->id;
+        $this->linkSearch = '';
+    }
+
+    public function closeLinkModal(): void
+    {
+        $this->linkPublicationId = null;
+        $this->linkSearch = '';
+    }
+
+    /**
+     * Publicação aberta no modal de vínculo.
+     */
+    public function getLinkPublicationProperty(): ?MlPublication
+    {
+        if (!$this->linkPublicationId) {
+            return null;
+        }
+        return MlPublication::with('products')->where('id', $this->linkPublicationId)->where('user_id', Auth::id())->first();
+    }
+
+    /**
+     * Busca (nome, código, código de barras) ou, sem busca, sugestões pelo título do anúncio.
+     */
+    public function getLinkCandidatesProperty()
+    {
+        $pub = $this->linkPublication;
+        if (!$pub) {
+            return collect();
+        }
+        $exclude = $pub->products->pluck('id')->all();
+        $term = trim($this->linkSearch);
+
+        if (mb_strlen($term) >= 2) {
+            return Product::where('user_id', Auth::id())
+                ->where('status', 'ativo')
+                ->whereNotIn('id', $exclude)
+                ->where(function ($q) use ($term) {
+                    $q->where('name', 'like', "%{$term}%")
+                      ->orWhere('product_code', 'like', "%{$term}%")
+                      ->orWhere('barcode', 'like', "%{$term}%");
+                })
+                ->orderBy('name')
+                ->limit(12)
+                ->get();
+        }
+
+        return app(MlStockSyncService::class)->suggestProductsForTitle(Auth::id(), (string) $pub->title, $exclude);
+    }
+
+    /**
+     * Liga a publicação ao produto escolhido. Só o vínculo: o estoque do ML
+     * não muda aqui (a página de edição pergunta antes de enviar).
+     */
+    public function linkProduct(int $productId): void
+    {
+        $pub = $this->linkPublication;
+        $product = Product::where('id', $productId)->where('user_id', Auth::id())->first();
+        if (!$pub || !$product) {
+            $this->notifyError('Produto ou publicação não encontrado');
+            return;
+        }
+
+        try {
+            if (!$pub->products->contains('id', $product->id)) {
+                $pub->addProduct($product->id, 1, (float) $product->price, $pub->products->count(), false);
+            }
+            $this->closeLinkModal();
+            $this->notifySuccess("Ligado ao produto \"{$product->name}\". O estoque do ML não foi alterado — confira em Editar.");
+        } catch (\Throwable $e) {
+            \Log::error('Erro ao ligar produto à publicação', ['publication_id' => $pub->id, 'product_id' => $productId, 'error' => $e->getMessage()]);
+            $this->notifyError('Erro ao ligar produto: ' . $e->getMessage());
         }
     }
     
