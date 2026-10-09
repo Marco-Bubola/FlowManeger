@@ -238,6 +238,9 @@
                         ->where(fn ($q) => $q->where('status', 'quoted')->orWhere(fn ($q) => $q->unseenByClient()))
                         ->count()
                     : 0;
+                $portalFavAlerts = Auth::guard('portal')->check() && \App\Services\Portal\WishlistService::ready()
+                    ? app(\App\Services\Portal\WishlistService::class)->unseenAlertsForRequest(Auth::guard('portal')->user())->count()
+                    : 0;
             @endphp
 
             <div class="pt-2 pb-1">
@@ -251,6 +254,13 @@
             </a>
             <a href="{{ route('portal.products') }}" class="sidebar-link {{ request()->routeIs('portal.products') ? 'active' : '' }}">
                 <i class="fas fa-boxes-stacked w-4 text-center text-sm flex-shrink-0"></i><span>Catálogo de Produtos</span>
+            </a>
+            <a href="{{ route('portal.favorites') }}" class="sidebar-link {{ request()->routeIs('portal.favorites') ? 'active' : '' }}">
+                <i class="fas fa-heart w-4 text-center text-sm flex-shrink-0"></i>
+                <span class="flex-1">Meus Favoritos</span>
+                @if($portalFavAlerts > 0)
+                <span class="w-5 h-5 rounded-full text-[9px] font-black flex items-center justify-center flex-shrink-0" style="background:#ec4899;color:#fff">{{ $portalFavAlerts }}</span>
+                @endif
             </a>
 
             <div class="pt-3 pb-1">
@@ -348,6 +358,7 @@
         {{-- Page content --}}
         <main class="flex-1 overflow-y-auto px-4 lg:px-6 py-4 pb-6">
             @include('portal.partials.order-updates', ['variant' => 'app'])
+            @include('portal.partials.wishlist-updates', ['variant' => 'app'])
             {{ $slot }}
         </main>
 
@@ -411,6 +422,18 @@
             <span>Pedidos</span>
         </a>
 
+        {{-- Favoritos --}}
+        <a href="{{ route('portal.favorites') }}"
+           class="bottom-tab {{ request()->routeIs('portal.favorites') ? 'active' : '' }}">
+            <div class="relative">
+                <i class="fas fa-heart"></i>
+                @if($portalFavAlerts > 0)
+                <span class="absolute -top-1.5 -right-2 w-4 h-4 rounded-full text-[8px] font-black flex items-center justify-center" style="background:#ec4899;color:#fff">{{ $portalFavAlerts }}</span>
+                @endif
+            </div>
+            <span>Favoritos</span>
+        </a>
+
         {{-- Perfil --}}
         <a href="{{ route('portal.profile') }}"
            class="bottom-tab {{ request()->routeIs('portal.profile') ? 'active' : '' }}">
@@ -434,5 +457,20 @@ function closeSidebar() {
 }
 </script>
 @stack('scripts')
+@auth('portal')
+<script>
+// Favoritos salvos no aparelho antes do login/cadastro entram na conta.
+(function () {
+    try {
+        var ids = (JSON.parse(localStorage.getItem('portal_favs') || '[]') || []).map(Number).filter(Boolean);
+        if (!ids.length) return;
+        fetch(@js(route('portal.favorites.sync')), { method: 'POST', credentials: 'same-origin', headers: {
+            'Content-Type': 'application/json', 'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+        }, body: JSON.stringify({ ids: ids }) }).then(function (r) { if (r.ok) localStorage.setItem('portal_favs', '[]'); });
+    } catch (e) {}
+})();
+</script>
+@endauth
 </body>
 </html>

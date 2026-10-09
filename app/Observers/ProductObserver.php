@@ -20,6 +20,21 @@ class ProductObserver
         // Verifica se o estoque foi alterado
         if ($product->wasChanged('stock_quantity')) {
             $this->handleStockChange($product);
+            $this->notifyRestock($product);
+        }
+    }
+
+    /** Estoque saiu de 0 para mais de 0: avisos "Avise-me" de quem favoritou no portal. */
+    protected function notifyRestock(Product $product): void
+    {
+        if ((int) $product->getOriginal('stock_quantity') > 0 || (int) $product->stock_quantity <= 0) {
+            return;
+        }
+
+        try {
+            app(\App\Services\Portal\WishlistService::class)->productRestocked($product);
+        } catch (\Throwable $e) {
+            \Log::warning('Avise-me (estoque) falhou: ' . $e->getMessage(), ['product_id' => $product->id]);
         }
     }
 

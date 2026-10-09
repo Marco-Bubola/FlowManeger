@@ -19,6 +19,7 @@
         'massa' => ['label' => 'Edição em massa', 'icon' => 'bi-pencil-square', 'url' => route('products.bulk-edit')],
         'scanner' => ['label' => 'Scanner', 'icon' => 'bi-upc-scan', 'url' => route('products.barcode-scanner')],
         'variacoes' => ['label' => 'Estoque das variações', 'icon' => 'bi-diagram-3', 'url' => route('products.variation-stock')],
+        'interessados' => ['label' => 'Clientes interessados', 'icon' => 'bi-heart', 'url' => route('products.interested')],
     ];
     $headerIcon = str_contains($icon, ' ') ? $icon : 'bi ' . $icon;
 @endphp

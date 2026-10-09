@@ -157,6 +157,11 @@ Route::prefix('portal')->name('portal.')->group(function () {
     Route::get('/catalogo/{userId?}', [ClientPortalController::class, 'publicCatalog'])->name('catalog');
     // Entrada do portal sem login: redireciona autenticados ao dashboard, convidados ao catálogo (via cookie) ou login
     Route::get('/', [ClientPortalController::class, 'portalHome'])->name('home');
+    // Meus favoritos (sem login: ids do aparelho pela URL) e "Avise-me". O JSON confere o login no controller.
+    Route::get('/favoritos', [\App\Http\Controllers\PortalWishlistController::class, 'index'])->name('favorites');
+    Route::post('/favoritos/alternar', [\App\Http\Controllers\PortalWishlistController::class, 'toggle'])->name('favorites.toggle');
+    Route::post('/favoritos/sincronizar', [\App\Http\Controllers\PortalWishlistController::class, 'sync'])->name('favorites.sync');
+    Route::patch('/favoritos/{product}/avisos', [\App\Http\Controllers\PortalWishlistController::class, 'notify'])->whereNumber('product')->name('favorites.notify');
 });
 
 Route::middleware('guest:portal')->prefix('portal')->name('portal.')->group(function () {
@@ -249,6 +254,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/products/bulk-edit', BulkEditProducts::class)->name('products.bulk-edit');
     Route::get('/products/barcode-scanner', BarcodeScanner::class)->name('products.barcode-scanner');
     Route::get('/products/variation-stock', \App\Livewire\Products\VariationStockFix::class)->name('products.variation-stock');
+    Route::get('/products/interessados', \App\Livewire\Products\InterestedClients::class)->name('products.interested');
 
     // --- Promoções ---
     Route::get('/promotions', PromotionsIndex::class)->name('promotions.index');

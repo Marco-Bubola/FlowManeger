@@ -10,6 +10,12 @@
             ->where(fn ($q) => $q->where('status', 'quoted')->orWhere(fn ($q) => $q->unseenByClient()))
             ->count()
         : 0;
+    // Favoritos: na conta quando logado; sem login, no aparelho (localStorage).
+    $portalClient = Auth::guard('portal')->user();
+    $wishReady = \App\Services\Portal\WishlistService::ready();
+    $favIds = $portalClient && $wishReady ? app(\App\Services\Portal\WishlistService::class)->favoriteIds($portalClient) : [];
+    $favAlerts = $portalClient && $wishReady ? app(\App\Services\Portal\WishlistService::class)->unseenAlertsForRequest($portalClient)->count() : 0;
+    $favoritesUrl = route('portal.favorites', $portalClient ? [] : array_filter(['loja' => $ownerId]));
 @endphp
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -82,6 +88,9 @@
         .ml-acc-menu a:hover, .ml-acc-menu button:hover { background: var(--ml-blue-soft); color: var(--ml-blue-dark); }
         .ml-acc-menu i { width: 18px; text-align: center; color: var(--ml-blue); }
         .ml-acc-menu form { margin: 4px 0 0; padding-top: 4px; border-top: 1px solid var(--ml-line); }
+        .ml-acc-badge.pink { background: #ec4899; }
+        .ml-fav-head { display: none; }
+        @media (min-width: 640px) { .ml-fav-head { display: flex; } }
         .ml-acc-badge { margin-left: auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: var(--ml-blue); color: #fff; font-size: 11px; font-weight: 800; display: inline-flex; align-items: center; justify-content: center; }
 
         main { padding-bottom: 96px; }
@@ -139,6 +148,51 @@ document.addEventListener('alpine:init', () => {
         },
         init() { this.load(); },
     });
+
+    // Favoritos (coração). Sem login: só no aparelho; com login: na conta, e o
+    // que estava no aparelho entra na conta na primeira página depois do login.
+    Alpine.store('favs', {
+        ids: @js($favIds),
+        logged: @js((bool) $portalClient),
+        toggleUrl: @js(route('portal.favorites.toggle')),
+        syncUrl: @js(route('portal.favorites.sync')),
+        local() {
+            try { return (JSON.parse(localStorage.getItem('portal_favs') || '[]') || []).map(Number).filter(Boolean); } catch (e) { return []; }
+        },
+        saveLocal(ids) {
+            try { localStorage.setItem('portal_favs', JSON.stringify(ids)); } catch (e) {}
+        },
+        post(url, body) {
+            return fetch(url, { method: 'POST', credentials: 'same-origin', headers: {
+                'Content-Type': 'application/json', 'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+            }, body: JSON.stringify(body) }).then(r => r.ok ? r.json() : Promise.reject(r));
+        },
+        init() {
+            if (!this.logged) { this.ids = this.local(); return; }
+            const pending = this.local().filter(id => !this.ids.includes(id));
+            if (pending.length) {
+                this.ids = [...this.ids, ...pending];
+                this.post(this.syncUrl, { ids: pending })
+                    .then(d => { this.ids = d.ids; this.saveLocal([]); })
+                    .catch(() => {});
+            } else if (this.local().length) {
+                this.saveLocal([]);
+            }
+        },
+        get count() { return this.ids.length; },
+        has(id) { return this.ids.includes(Number(id)); },
+        toggle(id) {
+            id = Number(id);
+            const on = !this.has(id);
+            this.ids = on ? [...this.ids, id] : this.ids.filter(x => x !== id);
+            if (!this.logged) { this.saveLocal(this.ids); return on; }
+            this.post(this.toggleUrl, { product_id: id, on })
+                .then(d => { this.ids = d.ids; })
+                .catch(() => { this.ids = on ? this.ids.filter(x => x !== id) : [...this.ids, id]; });
+            return on;
+        },
+    });
 });
 </script>
 
@@ -157,12 +211,14 @@ document.addEventListener('alpine:init', () => {
                     <div class="ml-acc" x-data="{ open: false }" @click.outside="open = false" @keydown.escape.window="open = false">
                         <button type="button" class="ml-login" @click="open = !open" :aria-expanded="open" aria-haspopup="menu">
                             <i class="fas fa-circle-user"></i><span>Minha conta</span>
-                            @if($orderAlerts > 0)<span class="ml-acc-dot" aria-label="Novidades nos pedidos"></span>@endif
+                            @if($orderAlerts + $favAlerts > 0)<span class="ml-acc-dot" aria-label="Novidades na sua conta"></span>@endif
                         </button>
                         <div class="ml-acc-menu" x-show="open" x-cloak x-transition.opacity role="menu">
                             <p class="ml-acc-name">{{ Str::limit(Auth::guard('portal')->user()->name, 28) }}</p>
                             <a href="{{ route('portal.quotes') }}" role="menuitem"><i class="fas fa-box"></i> Meus pedidos
                                 @if($orderAlerts > 0)<span class="ml-acc-badge">{{ $orderAlerts }}</span>@endif</a>
+                            <a href="{{ route('portal.favorites') }}" role="menuitem" data-testid="menu-favorites"><i class="fas fa-heart"></i> Meus favoritos
+                                @if($favAlerts > 0)<span class="ml-acc-badge pink">{{ $favAlerts }}</span>@endif</a>
                             <a href="{{ route('portal.sales') }}" role="menuitem"><i class="fas fa-bag-shopping"></i> Minhas compras</a>
                             <a href="{{ route('portal.profile') }}" role="menuitem"><i class="fas fa-user-pen"></i> Meus dados</a>
                             <a href="{{ route('portal.dashboard') }}" role="menuitem"><i class="fas fa-house"></i> Painel da conta</a>
@@ -175,6 +231,10 @@ document.addEventListener('alpine:init', () => {
                 @else
                     <a href="{{ route('portal.login') }}" class="ml-login"><i class="fas fa-circle-user"></i><span>Entrar</span></a>
                 @endif
+                <a href="{{ $favoritesUrl }}" class="ml-icon-btn ml-fav-head" x-data aria-label="Meus favoritos" title="Meus favoritos">
+                    <i class="fas fa-heart"></i>
+                    <span class="ml-count" x-show="$store.favs.count > 0" x-text="$store.favs.count" x-cloak></span>
+                </a>
                 @if($cartHref)
                 <a href="{{ $cartHref }}" class="ml-icon-btn" x-data aria-label="Abrir carrinho">
                     <i class="fas fa-cart-shopping"></i>
@@ -193,6 +253,7 @@ document.addEventListener('alpine:init', () => {
 
 <main>
     @include('portal.partials.order-updates', ['variant' => 'ml'])
+    @include('portal.partials.wishlist-updates', ['variant' => 'ml'])
     {{ $slot }}
 </main>
 

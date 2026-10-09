@@ -28,7 +28,7 @@
             'old'     => $promo ? (float) $promo->original_price : null,
             'pct'     => $promo ? (int) $promo->discount_percent : null,
             'ends'    => $endsIn,
-            'stock'   => (int) $p->stock_quantity,
+            'stock'   => min((int) $p->stock_quantity, 10), // teto: o cliente não vê o estoque real
             'img'     => $imgs[0] ?? null,
             'imgs'    => $imgs,
             'cat'     => $p->category?->name,
@@ -42,6 +42,8 @@
     $all = collect();
     foreach ($offers as $o) { $all[$o->id] = $info($o); }
     foreach ($products as $p) { $all[$p->id] = $info($p); }
+    $focus = $focus ?? null;
+    if ($focus && ! isset($all[$focus->id])) { $all[$focus->id] = $info($focus); }
 
     $phone = preg_replace('/\D+/', '', (string) ($store?->phone ?? ''));
     if ($phone && strlen($phone) <= 11) { $phone = '55' . $phone; }
@@ -113,6 +115,16 @@
     .ml-off-flag { position: absolute; top: 8px; left: 8px; background: var(--ml-green); color: #fff; font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 4px; }
     .ml-add { position: absolute; right: 8px; bottom: 8px; width: 36px; height: 36px; border-radius: 50%; border: 0; background: #fff; color: var(--ml-blue); box-shadow: 0 2px 8px rgba(0,0,0,.18); display: flex; align-items: center; justify-content: center; font-size: 15px; cursor: pointer; transition: transform .15s, background .15s; }
     .ml-add:active { transform: scale(.9); }
+    .ml-fav { position: absolute; right: 8px; top: 8px; z-index: 2; width: 34px; height: 34px; border-radius: 50%; border: 0; background: rgba(255,255,255,.94); color: #8c8c8c; box-shadow: 0 1px 5px rgba(0,0,0,.16); display: flex; align-items: center; justify-content: center; font-size: 16px; cursor: pointer; transition: transform .15s, color .15s; }
+    .ml-fav:active { transform: scale(.88); }
+    .ml-fav.on { color: #ec4899; }
+    .ml-fav.on i { animation: mlPop .3s ease; }
+    @keyframes mlPop { 0% { transform: scale(.6); } 60% { transform: scale(1.25); } 100% { transform: scale(1); } }
+    .ml-rail .ml-fav { width: 30px; height: 30px; font-size: 14px; right: 6px; top: 6px; }
+    .ml-sheet-fav { width: 40px; height: 40px; border: 0; background: transparent; border-radius: 50%; font-size: 20px; color: #8c8c8c; cursor: pointer; }
+    .ml-sheet-fav.on { color: #ec4899; }
+    .ml-sheet-acts { display: flex; align-items: center; gap: 2px; }
+    .ml-chip.fav i { color: #ec4899; }
     .ml-add.in { background: var(--ml-blue); color: #fff; }
     .ml-imgs { position: absolute; left: 8px; bottom: 8px; background: rgba(0,0,0,.55); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 7px; border-radius: 999px; display: inline-flex; gap: 4px; align-items: center; }
     .ml-card-body { padding: 10px 12px 14px; display: flex; flex-direction: column; gap: 3px; flex: 1; }
@@ -261,7 +273,7 @@
 </style>
 @endpush
 
-<div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap))" @keydown.escape.window="close(); cartOpen = false" @open-cart.window="openCart()">
+<div class="ml-wrap" x-data="mlCatalog(@js($all), @js($cartUrl), @js($stockMap), @js($focus?->id))" @keydown.escape.window="close(); cartOpen = false" @open-cart.window="openCart()">
 
     @if($showOffers)
         <section class="ml-hero">
@@ -333,6 +345,10 @@
                 @if($onlyOffers)<i class="fas fa-xmark"></i>@endif
             </a>
         @endif
+        <a href="{{ Auth::guard('portal')->check() ? route('portal.favorites') : route('portal.favorites', ['loja' => $owner]) }}" class="ml-chip fav" x-data data-testid="chip-favorites">
+            <i class="fas fa-heart"></i> Favoritos
+            <span x-show="$store.favs.count > 0" x-cloak x-text="'(' + $store.favs.count + ')'"></span>
+        </a>
         <form method="GET" action="{{ route('portal.catalog', ['userId' => $owner]) }}" class="ml-chip {{ $sort ? 'on' : '' }}">
             @if($search)<input type="hidden" name="search" value="{{ $search }}">@endif
             @if($category)<input type="hidden" name="category" value="{{ $category }}">@endif
@@ -393,7 +409,13 @@
                  x-transition:enter="ml-anim-in" x-transition:leave="ml-anim-out">
                 <div class="ml-sheet-grip">
                     <small x-text="p.stock <= 3 ? 'Últimas unidades' : 'Em estoque'"></small>
-                    <button type="button" class="ml-x" @click="close()" aria-label="Fechar"><i class="fas fa-xmark"></i></button>
+                    <div class="ml-sheet-acts">
+                        <button type="button" class="ml-sheet-fav" :class="{ on: $store.favs.has(p.id) }" @click="fav(p.id)"
+                                :aria-pressed="$store.favs.has(p.id)" :aria-label="$store.favs.has(p.id) ? 'Tirar dos favoritos' : 'Salvar nos favoritos'" data-testid="sheet-fav">
+                            <i class="fa-heart" :class="$store.favs.has(p.id) ? 'fas' : 'far'"></i>
+                        </button>
+                        <button type="button" class="ml-x" @click="close()" aria-label="Fechar"><i class="fas fa-xmark"></i></button>
+                    </div>
                 </div>
                 <div class="ml-sheet-body">
                     <div>
@@ -570,11 +592,13 @@
 
 @push('scripts')
 <script>
-function mlCatalog(products, cartUrl, stockMap) {
+function mlCatalog(products, cartUrl, stockMap, focusId = null) {
     return {
         init() {
             // Carrinho só com o que ainda tem estoque, e no máximo o disponível.
             Alpine.store('cart').sync(stockMap);
+            // Link direto para um produto (?produto=ID), ex.: aviso do WhatsApp.
+            if (focusId && this.products[focusId]) this.$nextTick(() => this.open(focusId));
         },
         products,
         p: null,
@@ -605,9 +629,16 @@ function mlCatalog(products, cartUrl, stockMap) {
         },
         add(p, qty = 1) {
             Alpine.store('cart').add(p, qty);
-            this.toast = 'Adicionado ao carrinho';
+            this.say('Adicionado ao carrinho');
+        },
+        say(text) {
+            this.toast = text;
             clearTimeout(this.timer);
             this.timer = setTimeout(() => this.toast = '', 2200);
+        },
+        fav(id) {
+            const on = Alpine.store('favs').toggle(id);
+            this.say(on ? 'Salvo em Meus favoritos' : 'Tirado dos favoritos');
         },
         openCart() {
             this.p = null;

@@ -108,6 +108,7 @@ class ConsortiumNotification extends Model
         'client_new' => ['label' => 'Novo cliente', 'icon' => 'bi-person-plus-fill', 'tone' => 'sky', 'category' => 'vendas'],
         'client_birthday' => ['label' => 'Aniversário de cliente', 'icon' => 'bi-gift-fill', 'tone' => 'pink', 'category' => 'vendas'],
         'portal_quote' => ['label' => 'Orçamento do portal', 'icon' => 'bi-file-earmark-text-fill', 'tone' => 'indigo', 'category' => 'vendas'],
+        'wishlist_waiting' => ['label' => 'Clientes esperando produto', 'icon' => 'bi-heart-fill', 'tone' => 'pink', 'category' => 'vendas'],
         'promotion_started' => ['label' => 'Promoção iniciada', 'icon' => 'bi-megaphone-fill', 'tone' => 'fuchsia', 'category' => 'vendas'],
         'promotion_ending' => ['label' => 'Promoção acabando', 'icon' => 'bi-hourglass-bottom', 'tone' => 'amber', 'category' => 'vendas'],
         'promotion_ended' => ['label' => 'Promoção encerrada', 'icon' => 'bi-megaphone', 'tone' => 'slate', 'category' => 'vendas'],

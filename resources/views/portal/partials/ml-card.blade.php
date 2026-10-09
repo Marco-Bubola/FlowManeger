@@ -16,6 +16,10 @@
         @if(count($d['imgs']) > 1)
             <span class="ml-imgs"><i class="fas fa-images"></i> {{ count($d['imgs']) }}</span>
         @endif
+        <button type="button" class="ml-fav" :class="{ on: $store.favs.has({{ $d['id'] }}) }" @click.stop="fav({{ $d['id'] }})"
+                :aria-pressed="$store.favs.has({{ $d['id'] }})" aria-label="Favoritar" data-fav="{{ $d['id'] }}">
+            <i class="fa-heart" :class="$store.favs.has({{ $d['id'] }}) ? 'fas' : 'far'"></i>
+        </button>
         <button type="button" class="ml-add" :class="{ in: $store.cart.has({{ $d['id'] }}) }"
                 @click.stop="add(products[{{ $d['id'] }}])" aria-label="Adicionar ao carrinho">
             <i class="fas" :class="$store.cart.has({{ $d['id'] }}) ? 'fa-check' : 'fa-cart-plus'"></i>

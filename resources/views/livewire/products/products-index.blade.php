@@ -160,6 +160,12 @@
             border: 1.5px solid rgba(255,255,255,.75);
         }
         .product-card-modern .product-img-area > a.product-promo-flag:hover { transform: scale(1.06); }
+        .product-card-modern a.product-fav-count {
+            display: inline-flex; align-items: center; gap: .25rem; align-self: flex-start; margin-top: .3rem;
+            padding: .12rem .5rem; border-radius: 999px; font-size: .7rem; font-weight: 700; line-height: 1.3;
+            color: #be185d; background: #fdf2f8; border: 1px solid #fbcfe8; text-decoration: none; white-space: nowrap;
+        }
+        .dark .product-card-modern a.product-fav-count { color: #f9a8d4; background: rgba(236,72,153,.12); border-color: rgba(236,72,153,.3); }
     </style>
 
     <x-loading-overlay message="Carregando produtos..." />
@@ -397,6 +403,13 @@
                 data-ultrawind="{{ $ultraLayout ?? false ? 'true' : 'false' }}"
                 data-full-hd="{{ $fullHdLayout ?? false ? 'true' : 'false' }}"
                 x-bind:data-ultrawind="ultra ? 'true' : 'false'" x-bind:data-full-hd="fullHd ? 'true' : 'false'">
+                @php
+                    // ♥ clientes que favoritaram no catálogo do portal (uma consulta para a página).
+                    $favCounts = \App\Services\Portal\WishlistService::ready()
+                        ? \App\Models\ClientFavorite::where('user_id', auth()->id())->whereIn('product_id', $products->pluck('id'))
+                            ->selectRaw('product_id, count(*) as n')->groupBy('product_id')->pluck('n', 'product_id')
+                        : collect();
+                @endphp
                 @foreach ($products as $product)
                     @if ($product->tipo === 'kit')
                         <!-- Kit Card no estilo produto simples -->
@@ -467,6 +480,11 @@
                                 <div class="product-title" title="{{ $product->name }}">
                                     {{ ucwords($product->name) }}
                                 </div>
+                                @if ($favCount = (int) ($favCounts[$product->id] ?? 0))
+                                    <a href="{{ route('products.interested', ['produto' => $product->id]) }}" class="product-fav-count" title="Clientes que favoritaram no catálogo online" data-testid="fav-count">
+                                        <i class="bi bi-heart-fill"></i> {{ $favCount }} {{ $favCount === 1 ? 'cliente' : 'clientes' }}
+                                    </a>
+                                @endif
 
                                 <!-- Área de preços dentro do card-body (mesmo formato do simples) -->
                                 <div class="price-area mt-3">
@@ -570,6 +588,11 @@
                                 <div class="product-title" title="{{ $product->name }}">
                                     {{ ucwords($product->name) }}
                                 </div>
+                                @if ($favCount = (int) ($favCounts[$product->id] ?? 0))
+                                    <a href="{{ route('products.interested', ['produto' => $product->id]) }}" class="product-fav-count" title="Clientes que favoritaram no catálogo online" data-testid="fav-count">
+                                        <i class="bi bi-heart-fill"></i> {{ $favCount }} {{ $favCount === 1 ? 'cliente' : 'clientes' }}
+                                    </a>
+                                @endif
 
                                 <!-- Área de preços dentro do card-body -->
                                 <div class="price-area mt-3">

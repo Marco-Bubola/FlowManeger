@@ -20,6 +20,8 @@ class AppServiceProvider extends ServiceProvider
 
         // Registrar observadores de modelos
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        // "Avise-me" do portal: promoção que passa a valer avisa quem favoritou
+        \App\Models\Promotion::observe(\App\Observers\PromotionWishlistObserver::class);
         // Pagamentos de venda viram receita no livro-caixa (se o usuário ativar)
         \App\Models\SalePayment::observe(\App\Services\Cashbook\SalePaymentCashbookSync::class);
 

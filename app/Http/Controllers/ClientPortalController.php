@@ -637,7 +637,7 @@ class ClientPortalController extends Controller
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
             ->get(['id', 'category_id', 'stock_quantity']);
-        $stockMap = $inStock->pluck('stock_quantity', 'id')->map(fn ($q) => (int) $q);
+        $stockMap = $inStock->pluck('stock_quantity', 'id')->map(fn ($q) => min((int) $q, 10)); // teto: não expõe o estoque real
         $unitsInStock = (int) $inStock->sum('stock_quantity');
         $countByCategory = $inStock->countBy('category_id');
 
@@ -646,7 +646,17 @@ class ClientPortalController extends Controller
 
         $store = \App\Models\User::select('id', 'name', 'phone', 'location')->find($ownerId);
 
-        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'unitsInStock', 'countByCategory'));
+        // Link direto para um produto (?produto=ID): abre a ficha, se estiver à venda.
+        $focus = $request->integer('produto') > 0
+            ? Product::withoutGlobalScope('team_visibility')
+                ->where('user_id', $ownerId)
+                ->where('stock_quantity', '>', 0)
+                ->whereIn('status', ['active', 'ativo'])
+                ->with(['category', 'activePromotion', 'images'])
+                ->find($request->integer('produto'))
+            : null;
+
+        return view('portal.catalog', compact('products', 'categories', 'search', 'category', 'ownerId', 'offers', 'onlyOffers', 'sort', 'store', 'stockMap', 'unitsInStock', 'countByCategory', 'focus'));
     }
 
     public function storeQuote(Request $request)
