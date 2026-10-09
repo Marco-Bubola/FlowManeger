@@ -1079,7 +1079,7 @@
             <!-- FAB Central: Ações Rápidas -->
             <button type="button" class="mobile-tab-item mobile-tab-fab" id="tabFabBtn" onclick="openFabSheet()" aria-label="Ações rápidas">
                 <div class="fab-circle">
-                    <img src="{{ asset('assets/img/Criar.svg') }}" alt="Criar" style="display:block; width:5.8rem; height:5.8rem; object-fit:contain; border-radius:50%;">
+                    <img src="{{ Vite::asset('resources/images/icons/tab-criar.webp') }}" alt="Criar" style="display:block; width:5.8rem; height:5.8rem; object-fit:contain; border-radius:50%;">
                 </div>
             </button>
 

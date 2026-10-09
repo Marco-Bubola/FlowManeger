@@ -293,3 +293,13 @@ html body .cs-cart-body .cs-qty-input { -moz-appearance: textfield; }
     html body:not(.tablet-nav-tabbar) .app-ph-bell { display: none !important; }
 }
 html body:has(.app-ph-bell) .mobile-top-bell { display: none !important; }
+
+/* ───────────── Início (dashboard) ─────────────
+ * 10 indicadores: 2 por linha no celular (valores sem cortar), 5 no iPad e no computador
+ * (duas linhas cheias, sem sobrar card sozinho) e 10 em telas muito largas. */
+html body .dash-kpis.dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+@media (min-width: 600px) { html body .dash-kpis.dash-kpis { grid-template-columns: repeat(5, minmax(0, 1fr)) !important; } }
+@media (min-width: 1800px) { html body .dash-kpis.dash-kpis { grid-template-columns: repeat(10, minmax(0, 1fr)) !important; } }
+@media (max-width: 767px) {
+    html body .dash-header p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
