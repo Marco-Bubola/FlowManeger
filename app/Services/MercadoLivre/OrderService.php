@@ -6,6 +6,10 @@ use App\Models\MercadoLivreOrder;
 use App\Models\Sale;
 use App\Models\Client;
 use App\Models\Product;
+use App\Models\MlPublication;
+use App\Models\SaleItem;
+use App\Models\SalePayment;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -140,197 +144,272 @@ class OrderService extends MercadoLivreService
     public function importOrder(string $mlOrderId): array
     {
         try {
-            // Verificar se já foi importado
+            // Já virou venda antes?
             $existingOrder = MercadoLivreOrder::where('ml_order_id', $mlOrderId)
-                ->where('user_id', Auth::id())
+                ->whereNotNull('imported_to_sale_id')
                 ->first();
-            
-            if ($existingOrder) {
+
+            if ($existingOrder && Sale::whereKey($existingOrder->imported_to_sale_id)->exists()) {
                 return [
                     'success' => false,
-                    'message' => 'Pedido já foi importado anteriormente',
+                    'message' => 'Pedido já foi importado anteriormente (venda #' . $existingOrder->imported_to_sale_id . ')',
                     'order' => $existingOrder,
                 ];
             }
-            
-            // Buscar detalhes do pedido no ML
+
             $orderData = $this->getOrderDetails($mlOrderId);
-            
+
             if (!$orderData) {
                 return [
                     'success' => false,
                     'message' => 'Não foi possível buscar os dados do pedido no ML',
                 ];
             }
-            
-            DB::beginTransaction();
-            
-            try {
-                // Criar ou buscar cliente
-                $client = $this->getOrCreateClient($orderData['buyer']);
-                
-                // Criar venda no sistema
-                $sale = $this->createSaleFromOrder($orderData, $client);
-                
-                // Registrar pedido ML
-                $mlOrder = MercadoLivreOrder::create([
-                    'user_id' => Auth::id(),
-                    'sale_id' => $sale->id,
-                    'ml_order_id' => $mlOrderId,
-                    'status' => $orderData['status'],
-                    'status_detail' => $orderData['status_detail'] ?? null,
-                    'buyer' => json_encode($orderData['buyer']),
-                    'shipping' => json_encode($orderData['shipping'] ?? []),
-                    'payments' => json_encode($orderData['payments'] ?? []),
-                    'total_amount' => $orderData['total_amount'],
-                    'paid_amount' => $orderData['paid_amount'] ?? 0,
-                    'currency_id' => $orderData['currency_id'],
-                    'date_created' => Carbon::parse($orderData['date_created']),
-                    'date_closed' => !empty($orderData['date_closed']) ? Carbon::parse($orderData['date_closed']) : null,
-                    'last_updated' => !empty($orderData['last_updated']) ? Carbon::parse($orderData['last_updated']) : null,
-                    'raw_data' => json_encode($orderData),
-                ]);
-                
-                DB::commit();
-                
-                Log::info('Pedido ML importado com sucesso', [
-                    'ml_order_id' => $mlOrderId,
-                    'sale_id' => $sale->id,
-                ]);
-                
+
+            if (($orderData['status'] ?? '') === 'cancelled') {
                 return [
-                    'success' => true,
-                    'message' => 'Pedido importado com sucesso!',
-                    'order' => $mlOrder,
-                    'sale' => $sale,
+                    'success' => false,
+                    'message' => 'Pedido cancelado no Mercado Livre, não vira venda.',
                 ];
-                
-            } catch (\Exception $e) {
-                DB::rollBack();
-                throw $e;
             }
-            
+
+            $sale = DB::transaction(function () use ($orderData, $mlOrderId) {
+                $client = $this->getOrCreateClient($orderData['buyer'] ?? []);
+                $sale = $this->createSaleFromOrder($orderData, $client);
+
+                $item = $orderData['order_items'][0] ?? [];
+                $buyer = $orderData['buyer'] ?? [];
+                $payment = $orderData['payments'][0] ?? [];
+
+                MercadoLivreOrder::updateOrCreate(
+                    ['ml_order_id' => (string) $mlOrderId],
+                    [
+                        'ml_item_id' => $item['item']['id'] ?? null,
+                        'product_id' => $sale->saleItems()->value('product_id'),
+                        'buyer_id' => $buyer['id'] ?? null,
+                        'buyer_nickname' => $buyer['nickname'] ?? null,
+                        'buyer_email' => $buyer['email'] ?? null,
+                        'buyer_phone' => $buyer['phone']['number'] ?? null,
+                        'quantity' => (int) collect($orderData['order_items'] ?? [])->sum('quantity'),
+                        'unit_price' => $item['unit_price'] ?? 0,
+                        'total_amount' => $orderData['total_amount'] ?? 0,
+                        'currency_id' => $orderData['currency_id'] ?? 'BRL',
+                        'order_status' => $orderData['status'] ?? null,
+                        'payment_status' => $payment['status'] ?? null,
+                        'payment_method' => $payment['payment_method_id'] ?? null,
+                        'payment_type' => $payment['payment_type'] ?? null,
+                        'shipping_id' => $orderData['shipping']['id'] ?? null,
+                        'date_created' => !empty($orderData['date_created']) ? Carbon::parse($orderData['date_created']) : now(),
+                        'date_closed' => !empty($orderData['date_closed']) ? Carbon::parse($orderData['date_closed']) : null,
+                        'date_last_updated' => !empty($orderData['last_updated']) ? Carbon::parse($orderData['last_updated']) : null,
+                        'imported_to_sale_id' => $sale->id,
+                        'sync_status' => 'processed',
+                    ]
+                );
+
+                return $sale;
+            });
+
+            Log::info('Pedido ML importado com sucesso', [
+                'ml_order_id' => $mlOrderId,
+                'sale_id' => $sale->id,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'Pedido importado como venda #' . $sale->id . '!',
+                'order' => MercadoLivreOrder::where('ml_order_id', $mlOrderId)->first(),
+                'sale' => $sale,
+            ];
+
         } catch (\Exception $e) {
             Log::error('Erro ao importar pedido do ML', [
                 'ml_order_id' => $mlOrderId,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-            
+
             return [
                 'success' => false,
                 'message' => 'Erro ao importar pedido: ' . $e->getMessage(),
             ];
         }
     }
-    
+
     /**
      * Criar ou buscar cliente baseado nos dados do comprador ML
-     * 
-     * @param array $buyerData Dados do comprador
-     * @return Client
      */
     protected function getOrCreateClient(array $buyerData): Client
     {
-        // Buscar cliente existente por email ou telefone
-        $client = Client::where('user_id', Auth::id())
-            ->where(function($query) use ($buyerData) {
-                if (!empty($buyerData['email'])) {
-                    $query->where('email', $buyerData['email']);
-                }
-                if (!empty($buyerData['phone']['number'])) {
-                    $query->orWhere('phone', $buyerData['phone']['number']);
-                }
-            })
-            ->first();
-        
-        if ($client) {
-            return $client;
+        $email = trim((string) ($buyerData['email'] ?? ''));
+        $phone = trim((string) ($buyerData['phone']['number'] ?? ''));
+        $fullName = trim(($buyerData['first_name'] ?? '') . ' ' . ($buyerData['last_name'] ?? ''));
+        $name = $fullName !== '' ? $fullName : ($buyerData['nickname'] ?? 'Cliente ML');
+
+        // Só procura por dados que existem (sem e-mail e telefone, a busca
+        // antiga pegava qualquer cliente).
+        $client = null;
+        if ($email !== '') {
+            $client = Client::where('user_id', Auth::id())->where('email', $email)->first();
         }
-        
-        // Criar novo cliente
-        $client = Client::create([
+        if (!$client && $phone !== '') {
+            $client = Client::where('user_id', Auth::id())->where('phone', $phone)->first();
+        }
+        if (!$client) {
+            $client = Client::where('user_id', Auth::id())->where('name', $name)->first();
+        }
+
+        return $client ?? Client::create([
             'user_id' => Auth::id(),
-            'name' => $buyerData['nickname'] ?? 'Cliente ML',
-            'email' => $buyerData['email'] ?? null,
-            'phone' => $buyerData['phone']['number'] ?? null,
-            'cpf' => null, // ML não fornece CPF diretamente
-            'notes' => 'Cliente importado do Mercado Livre - ID: ' . $buyerData['id'],
+            'name' => mb_substr($name, 0, 100),
+            'email' => $email !== '' ? $email : null,
+            'phone' => $phone !== '' ? $phone : null,
         ]);
-        
-        return $client;
     }
-    
+
     /**
-     * Criar venda no sistema baseada no pedido ML
-     * 
-     * @param array $orderData Dados do pedido ML
-     * @param Client $client Cliente
-     * @return Sale
+     * Criar venda no sistema baseada no pedido ML.
+     *
+     * O estoque segue o mesmo caminho do webhook (uma baixa por pedido,
+     * registrada no histórico do ML): se o webhook já baixou, não baixa de novo.
      */
     protected function createSaleFromOrder(array $orderData, Client $client): Sale
     {
+        $paid = in_array($orderData['status'] ?? '', ['paid', 'confirmed'], true);
+        $total = (float) ($orderData['total_amount'] ?? 0);
+        $date = !empty($orderData['date_created']) ? Carbon::parse($orderData['date_created'])->setTimezone(config('app.timezone')) : now();
+        $method = $this->getPaymentMethodFromML($orderData['payments'] ?? []);
+
         $sale = Sale::create([
             'user_id' => Auth::id(),
             'client_id' => $client->id,
-            'sale_date' => Carbon::parse($orderData['date_created']),
-            'total_amount' => $orderData['total_amount'],
-            'discount' => 0,
-            'final_amount' => $orderData['paid_amount'] ?? $orderData['total_amount'],
-            'payment_method' => $this->getPaymentMethodFromML($orderData['payments'] ?? []),
-            'status' => $this->mapMLStatusToSaleStatus($orderData['status']),
-            'notes' => 'Pedido importado do Mercado Livre - ID: ' . $orderData['id'],
+            'total_price' => $total,
+            'amount_paid' => $paid ? $total : 0,
+            'status' => $paid ? 'pago' : 'pendente',
+            'payment_method' => $method,
+            'tipo_pagamento' => 'a_vista',
+            'parcelas' => 1,
+            'source' => 'mercadolivre',
         ]);
-        
-        // Adicionar itens da venda
-        foreach ($orderData['order_items'] as $item) {
-            $product = $this->findOrCreateProduct($item);
-            
-            $sale->items()->create([
-                'product_id' => $product->id,
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
-                'total_price' => $item['quantity'] * $item['unit_price'],
-            ]);
-            
-            // Atualizar estoque
-            if ($product && $orderData['status'] === 'paid') {
-                $product->decrement('stock_quantity', $item['quantity']);
+
+        $sale->timestamps = false;
+        $sale->created_at = $date;
+        $sale->updated_at = $date;
+        $sale->save();
+        $sale->timestamps = true;
+
+        $mlOrderId = (string) $orderData['id'];
+        $stockService = app(MlStockSyncService::class);
+
+        foreach ($orderData['order_items'] ?? [] as $item) {
+            $mlItemId = (string) ($item['item']['id'] ?? '');
+            $qty = max(1, (int) ($item['quantity'] ?? 1));
+            $unit = (float) ($item['unit_price'] ?? 0);
+
+            $publication = MlPublication::where('ml_item_id', $mlItemId)
+                ->where('user_id', Auth::id())
+                ->first();
+            $pubProducts = $publication
+                ? $publication->products()->withoutGlobalScope('team_visibility')->get()
+                : collect();
+
+            if ($pubProducts->isNotEmpty()) {
+                // Publicação com 1 ou mais produtos: divide o valor pelo preço de cada um.
+                $weights = $pubProducts->map(fn ($p) => max(0.01, (float) $p->price_sale) * max(1, (int) $p->pivot->quantity));
+                $sum = $weights->sum();
+                foreach ($pubProducts->values() as $i => $product) {
+                    $perPub = max(1, (int) $product->pivot->quantity);
+                    $share = $unit * ($weights[$i] / $sum);
+                    SaleItem::create([
+                        'sale_id' => $sale->id,
+                        'product_id' => $product->id,
+                        'quantity' => $qty * $perPub,
+                        'price' => $product->price,
+                        'price_sale' => round($share / $perPub, 2),
+                    ]);
+                }
+
+                $result = $stockService->processMercadoLivreSale($mlOrderId, $mlItemId, $qty);
+                if (!($result['success'] ?? false)) {
+                    Log::warning('Importar pedido ML: baixa pela publicação falhou, baixando direto', [
+                        'ml_order_id' => $mlOrderId,
+                        'error' => $result['message'] ?? null,
+                    ]);
+                    foreach ($pubProducts as $product) {
+                        $product->update(['stock_quantity' => max(0, (int) $product->stock_quantity - $qty * max(1, (int) $product->pivot->quantity))]);
+                    }
+                }
+                continue;
             }
+
+            $product = $this->findOrCreateProduct($item);
+            SaleItem::create([
+                'sale_id' => $sale->id,
+                'product_id' => $product->id,
+                'quantity' => $qty,
+                'price' => $product->price,
+                'price_sale' => $unit,
+            ]);
+            $product->update(['stock_quantity' => max(0, (int) $product->stock_quantity - $qty)]);
         }
-        
+
+        // O estoque já saiu acima; marca para não baixar de novo na quitação.
+        $sale->forceFill(['stock_applied' => true])->save();
+
+        if ($paid) {
+            SalePayment::create([
+                'sale_id' => $sale->id,
+                'amount_paid' => $total,
+                'payment_method' => $method,
+                'payment_date' => $date->format('Y-m-d'),
+            ]);
+        }
+
         return $sale;
     }
-    
+
     /**
      * Encontrar ou criar produto baseado no item do pedido
-     * 
-     * @param array $itemData Dados do item
-     * @return Product
      */
     protected function findOrCreateProduct(array $itemData): Product
     {
-        // Buscar produto existente pelo ML Item ID
-        $mlProduct = \App\Models\MercadoLivreProduct::where('ml_item_id', $itemData['item']['id'])
-            ->where('user_id', Auth::id())
-            ->first();
-        
-        if ($mlProduct && $mlProduct->product) {
-            return $mlProduct->product;
+        $mlItemId = (string) ($itemData['item']['id'] ?? '');
+
+        if (Schema::hasTable('mercadolivre_products')) {
+            $mlProduct = \App\Models\MercadoLivreProduct::where('ml_item_id', $mlItemId)->first();
+            $linked = $mlProduct ? Product::where('user_id', Auth::id())->find($mlProduct->product_id) : null;
+            if ($linked) {
+                return $linked;
+            }
         }
-        
-        // Criar produto genérico
-        $product = Product::create([
+
+        $code = 'ML-' . $mlItemId;
+        $existing = Product::where('user_id', Auth::id())->where('product_code', $code)->first();
+        if ($existing) {
+            return $existing;
+        }
+
+        // Produto sem ligação: cria um registro simples na categoria mais usada.
+        $categoryId = Product::where('user_id', Auth::id())
+            ->select('category_id', DB::raw('count(*) as total'))
+            ->groupBy('category_id')
+            ->orderByDesc('total')
+            ->value('category_id');
+
+        if (!$categoryId) {
+            throw new \RuntimeException('O anúncio "' . ($itemData['item']['title'] ?? $mlItemId) . '" não está ligado a nenhum produto. Ligue a publicação a um produto e tente de novo.');
+        }
+
+        return Product::create([
             'user_id' => Auth::id(),
-            'name' => $itemData['item']['title'],
-            'product_code' => 'ML-' . $itemData['item']['id'],
-            'price' => $itemData['unit_price'],
-            'price_sale' => $itemData['unit_price'],
+            'category_id' => $categoryId,
+            'name' => $itemData['item']['title'] ?? $code,
+            'product_code' => $code,
+            'price' => (float) ($itemData['unit_price'] ?? 0),
+            'price_sale' => (float) ($itemData['unit_price'] ?? 0),
             'stock_quantity' => 0,
             'description' => 'Produto importado do Mercado Livre',
         ]);
-        
-        return $product;
     }
     
     /**
@@ -353,23 +432,6 @@ class OrderService extends MercadoLivreService
             'ticket' => 'boleto',
             'bank_transfer' => 'transferencia',
             default => 'mercadopago',
-        };
-    }
-    
-    /**
-     * Mapear status do ML para status de venda
-     * 
-     * @param string $mlStatus Status do ML
-     * @return string
-     */
-    protected function mapMLStatusToSaleStatus(string $mlStatus): string
-    {
-        return match($mlStatus) {
-            'paid' => 'completed',
-            'confirmed' => 'completed',
-            'pending' => 'pending',
-            'cancelled' => 'cancelled',
-            default => 'pending',
         };
     }
     

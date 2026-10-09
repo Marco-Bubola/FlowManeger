@@ -66,6 +66,34 @@ class ConsortiumParticipant extends Model
         return $this->hasOne(ConsortiumContemplation::class);
     }
 
+    /**
+     * Desistência: as parcelas que ainda não venceram deixam de ser cobradas
+     * (as já vencidas continuam como dívida).
+     */
+    public function quit(): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            $this->update(['status' => 'quit']);
+            $this->payments()
+                ->whereIn('status', ['pending', 'overdue'])
+                ->whereDate('due_date', '>=', today())
+                ->get()
+                ->each->delete();
+        });
+    }
+
+    /** Volta a participar: as parcelas tiradas na desistência voltam a valer. */
+    public function reactivate(): void
+    {
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            $this->update(['status' => 'active']);
+            $this->payments()->onlyTrashed()
+                ->whereIn('status', ['pending', 'overdue'])
+                ->get()
+                ->each->restore();
+        });
+    }
+
     // Accessors
     public function getPaymentPercentageAttribute(): float
     {

@@ -725,14 +725,7 @@
                                 <nav class="space-y-1">
 
                                   <!-- Submenu Shopee (padronizado) -->
-                                <div x-show="shopeeOpen"
-                                     x-transition:enter="transition ease-out duration-200"
-                                     x-transition:enter-start="opacity-0 -translate-y-2"
-                                     x-transition:enter-end="opacity-100 translate-y-0"
-                                     x-transition:leave="transition ease-in duration-150"
-                                     x-transition:leave-start="opacity-100 translate-y-0"
-                                     x-transition:leave-end="opacity-0 -translate-y-2"
-                                     class="ml-4 space-y-1 border-l-2 border-orange-200 dark:border-orange-800 pl-2 mt-1">
+                                <div class="ml-4 space-y-1 border-l-2 border-orange-200 dark:border-orange-800 pl-2 mt-1">
 
                                     <a href="{{ route('shopee.publications') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('shopee/publications*') ? 'bg-gradient-to-r from-orange-400/15 to-red-500/15 dark:from-orange-500/20 dark:to-red-600/20 text-orange-700 dark:text-orange-300 font-semibold' : '' }}" wire:navigate.hover>
                                         <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('shopee/publications*') ? 'bg-gradient-to-br from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/30' : '' }}">

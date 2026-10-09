@@ -150,8 +150,8 @@ class ShowConsortium extends Component
         $paidPayments = $participant->payments()->where('status', 'paid')->count();
         if ($paidPayments > 0) {
             // Apenas marca como desistente
-            $participant->update(['status' => 'quit']);
-            session()->flash('success', 'Participante marcado como desistente.');
+            $participant->quit();
+            session()->flash('success', 'Participante marcado como desistente. As parcelas que ainda não venceram foram canceladas.');
         } else {
             // Pode deletar completamente
             $participant->payments()->delete();
@@ -180,16 +180,16 @@ class ShowConsortium extends Component
         }
 
         if ($participant->status === 'active') {
-            $participant->update(['status' => 'quit']);
-            session()->flash('success', 'Participante desativado.');
+            $participant->quit();
+            session()->flash('success', 'Participante desativado. As parcelas que ainda não venceram foram canceladas.');
         } elseif ($participant->status === 'quit') {
             if (!$this->consortium->canAddParticipants()) {
                 session()->flash('error', 'Não há vaga livre para reativar este participante.');
                 $this->showToggleParticipantModal = false;
                 return;
             }
-            $participant->update(['status' => 'active']);
-            session()->flash('success', 'Participante reativado.');
+            $participant->reactivate();
+            session()->flash('success', 'Participante reativado. As parcelas dele voltaram a valer.');
         }
 
         $this->showToggleParticipantModal = false;

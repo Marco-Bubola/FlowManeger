@@ -572,11 +572,13 @@
                                             <p class="text-gray-700 dark:text-gray-300">
                                                 O participante será marcado como <span class="font-bold text-orange-600">desistente</span>.
                                             </p>
+                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">As parcelas que ainda não venceram deixam de ser cobradas. As já vencidas continuam em aberto.</p>
                                         @else
                                             <i class="bi bi-play-circle text-3xl text-emerald-500 mb-2"></i>
                                             <p class="text-gray-700 dark:text-gray-300">
                                                 O participante voltará ao status <span class="font-bold text-emerald-600">ativo</span>.
                                             </p>
+                                            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">As parcelas canceladas na desistência voltam a ser cobradas.</p>
                                         @endif
                                     </div>
                                 </div>
