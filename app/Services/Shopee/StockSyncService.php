@@ -157,6 +157,12 @@ class StockSyncService extends ShopeeService
                             ->whereIn('id', $logs->pluck('product_id')->unique())->get();
                     }
                     $message = "Pedido cancelado: {$restored} item(ns) devolvido(s) ao estoque.";
+                    // Venda importada deste pedido: o estoque já voltou aqui, então
+                    // excluir/cancelar a venda depois não devolve de novo.
+                    if ($order->imported_to_sale_id) {
+                        \App\Models\Sale::withoutGlobalScopes()->whereKey($order->imported_to_sale_id)
+                            ->update(['stock_applied' => false]);
+                    }
                     // Marca como tratado: um push atrasado de "pago" não baixa mais
                     $order->stock_processed_at = $order->stock_processed_at ?? now();
                 } elseif (in_array($status, self::PAID_STATUSES, true) && !$order->stock_processed_at

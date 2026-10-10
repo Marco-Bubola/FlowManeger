@@ -16,6 +16,12 @@
                     {{ $ordersCount }} pedido(s) pendente(s)
                 </span>
                 @endif
+                <a href="{{ route('shopee.orders') }}" wire:navigate
+                   class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl
+                          bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700
+                          hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300">
+                    <i class="bi bi-bag-check"></i> Pedidos
+                </a>
                 <button wire:click="importOrders" wire:loading.attr="disabled"
                         class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl
                                bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700

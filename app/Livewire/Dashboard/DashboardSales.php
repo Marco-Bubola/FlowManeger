@@ -280,9 +280,9 @@ class DashboardSales extends Component
 
     private function loadMarketplaceMetrics(int $userId): void
     {
-        // Pedidos do ML importados como venda contam só no ML.
+        // Pedidos do ML/Shopee importados como venda contam só no canal.
         $internalOrdersCount = Sale::where('user_id', $userId)
-            ->where(fn ($q) => $q->whereNull('source')->orWhere('source', '!=', 'mercadolivre'))
+            ->where(fn ($q) => $q->whereNull('source')->orWhereNotIn('source', ['mercadolivre', 'shopee']))
             ->count();
 
         $mlOrdersBase = DB::table('mercadolivre_orders as mo')
@@ -319,7 +319,7 @@ class DashboardSales extends Component
 
         $internalMonthly = Sale::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as period, SUM(total_price) as total")
             ->where('user_id', $userId)
-            ->where(fn ($q) => $q->whereNull('source')->orWhere('source', '!=', 'mercadolivre'))
+            ->where(fn ($q) => $q->whereNull('source')->orWhereNotIn('source', ['mercadolivre', 'shopee']))
             ->where('created_at', '>=', now()->subMonths(5)->startOfMonth())
             ->groupBy('period')
             ->pluck('total', 'period');

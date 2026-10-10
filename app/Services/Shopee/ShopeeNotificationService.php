@@ -71,7 +71,7 @@ class ShopeeNotificationService
                     'priority' => 'high',
                     'entity_type' => 'ShopeeOrder',
                     'entity_id' => $order->id,
-                    'action_url' => $this->safeRoute('shopee.publications'),
+                    'action_url' => $this->safeRoute('shopee.orders', ['pedido' => (string) $order->shopee_order_sn]),
                     'data' => [
                         'order_sn' => (string) $order->shopee_order_sn,
                         'total' => (float) $order->total_amount,
@@ -99,10 +99,10 @@ class ShopeeNotificationService
             ->exists();
     }
 
-    protected function safeRoute(string $name): ?string
+    protected function safeRoute(string $name, array $params = []): ?string
     {
         try {
-            return route($name, [], false);
+            return route($name, $params, false);
         } catch (\Throwable $e) {
             return null;
         }
