@@ -807,7 +807,10 @@ class ProductService extends MercadoLivreService
             }
             
             // Garantia
-            if (!empty($publishData['warranty'])) {
+            // Garantia e prazo de postagem vão em sale_terms (formato atual do ML)
+            if (!empty($publishData['sale_terms'])) {
+                $mlData['sale_terms'] = $publishData['sale_terms'];
+            } elseif (!empty($publishData['warranty'])) {
                 $mlData['warranty'] = $publishData['warranty'];
             }
             
@@ -1528,7 +1531,9 @@ class ProductService extends MercadoLivreService
         // POST /items/{id}/description — feito após criação em createProduct()
         
         // Garantia
-        if (!empty($mlData['warranty'])) {
+        if (!empty($mlData['sale_terms'])) {
+            $payload['sale_terms'] = array_values($mlData['sale_terms']);
+        } elseif (!empty($mlData['warranty'])) {
             $payload['warranty'] = $mlData['warranty'];
         }
         

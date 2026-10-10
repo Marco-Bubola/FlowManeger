@@ -8,10 +8,12 @@ use App\Traits\HasNotifications;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class PublishProduct extends Component
 {
     use HasNotifications;
+    use WithFileUploads;
 
     public ?Product $product = null;
     public int $currentStep = 1;
@@ -54,6 +56,22 @@ class PublishProduct extends Component
     // Outras cores da mesma família publicadas junto (um anúncio por cor com o
     // mesmo family_name: o ML agrupa as cores numa página só).
     public array $extraColors = [];
+
+    // Passo 3: o resto do formulário do ML
+    public string $customTitle = '';          // título editável (vazio = automático)
+    public array $mlAllAttributes = [];       // todos os atributos da categoria (ficha técnica)
+    public bool $showOptionalAttributes = false;
+    public string $sellerSku = '';
+    public $newPhotos = [];                   // fotos enviadas aqui (upload)
+    public array $uploadedPictures = [];      // URLs das fotos enviadas
+    public string $packageWeight = '';        // gramas
+    public string $packageLength = '';        // cm
+    public string $packageWidth = '';
+    public string $packageHeight = '';
+    public string $warrantyType = 'seller';   // seller | factory | none
+    public string $warrantyTime = '90';
+    public string $warrantyUnit = 'dias';
+    public string $manufacturingDays = '';    // prazo extra para postar (opcional)
     
     protected $listeners = [
         'product-added' => 'addProductToList',
@@ -130,6 +148,9 @@ class PublishProduct extends Component
                     $this->searchCatalog();
                 }
             }
+            if ($step === 3) {
+                $this->prepareStep3();
+            }
         }
     }
 
@@ -146,6 +167,7 @@ class PublishProduct extends Component
             $this->searchCatalog();
         } elseif ($this->currentStep === 2) {
             $this->currentStep = 3;
+            $this->prepareStep3();
         }
     }
 
@@ -540,6 +562,7 @@ class PublishProduct extends Component
         if ($this->catalogPrice !== null && $this->catalogPrice > 0) {
             $this->publishPrice = number_format($this->catalogPrice, 2, '.', '');
         }
+        $this->customTitle = '';
     }
 
     private function extractCatalogDescription($shortDesc): string
@@ -585,6 +608,7 @@ class PublishProduct extends Component
             $result = $productService->getCategoryAttributes($this->mlCategoryId, Auth::id());
 
             if ($result['success']) {
+                $this->mlAllAttributes = array_values(array_filter($result['attributes'] ?? [], fn ($a) => is_array($a) && !empty($a['id'])));
                 // Filtra apenas atributos obrigatórios verificando em 'tags'
                 // Tags pode ser array ['required'] OU objeto {'required': true, 'catalog_required': true}
                 $this->mlCategoryAttributes = array_filter($result['attributes'] ?? [], function ($attr) {
@@ -931,8 +955,18 @@ class PublishProduct extends Component
             }
         }
 
+        $titleText = trim($this->getFinalTitle());
+        if (mb_strlen($titleText) < 5) {
+            $this->notifyError('Escreva um título com pelo menos 5 letras.');
+            return;
+        }
+        if (empty($this->selectedPictures)) {
+            $this->notifyError('Escolha pelo menos uma foto para o anúncio.');
+            return;
+        }
+
         try {
-            $title = mb_substr($this->getFinalTitle(), 0, 60);
+            $title = mb_substr($titleText, 0, 60);
             $description = trim((string) $this->catalogDescription) !== ''
                 ? $this->catalogDescription
                 : (string) ($mainProduct->description ?? '');
@@ -952,6 +986,7 @@ class PublishProduct extends Component
             if ($this->catalogProductId && $this->linkToCatalog) {
                 $publishData['catalog_product_id'] = $this->catalogProductId;
             }
+            $publishData['sale_terms'] = $this->buildSaleTerms();
 
             // Enviar atributos: do catálogo ou preenchidos manualmente
             if (!empty($this->catalogAttributes)) {
@@ -1044,6 +1079,11 @@ class PublishProduct extends Component
                 $publishData['pictures'] = array_map(fn($url) => ['source' => $url], $this->selectedPictures);
             }
 
+            $publishData['attributes'] = $this->mergeAttributes(
+                $publishData['attributes'] ?? [],
+                $this->extraAttributes(count($this->selectedProducts) > 1 ? '' : $this->sellerSku)
+            );
+
             $colorIds = $this->selectedExtraColorIds();
             if (!empty($colorIds)) {
                 $publishData['attributes'] = $this->withColor($publishData['attributes'] ?? [], $mainProduct);
@@ -1058,6 +1098,7 @@ class PublishProduct extends Component
                 $this->notifyError($main['error'] ?? 'Erro ao publicar produto');
                 return;
             }
+            $this->saveDimensionsToProduct($mainProduct);
 
             // Outras cores: um anúncio por cor, mesmo nome de família, foto e código de barras próprios.
             $failed = [];
@@ -1071,13 +1112,17 @@ class PublishProduct extends Component
                 $data['attributes'] = $this->withColor(
                     array_filter($data['attributes'] ?? [], function ($a, $k) {
                         $id = is_array($a) ? ($a['id'] ?? $k) : $k;
-                        return !in_array($id, ['GTIN', 'EMPTY_GTIN_REASON', 'COLOR', 'MODEL'], true);
+                        return !in_array($id, ['GTIN', 'EMPTY_GTIN_REASON', 'COLOR', 'MODEL', 'SELLER_SKU'], true);
                     }, ARRAY_FILTER_USE_BOTH),
                     $color
                 );
-                $data['pictures'] = ($color->image && $color->image !== 'product-placeholder.png')
-                    ? [['source' => $color->image_url]]
+                $colorPics = array_slice($color->load('images')->all_images, 0, 10);
+                $data['pictures'] = $colorPics
+                    ? array_map(fn ($u) => ['source' => $u], $colorPics)
                     : ($data['pictures'] ?? []);
+                $data['attributes'] = $this->mergeAttributes($data['attributes'], array_filter([
+                    $color->product_code ? ['id' => 'SELLER_SKU', 'value_name' => (string) $color->product_code] : null,
+                ]));
 
                 $row = [[
                     'id' => $color->id,
@@ -1301,6 +1346,7 @@ class PublishProduct extends Component
         $this->catalogPrice = null;
         $this->useCatalogPictures = false;
         $this->selectedPictures = [];
+        $this->customTitle = '';
         
         $firstProduct = !empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null;
         if ($firstProduct && $firstProduct->image && $firstProduct->image !== 'product-placeholder.png') {
@@ -1310,6 +1356,10 @@ class PublishProduct extends Component
 
     public function getFinalTitle(): string
     {
+        if (trim($this->customTitle) !== '') {
+            return trim($this->customTitle);
+        }
+
         // Se tem produto do catálogo selecionado, usar título do catálogo
         if (!empty($this->catalogProductName)) {
             return $this->catalogProductName;
@@ -1321,6 +1371,185 @@ class PublishProduct extends Component
         }
         
         return 'Produto sem título';
+    }
+
+    // ---------------------------------------------------------------
+    // Passo 3: título, fotos, ficha técnica, embalagem e garantia
+    // ---------------------------------------------------------------
+
+    /** Preenche o que dá para preencher sozinho ao chegar no passo 3. */
+    protected function prepareStep3(): void
+    {
+        $main = $this->product ?? (!empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null);
+        if (trim($this->customTitle) === '') {
+            $auto = $this->getFinalTitle();
+            $this->customTitle = mb_substr(mb_strtoupper(mb_substr($auto, 0, 1)) . mb_substr($auto, 1), 0, 60);
+        }
+        if ($main) {
+            if ($this->sellerSku === '') {
+                $this->sellerSku = (string) ($main->product_code ?? '');
+            }
+            foreach (['packageWeight' => 'weight_grams', 'packageLength' => 'length_cm', 'packageWidth' => 'width_cm', 'packageHeight' => 'height_cm'] as $prop => $col) {
+                if ($this->{$prop} === '' && !empty($main->{$col}) && (float) $main->{$col} > 0) {
+                    $this->{$prop} = rtrim(rtrim(number_format((float) $main->{$col}, 2, '.', ''), '0'), '.');
+                }
+            }
+        }
+        if (empty($this->selectedPictures) || (count($this->selectedPictures) <= 1 && empty($this->catalogPictures))) {
+            $this->selectedPictures = array_slice(array_values(array_unique(array_merge($this->selectedPictures, $this->pictureOptions()))), 0, 10);
+        }
+        if (empty($this->mlAllAttributes) && $this->mlCategoryId && !$this->catalogProductId) {
+            $this->loadCategoryAttributes();
+        }
+    }
+
+    /** Todas as fotos que podem ir no anúncio: catálogo, produtos (com galeria) e enviadas. */
+    public function pictureOptions(): array
+    {
+        $urls = [];
+        foreach ($this->catalogPictures as $pic) {
+            $urls[] = $pic['secure_url'] ?: ($pic['url'] ?? '');
+        }
+        foreach ($this->selectedProducts as $sp) {
+            $prod = Product::with('images')->find($sp['id']);
+            if ($prod) {
+                foreach ($prod->all_images as $u) {
+                    $urls[] = $u;
+                }
+                if ($prod->image && $prod->image !== 'product-placeholder.png') {
+                    $urls[] = $prod->image_url;
+                }
+            }
+        }
+        foreach ($this->uploadedPictures as $u) {
+            $urls[] = $u;
+        }
+        return array_values(array_unique(array_filter($urls)));
+    }
+
+    public function togglePicture(string $url): void
+    {
+        $i = array_search($url, $this->selectedPictures, true);
+        if ($i !== false) {
+            array_splice($this->selectedPictures, $i, 1);
+            return;
+        }
+        if (count($this->selectedPictures) >= 10) {
+            $this->notifyWarning('O Mercado Livre aceita até 10 fotos.');
+            return;
+        }
+        $this->selectedPictures[] = $url;
+    }
+
+    public function makeMainPicture(string $url): void
+    {
+        $rest = array_values(array_filter($this->selectedPictures, fn ($u) => $u !== $url));
+        $this->selectedPictures = array_merge([$url], $rest);
+    }
+
+    public function updatedNewPhotos(): void
+    {
+        $this->validate(['newPhotos.*' => 'image|max:8192'], [
+            'newPhotos.*.image' => 'Envie só imagens (JPG, PNG ou WEBP).',
+            'newPhotos.*.max' => 'Cada foto pode ter até 8 MB.',
+        ]);
+        foreach ((array) $this->newPhotos as $file) {
+            $path = $file->store('products/ml', 'public');
+            $url = asset('storage/' . $path);
+            $this->uploadedPictures[] = $url;
+            if (count($this->selectedPictures) < 10) {
+                $this->selectedPictures[] = $url;
+            }
+        }
+        $this->newPhotos = [];
+    }
+
+    /** Atributos opcionais úteis da categoria (melhoram a busca e a qualidade do anúncio). */
+    public function optionalAttributes(): array
+    {
+        $skip = ['GTIN', 'EMPTY_GTIN_REASON', 'SALE_FORMAT', 'UNITS_PER_PACK', 'NAME', 'SELLER_SKU', 'ITEM_CONDITION',
+            'SELLER_PACKAGE_HEIGHT', 'SELLER_PACKAGE_WIDTH', 'SELLER_PACKAGE_LENGTH', 'SELLER_PACKAGE_WEIGHT', 'PACKAGE_HEIGHT', 'PACKAGE_WIDTH', 'PACKAGE_LENGTH', 'PACKAGE_WEIGHT'];
+        $required = array_column($this->manualRequiredAttributes(), 'id');
+
+        return array_values(array_filter($this->mlAllAttributes, function ($a) use ($skip, $required) {
+            $tags = $a['tags'] ?? [];
+            $has = fn ($t) => is_array($tags) && (in_array($t, $tags, true) || !empty($tags[$t]));
+            if (in_array($a['id'], $skip, true) || in_array($a['id'], $required, true)) {
+                return false;
+            }
+            if ($has('hidden') || $has('read_only') || $has('fixed') || $has('others') || $has('variation_attribute')) {
+                return false;
+            }
+            return in_array($a['value_type'] ?? 'string', ['string', 'list', 'number', 'number_unit', 'boolean'], true);
+        }));
+    }
+
+    /** Monta sale_terms (garantia e prazo para postar). */
+    protected function buildSaleTerms(): array
+    {
+        $terms = [];
+        $types = ['seller' => 'Garantia do vendedor', 'factory' => 'Garantia de fábrica', 'none' => 'Sem garantia'];
+        $terms[] = ['id' => 'WARRANTY_TYPE', 'value_name' => $types[$this->warrantyType] ?? 'Garantia do vendedor'];
+        if ($this->warrantyType !== 'none' && (int) $this->warrantyTime > 0) {
+            $terms[] = ['id' => 'WARRANTY_TIME', 'value_name' => (int) $this->warrantyTime . ' ' . ($this->warrantyUnit === 'meses' ? 'meses' : 'dias')];
+        }
+        if ((int) $this->manufacturingDays > 0) {
+            $terms[] = ['id' => 'MANUFACTURING_TIME', 'value_name' => (int) $this->manufacturingDays . ' dias'];
+        }
+        return $terms;
+    }
+
+    /** SKU, embalagem e atributos opcionais preenchidos, no formato do ML. */
+    protected function extraAttributes(string $sku): array
+    {
+        $out = [];
+        if (trim($sku) !== '') {
+            $out[] = ['id' => 'SELLER_SKU', 'value_name' => trim($sku)];
+        }
+        $num = fn ($v) => (float) str_replace(',', '.', (string) $v);
+        if ($num($this->packageHeight) > 0) $out[] = ['id' => 'SELLER_PACKAGE_HEIGHT', 'value_name' => $num($this->packageHeight) . ' cm'];
+        if ($num($this->packageWidth) > 0) $out[] = ['id' => 'SELLER_PACKAGE_WIDTH', 'value_name' => $num($this->packageWidth) . ' cm'];
+        if ($num($this->packageLength) > 0) $out[] = ['id' => 'SELLER_PACKAGE_LENGTH', 'value_name' => $num($this->packageLength) . ' cm'];
+        if ($num($this->packageWeight) > 0) $out[] = ['id' => 'SELLER_PACKAGE_WEIGHT', 'value_name' => (int) round($num($this->packageWeight)) . ' g'];
+
+        if (!$this->catalogProductId) {
+            foreach ($this->optionalAttributes() as $attr) {
+                $val = $this->selectedAttributes[$attr['id']] ?? null;
+                if ($val !== null && trim((string) $val) !== '') {
+                    $out[] = ['id' => $attr['id'], 'value_name' => trim((string) $val)];
+                }
+            }
+        }
+        return $out;
+    }
+
+    /** Junta atributos sem repetir id (os da direita ganham). */
+    protected function mergeAttributes(array $base, array $extra): array
+    {
+        $byId = [];
+        foreach ($base as $k => $a) {
+            $id = is_array($a) ? ($a['id'] ?? $k) : $k;
+            $byId[$id] = is_array($a) ? $a : ['id' => $id, 'value_name' => (string) $a];
+        }
+        foreach ($extra as $a) {
+            $byId[$a['id']] = $a;
+        }
+        return array_values($byId);
+    }
+
+    /** Guarda as medidas no produto quando ele ainda não tinha. */
+    protected function saveDimensionsToProduct(Product $product): void
+    {
+        $num = fn ($v) => (float) str_replace(',', '.', (string) $v);
+        $data = [];
+        foreach (['weight_grams' => $this->packageWeight, 'length_cm' => $this->packageLength, 'width_cm' => $this->packageWidth, 'height_cm' => $this->packageHeight] as $col => $v) {
+            if ($num($v) > 0 && (empty($product->{$col}) || (float) $product->{$col} <= 0)) {
+                $data[$col] = $col === 'weight_grams' ? (int) round($num($v)) : $num($v);
+            }
+        }
+        if ($data) {
+            $product->forceFill($data)->saveQuietly();
+        }
     }
 
     public function render()

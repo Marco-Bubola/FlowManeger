@@ -372,17 +372,57 @@
                 <section class="pp-card">
                     <div class="pp-card-h">
                         <div class="pp-ico"><i class="bi bi-type"></i></div>
-                        <div class="flex-1"><h3>Título e descrição</h3><p>{{ $catalogProductName ? 'Título do catálogo do ML' : 'Nome do produto (máx. 60 letras)' }}</p></div>
+                        <div class="flex-1"><h3>Título e descrição</h3><p>O que o cliente lê na busca do ML</p></div>
                     </div>
                     <div class="pp-body space-y-3">
-                        <div class="flex gap-3 items-center rounded-2xl bg-slate-50 dark:bg-slate-800/60 p-3">
-                            <img src="{{ $selectedPictures[0] ?? ($selectedProducts[0]['image_url'] ?? '') }}" class="pp-thumb" alt="">
-                            <p class="text-sm font-bold text-slate-900 dark:text-white leading-snug">{{ mb_substr($this->getFinalTitle(), 0, 60) }}</p>
+                        <div>
+                            <span class="pp-label" style="display:flex;justify-content:space-between"><span>Título</span><span class="{{ mb_strlen($customTitle) > 60 ? 'text-red-600' : '' }}">{{ mb_strlen($customTitle) }}/60</span></span>
+                            <input type="text" wire:model.live.debounce.400ms="customTitle" maxlength="60" class="pp-input font-semibold" placeholder="Produto + marca + modelo + detalhe (ex.: Batom Matte Velvet 3,5g Vermelho)">
+                            @if($catalogProductId && $linkToCatalog)
+                                <p class="text-[11px] text-slate-500 mt-1"><i class="bi bi-info-circle"></i> Ligado ao catálogo, o ML mostra o título do catálogo.</p>
+                            @else
+                                <p class="text-[11px] text-slate-500 mt-1">Dica: comece pelo que o cliente digita na busca. Depois de publicado, o ML não deixa mudar o título.</p>
+                            @endif
                         </div>
                         <div>
                             <span class="pp-label">Descrição</span>
                             <textarea wire:model="catalogDescription" rows="6" class="pp-input resize-y" placeholder="Conte o que é o produto, medidas, modo de uso..."></textarea>
                         </div>
+                    </div>
+                </section>
+
+                @php $picOptions = $this->pictureOptions(); @endphp
+                <section class="pp-card">
+                    <div class="pp-card-h">
+                        <div class="pp-ico pink"><i class="bi bi-images"></i></div>
+                        <div class="flex-1"><h3>Fotos</h3><p>{{ count($selectedPictures) }} de 10 · a primeira é a capa · toque para tirar ou pôr</p></div>
+                    </div>
+                    <div class="pp-body">
+                        <div class="grid grid-cols-4 sm:grid-cols-5 gap-2">
+                            @foreach(array_values(array_unique(array_merge($selectedPictures, $picOptions))) as $url)
+                                @php $pos = array_search($url, $selectedPictures, true); @endphp
+                                <div class="relative group" wire:key="pic-{{ md5($url) }}">
+                                    <button type="button" wire:click="togglePicture(@js($url))"
+                                        class="block w-full aspect-square rounded-xl overflow-hidden bg-white border-2 {{ $pos !== false ? 'border-indigo-500' : 'border-slate-200 dark:border-slate-700 opacity-50' }}">
+                                        <img src="{{ $url }}" alt="" class="w-full h-full object-contain" loading="lazy">
+                                    </button>
+                                    @if($pos !== false)
+                                        <span class="absolute top-1 left-1 min-w-[1.25rem] h-5 px-1 rounded-full text-[10px] font-black flex items-center justify-center {{ $pos === 0 ? 'bg-indigo-600 text-white' : 'bg-white text-slate-700 shadow' }}">{{ $pos === 0 ? 'Capa' : $pos + 1 }}</span>
+                                        @if($pos > 0)
+                                            <button type="button" wire:click="makeMainPicture(@js($url))" class="absolute bottom-1 left-1 right-1 rounded-lg bg-black/60 text-white text-[10px] font-bold py-0.5 opacity-0 group-hover:opacity-100 sm:opacity-0 max-sm:opacity-100">Capa</button>
+                                        @endif
+                                    @endif
+                                </div>
+                            @endforeach
+                            <label class="aspect-square rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-600 flex flex-col items-center justify-center gap-1 cursor-pointer text-slate-500 hover:border-indigo-400 hover:text-indigo-600">
+                                <i class="bi bi-camera text-xl" wire:loading.remove wire:target="newPhotos"></i>
+                                <span class="pp-spinner" style="width:1.4rem;height:1.4rem;border-width:3px" wire:loading wire:target="newPhotos"></span>
+                                <span class="text-[10px] font-bold">Enviar</span>
+                                <input type="file" wire:model="newPhotos" accept="image/*" multiple class="hidden">
+                            </label>
+                        </div>
+                        @error('newPhotos.*')<p class="text-xs text-red-600 mt-2">{{ $message }}</p>@enderror
+                        <p class="text-[11px] text-slate-500 mt-2">Fundo branco na capa vende mais e o ML pede pelo menos 500 px.</p>
                     </div>
                 </section>
 
@@ -510,26 +550,87 @@
                             <input type="text" wire:model.live.debounce.500ms="categorySearch" placeholder="Não achou? Busque outra categoria" class="pp-input" style="padding-left:2.2rem">
                         </div>
 
-                        @if(!empty($requiredAttrs))
-                            <div class="pt-2 space-y-2">
-                                <span class="pp-label">Ficha obrigatória da categoria</span>
-                                @foreach($requiredAttrs as $attr)
-                                    <div wire:key="req-attr-{{ $attr['id'] }}">
-                                        <label class="text-xs font-semibold text-slate-600 dark:text-slate-300">{{ $attr['name'] ?? $attr['id'] }} *</label>
-                                        @if(!empty($attr['values']) && is_array($attr['values']))
-                                            <select wire:model="selectedAttributes.{{ $attr['id'] }}" class="pp-input mt-1">
-                                                <option value="">Escolha</option>
-                                                @foreach($attr['values'] as $val)
-                                                    <option value="{{ $val['name'] ?? $val['id'] }}">{{ $val['name'] ?? $val['id'] }}</option>
-                                                @endforeach
-                                            </select>
-                                        @else
-                                            <input type="text" wire:model="selectedAttributes.{{ $attr['id'] }}" placeholder="{{ $attr['hint'] ?? '' }}" class="pp-input mt-1">
-                                        @endif
-                                    </div>
-                                @endforeach
+                    </div>
+                </section>
+
+                @php $optionalAttrs = $catalogProductId ? [] : $this->optionalAttributes(); @endphp
+                <section class="pp-card">
+                    <div class="pp-card-h">
+                        <div class="pp-ico"><i class="bi bi-card-checklist"></i></div>
+                        <div class="flex-1"><h3>Ficha técnica</h3><p>{{ $catalogProductId ? 'Vem do catálogo do ML' : 'Quanto mais completa, melhor o anúncio aparece na busca' }}</p></div>
+                    </div>
+                    <div class="pp-body space-y-3">
+                        @if(count($selectedProducts) === 1)
+                            <div>
+                                <span class="pp-label">SKU (seu código)</span>
+                                <input type="text" wire:model="sellerSku" class="pp-input" placeholder="Código do produto">
                             </div>
                         @endif
+                        @foreach($requiredAttrs as $attr)
+                            <div wire:key="req-attr-{{ $attr['id'] }}">
+                                <span class="pp-label">{{ $attr['name'] ?? $attr['id'] }} <span class="text-red-500">*</span></span>
+                                @if(!empty($attr['values']) && is_array($attr['values']))
+                                    <select wire:model="selectedAttributes.{{ $attr['id'] }}" class="pp-input">
+                                        <option value="">Escolha</option>
+                                        @foreach($attr['values'] as $val)
+                                            <option value="{{ $val['name'] ?? $val['id'] }}">{{ $val['name'] ?? $val['id'] }}</option>
+                                        @endforeach
+                                    </select>
+                                @else
+                                    <input type="text" wire:model="selectedAttributes.{{ $attr['id'] }}" placeholder="{{ $attr['hint'] ?? '' }}" class="pp-input">
+                                @endif
+                            </div>
+                        @endforeach
+                        @if(!empty($optionalAttrs))
+                            <button type="button" wire:click="$toggle('showOptionalAttributes')" class="w-full pp-btn pp-btn-ghost" style="font-size:.82rem">
+                                <i class="bi {{ $showOptionalAttributes ? 'bi-chevron-up' : 'bi-plus-circle' }}"></i>
+                                {{ $showOptionalAttributes ? 'Esconder campos opcionais' : 'Completar mais '.count($optionalAttrs).' campos (opcional)' }}
+                            </button>
+                            @if($showOptionalAttributes)
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach($optionalAttrs as $attr)
+                                        <div wire:key="opt-attr-{{ $attr['id'] }}">
+                                            <span class="pp-label">{{ $attr['name'] ?? $attr['id'] }}</span>
+                                            @if(($attr['value_type'] ?? '') === 'boolean')
+                                                <select wire:model="selectedAttributes.{{ $attr['id'] }}" class="pp-input">
+                                                    <option value="">—</option><option value="Sim">Sim</option><option value="Não">Não</option>
+                                                </select>
+                                            @elseif(!empty($attr['values']) && is_array($attr['values']))
+                                                <select wire:model="selectedAttributes.{{ $attr['id'] }}" class="pp-input">
+                                                    <option value="">—</option>
+                                                    @foreach($attr['values'] as $val)
+                                                        <option value="{{ $val['name'] ?? $val['id'] }}">{{ $val['name'] ?? $val['id'] }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @else
+                                                <input type="text" wire:model="selectedAttributes.{{ $attr['id'] }}" class="pp-input"
+                                                    placeholder="{{ ($attr['value_type'] ?? '') === 'number_unit' ? 'Ex.: 10 '.(($attr['default_unit'] ?? null) ?: 'cm') : '' }}">
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @elseif(empty($requiredAttrs) && !$catalogProductId)
+                            <p class="text-xs text-slate-500">A categoria não pediu outros campos. Marca, modelo e código de barras vão sozinhos.</p>
+                        @endif
+                    </div>
+                </section>
+
+                <section class="pp-card">
+                    <div class="pp-card-h">
+                        <div class="pp-ico teal"><i class="bi bi-box2"></i></div>
+                        <div class="flex-1"><h3>Embalagem</h3><p>Medidas do pacote para o ML calcular o frete</p></div>
+                    </div>
+                    <div class="pp-body">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            @foreach(['packageWeight' => ['Peso', 'g'], 'packageLength' => ['Compr.', 'cm'], 'packageWidth' => ['Largura', 'cm'], 'packageHeight' => ['Altura', 'cm']] as $prop => [$lbl, $unit])
+                                <div>
+                                    <span class="pp-label">{{ $lbl }} ({{ $unit }})</span>
+                                    <input type="text" inputmode="decimal" wire:model="{{ $prop }}" class="pp-input" placeholder="0">
+                                </div>
+                            @endforeach
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-2">Com a caixa já embalada. Se o produto não tiver medidas salvas, elas ficam guardadas nele.</p>
                     </div>
                 </section>
 
@@ -553,6 +654,13 @@
                                 <span class="block text-xs text-slate-500 mt-0.5">O comprador pode buscar no seu endereço cadastrado no ML.</span>
                             </span>
                         </label>
+                        <div>
+                            <span class="pp-label">Prazo extra para postar (opcional)</span>
+                            <div class="flex items-center gap-2">
+                                <input type="number" min="0" max="45" wire:model="manufacturingDays" class="pp-input" style="max-width:7rem" placeholder="0">
+                                <span class="text-xs text-slate-500">dias. Use só se o produto é feito sob encomenda.</span>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -571,8 +679,21 @@
                             @endforeach
                         </div>
                         <div>
-                            <span class="pp-label">Garantia (opcional)</span>
-                            <input type="text" wire:model="warranty" placeholder="Ex.: 90 dias de garantia do fabricante" class="pp-input">
+                            <span class="pp-label">Garantia</span>
+                            <select wire:model.live="warrantyType" class="pp-input">
+                                <option value="seller">Garantia do vendedor</option>
+                                <option value="factory">Garantia de fábrica</option>
+                                <option value="none">Sem garantia</option>
+                            </select>
+                            @if($warrantyType !== 'none')
+                                <div class="flex gap-2 mt-2">
+                                    <input type="number" min="1" wire:model="warrantyTime" class="pp-input" style="max-width:7rem">
+                                    <select wire:model="warrantyUnit" class="pp-input" style="max-width:9rem">
+                                        <option value="dias">dias</option>
+                                        <option value="meses">meses</option>
+                                    </select>
+                                </div>
+                            @endif
                         </div>
                     </div>
                 </section>
