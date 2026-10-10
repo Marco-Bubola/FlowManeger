@@ -458,3 +458,12 @@ html body .pes-kpis .dash-kpi-label { white-space: normal !important; overflow: 
 html body .conquistas-hub .pes-level-card { min-width: 0; margin-bottom: 1rem; }
 html body .pes-rarity.pes-rarity { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.5rem !important; }
 html body .pes-rarity.pes-rarity > div { padding: 0.5rem !important; min-height: 0 !important; }
+
+/* ===== Início: 4 números no celular, o resto ao tocar em "Ver todos" ===== */
+@media (max-width: 767px) {
+    html body .ini-kpis:not(.ini-kpis-todos) .ini-kpi-extra { display: none !important; }
+    html body .dash-kpis.dash-kpis.ini-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@media (min-width: 768px) { html body .ini-kpis-btn { display: none !important; } }
+html body .ini-kpis .dash-kpi-label { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2 !important; }
+html body .dash-grid > .ini-mais-btn { grid-column: 1 / -1 !important; }

@@ -78,27 +78,93 @@
         @endif
     </div>
 
-    {{-- ============ KPIs (10 — denso) ============ --}}
-    <div class="dash-kpis">
-        <x-dash.kpi label="Faturamento" tone="emerald" icon="bi-cash-coin" :value="$fmt($totalFaturamento ?? 0)" :delta="round($taxaCrescimento ?? 0)" countup />
-        <x-dash.kpi label="Vendas no mês" tone="indigo" icon="bi-bag-check" :value="$salesMonth ?? 0" countup />
-        <x-dash.kpi label="Ticket médio" tone="purple" icon="bi-receipt" :value="$fmt($ticketMedio ?? 0)" />
-        <x-dash.kpi label="A receber" tone="amber" icon="bi-hourglass-split" :value="$fmt($contasReceberPendentes ?? 0)" />
-        <x-dash.kpi label="A pagar" tone="rose" icon="bi-credit-card" :value="$fmt($contasPagarPendentes ?? 0)" />
-        <x-dash.kpi label="Saldo em caixa" tone="teal" icon="bi-wallet2" :value="$fmt($saldoCaixa ?? 0)" />
-        <x-dash.kpi label="Lucro líquido" tone="emerald" icon="bi-graph-up-arrow" :value="$fmt($lucroLiquido ?? 0)" :delta="round($margemLucro ?? 0)" />
-        <x-dash.kpi label="Produtos" tone="sky" icon="bi-box-seam" :value="$totalProdutos ?? 0" countup />
-        <x-dash.kpi label="Clientes" tone="blue" icon="bi-people" :value="$totalClientes ?? 0" countup />
-        <x-dash.kpi label="Recorrências" tone="slate" icon="bi-arrow-repeat" :value="$recorrentesAtivas ?? 0" countup />
+    @php
+        $atalhos = array_values(array_filter([
+            ['Nova venda', 'bi-cart-plus', 'sales.create', 'from-emerald-500 to-teal-500'],
+            ['Lançar no caixa', 'bi-journal-plus', 'cashbook.create', 'from-sky-500 to-blue-600'],
+            ['Novo produto', 'bi-box-seam', 'products.create', 'from-indigo-500 to-purple-600'],
+            ['Novo cliente', 'bi-person-plus', 'clients.create', 'from-pink-500 to-rose-500'],
+            ['Importar extrato', 'bi-file-earmark-arrow-up', 'cashbook.upload2', 'from-amber-500 to-orange-500'],
+            ['Hábitos', 'bi-check2-square', 'conquistas.hub', 'from-violet-500 to-fuchsia-500'],
+        ], fn ($a) => \Illuminate\Support\Facades\Route::has($a[2])));
+        $toneCls = [
+            'emerald' => 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300',
+            'rose' => 'bg-rose-500/15 text-rose-600 dark:text-rose-300',
+            'amber' => 'bg-amber-500/15 text-amber-600 dark:text-amber-300',
+            'purple' => 'bg-purple-500/15 text-purple-600 dark:text-purple-300',
+            'sky' => 'bg-sky-500/15 text-sky-600 dark:text-sky-300',
+        ];
+    @endphp
+
+    {{-- ============ PARA HOJE + ATALHOS ============ --}}
+    <div class="ini-top grid grid-cols-1 lg:grid-cols-12 gap-3 mb-3">
+        <section class="ini-hoje lg:col-span-8 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-white/90 dark:bg-slate-800/80 shadow-sm p-3 sm:p-4">
+            <div class="flex items-center justify-between mb-2">
+                <h2 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white flex items-center gap-2">
+                    <i class="bi bi-sun text-amber-500"></i> Para hoje
+                    <span class="text-xs font-medium text-slate-400">{{ now()->translatedFormat('l, d \\d\\e F') }}</span>
+                </h2>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-1.5">
+                @foreach($hoje as $item)
+                    <a href="{{ $item['link'] }}" wire:navigate wire:key="hoje-{{ $loop->index }}"
+                       class="ini-hoje-item flex items-center gap-3 rounded-xl px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition">
+                        <span class="flex items-center justify-center w-9 h-9 shrink-0 rounded-xl {{ $toneCls[$item['tone']] ?? $toneCls['sky'] }}">
+                            <i class="bi {{ $item['icon'] }}"></i>
+                        </span>
+                        <span class="flex-1 min-w-0 text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">{{ $item['title'] }}</span>
+                        @if($item['value'])
+                            <span class="shrink-0 text-sm font-bold text-slate-800 dark:text-white">{{ $item['value'] }}</span>
+                        @endif
+                        <i class="bi bi-chevron-right text-xs text-slate-400 shrink-0"></i>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+
+        <section class="ini-atalhos lg:col-span-4 rounded-2xl border border-slate-200/70 dark:border-slate-700/60 bg-white/90 dark:bg-slate-800/80 shadow-sm p-3 sm:p-4">
+            <h2 class="text-sm sm:text-base font-bold text-slate-800 dark:text-white flex items-center gap-2 mb-2">
+                <i class="bi bi-lightning-charge text-indigo-500"></i> Atalhos
+            </h2>
+            <div class="grid grid-cols-6 lg:grid-cols-3 gap-1 sm:gap-2">
+                @foreach($atalhos as [$label, $icon, $route, $grad])
+                    <a href="{{ route($route) }}" wire:navigate class="flex flex-col items-center gap-1.5 rounded-xl py-2 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition text-center">
+                        <span class="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br {{ $grad }} text-white shadow-md">
+                            <i class="bi {{ $icon }} text-lg"></i>
+                        </span>
+                        <span class="text-[10px] sm:text-[11px] font-semibold text-slate-600 dark:text-slate-300 leading-tight">{{ $label }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    </div>
+
+    {{-- ============ NÚMEROS (4 no celular, o resto ao tocar em "Ver todos") ============ --}}
+    <div x-data="{ todos: false }" class="mb-1">
+        <div class="dash-kpis ini-kpis" :class="todos && 'ini-kpis-todos'">
+            <x-dash.kpi label="Faturamento do mês" tone="emerald" icon="bi-cash-coin" :value="$fmt($faturamentoMes ?? 0)" :delta="round($taxaCrescimento ?? 0)" />
+            <x-dash.kpi label="A receber" tone="amber" icon="bi-hourglass-split" :value="$fmt($contasReceberPendentes ?? 0)" />
+            <x-dash.kpi label="A pagar" tone="rose" icon="bi-credit-card" :value="$fmt($contasPagarPendentes ?? 0)" />
+            <x-dash.kpi label="Saldo em caixa" tone="teal" icon="bi-wallet2" :value="$fmt($saldoCaixa ?? 0)" />
+            <x-dash.kpi class="ini-kpi-extra" label="Vendas no mês" tone="indigo" icon="bi-bag-check" :value="$salesMonth ?? 0" countup />
+            <x-dash.kpi class="ini-kpi-extra" label="Ticket médio" tone="purple" icon="bi-receipt" :value="$fmt($ticketMedio ?? 0)" />
+            <x-dash.kpi class="ini-kpi-extra" label="Lucro líquido" tone="emerald" icon="bi-graph-up-arrow" :value="$fmt($lucroLiquido ?? 0)" />
+            <x-dash.kpi class="ini-kpi-extra" label="Faturamento total" tone="sky" icon="bi-cash-stack" :value="$fmt($totalFaturamento ?? 0)" />
+            <x-dash.kpi class="ini-kpi-extra" label="Produtos" tone="blue" icon="bi-box-seam" :value="$totalProdutos ?? 0" countup />
+            <x-dash.kpi class="ini-kpi-extra" label="Clientes" tone="slate" icon="bi-people" :value="$totalClientes ?? 0" countup />
+        </div>
+        <button type="button" @click="todos = !todos" class="ini-kpis-btn w-full mt-2 py-2 rounded-xl text-xs font-semibold text-indigo-600 dark:text-indigo-300 bg-indigo-500/10">
+            <span x-show="!todos">Ver todos os números</span><span x-show="todos" x-cloak>Mostrar menos</span>
+        </button>
     </div>
 
     {{-- ============ GRID DE CONTEÚDO (denso) ============ --}}
-    <div class="dash-grid">
+    <div class="dash-grid" x-data="{ mais: window.matchMedia('(min-width: 768px)').matches }" x-init="$nextTick(() => window.dashInitCharts && window.dashInitCharts())">
 
         {{-- Receita 14 dias (área gradiente) --}}
         <x-dash.card title="Receita — últimos 14 dias" sub="Total por dia" icon="bi-graph-up" tone="indigo" span="dash-col-8">
             @if(array_sum($ov['revenueSeries']) > 0)
-                <x-dash.chart id="dashRevenueChart" type="area"
+                <x-dash.chart id="dashRevenueChart" :currency="true" type="area"
                     :series="[['name' => 'Receita', 'data' => $ov['revenueSeries']]]"
                     :labels="$ov['revenueLabels']"
                     :colors="['#6366f1']" />
@@ -107,6 +173,19 @@
             @endif
         </x-dash.card>
 
+        {{-- Fluxo de caixa mensal (receitas x despesas) --}}
+        <x-dash.card title="Fluxo de caixa" sub="Receitas x Despesas por mês" icon="bi-bar-chart-line" tone="emerald" span="dash-col-4">
+            @if(!empty($cfLabels))
+                <x-dash.chart id="dashCashflowChart" :currency="true" type="bar"
+                    :series="[['name' => 'Receitas', 'data' => $cfReceitas], ['name' => 'Despesas', 'data' => $cfDespesas]]"
+                    :labels="$cfLabels"
+                    :colors="['#10b981','#f43f5e']" />
+            @else
+                <x-dash.empty icon="bi-bar-chart" message="Sem dados de fluxo de caixa" />
+            @endif
+        </x-dash.card>
+
+        <template x-if="mais">
         {{-- Vendas por status (donut) --}}
         <x-dash.card title="Vendas por status" sub="Distribuição" icon="bi-pie-chart" tone="purple" span="dash-col-4">
             @if(array_sum($ov['statusSeries']) > 0)
@@ -118,23 +197,13 @@
                 <x-dash.empty icon="bi-pie-chart" message="Nenhuma venda registrada" />
             @endif
         </x-dash.card>
+        </template>
 
-        {{-- Fluxo de caixa mensal (receitas x despesas) --}}
-        <x-dash.card title="Fluxo de caixa" sub="Receitas x Despesas por mês" icon="bi-bar-chart-line" tone="emerald" span="dash-col-6">
-            @if(!empty($cfLabels))
-                <x-dash.chart id="dashCashflowChart" type="bar"
-                    :series="[['name' => 'Receitas', 'data' => $cfReceitas], ['name' => 'Despesas', 'data' => $cfDespesas]]"
-                    :labels="$cfLabels"
-                    :colors="['#10b981','#f43f5e']" />
-            @else
-                <x-dash.empty icon="bi-bar-chart" message="Sem dados de fluxo de caixa" />
-            @endif
-        </x-dash.card>
-
+        <template x-if="mais">
         {{-- Despesas por categoria (donut) --}}
-        <x-dash.card title="Despesas por categoria" sub="Para onde vai o dinheiro" icon="bi-pie-chart-fill" tone="rose" span="dash-col-6">
+        <x-dash.card title="Despesas por categoria" sub="Para onde vai o dinheiro" icon="bi-pie-chart-fill" tone="rose" span="dash-col-4">
             @if(array_sum($ecSeries) > 0)
-                <x-dash.chart id="dashExpCatChart" type="donut"
+                <x-dash.chart id="dashExpCatChart" :currency="true" type="donut"
                     :series="$ecSeries"
                     :labels="$ecLabels"
                     :colors="['#f43f5e','#f59e0b','#6366f1','#14b8a6','#8b5cf6','#0ea5e9','#64748b']" />
@@ -142,11 +211,13 @@
                 <x-dash.empty icon="bi-pie-chart" message="Sem despesas categorizadas" />
             @endif
         </x-dash.card>
+        </template>
 
+        <template x-if="mais">
         {{-- Comparativo de períodos (barras) --}}
         <x-dash.card title="Comparativo de períodos" sub="Atual x anterior x ano passado" icon="bi-clipboard-data" tone="blue" span="dash-col-4">
             @if(!empty($pc['labels']))
-                <x-dash.chart id="dashComparisonChart" type="bar"
+                <x-dash.chart id="dashComparisonChart" :currency="true" type="bar"
                     :series="[['name' => 'Receitas', 'data' => $pc['income'] ?? []], ['name' => 'Despesas', 'data' => $pc['expenses'] ?? []]]"
                     :labels="$pc['labels']"
                     :colors="['#10b981','#f43f5e']" />
@@ -154,7 +225,9 @@
                 <x-dash.empty icon="bi-clipboard-data" message="Sem comparativo disponível" />
             @endif
         </x-dash.card>
+        </template>
 
+        <template x-if="mais">
         {{-- Orçamento do mês (progresso) --}}
         <x-dash.card title="Orçamento do mês" sub="Usado x planejado" icon="bi-speedometer2" tone="amber" span="dash-col-4">
             @if($orcTotal > 0)
@@ -178,7 +251,9 @@
                 <x-dash.empty icon="bi-speedometer2" message="Nenhum orçamento definido" />
             @endif
         </x-dash.card>
+        </template>
 
+        <template x-if="mais">
         {{-- Destaques --}}
         <x-dash.card title="Destaques" sub="Indicadores do período" icon="bi-trophy" tone="rose" span="dash-col-4">
             <div class="dash-list">
@@ -194,7 +269,9 @@
                 <x-dash.list-item title="Estoque baixo" sub="Produtos a repor" icon="bi-exclamation-triangle-fill" tone="rose" :value="$produtosEstoqueBaixo ?? 0" :trend="($produtosEstoqueBaixo ?? 0) > 0 ? 'down' : null" />
             </div>
         </x-dash.card>
+        </template>
 
+        <template x-if="mais">
         {{-- Atividades recentes --}}
         <x-dash.card title="Atividades recentes" sub="Últimas movimentações" icon="bi-activity" tone="sky" span="dash-col-4">
             @if(!empty($atividades))
@@ -213,28 +290,12 @@
                 <x-dash.empty icon="bi-activity" message="Nenhuma atividade recente" />
             @endif
         </x-dash.card>
+        </template>
 
-        {{-- Alertas --}}
-        <x-dash.card title="Alertas" sub="Itens que precisam de atenção" icon="bi-exclamation-triangle" tone="amber" span="dash-col-4">
-            @if(!empty($alertas))
-                <div class="dash-list dash-scroll max-h-[240px] overflow-y-auto pr-1">
-                    @foreach($alertas as $al)
-                        @php
-                            $tone = ($al['type'] ?? '') === 'danger' ? 'rose' : (($al['type'] ?? '') === 'warning' ? 'amber' : 'sky');
-                        @endphp
-                        <a href="{{ $al['link'] ?? '#' }}" class="block">
-                            <x-dash.list-item :title="$al['message'] ?? 'Alerta'" icon="bi-bell-fill" :tone="$tone" />
-                        </a>
-                    @endforeach
-                </div>
-            @else
-                <x-dash.empty icon="bi-check-circle" message="Tudo certo! Nenhum alerta." />
-            @endif
-        </x-dash.card>
-
+        <template x-if="mais">
         {{-- Resumo financeiro rápido --}}
-        <x-dash.card title="Resumo financeiro" sub="Contas e reservas" icon="bi-bank" tone="teal" span="dash-col-4">
-            <div class="grid grid-cols-2 gap-2">
+        <x-dash.card title="Resumo financeiro" sub="Contas e reservas" icon="bi-bank" tone="teal" span="dash-col-12">
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 <div class="rounded-xl bg-emerald-500/10 border border-emerald-400/30 px-3 py-2.5">
                     <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-300">A receber</p>
                     <p class="text-sm font-black text-emerald-700 dark:text-emerald-200">{{ $fmt($contasReceberPendentes ?? 0) }}</p>
@@ -253,5 +314,10 @@
                 </div>
             </div>
         </x-dash.card>
+        </template>
+
+        <button type="button" x-show="!mais" @click="mais = true; $nextTick(() => window.dashInitCharts && window.dashInitCharts())" class="ini-mais-btn dash-col-12 w-full py-2.5 rounded-xl text-sm font-semibold text-indigo-600 dark:text-indigo-300 bg-white/90 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/60">
+            <i class="bi bi-bar-chart-line mr-1"></i> Ver mais gráficos e listas
+        </button>
     </div>
 </div>

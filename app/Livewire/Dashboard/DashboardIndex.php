@@ -29,6 +29,7 @@ use App\Models\ProductUploadHistory;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Component;
 
@@ -138,6 +139,10 @@ class DashboardIndex extends Component
     // IA Dashboard Summary
     public string $aiSummary = '';
     public bool $aiSummaryLoading = false;
+
+    // Bloco "Para hoje" do Início (o que pede atenção hoje)
+    public array $hoje = [];
+    public float $faturamentoMes = 0;
     public bool $showAiPanel = false;
 
     public function mount()
@@ -497,6 +502,8 @@ class DashboardIndex extends Component
             ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->sum('total_price');
 
+        $this->faturamentoMes = (float) $vendasMesAtual;
+
         $this->taxaCrescimento = $vendasMesAnterior > 0 ?
             (($vendasMesAtual - $vendasMesAnterior) / $vendasMesAnterior) * 100 : 0;
 
@@ -694,6 +701,121 @@ class DashboardIndex extends Component
 
         // Carregar atividades recentes
         $this->carregarAtividades($userId);
+
+        $this->carregarHoje($userId);
+    }
+
+    /**
+     * Monta a lista "Para hoje": vendas do dia, parcelas que vencem hoje ou já venceram,
+     * hábitos do dia, estoque baixo e faturas próximas. Cada item leva para a tela certa.
+     */
+    protected function carregarHoje(int $userId): void
+    {
+        $hoje = Carbon::today();
+        $brl = fn ($v) => 'R$ ' . number_format((float) $v, 2, ',', '.');
+        $itens = [];
+
+        $vendasHoje = Sale::where('user_id', $userId)
+            ->whereDate('created_at', $hoje)
+            ->whereNotIn('status', ['cancelada', 'orcamento'])
+            ->selectRaw('COUNT(*) as qtd, COALESCE(SUM(total_price), 0) as total')
+            ->first();
+        $qtd = (int) ($vendasHoje->qtd ?? 0);
+        $itens[] = [
+            'icon' => 'bi-bag-check', 'tone' => 'emerald',
+            'title' => $qtd > 0 ? ($qtd == 1 ? '1 venda hoje' : "{$qtd} vendas hoje") : 'Nenhuma venda hoje ainda',
+            'value' => $qtd > 0 ? $brl($vendasHoje->total) : null,
+            'link' => $qtd > 0 ? route('sales.index') : route('sales.create'),
+            'ok' => true,
+        ];
+
+        $parcelas = VendaParcela::join('sales', 'venda_parcelas.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->where('venda_parcelas.status', 'pendente')
+            ->whereDate('venda_parcelas.data_vencimento', '<=', $hoje)
+            ->selectRaw('SUM(CASE WHEN DATE(venda_parcelas.data_vencimento) < ? THEN 1 ELSE 0 END) as vencidas, SUM(CASE WHEN DATE(venda_parcelas.data_vencimento) = ? THEN 1 ELSE 0 END) as hoje, COALESCE(SUM(venda_parcelas.valor), 0) as total', [$hoje->toDateString(), $hoje->toDateString()])
+            ->first();
+        $venc = (int) ($parcelas->vencidas ?? 0);
+        $vHoje = (int) ($parcelas->hoje ?? 0);
+        if ($venc + $vHoje > 0) {
+            $partes = [];
+            if ($vHoje > 0) $partes[] = $vHoje == 1 ? '1 parcela vence hoje' : "{$vHoje} parcelas vencem hoje";
+            if ($venc > 0) $partes[] = $venc == 1 ? '1 atrasada' : "{$venc} atrasadas";
+            $itens[] = [
+                'icon' => 'bi-hourglass-split', 'tone' => $venc > 0 ? 'rose' : 'amber',
+                'title' => 'Para receber: ' . implode(', ', $partes),
+                'value' => $brl($parcelas->total),
+                'link' => Route::has('gestao.receivables') ? route('gestao.receivables') : route('sales.index'),
+            ];
+        }
+
+        if (Schema::hasTable('daily_habits') && Schema::hasTable('daily_habit_completions')) {
+            $habitos = \App\Models\DailyHabit::where('user_id', $userId)->where('is_active', true)
+                ->where(fn ($q) => $q->where('is_archived', false)->orWhereNull('is_archived'))
+                ->get()->filter(fn ($h) => $h->isScheduledFor($hoje));
+            if ($habitos->isNotEmpty()) {
+                $feitos = \App\Models\DailyHabitCompletion::where('user_id', $userId)
+                    ->whereDate('completion_date', $hoje)
+                    ->whereIn('habit_id', $habitos->pluck('id'))
+                    ->distinct()->count('habit_id');
+                $total = $habitos->count();
+                $itens[] = [
+                    'icon' => 'bi-check2-square', 'tone' => $feitos >= $total ? 'emerald' : 'purple',
+                    'title' => $feitos >= $total ? 'Hábitos de hoje concluídos' : "Hábitos: {$feitos} de {$total} feitos hoje",
+                    'value' => null,
+                    'link' => route('conquistas.hub'),
+                    'ok' => $feitos >= $total,
+                ];
+            }
+        }
+
+        if ($this->produtosEstoqueBaixo > 0) {
+            $itens[] = [
+                'icon' => 'bi-box-seam', 'tone' => 'amber',
+                'title' => $this->produtosEstoqueBaixo == 1 ? '1 produto com estoque baixo' : "{$this->produtosEstoqueBaixo} produtos com estoque baixo",
+                'value' => null,
+                'link' => Route::has('gestao.restock') ? route('gestao.restock') : route('products.index'),
+            ];
+        }
+
+        if ($this->invoicesProxVenc30Total > 0) {
+            $itens[] = [
+                'icon' => 'bi-credit-card', 'tone' => 'sky',
+                'title' => 'Faturas de cartão nos próximos 30 dias',
+                'value' => $brl($this->invoicesProxVenc30Total),
+                'link' => route('invoices.index'),
+            ];
+        }
+
+        if (! empty($this->orcamentosTopEstouro)) {
+            $n = count($this->orcamentosTopEstouro);
+            $itens[] = [
+                'icon' => 'bi-speedometer2', 'tone' => 'rose',
+                'title' => $n == 1 ? '1 categoria acima do orçamento' : "{$n} categorias acima do orçamento",
+                'value' => null,
+                'link' => route('cashbook.index'),
+            ];
+        }
+
+        if ($this->clientesInadimplentes > 0) {
+            $itens[] = [
+                'icon' => 'bi-person-exclamation', 'tone' => 'amber',
+                'title' => $this->clientesInadimplentes == 1 ? '1 cliente com pagamento pendente' : "{$this->clientesInadimplentes} clientes com pagamento pendente",
+                'value' => null,
+                'link' => Route::has('gestao.collections') ? route('gestao.collections') : route('clients.index'),
+            ];
+        }
+
+        if ($this->proximosSorteios > 0) {
+            $itens[] = [
+                'icon' => 'bi-calendar-event', 'tone' => 'sky',
+                'title' => $this->proximosSorteios == 1 ? '1 sorteio de consórcio nos próximos 30 dias' : "{$this->proximosSorteios} sorteios de consórcio nos próximos 30 dias",
+                'value' => null,
+                'link' => route('consortiums.index'),
+            ];
+        }
+
+        $this->hoje = $itens;
     }
 
     protected function carregarAlertas($userId, Carbon $periodEnd)
