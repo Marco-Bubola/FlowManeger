@@ -201,13 +201,13 @@
     <aside id="sidebar" class="w-64 flex-shrink-0 flex flex-col shadow-2xl transform -translate-x-full lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-50 transition-transform duration-300 overflow-hidden" style="background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 40%, #1e293b 100%);">
 
         {{-- Logo strip (top accent) --}}
-        <div class="h-1 w-full" style="background: linear-gradient(90deg, #38bdf8, #6366f1, #a855f7)"></div>
+        <div class="h-1 w-full" style="background: linear-gradient(90deg, #ec4899, #a855f7, #3b82f6)"></div>
 
         {{-- Logo --}}
         <div class="px-5 py-4 border-b border-white/[0.07]">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0" style="background: linear-gradient(135deg,#38bdf8,#6366f1)">
-                    <i class="fas fa-store text-white text-sm"></i>
+                <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-lg flex-shrink-0 bg-white">
+                    <img src="{{ Vite::asset('resources/images/icons/logo-64.png') }}" alt="{{ config('app.name') }}" class="w-6 h-6 object-contain">
                 </div>
                 <div class="min-w-0">
                     <p class="text-[9px] font-bold uppercase tracking-[.22em]" style="color:#38bdf8">Portal do Cliente</p>
