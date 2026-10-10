@@ -23,6 +23,7 @@ class MlStockLog extends Model
         'quantity_change',
         'source',
         'ml_order_id',
+        'ml_variation_id',
         'notes',
         'transaction_id',
         'rolled_back',

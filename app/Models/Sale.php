@@ -250,7 +250,7 @@ class Sale extends Model
 
             \App\Models\MlPublication::query()
                 ->where('user_id', $this->user_id)
-                ->whereHas('products', fn ($q) => $q->whereIn('products.id', $affected->all()))
+                ->usingProducts($affected->all())
                 ->get()
                 ->each(fn ($pub) => \App\Jobs\SyncPublicationToMercadoLivre::dispatch($pub));
         } catch (\Throwable $e) {

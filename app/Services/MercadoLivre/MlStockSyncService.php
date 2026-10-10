@@ -26,12 +26,12 @@ class MlStockSyncService
      * @param MlPublication $publication
      * @return array ['success' => bool, 'message' => string, 'data' => array]
      */
-    public function syncQuantityToMercadoLivre(MlPublication $publication): array
+    public function syncQuantityToMercadoLivre(MlPublication $publication, bool $confirmVariations = false): array
     {
         try {
             // Publicação sem produtos vinculados (ex.: importada do ML) não tem
             // estoque local: enviar 0 zeraria o anúncio no ML.
-            if ($publication->linkedProducts()->isEmpty()) {
+            if (!$publication->hasStockLink()) {
                 return [
                     'success' => true,
                     'message' => 'Publicação sem produtos vinculados: quantidade não enviada ao ML',
@@ -47,8 +47,13 @@ class MlStockSyncService
                 ];
             }
 
-            // Recalcula quantidade baseada no estoque
-            $availableQuantity = $publication->calculateAvailableQuantity();
+            // O dono confirmou na tela: as variações ligadas passam a ter o
+            // estoque mandado pelo sistema (também nas próximas mudanças).
+            if ($confirmVariations && $publication->usesVariationLinks()) {
+                \App\Models\MlPublicationVariation::where('ml_publication_id', $publication->id)
+                    ->whereNotNull('product_id')
+                    ->update(['stock_confirmed' => true]);
+            }
 
             // Obtém token de acesso (por user_id da publicação)
             $token = $this->getTokenForPublication($publication);
@@ -59,17 +64,43 @@ class MlStockSyncService
             // Lê o item atual: com variações o estoque vai por variação (o ML
             // recusa available_quantity no topo). Nunca envia título aqui.
             $item = $this->getItemFromMl($publication, $token->access_token);
+            $publication->refresh();
+
+            // Recalcula quantidade baseada no estoque
+            $availableQuantity = $publication->calculateAvailableQuantity();
             $quantityPayload = $this->buildQuantityPayload($publication, $item, $availableQuantity);
             if (isset($quantityPayload['error'])) {
                 throw new \Exception($quantityPayload['error']);
             }
+            if (isset($quantityPayload['skip'])) {
+                return [
+                    'success' => true,
+                    'message' => $quantityPayload['skip'],
+                    'data' => ['skipped' => true, 'ml_item_id' => $publication->ml_item_id],
+                ];
+            }
+            $pushed = $quantityPayload['_pushed'] ?? null;
+            unset($quantityPayload['_pushed']);
 
             // Atualiza via API do ML
             $response = Http::withToken($token->access_token)
                 ->put("https://api.mercadolibre.com/items/{$publication->ml_item_id}", $quantityPayload);
 
             if ($response->successful()) {
-                $publication->update([
+                $extra = [];
+                if ($pushed !== null) {
+                    // Variações: o ML agora tem o estoque local nas ligadas e o
+                    // mesmo de antes nas outras.
+                    $vars = array_map(function ($v) use ($pushed) {
+                        if (array_key_exists((string) $v['id'], $pushed)) {
+                            $v['available_quantity'] = $pushed[(string) $v['id']];
+                        }
+                        return $v;
+                    }, $publication->ml_variations ?? []);
+                    $extra['ml_variations'] = $vars;
+                    $availableQuantity = (int) collect($vars)->sum('available_quantity');
+                }
+                $publication->update($extra + [
                     'available_quantity' => $availableQuantity,
                     'sync_status' => 'synced',
                     'last_sync_at' => now(),
@@ -88,6 +119,7 @@ class MlStockSyncService
                     'data' => [
                         'quantity' => $availableQuantity,
                         'ml_item_id' => $publication->ml_item_id,
+                        'variations' => $pushed,
                     ],
                 ];
             }
@@ -150,15 +182,48 @@ class MlStockSyncService
             if (!is_array($v) || !isset($v['id'])) {
                 continue;
             }
-            $label = collect($v['attribute_combinations'] ?? [])
-                ->map(fn ($a) => $a['value_name'] ?? null)
-                ->filter()
-                ->implode(' / ');
-            $variations[] = [
+            $combos = collect($v['attribute_combinations'] ?? [])
+                ->filter(fn ($a) => filled($a['value_name'] ?? null))
+                ->map(fn ($a) => ['name' => $a['name'] ?? null, 'value' => (string) $a['value_name']])
+                ->values();
+            $label = $combos->pluck('value')->implode(' / ');
+            $row = [
                 'id' => $v['id'],
                 'available_quantity' => (int) ($v['available_quantity'] ?? 0),
                 'label' => $label,
             ];
+            if ($combos->isNotEmpty()) {
+                $row['attributes'] = $combos->all();
+                $row['name_label'] = $combos->map(fn ($a) => filled($a['name']) ? $a['name'] . ': ' . $a['value'] : $a['value'])->implode(' · ');
+            }
+            $vAttr = function (array $ids) use ($v) {
+                foreach (($v['attributes'] ?? []) as $a) {
+                    if (in_array(strtoupper($a['id'] ?? ''), $ids, true) && filled($a['value_name'] ?? null)) {
+                        return trim((string) $a['value_name']);
+                    }
+                }
+                return null;
+            };
+            $sku = $vAttr(['SELLER_SKU']) ?? (filled($v['seller_custom_field'] ?? null) ? trim((string) $v['seller_custom_field']) : null);
+            if ($sku) {
+                $row['seller_sku'] = $sku;
+            }
+            if ($gtin = $vAttr(['GTIN', 'EAN', 'UPC'])) {
+                $row['gtin'] = $gtin;
+            }
+            $picId = $v['picture_ids'][0] ?? null;
+            if ($picId !== null) {
+                foreach (($item['pictures'] ?? []) as $pic) {
+                    if (($pic['id'] ?? null) == $picId) {
+                        $row['picture'] = $pic['secure_url'] ?? $pic['url'] ?? null;
+                        break;
+                    }
+                }
+                if (empty($row['picture'])) {
+                    $row['picture'] = 'https://http2.mlstatic.com/D_' . $picId . '-O.jpg';
+                }
+            }
+            $variations[] = $row;
         }
 
         return [
@@ -170,10 +235,14 @@ class MlStockSyncService
 
     /**
      * Corpo do PUT de estoque: no topo para item sem variação, por variação
-     * para item com UMA variação. Com várias variações o sistema não sabe que
-     * produto é cada uma: devolve ['error' => ...] em vez de chutar.
+     * para item com UMA variação. Com várias variações vai o estoque de cada
+     * variação ligada a um produto (e já confirmada pelo dono); as outras vão
+     * só com o id, sem quantidade, para o ML mantê-las como estão (o ML apaga
+     * variações que ficam fora da lista). Sem nenhuma variação ligada devolve
+     * ['error' => ...] em vez de chutar; com ligadas mas nenhuma confirmada,
+     * ['skip' => ...]. '_pushed' = [variation_id => quantidade enviada].
      */
-    protected function buildQuantityPayload(MlPublication $publication, ?array $item, int $quantity): array
+    protected function buildQuantityPayload(MlPublication $publication, ?array $item, int $quantity, bool $onlyConfirmed = true): array
     {
         $variations = $item !== null
             ? (self::itemMeta($item)['ml_variations'] ?? [])
@@ -186,7 +255,29 @@ class MlStockSyncService
             return ['variations' => [['id' => $variations[0]['id'], 'available_quantity' => $quantity]]];
         }
 
-        return ['error' => 'Este anúncio tem ' . count($variations) . ' variações no Mercado Livre: o estoque de cada variação precisa ser ajustado no próprio ML (o sistema não sabe qual produto é cada variação).'];
+        $mapped = $publication->mappedVariations()->keyBy(fn ($r) => (string) $r->ml_variation_id);
+        if ($mapped->isEmpty()) {
+            return ['error' => 'Este anúncio tem ' . count($variations) . ' variações no Mercado Livre: ligue um produto a cada variação na edição do anúncio para o sistema enviar o estoque (por enquanto o estoque de cada variação é ajustado no próprio ML).'];
+        }
+
+        $payload = [];
+        $pushed = [];
+        foreach ($variations as $v) {
+            $row = $mapped->get((string) $v['id']);
+            if ($row && (!$onlyConfirmed || $row->stock_confirmed)) {
+                $q = MlPublication::variationAvailableQuantity($row);
+                $payload[] = ['id' => $v['id'], 'available_quantity' => $q];
+                $pushed[(string) $v['id']] = $q;
+            } else {
+                $payload[] = ['id' => $v['id']];
+            }
+        }
+
+        if (empty($pushed)) {
+            return ['skip' => 'Variações ligadas ainda não confirmadas: o estoque do ML não foi alterado (confirme na edição do anúncio).'];
+        }
+
+        return ['variations' => $payload, '_pushed' => $pushed];
     }
 
     /**
@@ -232,7 +323,7 @@ class MlStockSyncService
      * @param int $quantity
      * @return array ['success' => bool, 'message' => string, 'order' => MercadoLivreOrder]
      */
-    public function processMercadoLivreSale(string $mlOrderId, string $mlItemId, int $quantity): array
+    public function processMercadoLivreSale(string $mlOrderId, string $mlItemId, int $quantity, $mlVariationId = null): array
     {
         try {
             // Busca a publicação
@@ -242,11 +333,21 @@ class MlStockSyncService
                 throw new \Exception("Publicação ML {$mlItemId} não encontrada");
             }
 
+            // Venda de uma variação ligada a um produto: só ele sai do estoque.
+            // Sem ligação, vale a regra antiga (todos os produtos do anúncio).
+            $variation = $publication->mappedVariation($mlVariationId);
+
             // O ML reenvia a notificação do mesmo pedido várias vezes:
-            // só baixa o estoque na primeira.
+            // só baixa o estoque na primeira (por variação, quando houver).
             $jaBaixado = MlStockLog::where('ml_order_id', $mlOrderId)
                 ->where('ml_publication_id', $publication->id)
                 ->where('operation_type', 'ml_sale')
+                ->when(\Illuminate\Support\Facades\Schema::hasColumn('ml_stock_logs', 'ml_variation_id'), function ($q) use ($variation) {
+                    // Baixa do anúncio inteiro (sem variação) vale para o pedido todo.
+                    $variation
+                        ? $q->where(fn ($w) => $w->where('ml_variation_id', $variation->ml_variation_id)->orWhereNull('ml_variation_id'))
+                        : $q->whereNull('ml_variation_id');
+                })
                 ->exists();
 
             if ($jaBaixado) {
@@ -257,8 +358,10 @@ class MlStockSyncService
                 ];
             }
 
-            // Deduz estoque de todos os produtos
-            $result = $publication->deductStock($quantity, $mlOrderId);
+            // Deduz estoque (da variação ou de todos os produtos)
+            $result = $variation
+                ? $publication->deductVariationStock($variation, $quantity, $mlOrderId)
+                : $publication->deductStock($quantity, $mlOrderId);
 
             if (!$result['success']) {
                 throw new \Exception($result['message']);
@@ -269,7 +372,7 @@ class MlStockSyncService
                 ['ml_order_id' => $mlOrderId],
                 [
                     'ml_item_id' => $mlItemId,
-                    'product_id' => $publication->linkedProducts()->first()->id ?? null,
+                    'product_id' => $variation ? $variation->product_id : ($publication->linkedProducts()->first()->id ?? null),
                     'quantity' => $quantity,
                     'order_status' => 'paid',
                     'payment_status' => 'approved',
@@ -282,7 +385,8 @@ class MlStockSyncService
                 'ml_order_id' => $mlOrderId,
                 'ml_item_id' => $mlItemId,
                 'quantity' => $quantity,
-                'products_affected' => $publication->linkedProducts()->count(),
+                'ml_variation_id' => $mlVariationId,
+                'products_affected' => $variation ? 1 : $publication->linkedProducts()->count(),
             ]);
 
             return [
@@ -505,12 +609,13 @@ class MlStockSyncService
             }
 
             $pushedQuantity = null;
-            if ($includeQuantity && $publication->linkedProducts()->isNotEmpty()) {
+            if ($includeQuantity && $publication->hasStockLink()) {
                 $qty = $publication->calculateAvailableQuantity();
                 $q = $this->buildQuantityPayload($publication, $item, $qty);
-                if (isset($q['error'])) {
-                    $notes[] = $q['error'];
+                if (isset($q['error']) || isset($q['skip'])) {
+                    $notes[] = $q['error'] ?? $q['skip'];
                 } else {
+                    unset($q['_pushed']);
                     $payload += $q;
                     $pushedQuantity = $qty;
                 }
@@ -983,7 +1088,19 @@ class MlStockSyncService
 
             $linked = null;
             $match = null;
-            if ($autoLink) {
+            $linkedVariations = 0;
+            if ($autoLink && $publication->usesVariationLinks()) {
+                // Anúncio com variações: cada variação vai para o seu produto
+                // (nunca o anúncio inteiro para um produto só).
+                $linkedVariations = $this->autoLinkVariations($publication, $userId)['linked'];
+                $match = $linkedVariations > 0 ? 'variations' : null;
+                if ($linkedVariations > 0) {
+                    Log::info('Anúncio importado: variações ligadas', [
+                        'ml_item_id' => $mlItemId,
+                        'linked' => $linkedVariations,
+                    ]);
+                }
+            } elseif ($autoLink) {
                 [$linked, $match] = $this->findMatchingProduct($userId, $result['item'] ?? []);
                 if ($linked) {
                     // Só o vínculo: não recalcula nem envia estoque ao ML agora.
@@ -1002,6 +1119,8 @@ class MlStockSyncService
                 'publication' => $publication->fresh(),
                 'linked_product' => $linked,
                 'match' => $match,
+                'linked_variations' => $linkedVariations,
+                'variation_count' => $publication->fresh()->usesVariationLinks() ? $publication->fresh()->mlVariationCount() : 0,
             ];
         }
         // Não deixa a linha provisória (título = ID, preço 0) para trás
@@ -1084,6 +1203,193 @@ class MlStockSyncService
         }
 
         return [null, null];
+    }
+
+    /**
+     * Liga as variações ainda sem produto, nesta ordem:
+     * 1) SKU da variação (atributo SELLER_SKU ou seller_custom_field) = product_code;
+     * 2) GTIN/EAN da variação = barcode;
+     * 3) valor do atributo (ex.: "Nude") = variation_value de um produto de UMA
+     *    família de variações (a do produto já ligado, a pedida, ou a que mais casa).
+     * Só liga quando há um candidato só, e nunca o mesmo produto em duas variações.
+     * O vínculo é local: não envia nada ao ML (stock_confirmed fica falso).
+     *
+     * @return array ['linked' => int, 'by' => [ml_variation_id => 'sku'|'gtin'|'cor']]
+     */
+    public function autoLinkVariations(MlPublication $publication, int $userId, ?int $familyRootId = null, bool $useCodes = true): array
+    {
+        $out = ['linked' => 0, 'by' => []];
+        if (!\App\Models\MlPublicationVariation::tableExists()) {
+            return $out;
+        }
+        $rows = $publication->variationLinks()->get();
+        if ($rows->isEmpty()) {
+            return $out;
+        }
+
+        $base = fn () => Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $userId)
+            ->where(fn ($q) => $q->whereNull('is_variation_parent')->orWhere('is_variation_parent', false));
+        $used = $rows->pluck('product_id')->filter()->map(fn ($v) => (int) $v)->all();
+        $link = function ($row, Product $product, string $how) use (&$used, &$out) {
+            if (in_array((int) $product->id, $used, true)) {
+                return false;
+            }
+            $row->update(['product_id' => $product->id, 'quantity' => max(1, (int) $row->quantity), 'stock_confirmed' => false, 'link_source' => $how]);
+            $used[] = (int) $product->id;
+            $out['linked']++;
+            $out['by'][(string) $row->ml_variation_id] = $how;
+            return true;
+        };
+
+        if ($useCodes) {
+            $norm = fn ($v) => ltrim(preg_replace('/\D/', '', (string) $v), '0');
+            $withBarcode = null;
+            foreach ($rows as $row) {
+                if ($row->product_id) {
+                    continue;
+                }
+                // 1) SKU
+                if (filled($row->seller_sku)) {
+                    $found = $base()->where(DB::raw('LOWER(TRIM(product_code))'), mb_strtolower(trim($row->seller_sku)))->get();
+                    if ($found->count() === 1 && $link($row, $found->first(), 'sku')) {
+                        continue;
+                    }
+                }
+                // 2) GTIN
+                $g = $norm($row->gtin);
+                if ($g !== '') {
+                    $withBarcode ??= $base()->whereNotNull('barcode')->where('barcode', '!=', '')->get(['id', 'barcode']);
+                    $found = $withBarcode->filter(fn ($p) => $norm($p->barcode) === $g);
+                    if ($found->count() === 1) {
+                        $link($row, $base()->find($found->first()->id), 'gtin');
+                    }
+                }
+            }
+        }
+
+        // 3) Cor/tamanho dentro de uma família de variações
+        $pending = $rows->filter(fn ($r) => !$r->product_id && !empty($r->matchKeys()));
+        if ($pending->isEmpty()) {
+            return $out;
+        }
+
+        $variants = $base()->whereNotNull('parent_id')->whereNotNull('variation_value')->where('variation_value', '!=', '')
+            ->get(['id', 'name', 'parent_id', 'variation_value']);
+        if ($variants->isEmpty()) {
+            return $out;
+        }
+        $byFamily = $variants->groupBy('parent_id');
+
+        if ($familyRootId === null) {
+            // Família do produto já ligado a alguma variação (a mais comum)
+            $mappedIds = $rows->pluck('product_id')->filter()->all();
+            if ($mappedIds) {
+                $familyRootId = Product::withoutGlobalScope('team_visibility')->whereIn('id', $mappedIds)->get(['id', 'parent_id', 'is_variation_parent'])
+                    ->map(fn ($p) => $p->parent_id ?? ($p->is_variation_parent ? $p->id : null))
+                    ->filter()->countBy()->sortDesc()->keys()->first();
+            }
+        }
+
+        $matchesIn = function ($members) use ($pending) {
+            $res = [];
+            foreach ($pending as $row) {
+                $keys = $row->matchKeys();
+                $c = $members->filter(fn ($p) => in_array(\App\Models\MlPublicationVariation::norm($p->variation_value), $keys, true));
+                if ($c->count() === 1) {
+                    $res[$row->id] = $c->first()->id;
+                }
+            }
+            return $res;
+        };
+
+        if ($familyRootId === null) {
+            // A família que mais casa (empate: desempata pelo nome do pai vs título)
+            $titleWords = array_filter(explode(' ', self::normalizeTitle($publication->title)), fn ($w) => mb_strlen($w) >= 3);
+            $parents = Product::withoutGlobalScope('team_visibility')->whereIn('id', $byFamily->keys())->pluck('name', 'id');
+            $scores = [];
+            foreach ($byFamily as $root => $members) {
+                $m = count($matchesIn($members));
+                if ($m === 0) {
+                    continue;
+                }
+                $pw = explode(' ', self::normalizeTitle($parents[$root] ?? ''));
+                $scores[$root] = $m * 100 + count(array_intersect($titleWords, $pw));
+            }
+            if (empty($scores)) {
+                return $out;
+            }
+            arsort($scores);
+            $top = array_slice($scores, 0, 2, true);
+            if (count($top) === 2 && count(array_unique(array_values($top))) === 1) {
+                return $out; // empate: não chuta
+            }
+            $familyRootId = (int) array_key_first($top);
+        }
+
+        $members = $byFamily->get($familyRootId, collect());
+        $pairs = $matchesIn($members);
+        // Mesmo produto para duas variações = ambíguo: não liga nenhuma das duas
+        $dupes = array_keys(array_filter(array_count_values($pairs), fn ($n) => $n > 1));
+        foreach ($pending as $row) {
+            $pid = $pairs[$row->id] ?? null;
+            if ($pid && !in_array($pid, $dupes, true)) {
+                $product = $base()->find($pid);
+                if ($product) {
+                    $link($row, $product, 'cor');
+                }
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Produtos que parecem ser a variação (ex.: "Nude" no variation_value ou no
+     * nome), para sugerir na edição. Família preferida primeiro.
+     */
+    public function suggestProductsForVariation(int $userId, \App\Models\MlPublicationVariation $row, array $preferFamilies = [], array $excludeIds = [], int $limit = 4)
+    {
+        $keys = $row->matchKeys();
+        if (empty($keys)) {
+            return collect();
+        }
+        $words = collect($keys)->flatMap(fn ($k) => explode(' ', $k))->filter(fn ($w) => mb_strlen($w) >= 2)->unique()->values()->all();
+
+        return Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $userId)
+            ->where('status', 'ativo')
+            ->where(fn ($q) => $q->whereNull('is_variation_parent')->orWhere('is_variation_parent', false))
+            ->whereNotIn('id', $excludeIds)
+            ->where(function ($q) use ($words) {
+                foreach ($words as $w) {
+                    $q->orWhere('variation_value', 'like', "%{$w}%")->orWhere('name', 'like', "%{$w}%");
+                }
+            })
+            ->limit(60)
+            ->get(['id', 'name', 'product_code', 'barcode', 'stock_quantity', 'price', 'image', 'tipo', 'parent_id', 'variation_value'])
+            ->map(function ($p) use ($keys, $preferFamilies) {
+                $vv = \App\Models\MlPublicationVariation::norm($p->variation_value);
+                $nm = \App\Models\MlPublicationVariation::norm($p->name);
+                $score = 0;
+                if ($vv !== '' && in_array($vv, $keys, true)) {
+                    $score += 10;
+                }
+                foreach ($keys as $k) {
+                    if ($k !== '' && preg_match('/\b' . preg_quote($k, '/') . '\b/', $nm)) {
+                        $score += 4;
+                    }
+                }
+                if ($p->parent_id && in_array((int) $p->parent_id, $preferFamilies, true)) {
+                    $score += 5;
+                }
+                $p->match_score = $score;
+                return $p;
+            })
+            ->filter(fn ($p) => $p->match_score > 0)
+            ->sortByDesc('match_score')
+            ->take($limit)
+            ->values();
     }
 
     /**

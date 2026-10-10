@@ -347,6 +347,32 @@ class OrderService extends MercadoLivreService
             $publication = MlPublication::where('ml_item_id', $mlItemId)
                 ->where('user_id', Auth::id())
                 ->first();
+            $variationId = $item['item']['variation_id'] ?? null;
+            $variation = $publication ? $publication->mappedVariation($variationId) : null;
+
+            // Variação ligada a um produto: a venda é desse produto só.
+            if ($variation) {
+                $product = $variation->product;
+                $perPub = $variation->perSale();
+                SaleItem::create([
+                    'sale_id' => $sale->id,
+                    'product_id' => $product->id,
+                    'quantity' => $qty * $perPub,
+                    'price' => $product->price,
+                    'price_sale' => round($unit / $perPub, 2),
+                ]);
+
+                $result = $stockService->processMercadoLivreSale($mlOrderId, $mlItemId, $qty, $variationId);
+                if (!($result['success'] ?? false)) {
+                    Log::warning('Importar pedido ML: baixa pela variação falhou, baixando direto', [
+                        'ml_order_id' => $mlOrderId,
+                        'error' => $result['message'] ?? null,
+                    ]);
+                    $product->adjustStock(-$qty * $perPub);
+                }
+                continue;
+            }
+
             $pubProducts = $publication
                 ? $publication->products()->withoutGlobalScope('team_visibility')->get()
                 : collect();
@@ -367,7 +393,7 @@ class OrderService extends MercadoLivreService
                     ]);
                 }
 
-                $result = $stockService->processMercadoLivreSale($mlOrderId, $mlItemId, $qty);
+                $result = $stockService->processMercadoLivreSale($mlOrderId, $mlItemId, $qty, $variationId);
                 if (!($result['success'] ?? false)) {
                     Log::warning('Importar pedido ML: baixa pela publicação falhou, baixando direto', [
                         'ml_order_id' => $mlOrderId,

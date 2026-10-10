@@ -530,6 +530,7 @@ use App\Http\Controllers\Shopee\WebhookController as ShopeeWebhookController;
 use App\Livewire\Shopee\Settings as ShopeeSettings;
 use App\Livewire\Shopee\PublishProduct as ShopeePublishProduct;
 use App\Livewire\Shopee\PublicationsList as ShopeePublicationsList;
+use App\Livewire\Shopee\OrdersList as ShopeeOrdersList;
 
 Route::prefix('shopee')->middleware(['auth'])->name('shopee.')->group(function () {
     // Configurações da integração Shopee
@@ -537,6 +538,9 @@ Route::prefix('shopee')->middleware(['auth'])->name('shopee.')->group(function (
 
     // Publicações
     Route::get('/publications', ShopeePublicationsList::class)->name('publications');
+
+    // Pedidos (lista, detalhe e importação como venda)
+    Route::get('/orders', ShopeeOrdersList::class)->name('orders');
 
     // Publicar produto
     Route::get('/products/publish/create', ShopeePublishProduct::class)

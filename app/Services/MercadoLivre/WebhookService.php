@@ -200,7 +200,7 @@ class WebhookService extends MercadoLivreService
                     if (!$mlItemId) {
                         continue;
                     }
-                    $stockResult = $this->stockSyncService->processMercadoLivreSale($orderId, $mlItemId, (int) ($item['quantity'] ?? 1));
+                    $stockResult = $this->stockSyncService->processMercadoLivreSale($orderId, $mlItemId, (int) ($item['quantity'] ?? 1), $item['item']['variation_id'] ?? null);
                     $stockResults[] = $stockResult;
 
                     if (!($stockResult['success'] ?? false)) {
@@ -281,7 +281,11 @@ class WebhookService extends MercadoLivreService
                 'status' => $mlStatus ? $status : null,
                 'price' => $itemData['price'] ?? null,
                 'ml_permalink' => $itemData['permalink'] ?? null,
-            ], fn ($v) => $v !== null));
+            ], fn ($v) => $v !== null)
+                // Variações (e o estoque de cada uma no ML) ficam em dia também.
+                + (array_key_exists('variations', $itemData)
+                    ? ['ml_variations' => MlStockSyncService::itemMeta($itemData)['ml_variations']]
+                    : []));
 
             return [
                 'success' => true,

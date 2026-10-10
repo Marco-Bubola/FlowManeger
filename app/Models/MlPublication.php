@@ -50,11 +50,30 @@ class MlPublication extends Model
         'ml_variations' => 'array',
     ];
 
+    protected static function booted(): void
+    {
+        // As variações do item no ML (ml_variations) viram linhas ligáveis a
+        // produtos sempre que mudam (busca do item, importação, venda...).
+        static::saved(function (MlPublication $publication) {
+            if ($publication->wasRecentlyCreated || $publication->wasChanged('ml_variations')) {
+                MlPublicationVariation::syncFromPublication($publication);
+            }
+        });
+    }
+
     /*
     |--------------------------------------------------------------------------
     | RELACIONAMENTOS
     |--------------------------------------------------------------------------
     */
+
+    /**
+     * Variações do anúncio no ML e o produto ligado a cada uma.
+     */
+    public function variationLinks(): HasMany
+    {
+        return $this->hasMany(MlPublicationVariation::class, 'ml_publication_id')->orderBy('sort_order');
+    }
 
     /**
      * Produtos vinculados a esta publicação (many-to-many)
@@ -147,8 +166,21 @@ class MlPublication extends Model
      */
     public function scopeWithProduct($query, $productId)
     {
-        return $query->whereHas('products', function ($q) use ($productId) {
-            $q->where('products.id', $productId);
+        return $query->usingProducts([$productId]);
+    }
+
+    /**
+     * Publicações que usam algum destes produtos: no anúncio inteiro (pivot)
+     * ou ligado a uma variação.
+     */
+    public function scopeUsingProducts($query, array $productIds)
+    {
+        $productIds = array_values(array_filter($productIds));
+        return $query->where(function ($w) use ($productIds) {
+            $w->whereHas('products', fn ($q) => $q->withoutGlobalScope('team_visibility')->whereIn('products.id', $productIds));
+            if (MlPublicationVariation::tableExists()) {
+                $w->orWhereHas('variationLinks', fn ($q) => $q->whereIn('product_id', $productIds));
+            }
         });
     }
 
@@ -157,8 +189,16 @@ class MlPublication extends Model
      */
     public function scopeWithProductCode($query, $productCode)
     {
-        return $query->whereHas('products', function ($q) use ($productCode) {
-            $q->where('products.product_code', $productCode);
+        return $query->where(function ($w) use ($productCode) {
+            $w->whereHas('products', function ($q) use ($productCode) {
+                $q->where('products.product_code', $productCode);
+            });
+            if (MlPublicationVariation::tableExists()) {
+                $w->orWhereHas('variationLinks', fn ($q) => $q->whereIn(
+                    'product_id',
+                    Product::withoutGlobalScope('team_visibility')->where('product_code', $productCode)->select('id')
+                ));
+            }
         });
     }
 
@@ -209,11 +249,70 @@ class MlPublication extends Model
     }
 
     /**
+     * Anúncio com 2+ variações: cada variação é ligada ao seu produto
+     * (com 1 variação vale o vínculo normal do anúncio).
+     */
+    public function usesVariationLinks(): bool
+    {
+        return $this->mlVariationCount() >= 2 && MlPublicationVariation::tableExists();
+    }
+
+    /**
+     * Variações com produto ligado (produto carregado, sem filtro de equipe).
+     */
+    public function mappedVariations()
+    {
+        if (! MlPublicationVariation::tableExists()) {
+            return collect();
+        }
+        return $this->variationLinks()->whereNotNull('product_id')->with('product')->get()
+            ->filter(fn ($v) => $v->product !== null)
+            ->values();
+    }
+
+    /** Variação do pedido com produto ligado (ou null). */
+    public function mappedVariation($mlVariationId): ?MlPublicationVariation
+    {
+        if ($mlVariationId === null || $mlVariationId === '' || ! MlPublicationVariation::tableExists()) {
+            return null;
+        }
+        $row = $this->variationLinks()->where('ml_variation_id', (string) $mlVariationId)
+            ->whereNotNull('product_id')->with('product')->first();
+        return $row && $row->product ? $row : null;
+    }
+
+    /** Quantas vendas da variação o estoque do produto ligado aguenta. */
+    public static function variationAvailableQuantity(MlPublicationVariation $row): int
+    {
+        return $row->product ? intdiv(self::productAvailableStock($row->product), $row->perSale()) : 0;
+    }
+
+    /** Tem algum produto ligado (no anúncio ou em variação)? */
+    public function hasStockLink(): bool
+    {
+        if ($this->usesVariationLinks() && $this->mappedVariations()->isNotEmpty()) {
+            return true;
+        }
+        return $this->linkedProducts()->isNotEmpty();
+    }
+
+    /**
      * Calcula quantidade disponível baseada no estoque de todos os produtos
-     * Leva em conta a quantidade necessária de cada produto no kit
+     * Leva em conta a quantidade necessária de cada produto no kit.
+     * Anúncio com variações ligadas: soma das variações (ligada = estoque do
+     * produto; sem produto = o que o ML tem).
      */
     public function calculateAvailableQuantity(): int
     {
+        if ($this->usesVariationLinks()) {
+            $rows = $this->variationLinks()->with('product')->get();
+            if ($rows->contains(fn ($r) => $r->product_id && $r->product)) {
+                return (int) $rows->sum(fn ($r) => $r->product_id && $r->product
+                    ? self::variationAvailableQuantity($r)
+                    : max(0, (int) $r->ml_available_quantity));
+            }
+        }
+
         $minQuantity = PHP_INT_MAX;
 
         // Webhook/fila rodam sem usuário logado: tira o filtro de equipe
@@ -255,7 +354,7 @@ class MlPublication extends Model
      * Estoque vendável do produto. Kit não tem estoque próprio: vale o
      * componente que acaba primeiro (mesma regra de Product::availableStock()).
      */
-    protected static function productAvailableStock(Product $product): int
+    public static function productAvailableStock(Product $product): int
     {
         if (! $product->isKit()) {
             return $product->availableStock();
@@ -293,18 +392,41 @@ class MlPublication extends Model
      */
     public function deductStock(int $quantity, ?string $mlOrderId = null): array
     {
+        // Webhook roda sem usuário logado: tira o filtro de equipe só aqui
+        // (a publicação já é do dono).
+        $pairs = $this->products()->withoutGlobalScope('team_visibility')->get()
+            ->map(fn ($p) => [$p, (int) $p->pivot->quantity])
+            ->all();
+
+        return $this->deductPairs($pairs, $quantity, $mlOrderId, null);
+    }
+
+    /**
+     * Venda de uma variação: baixa só o produto ligado a ela
+     * (quantidade vendida × unidades por venda).
+     */
+    public function deductVariationStock(MlPublicationVariation $variation, int $quantity, ?string $mlOrderId = null): array
+    {
+        return $this->deductPairs([[$variation->product, $variation->perSale()]], $quantity, $mlOrderId, $variation);
+    }
+
+    /**
+     * @param array $pairs [[Product $product, int $porVenda], ...]
+     */
+    protected function deductPairs(array $pairs, int $quantity, ?string $mlOrderId, ?MlPublicationVariation $variation): array
+    {
         $transactionId = \Illuminate\Support\Str::uuid()->toString();
         $logs = [];
+        $hasVarColumn = $variation !== null && \Illuminate\Support\Facades\Schema::hasColumn('ml_stock_logs', 'ml_variation_id');
 
         try {
             \DB::beginTransaction();
 
-            // Webhook roda sem usuário logado: tira o filtro de equipe só aqui
-            // (a publicação já é do dono).
-            $products = $this->products()->withoutGlobalScope('team_visibility')->get();
-
-            foreach ($products as $product) {
-                $quantityToDeduct = $product->pivot->quantity * $quantity; // Ex: kit com 2 shampoos, vendeu 3 kits = 6 unidades
+            foreach ($pairs as [$product, $perSale]) {
+                if (! $product) {
+                    continue;
+                }
+                $quantityToDeduct = (int) $perSale * $quantity; // Ex: kit com 2 shampoos, vendeu 3 kits = 6 unidades
 
                 // Produto kit não tem estoque próprio: baixa dos componentes
                 // (equivale a Product::adjustStock(-qty), sem filtro de equipe).
@@ -318,21 +440,24 @@ class MlPublication extends Model
                     $newStock = (int) $target->stock_quantity;
 
                     // Registra log
-                    $log = MlStockLog::create([
+                    $data = [
                         'product_id' => $target->id,
                         'ml_publication_id' => $this->id,
                         'operation_type' => 'ml_sale',
                         'quantity_before' => $oldStock,
                         'quantity_after' => $newStock,
                         'quantity_change' => $newStock - $oldStock,
-                        'source' => 'MlPublication::deductStock',
+                        'source' => $variation ? 'MlPublication::deductVariationStock' : 'MlPublication::deductStock',
                         'ml_order_id' => $mlOrderId,
                         'notes' => "Venda ML: {$quantity} unidade(s) de publicação ID {$this->id}"
+                            . ($variation ? ' (variação ' . $variation->shortLabel() . ')' : '')
                             . ($target->id !== $product->id ? " (componente do kit {$product->id})" : ''),
                         'transaction_id' => $transactionId,
-                    ]);
-
-                    $logs[] = $log;
+                    ];
+                    if ($hasVarColumn) {
+                        $data['ml_variation_id'] = $variation->ml_variation_id;
+                    }
+                    $logs[] = MlStockLog::create($data);
                 }
             }
 

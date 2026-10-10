@@ -475,11 +475,20 @@
                                     </div>
                                     @if($publication->ml_item_id)
                                     <div class="pt-3 pb-1 flex flex-col items-center gap-1.5 text-center" style="padding-left: 0.75rem; padding-right: 3.25rem;">
+                                        @if($publication->usesVariationLinks())
+                                        @php $varLinked = $publication->variationLinks()->whereNotNull('product_id')->count(); @endphp
+                                        <span class="text-[10px] font-semibold {{ $varLinked >= $publication->mlVariationCount() ? 'text-emerald-700 dark:text-emerald-300' : 'text-amber-700 dark:text-amber-300' }}"><i class="bi bi-diagram-3"></i> {{ $varLinked }}/{{ $publication->mlVariationCount() }} variações ligadas</span>
+                                        <a href="{{ route('mercadolivre.publications.edit', $publication->id) }}"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-all shadow-sm">
+                                            <i class="bi bi-link-45deg"></i> Ligar variações
+                                        </a>
+                                        @else
                                         <span class="text-[10px] font-semibold text-amber-700 dark:text-amber-300"><i class="bi bi-link-45deg"></i> Sem produto do estoque ligado</span>
                                         <button wire:click="openLinkModal({{ $publication->id }})"
                                                 class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold transition-all shadow-sm">
                                             <i class="bi bi-link-45deg"></i> Ligar a um produto
                                         </button>
+                                        @endif
                                     </div>
                                     @endif
                                 </div>

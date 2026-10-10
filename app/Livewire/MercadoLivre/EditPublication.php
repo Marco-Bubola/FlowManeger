@@ -3,6 +3,7 @@
 namespace App\Livewire\MercadoLivre;
 
 use App\Models\MlPublication;
+use App\Models\MlPublicationVariation;
 use App\Models\Product;
 use App\Services\MercadoLivre\MlStockSyncService;
 use App\Traits\HasNotifications;
@@ -36,6 +37,12 @@ class EditPublication extends Component
 
     // "Manter o do ML": esconde a pergunta de estoque para este par local:ML
     public string $stockPromptDismissedFor = '';
+
+    // Variações do anúncio: qual linha está com a busca aberta
+    public ?int $variationPickerFor = null;
+    public string $variationSearch = '';
+    // "Manter o do ML" nas variações (assinatura das diferenças mostradas)
+    public string $variationPromptDismissedFor = '';
     
     public function mount(MlPublication $publication)
     {
@@ -292,17 +299,27 @@ class EditPublication extends Component
      */
     public function syncPublication()
     {
-        if (empty($this->products)) {
-            $this->notifyWarning('Vincule um produto antes de enviar o estoque ao ML.');
+        $byVariation = $this->publication->usesVariationLinks();
+        if ($byVariation ? $this->publication->mappedVariations()->isEmpty() : empty($this->products)) {
+            $this->notifyWarning($byVariation
+                ? 'Ligue um produto a pelo menos uma variação antes de enviar o estoque ao ML.'
+                : 'Vincule um produto antes de enviar o estoque ao ML.');
             return;
         }
 
         try {
             $syncService = app(MlStockSyncService::class);
-            $result = $syncService->syncQuantityToMercadoLivre($this->publication->fresh());
+            // Com variações, enviar = o dono confirmou: as variações ligadas
+            // passam a receber o estoque do sistema.
+            $result = $syncService->syncQuantityToMercadoLivre($this->publication->fresh(), $byVariation);
             
             $this->reloadPublication();
-            if ($result['success']) {
+            if ($result['success'] && !empty($result['data']['variations'])) {
+                $n = count($result['data']['variations']);
+                $this->notifySuccess("Estoque de {$n} variação(ões) atualizado no ML.");
+            } elseif ($result['success'] && !empty($result['data']['skipped'])) {
+                $this->notifyWarning($result['message']);
+            } elseif ($result['success']) {
                 $this->notifySuccess('Estoque do ML atualizado para ' . ($result['data']['quantity'] ?? $this->publication->available_quantity) . ' un.');
             } else {
                 $this->notifyWarning('Não foi possível atualizar o estoque no ML: ' . ($result['message'] ?? 'Erro desconhecido'));
@@ -323,6 +340,191 @@ class EditPublication extends Component
     public function keepMlQuantity(): void
     {
         $this->stockPromptDismissedFor = $this->publication->calculateAvailableQuantity() . ':' . (int) $this->publication->available_quantity;
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | VARIAÇÕES DO ANÚNCIO (cada variação → um produto do estoque)
+    |--------------------------------------------------------------------------
+    */
+
+    protected function findVariationRow(int $rowId): ?MlPublicationVariation
+    {
+        return MlPublicationVariation::where('id', $rowId)
+            ->where('ml_publication_id', $this->publication->id)
+            ->first();
+    }
+
+    /** Raízes das famílias de variação dos produtos já ligados (para sugerir). */
+    protected function linkedFamilyRoots(): array
+    {
+        $ids = MlPublicationVariation::where('ml_publication_id', $this->publication->id)->whereNotNull('product_id')->pluck('product_id')
+            ->merge(collect($this->products)->pluck('id'))
+            ->filter()->unique()->all();
+        if (empty($ids)) {
+            return [];
+        }
+        return Product::whereIn('id', $ids)->get(['id', 'parent_id', 'is_variation_parent'])
+            ->map(fn ($p) => $p->parent_id ?? ($p->is_variation_parent ? $p->id : null))
+            ->filter()->unique()->map(fn ($v) => (int) $v)->values()->all();
+    }
+
+    public function openVariationPicker(int $rowId): void
+    {
+        $this->variationPickerFor = $this->variationPickerFor === $rowId ? null : $rowId;
+        $this->variationSearch = '';
+    }
+
+    public function closeVariationPicker(): void
+    {
+        $this->variationPickerFor = null;
+        $this->variationSearch = '';
+    }
+
+    /** Busca do seletor de uma variação (nome, código ou código de barras). */
+    public function getVariationSearchResultsProperty()
+    {
+        if ($this->variationPickerFor === null) {
+            return collect();
+        }
+        // Produtos já ligados a outras variações deste anúncio não aparecem
+        $usedElsewhere = MlPublicationVariation::where('ml_publication_id', $this->publication->id)
+            ->where('id', '!=', $this->variationPickerFor)
+            ->whereNotNull('product_id')->pluck('product_id')->all();
+        $query = Product::where('user_id', Auth::id())
+            ->where('status', 'ativo')
+            ->whereNotIn('id', $usedElsewhere)
+            ->where(fn ($q) => $q->whereNull('is_variation_parent')->orWhere('is_variation_parent', false));
+        if (strlen(trim($this->variationSearch)) >= 2) {
+            $term = trim($this->variationSearch);
+            $query->where(function ($q) use ($term) {
+                $q->where('name', 'like', "%{$term}%")
+                  ->orWhere('product_code', 'like', "%{$term}%")
+                  ->orWhere('barcode', 'like', "%{$term}%")
+                  ->orWhere('variation_value', 'like', "%{$term}%");
+            });
+        } else {
+            // Sem busca: produtos das famílias já ligadas (as outras cores)
+            $roots = $this->linkedFamilyRoots();
+            if (empty($roots)) {
+                return collect();
+            }
+            $query->whereIn('parent_id', $roots);
+        }
+        return $query->orderBy('name')->limit(12)->get();
+    }
+
+    public function linkVariation(int $rowId, int $productId): void
+    {
+        $row = $this->findVariationRow($rowId);
+        $product = Product::find($productId);
+        if (!$row || !$product || $product->user_id !== Auth::id()) {
+            $this->notifyError('Produto ou variação não encontrado');
+            return;
+        }
+
+        // Vínculo local: não mexe no estoque do ML (a página pergunta antes).
+        $row->update([
+            'product_id' => $product->id,
+            'quantity' => max(1, (int) $row->quantity),
+            'stock_confirmed' => false,
+            'link_source' => 'manual',
+        ]);
+        $this->closeVariationPicker();
+        $this->reloadPublication();
+        $this->notifySuccess('Variação ' . $row->shortLabel() . ' ligada a ' . $product->name);
+    }
+
+    public function unlinkVariation(int $rowId): void
+    {
+        $row = $this->findVariationRow($rowId);
+        if (!$row) {
+            return;
+        }
+        $row->update(['product_id' => null, 'stock_confirmed' => false, 'link_source' => null]);
+        $this->reloadPublication();
+        $this->notifySuccess('Variação ' . $row->shortLabel() . ' sem produto');
+    }
+
+    public function updateVariationQuantity(int $rowId, $quantity): void
+    {
+        $row = $this->findVariationRow($rowId);
+        if (!$row) {
+            return;
+        }
+        $row->update(['quantity' => max(1, min(999, (int) $quantity))]);
+        $this->reloadPublication();
+    }
+
+    /**
+     * "Auto-ligar pelas cores": SKU / código de barras de cada variação e,
+     * depois, o valor (ex.: "Nude") dentro da família do produto já ligado.
+     */
+    public function autoLinkVariations(): void
+    {
+        $roots = $this->linkedFamilyRoots();
+        $result = app(MlStockSyncService::class)->autoLinkVariations(
+            $this->publication->fresh(),
+            Auth::id(),
+            count($roots) === 1 ? $roots[0] : null
+        );
+        $this->reloadPublication();
+
+        if ($result['linked'] > 0) {
+            $how = collect($result['by'])->countBy()->map(fn ($n, $k) => $n . ' ' . match ($k) {
+                'sku' => 'pelo SKU', 'gtin' => 'pelo código de barras', default => 'pela cor',
+            })->implode(', ');
+            $this->notifySuccess("{$result['linked']} variação(ões) ligada(s) ({$how}). O estoque do ML não foi alterado.");
+        } else {
+            $this->notifyWarning('Nenhuma variação nova ligada. Ligue uma variação a um produto da família (ex.: o batom Nude) e tente de novo, ou use "Ligar produto".');
+        }
+    }
+
+    /** Remove os produtos ligados ao anúncio inteiro (anúncio com variações). */
+    public function clearWholeListingProducts(): void
+    {
+        foreach ($this->publication->linkedProducts() as $p) {
+            $this->publication->removeProduct($p->id, false);
+        }
+        $this->reloadPublication();
+        $this->notifySuccess('Produtos do anúncio inteiro removidos; valem os produtos de cada variação.');
+    }
+
+    public function keepMlVariationQuantities(string $signature): void
+    {
+        $this->variationPromptDismissedFor = $signature;
+    }
+
+    /**
+     * Linhas da seção "Variações do anúncio" com produto, estoque e sugestões.
+     */
+    protected function variationViewData(): array
+    {
+        $rows = $this->publication->variationLinks()->with('product')->get();
+        $roots = $this->linkedFamilyRoots();
+        $usedIds = $rows->pluck('product_id')->filter()->all();
+        $svc = app(MlStockSyncService::class);
+
+        $items = $rows->map(function ($row) use ($roots, $usedIds, $svc) {
+            $product = $row->product_id ? $row->product : null;
+            return [
+                'row' => $row,
+                'product' => $product,
+                'local' => $product ? MlPublication::variationAvailableQuantity($row) : null,
+                'stock' => $product ? MlPublication::productAvailableStock($product) : null,
+                'suggestions' => $product ? collect() : $svc->suggestProductsForVariation(Auth::id(), $row, $roots, $usedIds, 3),
+            ];
+        });
+
+        $diffs = $items->filter(fn ($i) => $i['product'] && $i['local'] !== (int) $i['row']->ml_available_quantity)->values();
+        $signature = $diffs->map(fn ($i) => $i['row']->id . ':' . $i['local'] . ':' . $i['row']->ml_available_quantity)->implode('|');
+
+        return [
+            'variationItems' => $items,
+            'variationDiffs' => $diffs,
+            'variationSignature' => $signature,
+            'variationLinkedCount' => $items->filter(fn ($i) => $i['product'])->count(),
+        ];
     }
 
     /**
@@ -434,7 +636,21 @@ class EditPublication extends Component
             && $mlQuantity !== $availableQuantity
             && $this->stockPromptDismissedFor !== $availableQuantity . ':' . $mlQuantity;
 
-        return view('livewire.mercadolivre.edit-publication', [
+        $byVariation = $this->publication->usesVariationLinks();
+        $variationData = $byVariation ? $this->variationViewData() : [
+            'variationItems' => collect(), 'variationDiffs' => collect(), 'variationSignature' => '', 'variationLinkedCount' => 0,
+        ];
+        if ($byVariation) {
+            // Com variações a pergunta é por variação (abaixo)
+            $showStockPrompt = false;
+        }
+        $showVariationPrompt = $byVariation && $hasMlItem
+            && $variationData['variationDiffs']->isNotEmpty()
+            && $this->variationPromptDismissedFor !== $variationData['variationSignature'];
+
+        return view('livewire.mercadolivre.edit-publication', $variationData + [
+            'byVariation' => $byVariation,
+            'showVariationPrompt' => $showVariationPrompt,
             'availableQuantity' => $availableQuantity,
             'mlQuantity' => $mlQuantity,
             'showStockPrompt' => $showStockPrompt,

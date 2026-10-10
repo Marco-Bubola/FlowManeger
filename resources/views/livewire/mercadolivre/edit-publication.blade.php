@@ -568,12 +568,16 @@
                         </div>
                         <div class="ep-info-row">
                             <span class="ep-info-label">Seu estoque dá</span>
+                            @if($byVariation)
+                            <span class="ep-info-value {{ $variationDiffs->isNotEmpty() ? 'text-amber-600 dark:text-amber-400' : '' }}">{{ $variationLinkedCount > 0 ? $availableQuantity . ' un.' : 'sem produto' }}</span>
+                            @else
                             <span class="ep-info-value {{ !empty($products) && $availableQuantity !== $mlQuantity ? 'text-amber-600 dark:text-amber-400' : '' }}">{{ !empty($products) ? $availableQuantity . ' un.' : 'sem produto' }}</span>
+                            @endif
                         </div>
                         @if(count($mlVariations) > 0)
                         <div class="ep-info-row">
                             <span class="ep-info-label">Variações</span>
-                            <span class="ep-info-value">{{ count($mlVariations) }}</span>
+                            <span class="ep-info-value">{{ count($mlVariations) }}@if($byVariation) <span class="font-normal text-[10px]">({{ $variationLinkedCount }} ligadas)</span>@endif</span>
                         </div>
                         @endif
                         <div class="ep-info-row">
@@ -610,9 +614,15 @@
                             Atualizar do ML
                         </button>
                         <button wire:click="syncPublication" wire:loading.attr="disabled" wire:target="syncPublication"
+                            @if($byVariation)
+                            @if($variationLinkedCount > 0) wire:confirm="Enviar ao ML o estoque das {{ $variationLinkedCount }} variações ligadas ({{ $variationItems->filter(fn ($i) => $i['product'])->map(fn ($i) => $i['row']->shortLabel() . ': ' . $i['local'])->implode(', ') }})? Variações sem produto ficam como estão." @endif
+                            @disabled($variationLinkedCount === 0)
+                            title="{{ $variationLinkedCount === 0 ? 'Ligue um produto a uma variação para enviar o estoque' : 'Envia ao ML o estoque de cada variação ligada' }}"
+                            @else
                             @if(!empty($products)) wire:confirm="O ML tem {{ $mlQuantity }} unidades, seu estoque dá {{ $availableQuantity }}. Atualizar o ML para {{ $availableQuantity }}?" @endif
                             @disabled(empty($products))
                             title="{{ empty($products) ? 'Vincule um produto para enviar o estoque' : 'Envia ao ML a quantidade calculada pelo seu estoque' }}"
+                            @endif
                             class="ep-action-btn disabled:opacity-50 disabled:cursor-not-allowed bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800/50 hover:bg-emerald-100">
                             <i class="bi bi-arrow-repeat" wire:loading.remove wire:target="syncPublication"></i>
                             <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="syncPublication"></i>
@@ -668,6 +678,215 @@
                 </div>
             </div>
 
+            {{-- ▸ VARIAÇÕES DO ANÚNCIO (cada variação → um produto) ◂ --}}
+            @if($byVariation)
+            <div class="ep-zone-produtos ep-card">
+                <div class="ep-card-head justify-between flex-wrap gap-1.5" style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(248,187,208,0.06));">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="ep-icon bg-gradient-to-br from-emerald-400 to-teal-500 shadow-md shadow-emerald-500/20">
+                            <i class="bi bi-diagram-3-fill"></i>
+                        </div>
+                        <span class="ep-title">Variações do anúncio</span>
+                        <span class="ep-badge {{ $variationLinkedCount >= $variationItems->count() ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700' : 'bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700' }}">
+                            {{ $variationLinkedCount }}/{{ $variationItems->count() }} ligadas
+                        </span>
+                    </div>
+                    <button wire:click="autoLinkVariations" wire:loading.attr="disabled" wire:target="autoLinkVariations"
+                        @disabled($variationLinkedCount >= $variationItems->count())
+                        title="Liga pelo SKU, código de barras e pela cor/tamanho dentro da família de variações do produto"
+                        class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 shadow-md shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="bi bi-magic" wire:loading.remove wire:target="autoLinkVariations"></i>
+                        <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="autoLinkVariations"></i>
+                        Auto-ligar pelas cores
+                    </button>
+                </div>
+
+                <div class="ep-card-body space-y-2.5">
+                    <p class="text-[10px] text-slate-500 dark:text-slate-400 leading-snug px-0.5">
+                        <i class="bi bi-info-circle mr-0.5"></i>Ligue cada variação ao produto do seu estoque. Quando uma variação vende, só o produto dela sai do estoque; o estoque de cada variação ligada pode ser enviado ao ML. Variações sem produto ficam como estão no ML.
+                    </p>
+
+                    {{-- Estoque local diferente do ML: pergunta antes de sobrescrever --}}
+                    @if($showVariationPrompt)
+                    <div class="px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border-2 border-amber-300 dark:border-amber-700 space-y-1.5">
+                        <div class="flex items-start gap-2">
+                            <i class="bi bi-arrow-left-right text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0"></i>
+                            <div class="text-[11px] text-amber-900 dark:text-amber-100 leading-snug min-w-0">
+                                <p class="font-bold">O estoque do ML é diferente do seu em {{ $variationDiffs->count() }} {{ $variationDiffs->count() === 1 ? 'variação' : 'variações' }}:</p>
+                                <ul class="mt-0.5 space-y-0.5">
+                                    @foreach($variationDiffs as $d)
+                                    <li class="break-words">{{ $d['row']->shortLabel() }}: o ML tem <strong>{{ (int) $d['row']->ml_available_quantity }}</strong>, seu estoque dá <strong>{{ $d['local'] }}</strong></li>
+                                    @endforeach
+                                </ul>
+                                <p class="mt-0.5">Atualizar o ML? Depois disso o sistema mantém essas variações em dia sozinho.</p>
+                            </div>
+                        </div>
+                        @php
+                            $varConfirmText = 'Atualizar no ML: ' . $variationDiffs->map(fn ($d) => $d['row']->shortLabel() . ' ' . (int) $d['row']->ml_available_quantity . ' → ' . $d['local'])->implode(', ') . '?';
+                        @endphp
+                        <div class="flex flex-wrap items-center justify-end gap-1.5">
+                            <button wire:click="keepMlVariationQuantities('{{ $variationSignature }}')"
+                                class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-white/70 dark:bg-slate-800/70 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-600 hover:bg-white dark:hover:bg-slate-700">
+                                Manter o do ML
+                            </button>
+                            <button wire:click="syncPublication" wire:loading.attr="disabled" wire:target="syncPublication"
+                                wire:confirm="{{ $varConfirmText }}"
+                                class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 shadow-sm disabled:opacity-50">
+                                <i class="bi bi-cloud-arrow-up" wire:loading.remove wire:target="syncPublication"></i>
+                                <i class="bi bi-arrow-repeat animate-spin" wire:loading wire:target="syncPublication"></i>
+                                Atualizar {{ $variationDiffs->count() }} {{ $variationDiffs->count() === 1 ? 'variação' : 'variações' }}
+                            </button>
+                        </div>
+                    </div>
+                    @endif
+
+                    {{-- Produtos ligados ao anúncio inteiro (de antes): só valem para variação sem produto --}}
+                    @if(!empty($products))
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-2 px-3 py-2 rounded-xl bg-sky-50 dark:bg-sky-900/20 border border-sky-200 dark:border-sky-800">
+                        <p class="flex-1 text-[10px] text-sky-900 dark:text-sky-100 leading-snug">
+                            <i class="bi bi-box-seam mr-0.5"></i>Também há {{ count($products) }} produto(s) ligado(s) ao anúncio inteiro ({{ collect($products)->pluck('name')->take(3)->implode(', ') }}). Eles só são usados em vendas de variações sem produto.
+                        </p>
+                        <button wire:click="clearWholeListingProducts" wire:confirm="Remover os produtos ligados ao anúncio inteiro? Cada variação continua com o seu produto."
+                            class="self-end sm:self-auto px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white/80 dark:bg-slate-800/70 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-700 hover:bg-white whitespace-nowrap">
+                            Remover
+                        </button>
+                    </div>
+                    @endif
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-2">
+                        @foreach($variationItems as $vi)
+                        @php
+                            $vr = $vi['row'];
+                            $vp = $vi['product'];
+                            $mlQ = (int) $vr->ml_available_quantity;
+                            $differs = $vp && $vi['local'] !== $mlQ;
+                        @endphp
+                        <div wire:key="var-{{ $vr->id }}" class="rounded-xl border-2 p-2 space-y-2 {{ $vp ? 'border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/40 dark:bg-emerald-900/10' : 'border-dashed border-amber-300 dark:border-amber-700/60 bg-amber-50/30 dark:bg-amber-900/10' }}">
+                            {{-- Variação no ML --}}
+                            <div class="flex items-center gap-2 min-w-0">
+                                <div class="w-11 h-11 rounded-lg overflow-hidden flex-shrink-0 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center">
+                                    @if($vr->picture_url)
+                                    <img src="{{ $vr->picture_url }}" alt="" class="w-full h-full object-contain" onerror="this.style.display='none'">
+                                    @else
+                                    <i class="bi bi-palette text-slate-400"></i>
+                                    @endif
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[12px] font-bold text-slate-800 dark:text-white truncate" title="{{ $vr->label }}">{{ $vr->label ?: $vr->shortLabel() }}</p>
+                                    <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[9px] text-slate-500 dark:text-slate-400">
+                                        <span class="font-mono">#{{ $vr->ml_variation_id }}</span>
+                                        @if($vr->seller_sku)<span class="font-mono truncate max-w-[9rem]" title="SKU">SKU {{ $vr->seller_sku }}</span>@endif
+                                        @if($vr->gtin)<span class="font-mono" title="Código de barras"><i class="bi bi-upc"></i> {{ $vr->gtin }}</span>@endif
+                                    </div>
+                                </div>
+                                <div class="text-right flex-shrink-0">
+                                    <p class="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 leading-none">No ML</p>
+                                    <p class="text-sm font-black text-slate-700 dark:text-slate-200 leading-tight">{{ $mlQ }}</p>
+                                </div>
+                            </div>
+
+                            @if($vp)
+                            {{-- Produto ligado --}}
+                            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-white/80 dark:bg-slate-900/50 border border-emerald-200 dark:border-emerald-800/50">
+                                <img src="{{ $vp->image_url }}" alt="" class="w-8 h-8 rounded-md object-cover flex-shrink-0" onerror="this.style.display='none'">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-[11px] font-bold text-slate-800 dark:text-white truncate">
+                                        {{ ucwords($vp->name) }}@if($vp->variation_value && stripos($vp->name, $vp->variation_value) === false) <span class="font-semibold text-emerald-700 dark:text-emerald-300">· {{ $vp->variation_value }}</span>@endif
+                                        @if($vp->isKit())<span class="text-[8px] font-bold px-1 rounded bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300">KIT</span>@endif
+                                    </p>
+                                    <div class="flex flex-wrap items-center gap-x-1.5 text-[9px]">
+                                        <span class="font-mono text-slate-500 dark:text-slate-400 truncate max-w-[8rem]">{{ $vp->product_code }}</span>
+                                        <span class="font-bold {{ ($vi['stock'] ?? 0) > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500' }}">estoque {{ $vi['stock'] }}</span>
+                                        @if($vr->link_source && $vr->link_source !== 'manual')
+                                        <span class="text-slate-400">· ligado {{ ['sku' => 'pelo SKU', 'gtin' => 'pelo EAN', 'cor' => 'pela cor'][$vr->link_source] ?? '' }}</span>
+                                        @endif
+                                    </div>
+                                </div>
+                                <button wire:click="unlinkVariation({{ $vr->id }})" title="Desligar"
+                                    class="w-7 h-7 flex-shrink-0 inline-flex items-center justify-center rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30">
+                                    <i class="bi bi-x-lg text-xs"></i>
+                                </button>
+                            </div>
+                            <div class="flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
+                                <label class="inline-flex items-center gap-1 font-bold text-slate-600 dark:text-slate-300">
+                                    Qtd/venda
+                                    <input type="number" min="1" value="{{ $vr->perSale() }}"
+                                        wire:change="updateVariationQuantity({{ $vr->id }}, $event.target.value)"
+                                        class="w-12 px-1 py-0.5 text-center text-[11px] rounded-md font-bold bg-white dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-300 dark:border-slate-600">
+                                </label>
+                                <span class="font-bold {{ $differs ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600 dark:text-emerald-400' }}">
+                                    <i class="bi {{ $differs ? 'bi-arrow-left-right' : 'bi-check-circle' }}"></i>
+                                    Seu estoque dá {{ $vi['local'] }}
+                                </span>
+                                <button wire:click="openVariationPicker({{ $vr->id }})" class="font-bold text-amber-700 dark:text-amber-300 hover:underline">Trocar</button>
+                            </div>
+                            @elseif($variationPickerFor !== $vr->id)
+                            {{-- Sem produto: sugestões + busca --}}
+                            <div class="space-y-1">
+                                @if($vi['suggestions']->isNotEmpty())
+                                <p class="text-[9px] font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Sugestões</p>
+                                <div class="flex flex-col gap-1">
+                                    @foreach($vi['suggestions'] as $sg)
+                                    <button type="button" wire:click="linkVariation({{ $vr->id }}, {{ $sg->id }})" wire:key="sg-{{ $vr->id }}-{{ $sg->id }}"
+                                        class="ep-search-item flex items-center gap-2 p-1.5 text-left w-full group">
+                                        <img src="{{ $sg->image_url }}" alt="" class="w-7 h-7 rounded-md object-cover flex-shrink-0" onerror="this.style.display='none'">
+                                        <span class="flex-1 min-w-0">
+                                            <span class="block text-[11px] font-bold text-slate-800 dark:text-white truncate">{{ ucwords($sg->name) }}</span>
+                                            <span class="block text-[9px] text-slate-500 dark:text-slate-400 truncate">{{ $sg->product_code }}@if($sg->variation_value) · {{ $sg->variation_value }}@endif · {{ $sg->isKit() ? $sg->availableStock() : (int) $sg->stock_quantity }} un.</span>
+                                        </span>
+                                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 whitespace-nowrap"><i class="bi bi-link-45deg"></i> Ligar</span>
+                                    </button>
+                                    @endforeach
+                                </div>
+                                @endif
+                                <button wire:click="openVariationPicker({{ $vr->id }})"
+                                    class="w-full inline-flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[11px] font-bold border-2 border-dashed border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+                                    <i class="bi bi-search"></i> Ligar produto
+                                </button>
+                            </div>
+                            @endif
+
+                            {{-- Busca de produto desta variação --}}
+                            @if($variationPickerFor === $vr->id)
+                            <div class="rounded-lg border-2 border-dashed p-1.5 space-y-1.5" style="border-color: var(--card-border, #b39ddb); background: rgba(149,117,205,0.05);">
+                                <div class="flex items-center gap-1">
+                                    <div class="relative flex-1">
+                                        <i class="bi bi-search absolute left-2.5 top-1/2 -translate-y-1/2 text-sm pointer-events-none" style="color: var(--primary, #9575cd);"></i>
+                                        <input type="text" wire:model.live.debounce.300ms="variationSearch" autofocus
+                                            placeholder="Nome, código, EAN ou cor..."
+                                            class="ep-input !pl-8 !text-xs">
+                                    </div>
+                                    <button wire:click="closeVariationPicker" class="w-8 h-8 flex-shrink-0 inline-flex items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800" title="Fechar">
+                                        <i class="bi bi-x-lg text-xs"></i>
+                                    </button>
+                                </div>
+                                @if($this->variationSearchResults->count() > 0)
+                                <div class="flex flex-col gap-1 max-h-[200px] overflow-y-auto ep-scroll pr-0.5">
+                                    @foreach($this->variationSearchResults as $sp)
+                                    <button type="button" wire:click="linkVariation({{ $vr->id }}, {{ $sp->id }})" wire:key="vs-{{ $vr->id }}-{{ $sp->id }}"
+                                        class="ep-search-item flex items-center gap-2 p-1.5 text-left w-full">
+                                        <img src="{{ $sp->image_url }}" alt="" class="w-7 h-7 rounded-md object-cover flex-shrink-0" onerror="this.style.display='none'">
+                                        <span class="flex-1 min-w-0">
+                                            <span class="block text-[11px] font-bold text-slate-800 dark:text-white truncate">{{ ucwords($sp->name) }}</span>
+                                            <span class="block text-[9px] text-slate-500 dark:text-slate-400 truncate">{{ $sp->product_code }}@if($sp->variation_value) · {{ $sp->variation_value }}@endif · {{ $sp->isKit() ? $sp->availableStock() : (int) $sp->stock_quantity }} un.</span>
+                                        </span>
+                                        <i class="bi bi-plus-circle flex-shrink-0" style="color: var(--primary, #9575cd);"></i>
+                                    </button>
+                                    @endforeach
+                                </div>
+                                @else
+                                <p class="text-center py-2 text-[10px] text-slate-400 dark:text-slate-500">
+                                    {{ strlen(trim($variationSearch)) >= 2 ? 'Nenhum produto encontrado' : 'Digite para buscar...' }}
+                                </p>
+                                @endif
+                            </div>
+                            @endif
+                        </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+            @else
             {{-- ▸ PRODUTOS VINCULADOS ◂ --}}
             <div class="ep-zone-produtos ep-card">
                 <div class="ep-card-head justify-between flex-wrap gap-1.5" style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(248,187,208,0.06));">
@@ -849,6 +1068,8 @@
                     @endif
                 </div>
             </div>
+
+            @endif
 
             {{-- ▸ IMAGENS ◂ --}}
             <div class="ep-zone-imagens ep-card">

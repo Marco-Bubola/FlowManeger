@@ -270,6 +270,17 @@ class PublicationsList extends Component
         \Illuminate\Support\Facades\Cache::forget('ml_only_on_ml_' . Auth::id());
         $publication = $result['publication'];
 
+        // Anúncio com variações: cada variação é ligada na edição do anúncio.
+        if (!empty($result['variation_count'])) {
+            $n = (int) ($result['linked_variations'] ?? 0);
+            $total = (int) $result['variation_count'];
+            $this->notifySuccess("Anúncio importado com {$total} variações"
+                . ($n > 0 ? ": {$n} ligada(s) sozinha(s) pelo SKU, código de barras ou cor" : '')
+                . '. ' . ($n < $total ? 'Abra "Editar" para ligar cada variação a um produto. ' : '')
+                . 'O estoque do ML não foi alterado.');
+            return;
+        }
+
         if (!empty($result['linked_product'])) {
             $how = match ($result['match']) {
                 'sku' => 'pelo SKU',
@@ -295,6 +306,11 @@ class PublicationsList extends Component
         $pub = MlPublication::where('id', $publicationId)->where('user_id', Auth::id())->first();
         if (!$pub) {
             $this->notifyError('Publicação não encontrada');
+            return;
+        }
+        if ($pub->usesVariationLinks()) {
+            // Com variações, cada variação tem o seu produto: liga na edição.
+            $this->redirectRoute('mercadolivre.publications.edit', $pub->id);
             return;
         }
         $this->linkPublicationId = $pub->id;

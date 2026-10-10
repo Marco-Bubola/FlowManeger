@@ -50,6 +50,12 @@ class ProductObserver
         foreach ($publications as $publication) {
             $publication->removeProduct($product->id);
         }
+
+        // Variações de anúncio ligadas a ele voltam a ficar sem produto
+        if (\App\Models\MlPublicationVariation::tableExists()) {
+            \App\Models\MlPublicationVariation::where('product_id', $product->id)
+                ->update(['product_id' => null, 'stock_confirmed' => false, 'link_source' => null]);
+        }
     }
 
     /**
