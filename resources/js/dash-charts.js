@@ -41,6 +41,16 @@
             yaxis: { labels: { style: { colors: dark ? '#94a3b8' : '#64748b', fontSize: '11px' } } },
         };
 
+        if (opts.currency && type !== 'donut' && type !== 'pie' && type !== 'radialBar') {
+            var brl = function (v) { return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+            var curto = function (v) {
+                v = Number(v || 0);
+                if (Math.abs(v) >= 1000) return 'R$ ' + (v / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + ' mil';
+                return 'R$ ' + v.toLocaleString('pt-BR', { maximumFractionDigits: 0 });
+            };
+            base.yaxis.labels.formatter = curto;
+            base.tooltip.y = { formatter: brl };
+        }
         if (type === 'area') {
             base.fill = { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.45, opacityTo: 0.05, stops: [0, 90] } };
         }
@@ -58,15 +68,19 @@
                         size: '70%',
                         labels: {
                             show: true,
+                            // Valor em R$ é mais largo: fonte menor para caber dentro do anel
+                            value: { fontSize: _ehMoeda ? '14px' : '20px', fontWeight: 800 },
                             total: {
                                 show: true,
                                 fontSize: '12px',
                                 color: dark ? '#cbd5e1' : '#475569',
                                 formatter: function (w) {
                                     var soma = w.globals.seriesTotals.reduce(function (a, b) { return a + b; }, 0);
+                                    // Contagens (produtos, clientes) sem casas decimais; valores em R$ com 2.
+                                    var casas = _ehMoeda || !Number.isInteger(soma) ? 2 : 0;
                                     var txt = soma.toLocaleString('pt-BR', {
-                                        minimumFractionDigits: 2,
-                                        maximumFractionDigits: 2
+                                        minimumFractionDigits: casas,
+                                        maximumFractionDigits: casas
                                     });
                                     return _ehMoeda ? 'R$ ' + txt : txt;
                                 }

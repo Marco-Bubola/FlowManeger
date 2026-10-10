@@ -44,6 +44,18 @@ class DashboardBanks extends Component
         $this->loadBanksData();
     }
 
+    /** Avança ou volta o mês do filtro (‹ › no cabeçalho). Não passa do mês atual. */
+    public function shiftMonth(int $delta): void
+    {
+        $ref = \Carbon\Carbon::create((int) $this->ano, (int) $this->mes, 1)->addMonths($delta);
+        if ($ref->greaterThan(now()->startOfMonth())) {
+            return;
+        }
+        $this->ano = (int) $ref->year;
+        $this->mes = (int) $ref->month;
+        $this->loadBanksData();
+    }
+
     public function updatedAno(): void
     {
         $this->loadBanksData();

@@ -19,6 +19,6 @@
         'extra' => $extra,
     ];
 @endphp
-<div class="dash-chart" id="{{ $id }}"
+<div class="dash-chart" id="{{ $id }}" wire:key="{{ $id }}-{{ md5(json_encode($cfg)) }}"
      data-dash-chart='@json($cfg)'
      wire:ignore></div>

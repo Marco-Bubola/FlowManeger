@@ -24,7 +24,6 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <script src="{{ asset('assets/js/dash-charts.js') }}" defer></script>
 
 
     <link rel="stylesheet" href="{{ asset('assets/css/icon-category.css') }}">

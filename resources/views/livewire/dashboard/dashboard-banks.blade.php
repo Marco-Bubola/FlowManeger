@@ -16,43 +16,47 @@
         // Categorias de fatura (donut)
         $icsLabels = []; $icsValues = [];
         foreach (($invoiceCategoryShare ?? []) as $row) {
-            $icsLabels[] = $row['label'] ?? $row['name'] ?? $row['categoria'] ?? 'Outros';
+            $icsLabels[] = $row['categoria'] ?? $row['label'] ?? $row['name'] ?? 'Outros';
             $icsValues[] = (float)($row['value'] ?? $row['total'] ?? $row['valor'] ?? $row['amount'] ?? 0);
         }
     @endphp
 
+    @php
+        $cartoes = collect($bancosInfo ?? []);
+        $abertoTotal = (float) $cartoes->sum('cycle_total');
+        $proximo = $cartoes->sortBy('days_to_close')->first();
+        $topCat = $invoiceCategoryShare[0] ?? null;
+    @endphp
+
     {{-- HEADER --}}
-    <div class="dash-header relative overflow-hidden rounded-2xl border border-white/40 dark:border-slate-700/50 bg-gradient-to-r from-white/80 via-blue-50/70 to-indigo-50/60 dark:from-slate-800/90 dark:via-slate-800/40 dark:to-slate-900/60 backdrop-blur-xl shadow-xl mb-4">
-        <div class="absolute -top-12 -right-10 w-44 h-44 rounded-full bg-gradient-to-br from-blue-400/20 to-indigo-400/15 blur-3xl"></div>
-        <div class="relative px-4 sm:px-5 py-3.5 flex items-center gap-3">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-violet-500 flex items-center justify-center shadow-lg shadow-blue-500/30 shrink-0"><i class="bi bi-bank text-white text-lg"></i></div>
-            <div class="flex-1 min-w-0">
-                <h1 class="text-base sm:text-lg font-black text-slate-800 dark:text-white leading-tight truncate">Bancos & Cartões</h1>
-                <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-tight">Faturas, gastos e ciclos · {{ $periodLabel ?? now()->translatedFormat('F Y') }}</p>
-            </div>
-        </div>
-    </div>
+    <x-dash.page-header title="Bancos e cartões" active="bancos" icon="bi-bank" gradient="from-blue-500 via-indigo-500 to-violet-500"
+        subtitle="Gastos no cartão, faturas abertas e fechamento">
+        <x-slot:period>
+            <x-dash.month-nav :label="$periodLabel ?: ucfirst(now()->translatedFormat('F/Y'))"
+                :can-next="\Carbon\Carbon::create((int) $ano, (int) $mes, 1)->lt(now()->startOfMonth())" />
+        </x-slot:period>
+    </x-dash.page-header>
 
     {{-- KPIs --}}
-    <div class="dash-kpis">
-        <x-dash.kpi label="Saldo bancos" tone="emerald" icon="bi-cash-stack" :value="$fmt($saldoTotalBancos ?? 0)" />
-        <x-dash.kpi label="Total faturas" tone="indigo" icon="bi-receipt" :value="$fmt($totalInvoicesBancos ?? 0)" />
-        <x-dash.kpi label="Saídas" tone="rose" icon="bi-arrow-up-circle" :value="$fmt($totalSaidasBancos ?? 0)" />
+    <div class="dash-kpis dash-kpis-8">
         <x-dash.kpi label="Gasto no mês" tone="amber" icon="bi-calendar-month" :value="$fmt($monthTotal ?? 0)" />
-        <x-dash.kpi label="Média mensal" tone="sky" icon="bi-graph-up" :value="$fmt($avgMonth ?? 0)" />
-        <x-dash.kpi label="Ticket ciclo" tone="purple" icon="bi-arrow-repeat" :value="$fmt($avgCycleAmount ?? 0)" />
-        <x-dash.kpi label="Dias p/ fechar" tone="blue" icon="bi-clock" :value="number_format($avgDaysToClose ?? 0, 0) . 'd'" />
-        <x-dash.kpi label="Sucesso upload" tone="teal" icon="bi-cloud-check" :value="number_format($uploadSuccessAverage ?? 0, 0) . '%'" />
+        <x-dash.kpi label="Compras no mês" tone="indigo" icon="bi-bag" :value="$monthCount ?? 0" countup />
+        <x-dash.kpi label="Faturas abertas" tone="rose" icon="bi-receipt" :value="$fmt($abertoTotal)" />
+        <x-dash.kpi label="Média 6 meses" tone="sky" icon="bi-graph-up" :value="$fmt($avgMonth ?? 0)" />
+        <x-dash.kpi label="Média por dia" tone="teal" icon="bi-calendar-day" :value="$fmt($monthDailyAverage ?? 0)" />
+        <x-dash.kpi label="Próx. fechamento" tone="blue" icon="bi-clock" :value="$proximo ? ((int) $proximo['days_to_close'] === 0 ? 'Hoje' : (int) $proximo['days_to_close'] . ' dias') : '—'" />
+        <x-dash.kpi label="Cartões usados" tone="purple" icon="bi-credit-card" :value="($activeBanksMonth ?? 0) . ' de ' . ($totalBancos ?? $cartoes->count())" />
+        <x-dash.kpi label="Maior categoria" tone="emerald" icon="bi-tags" :value="$topCat['categoria'] ?? $topCat['label'] ?? '—'" />
     </div>
 
     {{-- GRID --}}
     <div class="dash-grid">
         {{-- Tendência de gastos --}}
-        <x-dash.card title="Tendência de gastos" sub="Evolução do consolidado" icon="bi-graph-up" tone="blue" span="dash-col-8">
+        <x-dash.card title="Tendência de gastos" sub="Total dos cartões nos últimos 6 meses" icon="bi-graph-up" tone="blue" span="dash-col-8">
             @if(!empty($trendValues) && array_sum($trendValues) > 0)
                 <x-dash.chart id="dashBankTrendChart" type="area"
                     :series="[['name'=>'Gastos','data'=>array_map(fn($v)=>(float)$v, $trendValues)]]"
-                    :labels="$trendLabels ?? []" :colors="['#3b82f6']" />
+                    :labels="$trendLabels ?? []" :colors="['#3b82f6']" :currency="true" />
             @else
                 <x-dash.empty icon="bi-graph-up" message="Sem histórico de gastos" />
             @endif
@@ -61,7 +65,7 @@
         {{-- Distribuição por banco (donut) --}}
         <x-dash.card title="Por banco" sub="Gasto no mês" icon="bi-pie-chart" tone="indigo" span="dash-col-4">
             @if(!empty($bankValues) && array_sum($bankValues) > 0)
-                <x-dash.chart id="dashBankShareChart" type="donut" :series="$bankValues" :labels="$bankLabels"
+                <x-dash.chart id="dashBankShareChart" type="donut" :currency="true" :series="$bankValues" :labels="$bankLabels"
                     :colors="['#3b82f6','#8b5cf6','#0ea5e9','#6366f1','#10b981','#f59e0b']" />
             @else
                 <x-dash.empty icon="bi-pie-chart" message="Sem dados por banco" />
@@ -69,30 +73,30 @@
         </x-dash.card>
 
         {{-- Categorias de fatura (donut) --}}
-        <x-dash.card title="Gastos por categoria" sub="Distribuição das faturas" icon="bi-tags" tone="purple" span="dash-col-6">
+        <x-dash.card title="Gastos por categoria" sub="Compras no mês" icon="bi-tags" tone="purple" span="dash-col-6">
             @if(!empty($icsValues) && array_sum($icsValues) > 0)
-                <x-dash.chart id="dashBankCatChart" type="donut" :series="$icsValues" :labels="$icsLabels"
+                <x-dash.chart id="dashBankCatChart" type="donut" :currency="true" :series="$icsValues" :labels="$icsLabels"
                     :colors="['#6366f1','#f43f5e','#f59e0b','#10b981','#0ea5e9','#8b5cf6']" />
             @else
                 <x-dash.empty icon="bi-tags" message="Sem categorias de fatura" />
             @endif
         </x-dash.card>
 
-        {{-- Uploads recentes --}}
-        <x-dash.card title="Uploads recentes" sub="Faturas importadas" icon="bi-cloud-arrow-up" tone="sky" span="dash-col-6">
-            @if(!empty($recentUploads))
+        {{-- Cartões: fatura aberta e fechamento --}}
+        <x-dash.card title="Cartões" sub="Fatura aberta e fechamento" icon="bi-credit-card-2-front" tone="sky" span="dash-col-6">
+            @if($cartoes->isNotEmpty())
                 <div class="dash-list dash-scroll max-h-[280px] overflow-y-auto pr-1">
-                    @foreach(array_slice($recentUploads, 0, 8) as $u)
-                        @php
-                            $banco = $u['bank'] ?? $u['banco'] ?? $u['name'] ?? 'Banco';
-                            $when = $u['date'] ?? $u['data'] ?? $u['created_at'] ?? '';
-                            $total = $u['total'] ?? $u['valor'] ?? $u['amount'] ?? null;
-                        @endphp
-                        <x-dash.list-item :title="$banco" :sub="(string)$when" icon="bi-file-earmark-arrow-up-fill" tone="sky" :value="$total !== null ? $fmt($total) : null" />
+                    @foreach($cartoes as $c)
+                        @php $dias = (int) ($c['days_to_close'] ?? 0); @endphp
+                        <a href="{{ $c['link'] ?? '#' }}" wire:navigate class="block">
+                            <x-dash.list-item :title="$c['nome'] ?? 'Cartão'"
+                                :sub="'Ciclo ' . ($c['cycle_start'] ?? '') . ' a ' . ($c['cycle_end'] ?? '') . ' · ' . ($dias === 0 ? 'fecha hoje' : 'fecha em ' . $dias . ' dias')"
+                                icon="bi-credit-card-fill" tone="sky" :value="$fmt($c['cycle_total'] ?? 0)" />
+                        </a>
                     @endforeach
                 </div>
             @else
-                <x-dash.empty icon="bi-cloud-arrow-up" message="Nenhum upload recente" />
+                <x-dash.empty icon="bi-credit-card" message="Nenhum cartão cadastrado" />
             @endif
         </x-dash.card>
     </div>

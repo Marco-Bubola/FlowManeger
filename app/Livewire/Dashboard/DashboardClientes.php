@@ -31,14 +31,41 @@ class DashboardClientes extends Component
     public array $atividadeRecente = [];
     public string $periodLabel = '';
 
+    public string $period = 'month';
+
+    public const PERIODS = ['month' => 'Mês', 'quarter' => '3 meses', 'year' => 'Ano', 'all' => 'Tudo'];
+
     public function mount()
     {
+        $this->loadData();
+    }
+
+    public function setPeriod(string $period): void
+    {
+        if (! array_key_exists($period, self::PERIODS)) {
+            return;
+        }
+        $this->period = $period;
+        $this->loadData();
+    }
+
+    public function loadData(): void
+    {
         $userId = Auth::id();
-        $periodStart = now()->startOfMonth();
-        $periodEnd = now()->endOfMonth();
+        $periodEnd = now()->endOfDay();
+        $periodStart = match ($this->period) {
+            'quarter' => now()->subMonths(2)->startOfMonth(),
+            'year' => now()->startOfYear(),
+            'all' => Carbon::create(2000, 1, 1),
+            default => now()->startOfMonth(),
+        };
         $inactiveLimit = now()->copy()->subMonths(6);
 
-        $this->periodLabel = ucfirst(Carbon::now()->locale('pt_BR')->translatedFormat('F/Y'));
+        $this->periodLabel = match ($this->period) {
+            'all' => 'Desde o início',
+            'month' => ucfirst(Carbon::now()->locale('pt_BR')->translatedFormat('F/Y')),
+            default => $periodStart->format('d/m/Y') . ' a ' . $periodEnd->format('d/m/Y'),
+        };
         $this->totalClientes = Client::where('user_id', $userId)->count();
 
         $this->clientesNovosMes = Client::where('user_id', $userId)
@@ -91,6 +118,8 @@ class DashboardClientes extends Component
 
         $topClients = Sale::select('client_id', DB::raw('SUM(total_price) as total_vendas'), DB::raw('COUNT(*) as qtd_vendas'))
             ->where('user_id', $userId)
+            ->whereNotNull('client_id')
+            ->whereBetween('created_at', [$periodStart, $periodEnd])
             ->with('client')
             ->groupBy('client_id')
             ->orderByDesc('total_vendas')
@@ -115,7 +144,12 @@ class DashboardClientes extends Component
             ->limit(6)
             ->get();
 
-        $this->clientesRecorrentesCount = $recurringClients->count();
+        // Contagem real (a lista acima mostra só 6)
+        $this->clientesRecorrentesCount = (int) DB::query()->fromSub(
+            Sale::select('client_id')->where('user_id', $userId)->whereNotNull('client_id')
+                ->groupBy('client_id')->havingRaw('COUNT(*) > 2'),
+            'r'
+        )->count();
         $this->clientesRecorrentes = $recurringClients
             ->map(fn ($item) => [
                 'name' => data_get($item, 'client.name', 'Cliente'),
@@ -137,7 +171,11 @@ class DashboardClientes extends Component
             ->limit(6)
             ->get();
 
-        $this->clientesInativosCount = $inactiveClients->count();
+        $this->clientesInativosCount = Client::where('user_id', $userId)
+            ->whereDoesntHave('sales', function ($query) use ($userId, $inactiveLimit) {
+                $query->where('user_id', $userId)->where('created_at', '>=', $inactiveLimit);
+            })
+            ->count();
         $this->clientesInativos = $inactiveClients
             ->map(fn (Client $client) => [
                 'name' => $client->name,

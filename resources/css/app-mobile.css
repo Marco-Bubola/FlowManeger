@@ -437,3 +437,16 @@ html body .dash-kpis.dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)
     html body #mobileMoreSheet .more-app-label { font-size: 0.7rem !important; }
     html body #mobileFabSheet .fab-areas-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
 }
+
+/* Dashboards com 8 indicadores: 2 por linha no celular, 4 no iPad, 8 no computador */
+@media (min-width: 600px) { html body .dash-kpis.dash-kpis.dash-kpis-8 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+@media (min-width: 1280px) { html body .dash-kpis.dash-kpis.dash-kpis-8 { grid-template-columns: repeat(8, minmax(0, 1fr)) !important; } }
+html body .dash-ph .dash-period:empty { display: none; }
+@media (max-width: 767px) {
+    html body .dash-ph .dash-period { margin-top: 0.4rem !important; }
+    html body .dash-ph .dash-chips button { padding: 0.25rem 0.6rem !important; }
+    /* Gráficos dos dashboards cabem no celular */
+    html body .dash-page .dash-chart { min-height: 0 !important; max-width: 100%; overflow: hidden; }
+}
+/* Nome do indicador pode quebrar em 2 linhas em vez de cortar */
+html body .dash-kpis-8 .dash-kpi-label { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2 !important; }

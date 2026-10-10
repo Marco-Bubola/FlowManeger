@@ -94,9 +94,118 @@ class DashboardSales extends Component
     public $vendasPorHora = [];
     public $topProdutos = [];
 
+    // Filtro de período dos indicadores e gráficos do topo
+    public string $period = 'month';
+    public array $periodo = [];
+
+    public const PERIODS = ['7d' => '7 dias', 'month' => 'Mês', 'quarter' => '3 meses', 'year' => 'Ano', 'all' => 'Tudo'];
+
     public function mount()
     {
         $this->loadDashboardData();
+        $this->loadPeriodMetrics();
+    }
+
+    public function setPeriod(string $period): void
+    {
+        if (! array_key_exists($period, self::PERIODS)) {
+            return;
+        }
+        $this->period = $period;
+        $this->loadPeriodMetrics();
+    }
+
+    /** Início e fim do período escolhido e do período anterior de mesmo tamanho. */
+    protected function periodRange(): array
+    {
+        $now = now();
+        [$start, $end] = match ($this->period) {
+            '7d' => [$now->copy()->subDays(6)->startOfDay(), $now->copy()->endOfDay()],
+            'quarter' => [$now->copy()->subMonths(2)->startOfMonth(), $now->copy()->endOfDay()],
+            'year' => [$now->copy()->startOfYear(), $now->copy()->endOfDay()],
+            'all' => [null, $now->copy()->endOfDay()],
+            default => [$now->copy()->startOfMonth(), $now->copy()->endOfDay()],
+        };
+        $prev = null;
+        if ($start) {
+            $prev = match ($this->period) {
+                'month' => [$start->copy()->subMonth(), $now->copy()->subMonthNoOverflow()->endOfDay()],
+                'year' => [$start->copy()->subYear(), $now->copy()->subYear()->endOfDay()],
+                'quarter' => [$start->copy()->subMonths(3), $start->copy()->subSecond()],
+                default => [$start->copy()->subDays(7), $start->copy()->subSecond()],
+            };
+        }
+
+        return [$start, $end, $prev];
+    }
+
+    /** Indicadores, vendas por dia/mês e formas de pagamento do período escolhido. */
+    public function loadPeriodMetrics(): void
+    {
+        $userId = Auth::id();
+        [$start, $end, $prev] = $this->periodRange();
+        $base = fn () => Sale::where('user_id', $userId)
+            ->when($start, fn ($q) => $q->where('created_at', '>=', $start))
+            ->where('created_at', '<=', $end);
+
+        $faturamento = (float) $base()->sum('total_price');
+        $vendas = (int) $base()->count();
+        $clientes = (int) $base()->whereNotNull('client_id')->distinct('client_id')->count('client_id');
+        $itens = (int) DB::table('sale_items')
+            ->join('sales', 'sale_items.sale_id', '=', 'sales.id')
+            ->where('sales.user_id', $userId)
+            ->when($start, fn ($q) => $q->where('sales.created_at', '>=', $start))
+            ->where('sales.created_at', '<=', $end)
+            ->sum('sale_items.quantity');
+
+        $delta = null;
+        if ($prev) {
+            $anterior = (float) Sale::where('user_id', $userId)->whereBetween('created_at', $prev)->sum('total_price');
+            $delta = $anterior > 0 ? (int) round((($faturamento - $anterior) / $anterior) * 100) : null;
+        }
+
+        // Gráfico: por dia até ~1 mês, por mês acima disso
+        $porDia = in_array($this->period, ['7d', 'month'], true);
+        $labels = [];
+        $serie = [];
+        if ($porDia) {
+            $rows = $base()->selectRaw('DATE(created_at) as d, SUM(total_price) as t')->groupBy('d')->pluck('t', 'd');
+            for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
+                $labels[] = $day->format('d/m');
+                $serie[] = round((float) ($rows[$day->format('Y-m-d')] ?? 0), 2);
+            }
+        } else {
+            $rows = $base()->selectRaw("DATE_FORMAT(created_at, '%Y-%m') as m, SUM(total_price) as t")->groupBy('m')->pluck('t', 'm');
+            $first = $start ? $start->copy()->startOfMonth() : ($rows->keys()->min() ? Carbon::createFromFormat('Y-m', $rows->keys()->min())->startOfMonth() : now()->startOfMonth());
+            for ($m = $first->copy(); $m->lte($end); $m->addMonth()) {
+                $labels[] = ucfirst($m->locale('pt_BR')->translatedFormat('M/y'));
+                $serie[] = round((float) ($rows[$m->format('Y-m')] ?? 0), 2);
+            }
+        }
+
+        $pay = $base()->selectRaw("COALESCE(NULLIF(tipo_pagamento,''),'a_vista') as m, COUNT(*) as c")->groupBy('m')->pluck('c', 'm');
+        $payMap = ['a_vista' => 'À vista', 'parcelado' => 'Parcelado'];
+        $payLabels = [];
+        $paySeries = [];
+        foreach ($pay as $m => $c) {
+            $payLabels[] = $payMap[$m] ?? ucfirst(str_replace('_', ' ', (string) $m));
+            $paySeries[] = (int) $c;
+        }
+
+        $this->periodo = [
+            'label' => $start ? ($start->format('d/m/Y') . ' a ' . $end->format('d/m/Y')) : 'Desde a primeira venda',
+            'faturamento' => $faturamento,
+            'vendas' => $vendas,
+            'ticket' => $vendas > 0 ? $faturamento / $vendas : 0,
+            'itens' => $itens,
+            'clientes' => $clientes,
+            'delta' => $delta,
+            'chartTitle' => $porDia ? 'Vendas por dia' : 'Vendas por mês',
+            'labels' => $labels,
+            'serie' => $serie,
+            'payLabels' => $payLabels,
+            'paySeries' => $paySeries,
+        ];
     }
 
     public function loadDashboardData()
