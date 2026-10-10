@@ -45,14 +45,15 @@ class PublishProduct extends Component
     public bool $showProductSelector = false;
     public string $publicationType = 'simple';
 
-    // Variações de produto (cor, tamanho, etc.)
-    public bool  $hasVariations = false;
-    public array $variations = [];           // [{attribute_combinations:[{name,value_name}], price, available_quantity}]
-    public array $variationAttributeNames = []; // Nomes dos atributos de variação definidos (ex: ['COR','TAMANHO'])
     
     // Step 1: filtros de produtos
     public string $searchTerm = '';
     public string $selectedCategory = '';
+    public int $productLimit = 48;
+
+    // Outras cores da mesma família publicadas junto (um anúncio por cor com o
+    // mesmo family_name: o ML agrupa as cores numa página só).
+    public array $extraColors = [];
     
     protected $listeners = [
         'product-added' => 'addProductToList',
@@ -73,10 +74,16 @@ class PublishProduct extends Component
         }
     }
 
-    public function mount(?Product $product = null)
+    public function mount($product = null)
     {
+        // Sem tipo no parâmetro: com "?Product" o Livewire tentava buscar um produto
+        // vazio na rota /publish/create e a página dava 404.
+        if ($product !== null && !$product instanceof Product) {
+            $product = Product::findOrFail($product);
+        }
+
         if ($product) {
-            if ($product->user_id !== Auth::id()) {
+            if ((int) $product->user_id !== (int) Auth::id()) {
                 abort(403, 'Você não tem permissão para publicar este produto.');
             }
             $this->product = $product->load('category');
@@ -154,19 +161,58 @@ class PublishProduct extends Component
         return !empty($this->selectedProducts);
     }
 
-    public function getFilteredProductsProperty()
+    protected function productQuery()
     {
-        $query = Product::where('user_id', Auth::id())
-            ->with('category')
+        return Product::where('user_id', Auth::id())
             ->when($this->searchTerm, fn($q) => $q->where(function ($q) {
                 $q->where('name', 'like', "%{$this->searchTerm}%")
                     ->orWhere('product_code', 'like', "%{$this->searchTerm}%")
                     ->orWhere('barcode', 'like', "%{$this->searchTerm}%");
             }))
             ->when($this->selectedCategory, fn($q) => $q->where('category_id', $this->selectedCategory));
+    }
 
-        $products = $query->get();
-        return $products->filter(fn($p) => $p->isReadyForMercadoLivre()['ready']);
+    /** Produtos prontos para o ML (com estoque, foto, preço e código de barras). */
+    public function getReadyProductsProperty()
+    {
+        return $this->productQuery()
+            ->with('category')
+            ->where('stock_quantity', '>', 0)
+            ->orderBy('name')
+            ->get()
+            ->filter(fn($p) => $p->isReadyForMercadoLivre()['ready'])
+            ->values();
+    }
+
+    public function getFilteredProductsProperty()
+    {
+        return $this->readyProducts->take($this->productLimit);
+    }
+
+    /** Por que os outros produtos ficaram de fora (ex.: 8 sem código de barras). */
+    public function getNotReadySummaryProperty(): array
+    {
+        $reasons = [];
+        $this->productQuery()->get()->each(function ($p) use (&$reasons) {
+            foreach ($p->isReadyForMercadoLivre()['errors'] as $err) {
+                $label = match (true) {
+                    str_contains($err, 'estoque') => 'sem estoque',
+                    str_contains($err, 'Imagem') => 'sem foto',
+                    str_contains(mb_strtolower($err), 'barras') || str_contains($err, 'EAN') || str_contains($err, 'GTIN') => 'sem código de barras',
+                    str_contains($err, 'Preço') => 'sem preço',
+                    default => 'com dados faltando',
+                };
+                $reasons[$label] = ($reasons[$label] ?? 0) + 1;
+                break; // conta cada produto uma vez, pelo primeiro motivo
+            }
+        });
+        arsort($reasons);
+        return $reasons;
+    }
+
+    public function showMoreProducts(): void
+    {
+        $this->productLimit += 48;
     }
 
     public function toggleProduct(int $productId)
@@ -192,7 +238,7 @@ class PublishProduct extends Component
         if ($idx !== null) {
             array_splice($this->selectedProducts, $idx, 1);
             $this->selectedProducts = array_values($this->selectedProducts);
-            $this->product = $this->selectedProducts[0] ? Product::find($this->selectedProducts[0]['id']) : null;
+            $this->product = !empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null;
         } else {
             $this->selectedProducts[] = [
                 'id' => $product->id,
@@ -208,6 +254,7 @@ class PublishProduct extends Component
             $this->product = $product;
         }
 
+        $this->extraColors = [];
         $this->updatePublishPrice();
         if (!empty($this->selectedProducts)) {
             $this->publishQuantity = count($this->selectedProducts) > 1
@@ -228,7 +275,7 @@ class PublishProduct extends Component
 
     public function getCategoriesProperty()
     {
-        return \App\Models\Category::all();
+        return \App\Models\Category::where('user_id', Auth::id())->orderBy('name')->get();
     }
 
     /**
@@ -666,7 +713,7 @@ class PublishProduct extends Component
         // Busca o produto
         $product = Product::find($productId);
         
-        if (!$product) {
+        if (!$product || (int) $product->user_id !== (int) Auth::id()) {
             $this->notifyError('Produto não encontrado.');
             return;
         }
@@ -793,13 +840,27 @@ class PublishProduct extends Component
         if ($totalPrice <= 0) {
             return 0;
         }
-        $mlFee = match($this->listingType) {
-            'gold_special' => 0.16,
-            'gold_pro' => 0.17,
-            'gold' => 0.13,
-            default => 0.11,
+        return round($totalPrice / (1 - $this->listingFeeRate() - 0.05), 2);
+    }
+
+    /**
+     * Taxa de venda estimada do ML no Brasil (varia por categoria):
+     * Clássico ~14% e Premium ~19%. Abaixo de R$ 79 o ML ainda cobra um
+     * custo fixo por unidade.
+     */
+    public function listingFeeRate(?string $type = null): float
+    {
+        return ($type ?? $this->listingType) === 'gold_pro' ? 0.19 : 0.14;
+    }
+
+    public function fixedFee(float $price): float
+    {
+        return match (true) {
+            $price <= 0, $price >= 79 => 0.0,
+            $price < 29 => 6.25,
+            $price < 50 => 6.50,
+            default => 6.75,
         };
-        return round($totalPrice / (1 - $mlFee - 0.05), 2);
     }
 
     public function getCatalogResultPrice(array $item): ?float
@@ -826,7 +887,8 @@ class PublishProduct extends Component
     }
     
     /**
-     * Publica o produto no Mercado Livre (agora com suporte a múltiplos produtos)
+     * Publica o produto no Mercado Livre (um produto, kit com vários produtos,
+     * ou várias cores da mesma família, cada cor no seu anúncio).
      */
     public function publishProduct()
     {
@@ -840,126 +902,57 @@ class PublishProduct extends Component
             return;
         }
 
-        // Validações
         if (empty($this->mlCategoryId)) {
-            $this->notifyError('Selecione uma categoria do Mercado Livre. É obrigatório mesmo usando produto do catálogo.');
+            $this->notifyError('Escolha a categoria do Mercado Livre.');
             return;
         }
-        
-        // Validar preço
-        $price = (float)$this->publishPrice;
+
+        $price = (float) $this->publishPrice;
         if ($price <= 0) {
             $this->notifyError('Informe um preço válido para o anúncio.');
             return;
         }
-        
-        // Quando há múltiplos produtos, usar available_quantity calculado
-        if (count($this->selectedProducts) > 1) {
-            $this->publishQuantity = $this->getAvailableQuantity();
-            if ($this->publishQuantity < 1) {
-                $this->notifyError('Estoque insuficiente para criar publicação com múltiplos produtos.');
-                return;
-            }
-        } else {
-            // Validar quantidade para produto único
-            if ($this->publishQuantity < 1) {
-                $this->notifyError('A quantidade deve ser pelo menos 1.');
-                return;
-            }
+
+        // A quantidade do anúncio sempre segue o estoque (e é sincronizada depois).
+        $this->publishQuantity = $this->getAvailableQuantity();
+        if ($this->publishQuantity < 1) {
+            $this->notifyError('Sem estoque para publicar.');
+            return;
         }
 
-        // Validar atributos obrigatórios apenas se NÃO estiver usando product_id do catálogo
+        // Atributos obrigatórios só quando não está usando o produto do catálogo
         if (!$this->catalogProductId) {
             foreach ($this->manualRequiredAttributes() as $attr) {
                 $val = $this->selectedAttributes[$attr['id']] ?? null;
                 if ($val === null || trim((string) $val) === '') {
-                    $this->notifyError("O campo '{$attr['name']}' é obrigatório");
+                    $this->notifyError("Preencha o campo '{$attr['name']}'.");
                     return;
                 }
             }
         }
 
         try {
-            $title = mb_substr($mainProduct->name, 0, 60);
-            if ($this->catalogProductId && !empty($this->catalogProductName)) {
-                $title = mb_substr($this->catalogProductName, 0, 60);
-            }
-            
-            $description = $mainProduct->description ?? '';
-            if ($this->catalogProductId && !empty($this->catalogDescription)) {
-                $description = $this->catalogDescription;
-            } elseif (!empty($this->catalogDescription)) {
-                // Usa a descrição editada pelo usuário no Step 3 mesmo sem catálogo
-                $description = $this->catalogDescription;
-            }
-            
-            Log::info('PublishProduct: Preparando título e descrição', [
-                'title' => $title,
-                'has_catalog_description' => !empty($this->catalogDescription),
-                'description_length' => mb_strlen($description),
-            ]);
-            
-            $publication = \App\Models\MlPublication::create([
-                'ml_item_id' => 'TEMP_' . uniqid(), // Temporário, será atualizado com o ID real do ML
-                'ml_category_id' => $this->mlCategoryId,
-                'title' => $title,
-                'description' => $description,
-                'price' => $price,
-                'publication_type' => count($this->selectedProducts) > 1 ? 'kit' : 'simple',
-                'listing_type' => $this->listingType,
-                'free_shipping' => $this->freeShipping,
-                'local_pickup' => $this->localPickup,
-                'condition' => $this->productCondition,
-                'warranty' => $this->warranty,
-                'status' => 'pending', // Pendente até confirmar criação no ML
-                'user_id' => Auth::id(),
-            ]);
-            
-            // Adicionar produtos à publicação
-            foreach ($this->selectedProducts as $prod) {
-                $publication->addProduct(
-                    $prod['id'],
-                    $prod['quantity'],
-                    $prod['unit_cost']
-                );
-            }
-            
-            // Atualizar available_quantity
-            $publication->syncQuantityToMl();
-            
-            // Publicar no ML via API (legacy ProductService)
-            $productService = new ProductService();
-            
+            $title = mb_substr($this->getFinalTitle(), 0, 60);
+            $description = trim((string) $this->catalogDescription) !== ''
+                ? $this->catalogDescription
+                : (string) ($mainProduct->description ?? '');
+
             $publishData = [
                 'listing_type' => $this->listingType,
                 'free_shipping' => $this->freeShipping,
                 'local_pickup' => $this->localPickup,
                 'family_name' => $title,
                 'price' => $price,
-                'quantity' => $publication->calculateAvailableQuantity(),
                 'category_id' => $this->mlCategoryId,
                 'description' => $description,
                 'condition' => $this->productCondition,
                 'warranty' => $this->warranty,
             ];
-            
-            // Verificar se deve vincular ao catálogo ou apenas copiar dados
+
             if ($this->catalogProductId && $this->linkToCatalog) {
-                // MODO 1: Vincular ao catálogo (envia catalog_product_id)
                 $publishData['catalog_product_id'] = $this->catalogProductId;
-                
-                Log::info('Publicação VINCULADA ao catálogo', [
-                    'catalog_product_id' => $this->catalogProductId,
-                    'link_mode' => 'catalog_linked'
-                ]);
-            } elseif ($this->catalogProductId && !$this->linkToCatalog) {
-                // MODO 2: Copiar dados do catálogo mas criar publicação independente
-                Log::info('Publicação INDEPENDENTE (dados copiados do catálogo)', [
-                    'catalog_product_id' => $this->catalogProductId,
-                    'link_mode' => 'catalog_copied'
-                ]);
             }
-            
+
             // Enviar atributos: do catálogo ou preenchidos manualmente
             if (!empty($this->catalogAttributes)) {
                 // Tem atributos do catálogo — enviar com filtro de atributos problemáticos
@@ -1047,114 +1040,236 @@ class PublishProduct extends Component
                 $publishData['attributes'] = $this->selectedAttributes;
             }
             
-            if ($this->useCatalogPictures && !empty($this->selectedPictures)) {
+            if (!empty($this->selectedPictures)) {
                 $publishData['pictures'] = array_map(fn($url) => ['source' => $url], $this->selectedPictures);
             }
 
-            // Variações de produto
-            if ($this->hasVariations && !empty($this->variations)) {
-                $variationsPayload = $this->buildVariationsPayload();
-                if (!empty($variationsPayload)) {
-                    $publishData['variations'] = $variationsPayload;
-                    // Quando há variações, o available_quantity da raiz deve ser 0
-                    $publishData['available_quantity'] = 0;
-                    // Preço da raiz pode ser 0 para itens com variações (o prices virão nas variações)
-                    Log::info('PublishProduct: Publicação com variações', ['count' => count($variationsPayload)]);
-                }
+            $colorIds = $this->selectedExtraColorIds();
+            if (!empty($colorIds)) {
+                $publishData['attributes'] = $this->withColor($publishData['attributes'] ?? [], $mainProduct);
+                // Com várias cores o nome não pode citar uma cor só (ex.: "Vermelho"):
+                // todas usam o nome da família, que é o que o ML agrupa.
+                $title = $this->familyTitle();
+                $publishData['family_name'] = $title;
             }
-            
-            $result = $productService->publishProduct(
-                $mainProduct,
-                $publishData,
-                Auth::id()
-            );
 
-            if ($result['success']) {
-                // CRÍTICO: Atualizar com o ml_item_id REAL retornado pelo Mercado Livre
-                $mlItemId = $result['ml_item_id'] 
-                    ?? $result['ml_response']['id'] 
-                    ?? $result['ml_product']->ml_item_id 
-                    ?? null;
-                $mlPermalink = $result['ml_permalink'] 
-                    ?? $result['ml_response']['permalink'] 
-                    ?? $result['ml_product']->ml_permalink 
-                    ?? null;
-                
-                if ($mlItemId) {
-                    $mlResponse = is_array($result['ml_response'] ?? null) ? $result['ml_response'] : [];
-                    $publication->update(array_merge([
-                        'ml_item_id' => $mlItemId,
-                        'ml_permalink' => $mlPermalink,
-                        'status' => 'active',
-                        // Acabou de ser criado com esta quantidade: já está em dia
-                        'sync_status' => 'synced',
-                        'last_sync_at' => now(),
-                        'error_message' => null,
-                        // Publicado com family_name (User Products): o ML não aceita
-                        // mudar o título depois; a edição mostra o título travado.
-                        'ml_family_name' => $mlResponse['family_name'] ?? $title,
-                    ], !empty($mlResponse['id']) ? array_filter(
-                        \App\Services\MercadoLivre\MlStockSyncService::itemMeta($mlResponse),
-                        fn ($v) => $v !== null
-                    ) : []));
-                    
-                    // CORREÇÃO: Vincular TODOS os produtos selecionados em mercadolivre_products
-                    // Quando há múltiplos produtos (kit/combo), o ProductService cria apenas para o primeiro
-                    // Precisamos criar/atualizar para TODOS os produtos do kit
-                    foreach ($this->selectedProducts as $prod) {
-                        $productId = $prod['id'];
-                        
-                        // Verificar se já existe registro para este produto
-                        $mlProduct = \App\Models\MercadoLivreProduct::where('product_id', $productId)
-                            ->where('ml_item_id', $mlItemId)
-                            ->first();
-                        
-                        if (!$mlProduct) {
-                            // Criar novo registro em mercadolivre_products
-                            \App\Models\MercadoLivreProduct::create([
-                                'product_id' => $productId,
-                                'ml_item_id' => $mlItemId,
-                                'ml_permalink' => $mlPermalink,
-                                'ml_category_id' => $this->mlCategoryId,
-                                'listing_type' => $this->listingType,
-                                'status' => 'active',
-                                'ml_price' => $this->publishPrice,
-                                'ml_quantity' => $publication->calculateAvailableQuantity(),
-                                'ml_attributes' => !empty($this->catalogAttributes) ? $this->catalogAttributes : [],
-                                'sync_status' => 'synced',
-                                'last_sync_at' => now(),
-                            ]);
-                            
-                            Log::info('Produto vinculado ao ml_item_id', [
-                                'product_id' => $productId,
-                                'ml_item_id' => $mlItemId,
-                            ]);
-                        }
-                    }
-                    
-                    Log::info('Publicação criada com sucesso no ML', [
-                        'ml_item_id' => $mlItemId,
-                        'publication_id' => $publication->id,
-                        'permalink' => $mlPermalink,
-                        'products_linked' => count($this->selectedProducts),
-                    ]);
-                } else {
-                    Log::error('ML Item ID não retornado pela API', ['result' => $result]);
-                }
-                
-                $this->notifySuccess('Publicação criada com ' . count($this->selectedProducts) . ' produto(s)!');
-                return redirect()->route('mercadolivre.publications');
-            } else {
-                // Deletar publicação se API falhar
-                $publication->delete();
-                $this->notifyError($result['error'] ?? 'Erro ao publicar produto');
+            $main = $this->createPublication($mainProduct, $this->selectedProducts, $publishData, $title, $description, $price);
+            if (!$main['success']) {
+                $this->notifyError($main['error'] ?? 'Erro ao publicar produto');
+                return;
             }
+
+            // Outras cores: um anúncio por cor, mesmo nome de família, foto e código de barras próprios.
+            $failed = [];
+            foreach ($colorIds as $colorId) {
+                $color = Product::where('user_id', Auth::id())->find($colorId);
+                if (!$color) {
+                    continue;
+                }
+                $data = $publishData;
+                unset($data['catalog_product_id']);
+                $data['attributes'] = $this->withColor(
+                    array_filter($data['attributes'] ?? [], function ($a, $k) {
+                        $id = is_array($a) ? ($a['id'] ?? $k) : $k;
+                        return !in_array($id, ['GTIN', 'EMPTY_GTIN_REASON', 'COLOR', 'MODEL'], true);
+                    }, ARRAY_FILTER_USE_BOTH),
+                    $color
+                );
+                $data['pictures'] = ($color->image && $color->image !== 'product-placeholder.png')
+                    ? [['source' => $color->image_url]]
+                    : ($data['pictures'] ?? []);
+
+                $row = [[
+                    'id' => $color->id,
+                    'quantity' => 1,
+                    'unit_cost' => (float) ($color->price_sale ?? $color->price),
+                ]];
+                $res = $this->createPublication($color, $row, $data, $title, $description, $price);
+                if (!$res['success']) {
+                    $failed[] = ($color->variation_value ?: $color->name) . ': ' . ($res['error'] ?? 'erro');
+                }
+            }
+
+            $total = 1 + count($colorIds) - count($failed);
+            if (!empty($failed)) {
+                $this->notifyWarning("{$total} anúncio(s) criado(s). Não foi possível publicar: " . implode('; ', $failed));
+            } else {
+                $this->notifySuccess($total > 1 ? "{$total} anúncios criados (um por cor)!" : 'Anúncio criado no Mercado Livre!');
+            }
+            return redirect()->route('mercadolivre.publications');
         } catch (\Exception $e) {
-            Log::error('Erro ao publicar produto no ML', [
-                'error' => $e->getMessage()
-            ]);
+            Log::error('Erro ao publicar produto no ML', ['error' => $e->getMessage()]);
             $this->notifyError('Erro ao publicar: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Cria a publicação local, envia ao ML e liga os produtos. Se o ML recusar,
+     * a publicação local é apagada (não fica anúncio "TEMP_" sobrando).
+     */
+    protected function createPublication(Product $mainProduct, array $products, array $publishData, string $title, string $description, float $price): array
+    {
+        $publication = \App\Models\MlPublication::create([
+            'ml_item_id' => 'TEMP_' . uniqid(),
+            'ml_category_id' => $publishData['category_id'],
+            'title' => $title,
+            'description' => $description,
+            'price' => $price,
+            'publication_type' => count($products) > 1 ? 'kit' : 'simple',
+            'listing_type' => $this->listingType,
+            'free_shipping' => $this->freeShipping,
+            'local_pickup' => $this->localPickup,
+            'condition' => $this->productCondition,
+            'warranty' => $this->warranty,
+            'status' => 'pending',
+            'user_id' => Auth::id(),
+        ]);
+
+        try {
+            foreach ($products as $prod) {
+                $publication->addProduct($prod['id'], (int) ($prod['quantity'] ?? 1), $prod['unit_cost'] ?? null);
+            }
+            $publishData['quantity'] = $publication->calculateAvailableQuantity();
+
+            $result = (new ProductService())->publishProduct($mainProduct, $publishData, Auth::id());
+        } catch (\Throwable $e) {
+            $publication->delete();
+            throw $e;
+        }
+
+        if (empty($result['success'])) {
+            $publication->delete();
+            return ['success' => false, 'error' => $result['error'] ?? 'Erro ao publicar produto'];
+        }
+
+        $mlItemId = $result['ml_item_id']
+            ?? $result['ml_response']['id']
+            ?? $result['ml_product']->ml_item_id
+            ?? null;
+        $mlPermalink = $result['ml_permalink']
+            ?? $result['ml_response']['permalink']
+            ?? $result['ml_product']->ml_permalink
+            ?? null;
+
+        if (!$mlItemId) {
+            Log::error('ML Item ID não retornado pela API', ['result' => $result]);
+            return ['success' => true, 'ml_item_id' => null];
+        }
+
+        $mlResponse = is_array($result['ml_response'] ?? null) ? $result['ml_response'] : [];
+        $publication->update(array_merge([
+            'ml_item_id' => $mlItemId,
+            'ml_permalink' => $mlPermalink,
+            'status' => 'active',
+            // Acabou de ser criado com esta quantidade: já está em dia
+            'sync_status' => 'synced',
+            'last_sync_at' => now(),
+            'error_message' => null,
+            // Publicado com family_name (User Products): o ML não aceita
+            // mudar o título depois; a edição mostra o título travado.
+            'ml_family_name' => $mlResponse['family_name'] ?? $title,
+        ], !empty($mlResponse['id']) ? array_filter(
+            \App\Services\MercadoLivre\MlStockSyncService::itemMeta($mlResponse),
+            fn ($v) => $v !== null
+        ) : []));
+
+        // Liga todos os produtos (kit) ao anúncio em mercadolivre_products
+        foreach ($products as $prod) {
+            $exists = \App\Models\MercadoLivreProduct::where('product_id', $prod['id'])
+                ->where('ml_item_id', $mlItemId)
+                ->exists();
+            if (!$exists) {
+                \App\Models\MercadoLivreProduct::create([
+                    'product_id' => $prod['id'],
+                    'ml_item_id' => $mlItemId,
+                    'ml_permalink' => $mlPermalink,
+                    'ml_category_id' => $publishData['category_id'],
+                    'listing_type' => $this->listingType,
+                    'status' => 'active',
+                    'ml_price' => $price,
+                    'ml_quantity' => $publication->calculateAvailableQuantity(),
+                    'ml_attributes' => !empty($this->catalogAttributes) ? $this->catalogAttributes : [],
+                    'sync_status' => 'synced',
+                    'last_sync_at' => now(),
+                ]);
+            }
+        }
+
+        Log::info('Publicação criada com sucesso no ML', [
+            'ml_item_id' => $mlItemId,
+            'publication_id' => $publication->id,
+            'products_linked' => count($products),
+        ]);
+
+        return ['success' => true, 'ml_item_id' => $mlItemId];
+    }
+
+    /** Coloca (ou troca) o atributo COLOR pela cor da variação do produto. */
+    protected function withColor(array $attributes, Product $product): array
+    {
+        $color = trim((string) ($product->variation_value ?? ''));
+        if ($color === '') {
+            return $attributes;
+        }
+        $out = [];
+        foreach ($attributes as $k => $a) {
+            $id = is_array($a) ? ($a['id'] ?? $k) : $k;
+            if ($id === 'COLOR') {
+                continue;
+            }
+            $out[] = is_array($a) ? $a : ['id' => $k, 'value_name' => (string) $a];
+        }
+        $out[] = ['id' => 'COLOR', 'value_name' => $color];
+        return $out;
+    }
+
+    /**
+     * Outras cores (mesma família de variação) que podem ser publicadas junto.
+     * Só para anúncio de um produto (kit não entra).
+     */
+    public function getFamilyOptionsProperty(): array
+    {
+        if (count($this->selectedProducts) !== 1) {
+            return [];
+        }
+        $main = Product::find($this->selectedProducts[0]['id']);
+        if (!$main || !$main->hasVariations()) {
+            return [];
+        }
+
+        return $main->family()->get()
+            ->reject(fn ($p) => $p->id === $main->id || $p->is_variation_parent)
+            ->map(function ($p) {
+                $check = $p->isReadyForMercadoLivre();
+                $published = \App\Models\MercadoLivreProduct::where('product_id', $p->id)->exists();
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'color' => $p->variation_value ?: $p->name,
+                    'stock' => (int) $p->stock_quantity,
+                    'image_url' => $p->image_url,
+                    'ready' => $check['ready'],
+                    'reason' => $check['errors'][0] ?? null,
+                    'published' => $published,
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /** Nome comum das cores (o nome do produto pai da variação). */
+    public function familyTitle(): string
+    {
+        $main = !empty($this->selectedProducts) ? Product::find($this->selectedProducts[0]['id']) : null;
+        $root = $main?->parent ?? $main;
+        $name = trim((string) ($root?->name ?: $this->getFinalTitle()));
+        return mb_substr(mb_convert_case($name, MB_CASE_TITLE, 'UTF-8') === $name ? $name : ucfirst($name), 0, 60);
+    }
+
+    protected function selectedExtraColorIds(): array
+    {
+        $allowed = collect($this->familyOptions)->where('ready', true)->pluck('id')->all();
+        return array_values(array_intersect(array_map('intval', $this->extraColors), $allowed));
     }
 
     /**
@@ -1206,125 +1321,6 @@ class PublishProduct extends Component
         }
         
         return 'Produto sem título';
-    }
-
-    // ---------------------------------------------------------------
-    // Variações
-    // ---------------------------------------------------------------
-
-    /**
-     * Liga/desliga o modo variações.
-     */
-    public function toggleVariations(): void
-    {
-        $this->hasVariations = !$this->hasVariations;
-        if ($this->hasVariations && empty($this->variations)) {
-            $this->addVariation();
-        }
-    }
-
-    /**
-     * Adiciona uma variação em branco.
-     */
-    public function addVariation(): void
-    {
-        $attrCount = max(1, count($this->variationAttributeNames));
-        $combinations = [];
-        for ($i = 0; $i < $attrCount; $i++) {
-            $combinations[] = [
-                'name'       => $this->variationAttributeNames[$i] ?? '',
-                'value_name' => '',
-            ];
-        }
-
-        $this->variations[] = [
-            'attribute_combinations' => $combinations,
-            'price'                  => $this->publishPrice,
-            'available_quantity'     => max(1, $this->publishQuantity),
-        ];
-    }
-
-    /**
-     * Remove uma variação pelo índice.
-     */
-    public function removeVariation(int $index): void
-    {
-        array_splice($this->variations, $index, 1);
-        $this->variations = array_values($this->variations);
-    }
-
-    /**
-     * Adiciona um nome de atributo de variação (coluna na tabela).
-     */
-    public function addVariationAttribute(): void
-    {
-        $this->variationAttributeNames[] = '';
-        // Adicionar coluna em todas as variações existentes
-        foreach ($this->variations as &$var) {
-            $var['attribute_combinations'][] = ['name' => '', 'value_name' => ''];
-        }
-        unset($var);
-    }
-
-    /**
-     * Remove um atributo de variação (coluna) pelo índice.
-     */
-    public function removeVariationAttribute(int $index): void
-    {
-        array_splice($this->variationAttributeNames, $index, 1);
-        $this->variationAttributeNames = array_values($this->variationAttributeNames);
-        foreach ($this->variations as &$var) {
-            array_splice($var['attribute_combinations'], $index, 1);
-            $var['attribute_combinations'] = array_values($var['attribute_combinations']);
-        }
-        unset($var);
-    }
-
-    /**
-     * Sincroniza o nome de um atributo para todas as variações.
-     */
-    public function updatedVariationAttributeNames($value, $key): void
-    {
-        $index = (int) $key;
-        foreach ($this->variations as &$var) {
-            if (isset($var['attribute_combinations'][$index])) {
-                $var['attribute_combinations'][$index]['name'] = $value;
-            }
-        }
-        unset($var);
-    }
-
-    /**
-     * Prepara o array de variações para envio na API do ML.
-     *
-     * @return array  Array formatted for ML API 'variations' key.
-     */
-    protected function buildVariationsPayload(): array
-    {
-        $result = [];
-        foreach ($this->variations as $var) {
-            $combinations = [];
-            foreach ($var['attribute_combinations'] ?? [] as $comb) {
-                $name  = trim($comb['name']       ?? '');
-                $value = trim($comb['value_name'] ?? '');
-                if ($name !== '' && $value !== '') {
-                    $combinations[] = ['name' => $name, 'value_name' => $value];
-                }
-            }
-            if (empty($combinations)) {
-                continue; // Pular variação sem combinações definidas
-            }
-            $entry = [
-                'attribute_combinations' => $combinations,
-                'available_quantity'     => max(0, (int) ($var['available_quantity'] ?? 0)),
-            ];
-            $varPrice = (float) ($var['price'] ?? 0);
-            if ($varPrice > 0) {
-                $entry['price'] = $varPrice;
-            }
-            $result[] = $entry;
-        }
-        return $result;
     }
 
     public function render()
