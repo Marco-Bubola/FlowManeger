@@ -188,7 +188,7 @@
                             </div>
                         </div>
 
-                        <!-- Vendas e Produtos Section -->
+                        <!-- Vendas Section (vendas, clientes e dinheiro a receber) -->
                         <div class="mb-3 sidebar-section sidebar-section-vendas" x-data="flowSidebarSection('vendas', true)" x-init="init()" aria-label="Vendas">
                             <button
                                 type="button"
@@ -204,6 +204,109 @@
                                     <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Vendas</p>
                                 </div>
                                 <i class="sidebar-text bi bi-chevron-down text-[11px] text-violet-700 transition-transform duration-200 dark:text-violet-300" :class="open ? 'rotate-180' : ''"></i>
+                            </button>
+
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2"
+                                class="mt-2"
+                            >
+                            <nav class="space-y-1">
+                                <a href="{{ url('sales') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('sales') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('sales') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Vendas</span>
+                                    <!-- Botão + -->
+                                    <button onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('sales.create') }}'" class="sidebar-text w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-600 dark:text-purple-400 transition-all duration-200 flex-shrink-0" title="Nova Venda">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </button>
+                                    <div class="{{ Request::is('sales') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ url('clients') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('clients') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('clients') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Clientes</span>
+                                    <!-- Botão + -->
+                                    <button onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('clients.create') }}'" class="sidebar-text w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-600 dark:text-purple-400 transition-all duration-200 flex-shrink-0" title="Novo Cliente">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                    </button>
+                                    <div class="{{ Request::is('clients') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ route('promotions.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('promotions*') ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('promotions*') ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30' : '' }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Promoções</span>
+                                    <div class="{{ Request::is('promotions*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ route('gestao.receivables') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/a-receber') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/a-receber') ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-cash-coin text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">A Receber</span>
+                                </a>
+
+                                <a href="{{ route('gestao.collections') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/cobrancas') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/cobrancas') ? 'bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-whatsapp text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Cobranças</span>
+                                </a>
+
+                                <a href="{{ route('gestao.profit') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/lucro') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/lucro') ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-graph-up-arrow text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Lucro por Venda</span>
+                                </a>
+
+                                <a href="{{ route('gestao.channel-profit') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/lucro-real') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/lucro-real') ? 'bg-gradient-to-br from-cyan-500 to-teal-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-pie-chart text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Lucro real por canal</span>
+                                </a>
+                            </nav>
+                            </div>
+                        </div>
+
+                        <!-- Estoque Section -->
+                        <div class="mb-3 sidebar-section sidebar-section-estoque" x-data="flowSidebarSection('estoque', true)" x-init="init()" aria-label="Estoque">
+                            <button
+                                type="button"
+                                @click="toggle()"
+                                :aria-expanded="open.toString()"
+                                aria-label="Estoque"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-sky-200/60 bg-sky-50/60 px-3 py-2.5 text-left transition-all hover:border-sky-300 hover:bg-sky-100/70 dark:border-sky-900/60 dark:bg-sky-950/25 dark:hover:bg-sky-900/30"
+                            >
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-md shadow-sky-500/25">
+                                        <i class="bi bi-box-seam text-sm"></i>
+                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Estoque</p>
+                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-sky-700 transition-transform duration-200 dark:text-sky-300" :class="open ? 'rotate-180' : ''"></i>
                             </button>
 
                             <div
@@ -241,86 +344,6 @@
                                     <div class="{{ Request::is('products') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
                                 </a>
 
-                                <a href="{{ route('promotions.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('promotions*') ? 'bg-gradient-to-r from-rose-500/10 to-pink-500/10 dark:from-rose-500/20 dark:to-pink-500/20 text-rose-600 dark:text-rose-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('promotions*') ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/30' : '' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Promoções</span>
-                                    <div class="{{ Request::is('promotions*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-rose-500 to-pink-600 rounded-l-full"></div>
-                                </a>
-
-                                                                <a href="{{ route('products.barcode-scanner') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/barcode-scanner') ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 text-indigo-600 dark:text-indigo-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/barcode-scanner') ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : '' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h2M4 10h2M4 14h2M4 18h2M8 6h2M8 18h2M12 6h2M12 18h2M16 6h8M16 10h8M16 14h8M16 18h8"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Scanner de Barras</span>
-                                    <div class="{{ Request::is('products/barcode-scanner') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-l-full"></div>
-                                </a>
-
-                                <a href="{{ route('gestao.stock-movements') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/estoque/movimentacoes') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/estoque/movimentacoes') ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg' : '' }}">
-                                        <i class="bi bi-arrow-left-right text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Movimentações</span>
-                                </a>
-
-                                <a href="{{ route('gestao.restock') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/estoque/repor') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/estoque/repor') ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg' : '' }}">
-                                        <i class="bi bi-box-seam text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Repor Estoque</span>
-                                </a>
-
-                                <a href="{{ route('gestao.receivables') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/a-receber') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/a-receber') ? 'bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-lg' : '' }}">
-                                        <i class="bi bi-cash-coin text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">A Receber</span>
-                                </a>
-
-                                <a href="{{ route('gestao.profit') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/lucro') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/lucro') ? 'bg-gradient-to-br from-teal-500 to-emerald-600 text-white shadow-lg' : '' }}">
-                                        <i class="bi bi-graph-up-arrow text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Lucro por Venda</span>
-                                </a>
-
-                                <a href="{{ url('clients') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('clients') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('clients') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Clientes</span>
-                                    <!-- Botão + -->
-                                    <button onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('clients.create') }}'" class="sidebar-text w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-600 dark:text-purple-400 transition-all duration-200 flex-shrink-0" title="Novo Cliente">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                        </svg>
-                                    </button>
-                                    <div class="{{ Request::is('clients') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
-                                </a>
-
-                                <a href="{{ url('sales') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('sales') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('sales') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Vendas</span>
-                                    <!-- Botão + -->
-                                    <button onclick="event.preventDefault(); event.stopPropagation(); window.location.href='{{ route('sales.create') }}'" class="sidebar-text w-7 h-7 flex items-center justify-center rounded-lg bg-purple-500/10 hover:bg-purple-500 hover:text-white text-purple-600 dark:text-purple-400 transition-all duration-200 flex-shrink-0" title="Nova Venda">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                        </svg>
-                                    </button>
-                                    <div class="{{ Request::is('sales') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
-                                </a>
-
                                 <a href="{{ url('categories') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('categories') ? 'bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
                                     <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('categories') ? 'bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -352,6 +375,44 @@
                                     </div>
                                     <span class="sidebar-text flex-1 font-medium truncate">Edição em massa</span>
                                     <div class="{{ Request::is('products/bulk-edit') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-pink-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ route('products.variation-stock') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/variation-stock') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/variation-stock') ? 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-diagram-3 text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Estoque das variações</span>
+                                </a>
+
+                                <a href="{{ route('products.barcode-scanner') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/barcode-scanner') ? 'bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 text-indigo-600 dark:text-indigo-400 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/barcode-scanner') ? 'bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30' : '' }}">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h2M4 10h2M4 14h2M4 18h2M8 6h2M8 18h2M12 6h2M12 18h2M16 6h8M16 10h8M16 14h8M16 18h8"></path>
+                                        </svg>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Scanner de Barras</span>
+                                    <div class="{{ Request::is('products/barcode-scanner') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-purple-600 rounded-l-full"></div>
+                                </a>
+
+                                <a href="{{ route('gestao.stock-movements') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/estoque/movimentacoes') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/estoque/movimentacoes') ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-arrow-left-right text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Movimentações</span>
+                                </a>
+
+                                <a href="{{ route('gestao.restock') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('gestao/estoque/repor') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('gestao/estoque/repor') ? 'bg-gradient-to-br from-amber-500 to-orange-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-box-seam text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Repor Estoque</span>
+                                </a>
+
+                                <a href="{{ route('products.interested') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('products/interessados') ? 'bg-slate-100 dark:bg-slate-800 font-semibold' : '' }}" wire:navigate.hover>
+                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('products/interessados') ? 'bg-gradient-to-br from-rose-500 to-pink-600 text-white shadow-lg' : '' }}">
+                                        <i class="bi bi-heart text-lg"></i>
+                                    </div>
+                                    <span class="sidebar-text flex-1 font-medium truncate">Interessados</span>
                                 </a>
                             </nav>
                             </div>
@@ -513,42 +574,6 @@
                                         </svg>
                                     </button>
                                     <div class="{{ Request::is('cofrinhos*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-emerald-500 to-teal-600 rounded-l-full"></div>
-                                </a>
-
-                                <!-- NOVO: Centro de Conquistas (Metas + Hábitos unificados) -->
-                                <a href="{{ route('conquistas.hub') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('conquistas*') ? 'bg-gradient-to-r from-purple-500/10 to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('conquistas*') ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
-                                        <i class="bi bi-trophy text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Metas &amp; Hábitos</span>
-                                    <span class="sidebar-text text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-gradient-to-r from-purple-500 to-indigo-600 text-white">NOVO</span>
-                                    <div class="{{ Request::is('conquistas*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-full"></div>
-                                </a>
-
-                                <a href="{{ route('goals.dashboard') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('goals*') ? 'bg-gradient-to-r from-purple-500/10 to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('goals*') ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
-                                        <i class="bi bi-bullseye text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Metas e Objetivos</span>
-                                    <div class="{{ Request::is('goals*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-full"></div>
-                                </a>
-
-
-                                <a href="{{ route('daily-habits.dashboard') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('daily-habits*') ? 'bg-gradient-to-r from-indigo-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:to-pink-500/20 text-indigo-600 dark:text-indigo-400 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('daily-habits*') ? 'bg-gradient-to-br from-indigo-500 to-pink-600 text-white shadow-lg shadow-indigo-500/30' : '' }}">
-                                        <i class="bi bi-calendar-check text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Hábitos Diários</span>
-                                    <div class="{{ Request::is('daily-habits*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-pink-600 rounded-l-full"></div>
-                                </a>
-
-                                <!-- Achievements/Conquistas -->
-                                <a href="{{ route('achievements.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-900 dark:hover:text-yellow-200 hover:translate-x-1 group {{ Request::is('achievements*') ? 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20 dark:from-yellow-600/30 dark:to-orange-600/30 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
-                                    <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-yellow-100 dark:bg-yellow-900 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800 transition-all duration-200 flex-shrink-0 {{ Request::is('achievements*') ? 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white shadow-lg shadow-yellow-400/30' : '' }}">
-                                        <i class="bi bi-trophy-fill text-lg"></i>
-                                    </div>
-                                    <span class="sidebar-text flex-1 font-medium truncate">Conquistas</span>
-                                    <div class="{{ Request::is('achievements*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-l-full"></div>
                                 </a>
 
                                 <a href="{{ route('consortiums.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('consortiums*') ? 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 text-emerald-600 dark:text-emerald-400 font-semibold' : '' }}" wire:navigate.hover>
@@ -878,6 +903,75 @@
                                             </a>
                                         </div>
                                     @endif
+                                </nav>
+                            </div>
+                        </div>
+
+                        <!-- Pessoal Section (metas, hábitos e conquistas) -->
+                        <div class="mb-3 sidebar-section sidebar-section-pessoal" x-data="flowSidebarSection('pessoal', {{ Request::is('conquistas*', 'goals*', 'daily-habits*', 'achievements*') ? 'true' : 'false' }})" x-init="init()" aria-label="Pessoal">
+                            <button
+                                type="button"
+                                @click="toggle()"
+                                :aria-expanded="open.toString()"
+                                aria-label="Pessoal"
+                                class="sidebar-section-header flex w-full items-center justify-between rounded-xl border border-purple-200/60 bg-purple-50/60 px-3 py-2.5 text-left transition-all hover:border-purple-300 hover:bg-purple-100/70 dark:border-purple-900/60 dark:bg-purple-950/25 dark:hover:bg-purple-900/30"
+                            >
+                                <div class="flex min-w-0 items-center gap-2.5">
+                                    <div class="sidebar-section-icon flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-md shadow-purple-500/25">
+                                        <i class="bi bi-person-heart text-sm"></i>
+                                    </div>
+                                    <p class="sidebar-text truncate text-sm font-bold text-slate-900 dark:text-white">Pessoal</p>
+                                </div>
+                                <i class="sidebar-text bi bi-chevron-down text-[11px] text-purple-700 transition-transform duration-200 dark:text-purple-300" :class="open ? 'rotate-180' : ''"></i>
+                            </button>
+
+                            <div
+                                x-cloak
+                                x-show="open"
+                                x-transition:enter="transition ease-out duration-200"
+                                x-transition:enter-start="opacity-0 -translate-y-2"
+                                x-transition:enter-end="opacity-100 translate-y-0"
+                                x-transition:leave="transition ease-in duration-150"
+                                x-transition:leave-start="opacity-100 translate-y-0"
+                                x-transition:leave-end="opacity-0 -translate-y-2"
+                                class="mt-2"
+                            >
+                                <nav class="space-y-1">
+                                    <!-- NOVO: Centro de Conquistas (Metas + Hábitos unificados) -->
+                                    <a href="{{ route('conquistas.hub') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('conquistas*') ? 'bg-gradient-to-r from-purple-500/10 to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('conquistas*') ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                            <i class="bi bi-trophy text-lg"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Metas &amp; Hábitos</span>
+                                        <span class="sidebar-text text-[9px] font-extrabold px-1.5 py-0.5 rounded-md bg-gradient-to-r from-purple-500 to-indigo-600 text-white">NOVO</span>
+                                        <div class="{{ Request::is('conquistas*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <a href="{{ route('goals.dashboard') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('goals*') ? 'bg-gradient-to-r from-purple-500/10 to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 text-purple-600 dark:text-purple-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('goals*') ? 'bg-gradient-to-br from-purple-500 to-indigo-600 text-white shadow-lg shadow-purple-500/30' : '' }}">
+                                            <i class="bi bi-bullseye text-lg"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Metas e Objetivos</span>
+                                        <div class="{{ Request::is('goals*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-purple-500 to-indigo-600 rounded-l-full"></div>
+                                    </a>
+
+
+                                    <a href="{{ route('daily-habits.dashboard') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:translate-x-1 group {{ Request::is('daily-habits*') ? 'bg-gradient-to-r from-indigo-500/10 to-pink-500/10 dark:from-indigo-500/20 dark:to-pink-500/20 text-indigo-600 dark:text-indigo-400 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 group-hover:bg-white dark:group-hover:bg-slate-700 transition-all duration-200 flex-shrink-0 {{ Request::is('daily-habits*') ? 'bg-gradient-to-br from-indigo-500 to-pink-600 text-white shadow-lg shadow-indigo-500/30' : '' }}">
+                                            <i class="bi bi-calendar-check text-lg"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Hábitos Diários</span>
+                                        <div class="{{ Request::is('daily-habits*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-indigo-500 to-pink-600 rounded-l-full"></div>
+                                    </a>
+
+                                    <!-- Achievements/Conquistas -->
+                                    <a href="{{ route('achievements.index') }}" class="relative flex flex-nowrap items-center gap-2 px-3 py-2.5 rounded-xl transition-all duration-200 text-slate-600 dark:text-slate-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:text-yellow-900 dark:hover:text-yellow-200 hover:translate-x-1 group {{ Request::is('achievements*') ? 'bg-gradient-to-r from-yellow-400/20 to-orange-400/20 dark:from-yellow-600/30 dark:to-orange-600/30 text-yellow-700 dark:text-yellow-300 font-semibold' : '' }}" wire:navigate.hover>
+                                        <div class="flex items-center justify-center w-9 h-9 rounded-lg bg-yellow-100 dark:bg-yellow-900 group-hover:bg-yellow-200 dark:group-hover:bg-yellow-800 transition-all duration-200 flex-shrink-0 {{ Request::is('achievements*') ? 'bg-gradient-to-br from-yellow-400 to-orange-400 text-white shadow-lg shadow-yellow-400/30' : '' }}">
+                                            <i class="bi bi-trophy-fill text-lg"></i>
+                                        </div>
+                                        <span class="sidebar-text flex-1 font-medium truncate">Conquistas</span>
+                                        <div class="{{ Request::is('achievements*') ? 'block' : 'hidden' }} absolute right-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-400 rounded-l-full"></div>
+                                    </a>
                                 </nav>
                             </div>
                         </div>
@@ -1622,24 +1716,6 @@
                         </div>
                         <span class="more-app-label">Consórcios</span>
                     </a>
-                    <a href="{{ route('goals.dashboard') }}" class="more-app-card {{ Request::is('goals*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
-                        <div class="more-app-icon" style="background:linear-gradient(135deg,#a855f7,#9333ea)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 2v1m0 18v1M4.22 4.22l.707.707M18.364 18.364l.707.707M2 12h1m18 0h1M4.22 19.778l.707-.707M18.364 5.636l.707-.707"></path></svg>
-                        </div>
-                        <span class="more-app-label">Metas</span>
-                    </a>
-                    <a href="{{ route('daily-habits.dashboard') }}" class="more-app-card {{ Request::is('daily-habits*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
-                        <div class="more-app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                        </div>
-                        <span class="more-app-label">Hábitos Diários</span>
-                    </a>
-                    <a href="{{ route('achievements.index') }}" class="more-app-card {{ Request::is('achievements*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
-                        <div class="more-app-icon" style="background:linear-gradient(135deg,#eab308,#ca8a04)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                        </div>
-                        <span class="more-app-label">Conquistas</span>
-                    </a>
                 </div>
 
                 {{-- ─── MERCADO LIVRE ─── --}}
@@ -1703,6 +1779,29 @@
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-3-3v6m8-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                         </div>
                         <span class="more-app-label">Conexão</span>
+                    </a>
+                </div>
+
+                {{-- ─── PESSOAL ─── --}}
+                <p class="mobile-sheet-section-label">Pessoal</p>
+                <div class="more-sheet-app-grid">
+                    <a href="{{ route('goals.dashboard') }}" class="more-app-card {{ Request::is('goals*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#a855f7,#9333ea)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0zM12 2v1m0 18v1M4.22 4.22l.707.707M18.364 18.364l.707.707M2 12h1m18 0h1M4.22 19.778l.707-.707M18.364 5.636l.707-.707"></path></svg>
+                        </div>
+                        <span class="more-app-label">Metas</span>
+                    </a>
+                    <a href="{{ route('daily-habits.dashboard') }}" class="more-app-card {{ Request::is('daily-habits*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        </div>
+                        <span class="more-app-label">Hábitos Diários</span>
+                    </a>
+                    <a href="{{ route('achievements.index') }}" class="more-app-card {{ Request::is('achievements*') ? 'is-active' : '' }}" wire:navigate.hover onclick="closeMoreSheet()">
+                        <div class="more-app-icon" style="background:linear-gradient(135deg,#eab308,#ca8a04)">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                        </div>
+                        <span class="more-app-label">Conquistas</span>
                     </a>
                 </div>
 
