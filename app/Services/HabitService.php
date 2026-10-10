@@ -107,6 +107,80 @@ class HabitService
     }
 
     /**
+     * Marca ou desmarca o hábito de hoje com um toque. Usado pela tela Hoje e pela tela Hábitos,
+     * para as duas darem o mesmo resultado: sequência, XP e progresso das metas ligadas ao hábito.
+     */
+    public function toggleToday(DailyHabit $habit, int $userId): array
+    {
+        return DB::transaction(fn () => $this->doToggleToday($habit, $userId));
+    }
+
+    protected function doToggleToday(DailyHabit $habit, int $userId): array
+    {
+        $today = Carbon::today();
+        $gamification = app(GamificationService::class);
+
+        $done = DailyHabitCompletion::where('habit_id', $habit->id)
+            ->where('user_id', $userId)
+            ->whereDate('completion_date', $today)
+            ->exists();
+
+        if ($done) {
+            DailyHabitCompletion::where('habit_id', $habit->id)
+                ->where('user_id', $userId)
+                ->whereDate('completion_date', $today)
+                ->delete();
+            $this->updateStreak($habit, $userId);
+            $gamification->removeXp($userId, GamificationService::XP_HABIT_COMPLETE, 'habit_uncomplete', $habit);
+            $this->applyToGoals($habit, $userId, -1);
+
+            return ['done' => false, 'result' => []];
+        }
+
+        DailyHabitCompletion::create([
+            'habit_id' => $habit->id,
+            'user_id' => $userId,
+            'completion_date' => $today,
+            'times_completed' => 1,
+        ]);
+        $this->updateStreak($habit, $userId);
+        $result = $gamification->awardXp($userId, GamificationService::XP_HABIT_COMPLETE, 'habit_complete', $habit);
+        $this->applyToGoals($habit, $userId, 1);
+
+        return ['done' => true, 'result' => $result];
+    }
+
+    /**
+     * Aplica o impacto do hábito nas metas vinculadas do tipo "habito".
+     * $direction = +1 (concluiu) ou -1 (desmarcou).
+     */
+    protected function applyToGoals(DailyHabit $habit, int $userId, int $direction): void
+    {
+        $goals = $habit->metaGoals()->where('goals.tipo_meta', 'habito')->get();
+
+        foreach ($goals as $goal) {
+            $peso = (float) ($goal->pivot->peso ?? 5);
+
+            if ($goal->valor_meta > 0) {
+                $novoValor = max(0, (float) $goal->valor_atual + ($peso * $direction));
+                $goal->valor_atual = $novoValor;
+                $goal->progresso = min(100, ($novoValor / (float) $goal->valor_meta) * 100);
+            } else {
+                $goal->progresso = max(0, min(100, (float) $goal->progresso + ($peso * $direction)));
+            }
+
+            if ($goal->progresso >= 100 && is_null($goal->completed_at)) {
+                $goal->completed_at = now();
+                app(GamificationService::class)->awardXp($userId, GamificationService::XP_GOAL_COMPLETE, 'goal_complete', $goal);
+            } elseif ($goal->progresso < 100 && $direction < 0) {
+                $goal->completed_at = null;
+            }
+
+            $goal->save();
+        }
+    }
+
+    /**
      * Atualizar streak do hábito
      */
     public function updateStreak(DailyHabit $habit, int $userId): DailyHabitStreak
@@ -132,42 +206,44 @@ class HabitService
         if ($completions->isEmpty()) {
             $streak->update([
                 'current_streak' => 0,
+                'longest_streak' => 0,
+                'total_completions' => 0,
                 'last_completion_date' => null,
             ]);
             return $streak;
         }
 
-        // Calcular streak atual
+        // Dias distintos com conclusão, do mais recente para o mais antigo
+        $days = $completions
+            ->map(fn ($c) => Carbon::parse($c->completion_date)->startOfDay())
+            ->unique(fn ($d) => $d->toDateString())
+            ->values();
+
+        // Sequência atual: só conta se a última conclusão foi hoje ou ontem
         $currentStreak = 0;
-        $lastDate = null;
-
-        foreach ($completions as $completion) {
-            $compDate = Carbon::parse($completion->completion_date);
-
-            if ($lastDate === null) {
-                // Primeiro dia
-                if ($compDate->isToday() || $compDate->isYesterday()) {
-                    $currentStreak = 1;
-                    $lastDate = $compDate;
-                } else {
-                    break; // Quebrou a sequência
+        if ($days[0]->isToday() || $days[0]->isYesterday()) {
+            $currentStreak = 1;
+            for ($i = 1; $i < $days->count(); $i++) {
+                if ((int) round($days[$i]->diffInDays($days[$i - 1], true)) !== 1) {
+                    break;
                 }
-            } else {
-                // Verificar se é consecutivo
-                if ($compDate->diffInDays($lastDate) === 1) {
-                    $currentStreak++;
-                    $lastDate = $compDate;
-                } else {
-                    break; // Quebrou a sequência
-                }
+                $currentStreak++;
             }
         }
 
-        // Atualizar
+        // Recorde: maior sequência em todo o histórico
+        $longest = 1;
+        $run = 1;
+        for ($i = 1; $i < $days->count(); $i++) {
+            $run = (int) round($days[$i]->diffInDays($days[$i - 1], true)) === 1 ? $run + 1 : 1;
+            $longest = max($longest, $run);
+        }
+
         $streak->update([
             'current_streak' => $currentStreak,
-            'longest_streak' => max($streak->longest_streak, $currentStreak),
-            'last_completion_date' => $completions->first()->completion_date,
+            'longest_streak' => $longest,
+            'total_completions' => $days->count(),
+            'last_completion_date' => $days[0]->toDateString(),
         ]);
 
         return $streak->fresh();

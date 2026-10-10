@@ -2,51 +2,34 @@
 
     <link rel="stylesheet" href="{{ asset('assets/css/conquistas-hub.css') }}">
 
-    <!-- ───────── HEADER ───────── -->
-    <div class="ch-header">
-        <div class="ch-header-titles">
-            <h1 class="ch-title"><i class="bi bi-trophy-fill"></i> Metas &amp; Hábitos</h1>
-            <p class="ch-subtitle">Seu centro de conquistas — metas, hábitos e progresso em um só lugar</p>
-        </div>
+    <x-pessoal-header :title="$activeTab === 'insights' ? 'Insights' : 'Hoje'"
+        :subtitle="$activeTab === 'insights' ? 'Como andam seus hábitos e metas ao longo do tempo' : 'Hábitos do dia, metas perto do prazo e seu nível'"
+        :icon="$activeTab === 'insights' ? 'bi-graph-up-arrow' : 'bi-sun'"
+        :active="$activeTab">
+        <x-slot name="actions">
+            <a href="{{ route('daily-habits.create') }}" wire:navigate aria-label="Novo hábito"
+               class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-md shadow-purple-500/25">
+                <i class="bi bi-plus-lg"></i><span class="app-ph-label">Novo hábito</span>
+            </a>
+        </x-slot>
+    </x-pessoal-header>
 
-        <!-- Nível / XP -->
-        <div class="ch-level-card">
-            <div class="ch-level-badge">
-                <span class="ch-level-num">{{ $level['level'] ?? 1 }}</span>
-                <span class="ch-level-label">NÍVEL</span>
-            </div>
-            <div class="ch-level-info">
-                <div class="ch-level-xp">
-                    <i class="bi bi-stars"></i> {{ number_format($level['xp'] ?? 0, 0, ',', '.') }} XP
-                    <span class="ch-streak"><i class="bi bi-fire"></i> {{ $level['current_streak'] ?? 0 }} dias</span>
-                </div>
-                <div class="ch-xp-bar">
-                    <div class="ch-xp-bar-fill" style="width: {{ $level['progress'] ?? 0 }}%"></div>
-                </div>
-                <div class="ch-xp-next">Faltam {{ max(0, ($level['xp_ceiling'] ?? 0) - ($level['xp'] ?? 0)) }} XP para o nível {{ ($level['level'] ?? 1) + 1 }}</div>
-            </div>
+    <!-- Nível / XP -->
+    <div class="ch-level-card pes-level-card">
+        <div class="ch-level-badge">
+            <span class="ch-level-num">{{ $level['level'] ?? 1 }}</span>
+            <span class="ch-level-label">NÍVEL</span>
         </div>
-    </div>
-
-    <!-- ───────── ABAS ───────── -->
-    <div class="ch-tabs" role="tablist">
-        @php
-            $tabs = [
-                'hoje'      => ['Hoje', 'bi-sun'],
-                'metas'     => ['Metas', 'bi-kanban'],
-                'habitos'   => ['Hábitos', 'bi-check2-square'],
-                'insights'  => ['Insights', 'bi-graph-up-arrow'],
-                'conquistas'=> ['Conquistas', 'bi-award'],
-            ];
-        @endphp
-        @foreach($tabs as $key => $tab)
-            <button type="button" wire:click="setTab('{{ $key }}')"
-                    class="ch-tab {{ $activeTab === $key ? 'ch-tab--active' : '' }}"
-                    role="tab" aria-selected="{{ $activeTab === $key ? 'true' : 'false' }}">
-                <i class="bi {{ $tab[1] }}"></i>
-                <span>{{ $tab[0] }}</span>
-            </button>
-        @endforeach
+        <div class="ch-level-info">
+            <div class="ch-level-xp">
+                <i class="bi bi-stars"></i> {{ number_format($level['xp'] ?? 0, 0, ',', '.') }} XP
+                <span class="ch-streak"><i class="bi bi-fire"></i> {{ $level['current_streak'] ?? 0 }} {{ ($level['current_streak'] ?? 0) == 1 ? 'dia' : 'dias' }}</span>
+            </div>
+            <div class="ch-xp-bar">
+                <div class="ch-xp-bar-fill" style="width: {{ $level['progress'] ?? 0 }}%"></div>
+            </div>
+            <div class="ch-xp-next">Faltam {{ max(0, ($level['xp_ceiling'] ?? 0) - ($level['xp'] ?? 0)) }} XP para o nível {{ ($level['level'] ?? 1) + 1 }}</div>
+        </div>
     </div>
 
     <!-- ───────── CONTEÚDO ───────── -->
@@ -125,7 +108,7 @@
             <div class="ch-section">
                 <div class="ch-section-head">
                     <h3><i class="bi bi-alarm"></i> Metas vencendo em 7 dias</h3>
-                    <button type="button" wire:click="setTab('metas')" class="ch-link-btn"><i class="bi bi-arrow-right"></i> Ver Kanban</button>
+                    <a href="{{ route('goals.dashboard') }}" wire:navigate class="ch-link-btn"><i class="bi bi-arrow-right"></i> Ver metas</a>
                 </div>
 
                 @if(count($urgentGoals) === 0)
@@ -180,20 +163,6 @@
         </div>
         @endif
 
-        {{-- ===== ABA METAS (embute Kanban existente) ===== --}}
-        @if($activeTab === 'metas')
-        <div wire:key="tab-metas" class="ch-embed">
-            @livewire(\App\Livewire\Goals\GoalsDashboard::class, key: 'embed-goals')
-        </div>
-        @endif
-
-        {{-- ===== ABA HÁBITOS (embute dashboard existente) ===== --}}
-        @if($activeTab === 'habitos')
-        <div wire:key="tab-habitos" class="ch-embed">
-            @livewire(\App\Livewire\DailyHabits\DailyHabitsDashboard::class, key: 'embed-habits')
-        </div>
-        @endif
-
         {{-- ===== ABA INSIGHTS ===== --}}
         @if($activeTab === 'insights')
         <div wire:key="tab-insights" class="ch-insights">
@@ -201,12 +170,6 @@
         </div>
         @endif
 
-        {{-- ===== ABA CONQUISTAS ===== --}}
-        @if($activeTab === 'conquistas')
-        <div wire:key="tab-conquistas" class="ch-achievements">
-            <livewire:conquistas.achievements-view :key="'ach-view'" />
-        </div>
-        @endif
     </div>
 
     <!-- Camada de animação de XP (confete + "+XP" subindo) -->
@@ -217,7 +180,7 @@
 function conquistasHub() {
     return {
         init() {
-            // Carrega canvas-confetti sob demanda (layout não tem @stack scripts)
+            // Carrega canvas-confetti sob demanda (o layout não tem pilha de scripts)
             if (typeof confetti === 'undefined' && !document.getElementById('fm-confetti-lib')) {
                 const s = document.createElement('script');
                 s.id = 'fm-confetti-lib';

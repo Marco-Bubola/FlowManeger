@@ -7,18 +7,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-goal-ultrawide.css') }}">
 
-    <x-modern-header :icon="'bi bi-pencil'" :title="'📝 Editar Meta - ' . $board_name" :subtitle="'Atualize as informações da sua meta'" :breadcrumb="[
-        ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'url' => route('dashboard')],
-        ['icon' => 'bi bi-bullseye', 'label' => 'Metas', 'url' => route('goals.dashboard')],
-        [
-            'icon' => 'bi bi-kanban',
-            'label' => $board_name,
-            'url' => $boardId ? route('goals.board', ['boardId' => $boardId]) : '#',
-        ],
-        ['label' => 'Editar Meta'],
-    ]" />
+    <x-pessoal-header title="Editar meta" :subtitle="$board_name ? 'No quadro ' . $board_name : null" icon="bi-pencil"
+        :crumbs="array_values(array_filter([['label' => 'Metas', 'url' => route('goals.dashboard')], $boardId ? ['label' => $board_name, 'url' => route('goals.board', ['boardId' => $boardId])] : null, ['label' => 'Editar meta']]))" />
 
-    <div class="max-w-5xl mx-auto px-6 py-8">
+    <div class="max-w-5xl mx-auto pb-24">
         <!-- Mensagens -->
         @if (session()->has('message'))
             <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg">
@@ -44,16 +36,16 @@
         @endif
 
         <!-- Formulário -->
-        <div class="bg-white rounded-2xl shadow-xl p-8">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-4 sm:p-8">
             <form wire:submit.prevent="updateGoal">
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <!-- Nome da Meta -->
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Nome da Meta *
                         </label>
                         <input type="text" wire:model="name"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                             placeholder="Ex: Aumentar vendas em 20%">
                         @error('name')
                             <span class="text-red-500 text-sm">{{ $message }}</span>
@@ -62,11 +54,11 @@
 
                     <!-- Lista -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Lista *
                         </label>
                         <select wire:model="list_id"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                             <option value="">Selecione...</option>
                             @foreach ($lists as $list)
                                 <option value="{{ $list->id }}">{{ $list->name }}</option>
@@ -79,11 +71,11 @@
 
                     <!-- Prioridade -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Prioridade *
                         </label>
                         <select wire:model="priority"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                             <option value="baixa">🟢 Baixa</option>
                             <option value="media">🟡 Média</option>
                             <option value="alta">🟠 Alta</option>
@@ -93,11 +85,11 @@
 
                     <!-- Status -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Status *
                         </label>
                         <select wire:model="status"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                             <option value="pendente">⏳ Pendente</option>
                             <option value="em_andamento">🔄 Em Andamento</option>
                             <option value="concluido">✅ Concluído</option>
@@ -107,20 +99,20 @@
 
                     <!-- Data de Vencimento -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Data de Vencimento
                         </label>
                         <input type="date" wire:model="data_vencimento"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                     </div>
 
                     <!-- Período -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Período *
                         </label>
                         <select wire:model="periodo"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                             <option value="diario">📅 Diário</option>
                             <option value="semanal">📆 Semanal</option>
                             <option value="mensal">🗓️ Mensal</option>
@@ -138,7 +130,7 @@
 
                     <!-- Progresso -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Progresso (%) - {{ $progresso }}%
                         </label>
                         <input type="range" wire:model="progresso" min="0" max="100" class="w-full">
@@ -146,11 +138,11 @@
 
                     <!-- Cofrinho -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Cofrinho
                         </label>
                         <select wire:model="cofrinho_id"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                             <option value="">Nenhum</option>
                             @foreach ($cofrinhos as $cofrinho)
                                 <option value="{{ $cofrinho->id }}">{{ $cofrinho->nome }}</option>
@@ -160,11 +152,11 @@
 
                     <!-- Categoria -->
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Categoria
                         </label>
                         <select wire:model="category_id"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500">
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500">
                             <option value="">Nenhuma</option>
                             @foreach ($categories as $category)
                                 <option value="{{ $category->id_category }}">{{ $category->name_category }}</option>
@@ -175,11 +167,11 @@
                     <!-- Recorrência Dia -->
                     @if ($periodo !== 'custom')
                         <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                                 Dia da Recorrência
                             </label>
                             <input type="number" wire:model="recorrencia_dia" min="1" max="31"
-                                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+                                class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500"
                                 placeholder="Dia do mês (1-31)">
                         </div>
                     @endif
@@ -195,7 +187,7 @@
                                     class="flex flex-col items-center p-3 rounded-xl border-2 transition-all hover:scale-105 {{ $cor === $colorHex ? 'border-gray-800 shadow-lg' : 'border-gray-200' }}">
                                     <div class="w-12 h-12 rounded-full {{ $cor === $colorHex ? 'ring-4 ring-offset-2 ring-gray-800' : '' }}"
                                         style="background-color: {{ $colorHex }};"></div>
-                                    <span class="text-xs text-gray-600 mt-1">{{ $colorName }}</span>
+                                    <span class="text-xs text-gray-600 dark:text-gray-400 mt-1">{{ $colorName }}</span>
                                 </button>
                             @endforeach
                         </div>
@@ -203,19 +195,19 @@
 
                     <!-- Descrição -->
                     <div class="lg:col-span-2">
-                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                             Descrição
                         </label>
                         <textarea wire:model="description" rows="4"
-                            class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500"
+                            class="w-full px-4 py-3 border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-white rounded-xl focus:ring-2 focus:ring-purple-500"
                             placeholder="Descreva os detalhes da sua meta..."></textarea>
                     </div>
                 </div>
 
                 <!-- Botões -->
-                <div class="flex gap-4 mt-8">
+                <div class="pes-form-actions grid grid-cols-2 sm:flex gap-3 mt-8">
                     <button type="submit"
-                        class="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
+                        class="col-span-2 sm:col-span-1 flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-purple-700 hover:to-indigo-700 transition-all shadow-lg"
                         wire:loading.attr="disabled">
                         <span wire:loading.remove>
                             <i class="bi bi-check-circle mr-2"></i>Salvar Alterações
@@ -226,12 +218,12 @@
                     </button>
 
                     <button type="button" wire:click="confirmDelete"
-                        class="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all shadow-lg">
+                        class="px-4 sm:px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all shadow-lg">
                         <i class="bi bi-trash mr-2"></i>Arquivar
                     </button>
 
                     <a href="{{ $boardId ? route('goals.board', ['boardId' => $boardId]) : '#' }}"
-                        class="px-6 py-3 bg-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-300 transition-all">
+                        class="px-4 sm:px-6 py-3 text-center bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-200 font-semibold rounded-xl hover:bg-gray-300 transition-all" wire:navigate>
                         <i class="bi bi-x-circle mr-2"></i>Cancelar
                     </a>
                 </div>

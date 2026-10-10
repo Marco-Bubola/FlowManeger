@@ -450,3 +450,11 @@ html body .dash-ph .dash-period:empty { display: none; }
 }
 /* Nome do indicador pode quebrar em 2 linhas em vez de cortar */
 html body .dash-kpis-8 .dash-kpi-label { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2 !important; }
+
+/* ===== Área Pessoal (Hoje, Metas, Hábitos, Conquistas) ===== */
+html body .dash-kpis.dash-kpis.pes-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+@media (min-width: 600px) { html body .dash-kpis.dash-kpis.pes-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; } }
+html body .pes-kpis .dash-kpi-label { white-space: normal !important; overflow: visible !important; text-overflow: clip !important; line-height: 1.2 !important; }
+html body .conquistas-hub .pes-level-card { min-width: 0; margin-bottom: 1rem; }
+html body .pes-rarity.pes-rarity { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: 0.5rem !important; }
+html body .pes-rarity.pes-rarity > div { padding: 0.5rem !important; min-height: 0 !important; }

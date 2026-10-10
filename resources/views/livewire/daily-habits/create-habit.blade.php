@@ -5,27 +5,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-habit-ultrawide.css') }}">
-    <x-sales-header
-        title="🎯 Criar Novo Hábito"
-        description="Adicione um novo hábito à sua rotina diária">
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <a href="{{ route('daily-habits.dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="bi bi-calendar-check mr-1"></i>Hábitos Diários
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                    Criar Hábito
-                </span>
-            </div>
-        </x-slot>
-    </x-sales-header>
+    <x-pessoal-header title="Novo hábito" subtitle="Adicione um hábito à sua rotina" icon="bi-plus-circle"
+        :crumbs="[['label' => 'Hábitos', 'url' => route('daily-habits.dashboard')], ['label' => 'Novo hábito']]" />
 
-    <div class="max-w-4xl mx-auto px-6 py-8">
+    <div class="max-w-4xl mx-auto pb-24">
         <!-- Mensagens de Feedback -->
         @if (session()->has('message'))
             <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg animate-bounce-in">
@@ -113,10 +96,10 @@
                                 <button
                                     type="button"
                                     wire:click="$set('icon', '{{ $iconClass }}')"
-                                    class="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all hover:scale-105 {{ $icon === $iconClass ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-md' : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500' }}"
+                                    class="flex flex-col items-center justify-center p-2 sm:p-3 min-w-0 rounded-xl border-2 transition-all hover:scale-105 {{ $icon === $iconClass ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-md' : 'border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500' }}"
                                 >
-                                    <i class="bi {{ $iconClass }} text-3xl mb-1 {{ $icon === $iconClass ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400' }}"></i>
-                                    <span class="text-xs text-gray-600 dark:text-gray-400">{{ $iconName }}</span>
+                                    <i class="bi {{ $iconClass }} text-2xl mb-1 {{ $icon === $iconClass ? 'text-blue-600 dark:text-blue-400' : 'text-gray-600 dark:text-gray-400' }}"></i>
+                                    <span class="text-[11px] text-gray-600 dark:text-gray-400 truncate max-w-full">{{ $iconName }}</span>
                                 </button>
                             @endforeach
                         </div>

@@ -9,11 +9,16 @@
 
     <x-loading-overlay message="Carregando metas..." />
 
-    <x-modern-header :icon="'bi bi-kanban'" :title="$board->name" :subtitle="$board->description ?? 'Organize suas metas'" :breadcrumb="[
-        ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'url' => route('dashboard')],
-        ['icon' => 'bi bi-bullseye', 'label' => 'Metas', 'url' => route('goals.dashboard')],
-        ['label' => $board->name],
-    ]" :actions="view('livewire.goals.partials.board-actions', compact('boardId'))" />
+    <div class="px-3 sm:px-4 pt-3">
+        <x-pessoal-header :title="$board->name" :subtitle="$board->description ?: 'Organize suas metas'" icon="bi-kanban"
+            :crumbs="[['label' => 'Metas', 'url' => route('goals.dashboard')], ['label' => 'Quadro']]">
+            <x-slot name="actions">
+                <a href="{{ route('goals.create', ['boardId' => $boardId]) }}" wire:navigate aria-label="Nova meta" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-md shadow-purple-500/25">
+                    <i class="bi bi-plus-lg"></i><span class="app-ph-label">Nova meta</span>
+                </a>
+            </x-slot>
+        </x-pessoal-header>
+    </div>
 
     <!-- Kanban Board - Scrollable Horizontal -->
     <div class="overflow-x-auto p-4 flex-1 scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-transparent">
@@ -81,7 +86,7 @@
                                         <div class="mb-2">
                                             <div class="flex items-center justify-between mb-1">
                                                 <span class="text-xs font-medium text-slate-600 dark:text-slate-400">Progresso</span>
-                                                <span class="text-xs font-bold text-slate-900 dark:text-white">{{ $goal['progresso'] }}%</span>
+                                                <span class="text-xs font-bold text-slate-900 dark:text-white">{{ number_format($goal['progresso'], 0, ',', '.') }}%</span>
                                             </div>
                                             <div class="w-full bg-slate-200 dark:bg-slate-600 rounded-full h-1.5">
                                                 <div class="h-1.5 rounded-full transition-all duration-500 {{ $goal['progresso'] >= 100 ? 'bg-green-500' : ($goal['progresso'] >= 50 ? 'bg-blue-500' : 'bg-amber-500') }}"

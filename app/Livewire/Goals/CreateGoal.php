@@ -133,6 +133,8 @@ class CreateGoal extends Component
             session()->flash('message', '✅ Meta criada com sucesso!');
             return redirect()->route('goals.board', ['boardId' => $this->boardId]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             \Log::error('[CreateGoal] Erro ao criar', [
                 'message' => $e->getMessage(),

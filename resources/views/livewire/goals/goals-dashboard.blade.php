@@ -5,114 +5,64 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/goals-dashboard-ultrawide.css') }}">
-    <!-- Header Moderno -->
-    <x-sales-header
-        title="Painel de Metas"
-        icon="bi-bullseye" iconColor="purple"
-        description="Acompanhe o progresso das suas metas e objetivos">
-        <x-slot name="breadcrumb">
-            <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                    <i class="fas fa-home mr-1"></i>Dashboard
-                </a>
-                <i class="fas fa-chevron-right text-xs"></i>
-                <span class="text-slate-800 dark:text-slate-200 font-medium">
-                    <i class="bi bi-bullseye mr-1"></i>Metas e Objetivos
-                </span>
-            </div>
-        </x-slot>
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
+    <x-pessoal-header title="Metas" subtitle="Progresso das suas metas e objetivos" icon="bi-bullseye" active="metas">
         <x-slot name="actions">
-            <a href="{{ route('goals.board', ['boardId' => $boards->first()->id ?? 1]) }}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg shadow-lg transition-all duration-200">
-                <i class="bi bi-kanban"></i>
-                <span class="font-medium">Abrir Quadro</span>
+            <a href="{{ route('goals.board', ['boardId' => $boards->first()->id ?? 1]) }}" wire:navigate aria-label="Abrir quadro" class="inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-semibold text-white bg-gradient-to-r from-violet-600 to-fuchsia-600 shadow-md shadow-purple-500/25">
+                <i class="bi bi-kanban"></i><span class="app-ph-label">Abrir quadro</span>
             </a>
         </x-slot>
-    </x-sales-header>
+    </x-pessoal-header>
 
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
 
-        <!-- KPIs Principais -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <x-stat-card
-                title="Total de Metas"
-                :value="$stats['total']"
-                icon="bi bi-bullseye"
-                color="blue"
-                :subtitle="$stats['pending'] . ' pendentes'"
-            />
-
-            <x-stat-card
-                title="Em Andamento"
-                :value="$stats['active']"
-                icon="bi bi-play-circle"
-                color="green"
-                :subtitle="'Meta: ' . $stats['total']"
-            />
-
-            <x-stat-card
-                title="Concluídas"
-                :value="$stats['completed']"
-                icon="bi bi-check-circle"
-                color="purple"
-                :subtitle="'🎉 Parabéns!'"
-            />
-
-            <x-stat-card
-                title="Taxa de Conclusão"
-                :value="number_format($stats['avgProgress'], 1) . '%'"
-                icon="bi bi-graph-up-arrow"
-                color="orange"
-            >
-                <x-progress-ring
-                    :percentage="$stats['avgProgress']"
-                    size="sm"
-                    color="orange"
-                    label=""
-                />
-            </x-stat-card>
+        <div class="dash-kpis pes-kpis">
+            <x-dash.kpi label="Metas" tone="indigo" icon="bi-bullseye" :value="$stats['total']" />
+            <x-dash.kpi label="Em andamento" tone="emerald" icon="bi-play-circle" :value="$stats['active']" />
+            <x-dash.kpi label="Concluídas" tone="purple" icon="bi-check-circle" :value="$stats['completed']" />
+            <x-dash.kpi label="Taxa de conclusão" tone="amber" icon="bi-graph-up-arrow" :value="number_format($stats['avgProgress'], 0, ',', '.') . '%'" />
         </div>
 
         <!-- Achievements Section -->
         @if($achievementStats['unlocked'] > 0)
-        <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 shadow-xl text-white">
+        <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-4 shadow-xl text-white">
             <div class="flex items-center justify-between mb-4">
-                <h3 class="text-xl font-bold flex items-center gap-2">
+                <h3 class="text-base sm:text-xl font-bold flex items-center gap-2">
                     <i class="bi bi-trophy-fill text-yellow-300"></i>
-                    Conquistas de Metas
+                    Conquistas de metas
                 </h3>
-                <a href="{{ route('achievements.index') }}" class="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors">
-                    Ver Todas
+                <a href="{{ route('achievements.index') }}" wire:navigate class="text-xs sm:text-sm bg-white/20 hover:bg-white/30 px-3 py-1.5 rounded-lg transition-colors">
+                    Ver todas
                 </a>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                    <div class="flex items-center gap-3">
-                        <x-trophy-badge rarity="bronze" size="md" :count="$achievementStats['by_rarity']['bronze'] ?? 0" />
+            <div class="pes-rarity grid grid-cols-3 gap-2">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-2 sm:p-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+                        <x-trophy-badge rarity="bronze" size="sm" :count="$achievementStats['by_rarity']['bronze'] ?? 0" />
                         <div>
-                            <p class="text-2xl font-bold">{{ $achievementStats['by_rarity']['bronze'] ?? 0 }}</p>
-                            <p class="text-sm text-purple-200">Bronze</p>
+                            <p class="text-lg sm:text-2xl font-bold leading-tight">{{ $achievementStats['by_rarity']['bronze'] ?? 0 }}</p>
+                            <p class="text-xs sm:text-sm text-purple-200">Bronze</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                    <div class="flex items-center gap-3">
-                        <x-trophy-badge rarity="silver" size="md" :count="$achievementStats['by_rarity']['silver'] ?? 0" />
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-2 sm:p-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+                        <x-trophy-badge rarity="silver" size="sm" :count="$achievementStats['by_rarity']['silver'] ?? 0" />
                         <div>
-                            <p class="text-2xl font-bold">{{ $achievementStats['by_rarity']['silver'] ?? 0 }}</p>
-                            <p class="text-sm text-purple-200">Prata</p>
+                            <p class="text-lg sm:text-2xl font-bold leading-tight">{{ $achievementStats['by_rarity']['silver'] ?? 0 }}</p>
+                            <p class="text-xs sm:text-sm text-purple-200">Prata</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-4">
-                    <div class="flex items-center gap-3">
-                        <x-trophy-badge rarity="gold" size="md" :count="$achievementStats['by_rarity']['gold'] ?? 0" />
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-2 sm:p-4">
+                    <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-3 text-center sm:text-left">
+                        <x-trophy-badge rarity="gold" size="sm" :count="$achievementStats['by_rarity']['gold'] ?? 0" />
                         <div>
-                            <p class="text-2xl font-bold">{{ $achievementStats['by_rarity']['gold'] ?? 0 }}</p>
-                            <p class="text-sm text-purple-200">Ouro</p>
+                            <p class="text-lg sm:text-2xl font-bold leading-tight">{{ $achievementStats['by_rarity']['gold'] ?? 0 }}</p>
+                            <p class="text-xs sm:text-sm text-purple-200">Ouro</p>
                         </div>
                     </div>
                 </div>
@@ -120,8 +70,8 @@
 
             @if($recentAchievements->count() > 0)
             <div class="mt-4 pt-4 border-t border-white/20">
-                <p class="text-sm text-purple-200 mb-3">Últimas Conquistas:</p>
-                <div class="flex gap-2">
+                <p class="text-sm text-purple-200 mb-3">Últimas conquistas</p>
+                <div class="flex flex-wrap gap-2">
                     @foreach($recentAchievements as $achievement)
                         <div class="bg-white/10 backdrop-blur-sm rounded-lg p-2 flex items-center gap-2">
                             <i class="{{ $achievement->achievement->icon }} text-xl"></i>

@@ -5,149 +5,61 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-ipad-landscape.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/achievements-ultrawide.css') }}">
-    <!-- Header -->
-    <x-sales-header
-        title="Conquistas"
-        description="Suas medalhas e marcos alcançados"
-        icon="bi-trophy" iconColor="orange"
-        :breadcrumbs="[
-            ['label' => 'Dashboard', 'url' => route('dashboard')],
-            ['label' => 'Conquistas', 'url' => null]
-        ]"
-    />
+    <link rel="stylesheet" href="{{ asset('assets/css/dashboard.css') }}">
+    <x-pessoal-header title="Conquistas" subtitle="Suas medalhas e marcos alcançados" icon="bi-trophy" gradient="from-amber-400 via-orange-500 to-rose-500" active="conquistas" />
 
-    <div class="w-full px-4 sm:px-6 lg:px-8 py-8">
-        <!-- Stats Header -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <x-stat-card
-                title="Total de Conquistas"
-                :value="$stats['unlocked_count'] . '/' . $stats['total_count']"
-                icon="bi bi-trophy-fill"
-                color="purple"
-            >
-                <div class="flex items-center gap-4">
-                    <x-progress-ring
-                        :percentage="$stats['completion_rate']"
-                        size="sm"
-                        color="purple"
-                    />
-                    <span class="text-sm text-slate-600 dark:text-slate-400">
-                        {{ round($stats['completion_rate']) }}% completo
-                    </span>
-                </div>
-            </x-stat-card>
-
-            <x-stat-card
-                title="Pontos Totais"
-                :value="$stats['total_points']"
-                icon="bi bi-star-fill"
-                color="orange"
-                :subtitle="'De ' . \App\Models\Achievement::sum('points') . ' possíveis'"
-            />
-
-            <x-stat-card
-                title="Troféus de Bronze"
-                :value="$stats['by_rarity']['bronze'] ?? 0"
-                icon="bi bi-trophy-fill"
-                color="orange"
-            />
-
-            <x-stat-card
-                title="Troféus de Prata"
-                :value="$stats['by_rarity']['silver'] ?? 0"
-                icon="bi bi-trophy-fill"
-                color="cyan"
-            />
+    <div class="w-full">
+        @php
+            $r = $stats['by_rarity'] ?? [];
+            $maior = ($r['platinum'] ?? 0) > 0 ? 'Platina' : ((($r['gold'] ?? 0) > 0) ? 'Ouro' : ((($r['silver'] ?? 0) > 0) ? 'Prata' : ((($r['bronze'] ?? 0) > 0) ? 'Bronze' : 'Nenhuma')));
+            $raridades = [
+                'bronze' => ['Bronze', 'from-amber-600 to-orange-700'],
+                'silver' => ['Prata', 'from-slate-300 to-slate-500'],
+                'gold' => ['Ouro', 'from-yellow-300 to-amber-500'],
+                'platinum' => ['Platina', 'from-cyan-300 to-indigo-400'],
+            ];
+        @endphp
+        <div class="dash-kpis pes-kpis mb-3">
+            <x-dash.kpi label="Desbloqueadas" tone="purple" icon="bi-trophy-fill" :value="$stats['unlocked_count'] . ' de ' . $stats['total_count']" />
+            <x-dash.kpi label="Concluído" tone="emerald" icon="bi-pie-chart" :value="round($stats['completion_rate']) . '%'" />
+            <x-dash.kpi label="Pontos" tone="amber" icon="bi-star-fill" :value="number_format($stats['total_points'], 0, ',', '.')" />
+            <x-dash.kpi label="Maior raridade" tone="sky" icon="bi-gem" :value="$maior" />
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-            <x-stat-card
-                title="Troféus de Ouro"
-                :value="$stats['by_rarity']['gold'] ?? 0"
-                icon="bi bi-trophy-fill"
-                color="pink"
-            />
-
-            <x-stat-card
-                title="Troféus de Platina"
-                :value="$stats['by_rarity']['platinum'] ?? 0"
-                icon="bi bi-gem"
-                color="blue"
-            />
-
-            <!-- Troféu animado para o rarity mais alto -->
-            <div class="lg:col-span-2 bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white shadow-xl">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-medium text-purple-200 mb-1">Maior Raridade Desbloqueada</p>
-                        <h3 class="text-2xl font-bold capitalize">
-                            @if(($stats['by_rarity']['platinum'] ?? 0) > 0)
-                                Platina
-                            @elseif(($stats['by_rarity']['gold'] ?? 0) > 0)
-                                Ouro
-                            @elseif(($stats['by_rarity']['silver'] ?? 0) > 0)
-                                Prata
-                            @else
-                                Bronze
-                            @endif
-                        </h3>
-                    </div>
-                    <x-trophy-badge
-                        :rarity="($stats['by_rarity']['platinum'] ?? 0) > 0 ? 'platinum' : (($stats['by_rarity']['gold'] ?? 0) > 0 ? 'gold' : (($stats['by_rarity']['silver'] ?? 0) > 0 ? 'silver' : 'bronze'))"
-                        size="xl"
-                    />
+        <div class="grid grid-cols-4 gap-2 mb-4">
+            @foreach($raridades as $key => [$nome, $grad])
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 rounded-xl bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 px-2 py-2 text-center">
+                    <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-br {{ $grad }} text-white text-xs"><i class="bi bi-trophy-fill"></i></span>
+                    <span class="text-xs text-slate-600 dark:text-slate-300"><b class="text-sm text-slate-800 dark:text-white">{{ $r[$key] ?? 0 }}</b> {{ $nome }}</span>
                 </div>
-            </div>
+            @endforeach
         </div>
 
-        <!-- Filtros -->
-        <div class="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg mb-8 border border-slate-200 dark:border-slate-700">
-            <div class="flex flex-wrap gap-4">
-                <!-- Filtro de Raridade -->
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-filter mr-2"></i>Raridade
-                    </label>
-                    <select wire:model.live="filterRarity" class="w-full px-4 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
-                        <option value="all">Todas</option>
-                        <option value="bronze">Bronze</option>
-                        <option value="silver">Prata</option>
-                        <option value="gold">Ouro</option>
-                        <option value="platinum">Platina</option>
-                    </select>
-                </div>
-
-                <!-- Filtro de Categoria -->
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-tag mr-2"></i>Categoria
-                    </label>
-                    <select wire:model.live="filterCategory" class="w-full px-4 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
-                        <option value="all">Todas</option>
-                        <option value="habits">Hábitos</option>
-                        <option value="goals">Metas</option>
-                        <option value="streak">Sequências</option>
-                        <option value="general">Geral</option>
-                    </select>
-                </div>
-
-                <!-- Ordenação -->
-                <div class="flex-1 min-w-[200px]">
-                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                        <i class="bi bi-sort-down mr-2"></i>Ordenar por
-                    </label>
-                    <select wire:model.live="sortBy" class="w-full px-4 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 transition-all">
-                        <option value="order">Padrão</option>
-                        <option value="points">Pontos</option>
-                        <option value="rarity">Raridade</option>
-                        <option value="name">Nome</option>
-                    </select>
-                </div>
-            </div>
+        <div class="grid grid-cols-3 gap-2 mb-4">
+            <select wire:model.live="filterRarity" aria-label="Raridade" class="w-full min-w-0 px-2.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20">
+                <option value="all">Raridade</option>
+                <option value="bronze">Bronze</option>
+                <option value="silver">Prata</option>
+                <option value="gold">Ouro</option>
+                <option value="platinum">Platina</option>
+            </select>
+            <select wire:model.live="filterCategory" aria-label="Categoria" class="w-full min-w-0 px-2.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20">
+                <option value="all">Categoria</option>
+                <option value="habits">Hábitos</option>
+                <option value="goals">Metas</option>
+                <option value="streak">Sequências</option>
+                <option value="general">Geral</option>
+            </select>
+            <select wire:model.live="sortBy" aria-label="Ordenar por" class="w-full min-w-0 px-2.5 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20">
+                <option value="order">Ordenar</option>
+                <option value="points">Pontos</option>
+                <option value="rarity">Raridade</option>
+                <option value="name">Nome</option>
+            </select>
         </div>
 
         <!-- Grid de Conquistas -->
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
             @foreach($achievements as $achievement)
                 @php
                     $unlocked = in_array($achievement->id, $unlockedIds);

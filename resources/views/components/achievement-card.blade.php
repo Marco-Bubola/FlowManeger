@@ -1,20 +1,20 @@
 @props(['achievement', 'unlocked' => false, 'progress' => null])
 
-<div class="group relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-6 border-2 transition-all duration-300 hover:scale-105 hover:shadow-2xl {{ $unlocked ? 'border-' . $achievement->rarity . '-400' : 'border-slate-300 dark:border-slate-700 opacity-60' }}">
+<div class="group relative bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-4 border-2 transition-all duration-300 hover:shadow-xl {{ $unlocked ? 'border-' . $achievement->rarity . '-400' : 'border-slate-300 dark:border-slate-700 opacity-60' }}">
     <!-- Badge de raridade -->
-    <div class="absolute -top-3 -right-3 w-12 h-12 rounded-full flex items-center justify-center shadow-lg {{ $unlocked ? 'animate-bounce-slow' : '' }}" style="background: {{ $unlocked ? $achievement->rarity_color : '#94A3B8' }}">
-        <i class="{{ $achievement->rarity_icon }} text-white text-xl"></i>
+    <div class="absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center shadow-lg {{ $unlocked ? 'animate-bounce-slow' : '' }}" style="background: {{ $unlocked ? $achievement->rarity_color : '#94A3B8' }}">
+        <i class="{{ $achievement->rarity_icon }} text-white text-lg"></i>
     </div>
 
     <!-- Ícone principal -->
-    <div class="flex items-start gap-4">
-        <div class="flex-shrink-0 w-16 h-16 rounded-full flex items-center justify-center {{ $unlocked ? 'bg-gradient-to-br from-purple-500 to-indigo-600 animate-pulse-slow' : 'bg-slate-300 dark:bg-slate-700' }} shadow-lg">
+    <div class="flex items-start gap-3 pr-11">
+        <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center {{ $unlocked ? 'bg-gradient-to-br from-purple-500 to-indigo-600 animate-pulse-slow' : 'bg-slate-300 dark:bg-slate-700' }} shadow-lg">
             <i class="{{ $achievement->icon }} text-2xl {{ $unlocked ? 'text-white' : 'text-slate-500' }}"></i>
         </div>
 
         <div class="flex-1 min-w-0">
             <!-- Título -->
-            <h3 class="font-bold text-lg {{ $unlocked ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-600' }} mb-1 flex items-center gap-2">
+            <h3 class="font-bold text-base {{ $unlocked ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-600' }} mb-1 flex items-center gap-2">
                 {{ $achievement->name }}
                 @if($achievement->is_secret && !$unlocked)
                     <i class="bi bi-lock-fill text-sm"></i>
@@ -32,7 +32,7 @@
                     <i class="bi bi-star-fill mr-1"></i>{{ $achievement->points }} pts
                 </span>
                 <span class="px-3 py-1 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 capitalize">
-                    {{ __('achievements.' . $achievement->category) ?? $achievement->category }}
+                    {{ ['habits' => 'Hábitos', 'goals' => 'Metas', 'streak' => 'Sequência', 'general' => 'Geral'][$achievement->category] ?? ucfirst((string) $achievement->category) }}
                 </span>
             </div>
 

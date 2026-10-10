@@ -100,6 +100,8 @@ class EditHabit extends Component
             session()->flash('message', '✅ Hábito atualizado com sucesso!');
             return redirect()->route('daily-habits.dashboard');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             \Log::error('[EditHabit] Erro ao atualizar', [
                 'message' => $e->getMessage(),
@@ -131,6 +133,8 @@ class EditHabit extends Component
             session()->flash('message', '🗑️ Hábito arquivado com sucesso!');
             return redirect()->route('daily-habits.dashboard');
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
         } catch (\Exception $e) {
             \Log::error('[EditHabit] Erro ao excluir', [
                 'message' => $e->getMessage(),

@@ -61,24 +61,28 @@ class EditGoal extends Component
             ->where('user_id', auth()->id())
             ->firstOrFail();
 
+        // A meta não tem board_id/name/priority/status: o quadro vem da lista e o
+        // título/prioridade usam as colunas title/prioridade (antes a tela abria
+        // vazia, dizia "Quadro não encontrado" e salvar não gravava nome nem status).
         $this->goalId = $goal->id;
-        $this->boardId = $goal->board_id;
-        $this->name = $goal->name;
+        $this->boardId = $goal->list?->board_id;
+        $this->name = $goal->title;
         $this->description = $goal->description;
         $this->list_id = $goal->list_id;
-        $this->priority = $goal->priority;
-        $this->status = $goal->status;
+        $this->priority = $goal->prioridade ?: 'media';
+        $this->status = $goal->is_archived ? 'arquivado'
+            : ($goal->completed_at ? 'concluido' : ((float) $goal->progresso > 0 ? 'em_andamento' : 'pendente'));
         $this->data_vencimento = $goal->data_vencimento ? $goal->data_vencimento->format('Y-m-d') : '';
         $this->valor_meta = $goal->valor_meta;
-        $this->progresso = $goal->progresso;
+        $this->progresso = (int) round((float) $goal->progresso);
         $this->cofrinho_id = $goal->cofrinho_id;
         $this->category_id = $goal->category_id;
-        $this->periodo = $goal->periodo;
+        $this->periodo = $goal->periodo ?: 'custom';
         $this->recorrencia_dia = $goal->recorrencia_dia;
-        $this->cor = $goal->cor;
+        $this->cor = $goal->cor ?: '#3B82F6';
 
 
-        $board = GoalBoard::find($this->boardId);
+        $board = $this->boardId ? GoalBoard::where('id', $this->boardId)->where('user_id', auth()->id())->first() : null;
         if (!$board) {
             // Opcional: redirecionar ou exibir mensagem de erro amigável
             session()->flash('message', 'Quadro não encontrado para esta meta.');
@@ -135,13 +139,14 @@ class EditGoal extends Component
 
             // Atualizar os outros campos
             $goal->update([
-                'name' => $this->name,
+                'title' => $this->name,
                 'description' => $this->description,
-                'priority' => $this->priority,
-                'status' => $this->status,
+                'prioridade' => $this->priority,
+                'is_archived' => $this->status === 'arquivado',
+                'completed_at' => $this->status === 'concluido' ? ($goal->completed_at ?? now()) : null,
                 'data_vencimento' => $this->data_vencimento ?: null,
                 'valor_meta' => $this->valor_meta ?: null,
-                'progresso' => $this->progresso ?? 0,
+                'progresso' => $this->status === 'concluido' ? 100 : ($this->progresso ?? 0),
                 'cofrinho_id' => $this->cofrinho_id ?: null,
                 'category_id' => $this->category_id ?: null,
                 'periodo' => $this->periodo,
@@ -149,9 +154,10 @@ class EditGoal extends Component
                 'cor' => $this->cor,
             ]);
 
-            // Recalcular progresso se necessário
-            $this->goalService->calculateProgress($goal);
-            $this->goalService->updateProgress($goal);
+            // Recalcular progresso só quando ele vem do valor ou do checklist
+            if (($goal->valor_meta > 0 && $goal->valor_atual !== null) || $goal->checklists()->exists()) {
+                $this->goalService->updateProgress($goal);
+            }
 
             // Verificar achievements se meta foi concluída
             if ($this->status === 'concluido') {
@@ -181,6 +187,9 @@ class EditGoal extends Component
             session()->flash('message', '✅ Meta atualizada com sucesso!');
             return redirect()->route('goals.board', ['boardId' => $this->boardId]);
 
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            // Deixa o Livewire mostrar os erros embaixo de cada campo.
+            throw $e;
         } catch (\Exception $e) {
             \Log::error('[EditGoal] Erro ao atualizar', [
                 'message' => $e->getMessage(),
@@ -204,7 +213,7 @@ class EditGoal extends Component
                 ->firstOrFail();
 
             // Arquivar a meta ao invés de excluir
-            $goal->update(['status' => 'arquivado']);
+            $goal->update(['is_archived' => true]);
 
             \Log::info('[EditGoal] Meta arquivada', ['goal_id' => $goal->id]);
 

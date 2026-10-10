@@ -110,7 +110,7 @@ class GoalsBoard extends Component
                             'id' => $goal->id,
                             'title' => $goal->title,
                             'description' => $goal->description,
-                            'progresso' => $goal->progresso_percentual,
+                            'progresso' => (float) $goal->progresso,
                             'prioridade' => $goal->prioridade,
                             'periodo' => $goal->periodo,
                             'data_vencimento' => $goal->data_vencimento,

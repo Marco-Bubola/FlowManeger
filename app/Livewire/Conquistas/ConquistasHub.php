@@ -45,8 +45,17 @@ class ConquistasHub extends Component
         $this->ai = $ai;
     }
 
-    public function mount(): void
+    public function mount()
     {
+        // As abas Metas, Hábitos e Conquistas agora são as próprias telas (cabeçalho único da área Pessoal).
+        $pages = ['metas' => 'goals.dashboard', 'habitos' => 'daily-habits.dashboard', 'conquistas' => 'achievements.index'];
+        if (isset($pages[$this->activeTab])) {
+            return $this->redirectRoute($pages[$this->activeTab], navigate: true);
+        }
+        if (! in_array($this->activeTab, ['hoje', 'insights'], true)) {
+            $this->activeTab = 'hoje';
+        }
+
         $this->aiConfigured = $this->ai->isConfigured();
         $this->loadToday();
     }
@@ -134,99 +143,20 @@ class ConquistasHub extends Component
             return;
         }
 
-        $today = Carbon::today();
-        $completion = DailyHabitCompletion::where('habit_id', $habitId)
-            ->where('user_id', $userId)
-            ->whereDate('completion_date', $today)
-            ->first();
+        $toggle = app(\App\Services\HabitService::class)->toggleToday($habit, $userId);
 
-        if ($completion) {
-            // Desmarcar
-            $completion->delete();
-            $this->updateStreak($habit, $userId, false);
-            $this->gamification->removeXp($userId, GamificationService::XP_HABIT_COMPLETE, 'habit_uncomplete', $habit);
-            $this->applyHabitToGoals($habit, -1);
-            $this->dispatch('habit-toggled', done: false);
-        } else {
-            // Marcar
-            DailyHabitCompletion::create([
-                'habit_id'        => $habitId,
-                'user_id'         => $userId,
-                'completion_date' => $today,
-                'times_completed' => 1,
-            ]);
-            $this->updateStreak($habit, $userId, true);
-            $result = $this->gamification->awardXp($userId, GamificationService::XP_HABIT_COMPLETE, 'habit_complete', $habit);
-            $this->applyHabitToGoals($habit, 1);
-
+        if ($toggle['done']) {
+            $result = $toggle['result'];
             $this->dispatch('habit-toggled', done: true, xp: GamificationService::XP_HABIT_COMPLETE, habitId: $habitId);
             if (!empty($result['leveledUp'])) {
                 $this->dispatch('level-up', level: $result['level']->level);
                 $this->notifySuccess('🎉 Subiu para o nível ' . $result['level']->level . '!');
             }
+        } else {
+            $this->dispatch('habit-toggled', done: false);
         }
 
         $this->loadToday();
-    }
-
-    protected function updateStreak(DailyHabit $habit, int $userId, bool $completed): void
-    {
-        $streak = DailyHabitStreak::firstOrCreate(
-            ['habit_id' => $habit->id, 'user_id' => $userId],
-            ['current_streak' => 0, 'longest_streak' => 0, 'total_completions' => 0]
-        );
-
-        $today = Carbon::today();
-        $last = $streak->last_completion_date ? Carbon::parse($streak->last_completion_date) : null;
-
-        if ($completed) {
-            if ($last && $last->isYesterday()) {
-                $streak->current_streak++;
-            } elseif (!$last || !$last->isToday()) {
-                $streak->current_streak = 1;
-            }
-            $streak->total_completions++;
-            $streak->last_completion_date = $today;
-            $streak->longest_streak = max($streak->longest_streak, $streak->current_streak);
-        } else {
-            if ($last && $last->isToday()) {
-                $streak->current_streak = max(0, $streak->current_streak - 1);
-                $streak->total_completions = max(0, $streak->total_completions - 1);
-                $streak->last_completion_date = $streak->total_completions > 0 ? $today->copy()->subDay() : null;
-            }
-        }
-
-        $streak->save();
-    }
-
-    /**
-     * Aplica o impacto do hábito nas metas vinculadas do tipo "habito".
-     * $direction = +1 (concluiu) ou -1 (desmarcou).
-     */
-    protected function applyHabitToGoals(DailyHabit $habit, int $direction): void
-    {
-        $goals = $habit->metaGoals()->where('goals.tipo_meta', 'habito')->get();
-
-        foreach ($goals as $goal) {
-            $peso = (float) ($goal->pivot->peso ?? 5);
-
-            if ($goal->valor_meta > 0) {
-                $novoValor = max(0, (float) $goal->valor_atual + ($peso * $direction));
-                $goal->valor_atual = $novoValor;
-                $goal->progresso = min(100, ($novoValor / (float) $goal->valor_meta) * 100);
-            } else {
-                $goal->progresso = max(0, min(100, (float) $goal->progresso + ($peso * $direction)));
-            }
-
-            if ($goal->progresso >= 100 && is_null($goal->completed_at)) {
-                $goal->completed_at = now();
-                $this->gamification->awardXp(Auth::id(), GamificationService::XP_GOAL_COMPLETE, 'goal_complete', $goal);
-            } elseif ($goal->progresso < 100 && $direction < 0) {
-                $goal->completed_at = null;
-            }
-
-            $goal->save();
-        }
     }
 
     /**

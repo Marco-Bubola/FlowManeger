@@ -6,19 +6,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-goal-notebook.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/create-goal-ultrawide.css') }}">
 
-    <x-modern-header
-        :icon="'bi bi-bullseye'"
-        :title="'🎯 Criar Nova Meta - ' . $board_name"
-        :subtitle="'Adicione uma nova meta ao seu quadro'"
-        :breadcrumb="[
-            ['icon' => 'fas fa-home', 'label' => 'Dashboard', 'url' => route('dashboard')],
-            ['icon' => 'bi bi-bullseye', 'label' => 'Metas', 'url' => route('goals.dashboard')],
-            ['icon' => 'bi bi-kanban', 'label' => $board_name, 'url' => route('goals.board', ['boardId' => $boardId])],
-            ['label' => 'Criar Meta']
-        ]"
-    />
+    <x-pessoal-header title="Nova meta" :subtitle="'No quadro ' . $board_name" icon="bi-plus-circle"
+        :crumbs="[['label' => 'Metas', 'url' => route('goals.dashboard')], ['label' => $board_name, 'url' => route('goals.board', ['boardId' => $boardId])], ['label' => 'Nova meta']]" />
 
-    <div class="max-w-5xl mx-auto px-6 py-8">
+    <div class="max-w-5xl mx-auto pb-24">
         <!-- Mensagens -->
         @if (session()->has('message'))
             <div class="mb-6 p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl shadow-lg">

@@ -142,6 +142,9 @@ class AchievementService
         return [
             'total' => $total,
             'unlocked' => $unlocked,
+            // A tela de Conquistas usa estes nomes (antes dava erro ao abrir)
+            'total_count' => $total,
+            'unlocked_count' => $unlocked,
             'locked' => $total - $unlocked,
             'completion_rate' => $total > 0 ? round(($unlocked / $total) * 100, 2) : 0,
             'total_points' => $points,

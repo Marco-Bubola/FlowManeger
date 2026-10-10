@@ -7,27 +7,10 @@
     <link rel="stylesheet" href="{{ asset('assets/css/responsive/edit-habit-ultrawide.css') }}">
     <div class="w-full bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900"
         style="min-height: 100vh;">
-        <x-sales-header title="Editar Hábito" icon="bi-pencil-square" iconColor="orange" description="Atualize as informações do seu hábito">
-            <x-slot name="breadcrumb">
-                <div class="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                    <a href="{{ route('dashboard') }}"
-                        class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <i class="fas fa-home mr-1"></i>Dashboard
-                    </a>
-                    <i class="fas fa-chevron-right text-xs"></i>
-                    <a href="{{ route('daily-habits.dashboard') }}"
-                        class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
-                        <i class="bi bi-calendar-check mr-1"></i>Hábitos Diários
-                    </a>
-                    <i class="fas fa-chevron-right text-xs"></i>
-                    <span class="text-slate-800 dark:text-slate-200 font-medium">
-                        Editar Hábito
-                    </span>
-                </div>
-            </x-slot>
-        </x-sales-header>
+        <x-pessoal-header title="Editar hábito" subtitle="Atualize as informações do seu hábito" icon="bi-pencil-square"
+            :crumbs="[['label' => 'Hábitos', 'url' => route('daily-habits.dashboard')], ['label' => 'Editar hábito']]" />
 
-        <div class="max-w-4xl mx-auto px-6 py-8">
+        <div class="max-w-4xl mx-auto pb-24">
             <!-- Mensagens de Feedback -->
             @if (session()->has('message'))
                 <div
@@ -55,7 +38,7 @@
             @endif
 
             <!-- Formulário -->
-            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8">
+            <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-4 sm:p-8">
                 <form wire:submit.prevent="updateHabit">
                     <!-- Nome do Hábito -->
                     <div class="mb-6">
@@ -91,11 +74,11 @@
                         <div class="grid grid-cols-4 sm:grid-cols-6 gap-3">
                             @foreach ($availableIcons as $iconClass => $iconName)
                                 <button type="button" wire:click="$set('icon', '{{ $iconClass }}')"
-                                    class="flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all hover:scale-105 {{ $icon === $iconClass ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 dark:border-slate-600 hover:border-gray-300' }}">
+                                    class="flex flex-col items-center justify-center p-2 sm:p-3 min-w-0 rounded-xl border-2 transition-all hover:scale-105 {{ $icon === $iconClass ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 shadow-md' : 'border-gray-200 dark:border-slate-600 hover:border-gray-300' }}">
                                     <i
-                                        class="bi {{ $iconClass }} text-3xl mb-1 {{ $icon === $iconClass ? 'text-blue-600' : 'text-gray-600' }}"></i>
+                                        class="bi {{ $iconClass }} text-2xl mb-1 {{ $icon === $iconClass ? 'text-blue-600' : 'text-gray-600' }}"></i>
                                     <span
-                                        class="text-xs text-gray-600 dark:text-gray-400\">{{ $iconName }}</span>
+                                        class="text-xs text-gray-600 dark:text-gray-400 truncate max-w-full">{{ $iconName }}</span>
                             </button>
 @endforeach
                     </div>
@@ -117,7 +100,7 @@
                                     <div class="w-12 h-12 rounded-full mb-1 {{ $color === $colorHex ? 'ring-4 ring-offset-2 ring-gray-800' : '' }}"
                                         style="background-color: {{ $colorHex }};"></div>
                                     <span
-                                        class="text-xs text-gray-600 dark:text-gray-400\">{{ $colorName }}</span>
+                                        class="text-xs text-gray-600 dark:text-gray-400 truncate max-w-full">{{ $colorName }}</span>
                             </button>
 @endforeach
                     </div>
@@ -156,9 +139,9 @@
                     </div>
 
                     <!-- Botões de Ação -->
-                    <div class="flex gap-4">
+                    <div class="pes-form-actions grid grid-cols-2 sm:flex gap-3">
                         <button type="submit"
-                            class="flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
+                            class="col-span-2 sm:col-span-1 flex-1 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl"
                             wire:loading.attr="disabled">
                             <span wire:loading.remove>
                                 <i class="bi bi-check-circle mr-2"></i>
@@ -171,13 +154,13 @@
                         </button>
 
                         <button type="button" wire:click="confirmDelete"
-                            class="px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all shadow-lg hover:shadow-xl">
+                            class="px-4 sm:px-6 py-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-rose-700 transition-all shadow-lg hover:shadow-xl">
                             <i class="bi bi-trash mr-2"></i>
                             Arquivar
                         </button>
 
                         <a href="{{ route('daily-habits.dashboard') }}"
-                            class="px-6 py-3 bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 transition-all">
+                            wire:navigate class="px-4 sm:px-6 py-3 text-center bg-gray-200 dark:bg-slate-700 text-gray-700 dark:text-gray-300 font-semibold rounded-xl hover:bg-gray-300 transition-all">
                             <i class="bi bi-x-circle mr-2"></i>
                             Cancelar
                         </a>
