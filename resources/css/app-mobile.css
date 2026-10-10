@@ -303,3 +303,137 @@ html body .dash-kpis.dash-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)
 @media (max-width: 767px) {
     html body .dash-header p { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 }
+
+/*
+ * Folhas "Criar" e "Mais" da barra inferior (celular e iPad), estilo tela de apps:
+ * ícone quadrado arredondado com o nome embaixo, sem cartão em volta, várias colunas.
+ */
+@media (max-width: 1180px) {
+    /* Botão central "Criar": proporcional aos outros ícones da barra */
+    html body .mobile-bottom-tabbar .mobile-tab-fab .fab-circle,
+    html body .mobile-bottom-tabbar .mobile-tab-fab .fab-circle img {
+        width: 2.85rem !important;
+        height: 2.85rem !important;
+    }
+    html body .mobile-bottom-tabbar .mobile-tab-fab .fab-circle {
+        transform: translateY(-4px) !important;
+        box-shadow: 0 6px 16px -6px rgba(124, 58, 237, .55) !important;
+    }
+    html body .mobile-bottom-tabbar .mobile-tab-fab.fab-sheet-open .fab-circle { transform: translateY(-4px) rotate(45deg) !important; }
+
+    /* Cabeçalhos das folhas */
+    html body .mobile-action-sheet .mobile-sheet-panel { padding-left: 0.85rem !important; padding-right: 0.85rem !important; }
+    html body .mobile-action-sheet .more-sheet-header,
+    html body .mobile-action-sheet .fab-sheet-header {
+        padding: 0.45rem 0.55rem !important;
+        gap: 0.6rem !important;
+        min-height: 0 !important;
+        border-radius: 1rem !important;
+        margin-bottom: 0.6rem !important;
+    }
+    html body .mobile-action-sheet .more-sheet-header-icon,
+    html body .mobile-action-sheet .fab-sheet-header-icon {
+        width: 2.1rem !important; height: 2.1rem !important; border-radius: 0.7rem !important;
+    }
+    html body .mobile-action-sheet .more-sheet-header-icon svg,
+    html body .mobile-action-sheet .fab-sheet-header-icon svg { width: 1.05rem !important; height: 1.05rem !important; }
+    html body .mobile-action-sheet .more-sheet-title,
+    html body .mobile-action-sheet .fab-sheet-title { font-size: 0.95rem !important; line-height: 1.2 !important; }
+    html body .mobile-action-sheet .more-sheet-subtitle,
+    html body .mobile-action-sheet .fab-sheet-subtitle { font-size: 0.68rem !important; margin-top: 0.05rem !important; }
+
+    /* Perfil compacto */
+    html body #mobileMoreSheet .more-sheet-profile { padding: 0.55rem 0.65rem !important; gap: 0.6rem !important; border-radius: 1rem !important; margin-bottom: 0.6rem !important; }
+    html body #mobileMoreSheet .more-sheet-avatar { width: 2.5rem !important; height: 2.5rem !important; min-width: 2.5rem !important; font-size: 0.85rem !important; border-radius: 0.8rem !important; }
+    html body #mobileMoreSheet .more-sheet-user-name { font-size: 0.88rem !important; }
+    html body #mobileMoreSheet .more-sheet-user-email { font-size: 0.68rem !important; }
+    html body #mobileMoreSheet .more-sheet-user-chip { font-size: 0.55rem !important; padding: 0.1rem 0.45rem !important; }
+    html body #mobileMoreSheet .more-sheet-settings-btn { width: 2rem !important; height: 2rem !important; }
+
+    /* Central da conta: lista compacta de 2 colunas, só o nome */
+    html body #mobileMoreSheet .more-sheet-account-panel { padding: 0.6rem !important; border-radius: 1rem !important; margin-bottom: 0.6rem !important; }
+    html body #mobileMoreSheet .more-sheet-account-heading { margin-bottom: 0.45rem !important; }
+    html body #mobileMoreSheet .more-sheet-account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.4rem !important; }
+    html body #mobileMoreSheet .more-sheet-account-link { padding: 0.4rem 0.5rem !important; gap: 0.5rem !important; border-radius: 0.75rem !important; min-height: 0 !important; }
+    html body #mobileMoreSheet .more-sheet-account-icon { width: 1.75rem !important; height: 1.75rem !important; border-radius: 0.55rem !important; font-size: 0.85rem !important; }
+    html body #mobileMoreSheet .more-sheet-account-copy strong { font-size: 0.74rem !important; }
+    html body #mobileMoreSheet .more-sheet-account-copy small { display: none !important; }
+    html body #mobileMoreSheet .more-sheet-account-icon.is-emerald { background: linear-gradient(135deg, #10b981, #059669) !important; }
+
+    /* Grade de apps */
+    html body #mobileMoreSheet .mobile-sheet-section-label,
+    html body #mobileMoreSheet .more-sheet-ml-label { font-size: 0.62rem !important; margin: 0.7rem 0 0.4rem !important; }
+    html body #mobileMoreSheet .more-sheet-app-grid,
+    html body #mobileMoreSheet .more-ml-grid.more-sheet-app-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+        gap: 0.7rem 0.25rem !important;
+        margin-bottom: 0.2rem !important;
+    }
+    html body #mobileMoreSheet .more-app-card,
+    html body #mobileMoreSheet .more-ml-grid .more-app-card {
+        gap: 0.3rem !important;
+        padding: 0.15rem 0 !important;
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0.8rem !important;
+        min-height: 0 !important;
+        transform: none !important;
+    }
+    html body #mobileMoreSheet .more-app-card:active .more-app-icon { transform: scale(0.92); }
+    html body #mobileMoreSheet .more-app-card.is-active .more-app-icon { box-shadow: 0 0 0 2px #fff, 0 0 0 4px rgba(99, 102, 241, .7) !important; }
+    html.dark body #mobileMoreSheet .more-app-card.is-active .more-app-icon { box-shadow: 0 0 0 2px #0f172a, 0 0 0 4px rgba(129, 140, 248, .8) !important; }
+    html body #mobileMoreSheet .more-app-icon {
+        width: 2.9rem !important; height: 2.9rem !important;
+        border-radius: 0.85rem !important;
+        box-shadow: 0 4px 10px -4px rgba(15, 23, 42, .35) !important;
+        transition: transform .12s ease;
+    }
+    html body #mobileMoreSheet .more-app-icon svg { width: 1.3rem !important; height: 1.3rem !important; }
+    html body #mobileMoreSheet .more-app-label { font-size: 0.66rem !important; font-weight: 600 !important; line-height: 1.2 !important; }
+    html body #mobileMoreSheet .more-app-card.is-active .more-app-label { font-weight: 800 !important; }
+    html body #mobileMoreSheet .more-app-badge { top: -0.2rem !important; right: calc(50% - 1.75rem) !important; }
+    html body #mobileMoreSheet .more-sheet-ml-label + span { font-size: 0.55rem !important; padding: 0.15rem 0.45rem !important; }
+
+    /* Folha Criar: áreas compactas, ações em ícone */
+    html body #mobileFabSheet .fab-areas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 0.5rem !important; }
+    html body #mobileFabSheet .fab-area-card { border-radius: 0.95rem !important; }
+    html body #mobileFabSheet .fab-area-header { padding: 0.45rem 0.55rem !important; font-size: 0.66rem !important; gap: 0.4rem !important; }
+    html body #mobileFabSheet .fab-area-icon-wrap { width: 1.35rem !important; height: 1.35rem !important; border-radius: 0.4rem !important; }
+    html body #mobileFabSheet .fab-area-body,
+    html body #mobileFabSheet .fab-area-body-cols-2,
+    html body #mobileFabSheet .fab-area-body-cols-3 {
+        grid-template-columns: repeat(auto-fill, minmax(3.15rem, 1fr)) !important;
+        gap: 0.4rem 0.2rem !important;
+        padding: 0.5rem 0.35rem 0.55rem !important;
+    }
+    html body #mobileFabSheet .fab-area-action {
+        background: transparent !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        padding: 0.1rem 0 !important;
+        gap: 0.28rem !important;
+        font-size: 0.62rem !important;
+        font-weight: 600 !important;
+        transform: none !important;
+    }
+    html body #mobileFabSheet .fab-area-action:active .fab-area-action-icon { transform: scale(0.92); }
+    html body #mobileFabSheet .fab-area-action-icon {
+        width: 2.5rem !important; height: 2.5rem !important;
+        border-radius: 0.8rem !important;
+        box-shadow: 0 4px 10px -4px rgba(15, 23, 42, .35) !important;
+        transition: transform .12s ease;
+    }
+    html body #mobileFabSheet .fab-area-action-icon svg { width: 1.1rem !important; height: 1.1rem !important; }
+    html body #mobileFabSheet .fab-area-action-upload::after { top: -0.1rem !important; right: calc(50% - 1.5rem) !important; font-size: 0.55rem !important; }
+}
+
+/* iPad: mais colunas */
+@media (min-width: 768px) and (max-width: 1180px) {
+    html body #mobileMoreSheet .more-sheet-app-grid,
+    html body #mobileMoreSheet .more-ml-grid.more-sheet-app-grid { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; gap: 0.9rem 0.4rem !important; }
+    html body #mobileMoreSheet .more-sheet-account-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    html body #mobileMoreSheet .more-app-icon { width: 3.1rem !important; height: 3.1rem !important; }
+    html body #mobileMoreSheet .more-app-label { font-size: 0.7rem !important; }
+    html body #mobileFabSheet .fab-areas-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+}
