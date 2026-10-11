@@ -459,6 +459,7 @@ class ClientPortalController extends Controller
             ->where('user_id', $client->user_id)
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
+            ->topOfFamily() // variações: só a mais cara com estoque
             ->with(['category', 'images']);
 
         if ($search) {
@@ -551,6 +552,7 @@ class ClientPortalController extends Controller
             ->where('user_id', $client->user_id)
             ->where('stock_quantity', '>', 0)
             ->whereIn('status', ['active', 'ativo'])
+            ->topOfFamily()
             ->with('category')
             ->orderBy('name')
             ->get();
@@ -591,7 +593,8 @@ class ClientPortalController extends Controller
         $query = Product::withoutGlobalScope('team_visibility')
             ->where('user_id', $ownerId)
             ->where('stock_quantity', '>', 0)
-            ->whereIn('status', ['active', 'ativo']);
+            ->whereIn('status', ['active', 'ativo'])
+            ->topOfFamily(); // de cada grupo de variações, só a mais cara com estoque
 
         // Seção "Ofertas" no topo: produtos com promoção valendo agora.
         $offers = (clone $query)
@@ -639,7 +642,14 @@ class ClientPortalController extends Controller
             ->get(['id', 'category_id', 'stock_quantity']);
         $stockMap = $inStock->pluck('stock_quantity', 'id')->map(fn ($q) => min((int) $q, 10)); // teto: não expõe o estoque real
         $unitsInStock = (int) $inStock->sum('stock_quantity');
-        $countByCategory = $inStock->countBy('category_id');
+        // Contagem por categoria só do que aparece (uma variação por grupo).
+        $countByCategory = Product::withoutGlobalScope('team_visibility')
+            ->where('user_id', $ownerId)
+            ->where('stock_quantity', '>', 0)
+            ->whereIn('status', ['active', 'ativo'])
+            ->topOfFamily()
+            ->pluck('category_id')
+            ->countBy();
 
         // Só categorias que têm produto com estoque, para os atalhos do topo.
         $categories = Category::where('user_id', $ownerId)->whereIn('id_category', $countByCategory->keys())->orderBy('name')->get();

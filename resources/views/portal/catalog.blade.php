@@ -36,6 +36,7 @@
             'brand'   => $p->brand,
             'model'   => $p->model,
             'code'    => $p->product_code,
+            'specs'   => collect($p->specs ?? [])->filter(fn ($s) => ($s['n'] ?? '') !== '' && ($s['v'] ?? '') !== '')->values()->all(),
         ];
     };
 
@@ -490,12 +491,14 @@
                         </div>
                     </div>
 
-                    <div class="ml-desc" x-show="p.desc || p.brand || p.model || p.code">
+                    <div class="ml-desc" x-show="p.desc || p.brand || p.model || p.code || (p.specs && p.specs.length)">
                         <h3>Sobre o produto</h3>
                         <p x-show="p.desc" x-text="p.desc"></p>
-                        <dl class="ml-specs" x-show="p.brand || p.model || p.code">
+                        <h3 x-show="p.specs && p.specs.length" style="margin-top:18px">Características</h3>
+                        <dl class="ml-specs">
                             <div x-show="p.brand"><dt>Marca</dt><dd x-text="p.brand"></dd></div>
                             <div x-show="p.model"><dt>Modelo</dt><dd x-text="p.model"></dd></div>
+                            <template x-for="s in (p.specs || [])" :key="s.n"><div><dt x-text="s.n"></dt><dd x-text="s.v"></dd></div></template>
                             <div x-show="p.code"><dt>Código</dt><dd x-text="p.code"></dd></div>
                         </dl>
                     </div>

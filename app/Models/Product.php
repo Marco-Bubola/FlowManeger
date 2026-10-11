@@ -16,6 +16,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'description',
+        'specs', // ficha técnica [{n: nome, v: valor}] (catálogo do ML ou manual)
         'price',
         'price_sale',
         'price_original', // R$ TABELA do extrato, riscado nas promoções
@@ -50,6 +51,7 @@ class Product extends Model
      * The attributes that should be cast.
      */
     protected $casts = [
+        'specs'            => 'array',
         'price'            => 'decimal:2',
         'price_sale'       => 'decimal:2',
         'price_original'   => 'decimal:2',
@@ -275,6 +277,54 @@ class Product extends Model
     public function isParent(): bool      { return (bool) $this->is_variation_parent; }
     public function isVariant(): bool     { return $this->parent_id !== null; }
     public function hasVariations(): bool { return $this->is_variation_parent || $this->parent_id !== null; }
+
+    /**
+     * Portal: de cada família de variações com estoque, fica só a variação mais cara
+     * (empate: a de menor id). Produto sem variação passa direto.
+     */
+    public function scopeTopOfFamily($query)
+    {
+        $t = $this->getTable();
+
+        return $query->whereNotExists(function ($q) use ($t) {
+            $q->selectRaw('1')->from("{$t} as fam")
+                ->whereColumn('fam.user_id', "{$t}.user_id")
+                ->whereRaw("COALESCE(fam.parent_id, fam.id) = COALESCE({$t}.parent_id, {$t}.id)")
+                ->whereColumn('fam.id', '!=', "{$t}.id")
+                ->where('fam.stock_quantity', '>', 0)
+                ->whereIn('fam.status', ['active', 'ativo'])
+                ->where(function ($w) use ($t) {
+                    $w->whereColumn('fam.price_sale', '>', "{$t}.price_sale")
+                      ->orWhere(function ($e) use ($t) {
+                          $e->whereColumn('fam.price_sale', "{$t}.price_sale")->whereColumn('fam.id', '<', "{$t}.id");
+                      });
+                });
+        });
+    }
+
+    /**
+     * Agrupa uma lista de produtos por família de variações (na ordem em que aparecem):
+     * cada item é uma coleção — um produto só, ou o principal + as variações.
+     */
+    public static function groupByFamily(iterable $products): \Illuminate\Support\Collection
+    {
+        $groups = [];
+        foreach ($products as $p) {
+            $key = ($p->parent_id || $p->is_variation_parent) ? 'f' . ($p->parent_id ?: $p->id) : 'p' . $p->id;
+            $groups[$key][] = $p;
+        }
+
+        return collect($groups)->map(fn ($g) => collect($g)
+            ->sortBy(fn ($p) => [$p->is_variation_parent ? 0 : 1, (int) $p->variation_sort, $p->id])
+            ->values())->values();
+    }
+
+    /** Primeira variação com estoque (onde o carrossel começa). */
+    public static function familyStart($group): int
+    {
+        $i = collect($group)->values()->search(fn ($p) => (int) $p->stock_quantity > 0);
+        return $i === false ? 0 : (int) $i;
+    }
 
     /** Estoque somado da família (para exibir no card do pai). */
     public function getFamilyStockAttribute(): int

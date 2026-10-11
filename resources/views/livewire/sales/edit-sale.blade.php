@@ -159,66 +159,19 @@
                             </div>
                             @else
                             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 lg:gap-4 products-step-grid products-mobile-compact-grid">
-                                @foreach($this->getFilteredProducts() as $product)
-                                @php
-                                    $isSelected = collect($selectedProducts)->contains(function($selected) use ($product) {
-                                        return $selected['product_id'] == $product->id;
-                                    });
-                                @endphp
-                                <div class="product-card-modern {{ $isSelected ? 'selected' : '' }}"
-                                    wire:click="toggleProduct({{ $product->id }})"
-                                    wire:key="product-{{ $product->id }}">
-
-                                    <div class="btn-action-group flex gap-2">
-                                        <div class="w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200 cursor-pointer
-                                                    {{ $isSelected
-                                                        ? 'bg-purple-600 border-purple-600 text-white'
-                                                        : 'bg-white dark:bg-slate-700 border-gray-300 dark:border-slate-600 text-transparent hover:border-purple-400 dark:hover:border-purple-500' }}">
-                                            @if($isSelected)
-                                            <i class="bi bi-check text-sm"></i>
-                                            @endif
-                                        </div>
-                                    </div>
-
-                                    <div class="product-img-area">
-                                        <img src="{{ $product->image ? asset('storage/products/' . $product->image) : asset('storage/products/product-placeholder.png') }}"
-                                            alt="{{ $product->name }}"
-                                            class="product-img">
-                                        @if($product->stock_quantity <= 5)
-                                        <div class="absolute top-3 left-3 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                            <i class="bi bi-exclamation-triangle mr-1"></i>
-                                            Baixo estoque
-                                        </div>
-                                        @endif
-                                        <span class="badge-product-code">
-                                            <i class="bi bi-upc-scan"></i> {{ $product->product_code }}
-                                        </span>
-                                        <span class="badge-quantity">
-                                            <i class="bi bi-stack"></i> {{ $product->stock_quantity }}
-                                        </span>
-                                        @if($product->category)
-                                        <div class="category-icon-wrapper">
-                                            <i class="{{ $product->category->icone ?? 'bi bi-box' }} category-icon"></i>
-                                        </div>
-                                        @endif
-                                    </div>
-
-                                    <div class="card-body">
-                                        <div class="product-title" title="{{ $product->name }}">
-                                            {{ ucwords($product->name) }}
-                                        </div>
-                                        <div class="price-area">
-                                            <span class="badge-price" title="Preço de Custo">
-                                                <i class="bi bi-tag"></i>
-                                                {{ number_format($product->price, 2, ',', '.') }}
-                                            </span>
-                                            <span class="badge-price-sale" title="Preço de Venda">
-                                                <i class="bi bi-currency-dollar"></i>
-                                                {{ number_format($product->price_sale, 2, ',', '.') }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                @foreach(\App\Models\Product::groupByFamily($this->getFilteredProducts()) as $group)
+                                    @if($group->count() > 1)
+                                        @php $start = \App\Models\Product::familyStart($group); @endphp
+                                        <x-variation-carousel :items="$group" :start="$start" wire:key="fam-{{ $group->first()->id }}">
+                                            @foreach($group as $k => $product)
+                                                <div class="vc-slide" x-show="vi === {{ $k }}" @if($k !== $start) x-cloak @endif>
+                                                    @include('livewire.sales.partials.edit-sale-card')
+                                                </div>
+                                            @endforeach
+                                        </x-variation-carousel>
+                                    @else
+                                        @include('livewire.sales.partials.edit-sale-card', ['product' => $group->first()])
+                                    @endif
                                 @endforeach
                             </div>
                             @endif

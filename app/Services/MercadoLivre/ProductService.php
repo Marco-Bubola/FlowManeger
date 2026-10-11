@@ -714,6 +714,90 @@ class ProductService extends MercadoLivreService
         }
     }
 
+    /**
+     * Busca no catálogo do ML (código de barras ou nome) e devolve uma lista simples
+     * para o usuário escolher: id, nome, foto, marca.
+     */
+    public function catalogCandidates(string $term, ?int $userId = null): array
+    {
+        $result = $this->searchCatalogByBarcode(trim($term), $userId);
+        if (!($result['success'] ?? false)) {
+            return ['success' => false, 'error' => $result['error'] ?? 'Erro ao buscar no catálogo.', 'items' => []];
+        }
+
+        $items = collect($result['results'] ?? [])->map(function ($r) {
+            $attr = collect($r['attributes'] ?? [])->keyBy('id');
+            return [
+                'id'      => (string) ($r['id'] ?? ''),
+                'name'    => (string) ($r['name'] ?? ''),
+                'picture' => $r['pictures'][0]['url'] ?? ($r['pictures'][0]['secure_url'] ?? null),
+                'brand'   => $attr['BRAND']['value_name'] ?? null,
+                'model'   => $attr['MODEL']['value_name'] ?? null,
+            ];
+        })->filter(fn ($i) => $i['id'] !== '' && $i['name'] !== '')->values()->all();
+
+        return ['success' => true, 'items' => $items];
+    }
+
+    /**
+     * Dados de um produto do catálogo prontos para levar ao cadastro:
+     * fotos, descrição, destaques, ficha técnica, marca, modelo e EAN.
+     */
+    public function catalogDetails(string $catalogId, ?int $userId = null): array
+    {
+        $res = $this->getCategoryFromCatalogProduct($catalogId, $userId);
+        if (!($res['success'] ?? false)) {
+            return ['success' => false, 'error' => $res['error'] ?? 'Produto não encontrado no catálogo.'];
+        }
+        $p = $res['product_info'] ?? [];
+
+        $pictures = collect($p['pictures'] ?? [])->map(fn ($pic) => $pic['url'] ?? ($pic['secure_url'] ?? null))->filter()->values();
+
+        // Produto "pai" do catálogo costuma vir sem fotos: usa a primeira variação.
+        if ($pictures->isEmpty() && !empty($p['children_ids'][0])) {
+            $child = $this->getCategoryFromCatalogProduct((string) $p['children_ids'][0], $userId);
+            $pictures = collect($child['product_info']['pictures'] ?? [])->map(fn ($pic) => $pic['url'] ?? ($pic['secure_url'] ?? null))->filter()->values();
+        }
+
+        // Campos internos do ML que não interessam ao cliente.
+        $skip = ['BRAND', 'MODEL', 'GTIN', 'SELLER_SKU', 'ITEM_CONDITION', 'EXCLUSIVE_CHANNEL', 'PRODUCT_DATA_SOURCE', 'IS_KIT', 'IS_SUITABLE_FOR_SHIPMENT',
+                 'IS_FLAMMABLE', 'HAS_COMPATIBILITIES', 'MPN', 'SYI_PYMES_ID', 'CATALOG_TITLE', 'GIFTABLE', 'IS_HIGHLIGHT_BRAND'];
+
+        $attrs = collect($p['attributes'] ?? []);
+        $value = function ($a) {
+            $v = $a['value_name'] ?? null;
+            if (($v === null || $v === '') && !empty($a['values'])) {
+                $v = collect($a['values'])->pluck('name')->filter()->implode(', ');
+            }
+            return trim((string) $v);
+        };
+
+        $specs = $attrs
+            ->reject(fn ($a) => in_array($a['id'] ?? '', $skip, true))
+            ->map(fn ($a) => ['n' => trim((string) ($a['name'] ?? '')), 'v' => $value($a)])
+            ->filter(fn ($s) => $s['n'] !== '' && $s['v'] !== '')
+            ->unique('n')
+            ->take(40)
+            ->values()
+            ->all();
+
+        $byId = $attrs->keyBy('id');
+        $features = collect($p['main_features'] ?? [])->pluck('text')->map(fn ($t) => trim((string) $t))->filter()->values()->all();
+
+        return [
+            'success'     => true,
+            'id'          => (string) ($p['id'] ?? $catalogId),
+            'name'        => trim((string) ($p['name'] ?? '')),
+            'pictures'    => $pictures->unique()->take(12)->values()->all(),
+            'description' => trim((string) ($p['short_description']['content'] ?? '')),
+            'features'    => $features,
+            'specs'       => $specs,
+            'brand'       => isset($byId['BRAND']) ? $value($byId['BRAND']) : null,
+            'model'       => isset($byId['MODEL']) ? $value($byId['MODEL']) : null,
+            'gtin'        => isset($byId['GTIN']) ? preg_replace('/\D+/', '', explode(',', $value($byId['GTIN']))[0]) : null,
+        ];
+    }
+
     public function getCategoryAttributes(string $categoryId, ?int $userId = null): array
     {
         try {
