@@ -244,6 +244,73 @@
             @endif
         </x-dash.card>
 
+        {{-- Descrição, ficha técnica e fotos (o que o cliente vê no portal) --}}
+        @php
+            $viewed = $products->firstWhere('product_code', $productCode) ?? $mainProduct;
+            $vSpecs = collect($viewed->specs ?? [])->filter(fn ($s) => trim((string) ($s['n'] ?? '')) !== '' && trim((string) ($s['v'] ?? '')) !== '');
+            $vImgs = $viewed->all_images;
+            $vMeta = collect([
+                'Marca' => $viewed->brand, 'Modelo' => $viewed->model, 'EAN' => $viewed->barcode,
+                'Garantia' => $viewed->warranty_months ? $viewed->warranty_months . ($viewed->warranty_months == 1 ? ' mês' : ' meses') : null,
+                'Condição' => $viewed->condition ? ($viewed->condition === 'new' ? 'Novo' : 'Usado') : null,
+            ])->filter();
+        @endphp
+        <x-dash.card title="Descrição e ficha técnica" :sub="$products->count() > 1 ? 'Da variação ' . ($viewed->variation_value ?: $viewed->product_code) . ' · é o que o cliente vê no portal' : 'É o que o cliente vê no portal'" icon="bi-card-text" tone="purple" span="dash-col-12">
+            <x-slot:actions>
+                <a href="{{ route('products.edit', $viewed) }}" class="inline-flex items-center gap-1 rounded-lg bg-violet-500/10 px-2.5 py-1.5 text-xs font-bold text-violet-600 dark:text-violet-300 hover:bg-violet-500/20"><i class="bi bi-pencil-square"></i> Editar</a>
+            </x-slot:actions>
+            <style>
+                .sp-info { display: grid; gap: 1rem; grid-template-columns: minmax(0, 1fr); }
+                @media (min-width: 900px) { .sp-info { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); } }
+                .sp-desc { white-space: pre-line; font-size: .85rem; line-height: 1.55; color: #334155; max-height: 18rem; overflow-y: auto; }
+                .dark .sp-desc { color: #cbd5e1; }
+                .sp-specs { display: grid; grid-template-columns: minmax(0, 1fr); border-radius: .75rem; overflow: hidden; border: 1px solid rgba(148,163,184,.25); }
+                .sp-specs > div { display: grid; grid-template-columns: minmax(7rem, 40%) minmax(0, 1fr); gap: .5rem; padding: .45rem .75rem; font-size: .78rem; }
+                .sp-specs > div:nth-child(odd) { background: rgba(139,92,246,.06); }
+                .sp-specs dt { color: #64748b; font-weight: 600; } .sp-specs dd { color: #1e293b; font-weight: 700; overflow-wrap: anywhere; }
+                .dark .sp-specs dt { color: #94a3b8; } .dark .sp-specs dd { color: #e2e8f0; }
+                .sp-gal { display: grid; grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr)); gap: .5rem; }
+                .sp-gal a { aspect-ratio: 1; border-radius: .6rem; overflow: hidden; background: #fff; border: 1px solid rgba(148,163,184,.3); display: block; }
+                .sp-gal img { width: 100%; height: 100%; object-fit: contain; }
+                .sp-h { font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; color: #8b5cf6; margin: 0 0 .4rem; }
+                .sp-chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-bottom: .75rem; }
+                .sp-chips span { font-size: .72rem; padding: .2rem .55rem; border-radius: 999px; background: rgba(99,102,241,.1); color: #4338ca; }
+                .dark .sp-chips span { background: rgba(129,140,248,.15); color: #c7d2fe; }
+                .sp-chips b { font-weight: 800; }
+            </style>
+            @if(trim((string) $viewed->description) === '' && $vSpecs->isEmpty() && $vMeta->isEmpty() && count($vImgs) <= 1)
+                <x-dash.empty icon="bi-card-text" message="Sem descrição nem ficha técnica. Em Editar, use “Puxar do ML” para trazer do catálogo do Mercado Livre." />
+            @else
+                <div class="sp-info">
+                    <div>
+                        @if($vMeta->isNotEmpty())
+                            <div class="sp-chips">@foreach($vMeta as $k => $v)<span>{{ $k }}: <b>{{ $v }}</b></span>@endforeach</div>
+                        @endif
+                        <p class="sp-h">Descrição</p>
+                        @if(trim((string) $viewed->description) !== '')
+                            <div class="sp-desc">{{ $viewed->description }}</div>
+                        @else
+                            <p class="text-xs text-slate-400">Sem descrição.</p>
+                        @endif
+                    </div>
+                    <div class="space-y-3">
+                        @if($vSpecs->isNotEmpty())
+                            <div>
+                                <p class="sp-h">Ficha técnica</p>
+                                <dl class="sp-specs">@foreach($vSpecs as $sp)<div><dt>{{ $sp['n'] }}</dt><dd>{{ $sp['v'] }}</dd></div>@endforeach</dl>
+                            </div>
+                        @endif
+                        @if(count($vImgs))
+                            <div>
+                                <p class="sp-h">Fotos ({{ count($vImgs) }})</p>
+                                <div class="sp-gal">@foreach($vImgs as $src)<a href="{{ $src }}" target="_blank" rel="noopener"><img src="{{ $src }}" alt="{{ $viewed->name }}" loading="lazy"></a>@endforeach</div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            @endif
+        </x-dash.card>
+
         {{-- Variações — mesmos cards da listagem de produtos --}}
         @if($products->count() > 1)
         <x-dash.card title="Variações" :sub="$products->count() . ' variações deste produto'" icon="bi-layers" tone="rose" span="dash-col-12">

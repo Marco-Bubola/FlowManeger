@@ -159,6 +159,13 @@
             </div>
             @endif
 
+            @if(($famCount = $this->mlFamilyCount) > 0)
+            <div class="mi-sec" style="border-color: rgba(139,92,246,.45); background: rgba(139,92,246,.07);">
+                <label class="mi-sec-h"><input type="checkbox" wire:model="mlToFamily"><b><i class="bi bi-diagram-3"></i> Levar também para as {{ $famCount }} outras {{ $famCount === 1 ? 'variação' : 'variações' }}</b>
+                    <small>Fotos, descrição, ficha técnica e marca. Nome, código e EAN de cada uma ficam como estão; capa só em quem não tem foto.</small></label>
+            </div>
+            @endif
+
             @if($mlSearchError)<div class="mi-err">{{ $mlSearchError }}</div>@endif
         @endif
     </div>

@@ -243,11 +243,14 @@ class EditProduct extends Component
                 throw new \Exception('Falha ao atualizar o produto no banco de dados.');
             }
 
+            // O que veio do ML vai também para as outras variações
+            $family = $this->propagateMlToFamily($this->product);
+
             // Emite evento para atualizar a lista
             $this->dispatch('product-updated');
 
             // Notifica sucesso (exibe o nome já sanitizado)
-            $this->notifySuccess('Produto "' . $this->name . '" atualizado com sucesso!');
+            $this->notifySuccess('Produto "' . $this->name . '" atualizado com sucesso!' . ($family ? " Descrição e ficha também nas {$family} outras variações." : ''));
 
             // Redireciona diretamente
             return redirect()->route('products.index');

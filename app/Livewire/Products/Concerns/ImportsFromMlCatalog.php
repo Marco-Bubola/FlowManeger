@@ -31,6 +31,10 @@ trait ImportsFromMlCatalog
     public array $mlPendingPhotos = [];
     public string $mlPendingCover = '';
 
+    // Variações: o que veio do ML também vai para as outras variações da família
+    public bool $mlToFamily = true;
+    public array $mlFamilyTake = [];    // campos de texto a copiar ao salvar: desc, specs, brand
+
     /** Produto que recebe fotos e capa na hora (null = ainda não foi salvo). */
     abstract protected function mlTargetProduct(): ?Product;
 
@@ -49,6 +53,74 @@ trait ImportsFromMlCatalog
             return $p->image && $p->image !== 'product-placeholder.png';
         }
         return (bool) ($this->image ?? null) || $this->mlPendingCover !== '';
+    }
+
+    /** As outras variações da família do produto (vazio se não tiver variações). */
+    protected function mlFamilyOthers(): \Illuminate\Support\Collection
+    {
+        $p = $this->mlTargetProduct();
+        if (!$p || !$p->hasVariations()) {
+            return collect();
+        }
+        return $p->family()->where('id', '!=', $p->id)->get();
+    }
+
+    public function getMlFamilyCountProperty(): int
+    {
+        return $this->mlFamilyOthers()->count();
+    }
+
+    /** Campos da ficha que são de cada variação (cor, tamanho...) e não são copiados. */
+    protected static function mlIsVariantSpec(string $name): bool
+    {
+        $n = mb_strtolower(trim($name));
+        foreach (['cor', 'color', 'tamanho', 'size', 'tonalidade', 'tom ', 'sabor', 'fragr', 'aroma', 'voltagem', 'numeração', 'estampa'] as $k) {
+            if ($n === trim($k) || str_starts_with($n, $k)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Depois de salvar: descrição, ficha técnica, marca e modelo trazidos do ML vão
+     * para as outras variações. Na ficha, o que é de cada variação (cor, tamanho...) fica.
+     */
+    protected function propagateMlToFamily(Product $saved): int
+    {
+        $take = $this->mlFamilyTake;
+        $this->mlFamilyTake = [];
+        if (!$take) {
+            return 0;
+        }
+        $saved->refresh();
+        $count = 0;
+        foreach ($saved->family()->where('id', '!=', $saved->id)->get() as $other) {
+            $data = [];
+            if (!empty($take['desc']) && trim((string) $saved->description) !== '') {
+                $data['description'] = $saved->description;
+            }
+            if (!empty($take['specs']) && !empty($saved->specs)) {
+                $merged = collect($other->specs ?? [])->keyBy(fn ($s) => mb_strtolower($s['n'] ?? ''));
+                foreach ($saved->specs as $s) {
+                    $key = mb_strtolower($s['n'] ?? '');
+                    if ($key === '' || self::mlIsVariantSpec($key)) {
+                        continue;
+                    }
+                    $merged[$key] = ['n' => $s['n'], 'v' => $s['v']];
+                }
+                $data['specs'] = $merged->values()->take(60)->all() ?: null;
+            }
+            if (!empty($take['brand'])) {
+                if ($saved->brand) { $data['brand'] = $saved->brand; }
+                if ($saved->model) { $data['model'] = $saved->model; }
+            }
+            if ($data) {
+                $other->update($data);
+                $count++;
+            }
+        }
+        return $count;
     }
 
     /** Liga as fotos do ML na galeria (sem repetir). Devolve quantas entraram. */
@@ -262,9 +334,14 @@ trait ImportsFromMlCatalog
         $chosen = collect($d['pictures'])->filter(fn ($u, $i) => !empty($this->mlPhotos[$i]))->values();
         $target = $this->mlTargetProduct();
 
+        $others = $this->mlToFamily ? $this->mlFamilyOthers() : collect();
+
         if ($target) {
             // Produto já existe: fotos entram na galeria na hora (são links do ML).
             $added = $this->attachMlPhotos($target, $chosen->all());
+            foreach ($others as $other) {
+                $this->attachMlPhotos($other, $chosen->all());
+            }
         } else {
             // Produto novo: guarda e entra na galeria quando salvar.
             $before = count($this->mlPendingPhotos);
@@ -280,11 +357,30 @@ trait ImportsFromMlCatalog
             if ($target) {
                 if ($this->saveCoverFromUrl($target, $cover)) {
                     $done[] = 'imagem principal';
+                    // Variação sem foto ganha a mesma capa; quem já tem foto própria fica com a dela.
+                    // Cada uma ganha a própria cópia do arquivo (trocar a foto de uma não apaga a da outra).
+                    $file = $target->fresh()->image;
+                    foreach ($others as $other) {
+                        if ((!$other->image || $other->image === 'product-placeholder.png') && Storage::disk('public')->exists('products/' . $file)) {
+                            $copy = 'ml_' . $other->id . '_' . \Illuminate\Support\Str::random(8) . '.' . pathinfo($file, PATHINFO_EXTENSION);
+                            Storage::disk('public')->copy('products/' . $file, 'products/' . $copy);
+                            $other->update(['image' => $copy]);
+                        }
+                    }
                 }
             } else {
                 $this->mlPendingCover = $cover;
                 $done[] = 'imagem principal';
             }
+        }
+
+        if ($others->isNotEmpty() && $done) {
+            $this->mlFamilyTake = array_filter([
+                'desc'  => !empty($t['desc']),
+                'specs' => !empty($t['specs']) && !empty($d['specs']),
+                'brand' => !empty($t['brand']),
+            ]);
+            $done[] = 'também nas ' . $others->count() . ' outras variações';
         }
 
         $this->mlAfterApply();

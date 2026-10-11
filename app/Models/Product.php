@@ -112,17 +112,22 @@ class Product extends Model
     {
         $urls = [];
 
+        // Foto principal primeiro (é a foto própria da variação: cor, tom...). Capa que veio do
+        // Mercado Livre (arquivo ml_*) já está na galeria como link, então não repete.
+        $main = $this->getImageUrlAttribute();
+        $own = $main && !str_ends_with($main, 'product-placeholder.png') && !str_starts_with((string) $this->image, 'ml_');
+        if ($own) {
+            $urls[] = $main;
+        }
+
         // Galeria extra (nova tabela)
         foreach ($this->images as $img) {
             $urls[] = $img->url;
         }
 
-        // Se não há galeria, usa a imagem principal como fallback
-        if (empty($urls)) {
-            $main = $this->getImageUrlAttribute();
-            if ($main && !str_ends_with($main, 'product-placeholder.png')) {
-                $urls[] = $main;
-            }
+        // Sem galeria, a capa do ML também vale
+        if (empty($urls) && $main && !str_ends_with($main, 'product-placeholder.png')) {
+            $urls[] = $main;
         }
 
         return array_values(array_unique($urls));
