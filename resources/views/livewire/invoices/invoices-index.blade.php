@@ -889,37 +889,9 @@
 
     <!-- Delete Confirmation Modal -->
     @if ($showDeleteModal)
-        <div
-            class="fixed inset-0 bg-gray-600/50 dark:bg-gray-900/70 backdrop-blur-sm overflow-y-auto h-full w-full z-50">
-            <div
-                class="relative top-20 mx-auto p-5 border border-white/20 w-96 shadow-2xl rounded-2xl bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl">
-                <div class="mt-3 text-center">
-                    <div
-                        class="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 shadow-lg">
-                        <svg class="h-8 w-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
-                            </path>
-                        </svg>
-                    </div>
-                    <h3 class="text-xl font-black text-gray-900 dark:text-white mt-4">🗑️ Excluir Transação</h3>
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 px-4">
-                        Tem certeza que deseja excluir esta transação? Esta ação não pode ser desfeita e todos os dados
-                        serão perdidos permanentemente.
-                    </p>
-                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mt-6 px-4">
-                        <button wire:click="cancelDelete"
-                            class="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 shadow-lg transform hover:-translate-y-1">
-                            🔙 Cancelar
-                        </button>
-                        <button wire:click="deleteInvoice"
-                            class="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-300 shadow-lg transform hover:-translate-y-1">
-                            🗑️ Excluir
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-delete-dialog confirm="deleteInvoice" cancel="cancelDelete" title="Excluir compra?" confirm-label="Excluir compra" icon="bi-receipt">
+            Esta compra será apagada da fatura. Não dá para desfazer.
+        </x-delete-dialog>
     @endif
 
     <!-- Custom Styles -->

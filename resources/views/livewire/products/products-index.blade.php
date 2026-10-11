@@ -484,131 +484,14 @@
 
     <!-- Modal de Confirmação de Exclusão Ultra Moderno -->
     @if ($showDeleteModal)
-        <div x-data="{ modalOpen: true }" x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" class="fixed inset-0 z-[99999] overflow-y-auto">
-            <!-- Backdrop com blur e gradiente -->
-            <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md">
-            </div>
-
-            <!-- Container do Modal -->
-            <div class="flex min-h-full items-center justify-center p-4">
-                <!-- Modal -->
-                <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
-                    x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
-                    x-transition:leave="transition ease-in duration-200"
-                    x-transition:leave-start="opacity-100 transform translate-y-0 scale-100"
-                    x-transition:leave-end="opacity-0 transform translate-y-8 scale-95"
-                    class="relative w-full max-w-lg mx-4 bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
-
-                    <!-- Efeitos visuais de fundo -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
-                    <div
-                        class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl">
-                    </div>
-                    <div
-                        class="absolute -bottom-24 -left-24 w-48 h-48 bg-gradient-to-br from-pink-400/20 to-red-600/20 rounded-full blur-3xl">
-                    </div>
-
-                    <!-- Conteúdo do Modal -->
-                    <div class="relative z-10">
-                        <!-- Header com ícone animado -->
-                        <div class="text-center pt-8 pb-4">
-                            <div class="relative inline-flex items-center justify-center">
-                                <!-- Círculos de fundo animados -->
-                                <div
-                                    class="absolute w-24 h-24 bg-gradient-to-r from-red-400/30 to-pink-500/30 rounded-full animate-pulse">
-                                </div>
-                                <div
-                                    class="absolute w-20 h-20 bg-gradient-to-r from-red-500/40 to-pink-600/40 rounded-full animate-ping">
-                                </div>
-
-                                <!-- Ícone principal -->
-                                <div
-                                    class="relative w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-full flex items-center justify-center shadow-lg">
-                                    <i class="bi bi-exclamation-triangle text-2xl text-white animate-bounce"></i>
-                                </div>
-                            </div>
-
-                            <h3 class="mt-4 text-2xl font-bold text-gray-800 dark:text-white">
-                                <i class="bi bi-shield-exclamation text-red-500 mr-2"></i>
-                                Confirmar Exclusão
-                            </h3>
-                            <p class="mt-2 text-sm text-gray-600 dark:text-gray-300 font-medium">
-                                <i class="bi bi-info-circle text-amber-500 mr-1"></i>
-                                Esta ação não pode ser desfeita
-                            </p>
-                        </div>
-
-                        <!-- Corpo com informações -->
-                        <div class="px-8 pb-4">
-                            <div
-                                class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl p-4 border border-red-200/50 dark:border-red-700/50">
-                                @if (count($selectedProducts) > 0)
-                                    <div class="text-center">
-                                        <i class="bi bi-boxes text-3xl text-red-500 mb-2"></i>
-                                        <p class="text-gray-700 dark:text-gray-300">
-                                            Você está prestes a excluir
-                                            <span
-                                                class="font-bold text-red-600 dark:text-red-400">{{ count($selectedProducts) }}
-                                                produto(s)</span>
-                                            selecionado(s).
-                                        </p>
-                                    </div>
-                                @else
-                                    <div class="text-center">
-                                        <i class="bi bi-box text-3xl text-red-500 mb-2"></i>
-                                        <p class="text-gray-700 dark:text-gray-300">
-                                            Você está prestes a excluir o produto:
-                                        </p>
-                                        <p class="font-bold text-red-600 dark:text-red-400 text-lg mt-1">
-                                            "{{ $deletingProduct->name ?? '' }}"
-                                        </p>
-                                    </div>
-                                @endif
-                            </div>
-
-                            <!-- Aviso adicional -->
-                            <div
-                                class="mt-4 flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400">
-                                <i class="bi bi-clock-history"></i>
-                                <span class="text-sm font-medium">Esta ação é permanente</span>
-                            </div>
-                        </div>
-
-                        <!-- Botões de ação -->
-                        <div class="px-8 pb-8">
-                            <div class="flex gap-4">
-                                <!-- Botão Cancelar -->
-                                <button wire:click="$set('showDeleteModal', false)" @click="modalOpen = false"
-                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 dark:from-gray-700 dark:to-gray-600 dark:hover:from-gray-600 dark:hover:to-gray-500 text-gray-700 dark:text-gray-200 font-medium rounded-xl border border-gray-300 dark:border-gray-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                    <i class="bi bi-x-circle mr-2"></i>
-                                    Cancelar
-                                </button>
-
-                                <!-- Botão Excluir -->
-                                <button wire:click="delete"
-                                    class="flex-1 inline-flex items-center justify-center px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 border-2 border-red-400/50">
-                                    <i class="bi bi-trash3 mr-2"></i>
-                                    Excluir
-                                </button>
-                            </div>
-
-                            <!-- Botão de escape -->
-                            <div class="mt-3 text-center">
-                                <button @click="modalOpen = false; $wire.set('showDeleteModal', false)"
-                                    class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200">
-                                    <i class="bi bi-escape mr-1"></i>
-                                    Pressione ESC para cancelar
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-delete-dialog confirm="delete" cancel="$set('showDeleteModal', false)" title="{{ count($selectedProducts) > 0 ? 'Excluir produtos?' : 'Excluir produto?' }}" confirm-label="Excluir" icon="bi-box-seam">
+            @if (count($selectedProducts) > 0)
+                <strong>{{ count($selectedProducts) }} produtos</strong> selecionados serão apagados.
+            @else
+                O produto <strong>{{ $deletingProduct->name ?? '' }}</strong> será apagado.
+            @endif
+            Não dá para desfazer.
+        </x-delete-dialog>
     @endif
 
     <!-- Modal de Dicas (Wizard) -->

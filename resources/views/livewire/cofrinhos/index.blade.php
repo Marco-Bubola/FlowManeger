@@ -166,30 +166,9 @@
 
     <!-- Modal de Confirmação de Exclusão -->
     @if($showDeleteModal)
-    <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div class="bg-white dark:bg-slate-900 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-            <div class="text-center">
-                <div class="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="bi bi-exclamation-triangle text-red-500 text-2xl"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Confirmar Exclusão</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-2">Tem certeza que deseja excluir o cofrinho?</p>
-                @if($deletingCofrinho)
-                <p class="text-lg font-semibold text-gray-900 dark:text-white mb-6">{{ $deletingCofrinho->nome }}</p>
-                @endif
-                <div class="flex gap-3 justify-center">
-                    <button wire:click="cancelDelete"
-                            class="px-5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                        Cancelar
-                    </button>
-                    <button wire:click="deleteCofrinho"
-                            class="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold shadow-sm transition">
-                        Excluir
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+        <x-delete-dialog confirm="deleteCofrinho" cancel="cancelDelete" title="Excluir cofrinho?" confirm-label="Excluir cofrinho" icon="bi-piggy-bank">
+            O cofrinho <strong>{{ $deletingCofrinho->nome ?? '' }}</strong> será apagado. Não dá para desfazer.
+        </x-delete-dialog>
     @endif
 
     <!-- Flash Messages -->

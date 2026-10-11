@@ -652,66 +652,9 @@
     @endif
 
     <!-- Modal Exclusão -->
-    <div class="fixed inset-0 z-[9999] overflow-y-auto overflow-x-hidden flex justify-center items-center w-full h-full bg-black/30 backdrop-blur-md"
-            x-show="showDeleteModal"
-            x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0"
-            x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200"
-            x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0"
-            wire:click="cancelDelete"
-            aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div class="relative p-4 w-full max-w-lg max-h-full transform transition-all duration-300 scale-100"
-                x-transition:enter="transition ease-out duration-300 delay-75"
-                x-transition:enter-start="opacity-0 scale-95 translate-y-4"
-                x-transition:enter-end="opacity-100 scale-100 translate-y-0"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 scale-100 translate-y-0"
-                x-transition:leave-end="opacity-0 scale-95 translate-y-4" wire:click.stop>
-                <div class="relative bg-white/95 dark:bg-zinc-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/30 dark:border-zinc-700/50 overflow-hidden">
-                    <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-500 via-orange-500 to-pink-600"></div>
-
-                    <div class="flex items-center justify-between p-6 border-b border-slate-200/50 dark:border-zinc-700/50">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center text-white shadow-lg">
-                                <i class="bi bi-trash text-lg"></i>
-                            </div>
-                            <h3 class="text-xl font-bold text-slate-900 dark:text-white" id="modal-title">
-                                Excluir Consórcio
-                            </h3>
-                        </div>
-                        <button type="button" wire:click="cancelDelete"
-                            class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 bg-slate-100/50 hover:bg-slate-200/70 dark:bg-zinc-700/50 dark:hover:bg-zinc-600/70 rounded-xl text-sm w-10 h-10 flex justify-center items-center transition-all duration-200 backdrop-blur-sm"
-                            title="Fechar">
-                            <i class="bi bi-x-lg text-lg"></i>
-                        </button>
-                    </div>
-
-                    <div class="p-6 text-center">
-                        <h3 class="mb-2 text-2xl font-bold text-slate-900 dark:text-white">
-                            Excluir Consórcio "{{ $deletingConsortium?->name }}"?
-                        </h3>
-                        <p class="mb-6 text-slate-600 dark:text-slate-400 leading-relaxed">
-                            Esta ação não pode ser desfeita. O consórcio e todos os seus dados (participantes, pagamentos, sorteios) serão <span class="font-semibold text-red-600 dark:text-red-400">permanentemente removidos</span>.
-                        </p>
-
-                        <div class="flex gap-3">
-                            <button wire:click="cancelDelete" type="button"
-                                class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-slate-700 dark:text-slate-300 bg-slate-100/70 dark:bg-zinc-700/70 hover:bg-slate-200/80 dark:hover:bg-zinc-600/80 rounded-xl font-semibold transition-all duration-200 backdrop-blur-sm border border-slate-200/50 dark:border-zinc-600/50 shadow-lg hover:shadow-xl transform hover:scale-105">
-                                <i class="bi bi-shield-check text-lg"></i>
-                                <span>Cancelar</span>
-                            </button>
-                            <button wire:click="deleteConsortium" type="button"
-                                class="flex-1 flex items-center justify-center gap-2 px-6 py-3 text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 rounded-xl font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 ring-2 ring-red-500/20 focus:ring-4 focus:ring-red-500/40">
-                                <i class="bi bi-trash-fill text-lg"></i>
-                                <span>Confirmar Exclusão</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <x-delete-dialog show="showDeleteModal" confirm="deleteConsortium" cancel="cancelDelete" title="Excluir consórcio?" confirm-label="Excluir consórcio" icon="bi-people">
+        @if($deletingConsortium) O consórcio <strong>{{ $deletingConsortium->name }}</strong> e as parcelas dele serão apagados. @else O consórcio e as parcelas dele serão apagados. @endif Não dá para desfazer.
+    </x-delete-dialog>
 
     <!-- Componente de Exportar (Livewire) -->
     @livewire('consortiums.export-consortium')

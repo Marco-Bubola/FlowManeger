@@ -604,61 +604,9 @@
 
     <!-- Delete Confirmation Modal -->
     @if ($showDeleteModal)
-        <div x-data="{ modalOpen: true }" x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
-            x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
-            x-transition:leave="transition ease-in duration-200" x-transition:leave-start="opacity-100"
-            x-transition:leave-end="opacity-0" class="fixed inset-0 z-[99999] overflow-y-auto">
-            <!-- Backdrop -->
-            <div class="fixed inset-0 bg-gradient-to-br from-black/60 via-gray-900/80 to-red-900/40 backdrop-blur-md">
-            </div>
-
-            <!-- Modal Container -->
-            <div class="flex min-h-full items-center justify-center p-4">
-                <div x-show="modalOpen" x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform translate-y-8 scale-95"
-                    x-transition:enter-end="opacity-100 transform translate-y-0 scale-100"
-                    class="relative w-full max-w-lg bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden">
-
-                    <!-- Efeitos visuais -->
-                    <div class="absolute inset-0 bg-gradient-to-br from-red-500/5 via-transparent to-pink-500/5"></div>
-                    <div
-                        class="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-red-400/20 to-pink-600/20 rounded-full blur-3xl">
-                    </div>
-
-                    <!-- Content -->
-                    <div class="relative z-10 p-8">
-                        <div class="text-center">
-                            <div
-                                class="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl mb-4 shadow-2xl">
-                                <i class="fas fa-trash-alt text-white text-3xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-black text-gray-900 dark:text-white mb-2">Excluir Transação?</h3>
-                            <p class="text-gray-600 dark:text-gray-400 mb-6">
-                                Esta ação é permanente e não pode ser desfeita.
-                            </p>
-                            @if ($deletingTransaction)
-                                <p
-                                    class="text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700/50 rounded-xl p-3 mb-6">
-                                    <strong>#{{ $deletingTransaction->id }}</strong> —
-                                    {{ $deletingTransaction->description ?? 'Sem descrição' }}
-                                </p>
-                            @endif
-                        </div>
-
-                        <div class="flex gap-3">
-                            <button wire:click="$set('showDeleteModal', false)"
-                                class="flex-1 px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 font-bold rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
-                                Cancelar
-                            </button>
-                            <button wire:click="deleteTransaction"
-                                class="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white font-bold rounded-xl hover:from-red-600 hover:to-pink-700 transition-all duration-200 shadow-lg hover:shadow-xl">
-                                Excluir
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-delete-dialog confirm="deleteTransaction" cancel="$set('showDeleteModal', false)" title="Excluir lançamento?" confirm-label="Excluir lançamento" icon="bi-journal-x">
+            O lançamento <strong>{{ $deletingTransaction->description ?? 'sem descrição' }}</strong> será apagado do livro caixa. Não dá para desfazer.
+        </x-delete-dialog>
     @endif
 
     <!-- Custom Styles -->

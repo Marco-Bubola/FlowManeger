@@ -319,59 +319,9 @@
 
     <!-- Modal de Confirmação de Exclusão -->
     @if($showDeleteModal)
-        <div class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-            <div class="relative bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 max-w-md w-full transform transition-all duration-300 scale-100">
-                <!-- Header do Modal -->
-                <div class="relative bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 rounded-t-2xl px-6 py-5">
-                    <div class="flex items-center justify-center">
-                        <div class="w-14 h-14 bg-white bg-opacity-20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                            <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-bold text-white text-center mt-3">Confirmar Exclusão</h3>
-                </div>
-
-                <!-- Conteúdo do Modal -->
-                <div class="p-6">
-                    @if($deletingCategory)
-                        <!-- Informações da Categoria -->
-                        <div class="text-center mb-5">
-                            <div class="w-16 h-16 rounded-xl flex items-center justify-center text-white mx-auto mb-3 shadow-lg text-2xl"
-                                 style="background: linear-gradient(135deg, {{ $deletingCategory->hexcolor_category ?? '#6366f1' }}, {{ $deletingCategory->hexcolor_category ?? '#6366f1' }}cc)">
-                                <i class="fas fa-tag"></i>
-                            </div>
-                            <h4 class="text-lg font-bold text-slate-900 dark:text-slate-100 mb-2">{{ $deletingCategory->name ?? $deletingCategory->description }}</h4>
-                            <p class="text-slate-600 dark:text-slate-400 text-sm">{{ $deletingCategory->desc_category ?? $deletingCategory->description }}</p>
-                        </div>
-
-                        <!-- Aviso -->
-                        <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/30 border border-red-200 dark:border-red-700 rounded-xl p-4 mb-5">
-                            <div class="flex items-start gap-3">
-                                <i class="fas fa-exclamation-triangle text-red-600 dark:text-red-400 mt-1 flex-shrink-0"></i>
-                                <div>
-                                    <h5 class="font-bold text-red-900 dark:text-red-100 mb-1 text-sm">Atenção!</h5>
-                                    <p class="text-red-800 dark:text-red-300 text-sm">
-                                        Esta ação não pode ser desfeita. A categoria será permanentemente removida do sistema.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-
-                    <!-- Botões de Ação -->
-                    <div class="flex flex-col sm:flex-row gap-3">
-                        <button wire:click="cancelDelete"
-                                class="flex-1 px-5 py-3 bg-gradient-to-r from-slate-100 to-slate-200 dark:from-slate-600 dark:to-slate-700 text-slate-800 dark:text-slate-200 font-bold rounded-xl hover:from-slate-200 hover:to-slate-300 dark:hover:from-slate-500 dark:hover:to-slate-600 transition-all duration-300 transform hover:scale-105 shadow-md">
-                            <i class="fas fa-times mr-2"></i> Cancelar
-                        </button>
-                        <button wire:click="deleteCategory"
-                                class="flex-1 px-5 py-3 bg-gradient-to-r from-red-500 to-red-600 dark:from-red-600 dark:to-red-700 text-white font-bold rounded-xl hover:from-red-600 hover:to-red-700 dark:hover:from-red-700 dark:hover:to-red-800 transition-all duration-300 transform hover:scale-105 shadow-md">
-                            <i class="fas fa-trash mr-2"></i> Excluir
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-delete-dialog confirm="deleteCategory" cancel="cancelDelete" title="Excluir categoria?" confirm-label="Excluir categoria" icon="bi-tag">
+            A categoria <strong>{{ $deletingCategory->name ?? $deletingCategory->description ?? '' }}</strong> será apagada. Não dá para desfazer.
+        </x-delete-dialog>
     @endif
     </div>
 

@@ -610,75 +610,9 @@
 
     <!-- Modal de Delete Moderno -->
     @if ($showDeleteModal)
-        <div id="deleteBankModal"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-            <div class="relative p-6 w-full max-w-md max-h-full">
-                <div
-                    class="relative bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/30">
-                    <!-- Modal header -->
-                    <div
-                        class="flex items-center justify-between p-6 border-b border-gray-200/50 dark:border-gray-600/50 rounded-t-3xl">
-                        <div class="flex items-center">
-                            <div class="bg-gradient-to-r from-red-500 to-pink-500 rounded-xl p-2 mr-3">
-                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                                Confirmar Exclusão
-                            </h3>
-                        </div>
-                        <button type="button" wire:click="closeDeleteModal"
-                            class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-xl p-2 transition-colors duration-200 dark:hover:bg-gray-600 dark:hover:text-white">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M6 18L18 6M6 6l12 12"></path>
-                            </svg>
-                        </button>
-                    </div>
-
-                    <!-- Modal body -->
-                    <div class="p-6 text-center">
-                        <div
-                            class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-gradient-to-r from-red-100 to-pink-100 dark:from-red-900/30 dark:to-pink-900/30 mb-4">
-                            <svg class="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                </path>
-                            </svg>
-                        </div>
-                        <h3 class="mb-5 text-lg font-bold text-gray-700 dark:text-gray-300">Tem certeza que deseja
-                            excluir este cartão?</h3>
-                        <p class="mb-8 text-sm text-gray-500 dark:text-gray-400">Esta ação não pode ser desfeita e
-                            todas as transações associadas a este cartão serão perdidas.</p>
-
-                        <div class="flex justify-center items-center space-x-4">
-                            <button type="button" wire:click="closeDeleteModal"
-                                class="inline-flex items-center text-gray-700 bg-white hover:bg-gray-100 border border-gray-300 rounded-xl text-sm font-medium px-5 py-3 transition-all duration-200 transform hover:scale-105 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"></path>
-                                </svg>
-                                Cancelar
-                            </button>
-                            <button type="button" wire:click="delete"
-                                class="inline-flex items-center text-white bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 rounded-xl text-sm font-medium px-5 py-3 transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16">
-                                    </path>
-                                </svg>
-                                Sim, excluir
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <x-delete-dialog confirm="delete" cancel="closeDeleteModal" title="Excluir cartão?" confirm-label="Excluir cartão" icon="bi-credit-card">
+            O cartão <strong>{{ $deletingBank->name ?? '' }}</strong> e as faturas dele serão apagados. Não dá para desfazer.
+        </x-delete-dialog>
     @endif
 
     <!-- Estilos CSS Modernos -->
