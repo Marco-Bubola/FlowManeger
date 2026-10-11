@@ -3,6 +3,7 @@
 @import './product-show.css';
 @import './custom-create-invoice.css';
 @import './app-mobile.css';
+@import './fa-shim.css';
 
 @source '../views';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
