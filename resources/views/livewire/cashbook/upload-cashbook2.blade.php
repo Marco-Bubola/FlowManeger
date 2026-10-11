@@ -46,59 +46,44 @@
             @if (!$showConfirmation)
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="w-full xl:w-auto">
-                        <div
-                            class="bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70 h-full flex flex-col">
-                            <div class="flex items-center gap-3 mb-6">
-                                <div
-                                    class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-                                    <i class="bi bi-file-earmark-arrow-up-fill text-white text-lg"></i>
-                                </div>
+                        <div class="fm-imp-card h-full">
+                            <div class="fm-imp-head">
+                                <span class="fm-imp-head-icon"><i class="bi bi-file-earmark-arrow-up"></i></span>
                                 <div>
-                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Upload de Transações</h3>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Envie seu arquivo PDF ou CSV</p>
+                                    <h3>Enviar extrato</h3>
+                                    <p>PDF ou CSV do extrato da conta</p>
                                 </div>
                             </div>
 
-                            <div class="flex-1 flex items-center justify-center">
-                                <x-file-upload name="file" id="file" wireModel="newFile"
-                                    title="Upload do Arquivo" description="Clique ou arraste seu arquivo aqui"
-                                    :newFile="$file" height="h-[400px]" :supportedFormats="['PDF (.pdf)', 'CSV (.csv)']" maxSize="10MB" />
-                            </div>
+                            <x-file-upload name="file" id="file" wireModel="newFile"
+                                :newFile="$file" :supportedFormats="['PDF', 'CSV']" maxSize="10 MB" />
 
                             @error('newFile')
-                                <div class="mt-4 flex items-start gap-2 text-xs text-red-400">
-                                    <i class="bi bi-exclamation-circle text-red-400 mt-0.5"></i>
-                                    <p>{{ $message }}</p>
-                                </div>
+                                <div class="fm-imp-note text-red-500"><i class="bi bi-exclamation-circle mt-0.5"></i><p>{{ $message }}</p></div>
                             @enderror
 
-                            @if ($file)
-                                <div class="mt-6">
-                                    <button wire:click="uploadFile" wire:loading.attr="disabled" type="button"
-                                        class="w-full px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed">
-                                        <span wire:loading.remove wire:target="uploadFile">
-                                            <i class="bi bi-lightning-charge-fill"></i>
-                                            Processar Arquivo
-                                        </span>
-                                        <span wire:loading wire:target="uploadFile">
-                                            <i class="bi bi-arrow-repeat animate-spin"></i>
-                                            Processando...
-                                        </span>
-                                    </button>
-                                </div>
+                            @if($file)
+                                <button type="button" wire:click="uploadFile" wire:loading.attr="disabled" wire:target="uploadFile" class="fm-imp-go">
+                                    <span wire:loading.remove wire:target="uploadFile"><i class="bi bi-lightning-charge-fill mr-1"></i>Processar arquivo</span>
+                                    <span wire:loading wire:target="uploadFile"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Lendo o arquivo...</span>
+                                </button>
                             @endif
 
-                            <div class="mt-4 flex items-start gap-2 text-xs text-slate-400">
-                                <i class="bi bi-info-circle text-green-400 mt-0.5"></i>
-                                <p>PDF, CSV • Máx 10MB • Arquivo com transações do livro caixa</p>
+                            <div class="mt-4">
+                                <x-import-steps :steps="[['Enviar', 'PDF ou CSV do extrato'], ['Conferir', 'Categoria de cada lançamento'], ['Salvar', 'Os lançamentos entram no livro caixa']]" />
                             </div>
+                            <p class="fm-imp-note"><i class="bi bi-info-circle mt-0.5"></i>Ao salvar, lançamentos que já estão no livro caixa são pulados (não duplicam).</p>
                         </div>
                     </div>
 
                     <div class="space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico de Uploads</h3>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">Últimos 10</span>
+                        <div class="fm-imp-head" style="margin-bottom:0">
+                            <span class="fm-imp-head-icon"><i class="bi bi-clock-history"></i></span>
+                            <div>
+                                <h3>Histórico de importações</h3>
+                                <p>Os arquivos que você já enviou</p>
+                            </div>
+                            <span class="fm-imp-head-chip"><i class="bi bi-files"></i>Últimos 10</span>
                         </div>
 
                         @if ($uploadHistory && count($uploadHistory) > 0)
@@ -248,68 +233,6 @@
                     </div>
                 </div>
 
-                <div class="mt-8 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div
-                        class="group bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 card-hover">
-                        <div class="flex items-start space-x-4">
-                            <div
-                                class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl shadow-lg animate-float">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-blue-900 dark:text-blue-200 mb-2">💡 Processamento Inteligente
-                                </h3>
-                                <p class="text-sm text-blue-800 dark:text-blue-300">Nosso sistema identifica
-                                    automaticamente categorias com base na descrição das transações</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div
-                        class="group bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 card-hover">
-                        <div class="flex items-start space-x-4">
-                            <div
-                                class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl shadow-lg animate-glow">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-green-900 dark:text-green-200 mb-2">⚡ Análise Rápida</h3>
-                                <p class="text-sm text-green-800 dark:text-green-300">Processe centenas de transações
-                                    em
-                                    segundos com nossa tecnologia avançada</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div
-                        class="group bg-gradient-to-br from-purple-50 to-pink-100 dark:from-purple-900/20 dark:to-pink-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-700 hover:shadow-xl transition-all duration-300 transform hover:scale-105 card-hover">
-                        <div class="flex items-start space-x-4">
-                            <div
-                                class="flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl shadow-lg">
-                                <svg class="w-6 h-6 text-white animate-pulse" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z">
-                                    </path>
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 class="font-bold text-purple-900 dark:text-purple-200 mb-2">🔒 Segurança Total</h3>
-                                <p class="text-sm text-purple-800 dark:text-purple-300">Seus dados financeiros são
-                                    processados com máxima segurança e privacidade</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             @else
                 <div class="w-full ">
 

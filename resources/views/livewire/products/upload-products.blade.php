@@ -146,139 +146,38 @@
             <div class="upload-main-grid grid grid-cols-1 lg:grid-cols-2 gap-6">
 
                 <div class="upload-left-col space-y-6">
-                    <div class="upload-stage-shell relative overflow-hidden rounded-[2rem] border border-slate-200/70 dark:border-slate-700/70 bg-gradient-to-br from-white via-indigo-50/70 to-sky-50/80 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-[0_24px_80px_-32px_rgba(79,70,229,0.35)]">
-                        <div class="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top_right,rgba(99,102,241,0.14),transparent_34%),radial-gradient(circle_at_bottom_left,rgba(14,165,233,0.12),transparent_30%)]"></div>
-                        <div class="relative p-4 sm:p-5 lg:p-6 space-y-5">
-                            <div class="flex flex-col gap-4 2xl:flex-row 2xl:items-center 2xl:justify-between">
-                                <div class="space-y-2">
-                                    <span class="inline-flex items-center gap-2 rounded-full border border-indigo-200/80 dark:border-indigo-500/30 bg-white/70 dark:bg-slate-800/70 px-3 py-1 text-[11px] font-black uppercase tracking-[0.24em] text-indigo-600 dark:text-indigo-300 shadow-sm backdrop-blur-sm">
-                                        <i class="bi bi-stars text-sky-500"></i>
-                                        Central de importação
-                                    </span>
-                                    <div>
-                                        <h3 class="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">Envie, processe e revise em um fluxo só</h3>
-                                        <p class="text-sm sm:text-[15px] text-slate-600 dark:text-slate-300 max-w-2xl">Envie o PDF do catálogo ou um CSV, confira os produtos encontrados e salve no estoque.</p>
-                                    </div>
-                                </div>
-
-                                <div class="upload-stage-badges grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                                    <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Formatos</p>
-                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">PDF e CSV</p>
-                                    </div>
-                                    <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Limite</p>
-                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Até 2 MB</p>
-                                    </div>
-                                    <div class="rounded-2xl border border-white/70 dark:border-slate-700/70 bg-white/85 dark:bg-slate-800/80 px-3 py-3 shadow-lg backdrop-blur-sm col-span-2 sm:col-span-1">
-                                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">Leitura</p>
-                                        <p class="mt-1 text-sm font-extrabold text-slate-800 dark:text-slate-100">Revisão assistida</p>
-                                    </div>
-                                </div>
+                    <div class="fm-imp-card">
+                        <div class="fm-imp-head">
+                            <span class="fm-imp-head-icon"><i class="bi bi-file-earmark-arrow-up"></i></span>
+                            <div>
+                                <h3>Enviar catálogo</h3>
+                                <p>PDF do pedido (Boticário/Eudora) ou planilha CSV</p>
                             </div>
+                        </div>
 
-                            <div class="flex items-center justify-center w-full">
-                                <label for="pdf_file" class="upload-drop-zone upload-drop-zone-premium group relative flex flex-col items-center justify-center w-full min-h-[560px] border-3 border-dashed border-slate-300/80 dark:border-slate-600 rounded-[2rem] cursor-pointer bg-gradient-to-br from-white/90 via-indigo-50/70 to-sky-50/60 dark:from-slate-800/90 dark:via-indigo-950/25 dark:to-sky-950/10 hover:from-white hover:via-indigo-50/80 hover:to-sky-50/70 dark:hover:from-slate-800 dark:hover:via-indigo-900/25 dark:hover:to-sky-900/20 backdrop-blur-xl transition-all duration-500 ease-out hover:border-indigo-400 dark:hover:border-indigo-400/70 hover:shadow-2xl hover:shadow-indigo-500/20 transform hover:scale-[1.01]">
-                                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 rounded-[2rem] animate-pulse"></div>
-                                    <div class="absolute inset-x-12 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent opacity-70"></div>
+                        <x-file-upload name="pdf_file" id="pdf_file" wireModel="pdf_file"
+                            :newFile="$pdf_file" :supportedFormats="['PDF', 'CSV']" maxSize="2 MB" />
 
-                                    <div class="absolute inset-0 overflow-hidden rounded-[2rem]">
-                                        <div class="absolute w-2 h-2 bg-purple-400/30 rounded-full animate-float" style="top: 20%; left: 15%; animation-delay: 0.2s;"></div>
-                                        <div class="absolute w-1 h-1 bg-indigo-400/40 rounded-full animate-float" style="top: 60%; right: 20%; animation-delay: 0.8s;"></div>
-                                        <div class="absolute w-3 h-3 bg-sky-300/20 rounded-full animate-float" style="bottom: 30%; left: 30%; animation-delay: 1.2s;"></div>
-                                        <div class="absolute top-10 right-12 h-20 w-20 rounded-full bg-indigo-400/10 blur-2xl"></div>
-                                        <div class="absolute bottom-12 left-10 h-24 w-24 rounded-full bg-sky-400/10 blur-3xl"></div>
-                                    </div>
+                        @if($pdf_file)
+                            <button type="button" wire:click="processUpload" wire:loading.attr="disabled" wire:target="processUpload" class="fm-imp-go">
+                                <span wire:loading.remove wire:target="processUpload"><i class="bi bi-lightning-charge-fill mr-1"></i>Processar arquivo</span>
+                                <span wire:loading wire:target="processUpload"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Lendo os produtos...</span>
+                            </button>
+                        @endif
 
-                                    <div class="relative flex flex-col items-center justify-center px-10 py-10 z-10">
-                                        @if($pdf_file)
-                                            <div class="relative group/file w-full h-full flex flex-col items-center justify-center">
-                                                <div class="relative">
-                                                    <i class="bi bi-file-earmark-pdf text-9xl text-red-500 group-hover:scale-110 transition-transform duration-500"></i>
-                                                    <div class="absolute -top-2 -right-2 bg-gradient-to-r from-emerald-400 via-green-500 to-teal-500 text-white rounded-full p-3 shadow-2xl shadow-green-500/40 animate-bounce">
-                                                        <i class="bi bi-check-lg text-lg font-bold"></i>
-                                                        <div class="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-30"></div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="mt-8 text-center space-y-4">
-                                                    <h3 class="text-2xl font-bold text-slate-700 dark:text-slate-200">
-                                                        {{ $pdf_file->getClientOriginalName() }}
-                                                    </h3>
-                                                    <p class="text-lg text-slate-500 dark:text-slate-400">
-                                                        Tamanho: {{ round($pdf_file->getSize() / 1024, 2) }} KB
-                                                    </p>
-                                                    <div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-600">
-                                                        <p class="text-sm font-bold bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-400 dark:to-indigo-400 bg-clip-text text-transparent flex items-center justify-center gap-2">
-                                                            <i class="bi bi-arrow-repeat text-purple-500 text-lg"></i>
-                                                            Clique para trocar o arquivo
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-[2rem] flex items-center justify-center backdrop-blur-sm">
-                                                    <i class="bi bi-arrow-repeat text-white text-4xl"></i>
-                                                </div>
-                                            </div>
-                                        @else
-                                            <div class="text-center space-y-8">
-                                                <div class="relative">
-                                                    <div class="relative">
-                                                        <i class="bi bi-cloud-arrow-up text-9xl text-slate-300 dark:text-slate-600 group-hover:text-indigo-400 dark:group-hover:text-indigo-400 transition-all duration-500 transform group-hover:scale-110"></i>
-                                                        <div class="absolute -bottom-2 -right-2 w-12 h-12 bg-gradient-to-r from-indigo-500 to-sky-500 rounded-full flex items-center justify-center shadow-lg animate-bounce group-hover:scale-125 transition-transform duration-300">
-                                                            <i class="bi bi-file-earmark-pdf text-white text-xl font-bold"></i>
-                                                        </div>
-                                                        <div class="absolute -top-4 -left-4 w-6 h-6 bg-indigo-400/30 rounded-full animate-pulse"></div>
-                                                        <div class="absolute -bottom-6 left-8 w-4 h-4 bg-sky-400/40 rounded-full animate-pulse" style="animation-delay: 0.5s;"></div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="space-y-4">
-                                                    <h3 class="text-2xl font-bold bg-gradient-to-r from-slate-700 via-indigo-600 to-sky-600 dark:from-slate-300 dark:via-indigo-300 dark:to-sky-300 bg-clip-text text-transparent transition-all duration-500">
-                                                        <i class="bi bi-file-earmark-arrow-up mr-3"></i>
-                                                        Upload de Produtos
-                                                    </h3>
-                                                    <p class="text-lg text-slate-500 dark:text-slate-400 font-medium leading-relaxed max-w-xl mx-auto">
-                                                        <span class="font-bold bg-gradient-to-r from-indigo-600 to-sky-600 bg-clip-text text-transparent">Clique ou arraste seu arquivo aqui</span>
-                                                        para iniciar uma importação mais limpa, rápida e pronta para revisão.
-                                                    </p>
-
-                                                    <div class="flex flex-wrap items-center justify-center gap-3 pt-4">
-                                                        <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
-                                                            <i class="bi bi-file-earmark-pdf text-red-500 mr-3 text-lg"></i>
-                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">PDF, CSV</span>
-                                                        </div>
-                                                        <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
-                                                            <i class="bi bi-hdd text-emerald-500 mr-3 text-lg"></i>
-                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Max. 2MB</span>
-                                                        </div>
-                                                        <div class="flex items-center bg-white/85 dark:bg-slate-800/85 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-600/60 group-hover:scale-105 transition-transform duration-300">
-                                                            <i class="bi bi-shield-check text-indigo-500 mr-3 text-lg"></i>
-                                                            <span class="text-sm font-bold text-slate-600 dark:text-slate-300">Validação guiada</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                    <input wire:model="pdf_file" id="pdf_file" name="pdf_file" type="file" class="hidden" accept=".pdf,.csv">
-                                </label>
-                            </div>
-
-                            {{-- ══════════ SELETOR DE FORMATO DE EXTRAÇÃO ══════════ --}}
-                            <div class="mb-4">
-                                <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
+                        {{-- ══════════ SELETOR DE FORMATO DE EXTRAÇÃO ══════════ --}}
+                            <div class="mt-4">
+                                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 flex items-center gap-1.5">
                                     <i class="bi bi-sliders"></i> Formato de leitura
                                 </p>
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                                     {{-- Padrão (regex) --}}
                                     <button type="button" wire:click="$set('extractionMode', 'standard')"
-                                        class="group flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all
+                                        class="group flex items-center gap-3 rounded-2xl border-2 px-3 py-2.5 text-left transition-all
                                             {{ $extractionMode === 'standard'
-                                                ? 'border-amber-400 bg-amber-50/80 dark:bg-amber-900/20 shadow-lg shadow-amber-500/10'
+                                                ? 'border-amber-400 bg-amber-50/80 dark:bg-amber-900/20 shadow-sm'
                                                 : 'border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 hover:border-amber-300' }}">
-                                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shrink-0 text-white
+                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm shrink-0 text-white
                                             {{ $extractionMode === 'standard' ? 'bg-gradient-to-br from-amber-500 to-orange-500' : 'bg-gradient-to-br from-slate-400 to-slate-500' }}">
                                             <i class="bi bi-lightning-charge-fill text-lg"></i>
                                         </div>
@@ -297,12 +196,12 @@
                                     <button type="button"
                                         @if($geminiEnabled) wire:click="$set('extractionMode', 'ai')" @endif
                                         @disabled(!$geminiEnabled)
-                                        class="group flex items-center gap-3 rounded-2xl border-2 px-4 py-3 text-left transition-all
+                                        class="group flex items-center gap-3 rounded-2xl border-2 px-3 py-2.5 text-left transition-all
                                             {{ !$geminiEnabled ? 'opacity-50 cursor-not-allowed border-slate-200/70 dark:border-slate-700 bg-white/60 dark:bg-slate-800/50' :
                                                ($extractionMode === 'ai'
-                                                ? 'border-indigo-400 bg-indigo-50/80 dark:bg-indigo-900/20 shadow-lg shadow-indigo-500/10'
+                                                ? 'border-indigo-400 bg-indigo-50/80 dark:bg-indigo-900/20 shadow-sm'
                                                 : 'border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 hover:border-indigo-300') }}">
-                                        <div class="w-11 h-11 rounded-2xl flex items-center justify-center shadow-lg shrink-0 text-white
+                                        <div class="w-9 h-9 rounded-xl flex items-center justify-center shadow-sm shrink-0 text-white
                                             {{ $extractionMode === 'ai' && $geminiEnabled ? 'bg-gradient-to-br from-indigo-500 to-purple-600' : 'bg-gradient-to-br from-slate-400 to-slate-500' }}">
                                             <i class="bi bi-robot text-lg"></i>
                                         </div>
@@ -321,41 +220,8 @@
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center shadow-lg">
-                                            <i class="bi bi-upload"></i>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">1. Envio</p>
-                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Selecione o arquivo</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white flex items-center justify-center shadow-lg">
-                                            <i class="bi bi-cpu"></i>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">2. Processamento</p>
-                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Extracao e leitura</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="rounded-2xl border border-slate-200/70 dark:border-slate-700 bg-white/85 dark:bg-slate-800/80 px-4 py-4 shadow-lg backdrop-blur-sm">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white flex items-center justify-center shadow-lg">
-                                            <i class="bi bi-check2-square"></i>
-                                        </div>
-                                        <div>
-                                            <p class="text-xs font-black uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">3. Revisão</p>
-                                            <p class="text-sm font-bold text-slate-800 dark:text-slate-100">Ajuste antes de salvar</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="mt-4">
+                            <x-import-steps :steps="[['Enviar', 'Escolha o PDF ou CSV'], ['Conferir', 'Ajuste fotos, preços e promoção'], ['Salvar', 'Os produtos entram no estoque']]" />
                         </div>
                     </div>
 

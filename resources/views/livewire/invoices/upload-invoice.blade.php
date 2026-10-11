@@ -91,51 +91,45 @@
                 <div class="upload-grid grid grid-cols-1 xl:grid-cols-2 gap-6">
                     <!-- Coluna 1: Upload Form -->
                     <div class="w-full xl:w-auto">
-                        <div class="upload-card bg-white dark:bg-slate-900/80 rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-200/80 dark:border-slate-700/70 h-full flex flex-col">
-                            <div class="flex items-center gap-3 mb-6">
-                                <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                                    <i class="bi bi-file-earmark-arrow-up-fill text-white text-lg"></i>
-                                </div>
+                        <div class="fm-imp-card h-full">
+                            <div class="fm-imp-head">
+                                <span class="fm-imp-head-icon"><i class="bi bi-file-earmark-arrow-up"></i></span>
                                 <div>
-                                    <h3 class="text-lg font-bold text-slate-900 dark:text-white">Upload de Transações</h3>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400">Envie seu arquivo PDF ou CSV</p>
+                                    <h3>Enviar fatura</h3>
+                                    <p>PDF ou CSV da fatura do cartão</p>
                                 </div>
                             </div>
 
-                            <div class="flex-1 flex items-center justify-center">
-                                <x-file-upload
-                                    name="file"
-                                    id="file"
-                                    wireModel="file"
-                                    title="Upload do Arquivo"
-                                    description="Clique ou arraste seu arquivo aqui"
-                                    :newFile="$file"
-                                    height="h-[400px]"
-                                    :supportedFormats="['PDF (.pdf)', 'CSV (.csv)']"
-                                    maxSize="10MB"
-                                    />
-                                </div>
+                            <x-file-upload name="file" id="file" wireModel="file"
+                                :newFile="$file" :supportedFormats="['PDF', 'CSV']" maxSize="10 MB" />
 
-                                @error('file')
-                                    <div class="mt-4 flex items-start gap-2 text-xs text-red-400">
-                                        <i class="bi bi-exclamation-circle text-red-400 mt-0.5"></i>
-                                        <p>{{ $message }}</p>
-                                    </div>
-                                @enderror
+                            @error('file')
+                                <div class="fm-imp-note text-red-500"><i class="bi bi-exclamation-circle mt-0.5"></i><p>{{ $message }}</p></div>
+                            @enderror
 
-                                <div class="mt-4 flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400">
-                                    <i class="bi bi-info-circle text-blue-400 mt-0.5"></i>
-                                    <p>PDF, CSV • Máx 10MB • Arquivo com transações bancárias</p>
-                                </div>
+                            @if($file)
+                                <button type="button" wire:click="uploadFile" wire:loading.attr="disabled" wire:target="uploadFile" class="fm-imp-go">
+                                    <span wire:loading.remove wire:target="uploadFile"><i class="bi bi-lightning-charge-fill mr-1"></i>Processar arquivo</span>
+                                    <span wire:loading wire:target="uploadFile"><i class="bi bi-arrow-repeat animate-spin mr-1"></i>Lendo o arquivo...</span>
+                                </button>
+                            @endif
+
+                            <div class="mt-4">
+                                <x-import-steps :steps="[['Enviar', 'PDF ou CSV da fatura'], ['Conferir', 'Categoria e cliente de cada compra'], ['Salvar', 'As compras entram na fatura']]" />
                             </div>
-
+                            <p class="fm-imp-note"><i class="bi bi-info-circle mt-0.5"></i>Compras que já estão na fatura aparecem marcadas como repetidas para você decidir.</p>
+                        </div>
                     </div>
 
                     <!-- Coluna 2: Histórico de Uploads -->
                     <div class="upload-history space-y-4">
-                        <div class="flex items-center justify-between">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Histórico de Uploads</h3>
-                            <span class="text-sm text-gray-500 dark:text-gray-400">Últimos 10</span>
+                        <div class="fm-imp-head" style="margin-bottom:0">
+                            <span class="fm-imp-head-icon"><i class="bi bi-clock-history"></i></span>
+                            <div>
+                                <h3>Histórico de importações</h3>
+                                <p>Os arquivos que você já enviou</p>
+                            </div>
+                            <span class="fm-imp-head-chip"><i class="bi bi-files"></i>Últimos 10</span>
                         </div>
 
                         @if($uploadHistory && count($uploadHistory) > 0)
